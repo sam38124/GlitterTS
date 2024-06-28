@@ -116,6 +116,9 @@ export class HtmlGenerate {
                             }
                         });
                     }
+                    dd.globalColor = function (key, index) {
+                        return `@{{theme_color.${index}.${key}}}`;
+                    };
                     if (!dd.bundle) {
                         try {
                             Object.defineProperty(dd, "bundle", {

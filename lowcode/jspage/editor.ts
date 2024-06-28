@@ -420,9 +420,9 @@ ${gvc.bindView(() => {
                                         ].join(`<div class="me-1"></div>`);
                                     }
                                 })()}
-                                <div
-                                    class="d-flex align-items-center justify-content-center hoverBtn ms-1 me-2 border bg-white
-${glitter.share.editorViewModel.homePage === glitter.getUrlParameter('page') ? `d-none` : ``}
+                                <div class="d-flex align-items-center justify-content-center hoverBtn ms-1 me-2 border bg-white
+${(glitter.share.editorViewModel.homePage === glitter.getUrlParameter('page')) ? `d-none` : ``}
+${(glitter.share.editor_vm) ? `d-none`:``}
 "
                                     style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
                                     data-bs-toggle="tooltip"
@@ -437,20 +437,19 @@ ${glitter.share.editorViewModel.homePage === glitter.getUrlParameter('page') ? `
                                 >
                                     <i class="fa-regular fa-house"></i>
                                 </div>
-                                <div
-                                    class="d-flex align-items-center justify-content-center hoverBtn  me-2 border"
-                                    style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
-                                    data-bs-toggle="tooltip"
-                                    data-bs-placement="top"
-                                    data-bs-custom-class="custom-tooltip"
-                                    data-bs-title="預覽應用"
-                                    onclick="${gvc.event(() => {
-                                        const url = new URL('', glitter.share.editorViewModel.domain ? `https://${glitter.share.editorViewModel.domain}/?page=index` : location.href);
-                                        url.searchParams.delete('type');
-                                        url.searchParams.set('page', glitter.getUrlParameter('page'));
-                                        glitter.openNewTab(url.href);
-                                    })}"
-                                >
+                                <div class="d-flex align-items-center justify-content-center hoverBtn  me-2 border
+${(glitter.share.editor_vm) ? `d-none`:``}
+"
+                                     style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
+                                     data-bs-toggle="tooltip" data-bs-placement="top"
+                                     data-bs-custom-class="custom-tooltip"
+                                     data-bs-title="預覽應用"
+                                     onclick="${gvc.event(() => {
+                                         const url = new URL("", (glitter.share.editorViewModel.domain) ? `https://${glitter.share.editorViewModel.domain}/?page=index` : location.href)
+                                         url.searchParams.delete('type')
+                                         url.searchParams.set("page", glitter.getUrlParameter("page"))
+                                         glitter.openNewTab(url.href)
+                                     })}">
                                     <i class="fa-regular fa-eye"></i>
                                 </div>
 

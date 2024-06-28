@@ -6,6 +6,8 @@ import { ApiPageConfig } from './api/pageConfig.js';
 import { BaseApi } from './glitterBundle/api/base.js';
 import { GlobalUser } from './glitter-base/global/global-user.js';
 import { GVCType, PageConfig } from './glitterBundle/module/PageManager.js';
+import {ColorThemeSelector} from "./form-view/editor/color-theme-selector.js";
+import {EditorConfig} from "./editor-config.js";
 
 export class Entry {
     public static onCreate(glitter: Glitter) {
@@ -26,7 +28,7 @@ export class Entry {
 
         (window as any).renderClock = (window as any).renderClock ?? clockF();
         console.log(`Entry-time:`, (window as any).renderClock.stop());
-        glitter.share.editerVersion = "V_8.6.9";
+        glitter.share.editerVersion = "V_8.7.0";
         glitter.share.start = (new Date());
         const vm: {
             appConfig: any;
@@ -420,36 +422,7 @@ export class Entry {
             config.globalValue = config.globalValue ?? [];
             config.globalStyleTag = config.globalStyleTag ?? [];
             config.color_theme.map((dd: any, index: number) => {
-                [
-                    {
-                        key: 'background',
-                        title: '背景顏色',
-                    },
-                    {
-                        key: 'title',
-                        title: '標題顏色',
-                    },
-                    {
-                        key: 'content',
-                        title: '內文',
-                    },
-                    {
-                        key: 'solid-button-bg',
-                        title: '純色按鈕',
-                    },
-                    {
-                        key: 'solid-button-text',
-                        title: '純色按鈕文字',
-                    },
-                    {
-                        key: 'border-button-bg',
-                        title: '邊框按鈕',
-                    },
-                    {
-                        key: 'border-button-text',
-                        title: '邊框按鈕文字',
-                    },
-                ].map((d2) => {
+                EditorConfig.color_setting_config.map((d2) => {
                     glitter.share.globalValue[`theme_color.${index}.${d2.key}`] = dd[d2.key];
                 });
             });

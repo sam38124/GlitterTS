@@ -12,6 +12,7 @@ import {NormalPageEditor} from "../../editor/normal-page-editor.js";
 import {StyleEditor} from "../plugins/style-editor.js";
 import * as module from "module";
 import {component} from "../../official_view_component/official/component.js";
+import {EditorConfig} from "../../editor-config.js";
 
 export interface HtmlJson {
     route: string;
@@ -671,6 +672,9 @@ ${obj.gvc.bindView({
                                 share = v;
                             }
                         })
+                    }
+                    dd.globalColor=function (key:string,index:number){
+                            return `@{{theme_color.${index}.${key}}}`
                     }
 
                     if (!dd.bundle) {

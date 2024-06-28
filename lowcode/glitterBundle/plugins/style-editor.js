@@ -940,7 +940,8 @@ ${(dd.value === vm.select) ? `background:linear-gradient(135deg, #667eea 0%, #76
                                         title: ``,
                                         callback: (text) => {
                                             data.class = text;
-                                        }
+                                        },
+                                        structStart: `((gvc,widget,object,subData,element)=>{`
                                     });
                                 }
                             })()
@@ -1017,7 +1018,8 @@ ${(dd.value === vm.select) ? `background:linear-gradient(135deg, #667eea 0%, #76
                                         title: ``,
                                         callback: (text) => {
                                             data.style = text;
-                                        }
+                                        },
+                                        structStart: `((gvc,widget,object,subData,element)=>{`,
                                     });
                                 }
                             })()

@@ -100,12 +100,12 @@ export class BgBlog {
                                     class="d-flex align-items-center justify-content-center hoverBtn me-2 border"
                                     style="height:28px;width:28px;border-radius:5px;cursor:pointer;color:#151515;"
                                     onclick="${gvc.event((e, event) => {
-                            const url = new URL('', glitter.share.editorViewModel.domain ? `https://${glitter.share.editorViewModel.domain}/?page=index` : location.href);
-                            url.searchParams.delete('type');
-                            url.searchParams.set('page', dd.tag);
-                            glitter.openNewTab(url.href);
-                            event.stopPropagation();
-                        })}"
+                                        const url = new URL('', glitter.share.editorViewModel.domain ? `https://${glitter.share.editorViewModel.domain}/?page=index` : location.href);
+                                        url.searchParams.delete('type');
+                                        url.searchParams.set('page', dd.tag);
+                                        glitter.openNewTab(url.href);
+                                        event.stopPropagation();
+                                    })}"
                             >
                                 <i class="fa-regular fa-eye" aria-hidden="true"></i>
                             </div>
@@ -129,137 +129,137 @@ export class BgBlog {
                                     <div class="flex-fill"></div>
                                     <div style="display: flex; gap: 12px;">
                                         ${is_page
-                                ? ''
-                                : BgWidget.grayButton(
-                                    '網誌分類',
-                                    gvc.event(() => {
-                                        vm.type = 'collection';
-                                        gvc.notifyDataChange(id);
-                                    })
-                                )}
+                                                ? ''
+                                                : BgWidget.grayButton(
+                                                        '網誌分類',
+                                                        gvc.event(() => {
+                                                            vm.type = 'collection';
+                                                            gvc.notifyDataChange(id);
+                                                        })
+                                                )}
                                         ${BgWidget.darkButton(
-                                `新增${is_page ? `頁面` : `網誌`}`,
-                                gvc.event(() => {
-                                    vm.data = {content: {}};
-                                    vm.type = 'add';
-                                })
-                            )}
+                                                `新增${is_page ? `頁面` : `網誌`}`,
+                                                gvc.event(() => {
+                                                    vm.data = {content: {}};
+                                                    vm.type = 'add';
+                                                })
+                                        )}
                                     </div>
                                 </div>
                                 ${BgWidget.table({
-                                gvc: gvc,
-                                getData: (vd) => {
-                                    vmi = vd;
-                                    Article.get({
-                                        page: vmi.page - 1,
-                                        limit: 20,
-                                        search: vm.query || undefined,
-                                        for_index: is_page ? `false` : `true`,
-                                        status: '0,1',
-                                    }).then((data) => {
-                                        vmi.pageSize = Math.ceil(data.response.total / 20);
-                                        vm.dataList = data.response.data;
-                                        vmi.data = getDatalist();
-                                        vmi.loading = false;
-                                        vmi.callback();
-                                    });
-                                },
-                                rowClick: (data, index) => {
-                                    if (type === 'select') {
-                                        vm.dataList[index].checked = !vm.dataList[index].checked;
-                                        vmi.data = getDatalist();
-                                        vmi.callback();
-                                        callback(
-                                            vm.dataList.filter((dd: any) => {
-                                                return dd.checked;
-                                            })
-                                        );
-                                    } else {
-                                        vm.data = vm.dataList[index];
-                                        vm.type = 'replace';
-                                    }
-                                },
-                                filter: html`
+                                    gvc: gvc,
+                                    getData: (vd) => {
+                                        vmi = vd;
+                                        Article.get({
+                                            page: vmi.page - 1,
+                                            limit: 20,
+                                            search: vm.query || undefined,
+                                            for_index: is_page ? `false` : `true`,
+                                            status: '0,1',
+                                        }).then((data) => {
+                                            vmi.pageSize = Math.ceil(data.response.total / 20);
+                                            vm.dataList = data.response.data;
+                                            vmi.data = getDatalist();
+                                            vmi.loading = false;
+                                            vmi.callback();
+                                        });
+                                    },
+                                    rowClick: (data, index) => {
+                                        if (type === 'select') {
+                                            vm.dataList[index].checked = !vm.dataList[index].checked;
+                                            vmi.data = getDatalist();
+                                            vmi.callback();
+                                            callback(
+                                                    vm.dataList.filter((dd: any) => {
+                                                        return dd.checked;
+                                                    })
+                                            );
+                                        } else {
+                                            vm.data = vm.dataList[index];
+                                            vm.type = 'replace';
+                                        }
+                                    },
+                                    filter: html`
                                         ${BgWidget.searchPlace(
-                                    gvc.event((e, event) => {
-                                        vm.query = e.value;
-                                        gvc.notifyDataChange(id);
-                                    }),
-                                    vm.query || '',
-                                    '搜尋所有文章'
-                                )}
+                                                gvc.event((e, event) => {
+                                                    vm.query = e.value;
+                                                    gvc.notifyDataChange(id);
+                                                }),
+                                                vm.query || '',
+                                                '搜尋所有文章'
+                                        )}
                                         ${gvc.bindView(() => {
-                                    return {
-                                        bind: filterID,
-                                        view: () => {
-                                            if (
-                                                !vm.dataList ||
-                                                !vm.dataList.find((dd: any) => {
-                                                    return dd.checked;
-                                                }) ||
-                                                type === 'select'
-                                            ) {
-                                                return ``;
-                                            } else {
-                                                return [
-                                                    html`<span class="fs-7 fw-bold">操作選項</span>`,
-                                                    html`
+                                            return {
+                                                bind: filterID,
+                                                view: () => {
+                                                    if (
+                                                            !vm.dataList ||
+                                                            !vm.dataList.find((dd: any) => {
+                                                                return dd.checked;
+                                                            }) ||
+                                                            type === 'select'
+                                                    ) {
+                                                        return ``;
+                                                    } else {
+                                                        return [
+                                                            html`<span class="fs-7 fw-bold">操作選項</span>`,
+                                                            html`
                                                                 <button
                                                                         class="btn btn-danger fs-7 px-2"
                                                                         style="height:30px;border:none;"
                                                                         onclick="${gvc.event(() => {
-                                                        const dialog = new ShareDialog(gvc.glitter);
-                                                        dialog.checkYesOrNot({
-                                                            text: '是否確認移除所選項目?',
-                                                            callback: (response) => {
-                                                                if (response) {
-                                                                    dialog.dataLoading({visible: true});
-                                                                    Article.deleteV2({
-                                                                        id: vm.dataList
-                                                                            .filter((dd: any) => {
-                                                                                return dd.checked;
-                                                                            })
-                                                                            .map((dd: any) => {
-                                                                                return dd.id;
-                                                                            })
-                                                                            .join(`,`),
-                                                                    }).then((res) => {
-                                                                        dialog.dataLoading({visible: false});
-                                                                        if (res.result) {
-                                                                            vm.dataList = undefined;
-                                                                            gvc.notifyDataChange(id);
-                                                                        } else {
-                                                                            dialog.errorMessage({text: '刪除失敗'});
-                                                                        }
-                                                                    });
-                                                                }
-                                                            },
-                                                        });
-                                                    })}"
+                                                                            const dialog = new ShareDialog(gvc.glitter);
+                                                                            dialog.checkYesOrNot({
+                                                                                text: '是否確認移除所選項目?',
+                                                                                callback: (response) => {
+                                                                                    if (response) {
+                                                                                        dialog.dataLoading({visible: true});
+                                                                                        Article.deleteV2({
+                                                                                            id: vm.dataList
+                                                                                                    .filter((dd: any) => {
+                                                                                                        return dd.checked;
+                                                                                                    })
+                                                                                                    .map((dd: any) => {
+                                                                                                        return dd.id;
+                                                                                                    })
+                                                                                                    .join(`,`),
+                                                                                        }).then((res) => {
+                                                                                            dialog.dataLoading({visible: false});
+                                                                                            if (res.result) {
+                                                                                                vm.dataList = undefined;
+                                                                                                gvc.notifyDataChange(id);
+                                                                                            } else {
+                                                                                                dialog.errorMessage({text: '刪除失敗'});
+                                                                                            }
+                                                                                        });
+                                                                                    }
+                                                                                },
+                                                                            });
+                                                                        })}"
                                                                 >
                                                                     批量移除
                                                                 </button>`,
-                                                ].join(``);
-                                            }
-                                        },
-                                        divCreate: () => {
-                                            return {
-                                                class: `d-flex mt-2 align-items-center p-2 py-3 ${
-                                                    !vm.dataList ||
-                                                    !vm.dataList.find((dd: any) => {
-                                                        return dd.checked;
-                                                    }) ||
-                                                    type === 'select'
-                                                        ? `d-none`
-                                                        : ``
-                                                }`,
-                                                style: `height:40px;gap:10px;margin-top:10px;`,
+                                                        ].join(``);
+                                                    }
+                                                },
+                                                divCreate: () => {
+                                                    return {
+                                                        class: `d-flex mt-2 align-items-center p-2 py-3 ${
+                                                                !vm.dataList ||
+                                                                !vm.dataList.find((dd: any) => {
+                                                                    return dd.checked;
+                                                                }) ||
+                                                                type === 'select'
+                                                                        ? `d-none`
+                                                                        : ``
+                                                        }`,
+                                                        style: `height:40px;gap:10px;margin-top:10px;`,
+                                                    };
+                                                },
                                             };
-                                        },
-                                    };
-                                })}
+                                        })}
                                     `,
-                            })}
+                                })}
                             `,
                             BgWidget.getContainerWidth()
                         );
@@ -1233,10 +1233,10 @@ function setCollection(cf: {
                 return html`
                     <div class="d-flex align-items-center my-3">
                         ${BgWidget.goBack(
-                    cf.gvc.event(() => {
-                        cf.goBack();
-                    })
-                )}${BgWidget.title('分類設定')}
+                                cf.gvc.event(() => {
+                                    cf.goBack();
+                                })
+                        )}${BgWidget.title('分類設定')}
                     </div>
                     <div
                             style="max-width:100%;width: 856px; padding: 20px; background: white; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.08); border-radius: 10px; overflow: hidden; justify-content: center; align-items: center; display: inline-flex"
@@ -1245,16 +1245,16 @@ function setCollection(cf: {
                             <div style="width: 100%;  left: 0px; top: 0px;  flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 20px; display: inline-flex">
                                 <div
                                         class="w-100  ${getSelectCount({
-                    items: vm.link,
-                }) > 0
-                    ? ``
-                    : `d-none`}"
+                                            items: vm.link,
+                                        }) > 0
+                                                ? ``
+                                                : `d-none`}"
                                         style="height: 40px; padding: 12px 18px;background: #F7F7F7; border-radius: 10px; justify-content: flex-end; align-items: center; gap: 8px; display: inline-flex"
                                 >
                                     <div style="flex: 1 1 0; color: #393939; font-size: 14px; font-family: Noto Sans; font-weight: 700; word-wrap: break-word">
                                             已選取${getSelectCount({
-                    items: vm.link,
-                })}項
+                                            items: vm.link,
+                                        })}項
                                     </div>
                                     <div
                                             style="cursor:pointer;padding: 4px 14px;background: white; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.10); border-radius: 20px; border: 1px #DDDDDD solid; justify-content: flex-start; align-items: flex-start; gap: 10px; display: flex"
@@ -1262,9 +1262,9 @@ function setCollection(cf: {
                                         <div
                                                 style="color: #393939; font-size: 14px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word"
                                                 onclick="${gvc.event(() => {
-                    vm.link = deleteSelect(vm.link);
-                    gvc.notifyDataChange(vm.id);
-                })}"
+                                                    vm.link = deleteSelect(vm.link);
+                                                    gvc.notifyDataChange(vm.id);
+                                                })}"
                                         >
                                             刪除
                                         </div>
@@ -1274,32 +1274,32 @@ function setCollection(cf: {
                                      style="width: 100%; height: 22px; position: relative;gap:29px;">
                                     <div
                                             class="${allSelect({
-                    items: vm.link,
-                    selected: !vm.link.find((dd) => {
-                        return !(dd as any).selected;
-                    }),
-                })
-                    ? `fa-solid fa-square-check`
-                    : `fa-regular fa-square`}"
+                                                items: vm.link,
+                                                selected: !vm.link.find((dd) => {
+                                                    return !(dd as any).selected;
+                                                }),
+                                            })
+                                                    ? `fa-solid fa-square-check`
+                                                    : `fa-regular fa-square`}"
                                             style="color:#393939;width: 16px; height: 16px;cursor: pointer;"
                                             onclick="${cf.gvc.event((e, event) => {
-                    event.stopPropagation();
+                                                event.stopPropagation();
 
-                    if (
-                        vm.link.find((dd) => {
-                            return !(dd as any).selected;
-                        })
-                    ) {
-                        selectAll({
-                            items: vm.link,
-                        } as any);
-                    } else {
-                        clearAll({
-                            items: vm.link,
-                        } as any);
-                    }
-                    gvc.notifyDataChange(vm.id);
-                })}"
+                                                if (
+                                                        vm.link.find((dd) => {
+                                                            return !(dd as any).selected;
+                                                        })
+                                                ) {
+                                                    selectAll({
+                                                        items: vm.link,
+                                                    } as any);
+                                                } else {
+                                                    clearAll({
+                                                        items: vm.link,
+                                                    } as any);
+                                                }
+                                                gvc.notifyDataChange(vm.id);
+                                            })}"
                                     ></div>
                                     <div style="left: 61px; top: 0px;  color: #393939; font-size: 16px; font-family: Noto Sans; font-weight: 700; word-wrap: break-word">
                                         選單名稱
@@ -1307,40 +1307,40 @@ function setCollection(cf: {
                                 </div>
                                 <div style="align-self: stretch; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 18px; display: flex">
                                     ${(() => {
-                    function renderItems(array: MenuItem[]): string {
-                        const id = gvc.glitter.getUUID();
-                        return (
-                            gvc.bindView(() => {
-                                return {
-                                    bind: id,
-                                    view: () => {
-                                        return array
-                                            .map((dd, index) => {
-                                                dd.items;
-                                                const list = html`
+                                        function renderItems(array: MenuItem[]): string {
+                                            const id = gvc.glitter.getUUID();
+                                            return (
+                                                    gvc.bindView(() => {
+                                                        return {
+                                                            bind: id,
+                                                            view: () => {
+                                                                return array
+                                                                        .map((dd, index) => {
+                                                                            dd.items;
+                                                                            const list = html`
                                                                                 <div
                                                                                         class=" w-100 "
                                                                                         style="width: 100%; justify-content: flex-start; align-items: center; gap: 5px; display: inline-flex;cursor: pointer;"
                                                                                         onclick="${cf.gvc.event(() => {
-                                                    if (dd.items && dd.items.length > 0) {
-                                                        (dd as any).toggle = !(dd as any).toggle;
-                                                        gvc.notifyDataChange(vm.id);
-                                                    }
-                                                })}"
+                                                                                            if (dd.items && dd.items.length > 0) {
+                                                                                                (dd as any).toggle = !(dd as any).toggle;
+                                                                                                gvc.notifyDataChange(vm.id);
+                                                                                            }
+                                                                                        })}"
                                                                                 >
                                                                                     <div
                                                                                             class="${allSelect(dd) ? `fa-solid fa-square-check` : `fa-regular fa-square`}"
                                                                                             style="color:#393939;width: 16px; height: 16px;"
                                                                                             onclick="${cf.gvc.event((e, event) => {
-                                                    event.stopPropagation();
-                                                    (dd as any).selected = !(dd as any).selected;
-                                                    if ((dd as any).selected) {
-                                                        selectAll(dd);
-                                                    } else {
-                                                        clearAll(dd);
-                                                    }
-                                                    gvc.notifyDataChange(vm.id);
-                                                })}"
+                                                                                                event.stopPropagation();
+                                                                                                (dd as any).selected = !(dd as any).selected;
+                                                                                                if ((dd as any).selected) {
+                                                                                                    selectAll(dd);
+                                                                                                } else {
+                                                                                                    clearAll(dd);
+                                                                                                }
+                                                                                                gvc.notifyDataChange(vm.id);
+                                                                                            })}"
                                                                                     ></div>
                                                                                     <div class="hoverF2 pe-2"
                                                                                          style="width: 100%;  justify-content: flex-start; align-items: center; gap: 8px; display: flex">
@@ -1354,10 +1354,10 @@ function setCollection(cf: {
                                                                                                     ${dd.title}
                                                                                                 </div>
                                                                                                 ${dd.items && dd.items.length > 0
-                                                    ? !(dd as any).toggle
-                                                        ? `<i class="fa-solid fa-angle-down cl_39"></i>`
-                                                        : `<i class="fa-solid fa-angle-up cl_39"></i>`
-                                                    : ``}
+                                                                                                        ? !(dd as any).toggle
+                                                                                                                ? `<i class="fa-solid fa-angle-down cl_39"></i>`
+                                                                                                                : `<i class="fa-solid fa-angle-up cl_39"></i>`
+                                                                                                        : ``}
                                                                                             </div>
                                                                                             <div style="justify-content: flex-start; align-items: center; gap: 8px; display: inline-flex">
                                                                                                 <div
@@ -1374,26 +1374,26 @@ function setCollection(cf: {
                                                                                         <div
                                                                                                 class="child me-2"
                                                                                                 onclick="${cf.gvc.event((e, event) => {
-                                                    event.stopPropagation();
-                                                    MenusSetting.collectionEvent(
-                                                        {
-                                                            link: '',
-                                                            title: '',
-                                                            items: [],
-                                                        },
-                                                        (data) => {
-                                                            dd.items = dd.items || [];
-                                                            dd.items.push(data);
-                                                            if (checkLinkExists(data, vm.link)) {
-                                                                gvc.notifyDataChange(vm.id);
-                                                                return true;
-                                                            } else {
-                                                                dd.items.splice(dd.items.length - 1, 1);
-                                                                return false;
-                                                            }
-                                                        }
-                                                    );
-                                                })}"
+                                                                                                    event.stopPropagation();
+                                                                                                    MenusSetting.collectionEvent(
+                                                                                                            {
+                                                                                                                link: '',
+                                                                                                                title: '',
+                                                                                                                items: [],
+                                                                                                            },
+                                                                                                            (data) => {
+                                                                                                                dd.items = dd.items || [];
+                                                                                                                dd.items.push(data);
+                                                                                                                if (checkLinkExists(data, vm.link)) {
+                                                                                                                    gvc.notifyDataChange(vm.id);
+                                                                                                                    return true;
+                                                                                                                } else {
+                                                                                                                    dd.items.splice(dd.items.length - 1, 1);
+                                                                                                                    return false;
+                                                                                                                }
+                                                                                                            }
+                                                                                                    );
+                                                                                                })}"
                                                                                         >
                                                                                             <i class="fa-solid fa-plus"
                                                                                                style="color:#393939;"></i>
@@ -1401,21 +1401,21 @@ function setCollection(cf: {
                                                                                         <div
                                                                                                 class="child"
                                                                                                 onclick="${cf.gvc.event((e, event) => {
-                                                    event.stopPropagation();
-                                                    const og = JSON.parse(JSON.stringify(dd));
+                                                                                                    event.stopPropagation();
+                                                                                                    const og = JSON.parse(JSON.stringify(dd));
 
-                                                    MenusSetting.collectionEvent(dd, (data) => {
-                                                        if (checkLinkExists(data, vm.link)) {
-                                                            array[index] = data;
-                                                            gvc.notifyDataChange(vm.id);
-                                                            return true;
-                                                        } else {
-                                                            data.link = og.link;
-                                                            data.title = og.title;
-                                                            return false;
-                                                        }
-                                                    });
-                                                })}"
+                                                                                                    MenusSetting.collectionEvent(dd, (data) => {
+                                                                                                        if (checkLinkExists(data, vm.link)) {
+                                                                                                            array[index] = data;
+                                                                                                            gvc.notifyDataChange(vm.id);
+                                                                                                            return true;
+                                                                                                        } else {
+                                                                                                            data.link = og.link;
+                                                                                                            data.title = og.title;
+                                                                                                            return false;
+                                                                                                        }
+                                                                                                    });
+                                                                                                })}"
                                                                                         >
                                                                                             <i class="fa-solid fa-pencil"
                                                                                                style="color:#393939;"></i>
@@ -1423,100 +1423,100 @@ function setCollection(cf: {
                                                                                     </div>
                                                                                 </div>
                                                                                 ${dd.items && dd.items.length > 0
-                                                    ? html`
+                                                                                        ? html`
                                                                                             <div class=" w-100 ${(dd as any).toggle ? `` : `d-none`}"
                                                                                                  style="padding-left: 35px;">
                                                                                                 ${renderItems(dd.items as MenuItem[]) as any}
                                                                                             </div>
                                                                                         `
-                                                    : ``}
+                                                                                        : ``}
                                                                             `;
-                                                return html`
+                                                                            return html`
                                                                                 <li class="w-100 ">${list}</li>`;
-                                            })
-                                            .join('');
-                                    },
-                                    divCreate: {
-                                        elem: 'ul',
-                                        class: `w-100 my-2`,
-                                        style: `display:flex;flex-direction: column;gap:18px;`,
-                                    },
-                                    onCreate: () => {
-                                        gvc.glitter.addMtScript(
-                                            [
-                                                {
-                                                    src: `https://raw.githack.com/SortableJS/Sortable/master/Sortable.js`,
-                                                },
-                                            ],
-                                            () => {
-                                            },
-                                            () => {
-                                            }
-                                        );
-                                        const interval = setInterval(() => {
-                                            //@ts-ignore
-                                            if (window.Sortable) {
-                                                try {
-                                                    gvc.addStyle(`
+                                                                        })
+                                                                        .join('');
+                                                            },
+                                                            divCreate: {
+                                                                elem: 'ul',
+                                                                class: `w-100 my-2`,
+                                                                style: `display:flex;flex-direction: column;gap:18px;`,
+                                                            },
+                                                            onCreate: () => {
+                                                                gvc.glitter.addMtScript(
+                                                                        [
+                                                                            {
+                                                                                src: `https://raw.githack.com/SortableJS/Sortable/master/Sortable.js`,
+                                                                            },
+                                                                        ],
+                                                                        () => {
+                                                                        },
+                                                                        () => {
+                                                                        }
+                                                                );
+                                                                const interval = setInterval(() => {
+                                                                    //@ts-ignore
+                                                                    if (window.Sortable) {
+                                                                        try {
+                                                                            gvc.addStyle(`
                                                                             ul {
                                                                                 list-style: none;
                                                                                 padding: 0;
                                                                             }
                                                                         `);
 
-                                                    function swapArr(arr: any, index1: number, index2: number) {
-                                                        const data = arr[index1];
-                                                        arr.splice(index1, 1);
-                                                        arr.splice(index2, 0, data);
-                                                    }
+                                                                            function swapArr(arr: any, index1: number, index2: number) {
+                                                                                const data = arr[index1];
+                                                                                arr.splice(index1, 1);
+                                                                                arr.splice(index2, 0, data);
+                                                                            }
 
-                                                    let startIndex = 0;
-                                                    //@ts-ignore
-                                                    Sortable.create(gvc.getBindViewElem(id).get(0), {
-                                                        group: id,
-                                                        animation: 100,
-                                                        handle: '.dragItem',
-                                                        onChange: function (evt: any) {
-                                                        },
-                                                        onEnd: (evt: any) => {
-                                                            swapArr(array, startIndex, evt.newIndex);
-                                                            gvc.notifyDataChange(id);
-                                                        },
-                                                        onStart: function (evt: any) {
-                                                            startIndex = evt.oldIndex;
-                                                        },
-                                                    });
-                                                } catch (e) {
-                                                }
-                                                clearInterval(interval);
-                                            }
-                                        }, 100);
-                                    },
-                                };
-                            }) +
-                            html`
+                                                                            let startIndex = 0;
+                                                                            //@ts-ignore
+                                                                            Sortable.create(gvc.getBindViewElem(id).get(0), {
+                                                                                group: id,
+                                                                                animation: 100,
+                                                                                handle: '.dragItem',
+                                                                                onChange: function (evt: any) {
+                                                                                },
+                                                                                onEnd: (evt: any) => {
+                                                                                    swapArr(array, startIndex, evt.newIndex);
+                                                                                    gvc.notifyDataChange(id);
+                                                                                },
+                                                                                onStart: function (evt: any) {
+                                                                                    startIndex = evt.oldIndex;
+                                                                                },
+                                                                            });
+                                                                        } catch (e) {
+                                                                        }
+                                                                        clearInterval(interval);
+                                                                    }
+                                                                }, 100);
+                                                            },
+                                                        };
+                                                    }) +
+                                                    html`
                                                         <div
                                                                 class=""
                                                                 style="cursor:pointer;align-self: stretch; height: 50px; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 10px; display: flex"
                                                                 onclick="${cf.gvc.event(() => {
-                                MenusSetting.collectionEvent(
-                                    {
-                                        link: '',
-                                        title: '',
-                                        items: [],
-                                    },
-                                    (data) => {
-                                        array.push(data);
-                                        if (checkLinkExists(data, vm.link)) {
-                                            gvc.notifyDataChange(vm.id);
-                                            return true;
-                                        } else {
-                                            array.splice(array.length - 1, 1);
-                                            return false;
-                                        }
-                                    }
-                                );
-                            })}"
+                                                                    MenusSetting.collectionEvent(
+                                                                            {
+                                                                                link: '',
+                                                                                title: '',
+                                                                                items: [],
+                                                                            },
+                                                                            (data) => {
+                                                                                array.push(data);
+                                                                                if (checkLinkExists(data, vm.link)) {
+                                                                                    gvc.notifyDataChange(vm.id);
+                                                                                    return true;
+                                                                                } else {
+                                                                                    array.splice(array.length - 1, 1);
+                                                                                    return false;
+                                                                                }
+                                                                            }
+                                                                    );
+                                                                })}"
                                                         >
                                                             <div
                                                                     style="align-self: stretch; height: 54px; border-radius: 10px; border: 1px #DDDDDD solid; justify-content: center; align-items: center; gap: 6px; display: inline-flex"
@@ -1528,11 +1528,11 @@ function setCollection(cf: {
                                                                 </div>
                                                             </div>
                                                         </div>`
-                        );
-                    }
+                                            );
+                                        }
 
-                    return renderItems(vm.link);
-                })()}
+                                        return renderItems(vm.link);
+                                    })()}
                                 </div>
                             </div>
                         </div>
@@ -1540,16 +1540,16 @@ function setCollection(cf: {
                     <div class="position-fixed bg-body bottom-0  w-100 d-flex align-items-center justify-content-end p-3 border-top"
                          style="gap:10px;left:0px;">
                         ${BgWidget.cancel(
-                    gvc.event(() => {
-                        cf.goBack();
-                    })
-                )}
+                                gvc.event(() => {
+                                    cf.goBack();
+                                })
+                        )}
                         ${BgWidget.save(
-                    gvc.event(() => {
-                        save();
-                    }),
-                    '確認'
-                )}
+                                gvc.event(() => {
+                                    save();
+                                }),
+                                '確認'
+                        )}
                     </div>`;
             },
             divCreate: {
@@ -1592,65 +1592,65 @@ function addArticle(gvc: GVC, callback: (tag: string) => void, for_index: boolea
                             class="fa-solid fa-xmark text-dark position-absolute "
                             style="font-size:20px;transform: translateY(-50%);right: 20px;top: 50%;cursor: pointer;"
                             onclick="${gvc.event(() => {
-        glitter.closeDiaLog();
-    })}"
+                                glitter.closeDiaLog();
+                            })}"
                     ></i>
                 </div>
                 <div class="py-2 px-3">
                     ${gvc.bindView(() => {
-        const id = glitter.getUUID();
-        return {
-            bind: id,
-            view: () => {
-                return new Promise(async (resolve, reject) => {
-                    resolve(
-                        [
-                            glitter.htmlGenerate.editeInput({
-                                gvc: gvc,
-                                title: '網誌標籤連結',
-                                default: '',
-                                placeHolder: '請輸入網誌標籤連結',
-                                callback: (text) => {
-                                    tdata.tag = text;
-                                },
-                            }),
-                            glitter.htmlGenerate.editeInput({
-                                gvc: gvc,
-                                title: '網誌名稱',
-                                default: '',
-                                placeHolder: '請輸入網誌名稱',
-                                callback: (text) => {
-                                    tdata.name = text;
-                                },
-                            }),
-                        ].join('')
-                    );
-                });
-            },
-            divCreate: {},
-        };
-    })}
+                        const id = glitter.getUUID();
+                        return {
+                            bind: id,
+                            view: () => {
+                                return new Promise(async (resolve, reject) => {
+                                    resolve(
+                                            [
+                                                glitter.htmlGenerate.editeInput({
+                                                    gvc: gvc,
+                                                    title: '網誌標籤連結',
+                                                    default: '',
+                                                    placeHolder: '請輸入網誌標籤連結',
+                                                    callback: (text) => {
+                                                        tdata.tag = text;
+                                                    },
+                                                }),
+                                                glitter.htmlGenerate.editeInput({
+                                                    gvc: gvc,
+                                                    title: '網誌名稱',
+                                                    default: '',
+                                                    placeHolder: '請輸入網誌名稱',
+                                                    callback: (text) => {
+                                                        tdata.name = text;
+                                                    },
+                                                }),
+                                            ].join('')
+                                    );
+                                });
+                            },
+                            divCreate: {},
+                        };
+                    })}
                 </div>
                 <div class="d-flex w-100 mb-2 align-items-center justify-content-center">
                     <button
                             class="btn btn-primary "
                             style="width: calc(100% - 20px);"
                             onclick="${gvc.event(() => {
-        const dialog = new ShareDialog(glitter);
-        dialog.dataLoading({text: '上傳中', visible: true});
-        Article.post(tdata as any).then((it) => {
-            setTimeout(() => {
-                dialog.dataLoading({text: '', visible: false});
-                if (it.result) {
-                    callback(tdata.tag);
-                } else {
-                    dialog.errorMessage({
-                        text: '已有此頁面標籤',
-                    });
-                }
-            }, 1000);
-        });
-    })}"
+                                const dialog = new ShareDialog(glitter);
+                                dialog.dataLoading({text: '上傳中', visible: true});
+                                Article.post(tdata as any).then((it) => {
+                                    setTimeout(() => {
+                                        dialog.dataLoading({text: '', visible: false});
+                                        if (it.result) {
+                                            callback(tdata.tag);
+                                        } else {
+                                            dialog.errorMessage({
+                                                text: '已有此頁面標籤',
+                                            });
+                                        }
+                                    }, 1000);
+                                });
+                            })}"
                     >
                         確認新增
                     </button>

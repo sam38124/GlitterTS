@@ -40,5 +40,44 @@ export class EditorConfig{
         }
     ]
 
+    public static  color_setting_config= [
+        {
+            key: 'background',
+            title: '主背景顏色',
+        },
+        {
+            key: 'sec-background',
+            title: '次背景顏色',
+        },
+        {
+            key: 'title',
+            title: '主標題顏色',
+        },
+        {
+            key: 'sec-title',
+            title: '次標題顏色',
+        },
+        {
+            key: 'content',
+            title: '內文',
+        },
+        {
+            key: 'solid-button-bg',
+            title: '純色按鈕',
+        },
+        {
+            key: 'solid-button-text',
+            title: '純色按鈕文字',
+        },
+        {
+            key: 'border-button-bg',
+            title: '邊框按鈕',
+        },
+        {
+            key: 'border-button-text',
+            title: '邊框按鈕文字',
+        },
+    ]
+
 
 }

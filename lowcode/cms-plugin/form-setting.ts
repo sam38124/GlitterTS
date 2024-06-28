@@ -291,12 +291,6 @@ export class FormSetting {
                                 <div class="d-flex w-100 align-items-center">
                                     ${BgWidget.title('用戶提交表單')}
                                     <div class="flex-fill"></div>
-                                    ${BgWidget.darkButton(
-                                        '新增表單',
-                                        gvc.event(() => {
-                                            vm.type = 'add';
-                                        })
-                                    )}
                                 </div>
                                 ${BgWidget.container(
                                     BgWidget.mainCard(
@@ -625,6 +619,7 @@ export class FormSetting {
                                                 gvc: gvc,
                                                 array: postMd.form_format,
                                                 refresh: () => {
+
                                                     gvc.notifyDataChange(id);
                                                 },
                                                 title: '',

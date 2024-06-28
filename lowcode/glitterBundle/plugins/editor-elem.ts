@@ -157,7 +157,7 @@ export class EditorElem {
                                                 <i
                                                     class="fa-regular fa-eye"
                                                     onclick="${obj.gvc.event(() => {
-                                                        obj.gvc.glitter.openDiaLog(new URL('../../dialog/image-preview.js', import.meta.url).href, 'preview', dd);
+                                                        (window.parent as any).glitter.openDiaLog(new URL('../../dialog/image-preview.js', import.meta.url).href, 'preview', dd);
                                                     })}"
                                                 ></i>
                                                 <i
@@ -1630,8 +1630,8 @@ ${obj.gvc.bindView(() => {
                     return `<input class="form-control form-control-color p-0 " type="color" style="border:none;width:24px;height: 24px;"
                  value="${obj.def}" onchange="${obj.gvc.event((e, event) => {
                         obj.def = e.value;
-                        obj.callback(obj.def);
                         obj.gvc.notifyDataChange(id);
+                        obj.callback(obj.def);
                     })}">
             <input class="flex-fill ms-2" value="${obj.def}" placeholder="" style="border:none;width:100px;" onchange="${obj.gvc.event((e, event) => {
                         if (!e.value.includes('#')) {

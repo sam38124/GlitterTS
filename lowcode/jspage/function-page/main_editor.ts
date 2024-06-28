@@ -13,6 +13,8 @@ import {ApiPageConfig} from '../../api/pageConfig.js';
 import {Storage} from '../../glitterBundle/helper/storage.js';
 import {AddComponent} from '../../editor/add-component.js';
 import {NormalPageEditor} from '../../editor/normal-page-editor.js';
+import {ColorThemeSelector} from "../../form-view/editor/color-theme-selector.js";
+import {EditorConfig} from "../../editor-config.js";
 
 enum ViewType {
     mobile = 'mobile',
@@ -549,23 +551,7 @@ export class Main_editor {
   </div>
 </div>
                                     `,
-                        `<div style="padding: 18px 24px 24px;">${[
-                            {
-                                key: 'background', title: '背景顏色'
-                            }, {
-                                key: 'title', title: '標題顏色'
-                            }, {
-                                key: 'content', title: '內文'
-                            }, {
-                                key: 'solid-button-bg', title: '純色按鈕'
-                            }, {
-                                key: 'solid-button-text', title: '純色按鈕文字',
-                            }, {
-                                key: 'border-button-bg', title: '邊框按鈕'
-                            }, {
-                                key: 'border-button-text', title: '邊框按鈕文字'
-                            }
-                        ].map((dd) => {
+                        `<div style="padding: 18px 24px 24px;">${EditorConfig.color_setting_config.map((dd) => {
                             vm.data[dd.key] = vm.data[dd.key] || '#FFFFFF'
                             return EditorElem.colorSelect({
                                 title: dd.title,
@@ -608,6 +594,7 @@ export class Main_editor {
         "border-button-bg": string,
         "border-button-text": string
     }) {
+        cf=(cf || {}) as any;
         return `<div style="width:100%;padding: 11px 18px;background: ${cf.background || 'white'}; border-radius: 7px; overflow: hidden; border: 1px #DDDDDD solid; justify-content: center; align-items: center; display: flex">
     <div style="align-self: stretch; flex-direction: column; justify-content: flex-start; align-items: center; gap: 2px; display: inline-flex">
       <div style="font-size: 16px;  font-weight: 400; word-wrap: break-word">

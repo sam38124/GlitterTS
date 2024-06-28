@@ -207,15 +207,6 @@ export class Setting_editor {
                                                     groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713375442916-Component 56 (4).svg',
                                                     moduleName: '已訂閱郵件',
                                                 },
-                                                // {
-                                                //     icon: '',
-                                                //     page: 'form_setting_page',
-                                                //     group: '電子表單',
-                                                //     title: '表單設定',
-                                                //     appName: 'cms_system',
-                                                //     groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713514549253-calendar-lines-pen-regular.svg',
-                                                //     moduleName: '表單管理',
-                                                // },
                                                 {
                                                     icon: '',
                                                     page: 'form_receive',
@@ -307,74 +298,77 @@ export class Setting_editor {
                                                     moduleName: '推播訊息管理',
                                                 },
                                             ];
-                                            mustItem = mustItem.concat([
-                                                {
-                                                    icon: '',
-                                                    page: 'code_info',
-                                                    group: '擴充套件',
-                                                    title: 'Graph API',
-                                                    appName: 'cms_system',
-                                                    groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713419947572-code-solid.svg',
-                                                    moduleName: '結帳事件',
-                                                },
-                                                {
-                                                    icon: '',
-                                                    page: 'web_hook_checkout',
-                                                    group: '擴充套件',
-                                                    title: '結帳事件',
-                                                    appName: 'cms_system',
-                                                    groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713419947572-code-solid.svg',
-                                                    moduleName: '結帳事件',
-                                                },
-                                                {
-                                                    icon: '',
-                                                    page: 'seo_custom',
-                                                    group: '擴充套件',
-                                                    title: 'SEO 自定義',
-                                                    appName: 'cms_system',
-                                                    groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713419947572-code-solid.svg',
-                                                    moduleName: '結帳事件',
-                                                },
+                                            if ((window as any).memberType === 'noLimit') {
+                                                mustItem = mustItem.concat([
+                                                    {
+                                                        icon: '',
+                                                        page: 'code_info',
+                                                        group: '擴充套件',
+                                                        title: 'Graph Api',
+                                                        appName: 'cms_system',
+                                                        groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713419947572-code-solid.svg',
+                                                        moduleName: '結帳事件',
+                                                    },
+                                                    {
+                                                        icon: '',
+                                                        page: 'web_hook_checkout',
+                                                        group: '擴充套件',
+                                                        title: '結帳事件',
+                                                        appName: 'cms_system',
+                                                        groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713419947572-code-solid.svg',
+                                                        moduleName: '結帳事件',
+                                                    },
+                                                    {
+                                                        icon: '',
+                                                        page: 'seo_custom',
+                                                        group: '擴充套件',
+                                                        title: 'SEO自訂',
+                                                        appName: 'cms_system',
+                                                        groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713419947572-code-solid.svg',
+                                                        moduleName: '結帳事件',
+                                                    },
 
-                                                {
-                                                    icon: '',
-                                                    page: 'site_map',
-                                                    group: '擴充套件',
-                                                    title: 'SiteMap 自定義',
-                                                    appName: 'cms_system',
-                                                    groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713419947572-code-solid.svg',
-                                                    moduleName: '後端代碼事件',
-                                                },
-                                                {
-                                                    icon: '',
-                                                    page: 'template_upload',
-                                                    group: '擴充套件',
-                                                    title: '模板發佈',
-                                                    appName: 'cms_system',
-                                                    groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713418629944-Component 56 (7).svg',
-                                                    moduleName: '模板發佈',
-                                                },
-                                                // {
-                                                //     icon: '',
-                                                //     page: 'wallet-list',
-                                                //     group: '顧客管理',
-                                                //     title: '電子錢包紀錄',
-                                                //     appName: 'cms_system',
-                                                //     groupIcon:
-                                                //             'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713371719908-wallet-regular.svg',
-                                                //     moduleName: '增減紀錄',
-                                                // },
-                                                // {
-                                                //     icon: '',
-                                                //     page: 'withdrawRequest',
-                                                //     group: '顧客管理',
-                                                //     title: '錢包提領請求',
-                                                //     appName: 'cms_system',
-                                                //     groupIcon:
-                                                //             'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713371719908-wallet-regular.svg',
-                                                //     moduleName: '提領請求',
-                                                // },
-                                            ]);
+                                                    {
+                                                        icon: '',
+                                                        page: 'site_map',
+                                                        group: '擴充套件',
+                                                        title: 'SiteMap自訂',
+                                                        appName: 'cms_system',
+                                                        groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713419947572-code-solid.svg',
+                                                        moduleName: '後端代碼事件',
+                                                    },
+                                                    {
+                                                        icon: '',
+                                                        page: 'template_upload',
+                                                        group: '擴充套件',
+                                                        title: '模板發佈',
+                                                        appName: 'cms_system',
+                                                        groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713418629944-Component 56 (7).svg',
+                                                        moduleName: '模板發佈',
+                                                    },
+                                                    // {
+                                                    //     icon: '',
+                                                    //     page: 'wallet-list',
+                                                    //     group: '顧客管理',
+                                                    //     title: '電子錢包紀錄',
+                                                    //     appName: 'cms_system',
+                                                    //     groupIcon:
+                                                    //             'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713371719908-wallet-regular.svg',
+                                                    //     moduleName: '增減紀錄',
+                                                    // },
+                                                    // {
+                                                    //     icon: '',
+                                                    //     page: 'withdrawRequest',
+                                                    //     group: '顧客管理',
+                                                    //     title: '錢包提領請求',
+                                                    //     appName: 'cms_system',
+                                                    //     groupIcon:
+                                                    //             'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713371719908-wallet-regular.svg',
+                                                    //     moduleName: '提領請求',
+                                                    // },
+                                                ]);
+                                            }
+
 
                                             ApiPageConfig.getPrivateConfigV2('backend_list').then((res) => {
                                                 res.response.result[0] && (items = res.response.result[0].value);
