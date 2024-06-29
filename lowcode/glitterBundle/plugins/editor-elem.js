@@ -213,6 +213,97 @@ export class EditorElem {
             };
         });
     }
+    static flexMediaManagerV2(obj) {
+        obj.gvc.addStyle(`
+            .p-hover-image:hover {
+                opacity: 1 !important; /* 在父元素悬停时，底层元素可见 */
+            }
+        `);
+        const data = obj.data;
+        return obj.gvc.bindView(() => {
+            obj.gvc.addMtScript([
+                {
+                    src: `https://raw.githack.com/SortableJS/Sortable/master/Sortable.js`,
+                },
+            ], () => { }, () => { });
+            const id = obj.gvc.glitter.getUUID();
+            const bid = obj.gvc.glitter.getUUID();
+            return {
+                bind: id,
+                view: () => {
+                    if (data.length === 0) {
+                        return html ` <div class="w-100 d-flex align-items-center justify-content-center fw-bold fs-6 alert bgf6">尚未新增任何檔案...</div>`;
+                    }
+                    return html `
+                        <ul id="${bid}" class="d-flex " style="gap:10px;overflow-x: auto;max-width: 700px;">
+                            ${data
+                        .map((dd, index) => {
+                        return html ` <li
+                                            class="d-flex align-items-center justify-content-center rounded-3 shadow"
+                                            index="${index}"
+                                            style="min-width:135px;135px;height:135px;cursor:pointer;background: 50%/cover url('${dd}');"
+                                        >
+                                            <div
+                                                class="w-100 h-100 d-flex align-items-center justify-content-center rounded-3 p-hover-image"
+                                                style="opacity:0;background: rgba(0,0,0,0.5);gap:20px;color:white;font-size:22px;"
+                                            >
+                                                <i
+                                                    class="fa-regular fa-eye"
+                                                    onclick="${obj.gvc.event(() => {
+                            obj.gvc.glitter.openDiaLog(new URL('../../dialog/image-preview.js', import.meta.url).href, 'preview', dd);
+                        })}"
+                                                ></i>
+                                                <i
+                                                    class="fa-regular fa-trash"
+                                                    onclick="${obj.gvc.event(() => {
+                            data.splice(index, 1);
+                            obj.gvc.notifyDataChange(id);
+                        })}"
+                                                ></i>
+                                            </div>
+                                        </li>`;
+                    })
+                        .join('')}
+                        </ul>
+                    `;
+                },
+                divCreate: { class: ``, style: `gap:10px;overflow-x: auto;display: flex;white-space: nowrap; ` },
+                onCreate: () => {
+                    const interval = setInterval(() => {
+                        if (window.Sortable) {
+                            try {
+                                obj.gvc.addStyle(`
+                                    ul {
+                                        list-style: none;
+                                        padding: 0;
+                                    }
+                                `);
+                                function swapArr(arr, index1, index2) {
+                                    const data = arr[index1];
+                                    arr.splice(index1, 1);
+                                    arr.splice(index2, 0, data);
+                                }
+                                let startIndex = 0;
+                                Sortable.create(document.getElementById(bid), {
+                                    group: 'foo',
+                                    animation: 100,
+                                    onChange: function (evt) {
+                                        swapArr(data, startIndex, evt.newIndex);
+                                        startIndex = evt.newIndex;
+                                    },
+                                    onStart: function (evt) {
+                                        startIndex = evt.oldIndex;
+                                    },
+                                });
+                            }
+                            catch (e) { }
+                            clearInterval(interval);
+                        }
+                    }, 100);
+                },
+            };
+        });
+    }
     static editeText(obj) {
         var _a;
         obj.title = (_a = obj.title) !== null && _a !== void 0 ? _a : '';
@@ -1696,8 +1787,8 @@ ${obj.gvc.bindView(() => {
                             return html `
                                         <li class="btn-group" style="margin-top:1px;margin-bottom:1px;">
                                             <div
-                                                class="editor_item d-flex   align-items-center px-2 my-0 hi me-n1 ${dd.isSelect ? `bgf6 border` : ``}"
-                                                style="${obj.height ? `height:${obj.height}px` : ``};cursor: pointer;"
+                                                class="h-auto  align-items-center px-2 my-0 hi me-n1 ${dd.isSelect ? `bgf6 border` : ``}"
+                                                style="cursor: pointer;min-height:100px;width: calc(100% - 10px);display: flex;font-size: 14px;line-height: 20px;font-weight: 500;text-rendering: optimizelegibility;user-select: none;margin: 5px 10px;"
                                                 onclick="${gvc.event(() => {
                                 if (!dd.innerHtml) {
                                     return;
@@ -1780,6 +1871,9 @@ ${obj.gvc.bindView(() => {
                                                 >
                                                     <i class="fa-regular fa-circle-minus d-flex align-items-center justify-content-center subBt " style="width:15px;height:15px;color:red;"></i>
                                                 </div>
+                                                <div class="subBt ${obj.draggable === false ? `d-none` : ``} ${obj.position ? `` : `d-none`}">
+                                                    <i class="dragItem fa-solid fa-grip-dots-vertical d-flex align-items-center justify-content-center  " style="width:15px;height:15px;padding-right: 14px;"></i>
+                                                </div>
                                                 ${dd.title}
                                                 <div class="flex-fill"></div>
                                                 ${(() => {
@@ -1849,7 +1943,7 @@ ${obj.gvc.bindView(() => {
                                                         </div>
                                                     </div>`;
                             })()}
-                                                <div class="subBt ${obj.draggable === false ? `d-none` : ``}">
+                                                <div class="dragItem subBt ${obj.draggable === false ? `d-none` : ``} ${obj.position ? `d-none` : ``}">
                                                     <i class="fa-solid fa-grip-dots-vertical d-flex align-items-center justify-content-center  " style="width:15px;height:15px;"></i>
                                                 </div>
                                             </div>
@@ -1883,6 +1977,7 @@ ${obj.gvc.bindView(() => {
                                         Sortable.create(document.getElementById(parId), {
                                             group: obj.gvc.glitter.getUUID(),
                                             animation: 100,
+                                            handle: '.dragItem',
                                             onChange: function (evt) {
                                                 swapArr(obj.originalArray, startIndex, evt.newIndex);
                                                 startIndex = evt.newIndex;
