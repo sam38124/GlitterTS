@@ -2186,6 +2186,7 @@ console.log(`selectEditEvent-->`)
                                     }
 
                                     const pageData: any = await getPageData(selectTag,saasConfig.config.appName);
+
                                     if(gvc.glitter.share.editorViewModel.data.tag===pageData.tag){
                                         gvc.glitter.share.editorViewModel.data.page_config=pageData.page_config;
                                     }

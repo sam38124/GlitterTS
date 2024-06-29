@@ -93,7 +93,7 @@ export class MemberTypeList {
                 view: () => {
                     if (vm.type === 'list') {
                         return BgWidget.container(html `
-                                <div class="d-flex w-100 align-items-center" style="margin-bottom: 24px;">
+                                <div class="d-flex w-100 align-items-center">
                                     ${BgWidget.title('會員等級')}
                                     <div class="flex-fill"></div>
                                     ${BgWidget.darkButton('新增', gvc.event(() => {
@@ -101,7 +101,7 @@ export class MemberTypeList {
                             gvc.notifyDataChange(id);
                         }))}
                                 </div>
-                                ${BgWidget.mainCard(BgWidget.tableV2({
+                                ${BgWidget.container(BgWidget.mainCard(BgWidget.tableV2({
                             gvc: gvc,
                             getData: (vd) => {
                                 vmi = vd;
@@ -122,7 +122,7 @@ export class MemberTypeList {
                                 vm.type = 'replace';
                             },
                             filter: html `
-                                            ${gvc.bindView(() => {
+                                                ${gvc.bindView(() => {
                                 return {
                                     bind: filterID,
                                     view: () => {
@@ -175,8 +175,8 @@ export class MemberTypeList {
                                     },
                                 };
                             })}
-                                        `,
-                        }))}
+                                            `,
+                        })))}
                             `, BgWidget.getContainerWidth());
                     }
                     else if (vm.type == 'add') {
@@ -262,16 +262,16 @@ export class MemberTypeList {
                                 ${BgWidget.title(vm.data.tag_name || '新增會員')}
                                 <div class="flex-fill"></div>
                             </div>`,
-                        html ` <div class="d-flex" style="gap:24px;">
-                                ${gvc.bindView(() => {
+                        html `<div class="d-flex justify-content-center ${document.body.clientWidth < 768 ? 'flex-column' : ''}" style="gap: 24px">
+                                ${BgWidget.container(gvc.bindView(() => {
                             const id = gvc.glitter.getUUID();
                             return {
                                 bind: id,
                                 view: () => {
                                     let map = [
                                         BgWidget.mainCard(html `
-                                                    ${html `<div class="tx_normal fw-bold">會員名稱*</div>`}
-                                                    ${BgWidget.editeInput({
+                                                        ${html `<div class="tx_normal fw-bold">會員名稱*</div>`}
+                                                        ${BgWidget.editeInput({
                                             gvc: gvc,
                                             title: '',
                                             default: vm.data.tag_name || '',
@@ -281,33 +281,33 @@ export class MemberTypeList {
                                                 gvc.notifyDataChange(noteID);
                                             },
                                         })}
-                                                `),
+                                                    `),
                                         BgWidget.mainCard(html `
-                                                    <div class="tx_normal fw-bold" style="margin-bottom: 18px;">會員條件*</div>
-                                                    ${[
+                                                        <div class="tx_normal fw-bold" style="margin-bottom: 18px;">會員條件*</div>
+                                                        ${[
                                             { title: '累積消費金額', value: 'total' },
                                             { title: '單筆消費金額', value: 'single' },
                                         ]
                                             .map((dd) => {
                                             return html `<div>
-                                                                ${[
+                                                                    ${[
                                                 html ` <div
-                                                                        class="d-flex align-items-center cursor_pointer"
-                                                                        style="gap:8px;"
-                                                                        onclick="${gvc.event(() => {
+                                                                            class="d-flex align-items-center cursor_pointer"
+                                                                            style="gap:8px;"
+                                                                            onclick="${gvc.event(() => {
                                                     vm.data.condition.type = dd.value;
                                                     gvc.notifyDataChange(id);
                                                 })}"
-                                                                    >
-                                                                        ${vm.data.condition.type === dd.value
+                                                                        >
+                                                                            ${vm.data.condition.type === dd.value
                                                     ? `<i class="fa-sharp fa-solid fa-circle-dot cl_39"></i>`
                                                     : ` <div class="c_39_checkbox"></div>`}
-                                                                        <div class="tx_normal fw-normal">${dd.title}</div>
-                                                                    </div>`,
+                                                                            <div class="tx_normal fw-normal">${dd.title}</div>
+                                                                        </div>`,
                                                 html ` <div class="d-flex position-relative mt-2" style="">
-                                                                        <div class="ms-2 border-end position-absolute h-100" style="left: 0px;"></div>
-                                                                        <div class="flex-fill w-100 mt-n2 d-flex align-items-center" style="margin-left:30px;max-width: 518px;gap:10px;">
-                                                                            ${(() => {
+                                                                            <div class="ms-2 border-end position-absolute h-100" style="left: 0px;"></div>
+                                                                            <div class="flex-fill w-100 mt-n2 d-flex align-items-center" style="margin-left:30px;max-width: 518px;gap:10px;">
+                                                                                ${(() => {
                                                     var _a;
                                                     if (vm.data.condition.type === dd.value) {
                                                         vm.data.condition.value = (_a = vm.data.condition.value) !== null && _a !== void 0 ? _a : 0;
@@ -330,38 +330,38 @@ export class MemberTypeList {
                                                         return ``;
                                                     }
                                                 })()}
-                                                                        </div>
-                                                                    </div>`,
+                                                                            </div>
+                                                                        </div>`,
                                             ].join('')}
-                                                            </div>`;
+                                                                </div>`;
                                         })
                                             .join('<div class="my-2"></div>')}
-                                                `),
+                                                    `),
                                         BgWidget.mainCard(html `
-                                                    <div class="tx_normal fw-bold" style="margin-bottom: 18px;">計算期間*</div>
-                                                    ${[
+                                                        <div class="tx_normal fw-bold" style="margin-bottom: 18px;">計算期間*</div>
+                                                        ${[
                                             { title: '計算期限', value: 'day' },
                                             { title: '不計算期限', value: 'noLimit' },
                                         ]
                                             .map((dd) => {
                                             return `<div>${[
                                                 html ` <div
-                                                                    class="d-flex align-items-center cursor_pointer"
-                                                                    style="gap:8px;"
-                                                                    onclick="${gvc.event(() => {
+                                                                        class="d-flex align-items-center cursor_pointer"
+                                                                        style="gap:8px;"
+                                                                        onclick="${gvc.event(() => {
                                                     vm.data.duration.type = dd.value;
                                                     gvc.notifyDataChange(id);
                                                 })}"
-                                                                >
-                                                                    ${vm.data.duration.type === dd.value
+                                                                    >
+                                                                        ${vm.data.duration.type === dd.value
                                                     ? `<i class="fa-sharp fa-solid fa-circle-dot cl_39"></i>`
                                                     : ` <div class="c_39_checkbox"></div>`}
-                                                                    <div class="tx_normal fw-normal">${dd.title}</div>
-                                                                </div>`,
+                                                                        <div class="tx_normal fw-normal">${dd.title}</div>
+                                                                    </div>`,
                                                 html ` <div class="d-flex position-relative mt-2" style="">
-                                                                    <div class="ms-2 border-end position-absolute h-100" style="left: 0px;"></div>
-                                                                    <div class="flex-fill w-100 mt-n2 d-flex align-items-center" style="margin-left:30px;max-width: 518px;gap:10px;">
-                                                                        ${(() => {
+                                                                        <div class="ms-2 border-end position-absolute h-100" style="left: 0px;"></div>
+                                                                        <div class="flex-fill w-100 mt-n2 d-flex align-items-center" style="margin-left:30px;max-width: 518px;gap:10px;">
+                                                                            ${(() => {
                                                     var _a;
                                                     if (vm.data.duration.type === dd.value && dd.value === 'day') {
                                                         vm.data.duration.value = (_a = vm.data.duration.value) !== null && _a !== void 0 ? _a : 30;
@@ -384,37 +384,37 @@ export class MemberTypeList {
                                                         return ``;
                                                     }
                                                 })()}
-                                                                    </div>
-                                                                </div>`,
+                                                                        </div>
+                                                                    </div>`,
                                             ].join('')}</div>`;
                                         })
                                             .join('<div class="my-2"></div>')}
-                                                `),
+                                                    `),
                                         BgWidget.mainCard(html `
-                                                    <div class="tx_normal fw-bold" style="margin-bottom: 18px;">會員期限*</div>
-                                                    ${[
+                                                        <div class="tx_normal fw-bold" style="margin-bottom: 18px;">會員期限*</div>
+                                                        ${[
                                             { title: '沒有期限', value: 'noLimit' },
                                             { title: '設定期限', value: 'date' },
                                         ]
                                             .map((dd) => {
                                             return `<div>${[
                                                 html ` <div
-                                                                    class="d-flex align-items-center cursor_pointer"
-                                                                    style="gap:8px;"
-                                                                    onclick="${gvc.event(() => {
+                                                                        class="d-flex align-items-center cursor_pointer"
+                                                                        style="gap:8px;"
+                                                                        onclick="${gvc.event(() => {
                                                     vm.data.dead_line.type = dd.value;
                                                     gvc.notifyDataChange(id);
                                                 })}"
-                                                                >
-                                                                    ${vm.data.dead_line.type === dd.value
+                                                                    >
+                                                                        ${vm.data.dead_line.type === dd.value
                                                     ? `<i class="fa-sharp fa-solid fa-circle-dot cl_39"></i>`
                                                     : ` <div class="c_39_checkbox"></div>`}
-                                                                    <div class="tx_normal fw-normal">${dd.title}</div>
-                                                                </div>`,
+                                                                        <div class="tx_normal fw-normal">${dd.title}</div>
+                                                                    </div>`,
                                                 html ` <div class="d-flex position-relative mt-2" style="">
-                                                                    <div class="ms-2 border-end position-absolute h-100" style="left: 0px;"></div>
-                                                                    <div class="flex-fill w-100  d-flex align-items-center" style="margin-left:30px;max-width: 518px;gap:10px;">
-                                                                        ${(() => {
+                                                                        <div class="ms-2 border-end position-absolute h-100" style="left: 0px;"></div>
+                                                                        <div class="flex-fill w-100  d-flex align-items-center" style="margin-left:30px;max-width: 518px;gap:10px;">
+                                                                            ${(() => {
                                                     var _a;
                                                     if (vm.data.dead_line.type === dd.value && dd.value === 'date') {
                                                         vm.data.dead_line.value = (_a = vm.data.dead_line.value) !== null && _a !== void 0 ? _a : 30;
@@ -459,8 +459,8 @@ export class MemberTypeList {
                                                             return parseInt(vm.data.dead_line.value, 10) === dd;
                                                         })) {
                                                             map.push(` <div class="flex-fill w-100 mt-n2 d-flex align-items-center"
-                                                                                 style="gap:10px;flex: 2;">
-                                                                                ${(() => {
+                                                                             style="gap:10px;flex: 2;">
+                                                                            ${(() => {
                                                                 return [
                                                                     BgWidget.editeInput({
                                                                         gvc: gvc,
@@ -476,7 +476,7 @@ export class MemberTypeList {
                                                                     `<div class="tx_normal" style="color:#8D8D8D;margin-top: 8px;white-space: nowrap;">天</div>`,
                                                                 ].join('');
                                                             })()}
-                                                                            </div>`);
+                                                                        </div>`);
                                                         }
                                                         return map.join('');
                                                     }
@@ -484,50 +484,47 @@ export class MemberTypeList {
                                                         return ``;
                                                     }
                                                 })()}
-                                                                    </div>
-                                                                </div>`,
+                                                                        </div>
+                                                                    </div>`,
                                             ].join('')}</div>`;
                                         })
                                             .join('<div class="my-2"></div>')}
-                                                `),
+                                                    `),
                                     ];
                                     return map.join('<div style="height: 24px;"></div>');
                                 },
-                                divCreate: {
-                                    style: 'width:594px;',
-                                },
+                                divCreate: { class: 'p-0' },
                                 onCreate: () => {
                                     gvc.notifyDataChange(noteID);
                                 },
                             };
-                        })}
-                                ${gvc.bindView(() => {
+                        }), undefined, 'padding: 0; margin: 0 !important; width: 65%;')}
+                                ${BgWidget.container(gvc.bindView(() => {
                             return {
                                 bind: noteID,
                                 view: () => {
                                     return BgWidget.mainCard(html `
-                                                <div class="tx_normal fw-bold">摘要</div>
-                                                <div class="tx_normal fw-normal" style="margin-top: 18px;margin-bottom: 18px;">會員名稱: ${vm.data.tag_name || '尚未設定'}</div>
-                                                <div class="w-100" style="background: #DDD;height: 2px;"></div>
-                                                <div class="tx_normal fw-normal" style="margin-top: 18px;">
-                                                    會員條件: ${vm.data.condition.type === 'single' ? `單筆消費金額${vm.data.condition.value}元` : `累計消費金額${vm.data.condition.value}元`}
-                                                </div>
-                                                <div class="tx_normal fw-normal" style="margin-top: 12px;margin-bottom: 18px;">
-                                                    計算期間: ${vm.data.duration.type === 'noLimit' ? `不計算期限` : `${vm.data.duration.value}天`} 天內消費
-                                                </div>
-                                                <div class="w-100" style="background: #DDD;height: 2px;"></div>
-                                                <div class="tx_normal fw-normal" style="margin-top: 18px;">
-                                                    會員期限: ${vm.data.dead_line.type === 'noLimit' ? `沒有期限` : `${vm.data.dead_line.value}天`}
-                                                </div>
-                                            `);
+                                                    <div class="tx_normal fw-bold">摘要</div>
+                                                    <div class="tx_normal fw-normal" style="margin-top: 18px;margin-bottom: 18px;">會員名稱: ${vm.data.tag_name || '尚未設定'}</div>
+                                                    <div class="w-100" style="background: #DDD;height: 2px;"></div>
+                                                    <div class="tx_normal fw-normal" style="margin-top: 18px;">
+                                                        會員條件: ${vm.data.condition.type === 'single' ? `單筆消費金額${vm.data.condition.value}元` : `累計消費金額${vm.data.condition.value}元`}
+                                                    </div>
+                                                    <div class="tx_normal fw-normal" style="margin-top: 12px;margin-bottom: 18px;">
+                                                        計算期間: ${vm.data.duration.type === 'noLimit' ? `不計算期限` : `${vm.data.duration.value}天`} 天內消費
+                                                    </div>
+                                                    <div class="w-100" style="background: #DDD;height: 2px;"></div>
+                                                    <div class="tx_normal fw-normal" style="margin-top: 18px;">
+                                                        會員期限: ${vm.data.dead_line.type === 'noLimit' ? `沒有期限` : `${vm.data.dead_line.value}天`}
+                                                    </div>
+                                                `);
                                 },
-                                divCreate: {
-                                    style: `width:294px;`,
-                                },
+                                divCreate: { class: 'p-0' },
                             };
-                        })}
+                        }), undefined, 'padding: 0; margin: 0 !important; width: 35%;')}
                             </div>`,
-                        html ` <div class="d-flex align-items-center justify-content-end pt-2" style="gap:20px;">
+                        BgWidget.mb240(),
+                        html ` <div class="update-bar-container">
                                 ${BgWidget.cancel(gvc.event(() => {
                             cf.callback();
                         }))}
@@ -552,7 +549,7 @@ export class MemberTypeList {
                             });
                         }))}
                             </div>`,
-                    ].join('<div class="my-2"></div>'), BgWidget.getContainerWidth());
+                    ].join('<div class="my-2"></div>'), BgWidget.getContainerWidth(), 'position: relative');
                 },
             };
         });

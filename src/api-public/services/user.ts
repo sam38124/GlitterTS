@@ -16,6 +16,8 @@ import { AutoSendEmail } from './auto-send-email.js';
 import qs from 'qs';
 import jwt from 'jsonwebtoken';
 import { OAuth2Client } from 'google-auth-library';
+import { Rebate } from './rebate.js';
+import moment from 'moment';
 
 interface UserQuery {
     page?: number;
@@ -74,6 +76,15 @@ export class User {
                               VALUES (?, ?, ?, ?, ?);`,
                 [userID, account, await tool.hashPwd(pwd), userData ?? {}, 1]
             );
+
+            const getRS = await this.getConfig({ key: 'rebate_setting', user_id: 'manager' });
+            const rgs = getRS[0] && getRS[0].value.register ? getRS[0].value.register : {};
+            if (rgs && rgs.switch) {
+                await new Rebate(this.app).insertRebate(userID, rgs.value ?? 0, '新加入會員', {
+                    type: 'first_regiser',
+                    deadTime: rgs.unlimited ? undefined : moment().add(rgs.date, 'd').format('YYYY-MM-DD HH:mm:ss'),
+                });
+            }
 
             const usData: any = await this.getUserData(userID, 'userID');
             usData.pwd = undefined;
@@ -402,10 +413,11 @@ export class User {
                 []
             )
         ).map((dd: any) => {
-            return { total_amount: dd.total, date: dd.created_time };
+            return { total_amount: parseInt(`${dd.total}`, 10), date: dd.created_time };
         });
-        //會員等級取得
-        const member = member_list.reverse().map(
+        // 判斷是否符合上個等級
+        let pass_level = true;
+        const member = member_list.map(
             (dd: {
                 id: string;
                 tag_name: string;
@@ -432,7 +444,7 @@ export class User {
                             dead_line.setDate(dead_line.getDate() + 365 * 10);
                             return {
                                 id: dd.id,
-                                trigger: true,
+                                trigger: pass_level,
                                 tag_name: dd.tag_name,
                                 dead_line: dead_line,
                                 og: dd,
@@ -441,7 +453,7 @@ export class User {
                             dead_line.setDate(dead_line.getDate() + dd.dead_line.value);
                             return {
                                 id: dd.id,
-                                trigger: true,
+                                trigger: pass_level,
                                 tag_name: dd.tag_name,
                                 dead_line: dead_line,
                                 og: dd,
@@ -449,11 +461,14 @@ export class User {
                         }
                     } else {
                         let leak = parseInt(dd.condition.value, 10);
+                        if (leak !== 0) {
+                            pass_level = false;
+                        }
                         return {
                             id: dd.id,
                             tag_name: dd.tag_name,
                             dead_line: '',
-                            trigger: leak === 0,
+                            trigger: leak === 0 && pass_level,
                             og: dd,
                             leak: leak,
                         };
@@ -466,7 +481,7 @@ export class User {
                             latest.setDate(latest.getDate() + 365 * 10);
                             return {
                                 id: dd.id,
-                                trigger: true,
+                                trigger: pass_level,
                                 tag_name: dd.tag_name,
                                 dead_line: latest,
                                 og: dd,
@@ -475,7 +490,7 @@ export class User {
                             latest.setDate(latest.getDate() + dd.dead_line.value);
                             return {
                                 id: dd.id,
-                                trigger: true,
+                                trigger: pass_level,
                                 tag_name: dd.tag_name,
                                 dead_line: latest,
                                 og: dd,
@@ -484,6 +499,7 @@ export class User {
                     } else {
                         let leak = parseInt(dd.condition.value, 10);
                         let sum = 0;
+
                         const compareDate = new Date();
                         compareDate.setDate(compareDate.getDate() - (dd.duration.type === 'noLimit' ? 365 * 10 : dd.duration.value));
                         order_list.map((dd: any) => {
@@ -492,12 +508,14 @@ export class User {
                                 sum += dd.total_amount;
                             }
                         });
-
+                        if (leak !== 0) {
+                            pass_level = false;
+                        }
                         return {
                             id: dd.id,
                             tag_name: dd.tag_name,
                             dead_line: '',
-                            trigger: leak === 0,
+                            trigger: leak === 0 && pass_level,
                             leak: leak,
                             sum: sum,
                             og: dd,
@@ -506,7 +524,7 @@ export class User {
                 }
             }
         );
-        return member;
+        return member.reverse();
     }
 
     public find30DayPeriodWith3000Spent(

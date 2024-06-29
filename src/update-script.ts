@@ -2,10 +2,14 @@ import db from './modules/database';
 
 export class UpdateScript {
     public static async run() {
+        const migrate_template=(await db.query('SELECT appName FROM glitter.app_config where template_type!=0;',[])).map((dd:any)=>{
+            return dd.appName
+        }).concat('shop_template_black_style','3131_shop')
+
         // UpdateScript.migrateTermsOfService(['3131_shop', 't_1717152410650', 't_1717141688550', 't_1717129048727', 'shop-template-clothing-v3'])
         // UpdateScript.migrateHeaderAndFooter(['3131_shop','shop-template-clothing-v3','t_1717129048727','t_1717141688550','t_1717152410650','t_1717407696327','t_1717385441550','t_1717386839537','t_1717397588096'])
         // UpdateScript.migrateAccount('shop_template_black_style')
-       // await UpdateScript.migrateRichText()
+       await UpdateScript.migrateDialog(migrate_template)
     }
 
     public static async migrateRichText(){
@@ -114,6 +118,36 @@ for (const p of page_list){
                             set ?`, [
                 rebate_page
             ])
+        }
+    }
+
+    public static async migrateDialog(appList: string[]) {
+        const page_list = (await db.query(`SELECT *
+                                             FROM glitter.page_config
+                                             where appName = 'cms_system'
+                                               and tag in ('loading_dialog','toast','false_dialog')`, []));
+        page_list.map((d: any) => {
+            Object.keys(d).map((dd) => {
+                if (typeof d[dd] === 'object') {
+                    d[dd] = JSON.stringify(d[dd])
+                }
+            })
+        })
+        for (const appName of appList){
+            for (const b of page_list) {
+                await db.query(`delete
+                            from glitter.page_config
+                            where appName = ${db.escape(appName)}
+                              and tag = ?`, [b.tag]);
+                b['appName']=appName
+                b['id']=undefined
+                b['created_time'] = new Date()
+                b['updated_time'] = new Date()
+                await db.query(`insert into glitter.page_config
+                            set ?`, [
+                    b
+                ])
+            }
         }
     }
 }

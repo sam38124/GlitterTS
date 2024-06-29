@@ -32,7 +32,7 @@ export class ShoppingDiscountSetting {
                     if (vm.type === 'list') {
                         return BgWidget.container(
                             html`
-                                <div class="d-flex w-100 align-items-center" style="margin-bottom: 24px;">
+                                <div class="d-flex w-100 align-items-center">
                                     ${BgWidget.title('優惠券管理')}
                                     <div class="flex-fill"></div>
                                     ${BgWidget.darkButton(
@@ -43,158 +43,163 @@ export class ShoppingDiscountSetting {
                                         })
                                     )}
                                 </div>
-                                ${BgWidget.mainCard(
-                                    BgWidget.tableV2({
-                                        gvc: gvc,
-                                        getData: (vmi) => {
-                                            ApiShop.getVoucher({
-                                                page: vmi.page - 1,
-                                                limit: 20,
-                                                search: vm.query || undefined,
-                                            }).then((data) => {
-                                                vmi.pageSize = Math.ceil(data.response.total / 20);
-                                                vm.dataList = data.response.data;
+                                ${BgWidget.container(
+                                    BgWidget.mainCard(
+                                        BgWidget.tableV2({
+                                            gvc: gvc,
+                                            getData: (vmi) => {
+                                                ApiShop.getVoucher({
+                                                    page: vmi.page - 1,
+                                                    limit: 20,
+                                                    search: vm.query || undefined,
+                                                }).then((data) => {
+                                                    vmi.pageSize = Math.ceil(data.response.total / 20);
+                                                    vm.dataList = data.response.data;
 
-                                                function getDatalist() {
-                                                    return data.response.data.map((dd: any) => {
-                                                        return [
-                                                            {
-                                                                key: EditorElem.checkBoxOnly({
-                                                                    gvc: gvc,
-                                                                    def: !data.response.data.find((dd: any) => {
-                                                                        return !dd.checked;
-                                                                    }),
-                                                                    callback: (result) => {
-                                                                        data.response.data.map((dd: any) => {
-                                                                            dd.checked = result;
-                                                                        });
-                                                                        vmi.data = getDatalist();
-                                                                        vmi.callback();
-                                                                        gvc.notifyDataChange(filterID);
-                                                                    },
-                                                                }),
-                                                                value: EditorElem.checkBoxOnly({
-                                                                    gvc: gvc,
-                                                                    def: dd.checked,
-                                                                    callback: (result) => {
-                                                                        dd.checked = result;
-                                                                        vmi.data = getDatalist();
-                                                                        vmi.callback();
-                                                                        gvc.notifyDataChange(filterID);
-                                                                    },
-                                                                    style: 'height:25px;',
-                                                                }),
-                                                            },
-                                                            {
-                                                                key: '標題',
-                                                                value: `<span class="fs-7">${dd.content.title}</span>`,
-                                                            },
-                                                            {
-                                                                key: '狀態',
-                                                                value: dd.content.status ? `<div class="badge badge-success fs-7" >啟用中</div>` : `<div class="badge bg-secondary fs-7">已停用</div>`,
-                                                            },
-                                                            {
-                                                                key: '觸發方式',
-                                                                value: `<span class="fs-7">${dd.content.trigger === 'code' ? `輸入代碼` : `自動`}</span>`,
-                                                            },
-                                                            {
-                                                                key: '對象',
-                                                                value: `<span class="fs-7">${dd.content.for === 'product' ? `指定商品` : `商品系列`}</span>`,
-                                                            },
-                                                            {
-                                                                key: '折扣項目',
-                                                                value: `<span class="fs-7">${dd.content.method === 'percent' ? `折扣${dd.content.value}%` : `折扣$${dd.content.value}`}</span>`,
-                                                            },
-                                                        ];
-                                                    });
-                                                }
-
-                                                vmi.data = getDatalist();
-                                                vmi.loading = false;
-                                                vmi.callback();
-                                            });
-                                        },
-                                        rowClick: (data, index) => {
-                                            vm.data = vm.dataList[index].content;
-                                            vm.type = 'replace';
-                                        },
-                                        filter: html` ${BgWidget.searchPlace(
-                                            gvc.event((e, event) => {
-                                                vm.query = e.value;
-                                                gvc.notifyDataChange(id);
-                                            }),
-                                            vm.query || '',
-                                            '搜尋所有折扣'
-                                        )}
-                                        ${gvc.bindView(() => {
-                                            return {
-                                                bind: filterID,
-                                                view: () => {
-                                                    if (
-                                                        !vm.dataList ||
-                                                        !vm.dataList.find((dd: any) => {
-                                                            return dd.checked;
-                                                        })
-                                                    ) {
-                                                        return ``;
-                                                    } else {
-                                                        return [
-                                                            html`<span class="fs-7 fw-bold">操作選項</span>`,
-                                                            html`<button
-                                                                class="btn btn-danger fs-7 px-2"
-                                                                style="height:30px;border:none;"
-                                                                onclick="${gvc.event(() => {
-                                                                    const dialog = new ShareDialog(gvc.glitter);
-                                                                    dialog.checkYesOrNot({
-                                                                        text: '是否確認移除所選項目?',
-                                                                        callback: (response) => {
-                                                                            if (response) {
-                                                                                dialog.dataLoading({ visible: true });
-                                                                                ApiShop.deleteVoucher({
-                                                                                    id: vm.dataList
-                                                                                        .filter((dd: any) => {
-                                                                                            return dd.checked;
-                                                                                        })
-                                                                                        .map((dd: any) => {
-                                                                                            return dd.id;
-                                                                                        })
-                                                                                        .join(`,`),
-                                                                                }).then((res) => {
-                                                                                    dialog.dataLoading({ visible: false });
-                                                                                    if (res.result) {
-                                                                                        vm.dataList = undefined;
-                                                                                        gvc.notifyDataChange(id);
-                                                                                    } else {
-                                                                                        dialog.errorMessage({ text: '刪除失敗' });
-                                                                                    }
-                                                                                });
-                                                                            }
+                                                    function getDatalist() {
+                                                        return data.response.data.map((dd: any) => {
+                                                            return [
+                                                                {
+                                                                    key: EditorElem.checkBoxOnly({
+                                                                        gvc: gvc,
+                                                                        def: !data.response.data.find((dd: any) => {
+                                                                            return !dd.checked;
+                                                                        }),
+                                                                        callback: (result) => {
+                                                                            data.response.data.map((dd: any) => {
+                                                                                dd.checked = result;
+                                                                            });
+                                                                            vmi.data = getDatalist();
+                                                                            vmi.callback();
+                                                                            gvc.notifyDataChange(filterID);
                                                                         },
-                                                                    });
-                                                                })}"
-                                                            >
-                                                                批量移除
-                                                            </button>`,
-                                                        ].join(``);
+                                                                    }),
+                                                                    value: EditorElem.checkBoxOnly({
+                                                                        gvc: gvc,
+                                                                        def: dd.checked,
+                                                                        callback: (result) => {
+                                                                            dd.checked = result;
+                                                                            vmi.data = getDatalist();
+                                                                            vmi.callback();
+                                                                            gvc.notifyDataChange(filterID);
+                                                                        },
+                                                                        style: 'height:25px;',
+                                                                    }),
+                                                                },
+                                                                {
+                                                                    key: '標題',
+                                                                    value: `<span class="fs-7">${dd.content.title}</span>`,
+                                                                },
+                                                                {
+                                                                    key: '狀態',
+                                                                    value: dd.content.status
+                                                                        ? `<div class="badge badge-success fs-7" >啟用中</div>`
+                                                                        : `<div class="badge bg-secondary fs-7">已停用</div>`,
+                                                                },
+                                                                {
+                                                                    key: '觸發方式',
+                                                                    value: `<span class="fs-7">${dd.content.trigger === 'code' ? `輸入代碼` : `自動`}</span>`,
+                                                                },
+                                                                {
+                                                                    key: '對象',
+                                                                    value: `<span class="fs-7">${dd.content.for === 'product' ? `指定商品` : `商品系列`}</span>`,
+                                                                },
+                                                                {
+                                                                    key: '折扣項目',
+                                                                    value: `<span class="fs-7">${dd.content.method === 'percent' ? `折扣${dd.content.value}%` : `折扣$${dd.content.value}`}</span>`,
+                                                                },
+                                                            ];
+                                                        });
                                                     }
-                                                },
-                                                divCreate: () => {
-                                                    return {
-                                                        class: `d-flex align-items-center p-2 py-3 ${
+
+                                                    vmi.data = getDatalist();
+                                                    vmi.loading = false;
+                                                    vmi.callback();
+                                                });
+                                            },
+                                            rowClick: (data, index) => {
+                                                vm.data = vm.dataList[index].content;
+                                                vm.type = 'replace';
+                                            },
+                                            filter: html` ${BgWidget.searchPlace(
+                                                gvc.event((e, event) => {
+                                                    vm.query = e.value;
+                                                    gvc.notifyDataChange(id);
+                                                }),
+                                                vm.query || '',
+                                                '搜尋所有折扣'
+                                            )}
+                                            ${gvc.bindView(() => {
+                                                return {
+                                                    bind: filterID,
+                                                    view: () => {
+                                                        if (
                                                             !vm.dataList ||
                                                             !vm.dataList.find((dd: any) => {
                                                                 return dd.checked;
                                                             })
-                                                                ? `d-none`
-                                                                : ``
-                                                        }`,
-                                                        style: `height:40px;gap:10px;margin-top:10px;`,
-                                                    };
-                                                },
-                                            };
-                                        })}`,
-                                    })
+                                                        ) {
+                                                            return ``;
+                                                        } else {
+                                                            return [
+                                                                html`<span class="fs-7 fw-bold">操作選項</span>`,
+                                                                html`<button
+                                                                    class="btn btn-danger fs-7 px-2"
+                                                                    style="height:30px;border:none;"
+                                                                    onclick="${gvc.event(() => {
+                                                                        const dialog = new ShareDialog(gvc.glitter);
+                                                                        dialog.checkYesOrNot({
+                                                                            text: '是否確認移除所選項目?',
+                                                                            callback: (response) => {
+                                                                                if (response) {
+                                                                                    dialog.dataLoading({ visible: true });
+                                                                                    ApiShop.deleteVoucher({
+                                                                                        id: vm.dataList
+                                                                                            .filter((dd: any) => {
+                                                                                                return dd.checked;
+                                                                                            })
+                                                                                            .map((dd: any) => {
+                                                                                                return dd.id;
+                                                                                            })
+                                                                                            .join(`,`),
+                                                                                    }).then((res) => {
+                                                                                        dialog.dataLoading({ visible: false });
+                                                                                        if (res.result) {
+                                                                                            vm.dataList = undefined;
+                                                                                            gvc.notifyDataChange(id);
+                                                                                        } else {
+                                                                                            dialog.errorMessage({ text: '刪除失敗' });
+                                                                                        }
+                                                                                    });
+                                                                                }
+                                                                            },
+                                                                        });
+                                                                    })}"
+                                                                >
+                                                                    批量移除
+                                                                </button>`,
+                                                            ].join(``);
+                                                        }
+                                                    },
+                                                    divCreate: () => {
+                                                        return {
+                                                            class: `d-flex align-items-center p-2 py-3 ${
+                                                                !vm.dataList ||
+                                                                !vm.dataList.find((dd: any) => {
+                                                                    return dd.checked;
+                                                                })
+                                                                    ? `d-none`
+                                                                    : ``
+                                                            }`,
+                                                            style: `height:40px;gap:10px;margin-top:10px;`,
+                                                        };
+                                                    },
+                                                };
+                                            })}`,
+                                        })
+                                    )
                                 )}
+                                ${BgWidget.mbContainer(120)}
                             `,
                             BgWidget.getContainerWidth()
                         );
@@ -348,7 +353,7 @@ export class ShoppingDiscountSetting {
                     ${BgWidget.title(obj.type === 'add' ? '新增優惠券' : '編輯優惠券')}
                 </div>`,
                 // 左右容器
-                html`<div class="d-flex justify-content-center" style="gap: 24px">
+                html`<div class="d-flex justify-content-center ${document.body.clientWidth < 768 ? 'flex-column' : ''}" style="gap: 24px">
                     ${BgWidget.container(
                         // 優惠券設定
                         [
@@ -1055,33 +1060,29 @@ export class ShoppingDiscountSetting {
                                             const inputStyle = 'font-size: 16px; height:40px; width:200px;';
                                             return [
                                                 html` <h6 class="tx_700">有效日期</h6>`,
-                                                html`<div class="d-flex align-items-center mb-3">
-                                                    <div>
-                                                        ${EditorElem.editeInput({
-                                                            gvc: gvc,
-                                                            title: '<span class="tx_normal">開始日期</span>',
-                                                            type: 'date',
-                                                            style: inputStyle,
-                                                            default: `${voucherData.startDate}`,
-                                                            placeHolder: '',
-                                                            callback: (text) => {
-                                                                voucherData.startDate = text;
-                                                            },
-                                                        })}
-                                                    </div>
-                                                    <div class="ms-3">
-                                                        ${EditorElem.editeInput({
-                                                            gvc: gvc,
-                                                            title: '<span class="tx_normal">開始時間</span>',
-                                                            type: 'time',
-                                                            style: inputStyle,
-                                                            default: `${voucherData.startTime}`,
-                                                            placeHolder: '',
-                                                            callback: (text) => {
-                                                                voucherData.startTime = text;
-                                                            },
-                                                        })}
-                                                    </div>
+                                                html`<div class="d-flex mb-3 ${document.body.clientWidth < 768 ? 'flex-column' : ''}" style="gap: 12px">
+                                                    ${EditorElem.editeInput({
+                                                        gvc: gvc,
+                                                        title: '<span class="tx_normal">開始日期</span>',
+                                                        type: 'date',
+                                                        style: inputStyle,
+                                                        default: `${voucherData.startDate}`,
+                                                        placeHolder: '',
+                                                        callback: (text) => {
+                                                            voucherData.startDate = text;
+                                                        },
+                                                    })}
+                                                    ${EditorElem.editeInput({
+                                                        gvc: gvc,
+                                                        title: '<span class="tx_normal">開始時間</span>',
+                                                        type: 'time',
+                                                        style: inputStyle,
+                                                        default: `${voucherData.startTime}`,
+                                                        placeHolder: '',
+                                                        callback: (text) => {
+                                                            voucherData.startTime = text;
+                                                        },
+                                                    })}
                                                 </div>`,
                                                 (() => {
                                                     const endDate = voucherData.endDate ? `withEnd` : `noEnd`;
@@ -1097,33 +1098,29 @@ export class ShoppingDiscountSetting {
                                                             {
                                                                 title: '有效期限',
                                                                 value: 'withEnd',
-                                                                innerHtml: html`<div class="d-flex align-items-center mb-2">
-                                                                    <div>
-                                                                        ${EditorElem.editeInput({
-                                                                            gvc: gvc,
-                                                                            title: '<span class="tx_normal">結束日期</span>',
-                                                                            type: 'date',
-                                                                            style: inputStyle,
-                                                                            default: `${voucherData.endDate}`,
-                                                                            placeHolder: '',
-                                                                            callback: (text) => {
-                                                                                voucherData.endDate = text;
-                                                                            },
-                                                                        })}
-                                                                    </div>
-                                                                    <div class="ms-3">
-                                                                        ${EditorElem.editeInput({
-                                                                            gvc: gvc,
-                                                                            title: '<span class="tx_normal">結束時間</span>',
-                                                                            type: 'time',
-                                                                            style: inputStyle,
-                                                                            default: `${voucherData.endTime}`,
-                                                                            placeHolder: '',
-                                                                            callback: (text) => {
-                                                                                voucherData.endTime = text;
-                                                                            },
-                                                                        })}
-                                                                    </div>
+                                                                innerHtml: html`<div class="d-flex mt-3 ${document.body.clientWidth < 768 ? 'flex-column' : ''}" style="gap: 12px">
+                                                                    ${EditorElem.editeInput({
+                                                                        gvc: gvc,
+                                                                        title: '<span class="tx_normal">結束日期</span>',
+                                                                        type: 'date',
+                                                                        style: inputStyle,
+                                                                        default: `${voucherData.endDate}`,
+                                                                        placeHolder: '',
+                                                                        callback: (text) => {
+                                                                            voucherData.endDate = text;
+                                                                        },
+                                                                    })}
+                                                                    ${EditorElem.editeInput({
+                                                                        gvc: gvc,
+                                                                        title: '<span class="tx_normal">結束時間</span>',
+                                                                        type: 'time',
+                                                                        style: inputStyle,
+                                                                        default: `${voucherData.endTime}`,
+                                                                        placeHolder: '',
+                                                                        callback: (text) => {
+                                                                            voucherData.endTime = text;
+                                                                        },
+                                                                    })}
                                                                 </div>`,
                                                             },
                                                         ],
@@ -1140,51 +1137,52 @@ export class ShoppingDiscountSetting {
                                     };
                                 })
                             ),
-                        ].join(html`<div style="margin-top: 24px"></div>`),
+                        ].join(html`<div style="margin-top: 24px;"></div>`),
                         undefined,
-                        'padding: 0; margin: 0 !important; width: 68.5%;'
+                        'padding: 0 ; margin: 0 !important; width: 68.5%;'
                     )}
                     ${BgWidget.container(
                         // 摘要預覽
-                        html`<div>
-                            ${gvc.bindView(() => {
-                                const id = gvc.glitter.getUUID();
-                                return {
-                                    bind: id,
-                                    dataList: Object.keys(voucherData).map((key) => {
-                                        return { obj: voucherData, key };
-                                    }),
-                                    view: () => {
-                                        return BgWidget.mainCard(
-                                            gvc.bindView(() => {
-                                                const id = gvc.glitter.getUUID();
-                                                return {
-                                                    bind: id,
-                                                    view: () => {
-                                                        return html`
-                                                            <h3 class="tx_700" style="margin-bottom: 18px;">摘要</h3>
-                                                            <div style="display: flex; gap: 12px; flex-direction: column;">
-                                                                ${gvc.map(
-                                                                    getVoucherTextList().map((text) => {
-                                                                        return html` <div class="${text.length > 0 ? 'tx_normal' : 'gray-top-bottom-line-6'}">${text}</div>`;
-                                                                    })
-                                                                )}
-                                                            </div>
-                                                        `;
-                                                    },
-                                                };
-                                            })
-                                        );
-                                    },
-                                };
-                            })}
-                        </div>`,
+                        gvc.bindView(() => {
+                            const id = gvc.glitter.getUUID();
+                            return {
+                                bind: id,
+                                dataList: Object.keys(voucherData).map((key) => {
+                                    return { obj: voucherData, key };
+                                }),
+                                view: () => {
+                                    return BgWidget.mainCard(
+                                        gvc.bindView(() => {
+                                            const id = gvc.glitter.getUUID();
+                                            return {
+                                                bind: id,
+                                                view: () => {
+                                                    return html`
+                                                        <h3 class="tx_700" style="margin-bottom: 18px;">摘要</h3>
+                                                        <div style="display: flex; gap: 12px; flex-direction: column;">
+                                                            ${gvc.map(
+                                                                getVoucherTextList().map((text) => {
+                                                                    return html` <div class="${text.length > 0 ? 'tx_normal' : 'gray-top-bottom-line-6'}">${text}</div>`;
+                                                                })
+                                                            )}
+                                                        </div>
+                                                    `;
+                                                },
+                                            };
+                                        })
+                                    );
+                                },
+                                divCreate: {
+                                    class: 'p-0',
+                                },
+                            };
+                        }),
                         undefined,
                         'padding: 0; margin: 0 !important; width: 26.5%;'
                     )}
                 </div>`,
                 // 空白容器
-                html`<div style="margin-bottom: 240px"></div>`,
+                BgWidget.mb240(),
                 // 儲存資料
                 html` <div class="update-bar-container">
                     ${obj.type === 'replace'
@@ -1266,7 +1264,7 @@ export class ShoppingDiscountSetting {
                         })
                     )}
                 </div>`,
-            ].join(html`<div style="margin-top: 24px"></div>`),
+            ].join(html`<div style="margin-top: 24px;"></div>`),
             BgWidget.getContainerWidth()
         );
     }

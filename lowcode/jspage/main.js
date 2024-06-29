@@ -148,34 +148,43 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                 })),
                 (() => __awaiter(this, void 0, void 0, function* () {
                     return yield new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
-                        const clock = gvc.glitter.ut.clock();
-                        const data = yield ApiPageConfig.getPage({
-                            appName: gBundle.appName,
-                            type: 'template'
-                        });
-                        viewModel.data = (yield ApiPageConfig.getPage({
-                            appName: gBundle.appName,
-                            tag: glitter.getUrlParameter('page')
-                        })).response.result[0];
-                        Storage.select_page_type = viewModel.data.page_type;
-                        if (data.result) {
-                            data.response.result.map((dd) => {
-                                var _a;
-                                dd.page_config = (_a = dd.page_config) !== null && _a !== void 0 ? _a : {};
-                                return dd;
+                        if (!glitter.share.editor_vm) {
+                            const data = yield ApiPageConfig.getPage({
+                                appName: gBundle.appName,
+                                type: 'template'
                             });
-                            viewModel.dataList = data.response.result;
-                            viewModel.originalData = JSON.parse(JSON.stringify(viewModel.dataList));
-                            glitter.share.allPageResource = JSON.parse(JSON.stringify(data.response.result));
+                            viewModel.data = (yield ApiPageConfig.getPage({
+                                appName: gBundle.appName,
+                                tag: glitter.getUrlParameter('page')
+                            })).response.result[0];
+                            Storage.select_page_type = viewModel.data.page_type;
+                            if (data.result) {
+                                data.response.result.map((dd) => {
+                                    var _a;
+                                    dd.page_config = (_a = dd.page_config) !== null && _a !== void 0 ? _a : {};
+                                    return dd;
+                                });
+                                viewModel.dataList = data.response.result;
+                                viewModel.originalData = JSON.parse(JSON.stringify(viewModel.dataList));
+                                glitter.share.allPageResource = JSON.parse(JSON.stringify(data.response.result));
+                                const htmlGenerate = new gvc.glitter.htmlGenerate(viewModel.data.config, [Storage.lastSelect], undefined, true);
+                                window.editerData = htmlGenerate;
+                                window.page_config = viewModel.data.page_config;
+                                if (!data) {
+                                    resolve(false);
+                                }
+                                else {
+                                    resolve(true);
+                                }
+                            }
+                        }
+                        else {
+                            viewModel.dataList = [];
+                            viewModel.data = glitter.share.editor_vm.page_data;
                             const htmlGenerate = new gvc.glitter.htmlGenerate(viewModel.data.config, [Storage.lastSelect], undefined, true);
                             window.editerData = htmlGenerate;
                             window.page_config = viewModel.data.page_config;
-                            if (!data) {
-                                resolve(false);
-                            }
-                            else {
-                                resolve(true);
-                            }
+                            resolve(true);
                         }
                     }));
                 })),
@@ -293,23 +302,28 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                 });
                             }
                             getID(viewModel.data.config);
-                            return new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
-                                let result = true;
-                                ApiPageConfig.setPage({
-                                    id: viewModel.data.id,
-                                    appName: gBundle.appName,
-                                    tag: viewModel.data.tag,
-                                    name: viewModel.data.name,
-                                    config: viewModel.data.config,
-                                    group: viewModel.data.group,
-                                    page_config: viewModel.data.page_config,
-                                    page_type: viewModel.data.page_type,
-                                    preview_image: viewModel.data.preview_image,
-                                    favorite: viewModel.data.favorite,
-                                }).then((api) => {
-                                    resolve(result && api.result);
-                                });
-                            }));
+                            if (glitter.share.editor_vm) {
+                                return new Promise((resolve, reject) => { resolve(true); });
+                            }
+                            else {
+                                return new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
+                                    let result = true;
+                                    ApiPageConfig.setPage({
+                                        id: viewModel.data.id,
+                                        appName: gBundle.appName,
+                                        tag: viewModel.data.tag,
+                                        name: viewModel.data.name,
+                                        config: viewModel.data.config,
+                                        group: viewModel.data.group,
+                                        page_config: viewModel.data.page_config,
+                                        page_type: viewModel.data.page_type,
+                                        preview_image: viewModel.data.preview_image,
+                                        favorite: viewModel.data.favorite,
+                                    }).then((api) => {
+                                        resolve(result && api.result);
+                                    });
+                                }));
+                            }
                         })),
                         (() => __awaiter(this, void 0, void 0, function* () {
                             return new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
@@ -332,6 +346,19 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                     swal.close();
                     viewModel.originalConfig = JSON.parse(JSON.stringify(viewModel.appConfig));
                     if (refresh) {
+                        window.preloadData = {};
+                        window.glitterInitialHelper.share = {};
+                        lod();
+                    }
+                    if (glitter.share.editor_vm) {
+                        glitter.share.editor_vm.callback(viewModel.data);
+                        swal.close();
+                        swal.toast({
+                            icon: 'success',
+                            title: '儲存成功'
+                        });
+                    }
+                    else if (refresh) {
                         window.preloadData = {};
                         window.glitterInitialHelper.share = {};
                         lod();
@@ -600,7 +627,8 @@ function initialEditor(gvc, viewModel) {
                 widget: data,
                 widgetComponentID: data.id,
                 gvc: viewModel.selectContainer.container_config.gvc,
-                scroll_to_hover: true
+                scroll_to_hover: true,
+                glitter: glitter
             });
         }, 50);
         AddComponent.toggle(false);
@@ -619,7 +647,7 @@ function initialEditor(gvc, viewModel) {
         }
         Storage.lastSelect = cf.data.id;
         HtmlGenerate.hover_items = [Storage.lastSelect];
-        const $ = document.querySelector('iframe').contentWindow.$;
+        const $ = document.querySelector('#editerCenter iframe').contentWindow.$;
         $(HtmlGenerate.renderWidgetSingle({
             widget: cf.data,
             gvc: arrayData.container.container_config.gvc,
@@ -635,7 +663,8 @@ function initialEditor(gvc, viewModel) {
                 widget: cf.data,
                 widgetComponentID: cf.data.id,
                 gvc: arrayData.container.container_config.gvc,
-                scroll_to_hover: true
+                scroll_to_hover: true,
+                glitter: glitter
             });
         }, 50);
     };

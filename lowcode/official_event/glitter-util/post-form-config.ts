@@ -48,7 +48,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                         })
                         const form_title = await TriggerEvent.trigger({
                             gvc: gvc, widget: widget, clickEvent: object.form_title, subData: subData
-                        })
+                        });
                         ApiPost.post({
                             postData: {
                                 form_config: config,

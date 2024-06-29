@@ -236,7 +236,7 @@ class Chat {
                                         title: `收到訊息`,
                                         userID: dd.userID,
                                         tag: 'message',
-                                        link: `./message&userID=${user.userID}`,
+                                        link: `./message?userID=${user.userID}`,
                                         body: `${user.userData.name}傳送訊息給您:${room.message.text}`
                                     });
                                 }

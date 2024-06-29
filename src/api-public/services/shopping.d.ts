@@ -31,6 +31,8 @@ interface VoucherData {
     end_ISO_Date: string;
     discount_total: number;
     rebate_total: number;
+    target: string;
+    targetList: string[];
 }
 export declare class Shopping {
     app: string;
@@ -124,6 +126,11 @@ export declare class Shopping {
             use_wallet: number;
             user_email: string;
             method: string;
+            useRebateInfo?: {
+                point: number;
+                limit?: number | undefined;
+                condition?: number | undefined;
+            } | undefined;
         };
         is_free?: undefined;
         off_line?: undefined;
@@ -143,6 +150,11 @@ export declare class Shopping {
         data?: undefined;
         is_free?: undefined;
         off_line?: undefined;
+    }>;
+    formatUseRebate(total: number, useRebate: number): Promise<{
+        point: number;
+        limit?: number;
+        condition?: number;
     }>;
     checkVoucher(cart: {
         lineItems: {

@@ -1,353 +1,427 @@
 import db from '../modules/database';
-import exception from "../modules/exception";
-import {saasConfig} from "../config";
-import tool from "./tool";
-import UserUtil from "../utils/UserUtil";
-import {createAPP} from "../index.js";
-import AWS from "aws-sdk";
-import {IToken} from "../models/Auth.js";
-import config from "../config.js";
-import fs from "fs";
-import {exec} from "child_process";
-import {Ssh} from "../modules/ssh.js";
-import {NginxConfFile} from "nginx-conf";
-import * as process from "process";
-import {ApiPublic} from "../api-public/services/public-table-check.js";
-import {BackendService} from "./backend-service.js";
-import {Template} from "./template.js";
-import Tool from "./tool";
-import path from "path";
+import exception from '../modules/exception';
+import { saasConfig } from '../config';
+import tool from './tool';
+import UserUtil from '../utils/UserUtil';
+import { createAPP } from '../index.js';
+import AWS from 'aws-sdk';
+import { IToken } from '../models/Auth.js';
+import config from '../config.js';
+import fs from 'fs';
+import { exec } from 'child_process';
+import { Ssh } from '../modules/ssh.js';
+import { NginxConfFile } from 'nginx-conf';
+import * as process from 'process';
+import { ApiPublic } from '../api-public/services/public-table-check.js';
+import { BackendService } from './backend-service.js';
+import { Template } from './template.js';
+import Tool from './tool';
+import path from 'path';
 
 export class App {
     public token?: IToken;
 
     public static getAdConfig(app: string, key: string) {
         return new Promise<any>(async (resolve, reject) => {
-            const data = await db.query(`select \`value\`
+            const data = await db.query(
+                `select \`value\`
                                          from \`${config.DB_NAME}\`.private_config
                                          where app_name = '${app}'
-                                           and \`key\` = ${db.escape(key)}`, [])
-            resolve((data[0]) ? data[0]['value'] : {})
-        })
+                                           and \`key\` = ${db.escape(key)}`,
+                []
+            );
+            resolve(data[0] ? data[0]['value'] : {});
+        });
     }
 
-    public async createApp(cf: { appName: string, copyApp: string, copyWith: string[], brand: string, name?: string, theme?: string, sub_domain: string }) {
+    public async createApp(cf: { appName: string; copyApp: string; copyWith: string[]; brand: string; name?: string; theme?: string; sub_domain: string }) {
         try {
-            cf.copyWith = cf.copyWith ?? []
-            const count = await db.execute(`
+            cf.copyWith = cf.copyWith ?? [];
+            const count = await db.execute(
+                `
                 select count(1)
                 from \`${saasConfig.SAAS_NAME}\`.app_config
                 where appName = ${db.escape(cf.appName)}
-            `, [])
-            if (count[0]["count(1)"] === 1) {
-                throw  exception.BadRequestError('HAVE_APP', 'This app already be used.', null);
+            `,
+                []
+            );
+            if (count[0]['count(1)'] === 1) {
+                throw exception.BadRequestError('HAVE_APP', 'This app already be used.', null);
             }
-            const domain_count = await db.execute(`
+            const domain_count = await db.execute(
+                `
                 select count(1)
                 from \`${saasConfig.SAAS_NAME}\`.app_config
                 where domain = ${db.escape(`${cf.sub_domain}.${config.HostedDomain}`)}
-            `, []);
+            `,
+                []
+            );
             if (domain_count[0]['count(1)'] === 1) {
-                throw  exception.BadRequestError('HAVE_DOMAIN', 'This domain already be used.', null);
+                throw exception.BadRequestError('HAVE_DOMAIN', 'This domain already be used.', null);
             }
 
-            let copyAppData: any = undefined
-            let copyPageData: any = undefined
-            let privateConfig: any = undefined
+            let copyAppData: any = undefined;
+            let copyPageData: any = undefined;
+            let privateConfig: any = undefined;
             if (cf.copyApp) {
-                await ApiPublic.createScheme(cf.copyApp)
-                copyAppData = (await db.execute(`select *
+                await ApiPublic.createScheme(cf.copyApp);
+                copyAppData = (
+                    await db.execute(
+                        `select *
                                                  from \`${saasConfig.SAAS_NAME}\`.app_config
-                                                 where appName = ${db.escape(cf.copyApp)}`, []))[0];
-                copyPageData = (await db.execute(`select *
+                                                 where appName = ${db.escape(cf.copyApp)}`,
+                        []
+                    )
+                )[0];
+                copyPageData = await db.execute(
+                    `select *
                                                   from \`${saasConfig.SAAS_NAME}\`.page_config
-                                                  where appName = ${db.escape(cf.copyApp)}`, []));
-                privateConfig = (await db.execute(`select *
+                                                  where appName = ${db.escape(cf.copyApp)}`,
+                    []
+                );
+                privateConfig = await db.execute(
+                    `select *
                                                    from \`${saasConfig.SAAS_NAME}\`.private_config
-                                                   where app_name = ${db.escape(cf.copyApp)} `, []));
+                                                   where app_name = ${db.escape(cf.copyApp)} `,
+                    []
+                );
             }
 
-            await db.execute(`insert into \`${saasConfig.SAAS_NAME}\`.app_config (user, appName, dead_line, \`config\`,
+            await db.execute(
+                `insert into \`${saasConfig.SAAS_NAME}\`.app_config (user, appName, dead_line, \`config\`,
                                                                                   brand, theme_config, refer_app,
                                                                                   template_config)
                               values (?, ?, ?, ${db.escape(JSON.stringify((copyAppData && copyAppData.config) || {}))},
                                       ${db.escape(cf.brand ?? saasConfig.SAAS_NAME)},
-                                      ${db.escape(JSON.stringify((copyAppData && copyAppData.theme_config) ?? {name: (copyAppData && copyAppData.template_config && copyAppData.template_config.name) || cf.name}))},
-                                      ${(cf.theme) ? db.escape(cf.theme) : 'null'},
-                                      ${db.escape(JSON.stringify((copyAppData && copyAppData.template_config) || {}))})`, [
-                this.token!.userID,
-                cf.appName,
-                addDays(new Date(), saasConfig.DEF_DEADLINE)
-            ]);
+                                      ${db.escape(
+                                          JSON.stringify(
+                                              (copyAppData && copyAppData.theme_config) ?? { name: (copyAppData && copyAppData.template_config && copyAppData.template_config.name) || cf.name }
+                                          )
+                                      )},
+                                      ${cf.theme ? db.escape(cf.theme) : 'null'},
+                                      ${db.escape(JSON.stringify((copyAppData && copyAppData.template_config) || {}))})`,
+                [this.token!.userID, cf.appName, addDays(new Date(), saasConfig.DEF_DEADLINE)]
+            );
 
             await this.putSubDomain({
                 app_name: cf.appName,
-                name: cf.sub_domain
+                name: cf.sub_domain,
             });
-            await ApiPublic.createScheme(cf.appName)
+            await ApiPublic.createScheme(cf.appName);
             const trans = await db.Transaction.build();
 
             if (cf.copyWith.indexOf('checkout') !== -1) {
-                for (const dd of (await db.query(`SELECT *
-                                                  FROM \`${cf.copyApp}\`.t_checkout`, []))) {
-                    dd.orderData = dd.orderData && JSON.stringify(dd.orderData)
-                    await trans.execute(`
+                for (const dd of await db.query(
+                    `SELECT *
+                                                  FROM \`${cf.copyApp}\`.t_checkout`,
+                    []
+                )) {
+                    dd.orderData = dd.orderData && JSON.stringify(dd.orderData);
+                    await trans.execute(
+                        `
                         insert into \`${cf.appName}\`.t_checkout
                         SET ?;
-                    `, [
-                        dd
-                    ]);
+                    `,
+                        [dd]
+                    );
                 }
             }
             if (cf.copyWith.indexOf('manager_post') !== -1) {
-                for (const dd of (await db.query(`SELECT *
-                                                  FROM \`${cf.copyApp}\`.t_manager_post`, []))) {
-                    dd.content = dd.content && JSON.stringify(dd.content)
-                    dd.userID = this.token!.userID
-                    await trans.execute(`
+                for (const dd of await db.query(
+                    `SELECT *
+                                                  FROM \`${cf.copyApp}\`.t_manager_post`,
+                    []
+                )) {
+                    dd.content = dd.content && JSON.stringify(dd.content);
+                    dd.userID = this.token!.userID;
+                    await trans.execute(
+                        `
                         insert into \`${cf.appName}\`.t_manager_post
                         SET ?;
-                    `, [
-                        dd
-                    ]);
+                    `,
+                        [dd]
+                    );
                 }
             }
             if (cf.copyWith.indexOf('user_post') !== -1) {
-                for (const dd of (await db.query(`SELECT *
-                                                  FROM \`${cf.copyApp}\`.t_post`, []))) {
-                    dd.content = dd.content && JSON.stringify(dd.content)
-                    await trans.execute(`
+                for (const dd of await db.query(
+                    `SELECT *
+                                                  FROM \`${cf.copyApp}\`.t_post`,
+                    []
+                )) {
+                    dd.content = dd.content && JSON.stringify(dd.content);
+                    await trans.execute(
+                        `
                         insert into \`${cf.appName}\`.t_post
                         SET ?;
-                    `, [
-                        dd
-                    ]);
+                    `,
+                        [dd]
+                    );
                 }
             }
             if (cf.copyWith.indexOf('user') !== -1) {
-                for (const dd of (await db.query(`SELECT *
-                                                  FROM \`${cf.copyApp}\`.t_user`, []))) {
-                    dd.userData = dd.userData && JSON.stringify(dd.userData)
-                    await trans.execute(`
+                for (const dd of await db.query(
+                    `SELECT *
+                                                  FROM \`${cf.copyApp}\`.t_user`,
+                    []
+                )) {
+                    dd.userData = dd.userData && JSON.stringify(dd.userData);
+                    await trans.execute(
+                        `
                         insert into \`${cf.appName}\`.t_user
                         SET ?;
-                    `, [
-                        dd
-                    ]);
+                    `,
+                        [dd]
+                    );
                 }
             }
-            for (const dd of (await db.query(`SELECT *
-                                              FROM \`${cf.copyApp}\`.t_global_event`, []))) {
-                dd.json = dd.json && JSON.stringify(dd.json)
-                await trans.execute(`
+            for (const dd of await db.query(
+                `SELECT *
+                                              FROM \`${cf.copyApp}\`.t_global_event`,
+                []
+            )) {
+                dd.json = dd.json && JSON.stringify(dd.json);
+                await trans.execute(
+                    `
                     insert into \`${cf.appName}\`.t_global_event
                     SET ?;
-                `, [
-                    dd
-                ]);
+                `,
+                    [dd]
+                );
             }
             if (cf.copyWith.indexOf('public_config') !== -1) {
-                for (const dd of (await db.query(`SELECT *
-                                                  FROM \`${cf.copyApp}\`.public_config`, []))) {
-                    dd.value = dd.value && JSON.stringify(dd.value)
-                    await trans.execute(`
+                for (const dd of await db.query(
+                    `SELECT *
+                                                  FROM \`${cf.copyApp}\`.public_config`,
+                    []
+                )) {
+                    dd.value = dd.value && JSON.stringify(dd.value);
+                    await trans.execute(
+                        `
                         insert into \`${cf.appName}\`.public_config
                         SET ?;
-                    `, [
-                        dd
-                    ]);
+                    `,
+                        [dd]
+                    );
                 }
-                for (const dd of (await db.query(`SELECT *
-                                                  FROM \`${cf.copyApp}\`.t_user_public_config`, []))) {
-                    dd.value = dd.value && JSON.stringify(dd.value)
-                    await trans.execute(`
+                for (const dd of await db.query(
+                    `SELECT *
+                                                  FROM \`${cf.copyApp}\`.t_user_public_config`,
+                    []
+                )) {
+                    dd.value = dd.value && JSON.stringify(dd.value);
+                    await trans.execute(
+                        `
                         insert into \`${cf.appName}\`.t_user_public_config
                         SET ?;
-                    `, [
-                        dd
-                    ]);
+                    `,
+                        [dd]
+                    );
                 }
             }
             if (privateConfig) {
                 for (const dd of privateConfig) {
-                    await trans.execute(`
+                    await trans.execute(
+                        `
                         insert into \`${saasConfig.SAAS_NAME}\`.private_config (\`app_name\`, \`key\`, \`value\`, updated_at)
                         values (?, ?, ?, ?);
-                    `, [
-                        cf.appName,
-                        dd.key,
-                        JSON.stringify(dd.value),
-                        new Date()
-                    ]);
+                    `,
+                        [cf.appName, dd.key, JSON.stringify(dd.value), new Date()]
+                    );
                 }
             }
             if (copyPageData) {
                 for (const dd of copyPageData) {
-                    await trans.execute(`
+                    await trans.execute(
+                        `
                         insert into \`${saasConfig.SAAS_NAME}\`.page_config (userID, appName, tag, \`group\`, \`name\`,
                                                                              \`config\`, \`page_config\`, page_type)
                         values (?, ?, ?, ?, ?, ${db.escape(JSON.stringify(dd.config))},
                                 ${db.escape(JSON.stringify(dd.page_config))}, ${db.escape(dd.page_type)});
-                    `, [
-                        this.token!.userID,
-                        cf.appName,
-                        dd.tag,
-                        dd.group || '未分類',
-                        dd.name
-                    ]);
+                    `,
+                        [this.token!.userID, cf.appName, dd.tag, dd.group || '未分類', dd.name]
+                    );
                 }
             } else {
-                await trans.execute(`
+                await trans.execute(
+                    `
                     insert into \`${saasConfig.SAAS_NAME}\`.page_config (userID, appName, tag, \`group\`, \`name\`,
                                                                          \`config\`, \`page_config\`)
                     values (?, ?, ?, ?, ?, ${db.escape(JSON.stringify({}))}, ${db.escape(JSON.stringify({}))});
-                `, [
-                    this.token!.userID,
-                    cf.appName,
-                    'index',
-                    '',
-                    '首頁',
-                ]);
+                `,
+                    [this.token!.userID, cf.appName, 'index', '', '首頁']
+                );
             }
-            await trans.commit()
-            await createAPP(cf)
-            return true
+            await trans.commit();
+            await createAPP(cf);
+            return true;
         } catch (e: any) {
-            await db.query(`delete
+            await db.query(
+                `delete
                             from \`${saasConfig.SAAS_NAME}\`.app_config
-                            where appName = ?`, [cf.appName])
-            console.log(e)
+                            where appName = ?`,
+                [cf.appName]
+            );
+            console.log(e);
             throw exception.BadRequestError(e.code ?? 'BAD_REQUEST', e, null);
         }
     }
 
-    public async updateThemeConfig(body: { theme: string, config: any }) {
+    public async updateThemeConfig(body: { theme: string; config: any }) {
         try {
-            await db.query(`update \`${saasConfig.SAAS_NAME}\`.app_config
+            await db.query(
+                `update \`${saasConfig.SAAS_NAME}\`.app_config
                             set theme_config=?
-                            where appName = ?`, [
-                JSON.stringify(body.config),
-                body.theme
-            ])
-            return true
+                            where appName = ?`,
+                [JSON.stringify(body.config), body.theme]
+            );
+            return true;
         } catch (e: any) {
             throw exception.BadRequestError(e.code ?? 'BAD_REQUEST', e, null);
         }
     }
 
-    public async changeTheme(config: { app_name: string, theme: string }) {
+    public async changeTheme(config: { app_name: string; theme: string }) {
         try {
-            const temp_app_name = (Tool.randomString(4)) + new Date().getTime();
-            const temp_app_theme = (Tool.randomString(4)) + new Date().getTime();
+            const temp_app_name = Tool.randomString(4) + new Date().getTime();
+            const temp_app_theme = Tool.randomString(4) + new Date().getTime();
             const tran = await db.Transaction.build();
 
-            const cf_app = (await db.query(`select \`domain\`, \`dead_line\`, \`plan\`
+            const cf_app = (
+                await db.query(
+                    `select \`domain\`, \`dead_line\`, \`plan\`
                                             from \`${saasConfig.SAAS_NAME}\`.app_config
-                                            where appName = ${db.escape(config.app_name)}`, []))[0]
+                                            where appName = ${db.escape(config.app_name)}`,
+                    []
+                )
+            )[0];
             /*
-            * 交換APP和theme的資料
-            * */
-            await tran.execute(`update \`${saasConfig.SAAS_NAME}\`.app_config
+             * 交換APP和theme的資料
+             * */
+            await tran.execute(
+                `update \`${saasConfig.SAAS_NAME}\`.app_config
                                 set appName=${db.escape(temp_app_name)},
                                     refer_app=${db.escape(config.app_name)},
                                     domain=null
                                 where appName = ${db.escape(config.app_name)}
-                                  and user = ?`, [this.token?.userID]);
-            await tran.execute(`update \`${saasConfig.SAAS_NAME}\`.app_config
+                                  and user = ?`,
+                [this.token?.userID]
+            );
+            await tran.execute(
+                `update \`${saasConfig.SAAS_NAME}\`.app_config
                                 set appName=${db.escape(temp_app_theme)},
                                     refer_app=null,
-                                    domain=${(cf_app['domain']) ? db.escape(cf_app['domain']) : 'null'},
-                                    dead_line=${(cf_app['dead_line']) ? db.escape(cf_app['dead_line']) : 'null'},
-                                    plan=${(cf_app['plan']) ? db.escape(cf_app['plan']) : 'null'}
+                                    domain=${cf_app['domain'] ? db.escape(cf_app['domain']) : 'null'},
+                                    dead_line=${cf_app['dead_line'] ? db.escape(cf_app['dead_line']) : 'null'},
+                                    plan=${cf_app['plan'] ? db.escape(cf_app['plan']) : 'null'}
                                 where appName = ${db.escape(config.theme)}
-                                  and user = ?`, [this.token?.userID]);
+                                  and user = ?`,
+                [this.token?.userID]
+            );
             /*
-            * 將APP name 寫回去
-            * */
-            await tran.execute(`update \`${saasConfig.SAAS_NAME}\`.app_config
+             * 將APP name 寫回去
+             * */
+            await tran.execute(
+                `update \`${saasConfig.SAAS_NAME}\`.app_config
                                 set appName=${db.escape(config.app_name)}
                                 where appName = ${db.escape(temp_app_theme)}
-                                  and user = ?`, [this.token?.userID])
-            await tran.execute(`update \`${saasConfig.SAAS_NAME}\`.app_config
+                                  and user = ?`,
+                [this.token?.userID]
+            );
+            await tran.execute(
+                `update \`${saasConfig.SAAS_NAME}\`.app_config
                                 set appName=${db.escape(config.theme)}
                                 where appName = ${db.escape(temp_app_name)}
-                                  and user = ?`, [this.token?.userID])
+                                  and user = ?`,
+                [this.token?.userID]
+            );
             /*
-           * 交換PageConfig
-           * */
-            await tran.execute(`update \`${saasConfig.SAAS_NAME}\`.page_config
+             * 交換PageConfig
+             * */
+            await tran.execute(
+                `update \`${saasConfig.SAAS_NAME}\`.page_config
                                 set appName=${db.escape(temp_app_name)}
                                 where appName = ${db.escape(config.app_name)}
-                                  and userID = ?`, [this.token?.userID])
-            await tran.execute(`update \`${saasConfig.SAAS_NAME}\`.page_config
+                                  and userID = ?`,
+                [this.token?.userID]
+            );
+            await tran.execute(
+                `update \`${saasConfig.SAAS_NAME}\`.page_config
                                 set appName=${db.escape(temp_app_theme)}
                                 where appName = ${db.escape(config.theme)}
-                                  and userID = ?`, [this.token?.userID])
+                                  and userID = ?`,
+                [this.token?.userID]
+            );
 
-            await tran.execute(`update \`${saasConfig.SAAS_NAME}\`.page_config
+            await tran.execute(
+                `update \`${saasConfig.SAAS_NAME}\`.page_config
                                 set appName=${db.escape(config.app_name)}
                                 where appName = ${db.escape(temp_app_theme)}
-                                  and userID = ?`, [this.token?.userID])
-            await tran.execute(`update \`${saasConfig.SAAS_NAME}\`.page_config
+                                  and userID = ?`,
+                [this.token?.userID]
+            );
+            await tran.execute(
+                `update \`${saasConfig.SAAS_NAME}\`.page_config
                                 set appName=${db.escape(config.theme)}
                                 where appName = ${db.escape(temp_app_name)}
-                                  and userID = ?`, [this.token?.userID])
-            await tran.commit()
-            await tran.release()
-            return true
+                                  and userID = ?`,
+                [this.token?.userID]
+            );
+            await tran.commit();
+            await tran.release();
+            return true;
         } catch (e: any) {
             throw exception.BadRequestError(e.code ?? 'BAD_REQUEST', e, null);
         }
     }
 
-    public async getAPP(query: {
-        app_name?: string,
-        theme?: string
-    }) {
+    public async getAPP(query: { app_name?: string; theme?: string }) {
         try {
             const sql = `
                 SELECT *
                 FROM \`${saasConfig.SAAS_NAME}\`.app_config
                 where ${(() => {
-                    const sql = [`user = '${this.token!.userID}'`]
+                    const sql = [`user = '${this.token!.userID}'`];
                     if (query.app_name) {
-                        sql.push(` appName='${query.app_name}' `)
+                        sql.push(` appName='${query.app_name}' `);
                     } else {
                         if (query.theme) {
-                            sql.push(` refer_app='${query.theme}' `)
+                            sql.push(` refer_app='${query.theme}' `);
                         } else {
-                            sql.push(` refer_app is null `)
+                            sql.push(` refer_app is null `);
                         }
                     }
 
-                    return sql.join(' and ')
+                    return sql.join(' and ');
                 })()}
                 ;
-            `
-            return (await db.execute(sql, []))
+            `;
+            return await db.execute(sql, []);
         } catch (e: any) {
             throw exception.BadRequestError(e.code ?? 'BAD_REQUEST', e, null);
         }
     }
 
-    public async getTemplate(query: {
-        app_name?: string,
-        template_from: 'all' | 'me'
-    }) {
+    public async getTemplate(query: { app_name?: string; template_from: 'all' | 'me' }) {
         try {
-            return (await db.execute(`
+            return await db.execute(
+                `
                 SELECT user, appName, created_time, dead_line, brand, template_config, template_type, domain
                 FROM \`${saasConfig.SAAS_NAME}\`.app_config
                 where ${(() => {
-                    const sql = []
+                    const sql = [];
                     query.template_from === 'me' && sql.push(`user = '${this.token!.userID}'`);
                     query.template_from === 'me' && sql.push(`template_type in (3,2)`);
                     query.template_from === 'all' && sql.push(`template_type = 2`);
-                    return sql.map((dd) => {
-                        return `(${dd})`
-                    }).join(' and ')
+                    return sql
+                        .map((dd) => {
+                            return `(${dd})`;
+                        })
+                        .join(' and ');
                 })()};
-            `, []))
+            `,
+                []
+            );
         } catch (e: any) {
             throw exception.BadRequestError(e.code ?? 'BAD_REQUEST', e, null);
         }
@@ -355,18 +429,23 @@ export class App {
 
     public async getAppConfig(config: { appName: string }) {
         try {
-            const data = (await db.execute(`
+            const data = (
+                await db.execute(
+                    `
                 SELECT config, \`dead_line\`, \`template_config\`, \`template_type\`
                 FROM \`${saasConfig.SAAS_NAME}\`.app_config
                 where appName = ${db.escape(config.appName)};
-            `, []))[0]
-            const pluginList = data['config'] ?? {}
-            pluginList.dead_line = data.dead_line
-            pluginList.pagePlugin = pluginList.pagePlugin ?? []
-            pluginList.eventPlugin = pluginList.eventPlugin ?? []
+            `,
+                    []
+                )
+            )[0];
+            const pluginList = data['config'] ?? {};
+            pluginList.dead_line = data.dead_line;
+            pluginList.pagePlugin = pluginList.pagePlugin ?? [];
+            pluginList.eventPlugin = pluginList.eventPlugin ?? [];
             pluginList.template_config = data.template_config;
             pluginList.template_type = data.template_type;
-            return pluginList
+            return pluginList;
         } catch (e: any) {
             throw exception.BadRequestError(e.code ?? 'BAD_REQUEST', e, null);
         }
@@ -374,209 +453,262 @@ export class App {
 
     public async getOfficialPlugin() {
         try {
-            return ((await db.execute(`
+            return await db.execute(
+                `
                 SELECT *
                 FROM \`${saasConfig.SAAS_NAME}\`.official_component;
-            `, [])))
+            `,
+                []
+            );
         } catch (e: any) {
             throw exception.BadRequestError(e.code ?? 'BAD_REQUEST', e, null);
         }
     }
 
     public static async checkBrandAndMemberType(app: string) {
-        let brand = (await db.query(`SELECT brand
+        let brand = (
+            await db.query(
+                `SELECT brand
                                      FROM \`${saasConfig.SAAS_NAME}\`.app_config
-                                     where appName = ? `, [app]))[0]['brand']
+                                     where appName = ? `,
+                [app]
+            )
+        )[0]['brand'];
 
-        const userID = (await db.query(`SELECT user
+        const userID = (
+            await db.query(
+                `SELECT user
                                         FROM \`${saasConfig.SAAS_NAME}\`.app_config
-                                        where appName = ?`, [app]))[0]['user'];
-        const userData = (await db.query(`SELECT userData
+                                        where appName = ?`,
+                [app]
+            )
+        )[0]['user'];
+        const userData = (
+            await db.query(
+                `SELECT userData
                                           FROM \`${brand}\`.t_user
-                                          where userID = ? `, [userID]))[0];
+                                          where userID = ? `,
+                [userID]
+            )
+        )[0];
         return {
             memberType: userData.userData.menber_type,
             brand: brand,
-            userData: userData.userData
+            userData: userData.userData,
         };
     }
 
     public static async preloadPageData(appName: string, page: string) {
         const app = new App();
         const preloadData: {
-            component: any,
-            appConfig: any,
-            event:any
+            component: any;
+            appConfig: any;
+            event: any;
         } = {
             component: [],
-            appConfig: (await app.getAppConfig({
-                appName: appName
-            })),
-            event:[]
-        }
-        const pageData = (await (new Template(undefined).getPage({
-            appName: appName,
-            tag: page
-        })))[0];
+            appConfig: await app.getAppConfig({
+                appName: appName,
+            }),
+            event: [],
+        };
+        const pageData = (
+            await new Template(undefined).getPage({
+                appName: appName,
+                tag: page,
+            })
+        )[0];
         const event_list = fs.readFileSync(path.resolve(__dirname, '../../lowcode/official_event/event.js'), 'utf8');
-        const index=`TriggerEvent.create(import.meta.url,`;
-        const str=`(${event_list.substring(event_list.indexOf(index)+index.length)}`;
+        const index = `TriggerEvent.create(import.meta.url,`;
+        const str = `(${event_list.substring(event_list.indexOf(index) + index.length)}`;
         // 定义正则表达式
         const regex = /TriggerEvent\.setEventRouter\(import\.meta\.url,\s*['"](.+?)['"]\)/g;
-        let str2= str
-// 使用正则表达式匹配字符串
+        let str2 = str;
+        // 使用正则表达式匹配字符串
         const matches = [];
         let match;
         while ((match = regex.exec(str)) !== null) {
             matches.push(match[0]); // 将整个匹配的字符串加入数组
         }
-        for (const b of matches){
-            str2=str2.replace(b,`"${b}"`)
+        for (const b of matches) {
+            str2 = str2.replace(b, `"${b}"`);
         }
-        const event_=eval(str2)
+        const event_ = eval(str2);
         if (!pageData) {
-            return {}
+            return {};
         }
-        preloadData.component.push(pageData)
+        preloadData.component.push(pageData);
 
         async function loop(array: any) {
             for (const dd of array) {
                 if (dd.type === 'container') {
-                    await loop(dd.data.setting)
+                    await loop(dd.data.setting);
                 } else if (dd.type === 'component') {
-                    const pageData = (await (new Template(undefined).getPage({
-                        appName: dd.data.refer_app || appName,
-                        tag: dd.data.tag
-                    })))[0]
+                    const pageData = (
+                        await new Template(undefined).getPage({
+                            appName: dd.data.refer_app || appName,
+                            tag: dd.data.tag,
+                        })
+                    )[0];
                     if (pageData && pageData.config) {
-                        preloadData.component.push(pageData)
-                        await loop(pageData.config ?? [])
+                        preloadData.component.push(pageData);
+                        await loop(pageData.config ?? []);
                     }
-                } else if (dd && (typeof dd === 'object')) {
-                    const data = dd
+                } else if (dd && typeof dd === 'object') {
+                    const data = dd;
                     // console.log(data)
                     Object.keys(data).map((dd) => {
                         if (dd === 'src' && data['route'] && data['src'].includes('official_event')) {
-                            if(!preloadData.event.find((dd:any)=>{
-                                return dd===event_[data['route']]
-                            })){
-                                preloadData.event.push(event_[data['route']])
+                            if (
+                                !preloadData.event.find((dd: any) => {
+                                    return dd === event_[data['route']];
+                                })
+                            ) {
+                                preloadData.event.push(event_[data['route']]);
                             }
                             // console.log(`src:${data[dd]} - route:${data['route']}`)
                         }
 
                         if (Array.isArray(data[dd])) {
-                            loop(data[dd])
-                        }else if(typeof data[dd]==='object'){
-                            loop([data[dd]])
+                            loop(data[dd]);
+                        } else if (typeof data[dd] === 'object') {
+                            loop([data[dd]]);
                         }
-                    })
-                }else if(Array.isArray(dd)){
-                    await loop(dd)
+                    });
+                } else if (Array.isArray(dd)) {
+                    await loop(dd);
                 }
             }
         }
 
-        (await loop(pageData && pageData.config));
-        let mapPush: any = {}
+        await loop(pageData && pageData.config);
+        let mapPush: any = {};
         mapPush['getPlugin'] = {
             callback: [],
-            data: {response: {data: preloadData.appConfig, result: true}},
-            isRunning: true
-        }
+            data: { response: { data: preloadData.appConfig, result: true } },
+            isRunning: true,
+        };
         preloadData.component.map((dd: any) => {
             mapPush[`getPageData-${dd.appName}-${dd.tag}`] = {
                 callback: [],
                 isRunning: true,
-                data: {response: {result: [dd]}}
-            }
+                data: { response: { result: [dd] } },
+            };
         });
-        mapPush.event=preloadData.event
-        return mapPush
+        mapPush.event = preloadData.event;
+        return mapPush;
     }
 
-    public async setAppConfig(config: { appName: string, data: any }) {
+    public async setAppConfig(config: { appName: string; data: any }) {
         try {
-            const official = (await db.query(`SELECT count(1)
+            const official =
+                (
+                    await db.query(
+                        `SELECT count(1)
                                               FROM \`${saasConfig.SAAS_NAME}\`.t_user
-                                              where userID = ?`, [this.token!.userID, 'LION']))[0]['count(1)'] == 1;
+                                              where userID = ?`,
+                        [this.token!.userID, 'LION']
+                    )
+                )[0]['count(1)'] == 1;
             if (official) {
-                const trans = await db.Transaction.build()
-                await trans.execute(`delete
+                const trans = await db.Transaction.build();
+                await trans.execute(
+                    `delete
                                      from \`${saasConfig.SAAS_NAME}\`.official_component
-                                     where app_name = ?`, [config.appName])
-                for (const b of (config.data.lambdaView ?? [])) {
-                    await trans.execute(`insert into \`${saasConfig.SAAS_NAME}\`.official_component
-                                         set ?`, [
-                        {
-                            key: b.key,
-                            group: b.name,
-                            userID: this.token!.userID,
-                            app_name: config.appName,
-                            url: b.path,
-                        }
-                    ])
+                                     where app_name = ?`,
+                    [config.appName]
+                );
+                for (const b of config.data.lambdaView ?? []) {
+                    await trans.execute(
+                        `insert into \`${saasConfig.SAAS_NAME}\`.official_component
+                                         set ?`,
+                        [
+                            {
+                                key: b.key,
+                                group: b.name,
+                                userID: this.token!.userID,
+                                app_name: config.appName,
+                                url: b.path,
+                            },
+                        ]
+                    );
                 }
                 await trans.commit();
             }
 
-            return (await db.execute(`update \`${saasConfig.SAAS_NAME}\`.app_config
+            return (
+                (
+                    await db.execute(
+                        `update \`${saasConfig.SAAS_NAME}\`.app_config
                                       set config=?,
                                           update_time=?
                                       where appName = ${db.escape(config.appName)}
                                         and user = '${this.token!.userID}'
-            `, [config.data, new Date()]))['changedRows'] == true
+            `,
+                        [config.data, new Date()]
+                    )
+                )['changedRows'] == true
+            );
         } catch (e: any) {
             throw exception.BadRequestError(e.code ?? 'BAD_REQUEST', e, null);
         }
     }
 
-
-    public async postTemplate(config: { appName: string, data: any }) {
+    public async postTemplate(config: { appName: string; data: any }) {
         try {
-            let template_type = '0'
+            let template_type = '0';
             if (config.data.post_to === 'all') {
-                let officialAccount = (process.env.OFFICIAL_ACCOUNT ?? '').split(',')
+                let officialAccount = (process.env.OFFICIAL_ACCOUNT ?? '').split(',');
                 if (officialAccount.indexOf(`${this.token!.userID}`) !== -1) {
-                    template_type = '2'
+                    template_type = '2';
                 } else {
-                    template_type = '1'
+                    template_type = '1';
                 }
             } else if (config.data.post_to === 'me') {
-                template_type = '3'
+                template_type = '3';
             }
-            return (await db.execute(`update \`${saasConfig.SAAS_NAME}\`.app_config
+            return (
+                (
+                    await db.execute(
+                        `update \`${saasConfig.SAAS_NAME}\`.app_config
                                       set template_config = ?,
                                           template_type=${template_type}
                                       where appName = ${db.escape(config.appName)}
                                         and user = '${this.token!.userID}'
-            `, [config.data]))['changedRows'] == true
+            `,
+                        [config.data]
+                    )
+                )['changedRows'] == true
+            );
         } catch (e: any) {
             throw exception.BadRequestError(e.code ?? 'BAD_REQUEST', e, null);
         }
     }
 
-    public async putSubDomain(cf: {
-        app_name: string,
-        name: string
-    }) {
-        const domain_name = `${cf.name}.${config.HostedDomain}`
-        if ((await db.query(`SELECT count(1)
+    public async putSubDomain(cf: { app_name: string; name: string }) {
+        const domain_name = `${cf.name}.${config.HostedDomain}`;
+        if (
+            (
+                await db.query(
+                    `SELECT count(1)
                              FROM \`${saasConfig.SAAS_NAME}\`.app_config
-                             where domain =${db.escape(domain_name)}`, []))[0]['count(1)'] === 0) {
+                             where domain =${db.escape(domain_name)}`,
+                    []
+                )
+            )[0]['count(1)'] === 0
+        ) {
             const result = await this.addDNSRecord(domain_name);
-            (await this.setSubDomain({
+            await this.setSubDomain({
                 appName: cf.app_name,
-                domain: domain_name
-            }));
-            return true
+                domain: domain_name,
+            });
+            return true;
         } else {
-            throw exception.BadRequestError("ERROR", "ERROR.THIS DOMAIN ALREADY USED.", null);
+            throw exception.BadRequestError('ERROR', 'ERROR.THIS DOMAIN ALREADY USED.', null);
         }
     }
 
     public addDNSRecord(domain: string) {
-        console.log(`addDNSRecord->${domain}`)
+        console.log(`addDNSRecord->${domain}`);
         return new Promise((resolve, reject) => {
             const route53 = new AWS.Route53();
             const params: any = {
@@ -590,49 +722,55 @@ export class App {
                                 TTL: 1, // 時間以秒為單位，TTL 的數值
                                 ResourceRecords: [
                                     {
-                                        Value: config.sshIP // 目標 IP 地址
-                                    }
-                                ]
-                            }
-                        }
+                                        Value: config.sshIP, // 目標 IP 地址
+                                    },
+                                ],
+                            },
+                        },
                     ],
-                    Comment: 'Adding A record for example.com'
+                    Comment: 'Adding A record for example.com',
                 },
-                HostedZoneId: config.AWS_HostedZoneId // 您的托管區域 ID
+                HostedZoneId: config.AWS_HostedZoneId, // 您的托管區域 ID
             };
             route53.changeResourceRecordSets(params, function (err, data) {
-                resolve(true)
+                resolve(true);
             });
-        })
+        });
     }
 
-    public async setSubDomain(config: {
-        appName: string,
-        domain: string
-    }) {
-        let checkExists = (await db.query(`select count(1)
+    public async setSubDomain(config: { appName: string; domain: string }) {
+        let checkExists =
+            (
+                await db.query(
+                    `select count(1)
                                            from \`${saasConfig.SAAS_NAME}\`.app_config
                                            where domain =?
-                                             and user !=?`, [config.domain, this.token!.userID]))['count(1)'] > 0;
-        if (checkExists || config.domain.split('.').find((dd)=>{
-            return !dd
-        })) {
+                                             and user !=?`,
+                    [config.domain, this.token!.userID]
+                )
+            )['count(1)'] > 0;
+        if (
+            checkExists ||
+            config.domain.split('.').find((dd) => {
+                return !dd;
+            })
+        ) {
             throw exception.BadRequestError('BAD_REQUEST', 'this domain already on use.', null);
         }
         try {
-            const data = await Ssh.readFile(`/etc/nginx/sites-enabled/default.conf`)
+            const data = await Ssh.readFile(`/etc/nginx/sites-enabled/default.conf`);
             let result: string = await new Promise((resolve, reject) => {
                 NginxConfFile.createFromSource(data as string, (err, conf) => {
-                    const server: any = []
+                    const server: any = [];
                     for (const b of conf!.nginx.server as any) {
                         if (b.server_name.toString().indexOf(config.domain) === -1) {
-                            server.push(b)
+                            server.push(b);
                         }
                     }
-                    conf!.nginx.server = server
-                    resolve(conf!.toString())
-                })
-            })
+                    conf!.nginx.server = server;
+                    resolve(conf!.toString());
+                });
+            });
             result += `\n\nserver {
     server_name ${config.domain};
     location / {
@@ -653,56 +791,64 @@ server {
     listen 80;
     return 404;
 }
-`
+`;
             fs.writeFileSync('/nginx.config', result);
             const response = await new Promise((resolve, reject) => {
-                Ssh.exec([
-                    `sudo docker cp $(sudo docker ps --filter "expose=3080" --format "{{.ID}}"):/nginx.config /etc/nginx/sites-enabled/default.conf`,
-                    `sudo nginx -s reload`
-                ]).then((res: any) => {
-                    resolve(res && res.join('').indexOf('Successfully') !== -1)
-                })
+                Ssh.exec([`sudo docker cp $(sudo docker ps --filter "expose=3080" --format "{{.ID}}"):/nginx.config /etc/nginx/sites-enabled/default.conf`, `sudo nginx -s reload`]).then(
+                    (res: any) => {
+                        resolve(res && res.join('').indexOf('Successfully') !== -1);
+                    }
+                );
             });
-            ((await db.execute(`
+            await db.execute(
+                `
                 update \`${saasConfig.SAAS_NAME}\`.app_config
                 set domain=?
                 where domain = ?
-            `, [null, config.domain])))
-            return ((await db.execute(`
+            `,
+                [null, config.domain]
+            );
+            return await db.execute(
+                `
                 update \`${saasConfig.SAAS_NAME}\`.app_config
                 set domain=?
                 where appName = ?
-            `, [config.domain, config.appName])))
+            `,
+                [config.domain, config.appName]
+            );
         } catch (e: any) {
             throw exception.BadRequestError(e.code ?? 'BAD_REQUEST', e, null);
         }
     }
 
-    public async setDomain(config: {
-        appName: string,
-        domain: string
-    }) {
-        let checkExists = (await db.query(`select count(1)
+    public async setDomain(config: { appName: string; domain: string }) {
+        let checkExists =
+            (
+                await db.query(
+                    `select count(1)
                                            from \`${saasConfig.SAAS_NAME}\`.app_config
                                            where domain =?
-                                             and user !=?`, [config.domain, this.token!.userID]))['count(1)'] > 0;
+                                             and user !=?`,
+                    [config.domain, this.token!.userID]
+                )
+            )['count(1)'] > 0;
         if (checkExists) {
             throw exception.BadRequestError('BAD_REQUEST', 'this domain already on use.', null);
         }
         try {
-            const data = await Ssh.readFile('/etc/nginx/sites-enabled/default.conf')
+            const data = await Ssh.readFile('/etc/nginx/sites-enabled/default.conf');
             let result: string = await new Promise((resolve, reject) => {
                 NginxConfFile.createFromSource(data as string, (err, conf) => {
-                    const server: any = []
+                    const server: any = [];
                     for (const b of conf!.nginx.server as any) {
                         if (b.server_name.toString().indexOf(config.domain) === -1) {
-                            server.push(b)
+                            server.push(b);
                         }
                     }
-                    conf!.nginx.server = server
-                    resolve(conf!.toString())
-                })
-            })
+                    conf!.nginx.server = server;
+                    resolve(conf!.toString());
+                });
+            });
 
             result += `\n\nserver {
        server_name ${config.domain};
@@ -712,30 +858,36 @@ server {
        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
        proxy_set_header X-Forwarded-Proto $http_x_forwarded_proto;
     }
-}`
+}`;
             fs.writeFileSync('/nginx.config', result);
             const response = await new Promise((resolve, reject) => {
                 Ssh.exec([
                     `sudo docker cp $(sudo docker ps --filter "expose=3080" --format "{{.ID}}"):/nginx.config /etc/nginx/sites-enabled/default.conf`,
                     `sudo certbot --nginx -d ${config.domain} --non-interactive --agree-tos -m sam38124@gmail.com`,
-                    `sudo nginx -s reload`
+                    `sudo nginx -s reload`,
                 ]).then((res: any) => {
-                    resolve(res && res.join('').indexOf('Successfully') !== -1)
-                })
+                    resolve(res && res.join('').indexOf('Successfully') !== -1);
+                });
             });
             if (!response) {
                 throw exception.BadRequestError('BAD_REQUEST', '網域驗證失敗!', null);
             }
-            ((await db.execute(`
+            await db.execute(
+                `
                 update \`${saasConfig.SAAS_NAME}\`.app_config
                 set domain=?
                 where domain = ?
-            `, [null, config.domain])))
-            return ((await db.execute(`
+            `,
+                [null, config.domain]
+            );
+            return await db.execute(
+                `
                 update \`${saasConfig.SAAS_NAME}\`.app_config
                 set domain=?
                 where appName = ?
-            `, [config.domain, config.appName])))
+            `,
+                [config.domain, config.appName]
+            );
         } catch (e: any) {
             throw exception.BadRequestError(e.code ?? 'BAD_REQUEST', e, null);
         }
@@ -744,27 +896,33 @@ server {
     public async deleteAPP(config: { appName: string }) {
         try {
             try {
-                await (new BackendService(config.appName).stopServer());
-            } catch (e) {
-
-            }
-            (await db.execute(`delete
+                await new BackendService(config.appName).stopServer();
+            } catch (e) {}
+            await db.execute(
+                `delete
                                from \`${saasConfig.SAAS_NAME}\`.app_config
                                where appName = ${db.escape(config.appName)}
-                                 and user = '${this.token!.userID}'`, []));
-            (await db.execute(`delete
+                                 and user = '${this.token!.userID}'`,
+                []
+            );
+            await db.execute(
+                `delete
                                from \`${saasConfig.SAAS_NAME}\`.page_config
                                where appName = ${db.escape(config.appName)}
-                                 and userID = '${this.token!.userID}'`, []));
-            (await db.execute(`delete
+                                 and userID = '${this.token!.userID}'`,
+                []
+            );
+            await db.execute(
+                `delete
                                from \`${saasConfig.SAAS_NAME}\`.private_config
                                where app_name = ${db.escape(config.appName)}
-            `, []));
+            `,
+                []
+            );
         } catch (e: any) {
             throw exception.BadRequestError(e.code ?? 'BAD_REQUEST', e, null);
         }
     }
-
 
     constructor(token?: IToken) {
         this.token = token;

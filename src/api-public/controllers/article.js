@@ -13,10 +13,7 @@ const user_js_1 = require("../services/user.js");
 const router = express_1.default.Router();
 router.get('/', async (req, resp) => {
     try {
-        let query = [
-            `page_type = 'blog'`,
-            `\`appName\` = ${database_js_1.default.escape(req.get('g-app'))}`
-        ];
+        let query = [`page_type = 'blog'`, `\`appName\` = ${database_js_1.default.escape(req.get('g-app'))}`];
         req.query.tag && query.push(`tag = ${database_js_1.default.escape(req.query.tag)}`);
         req.query.label && query.push(`(JSON_EXTRACT(page_config, '$.meta_article.tag') LIKE '%${req.query.label}%')`);
         if (!(await ut_permission_js_1.UtPermission.isManager(req))) {
@@ -40,9 +37,7 @@ router.get('/', async (req, resp) => {
 });
 router.get('/manager', async (req, resp) => {
     try {
-        let query = [
-            `(content->>'$.type'='article')`
-        ];
+        let query = [`(content->>'$.type'='article')`];
         if (req.query.for_index === 'true') {
             req.query.for_index && query.push(`((content->>'$.for_index' != 'false') || (content->>'$.for_index' IS NULL))`);
         }
@@ -60,10 +55,10 @@ router.get('/manager', async (req, resp) => {
         if (req.query.search) {
             query.push(`(content->>'$.name' like '%${req.query.search}%') || (content->>'$.title' like '%${req.query.search}%')`);
         }
-        const collection_list_value = await (new user_js_1.User(req.get('g-app')).getConfigV2({
+        const collection_list_value = await new user_js_1.User(req.get('g-app')).getConfigV2({
             key: 'blog_collection',
-            user_id: 'manager'
-        }));
+            user_id: 'manager',
+        });
         const collection_title_map = [];
         if (Array.isArray(collection_list_value)) {
             function loop(list) {
@@ -71,18 +66,19 @@ router.get('/manager', async (req, resp) => {
                     loop(dd.items);
                     collection_title_map.push({
                         link: dd.link,
-                        title: dd.title
+                        title: dd.title,
                     });
                 });
             }
             loop(collection_list_value);
         }
-        console.log(`collection_title_map->`, collection_list_value);
         const data = await new ut_database_js_1.UtDatabase(req.get('g-app'), `t_manager_post`).querySql(query, req.query);
         data.data.map((dd) => {
             dd.content.collection = dd.content.collection || [];
             dd.content.collection = collection_title_map.filter((d1) => {
-                return dd.content.collection.find((d2) => { return d2 === d1.link; });
+                return dd.content.collection.find((d2) => {
+                    return d2 === d1.link;
+                });
             });
         });
         return response_js_1.default.succ(resp, data);
@@ -93,11 +89,11 @@ router.get('/manager', async (req, resp) => {
 });
 router.post('/manager', async (req, resp) => {
     try {
-        if ((!await ut_permission_js_1.UtPermission.isManager(req))) {
+        if (!(await ut_permission_js_1.UtPermission.isManager(req))) {
             return response_js_1.default.fail(resp, exception_js_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null));
         }
         return response_js_1.default.succ(resp, {
-            result: await (new article_js_1.Article(req.get('g-app'), req.body.token).addArticle(req.body.data, req.body.status))
+            result: await new article_js_1.Article(req.get('g-app'), req.body.token).addArticle(req.body.data, req.body.status),
         });
     }
     catch (err) {
@@ -106,11 +102,11 @@ router.post('/manager', async (req, resp) => {
 });
 router.put('/manager', async (req, resp) => {
     try {
-        if ((!await ut_permission_js_1.UtPermission.isManager(req))) {
+        if (!(await ut_permission_js_1.UtPermission.isManager(req))) {
             return response_js_1.default.fail(resp, exception_js_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null));
         }
         return response_js_1.default.succ(resp, {
-            result: await (new article_js_1.Article(req.get('g-app'), req.body.token).putArticle(req.body.data))
+            result: await new article_js_1.Article(req.get('g-app'), req.body.token).putArticle(req.body.data),
         });
     }
     catch (err) {
@@ -123,10 +119,7 @@ router.delete('/', async (req, resp) => {
             await database_js_1.default.query(`delete
                             FROM \`${process.env.GLITTER_DB}\`.page_config
                             where id in (?)
-                              and userID = ?`, [
-                req.body.id.split(','),
-                req.body.token.userID
-            ]);
+                              and userID = ?`, [req.body.id.split(','), req.body.token.userID]);
             return response_js_1.default.succ(resp, { result: true });
         }
         else {
@@ -142,9 +135,7 @@ router.delete('/manager', async (req, resp) => {
         if (await ut_permission_js_1.UtPermission.isManager(req)) {
             await database_js_1.default.query(`delete
                             FROM \`${req.get('g-app')}\`.t_manager_post
-                            where id in (?)`, [
-                req.body.id.split(',')
-            ]);
+                            where id in (?)`, [req.body.id.split(',')]);
             return response_js_1.default.succ(resp, { result: true });
         }
         else {

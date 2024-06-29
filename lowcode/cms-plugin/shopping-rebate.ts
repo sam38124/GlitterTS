@@ -46,7 +46,7 @@ export class ShoppingRebate {
                     if (vm.type === 'list') {
                         return BgWidget.container(
                             html`
-                                <div class="d-flex w-100 align-items-center" style="margin-bottom: 24px;">
+                                <div class="d-flex w-100 align-items-center">
                                     ${BgWidget.title('購物金紀錄')}
                                     <div class="flex-fill"></div>
                                     ${BgWidget.darkButton(
@@ -59,7 +59,7 @@ export class ShoppingRebate {
                                                     note: '',
                                                     rebateEndDay: '0',
                                                 };
-                                                return html`<div class="modal-content bg-white rounded-3 p-2" style="max-width:90%;width:400px;">
+                                                return html`<div class="modal-content bg-white rounded-3 p-2" style="max-width: 90%; width: 400px;">
                                                     <div>
                                                         <div style="height: 50px; margin-bottom: 16px" class="d-flex align-items-center border-bottom">
                                                             <span class="ps-2 tx_700">新增紀錄</span>
@@ -155,7 +155,7 @@ export class ShoppingRebate {
                                                                         return html`
                                                                             <div>
                                                                                 ${BgWidget.container(
-                                                                                    BgWidget.card(
+                                                                                    BgWidget.mainCard(
                                                                                         [
                                                                                             html`
                                                                                                 <div class="d-flex w-100 align-items-center mb-3 ">
@@ -191,7 +191,6 @@ export class ShoppingRebate {
                                                                                                                     note: vm.note,
                                                                                                                     rebateEndDay: vm.rebateEndDay,
                                                                                                                 }).then((result) => {
-                                                                                                                    console.log(result);
                                                                                                                     dialog.dataLoading({ visible: false });
                                                                                                                     if (result.response.result) {
                                                                                                                         dialog.successMessage({ text: `設定成功` });
@@ -219,9 +218,9 @@ export class ShoppingRebate {
                                                                                                 </div>`,
                                                                                         ].join('')
                                                                                     ),
-                                                                                    900
+                                                                                    900,
+                                                                                    'max-height: 80vh; overflow-y: auto; padding: 0;'
                                                                                 )}
-                                                                                <div></div>
                                                                             </div>
                                                                         `;
                                                                     }, 'email');
@@ -237,139 +236,162 @@ export class ShoppingRebate {
                                         })
                                     )}
                                 </div>
-                                ${BgWidget.mainCard(
-                                    BgWidget.tableV2({
-                                        gvc: gvc,
-                                        getData: (vmi) => {
-                                            const limit = 15;
-                                            ApiWallet.getRebate({
-                                                page: vmi.page - 1,
-                                                limit: limit,
-                                                search: vm.query || undefined,
-                                            }).then((data) => {
-                                                vmi.pageSize = Math.ceil(data.response.total / limit);
-                                                vm.dataList = data.response.data;
+                                ${BgWidget.container(
+                                    BgWidget.mainCard(
+                                        BgWidget.tableV2({
+                                            gvc: gvc,
+                                            getData: (vmi) => {
+                                                const limit = 15;
+                                                ApiWallet.getRebate({
+                                                    page: vmi.page - 1,
+                                                    limit: limit,
+                                                    search: vm.query || undefined,
+                                                }).then((data) => {
+                                                    vmi.pageSize = Math.ceil(data.response.total / limit);
+                                                    vm.dataList = data.response.data;
 
-                                                function getDatalist() {
-                                                    return data.response.data.map((dd: any) => {
-                                                        return [
-                                                            {
-                                                                key: EditorElem.checkBoxOnly({
-                                                                    gvc: gvc,
-                                                                    def: !data.response.data.find((dd: any) => {
-                                                                        return !dd.checked;
+                                                    function getDatalist() {
+                                                        return data.response.data.map((dd: any) => {
+                                                            return [
+                                                                {
+                                                                    key: EditorElem.checkBoxOnly({
+                                                                        gvc: gvc,
+                                                                        def: !data.response.data.find((dd: any) => {
+                                                                            return !dd.checked;
+                                                                        }),
+                                                                        callback: (result) => {
+                                                                            data.response.data.map((dd: any) => {
+                                                                                dd.checked = result;
+                                                                            });
+                                                                            vmi.data = getDatalist();
+                                                                            vmi.callback();
+                                                                            gvc.notifyDataChange(filterID);
+                                                                        },
                                                                     }),
-                                                                    callback: (result) => {
-                                                                        data.response.data.map((dd: any) => {
+                                                                    value: EditorElem.checkBoxOnly({
+                                                                        gvc: gvc,
+                                                                        def: dd.checked,
+                                                                        callback: (result) => {
                                                                             dd.checked = result;
-                                                                        });
-                                                                        vmi.data = getDatalist();
-                                                                        vmi.callback();
-                                                                        gvc.notifyDataChange(filterID);
-                                                                    },
-                                                                }),
-                                                                value: EditorElem.checkBoxOnly({
-                                                                    gvc: gvc,
-                                                                    def: dd.checked,
-                                                                    callback: (result) => {
-                                                                        dd.checked = result;
-                                                                        vmi.data = getDatalist();
-                                                                        vmi.callback();
-                                                                        gvc.notifyDataChange(filterID);
-                                                                    },
-                                                                    style: 'height:25px;',
-                                                                }),
-                                                            },
-                                                            {
-                                                                key: '用戶名稱',
-                                                                value: `<span class="fs-7">${dd.name ?? '資料異常'}</span>`,
-                                                            },
-                                                            {
-                                                                key: '購物金來源',
-                                                                value: `<span class="fs-7">${dd.content.order_id ? `訂單編號：${dd.content.order_id}` : '管理員手動設定'}</span>`,
-                                                            },
-                                                            {
-                                                                key: '增減金額',
-                                                                value: (() => {
-                                                                    if (dd.origin > 0) {
-                                                                        return html`<span class="tx_700 text-success">+ ${dd.origin}</span>`;
-                                                                    }
-                                                                    return html`<span class="tx_700 text-danger">- ${dd.origin * -1}</span>`;
-                                                                })(),
-                                                            },
-                                                            {
-                                                                key: '剩餘金額',
-                                                                value: (() => {
-                                                                    if (dd.origin < 0) {
-                                                                        return html`<span class="tx_700">-</span>`;
-                                                                    }
-                                                                    if (dd.remain > 0) {
-                                                                        return html`<span class="tx_700 text-success">+ ${dd.remain}</span>`;
-                                                                    }
-                                                                    return html`<span class="tx_700">0</span>`;
-                                                                })(),
-                                                            },
-                                                            {
-                                                                key: '備註',
-                                                                value: `<span class="fs-7">${typeof dd.note === 'string' ? dd.note : (dd.note && dd.note.note) ?? '尚未填寫備註'}</span>`,
-                                                            },
-                                                            {
-                                                                key: '建立時間',
-                                                                value: `<span class="fs-7">${glitter.ut.dateFormat(new Date(dd.created_at), 'yyyy-MM-dd hh:mm:ss')}</span>`,
-                                                            },
-                                                        ];
-                                                    });
-                                                }
-                                                vmi.data = getDatalist();
-                                                vmi.loading = false;
-                                                vmi.callback();
-                                            });
-                                        },
-                                        rowClick: (data, index) => {
-                                            vm.data = vm.dataList[index];
-                                            vm.type = 'replace';
-                                        },
-                                        filter: html`
-                                            ${BgWidget.searchPlace(
-                                                gvc.event((e, event) => {
-                                                    vm.query = e.value;
-                                                    gvc.notifyDataChange(id);
-                                                }),
-                                                vm.query || '',
-                                                '搜尋顧客信箱、姓名'
-                                            )}
-                                            ${gvc.bindView(() => {
-                                                return {
-                                                    bind: filterID,
-                                                    view: () => {
-                                                        if (
-                                                            !vm.dataList ||
-                                                            !vm.dataList.find((dd: any) => {
-                                                                return dd.checked;
-                                                            })
-                                                        ) {
-                                                            return ``;
-                                                        } else {
-                                                            return html`<span class="fs-7 fw-bold">操作選項</span>`;
-                                                        }
-                                                    },
-                                                    divCreate: () => {
-                                                        return {
-                                                            class: `d-flex align-items-center mt-2 p-2 py-3 ${
+                                                                            vmi.data = getDatalist();
+                                                                            vmi.callback();
+                                                                            gvc.notifyDataChange(filterID);
+                                                                        },
+                                                                        style: 'height:25px;',
+                                                                    }),
+                                                                },
+                                                                {
+                                                                    key: '用戶名稱',
+                                                                    value: `<span class="fs-7">${dd.name ?? '資料異常'}</span>`,
+                                                                },
+                                                                {
+                                                                    key: '購物金來源',
+                                                                    value: (() => {
+                                                                        let text = '';
+                                                                        if (dd.content.order_id) {
+                                                                            text = `訂單編號：${dd.content.order_id}`;
+                                                                        } else {
+                                                                            switch (dd.content.type) {
+                                                                                case 'manual':
+                                                                                    text = '手動設定';
+                                                                                    break;
+                                                                                case 'first_regiser':
+                                                                                    text = '新加入會員';
+                                                                                    break;
+                                                                                case 'birth':
+                                                                                    text = '生日禮';
+                                                                                    break;
+                                                                                default:
+                                                                                    text = dd.origin < 0 ? '使用折抵' : '其他';
+                                                                                    break;
+                                                                            }
+                                                                        }
+                                                                        return html`<span class="fs-7">${text}</span>`;
+                                                                    })(),
+                                                                },
+                                                                {
+                                                                    key: '增減金額',
+                                                                    value: (() => {
+                                                                        if (dd.origin > 0) {
+                                                                            return html`<span class="tx_700 text-success">+ ${dd.origin}</span>`;
+                                                                        }
+                                                                        return html`<span class="tx_700 text-danger">- ${dd.origin * -1}</span>`;
+                                                                    })(),
+                                                                },
+                                                                {
+                                                                    key: '剩餘金額',
+                                                                    value: (() => {
+                                                                        if (dd.origin < 0) {
+                                                                            return html`<span class="tx_700">-</span>`;
+                                                                        }
+                                                                        if (dd.remain > 0) {
+                                                                            return html`<span class="tx_700 text-success">+ ${dd.remain}</span>`;
+                                                                        }
+                                                                        return html`<span class="tx_700">0</span>`;
+                                                                    })(),
+                                                                },
+                                                                {
+                                                                    key: '備註',
+                                                                    value: `<span class="fs-7">${typeof dd.note === 'string' ? dd.note : (dd.note && dd.note.note) ?? '尚未填寫備註'}</span>`,
+                                                                },
+                                                                {
+                                                                    key: '建立時間',
+                                                                    value: `<span class="fs-7">${glitter.ut.dateFormat(new Date(dd.created_at), 'yyyy-MM-dd hh:mm:ss')}</span>`,
+                                                                },
+                                                            ];
+                                                        });
+                                                    }
+                                                    vmi.data = getDatalist();
+                                                    vmi.loading = false;
+                                                    vmi.callback();
+                                                });
+                                            },
+                                            rowClick: (data, index) => {
+                                                vm.data = vm.dataList[index];
+                                                vm.type = 'replace';
+                                            },
+                                            filter: html`
+                                                ${BgWidget.searchPlace(
+                                                    gvc.event((e, event) => {
+                                                        vm.query = e.value;
+                                                        gvc.notifyDataChange(id);
+                                                    }),
+                                                    vm.query || '',
+                                                    '搜尋顧客信箱、姓名'
+                                                )}
+                                                ${gvc.bindView(() => {
+                                                    return {
+                                                        bind: filterID,
+                                                        view: () => {
+                                                            if (
                                                                 !vm.dataList ||
                                                                 !vm.dataList.find((dd: any) => {
                                                                     return dd.checked;
                                                                 })
-                                                                    ? `d-none`
-                                                                    : ``
-                                                            }`,
-                                                            style: `height:40px; gap:10px; margin-top:10px;`,
-                                                        };
-                                                    },
-                                                };
-                                            })}
-                                        `,
-                                    })
+                                                            ) {
+                                                                return ``;
+                                                            } else {
+                                                                return html`<span class="fs-7 fw-bold">操作選項</span>`;
+                                                            }
+                                                        },
+                                                        divCreate: () => {
+                                                            return {
+                                                                class: `d-flex align-items-center mt-2 p-2 py-3 ${
+                                                                    !vm.dataList ||
+                                                                    !vm.dataList.find((dd: any) => {
+                                                                        return dd.checked;
+                                                                    })
+                                                                        ? `d-none`
+                                                                        : ``
+                                                                }`,
+                                                                style: `height:40px; gap:10px; margin-top:10px;`,
+                                                            };
+                                                        },
+                                                    };
+                                                })}
+                                            `,
+                                        })
+                                    ) + BgWidget.mbContainer(120)
                                 )}
                             `,
                             BgWidget.getContainerWidth()

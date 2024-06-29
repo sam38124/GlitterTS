@@ -5,4 +5,5 @@ export declare class UpdateScript {
     static migrateHeaderAndFooter(appList: string[]): Promise<void>;
     static migrateTermsOfService(appList: string[]): Promise<void>;
     static migrateRebatePage(appList: string[]): Promise<void>;
+    static migrateDialog(appList: string[]): Promise<void>;
 }

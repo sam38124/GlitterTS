@@ -207,6 +207,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                         }
                         else {
                             function editorView() {
+                                console.log(`gBundle.editMode.render->`, gBundle.editMode.render);
                                 return gBundle.editMode.render(gvc, {
                                     class: ``,
                                     style: ``,

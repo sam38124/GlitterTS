@@ -66,6 +66,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
     }
     return {
         onCreateView: () => {
+
             console.log(`onCreateView-time:`, (window as any).renderClock.stop())
             const mainId = glitter.getUUID()
             let map = [];
@@ -172,7 +173,6 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                         }
                                     });
                                 }
-
                                 findContainer(template_config);
                                 resolve(new glitter.htmlGenerate(template_config, [], gBundle.data, true).render(gvc, {
                                     class: ``,
@@ -183,6 +183,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                             })
                         } else {
                             function editorView() {
+                                console.log(`gBundle.editMode.render->`,gBundle.editMode.render)
                                 return gBundle.editMode.render(gvc, {
                                     class: ``,
                                     style: ``,

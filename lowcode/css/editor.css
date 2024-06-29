@@ -491,7 +491,7 @@ ul {
     cursor: pointer;
 }
 
-.btn-gary {
+.btn-gray {
     display: flex;
     padding: 6px 18px;
     justify-content: center;
@@ -504,7 +504,7 @@ ul {
     max-height: 40px;
 }
 
-.btn-gary:hover {
+.btn-gray:hover {
     background: #d0d0d0;
 }
 
@@ -523,6 +523,23 @@ ul {
 
 .btn-black:hover {
     background: #646464;
+}
+
+.btn-red {
+    display: flex;
+    padding: 6px 18px;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    border: 0;
+    border-radius: 10px;
+    background: #e72020;
+    cursor: pointer;
+    max-height: 40px;
+}
+
+.btn-red:hover {
+    background: #e35656;
 }
 
 .btn-snow {
@@ -566,6 +583,7 @@ ul {
 }
 
 .update-bar-container {
+    z-index: 10;
     position: fixed;
     display: flex;
     align-items: center;
@@ -623,6 +641,14 @@ ul {
     width: 100%;
     min-height: 42px;
     background-position-x: 97.5%;
+}
+
+@media (max-width: 768px) {
+    .c_select_w_100 {
+        width: 100%;
+        min-height: 42px;
+        background-position-x: 91.5%;
+    }
 }
 
 .c_select:focus {
@@ -740,4 +766,12 @@ ul {
     left: 0;
     bottom: 0;
     width: 100%;
+}
+
+.main-card {
+    width: 100%;
+    border-radius: 10px;
+    padding: 20px;
+    background: #fff;
+    box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.08);
 }

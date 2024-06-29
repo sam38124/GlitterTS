@@ -4,6 +4,7 @@ import { PageEditor } from '../../editor/page-editor.js';
 import { ShareDialog } from '../../dialog/ShareDialog.js';
 import { Storage } from '../../glitterBundle/helper/storage.js';
 import { AddComponent } from '../../editor/add-component.js';
+import { EditorConfig } from "../../editor-config.js";
 var ViewType;
 (function (ViewType) {
     ViewType["mobile"] = "mobile";
@@ -56,16 +57,16 @@ export class Main_editor {
                         return [
                             html `
                                 <div
-                                    class="px-3   border-bottom pb-3 fw-bold mt-2 pt-2 "
-                                    style="cursor: pointer;color:#393939;"
-                                    onclick="${gvc.event(() => {
+                                        class="px-3   border-bottom pb-3 fw-bold mt-2 pt-2 "
+                                        style="cursor: pointer;color:#393939;"
+                                        onclick="${gvc.event(() => {
                                 Storage.lastSelect = '';
-                                window.parent.glitter.share.editorViewModel.selectItem = undefined;
-                                window.parent.glitter.share.selectEditorItem();
+                                glitter.share.editorViewModel.selectItem = undefined;
+                                glitter.share.selectEditorItem();
                             })}"
                                 >
                                     <span>${viewModel.data.name}</span>
-                                  
+
                                 </div>
                             `,
                             `    ${(() => {
@@ -85,7 +86,8 @@ export class Main_editor {
                                                 }).config = viewModel.data.config;
                                                 pageConfig = viewModel.data.config;
                                             }
-                                            catch (e) { }
+                                            catch (e) {
+                                            }
                                             viewModel.data.config.container_config = containerConfig;
                                             gvc.notifyDataChange(vid);
                                         }
@@ -131,9 +133,9 @@ export class Main_editor {
                                                             return html `
                                                                         <li>
                                                                             <div
-                                                                                class="w-100 fw-500 d-flex align-items-center  fs-6 hoverBtn h_item  rounded px-2 hoverF2 mb-1"
-                                                                                style="gap:5px;color:#393939;${dd.toggle && dd.type === 'container' ? `border-radius: 5px;background: #F2F2F2;` : ``}"
-                                                                                onclick="${gvc.event(() => {
+                                                                                    class="w-100 fw-500 d-flex align-items-center  fs-6 hoverBtn h_item  rounded px-2 hoverF2 mb-1"
+                                                                                    style="gap:5px;color:#393939;${dd.toggle && dd.type === 'container' ? `border-radius: 5px;background: #F2F2F2;` : ``}"
+                                                                                    onclick="${gvc.event(() => {
                                                                 if (lastClick.stop() > 0.1) {
                                                                     dd.toggle = !dd.toggle;
                                                                     dd.info && (dd.info.toggle = !dd.info.toggle);
@@ -165,8 +167,8 @@ export class Main_editor {
                                                                                 <span>${dd.title}</span>
                                                                                 <div class="flex-fill"></div>
                                                                                 <div
-                                                                                    class="hoverBtn p-1 child"
-                                                                                    onclick="${gvc.event((e, event) => {
+                                                                                        class="hoverBtn p-1 child"
+                                                                                        onclick="${gvc.event((e, event) => {
                                                                 lastClick.zeroing();
                                                                 event.stopPropagation();
                                                                 glitter.htmlGenerate.deleteWidget(og_array, og_array[index]);
@@ -176,8 +178,8 @@ export class Main_editor {
                                                                                     <i class="fa-regular fa-trash d-flex align-items-center justify-content-center "></i>
                                                                                 </div>
                                                                                 <div
-                                                                                    class="hoverBtn p-1 ${og_array[index].visible ? `child` : ``}"
-                                                                                    onclick="${gvc.event((e, event) => {
+                                                                                        class="hoverBtn p-1 ${og_array[index].visible ? `child` : ``}"
+                                                                                        onclick="${gvc.event((e, event) => {
                                                                 lastClick.zeroing();
                                                                 event.stopPropagation();
                                                                 og_array[index].visible = !og_array[index].visible;
@@ -197,18 +199,18 @@ export class Main_editor {
                                                             })}"
                                                                                 >
                                                                                     <i
-                                                                                        class="${og_array[index].visible
+                                                                                            class="${og_array[index].visible
                                                                 ? `fa-regular fa-eye`
                                                                 : `fa-solid fa-eye-slash`} d-flex align-items-center justify-content-center "
-                                                                                        style="width:15px;height:15px;"
-                                                                                        aria-hidden="true"
+                                                                                            style="width:15px;height:15px;"
+                                                                                            aria-hidden="true"
                                                                                     ></i>
                                                                                 </div>
                                                                                 <div class="hoverBtn p-1 dragItem child">
                                                                                     <i
-                                                                                        class="fa-solid fa-grip-dots-vertical d-flex align-items-center justify-content-center  "
-                                                                                        style="width:15px;height:15px;"
-                                                                                        aria-hidden="true"
+                                                                                            class="fa-solid fa-grip-dots-vertical d-flex align-items-center justify-content-center  "
+                                                                                            style="width:15px;height:15px;"
+                                                                                            aria-hidden="true"
                                                                                     ></i>
                                                                                 </div>
                                                                             </div>
@@ -221,9 +223,9 @@ export class Main_editor {
                                                             .join('') +
                                                             html `
                                                                 <div
-                                                                    class="w-100 fw-500 d-flex align-items-center  fs-6 hoverBtn h_item  rounded px-2 hoverF2 mb-1"
-                                                                    style="color:#36B;gap:10px;"
-                                                                    onclick="${gvc.event(() => {
+                                                                        class="w-100 fw-500 d-flex align-items-center  fs-6 hoverBtn h_item  rounded px-2 hoverF2 mb-1"
+                                                                        style="color:#36B;gap:10px;"
+                                                                        onclick="${gvc.event(() => {
                                                                 function setSelectContainer() {
                                                                     if (root) {
                                                                         glitter.share.editorViewModel.selectContainer = glitter.share.editorViewModel.data.config;
@@ -235,12 +237,10 @@ export class Main_editor {
                                                                 setSelectContainer();
                                                                 AddComponent.toggle(true);
                                                                 AddComponent.addWidget = (gvc, cf) => {
-                                                                    setSelectContainer();
-                                                                    window.parent.glitter.share.addComponent(cf);
+                                                                    glitter.share.addComponent(cf);
                                                                 };
                                                                 AddComponent.addEvent = (gvc, tdata) => {
-                                                                    setSelectContainer();
-                                                                    window.parent.glitter.share.addComponent({
+                                                                    glitter.share.addComponent({
                                                                         "id": gvc.glitter.getUUID(),
                                                                         "js": "./official_view_component/official.js",
                                                                         "css": {
@@ -290,7 +290,9 @@ export class Main_editor {
                                                             {
                                                                 src: `https://raw.githack.com/SortableJS/Sortable/master/Sortable.js`,
                                                             },
-                                                        ], () => { }, () => { });
+                                                        ], () => {
+                                                        }, () => {
+                                                        });
                                                         const interval = setInterval(() => {
                                                             if (window.Sortable) {
                                                                 try {
@@ -322,7 +324,8 @@ export class Main_editor {
                                                                         },
                                                                     });
                                                                 }
-                                                                catch (e) { }
+                                                                catch (e) {
+                                                                }
                                                                 clearInterval(interval);
                                                             }
                                                         }, 100);
@@ -330,7 +333,8 @@ export class Main_editor {
                                                 };
                                             });
                                         }
-                                        return html ` <div class="p-2">${renderItems(list, pageConfig, true)}</div>`;
+                                        return html `
+                                            <div class="p-2">${renderItems(list, pageConfig, true)}</div>`;
                                     })(),
                                 ].join('');
                             })()}`,
@@ -338,12 +342,14 @@ export class Main_editor {
                     }
                     else {
                         return html `
-                            <li class="w-100 align-items-center  d-flex editor_item_title  start-0 bg-white z-index-9" style="z-index: 999;" onclick="${gvc.event(() => { })}">
+                            <li class="w-100 align-items-center  d-flex editor_item_title  start-0 bg-white z-index-9"
+                                style="z-index: 999;" onclick="${gvc.event(() => {
+                        })}">
                                 <span style="font-size:14px;">${viewModel.data.name}-區段</span>
                                 <div
-                                    class="hoverBtn d-flex align-items-center justify-content-center   border ms-auto me-2"
-                                    style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
-                                    onclick="${gvc.event(() => {
+                                        class="hoverBtn d-flex align-items-center justify-content-center   border ms-auto me-2"
+                                        style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
+                                        onclick="${gvc.event(() => {
                             glitter.share.editorViewModel.selectContainer = glitter.share.editorViewModel.data.config;
                             AddComponent.toggle(true);
                         })}"
@@ -368,7 +374,8 @@ export class Main_editor {
                                             }).config = viewModel.data.config;
                                             pageConfig = viewModel.data.config;
                                         }
-                                        catch (e) { }
+                                        catch (e) {
+                                        }
                                         gvc.notifyDataChange(vid);
                                     }
                                     return new PageEditor(gvc, 'MainEditorLeft', 'MainEditorRight').renderLineItem(pageConfig, false, pageConfig, {
@@ -413,12 +420,14 @@ export class Main_editor {
                         <div class="" style="">
                             ${(() => {
                         if (vm.type === 'list') {
-                            return html ` <div class="px-3   border-bottom pb-3 fw-bold mt-2 pt-2" style="cursor: pointer;color:#393939;">
+                            return html `
+                                        <div class="px-3   border-bottom pb-3 fw-bold mt-2 pt-2"
+                                             style="cursor: pointer;color:#393939;">
                                             <span>配色設定</span>
                                         </div>
-                                    <div class="row ${(globalValue.color_theme.length === 0) ? `d-none` : ``}"
-                                         style="margin:18px;">
-                                        ${globalValue.color_theme.map((dd, index) => {
+                                        <div class="row ${(globalValue.color_theme.length === 0) ? `d-none` : ``}"
+                                             style="margin:18px;">
+                                            ${globalValue.color_theme.map((dd, index) => {
                                 return `<div class="col-6 mb-3" style="cursor: pointer;" onclick="${gvc.event(() => {
                                     vm.type = 'detail';
                                     vm.data = globalValue.color_theme[index];
@@ -429,10 +438,10 @@ export class Main_editor {
                                                 <div class="w-100 t_39_16 mt-2" style="text-align: center;">配色${index + 1}</div>
                                             </div>`;
                             }).join('')}
-                                    </div>
-                                    <div style="padding: 0px 24px 24px;${(globalValue.color_theme.length === 0) ? `margin-top:24px;` : ``}">
-                                        <div class="bt_border_editor"
-                                             onclick="${gvc.event(() => {
+                                        </div>
+                                        <div style="padding: 0px 24px 24px;${(globalValue.color_theme.length === 0) ? `margin-top:24px;` : ``}">
+                                            <div class="bt_border_editor"
+                                                 onclick="${gvc.event(() => {
                                 vm.data = { id: gvc.glitter.getUUID() };
                                 globalValue.color_theme.push(vm.data);
                                 vm.name = ('配色' + globalValue.color_theme.length);
@@ -493,23 +502,7 @@ export class Main_editor {
   </div>
 </div>
                                     `,
-                        `<div style="padding: 18px 24px 24px;">${[
-                            {
-                                key: 'background', title: '背景顏色'
-                            }, {
-                                key: 'title', title: '標題顏色'
-                            }, {
-                                key: 'content', title: '內文'
-                            }, {
-                                key: 'solid-button-bg', title: '純色按鈕'
-                            }, {
-                                key: 'solid-button-text', title: '純色按鈕文字',
-                            }, {
-                                key: 'border-button-bg', title: '邊框按鈕'
-                            }, {
-                                key: 'border-button-text', title: '邊框按鈕文字'
-                            }
-                        ].map((dd) => {
+                        `<div style="padding: 18px 24px 24px;">${EditorConfig.color_setting_config.map((dd) => {
                             vm.data[dd.key] = vm.data[dd.key] || '#FFFFFF';
                             return EditorElem.colorSelect({
                                 title: dd.title,
@@ -543,6 +536,7 @@ export class Main_editor {
         });
     }
     static colorCard(cf) {
+        cf = (cf || {});
         return `<div style="width:100%;padding: 11px 18px;background: ${cf.background || 'white'}; border-radius: 7px; overflow: hidden; border: 1px #DDDDDD solid; justify-content: center; align-items: center; display: flex">
     <div style="align-self: stretch; flex-direction: column; justify-content: flex-start; align-items: center; gap: 2px; display: inline-flex">
       <div style="font-size: 16px;  font-weight: 400; word-wrap: break-word">
@@ -630,9 +624,9 @@ export class Main_editor {
         return [
             html `
                 <div
-                    class="right_scroll"
-                    style="overflow-y:auto;${Storage.select_function === 'user-editor' ? `height:calc(100vh - 50px)` : `height:calc(100vh - 150px);`}"
-                    onscroll="${gvc.event(() => {
+                        class="right_scroll"
+                        style="overflow-y:auto;${Storage.select_function === 'user-editor' ? `height:calc(100vh - 50px)` : `height:calc(100vh - 150px);`}"
+                        onscroll="${gvc.event(() => {
                 if (document.querySelector('.right_scroll').scrollTop > 0) {
                     glitter.share.lastRightScrollTop = document.querySelector('.right_scroll').scrollTop;
                 }
@@ -666,25 +660,26 @@ export class Main_editor {
                         });
                         return ((Storage.select_function === 'user-editor'
                             ? html `
-                                              <div
-                                                  class="px-3 mx-n2  border-bottom pb-3 fw-bold mt-n2 pt-3 hoverF2 d-flex align-items-center"
-                                                  style="cursor: pointer;color:#393939;border-radius: 0px;gap:10px;"
-                                                  onclick="${gvc.event(() => {
+                                                    <div
+                                                            class="px-3 mx-n2  border-bottom pb-3 fw-bold mt-n2 pt-3 hoverF2 d-flex align-items-center"
+                                                            style="cursor: pointer;color:#393939;border-radius: 0px;gap:10px;"
+                                                            onclick="${gvc.event(() => {
                                 Storage.lastSelect = '';
-                                window.parent.glitter.share.editorViewModel.selectItem = undefined;
-                                window.parent.glitter.share.selectEditorItem();
+                                glitter.share.editorViewModel.selectItem = undefined;
+                                glitter.share.selectEditorItem();
                             })}"
-                                              >
-                                                  <i class="fa-solid fa-chevron-left"></i>
-                                                  <span style="max-width: calc(100% - 50px);text-overflow: ellipsis;white-space: nowrap;overflow: hidden;">${viewModel.selectItem.label}</span>
-                                                  <div class="flex-fill"></div>
-                                                  <div class="hoverBtn  child p-1" onclick="${gvc.event(() => {
-                                glitter.htmlGenerate.deleteWidget(window.parent.glitter.share.editorViewModel.selectContainer, viewModel.selectItem);
+                                                    >
+                                                        <i class="fa-solid fa-chevron-left"></i>
+                                                        <span style="max-width: calc(100% - 50px);text-overflow: ellipsis;white-space: nowrap;overflow: hidden;">${viewModel.selectItem.label}</span>
+                                                        <div class="flex-fill"></div>
+                                                        <div class="hoverBtn  child p-1" onclick="${gvc.event(() => {
+                                glitter.htmlGenerate.deleteWidget(glitter.share.editorViewModel.selectContainer, viewModel.selectItem);
                             })}">
-                                                      <i class="fa-regular fa-trash d-flex align-items-center justify-content-center " aria-hidden="true"></i>
-                                                  </div>
-                                              </div>
-                                          `
+                                                            <i class="fa-regular fa-trash d-flex align-items-center justify-content-center "
+                                                               aria-hidden="true"></i>
+                                                        </div>
+                                                    </div>
+                                                `
                             : ``) +
                             htmlGenerate.editor(gvc, {
                                 return_: false,
@@ -701,13 +696,15 @@ export class Main_editor {
                                         return undefined;
                                     }
                                 })(),
-                                deleteEvent: () => { },
+                                deleteEvent: () => {
+                                },
                             }));
                     },
                     divCreate: {
                         class: `p-2`,
                     },
-                    onCreate: () => { },
+                    onCreate: () => {
+                    },
                 };
             })}
                 </div>
@@ -719,14 +716,15 @@ export class Main_editor {
                         if (viewModel.selectItem === undefined || viewModel.selectItem.js === undefined) {
                             return ``;
                         }
-                        return html ` <div
-                            class="w-100  position-absolute bottom-0 border-top d-flex align-items-center ps-3 ${Storage.select_function === 'user-editor' ? `d-none` : ``}"
-                            style="height:50px;background:#f6f6f6;font-size:14px;"
-                        >
+                        return html `
                             <div
-                                class="hoverBtn fw-bold"
-                                style="color:#8e1f0b;cursor:pointer;"
-                                onclick="${gvc.event(() => {
+                                    class="w-100  position-absolute bottom-0 border-top d-flex align-items-center ps-3 ${Storage.select_function === 'user-editor' ? `d-none` : ``}"
+                                    style="height:50px;background:#f6f6f6;font-size:14px;"
+                            >
+                                <div
+                                        class="hoverBtn fw-bold"
+                                        style="color:#8e1f0b;cursor:pointer;"
+                                        onclick="${gvc.event(() => {
                             checkSelect(viewModel.data.config);
                             try {
                                 const dialog = new ShareDialog(gvc.glitter);
@@ -748,28 +746,30 @@ export class Main_editor {
                                 alert(e);
                             }
                         })}"
-                            >
-                                <i class="fa-solid fa-trash-can me-2"></i>移除區塊
-                            </div>
-                        </div>`;
+                                >
+                                    <i class="fa-solid fa-trash-can me-2"></i>移除區塊
+                                </div>
+                            </div>`;
                     },
                 };
             }),
         ].join('');
     }
     static center(viewModel, gvc) {
-        return html ` <div
-            class="${viewModel.type === ViewType.mobile && (Storage.select_function === 'page-editor' || Storage.select_function === 'user-editor')
+        return html `
+            <div
+                    class="${viewModel.type === ViewType.mobile && (Storage.select_function === 'page-editor' || Storage.select_function === 'user-editor')
             ? `d-flex align-items-center justify-content-center flex-column mx-auto`
             : `d-flex align-items-center justify-content-center flex-column`}"
-            style="${viewModel.type === ViewType.mobile && (Storage.select_function === 'page-editor' || Storage.select_function === 'user-editor')
+                    style="${viewModel.type === ViewType.mobile && (Storage.select_function === 'page-editor' || Storage.select_function === 'user-editor')
             ? `width: 414px;height: calc(100vh - 56px);`
             : `width: calc(100%);height: calc(100vh - 56px);overflow:hidden;`}"
-        >
-            <div class="" style="width:100%;height: calc(100%);" id="editerCenter">
-                <iframe class="w-100 h-100  bg-white" src="${gvc.glitter.root_path}${gvc.glitter.getUrlParameter('page')}?type=htmlEditor&appName=${gvc.glitter.getUrlParameter('appName')}"></iframe>
-            </div>
-        </div>`;
+            >
+                <div class="" style="width:100%;height: calc(100%);" id="editerCenter">
+                    <iframe class="w-100 h-100  bg-white"
+                            src="${gvc.glitter.root_path}${gvc.glitter.getUrlParameter('page')}?type=htmlEditor&appName=${gvc.glitter.getUrlParameter('appName')}"></iframe>
+                </div>
+            </div>`;
     }
     static pageAndComponent(option) {
         const data = option.data;
@@ -801,10 +801,12 @@ export class Main_editor {
                                 }
                                 let array = [];
                                 if (!vm.selectItem) {
-                                    array.push(html ` <div class="d-flex bg-white w-100 border-bottom ${Storage.select_function === 'user-editor' ? `d-none` : ``}">
-                                        <div class="w-100" style="">
-                                            <div style="" class="d-flex align-items-center justify-content-around  w-100 p-2 ">
-                                                ${(() => {
+                                    array.push(html `
+                                        <div class="d-flex bg-white w-100 border-bottom ${Storage.select_function === 'user-editor' ? `d-none` : ``}">
+                                            <div class="w-100" style="">
+                                                <div style=""
+                                                     class="d-flex align-items-center justify-content-around  w-100 p-2 ">
+                                                    ${(() => {
                                         const items = [
                                             {
                                                 title: '頁面內容',
@@ -836,28 +838,30 @@ export class Main_editor {
                                         }
                                         return items
                                             .map((dd) => {
-                                            return html ` <div
-                                                                class=" d-flex align-items-center justify-content-center ${dd.value === vm.select ? `border` : ``} rounded-3"
-                                                                style="height:36px;width:36px;cursor:pointer;
+                                            return html `
+                                                                        <div
+                                                                                class=" d-flex align-items-center justify-content-center ${dd.value === vm.select ? `border` : ``} rounded-3"
+                                                                                style="height:36px;width:36px;cursor:pointer;
 ${dd.value === vm.select ? `background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);background:-webkit-linear-gradient(135deg, #667eea 0%, #764ba2 100%);color:white;` : `color:#151515;`}
 "
-                                                                onclick="${gvc.event(() => {
+                                                                                onclick="${gvc.event(() => {
                                                 vm.select = dd.value;
                                                 gvc.notifyDataChange(vm.pageID);
                                             })}"
-                                                                data-bs-toggle="tooltip"
-                                                                data-bs-placement="top"
-                                                                data-bs-custom-class="custom-tooltip"
-                                                                data-bs-title="${dd.title}"
-                                                            >
-                                                                <i class="${dd.icon}" aria-hidden="true"></i>
-                                                            </div>`;
+                                                                                data-bs-toggle="tooltip"
+                                                                                data-bs-placement="top"
+                                                                                data-bs-custom-class="custom-tooltip"
+                                                                                data-bs-title="${dd.title}"
+                                                                        >
+                                                                            <i class="${dd.icon}"
+                                                                               aria-hidden="true"></i>
+                                                                        </div>`;
                                         })
                                             .join(``);
                                     })()}
+                                                </div>
                                             </div>
-                                        </div>
-                                    </div>`);
+                                        </div>`);
                                     vm.select === 'codeBlock' &&
                                         array.push(Main_editor.editorContent({
                                             gvc: gvc,
@@ -970,10 +974,11 @@ ${dd.value === vm.select ? `background:linear-gradient(135deg, #667eea 0%, #764b
                                                     bind: id,
                                                     view: () => {
                                                         return html `
-                                                                <div class="alert alert-danger flex-fill m-0 p-2 " style="white-space: normal;word-break:break-all;">
-                                                                    此頁面的配置檔包含所有設計模組和觸發事件的代碼配置項目。<br />建議由熟悉程式開發的工程師進行編輯。
-                                                                </div>
-                                                                ${EditorElem.customCodeEditor({
+                                                            <div class="alert alert-danger flex-fill m-0 p-2 "
+                                                                 style="white-space: normal;word-break:break-all;">
+                                                                此頁面的配置檔包含所有設計模組和觸發事件的代碼配置項目。<br/>建議由熟悉程式開發的工程師進行編輯。
+                                                            </div>
+                                                            ${EditorElem.customCodeEditor({
                                                             gvc: gvc,
                                                             height: window.innerHeight - 350,
                                                             initial: value,
@@ -983,17 +988,18 @@ ${dd.value === vm.select ? `background:linear-gradient(135deg, #667eea 0%, #764b
                                                             },
                                                             language: 'json',
                                                         })}
-                                                                <div class="d-flex w-100 mb-2 mt-2 justify-content-end" style="gap:10px;">
-                                                                    <button
+                                                            <div class="d-flex w-100 mb-2 mt-2 justify-content-end"
+                                                                 style="gap:10px;">
+                                                                <button
                                                                         class="btn btn-outline-secondary-c "
                                                                         style="flex:1;height:40px; width:calc(50% - 10px);"
                                                                         onclick="${gvc.event(() => {
                                                             navigator.clipboard.writeText(JSON.stringify(json, null, '\t'));
                                                         })}"
-                                                                    >
-                                                                        <i class="fa-regular fa-copy me-2"></i>複製到剪貼簿
-                                                                    </button>
-                                                                    <button
+                                                                >
+                                                                    <i class="fa-regular fa-copy me-2"></i>複製到剪貼簿
+                                                                </button>
+                                                                <button
                                                                         class="btn btn-primary-c "
                                                                         style="flex:1; height:40px; width:calc(50% - 10px);"
                                                                         onclick="${gvc.event(() => {
@@ -1008,11 +1014,11 @@ ${dd.value === vm.select ? `background:linear-gradient(135deg, #667eea 0%, #764b
                                                                 console.log(`${e}${e.stack}${e.line}`);
                                                             }
                                                         })}"
-                                                                    >
-                                                                        <i class="fa-regular fa-floppy-disk me-2"></i>儲存
-                                                                    </button>
-                                                                </div>
-                                                            `;
+                                                                >
+                                                                    <i class="fa-regular fa-floppy-disk me-2"></i>儲存
+                                                                </button>
+                                                            </div>
+                                                        `;
                                                     },
                                                     divCreate: {
                                                         class: `p-2`,

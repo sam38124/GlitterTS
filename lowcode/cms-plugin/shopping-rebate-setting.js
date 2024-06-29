@@ -110,10 +110,10 @@ export class ShoppingRebateSetting {
                     return BgWidget.container(html ` <div class="d-flex w-100 align-items-center">
                                 ${BgWidget.title('購物金設定')}
                                 <div class="flex-fill"></div>
-                                <div style="display: flex; gap: 14px;"></div>
+                                <div style="display: flex; gap: 14px; "></div>
                             </div>
                             ${BgWidget.container([
-                        html `<div class="d-flex justify-content-center" style="gap: 24px">
+                        html `<div class="d-flex justify-content-center p-0 ${document.body.clientWidth < 768 ? 'flex-column' : ''}" style="gap: 24px">
                                         ${BgWidget.container([
                             BgWidget.mainCard(html `<div>
                                                     <div style="margin-bottom: 18px;">
@@ -256,6 +256,7 @@ export class ShoppingRebateSetting {
                                                                         },
                                                                         default: item.id,
                                                                         options: levelVM.options,
+                                                                        readonly: !vm.data.birth.switch,
                                                                         style: 'margin: 8px 0;',
                                                                     })}
                                                                                                                         </div>
@@ -269,12 +270,16 @@ export class ShoppingRebateSetting {
                                                                             item.value = parseInt(text, 10);
                                                                             gvc.notifyDataChange(levelVM.id);
                                                                         },
+                                                                        readonly: !vm.data.birth.switch,
                                                                     })}
                                                                                                                         </div>
                                                                                                                         <div class="col-1 d-flex justify-content-start">
                                                                                                                             <i
                                                                                                                                 class="fa-regular fa-trash fs-5 cursor_pointer"
                                                                                                                                 onclick="${gvc.event(() => {
+                                                                        if (!vm.data.birth.switch) {
+                                                                            return;
+                                                                        }
                                                                         vm.data.birth.level.splice(index, 1);
                                                                         gvc.notifyDataChange(levelVM.id);
                                                                         vm.data.birth.type = 'levels';
@@ -430,6 +435,7 @@ export class ShoppingRebateSetting {
                                                             },
                                                             endText: '元',
                                                             divStyle: 'margin-left: 22px;',
+                                                            readonly: vm.data.config.customize,
                                                         }),
                                                     ])}
                                                                                     </div>`,
@@ -463,6 +469,7 @@ export class ShoppingRebateSetting {
                                                                 },
                                                                 endText: '%',
                                                                 divStyle: 'margin-left: 22px;',
+                                                                readonly: vm.data.config.customize,
                                                             };
                                                         })()),
                                                     ])}
@@ -489,9 +496,8 @@ export class ShoppingRebateSetting {
                                     },
                                 });
                             })()),
-                        ].join(html `<div style="margin-top: 24px"></div>`), undefined, 'padding: 0; margin: 0 !important; width: 73.5%;')}
-                                        ${BgWidget.container(html `<div>
-                                                ${gvc.bindView(() => {
+                        ].join(html `<div style="margin-top: 24px;"></div>`), undefined, 'padding: 0 !important; margin: 0 !important; width: 73.5%;')}
+                                        ${BgWidget.container(gvc.bindView(() => {
                             const id = gvc.glitter.getUUID();
                             return {
                                 bind: id,
@@ -506,22 +512,22 @@ export class ShoppingRebateSetting {
                                             bind: id,
                                             view: () => {
                                                 return html `
-                                                                                <h3 class="tx_700" style="margin-bottom: 18px;">摘要</h3>
-                                                                                <div style="display: flex; gap: 12px; flex-direction: column;">
-                                                                                    ${gvc.map(getTextList().map((text) => {
+                                                                            <h3 class="tx_700" style="margin-bottom: 18px;">摘要</h3>
+                                                                            <div style="display: flex; gap: 12px; flex-direction: column;">
+                                                                                ${gvc.map(getTextList().map((text) => {
                                                     return html ` <div class="${text.length > 0 ? 'tx_normal' : 'gray-top-bottom-line-6'}">${text}</div>`;
                                                 }))}
-                                                                                </div>
-                                                                            `;
+                                                                            </div>
+                                                                        `;
                                             },
                                         };
                                     }));
                                 },
+                                divCreate: { class: 'p-0' },
                             };
-                        })}
-                                            </div>`, undefined, 'padding: 0; margin: 0 !important; width: 26.5%;')}
+                        }), undefined, 'padding: 0 !important; margin: 0 !important; width: 26.5%;')}
                                     </div>`,
-                        html `<div style="margin-bottom: 240px"></div>`,
+                        BgWidget.mb240(),
                         html `<div class="update-bar-container">
                                         ${BgWidget.cancel(gvc.event(() => {
                             dialog.checkYesOrNot({
@@ -553,7 +559,7 @@ export class ShoppingRebateSetting {
                             });
                         }))}
                                     </div>`,
-                    ].join())}`, BgWidget.getContainerWidth());
+                    ].join(''))}`, BgWidget.getContainerWidth());
                 }
                 return BgWidget.maintenance();
             },

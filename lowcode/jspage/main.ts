@@ -18,6 +18,7 @@ import {PageCodeSetting} from "../editor/page-code-setting.js";
 import {NormalPageEditor} from "../editor/normal-page-editor.js";
 import {EditorConfig} from "../editor-config.js";
 import {HtmlGenerate} from "../glitterBundle/module/html-generate.js";
+import {all} from "underscore/index.js";
 
 const html = String.raw
 //
@@ -174,33 +175,43 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
             }),
             (async () => {
                 return await new Promise(async (resolve) => {
-                    const clock = gvc.glitter.ut.clock()
-                    const data = await ApiPageConfig.getPage({
-                        appName: gBundle.appName,
-                        type: 'template'
-                    })
-                    viewModel.data = (await ApiPageConfig.getPage({
-                        appName: gBundle.appName,
-                        tag: glitter.getUrlParameter('page')
-                    })).response.result[0];
-                    Storage.select_page_type = viewModel.data.page_type
-                    if (data.result) {
-                        data.response.result.map((dd: any) => {
-                            dd.page_config = dd.page_config ?? {}
-                            return dd;
-                        });
-                        viewModel.dataList = data.response.result;
-                        viewModel.originalData = JSON.parse(JSON.stringify(viewModel.dataList))
-                        glitter.share.allPageResource = JSON.parse(JSON.stringify(data.response.result))
-                        const htmlGenerate = new gvc.glitter.htmlGenerate((viewModel.data! as any).config, [Storage.lastSelect], undefined, true);
-                        (window as any).editerData = htmlGenerate;
-                        (window as any).page_config = (viewModel.data! as any).page_config
-                        if (!data) {
-                            resolve(false);
-                        } else {
-                            resolve(true);
-                        }
-                    }
+                   if(!glitter.share.editor_vm){
+                       const data = await ApiPageConfig.getPage({
+                           appName: gBundle.appName,
+                           type: 'template'
+                       })
+                       viewModel.data = (await ApiPageConfig.getPage({
+                           appName: gBundle.appName,
+                           tag: glitter.getUrlParameter('page')
+                       })).response.result[0];
+                       Storage.select_page_type = viewModel.data.page_type
+                       if (data.result) {
+                           data.response.result.map((dd: any) => {
+                               dd.page_config = dd.page_config ?? {}
+                               return dd;
+                           });
+                           viewModel.dataList = data.response.result;
+                           viewModel.originalData = JSON.parse(JSON.stringify(viewModel.dataList))
+                           glitter.share.allPageResource = JSON.parse(JSON.stringify(data.response.result))
+                           const htmlGenerate = new gvc.glitter.htmlGenerate((viewModel.data! as any).config, [Storage.lastSelect], undefined, true);
+                           (window as any).editerData = htmlGenerate;
+                           (window as any).page_config = (viewModel.data! as any).page_config
+                           if (!data) {
+                               resolve(false);
+                           } else {
+                               resolve(true);
+                           }
+                       }
+                   }else{
+
+                       viewModel.dataList=[];
+                       viewModel.data=glitter.share.editor_vm.page_data;
+                       const htmlGenerate = new gvc.glitter.htmlGenerate(viewModel.data.config, [Storage.lastSelect], undefined, true);
+                       (window as any).editerData = htmlGenerate;
+                       (window as any).page_config = (viewModel.data! as any).page_config;
+                       resolve(true);
+                   }
+
                 })
             }),
             (async () => {
@@ -291,6 +302,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                 glitter.share.editorViewModel.saveArray = {}
                 const waitSave = [
                     (async () => {
+
                         let haveID: string[] = [];
 
                         function getID(set: any) {
@@ -317,23 +329,28 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                         }
 
                         getID((viewModel.data as any).config);
-                        return new Promise(async resolve => {
-                            let result = true
-                            ApiPageConfig.setPage({
-                                id: (viewModel.data! as any).id,
-                                appName: gBundle.appName,
-                                tag: (viewModel.data! as any).tag,
-                                name: (viewModel.data! as any).name,
-                                config: (viewModel.data! as any).config,
-                                group: (viewModel.data! as any).group,
-                                page_config: (viewModel.data! as any).page_config,
-                                page_type: (viewModel.data! as any).page_type,
-                                preview_image: (viewModel.data! as any).preview_image,
-                                favorite: (viewModel.data! as any).favorite,
-                            }).then((api) => {
-                                resolve(result && api.result)
-                            })
-                        });
+                        if(glitter.share.editor_vm){
+                            return  new Promise((resolve, reject)=>{resolve(true)})
+                        }else{
+                            return new Promise(async resolve => {
+                                let result = true
+                                ApiPageConfig.setPage({
+                                    id: (viewModel.data! as any).id,
+                                    appName: gBundle.appName,
+                                    tag: (viewModel.data! as any).tag,
+                                    name: (viewModel.data! as any).name,
+                                    config: (viewModel.data! as any).config,
+                                    group: (viewModel.data! as any).group,
+                                    page_config: (viewModel.data! as any).page_config,
+                                    page_type: (viewModel.data! as any).page_type,
+                                    preview_image: (viewModel.data! as any).preview_image,
+                                    favorite: (viewModel.data! as any).favorite,
+                                }).then((api) => {
+                                    resolve(result && api.result)
+                                })
+                            });
+                        }
+
                     }),
                     (async () => {
                         return new Promise(async resolve => {
@@ -357,6 +374,18 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                 swal.close();
                 viewModel.originalConfig = JSON.parse(JSON.stringify(viewModel.appConfig))
                 if (refresh) {
+                    (window as any).preloadData = {};
+                    (window as any).glitterInitialHelper.share = {}
+                    lod();
+                }
+                if(glitter.share.editor_vm){
+                    glitter.share.editor_vm.callback(viewModel.data);
+                    swal.close();
+                    swal.toast({
+                        icon:'success',
+                        title:'儲存成功'
+                    })
+                }else if (refresh) {
                     (window as any).preloadData = {};
                     (window as any).glitterInitialHelper.share = {}
                     lod();
@@ -653,7 +682,8 @@ function initialEditor(gvc: GVC, viewModel: any) {
                 widget: data,
                 widgetComponentID: data.id,
                 gvc: viewModel.selectContainer.container_config.gvc,
-                scroll_to_hover: true
+                scroll_to_hover: true,
+                glitter:glitter
             })
         }, 50)
         AddComponent.toggle(false)
@@ -677,7 +707,7 @@ function initialEditor(gvc: GVC, viewModel: any) {
         Storage.lastSelect = cf.data.id
         HtmlGenerate.hover_items = [Storage.lastSelect];
 
-        const $ = ((document.querySelector('iframe') as any).contentWindow as any).$;
+        const $ = ((document.querySelector('#editerCenter iframe') as any).contentWindow as any).$;
 
         $(HtmlGenerate.renderWidgetSingle({
             widget: cf.data,
@@ -694,7 +724,8 @@ function initialEditor(gvc: GVC, viewModel: any) {
                 widget: cf.data,
                 widgetComponentID: cf.data.id,
                 gvc: arrayData.container.container_config.gvc,
-                scroll_to_hover: true
+                scroll_to_hover: true,
+                glitter:glitter
             })
         }, 50)
 

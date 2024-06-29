@@ -81,14 +81,14 @@ export class FormSetting {
                 view: () => {
                     if (vm.type === 'list') {
                         return BgWidget.container(html `
-                                <div class="d-flex w-100 align-items-center mb-3">
+                                <div class="d-flex w-100 align-items-center">
                                     ${BgWidget.title('表單設定')}
                                     <div class="flex-fill"></div>
                                     ${BgWidget.darkButton('新增表單', gvc.event(() => {
                             vm.type = 'add';
                         }))}
                                 </div>
-                                ${BgWidget.mainCard(BgWidget.tableV2({
+                                ${BgWidget.container(BgWidget.mainCard(BgWidget.tableV2({
                             gvc: gvc,
                             getData: (vd) => {
                                 vmi = vd;
@@ -110,11 +110,11 @@ export class FormSetting {
                                 vm.type = 'replace';
                             },
                             filter: html `
-                                            ${BgWidget.searchPlace(gvc.event((e, event) => {
+                                                ${BgWidget.searchPlace(gvc.event((e, event) => {
                                 vm.query = e.value;
                                 gvc.notifyDataChange(id);
                             }), vm.query || '', '搜尋所有表單')}
-                                            ${gvc.bindView(() => {
+                                                ${gvc.bindView(() => {
                                 return {
                                     bind: filterID,
                                     view: () => {
@@ -165,8 +165,8 @@ export class FormSetting {
                                     },
                                 };
                             })}
-                                        `,
-                        }))}
+                                            `,
+                        })))}
                             `, BgWidget.getContainerWidth());
                     }
                     else if (vm.type == 'replace' || vm.type == 'add') {
@@ -249,14 +249,11 @@ export class FormSetting {
                 view: () => {
                     if (vm.type === 'list') {
                         return BgWidget.container(html `
-                                <div class="d-flex w-100 align-items-center mb-3">
+                                <div class="d-flex w-100 align-items-center">
                                     ${BgWidget.title('用戶提交表單')}
                                     <div class="flex-fill"></div>
-                                    ${BgWidget.darkButton('新增表單', gvc.event(() => {
-                            vm.type = 'add';
-                        }))}
                                 </div>
-                                ${BgWidget.mainCard(BgWidget.tableV2({
+                                ${BgWidget.container(BgWidget.mainCard(BgWidget.tableV2({
                             gvc: gvc,
                             getData: (vd) => {
                                 vmi = vd;
@@ -278,17 +275,20 @@ export class FormSetting {
                                 vm.type = 'replace';
                             },
                             filter: html `
-                                            ${BgWidget.searchPlace(gvc.event((e, event) => {
+                                                ${BgWidget.searchPlace(gvc.event((e, event) => {
                                 vm.query = e.value;
                                 gvc.notifyDataChange(id);
                             }), vm.query || '', '搜尋所有表單')}
-                                            ${gvc.bindView(() => {
+                                                ${gvc.bindView(() => {
                                 return {
                                     bind: filterID,
                                     view: () => {
                                         return [
-                                            `<span class="fs-7 fw-bold">操作選項</span>`,
-                                            `<button class="btn btn-danger fs-7 px-2" style="height:30px;border:none;" onclick="${gvc.event(() => {
+                                            html `<span class="fs-7 fw-bold">操作選項</span>`,
+                                            html `<button
+                                                                    class="btn btn-danger fs-7 px-2"
+                                                                    style="height:30px;border:none;"
+                                                                    onclick="${gvc.event(() => {
                                                 const dialog = new ShareDialog(gvc.glitter);
                                                 dialog.checkYesOrNot({
                                                     text: '是否確認移除所選項目?',
@@ -317,7 +317,10 @@ export class FormSetting {
                                                         }
                                                     },
                                                 });
-                                            })}">批量移除</button>`,
+                                            })}"
+                                                                >
+                                                                    批量移除
+                                                                </button>`,
                                         ].join(``);
                                     },
                                     divCreate: () => {
@@ -333,8 +336,8 @@ export class FormSetting {
                                     },
                                 };
                             })}
-                                        `,
-                        }))}
+                                            `,
+                        })))}
                             `, BgWidget.getContainerWidth());
                     }
                     else if (vm.type == 'replace' || vm.type == 'add') {
@@ -379,7 +382,7 @@ export class FormSetting {
                                 ${BgWidget.title(`表單內容`)}
                                 <div class="flex-fill"></div>
                             </div>`,
-                        BgWidget.card((() => {
+                        BgWidget.mainCard((() => {
                             return FormWidget.editorView({
                                 gvc: gvc,
                                 array: postMd.form_config,
@@ -429,24 +432,124 @@ export class FormSetting {
                         }))}
                                 ${BgWidget.title(viewType === 'preview' ? `表單預覽` : '表單設定')}
                                 <div class="flex-fill"></div>
-                                <div
-                                    class="${viewType === 'preview' ? `d-none` : `d-flex`}  align-items-center justify-content-center bg-white  me-2 border"
-                                    style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
-                                    data-bs-toggle="tooltip"
-                                    data-bs-placement="top"
-                                    data-bs-custom-class="custom-tooltip"
-                                    data-bs-title="預覽表單"
-                                    onclick="${gvc.event(() => {
-                            viewType = 'preview';
-                            gvc.notifyDataChange(id);
-                        })}"
-                                >
-                                    <i class="fa-regular fa-eye" aria-hidden="true"></i>
-                                </div>
-                                <button
-                                    class="btn btn-primary-c "
-                                    style="height:35px;font-size: 14px;"
-                                    onclick="${gvc.event(() => {
+                                ${viewType === 'preview'
+                            ? ''
+                            : BgWidget.grayButton('預覽表單', gvc.event(() => {
+                                viewType = 'preview';
+                                gvc.notifyDataChange(id);
+                            }))}
+                            </div>`,
+                        BgWidget.mainCard((() => {
+                            if (viewType === 'preview') {
+                                return [
+                                    html `<div
+                                                class="position-relative text-center bgf6 rounded-top d-flex align-items-center justify-content-center mx-n3 mt-n3 p-3 border-top border-bottom shadow"
+                                            >
+                                                <span class="fs-6 fw-bold " style="color:black;">表單樣式預覽</span>
+                                            </div>`,
+                                    FormWidget.editorView({
+                                        gvc: gvc,
+                                        array: postMd.form_format,
+                                        refresh: () => {
+                                            gvc.notifyDataChange(id);
+                                        },
+                                        formData: {},
+                                    }),
+                                ].join('');
+                            }
+                            else {
+                                return [
+                                    EditorElem.editeInput({
+                                        gvc: gvc,
+                                        title: '表單標題',
+                                        default: postMd.form_title,
+                                        placeHolder: '請輸入表單標題',
+                                        callback: (text) => {
+                                            postMd.form_title = text;
+                                        },
+                                    }),
+                                    html `${EditorElem.h3('表單標籤')}
+                                            ${gvc.bindView(() => {
+                                        const id = gvc.glitter.getUUID();
+                                        function refreshTag() {
+                                            gvc.notifyDataChange(id);
+                                        }
+                                        return {
+                                            bind: id,
+                                            view: () => {
+                                                return html ` ${postMd.tag
+                                                    .map((dd, index) => {
+                                                    return html ` <div class="badge bg-warning text-dark btn ">
+                                                                        <i
+                                                                            class="fa-regular fa-circle-minus me-1 text-danger fw-bold"
+                                                                            onclick="${gvc.event(() => {
+                                                        postMd.tag.splice(index, 1);
+                                                        refreshTag();
+                                                    })}"
+                                                                        ></i
+                                                                        >${dd}
+                                                                    </div>`;
+                                                })
+                                                    .join('')}
+                                                            <div
+                                                                class="badge  btn "
+                                                                style="background: #295ed1;"
+                                                                onclick="${gvc.event(() => {
+                                                    EditorElem.openEditorDialog(gvc, (gvc) => {
+                                                        let label = '';
+                                                        return html `<div class="p-2">
+                                                                                    ${EditorElem.editeInput({
+                                                            gvc: gvc,
+                                                            title: '標籤名稱',
+                                                            default: label,
+                                                            placeHolder: '請輸入標籤名稱',
+                                                            callback: (text) => {
+                                                                label = text;
+                                                            },
+                                                        })}
+                                                                                </div>
+                                                                                <div class="w-100 border-top p-2 d-flex align-items-center justify-content-end">
+                                                                                    <button
+                                                                                        class="btn btn-primary"
+                                                                                        style="height:35px;width:80px;"
+                                                                                        onclick="${gvc.event(() => {
+                                                            postMd.tag.push(label);
+                                                            refreshTag();
+                                                            gvc.closeDialog();
+                                                        })}"
+                                                                                    >
+                                                                                        確認新增
+                                                                                    </button>
+                                                                                </div> `;
+                                                    }, () => { }, 400, '新增標籤');
+                                                })}"
+                                                            >
+                                                                <i class="fa-regular fa-circle-plus me-1"></i>新增標籤
+                                                            </div>`;
+                                            },
+                                            divCreate: {
+                                                class: `w-100 d-flex flex-wrap bg-secondary p-3`,
+                                                style: `gap:5px;`,
+                                            },
+                                        };
+                                    })} `,
+                                    html `<div class="position-relative bgf6 d-flex align-items-center justify-content-between mx-n3 mt-2 p-2 border-top border-bottom shadow">
+                                                <span class="fs-6 fw-bold " style="color:black;">表單格式設定</span>
+                                            </div>`,
+                                    FormWidget.settingView({
+                                        gvc: gvc,
+                                        array: postMd.form_format,
+                                        refresh: () => {
+                                            gvc.notifyDataChange(id);
+                                        },
+                                        title: '',
+                                    }),
+                                ].join('');
+                            }
+                        })()),
+                        html `${BgWidget.mb240()}
+                                <div class="update-bar-container">
+                                    ${BgWidget.save(gvc.event(() => {
                             if (!postMd.form_title) {
                                 dialog.errorMessage({ text: '請輸入表單標題' });
                                 return;
@@ -484,108 +587,8 @@ export class FormSetting {
                                     });
                                 });
                             }
-                        })}"
-                                >
-                                    ${cf.vm.type === 'add' ? `儲存` : `更新`}
-                                </button>
-                            </div>`,
-                        BgWidget.card((() => {
-                            if (viewType === 'preview') {
-                                return [
-                                    `<div class="position-relative text-center bgf6 rounded-top d-flex align-items-center justify-content-center mx-n3 mt-n3 p-3 border-top border-bottom shadow">
-                <span class="fs-6 fw-bold " style="color:black;">表單樣式預覽</span>
-            </div>`,
-                                    FormWidget.editorView({
-                                        gvc: gvc,
-                                        array: postMd.form_format,
-                                        refresh: () => {
-                                            gvc.notifyDataChange(id);
-                                        },
-                                        formData: {},
-                                    }),
-                                ].join('');
-                            }
-                            else {
-                                return [
-                                    EditorElem.editeInput({
-                                        gvc: gvc,
-                                        title: '表單標題',
-                                        default: postMd.form_title,
-                                        placeHolder: '請輸入表單標題',
-                                        callback: (text) => {
-                                            postMd.form_title = text;
-                                        },
-                                    }),
-                                    `${EditorElem.h3('表單標籤')}
-                                                    ${gvc.bindView(() => {
-                                        const id = gvc.glitter.getUUID();
-                                        function refreshTag() {
-                                            gvc.notifyDataChange(id);
-                                        }
-                                        return {
-                                            bind: id,
-                                            view: () => {
-                                                return html ` ${postMd.tag
-                                                    .map((dd, index) => {
-                                                    return ` <div class="badge bg-warning text-dark btn "
-                                                                                 ><i
-                                                                                    class="fa-regular fa-circle-minus me-1 text-danger fw-bold" onclick="${gvc.event(() => {
-                                                        postMd.tag.splice(index, 1);
-                                                        refreshTag();
-                                                    })}"></i>${dd}
-                                                                            </div>`;
-                                                })
-                                                    .join('')}
-                                                                    <div
-                                                                        class="badge  btn "
-                                                                        style="background: #295ed1;"
-                                                                        onclick="${gvc.event(() => {
-                                                    EditorElem.openEditorDialog(gvc, (gvc) => {
-                                                        let label = '';
-                                                        return `<div class="p-2">${EditorElem.editeInput({
-                                                            gvc: gvc,
-                                                            title: '標籤名稱',
-                                                            default: label,
-                                                            placeHolder: '請輸入標籤名稱',
-                                                            callback: (text) => {
-                                                                label = text;
-                                                            },
-                                                        })}</div>
-<div class="w-100 border-top p-2 d-flex align-items-center justify-content-end">
-<button class="btn btn-primary" style="height:35px;width:80px;" onclick="${gvc.event(() => {
-                                                            postMd.tag.push(label);
-                                                            refreshTag();
-                                                            gvc.closeDialog();
-                                                        })}">確認新增</button>
-</div>
-`;
-                                                    }, () => { }, 400, '新增標籤');
-                                                })}"
-                                                                    >
-                                                                        <i class="fa-regular fa-circle-plus me-1"></i>新增標籤
-                                                                    </div>`;
-                                            },
-                                            divCreate: {
-                                                class: `w-100 d-flex flex-wrap bg-secondary p-3`,
-                                                style: `gap:5px;`,
-                                            },
-                                        };
-                                    })} 
-                                                     `,
-                                    `<div class="position-relative bgf6 d-flex align-items-center justify-content-between mx-n3 mt-2 p-2 border-top border-bottom shadow">
-                <span class="fs-6 fw-bold " style="color:black;">表單格式設定</span>
-            </div>`,
-                                    FormWidget.settingView({
-                                        gvc: gvc,
-                                        array: postMd.form_format,
-                                        refresh: () => {
-                                            gvc.notifyDataChange(id);
-                                        },
-                                        title: '',
-                                    }),
-                                ].join('');
-                            }
-                        })()),
+                        }), cf.vm.type === 'add' ? `儲存` : `更新`)}
+                                </div>`,
                     ].join('');
                 },
                 onCreate: () => {

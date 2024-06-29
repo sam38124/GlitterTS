@@ -7,6 +7,10 @@ exports.UpdateScript = void 0;
 const database_1 = __importDefault(require("./modules/database"));
 class UpdateScript {
     static async run() {
+        const migrate_template = (await database_1.default.query('SELECT appName FROM glitter.app_config where template_type!=0;', [])).map((dd) => {
+            return dd.appName;
+        }).concat('shop_template_black_style', '3131_shop');
+        await UpdateScript.migrateDialog(migrate_template);
     }
     static async migrateRichText() {
         const page_list = (await database_1.default.query(`select page_config,id
@@ -108,6 +112,35 @@ class UpdateScript {
                             set ?`, [
                 rebate_page
             ]);
+        }
+    }
+    static async migrateDialog(appList) {
+        const page_list = (await database_1.default.query(`SELECT *
+                                             FROM glitter.page_config
+                                             where appName = 'cms_system'
+                                               and tag in ('loading_dialog','toast','false_dialog')`, []));
+        page_list.map((d) => {
+            Object.keys(d).map((dd) => {
+                if (typeof d[dd] === 'object') {
+                    d[dd] = JSON.stringify(d[dd]);
+                }
+            });
+        });
+        for (const appName of appList) {
+            for (const b of page_list) {
+                await database_1.default.query(`delete
+                            from glitter.page_config
+                            where appName = ${database_1.default.escape(appName)}
+                              and tag = ?`, [b.tag]);
+                b['appName'] = appName;
+                b['id'] = undefined;
+                b['created_time'] = new Date();
+                b['updated_time'] = new Date();
+                await database_1.default.query(`insert into glitter.page_config
+                            set ?`, [
+                    b
+                ]);
+            }
         }
     }
 }

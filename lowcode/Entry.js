@@ -13,6 +13,7 @@ import { config } from './config.js';
 import { ApiPageConfig } from './api/pageConfig.js';
 import { BaseApi } from './glitterBundle/api/base.js';
 import { GlobalUser } from './glitter-base/global/global-user.js';
+import { EditorConfig } from "./editor-config.js";
 export class Entry {
     static onCreate(glitter) {
         var _a;
@@ -31,7 +32,7 @@ export class Entry {
         }
         window.renderClock = (_a = window.renderClock) !== null && _a !== void 0 ? _a : clockF();
         console.log(`Entry-time:`, window.renderClock.stop());
-        glitter.share.editerVersion = "V_8.5.1";
+        glitter.share.editerVersion = "V_8.7.0";
         glitter.share.start = (new Date());
         const vm = {
             appConfig: [],
@@ -239,6 +240,9 @@ export class Entry {
     }
     static toHtmlEditor(glitter, vm, callback) {
         var _a;
+        glitter.addMtScript([{
+                src: 'https://kit.fontawesome.com/cccedec0f8.js'
+            }], () => { }, () => { });
         const css = String.raw;
         glitter.addStyle(css `
             @media (prefers-reduced-motion: no-preference) {
@@ -376,36 +380,7 @@ export class Entry {
             config.globalValue = (_b = config.globalValue) !== null && _b !== void 0 ? _b : [];
             config.globalStyleTag = (_c = config.globalStyleTag) !== null && _c !== void 0 ? _c : [];
             config.color_theme.map((dd, index) => {
-                [
-                    {
-                        key: 'background',
-                        title: '背景顏色',
-                    },
-                    {
-                        key: 'title',
-                        title: '標題顏色',
-                    },
-                    {
-                        key: 'content',
-                        title: '內文',
-                    },
-                    {
-                        key: 'solid-button-bg',
-                        title: '純色按鈕',
-                    },
-                    {
-                        key: 'solid-button-text',
-                        title: '純色按鈕文字',
-                    },
-                    {
-                        key: 'border-button-bg',
-                        title: '邊框按鈕',
-                    },
-                    {
-                        key: 'border-button-text',
-                        title: '邊框按鈕文字',
-                    },
-                ].map((d2) => {
+                EditorConfig.color_setting_config.map((d2) => {
                     glitter.share.globalValue[`theme_color.${index}.${d2.key}`] = dd[d2.key];
                 });
             });

@@ -52,7 +52,6 @@ export class AutoReply {
                     let vmi: any = undefined;
 
                     function getDatalist() {
-                        console.log(`getDatalist->`);
                         return vm.dataList.map((dd: any) => {
                             return [
                                 {
@@ -61,7 +60,7 @@ export class AutoReply {
                                 },
                                 {
                                     key: '標題',
-                                    value: html`<div style="max-width: calc(100vw - 650px);text-overflow: ellipsis;white-space: nowrap;position: relative;overflow: hidden;">${dd.title}</div>`,
+                                    value: dd.title,
                                 },
                                 {
                                     key: '最後更新時間',
@@ -74,7 +73,6 @@ export class AutoReply {
                                         return {
                                             bind: id2,
                                             view: () => {
-                                                console.log(`id2=>`, id2);
                                                 return html` <div class="tx_normal">啟用</div>
                                                     <div class="cursor_pointer form-check form-switch ms-1" style=" ">
                                                         <input
@@ -110,53 +108,56 @@ export class AutoReply {
 
                     return BgWidget.container(
                         html`
-                            <div class="d-flex w-100 align-items-center" style="margin-bottom: 24px;">
+                            <div class="d-flex w-100 align-items-center">
                                 ${BgWidget.title('自動寄件')}
                                 <div class="flex-fill"></div>
                             </div>
-                            ${BgWidget.mainCard(
-                                BgWidget.tableV2({
-                                    gvc: gvc,
-                                    editable: true,
-                                    getData: async (vmk) => {
-                                        const appData = await ApiUser.getPublicConfig('store-information', 'manager');
-                                        vmi = vmk;
-                                        vmi.pageSize = Math.ceil(1);
-                                        vm.dataList = [
-                                            'auto-email-shipment-arrival',
-                                            'auto-email-shipment',
-                                            'auto-email-payment-successful',
-                                            'auto-email-order-create',
-                                            'auto-email-order-cancel-success',
-                                            'auto-email-order-cancel-false',
-                                            'auto-email-birthday',
-                                            'auto-email-welcome',
-                                            'auto-email-verify',
-                                            'auto-email-forget',
-                                        ];
-                                        let index = 0;
-                                        for (const b of vm.dataList) {
-                                            vm.dataList[index] = await AutoReply.getDefCompare(b);
-                                            vm.dataList[index].title = vm.dataList[index].title.replace(
-                                                /@\{\{app_name\}\}/g,
-                                                (appData.response.value && appData.response.value.shop_name) || '商店名稱'
-                                            );
-                                            index++;
-                                        }
-                                        vmi.data = getDatalist();
-                                        vmi.loading = false;
-                                        setTimeout(() => {
-                                            vmi.callback();
-                                        });
-                                    },
-                                    rowClick: (data, index) => {
-                                        vm.tag = vm.dataList[index].tag;
-                                        vm.type = 'replace';
-                                        gvc.notifyDataChange(id);
-                                    },
-                                    filter: ``,
-                                })
+                            ${BgWidget.container(
+                                BgWidget.mainCard(
+                                    BgWidget.tableV2({
+                                        gvc: gvc,
+                                        editable: true,
+                                        getData: async (vmk) => {
+                                            const appData = await ApiUser.getPublicConfig('store-information', 'manager');
+                                            vmi = vmk;
+                                            vmi.pageSize = Math.ceil(1);
+                                            vm.dataList = [
+                                                'auto-email-shipment-arrival',
+                                                'auto-email-shipment',
+                                                'auto-email-payment-successful',
+                                                'auto-email-order-create',
+                                                'auto-email-order-cancel-success',
+                                                'auto-email-order-cancel-false',
+                                                'auto-email-birthday',
+                                                'auto-email-welcome',
+                                                'auto-email-verify',
+                                                'auto-email-forget',
+                                            ];
+                                            let index = 0;
+                                            for (const b of vm.dataList) {
+                                                vm.dataList[index] = await AutoReply.getDefCompare(b);
+                                                vm.dataList[index].title = vm.dataList[index].title.replace(
+                                                    /@\{\{app_name\}\}/g,
+                                                    (appData.response.value && appData.response.value.shop_name) || '商店名稱'
+                                                );
+                                                index++;
+                                            }
+                                            vmi.data = getDatalist();
+                                            vmi.loading = false;
+                                            setTimeout(() => {
+                                                vmi.callback();
+                                            });
+                                        },
+                                        rowClick: (data, index) => {
+                                            vm.tag = vm.dataList[index].tag;
+                                            vm.type = 'replace';
+                                            gvc.notifyDataChange(id);
+                                        },
+                                        filter: ``,
+                                    })
+                                )
                             )}
+                            ${BgWidget.mbContainer(120)}
                         `,
                         BgWidget.getContainerWidth()
                     );
@@ -173,93 +174,85 @@ export class AutoReply {
             data: '',
             loading: false,
         };
-        return [
+        return html` ${BgWidget.container(
             [
-                html`<div class="d-flex align-items-center">
+                html`<div class="d-flex align-items-center w-100">
                     ${BgWidget.goBack(
                         gvc.event(() => {
                             back();
                         })
                     )}${BgWidget.title('信件設定')}
                 </div>`,
-            ],
-            html`<div style="height: 10px;"></div>`,
-            BgWidget.card(
-                gvc.bindView(() => {
-                    const id = gvc.glitter.getUUID();
-
-                    const keyData = AutoReply.getDefCompare(tag).then((dd) => {
-                        vm.data = dd;
-                        vm.loading = false;
-                        gvc.notifyDataChange(id);
-                    });
-                    return {
-                        bind: id,
-                        view: () => {
-                            return [
-                                EditorElem.editeInput({
-                                    gvc: gvc,
-                                    title: '寄件者名稱',
-                                    default: vm.data.name || '',
-                                    callback: (text) => {
-                                        vm.data.name = text;
-                                    },
-                                    placeHolder: '請輸入寄件者名稱',
-                                }),
-                                EditorElem.editeInput({
-                                    gvc: gvc,
-                                    title: '信件標題',
-                                    default: vm.data.title || '',
-                                    callback: (text) => {
-                                        vm.data.title = text;
-                                    },
-                                    placeHolder: '請輸入信件標題',
-                                }),
-                                EditorElem.h3('信件內容'),
-                                EditorElem.richText({
-                                    gvc: gvc,
-                                    def: vm.data.content || '',
-                                    callback: (text) => {
-                                        vm.data.content = text;
-                                    },
-                                }),
-                            ].join('');
-                        },
-                        divCreate: {
-                            class: `px-3`,
-                            style: ``,
-                        },
-                    };
-                })
-            ),
-            html`<div style="height: 70px;"></div>`,
-            html`<div
-                class="position-fixed bottom-0 left-0 w-100 d-flex align-items-center justify-content-end p-3 border-top bg-white border"
-                style="z-index:999;gap:10px;left: 0;background: #FFF;box-shadow: 0px 1px 10px 0px rgba(0, 0, 0, 0.15);"
-            >
-                ${BgWidget.cancel(
-                    gvc.event(() => {
-                        back();
-                    })
-                )}
-                ${BgWidget.save(
-                    gvc.event(() => {
-                        widget.event('loading', { title: '儲存中' });
-                        console.log(`saveData->`, vm.data);
-                        ApiUser.setPublicConfig({
-                            key: tag,
-                            value: vm.data,
-                            user_id: 'manager',
-                        }).then(() => {
-                            setTimeout(() => {
-                                widget.event('loading', { visible: false });
-                                widget.event('success', { title: '儲存成功!' });
-                            }, 1000);
+                BgWidget.mbContainer(24),
+                BgWidget.mainCard(
+                    gvc.bindView(() => {
+                        const id = gvc.glitter.getUUID();
+                        const keyData = AutoReply.getDefCompare(tag).then((dd) => {
+                            vm.data = dd;
+                            vm.loading = false;
+                            gvc.notifyDataChange(id);
                         });
+                        return {
+                            bind: id,
+                            view: () => {
+                                return [
+                                    EditorElem.editeInput({
+                                        gvc: gvc,
+                                        title: '寄件者名稱',
+                                        default: vm.data.name || '',
+                                        callback: (text) => {
+                                            vm.data.name = text;
+                                        },
+                                        placeHolder: '請輸入寄件者名稱',
+                                    }),
+                                    EditorElem.editeInput({
+                                        gvc: gvc,
+                                        title: '信件標題',
+                                        default: vm.data.title || '',
+                                        callback: (text) => {
+                                            vm.data.title = text;
+                                        },
+                                        placeHolder: '請輸入信件標題',
+                                    }),
+                                    EditorElem.h3('信件內容'),
+                                    EditorElem.richText({
+                                        gvc: gvc,
+                                        def: vm.data.content || '',
+                                        callback: (text) => {
+                                            vm.data.content = text;
+                                        },
+                                    }),
+                                ].join('');
+                            },
+                        };
                     })
-                )}
-            </div>`,
-        ].join('');
+                ),
+                BgWidget.mb240(),
+                html` <div class="update-bar-container">
+                    ${BgWidget.cancel(
+                        gvc.event(() => {
+                            back();
+                        })
+                    )}
+                    ${BgWidget.save(
+                        gvc.event(() => {
+                            widget.event('loading', { title: '儲存中' });
+                            ApiUser.setPublicConfig({
+                                key: tag,
+                                value: vm.data,
+                                user_id: 'manager',
+                            }).then(() => {
+                                setTimeout(() => {
+                                    widget.event('loading', { visible: false });
+                                    widget.event('success', { title: '儲存成功!' });
+                                }, 1000);
+                            });
+                        })
+                    )}
+                </div>`,
+            ].join(''),
+            BgWidget.getContainerWidth()
+        )}`;
     }
 
     public static async getDefCompare(tag: string) {

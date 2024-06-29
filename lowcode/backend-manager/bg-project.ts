@@ -91,7 +91,7 @@ export class BgProject {
                         bind: id,
                         view: () => {
                             return new Promise(async (resolve, reject) => {
-                                resolve(html` <div style="width:900px;max-width:100%;">
+                                resolve(html` <div style="width: 100%;">
                                     ${BgWidget.card(
                                         [
                                             EditorElem.select({
@@ -524,11 +524,11 @@ export class BgProject {
                                 </div>`);
                             });
                         },
-                        divCreate: { class: `d-flex flex-column flex-column-reverse  flex-md-row`, style: `gap:10px;` },
+                        divCreate: { class: 'd-flex flex-column flex-column-reverse flex-md-row p-0', style: 'gap: 10px;' },
                     };
                 })}
             `,
-            900
+            BgWidget.getContainerWidth()
         );
     }
 
@@ -751,7 +751,7 @@ export class BgProject {
                                                             ? `d-none`
                                                             : ``
                                                     }`,
-                                                    style: `height:40px;gap:10px;margin-top:10px;`,
+                                                    style: `height:40px;gap: 10px;margin-top:10px;`,
                                                 };
                                             },
                                         };
@@ -838,7 +838,7 @@ export class BgProject {
                                     儲存
                                 </button>
                             </div>`,
-                            html`<div class="d-flex" style="gap:10px;">
+                            html`<div class="d-flex" style="gap: 10px;">
                                 ${BgWidget.card(
                                     [
                                         gvc.bindView(() => {
@@ -856,7 +856,7 @@ export class BgProject {
                                                         map.push(html`
                                                             <div class="d-flex align-items-center border-bottom pb-2">
                                                                 <div class="fw-bold fs-7"></div>
-                                                                <div class="d-flex" style="gap:10px;">
+                                                                <div class="d-flex" style="gap: 10px;">
                                                                     <div class="fw-bold fs-7">用戶ID</div>
                                                                     <div class="fw-normal fs-7">${vm.data.userID}</div>
                                                                     <div class="fw-bold fs-7">用戶建立時間</div>
@@ -1082,7 +1082,7 @@ export class BgProject {
                             const filterID = gvc.glitter.getUUID();
                             return BgWidget.container(
                                 html`
-                                    <div class="d-flex w-100 align-items-center mb-3">
+                                    <div class="d-flex w-100 align-items-center">
                                         ${BgWidget.title(type === 'android_release' ? 'Google Play應用商城' : 'APPLE應用商城')}
                                         <div class="flex-fill"></div>
                                         ${BgWidget.darkButton(
@@ -1092,212 +1092,216 @@ export class BgProject {
                                             })
                                         )}
                                     </div>
-                                    ${BgWidget.mainCard(
-                                        BgWidget.tableV2({
-                                            gvc: gvc,
-                                            getData: (vmi) => {
-                                                ApiApp.getAppRelease({
-                                                    page: vmi.page - 1,
-                                                    limit: 50,
-                                                    search: vm.query || undefined,
-                                                    type: type,
-                                                }).then((data) => {
-                                                    vmi.pageSize = Math.ceil(data.response.total / 50);
-                                                    vm.dataList = data.response.data;
+                                    ${BgWidget.container(
+                                        BgWidget.mainCard(
+                                            BgWidget.tableV2({
+                                                gvc: gvc,
+                                                getData: (vmi) => {
+                                                    ApiApp.getAppRelease({
+                                                        page: vmi.page - 1,
+                                                        limit: 50,
+                                                        search: vm.query || undefined,
+                                                        type: type,
+                                                    }).then((data) => {
+                                                        vmi.pageSize = Math.ceil(data.response.total / 50);
+                                                        vm.dataList = data.response.data;
 
-                                                    function getDatalist() {
-                                                        return data.response.data.map(
-                                                            (dd: {
-                                                                content: {
-                                                                    logo: string;
-                                                                    image: {
-                                                                        '6.7': string[];
-                                                                        '6.5': string[];
-                                                                        '5.5': string[];
+                                                        function getDatalist() {
+                                                            return data.response.data.map(
+                                                                (dd: {
+                                                                    content: {
+                                                                        logo: string;
+                                                                        image: {
+                                                                            '6.7': string[];
+                                                                            '6.5': string[];
+                                                                            '5.5': string[];
+                                                                        };
+                                                                        type: 'apple_release';
+                                                                        market_info: {
+                                                                            promote_string: string;
+                                                                            description: string;
+                                                                            keywords: string;
+                                                                            support_url: string;
+                                                                            version: string;
+                                                                            copy_right: string;
+                                                                            market_url: string;
+                                                                            title: string;
+                                                                            sub_title: string;
+                                                                            privacy: string;
+                                                                        };
+                                                                        name: string;
+                                                                        bundle_id: string;
+                                                                        status: 'wait' | 'finish' | 'manual' | 'error';
                                                                     };
-                                                                    type: 'apple_release';
-                                                                    market_info: {
-                                                                        promote_string: string;
-                                                                        description: string;
-                                                                        keywords: string;
-                                                                        support_url: string;
-                                                                        version: string;
-                                                                        copy_right: string;
-                                                                        market_url: string;
-                                                                        title: string;
-                                                                        sub_title: string;
-                                                                        privacy: string;
-                                                                    };
-                                                                    name: string;
-                                                                    bundle_id: string;
-                                                                    status: 'wait' | 'finish' | 'manual' | 'error';
-                                                                };
-                                                                checked: boolean;
-                                                            }) => {
-                                                                return [
-                                                                    {
-                                                                        key: EditorElem.checkBoxOnly({
-                                                                            gvc: gvc,
-                                                                            def: !data.response.data.find((dd: any) => {
-                                                                                return !dd.checked;
-                                                                            }),
-                                                                            callback: (result) => {
-                                                                                data.response.data.map((dd: any) => {
-                                                                                    dd.checked = result;
-                                                                                });
-                                                                                vmi.data = getDatalist();
-                                                                                vmi.callback();
-                                                                                gvc.notifyDataChange(filterID);
-                                                                            },
-                                                                        }),
-                                                                        value: EditorElem.checkBoxOnly({
-                                                                            gvc: gvc,
-                                                                            def: dd.checked,
-                                                                            callback: (result) => {
-                                                                                dd.checked = result;
-                                                                                vmi.data = getDatalist();
-                                                                                vmi.callback();
-                                                                                gvc.notifyDataChange(filterID);
-                                                                            },
-                                                                            style: 'height:40px;',
-                                                                        }),
-                                                                    },
-                                                                    {
-                                                                        key: 'APP',
-                                                                        value: `<img class="rounded border me-4" alt="" src="${dd.content.logo}" style="width:40px;height:40px;">` + dd.content.name,
-                                                                    },
-                                                                    {
-                                                                        key: '審核狀態',
-                                                                        value: (() => {
-                                                                            switch (dd.content.status) {
-                                                                                case 'finish':
-                                                                                    return `<div class="badge badge-success fs-7" >審核通過</div>`;
-                                                                                case 'error':
-                                                                                    return `<div class="badge bg-danger fs-7" >審核失敗</div>`;
-                                                                                case 'wait':
-                                                                                    return `<div class="badge bg-warning fs-7" style="color:black;">等待審核</div>`;
-                                                                                default:
-                                                                                    return `<div class="badge bg-secondary fs-7" >手動送審</div>`;
-                                                                            }
-                                                                        })(),
-                                                                    },
-                                                                    {
-                                                                        key: '專案包',
-                                                                        value: `<i class="fa-solid fa-download fs-6 ms-3" onclick="${gvc.event((e, event) => {
-                                                                            const dialog = new ShareDialog(gvc.glitter);
-                                                                            dialog.dataLoading({ visible: true });
-                                                                            ((type === 'android_release' ? ApiApp.downloadAndroidRelease : ApiApp.downloadIOSRelease) as any)({
-                                                                                app_name: dd.content.name,
-                                                                                bundle_id: dd.content.bundle_id,
-                                                                            }).then((dd: any) => {
-                                                                                dialog.dataLoading({ visible: false });
-                                                                                if (dd.result) {
-                                                                                    dialog.successMessage({
-                                                                                        text: '下載成功，請前往資料夾查看。',
+                                                                    checked: boolean;
+                                                                }) => {
+                                                                    return [
+                                                                        {
+                                                                            key: EditorElem.checkBoxOnly({
+                                                                                gvc: gvc,
+                                                                                def: !data.response.data.find((dd: any) => {
+                                                                                    return !dd.checked;
+                                                                                }),
+                                                                                callback: (result) => {
+                                                                                    data.response.data.map((dd: any) => {
+                                                                                        dd.checked = result;
                                                                                     });
-                                                                                    (window.parent as any).glitter.openNewTab(dd.response.url);
-                                                                                } else {
-                                                                                    alert('下載失敗!');
-                                                                                }
-                                                                            });
-                                                                            event.stopPropagation();
-                                                                        })}"></i>`,
-                                                                    },
-                                                                ].map((dd) => {
-                                                                    dd.value = `<div style="line-height:40px;">${dd.value}</div>`;
-                                                                    return dd;
-                                                                });
-                                                            }
-                                                        );
-                                                    }
-
-                                                    vmi.data = getDatalist();
-                                                    vmi.loading = false;
-                                                    vmi.callback();
-                                                });
-                                            },
-                                            rowClick: (data, index) => {
-                                                replaceData = vm.dataList[index].content;
-                                                vm.status = 'replace';
-                                            },
-                                            filter: html`
-                                                ${BgWidget.searchPlace(
-                                                    gvc.event((e, event) => {
-                                                        vm.query = e.value;
-                                                        gvc.notifyDataChange(id);
-                                                    }),
-                                                    vm.query || '',
-                                                    '搜尋所有紀錄'
-                                                )}
-                                                ${gvc.bindView(() => {
-                                                    return {
-                                                        bind: filterID,
-                                                        view: () => {
-                                                            if (
-                                                                !vm.dataList ||
-                                                                !vm.dataList.find((dd: any) => {
-                                                                    return dd.checked;
-                                                                })
-                                                            ) {
-                                                                return ``;
-                                                            } else {
-                                                                return [
-                                                                    html`<span class="fs-7 fw-bold">操作選項</span>`,
-                                                                    html`<button
-                                                                        class="btn btn-danger fs-7 px-2"
-                                                                        style="height:30px;border:none;"
-                                                                        onclick="${gvc.event(() => {
-                                                                            const dialog = new ShareDialog(gvc.glitter);
-                                                                            dialog.checkYesOrNot({
-                                                                                text: '是否確認移除所選項目?',
-                                                                                callback: (response) => {
-                                                                                    if (response) {
-                                                                                        dialog.dataLoading({ visible: true });
-                                                                                        ApiShop.delete({
-                                                                                            id: vm.dataList
-                                                                                                .filter((dd: any) => {
-                                                                                                    return dd.checked;
-                                                                                                })
-                                                                                                .map((dd: any) => {
-                                                                                                    return dd.id;
-                                                                                                })
-                                                                                                .join(`,`),
-                                                                                        }).then((res) => {
-                                                                                            dialog.dataLoading({ visible: false });
-                                                                                            if (res.result) {
-                                                                                                vm.dataList = undefined;
-                                                                                                gvc.notifyDataChange(id);
-                                                                                            } else {
-                                                                                                dialog.errorMessage({ text: '刪除失敗' });
-                                                                                            }
-                                                                                        });
-                                                                                    }
+                                                                                    vmi.data = getDatalist();
+                                                                                    vmi.callback();
+                                                                                    gvc.notifyDataChange(filterID);
                                                                                 },
-                                                                            });
-                                                                        })}"
-                                                                    >
-                                                                        批量移除
-                                                                    </button>`,
-                                                                ].join(``);
-                                                            }
-                                                        },
-                                                        divCreate: () => {
-                                                            return {
-                                                                class: `d-flex align-items-center p-2 py-3 ${
+                                                                            }),
+                                                                            value: EditorElem.checkBoxOnly({
+                                                                                gvc: gvc,
+                                                                                def: dd.checked,
+                                                                                callback: (result) => {
+                                                                                    dd.checked = result;
+                                                                                    vmi.data = getDatalist();
+                                                                                    vmi.callback();
+                                                                                    gvc.notifyDataChange(filterID);
+                                                                                },
+                                                                                style: 'height:40px;',
+                                                                            }),
+                                                                        },
+                                                                        {
+                                                                            key: 'APP',
+                                                                            value: html`<div style="min-width: 150px;">
+                                                                                <img class="rounded border me-4" alt="" src="${dd.content.logo}" style="width:40px;height:40px;" />
+                                                                                <span>${dd.content.name}</span>
+                                                                            </div>`,
+                                                                        },
+                                                                        {
+                                                                            key: '審核狀態',
+                                                                            value: (() => {
+                                                                                switch (dd.content.status) {
+                                                                                    case 'finish':
+                                                                                        return `<div class="badge badge-success fs-7" >審核通過</div>`;
+                                                                                    case 'error':
+                                                                                        return `<div class="badge bg-danger fs-7" >審核失敗</div>`;
+                                                                                    case 'wait':
+                                                                                        return `<div class="badge bg-warning fs-7" style="color:black;">等待審核</div>`;
+                                                                                    default:
+                                                                                        return `<div class="badge bg-secondary fs-7" >手動送審</div>`;
+                                                                                }
+                                                                            })(),
+                                                                        },
+                                                                        {
+                                                                            key: '專案包',
+                                                                            value: `<i class="fa-solid fa-download fs-6 ms-3" onclick="${gvc.event((e, event) => {
+                                                                                const dialog = new ShareDialog(gvc.glitter);
+                                                                                dialog.dataLoading({ visible: true });
+                                                                                ((type === 'android_release' ? ApiApp.downloadAndroidRelease : ApiApp.downloadIOSRelease) as any)({
+                                                                                    app_name: dd.content.name,
+                                                                                    bundle_id: dd.content.bundle_id,
+                                                                                }).then((dd: any) => {
+                                                                                    dialog.dataLoading({ visible: false });
+                                                                                    if (dd.result) {
+                                                                                        dialog.successMessage({
+                                                                                            text: '下載成功，請前往資料夾查看。',
+                                                                                        });
+                                                                                        (window.parent as any).glitter.openNewTab(dd.response.url);
+                                                                                    } else {
+                                                                                        alert('下載失敗!');
+                                                                                    }
+                                                                                });
+                                                                                event.stopPropagation();
+                                                                            })}"></i>`,
+                                                                        },
+                                                                    ].map((dd) => {
+                                                                        dd.value = `<div style="line-height:40px;">${dd.value}</div>`;
+                                                                        return dd;
+                                                                    });
+                                                                }
+                                                            );
+                                                        }
+                                                        vmi.data = getDatalist();
+                                                        vmi.loading = false;
+                                                        vmi.callback();
+                                                    });
+                                                },
+                                                rowClick: (data, index) => {
+                                                    replaceData = vm.dataList[index].content;
+                                                    vm.status = 'replace';
+                                                },
+                                                filter: html`
+                                                    ${BgWidget.searchPlace(
+                                                        gvc.event((e, event) => {
+                                                            vm.query = e.value;
+                                                            gvc.notifyDataChange(id);
+                                                        }),
+                                                        vm.query || '',
+                                                        '搜尋所有紀錄'
+                                                    )}
+                                                    ${gvc.bindView(() => {
+                                                        return {
+                                                            bind: filterID,
+                                                            view: () => {
+                                                                if (
                                                                     !vm.dataList ||
                                                                     !vm.dataList.find((dd: any) => {
                                                                         return dd.checked;
                                                                     })
-                                                                        ? `d-none`
-                                                                        : ``
-                                                                }`,
-                                                                style: `height:40px;gap:10px;margin-top:10px;`,
-                                                            };
-                                                        },
-                                                    };
-                                                })}
-                                            `,
-                                        })
+                                                                ) {
+                                                                    return ``;
+                                                                } else {
+                                                                    return [
+                                                                        html`<span class="fs-7 fw-bold">操作選項</span>`,
+                                                                        html`<button
+                                                                            class="btn btn-danger fs-7 px-2"
+                                                                            style="height:30px;border:none;"
+                                                                            onclick="${gvc.event(() => {
+                                                                                const dialog = new ShareDialog(gvc.glitter);
+                                                                                dialog.checkYesOrNot({
+                                                                                    text: '是否確認移除所選項目?',
+                                                                                    callback: (response) => {
+                                                                                        if (response) {
+                                                                                            dialog.dataLoading({ visible: true });
+                                                                                            ApiShop.delete({
+                                                                                                id: vm.dataList
+                                                                                                    .filter((dd: any) => {
+                                                                                                        return dd.checked;
+                                                                                                    })
+                                                                                                    .map((dd: any) => {
+                                                                                                        return dd.id;
+                                                                                                    })
+                                                                                                    .join(`,`),
+                                                                                            }).then((res) => {
+                                                                                                dialog.dataLoading({ visible: false });
+                                                                                                if (res.result) {
+                                                                                                    vm.dataList = undefined;
+                                                                                                    gvc.notifyDataChange(id);
+                                                                                                } else {
+                                                                                                    dialog.errorMessage({ text: '刪除失敗' });
+                                                                                                }
+                                                                                            });
+                                                                                        }
+                                                                                    },
+                                                                                });
+                                                                            })}"
+                                                                        >
+                                                                            批量移除
+                                                                        </button>`,
+                                                                    ].join(``);
+                                                                }
+                                                            },
+                                                            divCreate: () => {
+                                                                return {
+                                                                    class: `d-flex align-items-center p-2 py-3 ${
+                                                                        !vm.dataList ||
+                                                                        !vm.dataList.find((dd: any) => {
+                                                                            return dd.checked;
+                                                                        })
+                                                                            ? `d-none`
+                                                                            : ``
+                                                                    }`,
+                                                                    style: `height:40px;gap: 10px;margin-top:10px;`,
+                                                                };
+                                                            },
+                                                        };
+                                                    })}
+                                                `,
+                                            })
+                                        )
                                     )}
                                 `,
                                 BgWidget.getContainerWidth()
@@ -1401,12 +1405,9 @@ export class BgProject {
                         bind: id,
                         view: () => {
                             return new Promise(async (resolve, reject) => {
-                                resolve(html` <div style="width:900px;max-width:100%;">
+                                resolve(html` <div style="width: 100%;">
                                     ${[
-                                        BgWidget.card(html` <div class="alert alert-info p-2 m-1" style="white-space: normal;">
-                                            <strong>請注意 !!</strong><br />
-                                            模板發佈請注意上架規範守則，嚴禁發佈觸犯法律條款之內容。
-                                        </div>`),
+                                        BgWidget.alertInfo('請注意 !!', ['模板發佈請注意上架規範守則，嚴禁發佈觸犯法律條款之內容']),
                                         BgWidget.card(
                                             [
                                                 html`
@@ -1552,8 +1553,8 @@ export class BgProject {
                                                                 bind: id,
                                                                 view: () => {
                                                                     return (
-                                                                        EditorElem.h3(html` <div class="d-flex align-items-center" style="gap:10px;">
-                                                                            模板圖片 [ 首張圖片為預覽圖 ]
+                                                                        EditorElem.h3(html` <div class="d-flex align-items-center" style="gap: 10px;">
+                                                                            模板圖片（首張圖片為預覽圖）
                                                                             <div class="d-flex align-items-center justify-content-center rounded-3" style="height: 30px;width: 80px;">
                                                                                 <button
                                                                                     class="btn ms-2 btn-primary-c ms-2"
@@ -1587,27 +1588,25 @@ export class BgProject {
                                                 `,
                                             ].join('<div class="my-2"></div>')
                                         ),
-                                        html`<div class=" align-items-center justify-content-end ${postMD.status === 'finish' ? `d-flex` : `d-none`}">
-                                            <div
-                                                class="btn btn-danger"
-                                                style="height:35px;"
-                                                onclick="${gvc.event(() => {
+                                        html`<div class="${postMD.status === 'finish' ? `d-flex align-items-center justify-content-end` : `d-none`}">
+                                            ${BgWidget.redButton(
+                                                '取消發佈',
+                                                gvc.event(() => {
                                                     postMD.post_to = 'cancel';
                                                     save();
-                                                })}"
-                                            >
-                                                <i class="fa-regular fa-trash-can me-2"></i> 取消發佈
-                                            </div>
+                                                }),
+                                                { icon: 'fa-regular fa-trash-can' }
+                                            )}
                                         </div>`,
                                     ].join(`<div class="my-3"></div>`)}
                                 </div>`);
                             });
                         },
-                        divCreate: { class: `d-flex flex-column flex-column-reverse  flex-md-row`, style: `gap:10px;` },
+                        divCreate: { class: 'd-flex flex-column flex-column-reverse flex-md-row p-0', style: 'gap: 10px;' },
                     };
                 })}
             `,
-            900
+            BgWidget.getContainerWidth({ rate: { web: 0.68 } })
         );
     }
 
@@ -1730,12 +1729,6 @@ export class BgProject {
                         })();
                     })()}
                     <div class="flex-fill"></div>
-                    ${BgWidget.darkButton(
-                        editorData ? `再次送審` : `確認送審`,
-                        gvc.event(() => {
-                            save();
-                        })
-                    )}
                 </div>
                 ${gvc.bindView(() => {
                     const id = gvc.glitter.getUUID();
@@ -1743,13 +1736,13 @@ export class BgProject {
                         bind: id,
                         view: () => {
                             return new Promise(async (resolve, reject) => {
-                                resolve(html` <div style="width:900px;max-width:100%;">
+                                resolve(html` <div style="width: 100%;">
                                     ${[
-                                        BgWidget.card(html` <div class="alert alert-info p-2 m-1" style="white-space: normal;">
-                                            <strong>請注意!!</strong><br />
-                                            審核通過的結果可能會因應用程式的完整性、商店條款、隱私權政策、以及符合蘋果公司的政策等方面而有所不同，建議送審時需再三進行確認。
-                                            審核時間會落在7-14個工作天左右。
-                                        </div>`),
+                                        BgWidget.alertInfo('請注意!!', [
+                                            '審核通過的結果可能會因應用程式的完整性、商店條款、隱私權政策、以及平台政策等方面而有所不同',
+                                            '建議送審時，請再三進行確認',
+                                            '審核時間預計落在 7 到 14 個工作天',
+                                        ]),
                                         BgWidget.card(
                                             [
                                                 html` ${BgWidget.title('APP資訊')}
@@ -1810,7 +1803,7 @@ export class BgProject {
                                                             })(),
                                                         ]
                                                             .map((dd) => {
-                                                                return `<div class="col-6">${dd}</div>`;
+                                                                return html`<div class="col-12 col-md-6">${dd}</div>`;
                                                             })
                                                             .join('')}
                                                     </div>
@@ -1911,7 +1904,20 @@ export class BgProject {
                                                                     }
                                                                 })();
                                                                 if (['promote_string', 'description'].indexOf(dd) !== -1) {
-                                                                    return `<div class="col-12">${EditorElem.editeText({
+                                                                    return html`<div class="col-12">
+                                                                        ${EditorElem.editeText({
+                                                                            gvc: gvc,
+                                                                            title: title,
+                                                                            placeHolder: `請輸入${title}`,
+                                                                            default: postMD.market_info[key],
+                                                                            callback: (text) => {
+                                                                                postMD.market_info[key] = text;
+                                                                            },
+                                                                        })}
+                                                                    </div>`;
+                                                                }
+                                                                return html`<div class="col-12 col-md-6">
+                                                                    ${EditorElem.editeInput({
                                                                         gvc: gvc,
                                                                         title: title,
                                                                         placeHolder: `請輸入${title}`,
@@ -1919,32 +1925,32 @@ export class BgProject {
                                                                         callback: (text) => {
                                                                             postMD.market_info[key] = text;
                                                                         },
-                                                                    })}</div>`;
-                                                                }
-                                                                return `<div class="col-6">${EditorElem.editeInput({
-                                                                    gvc: gvc,
-                                                                    title: title,
-                                                                    placeHolder: `請輸入${title}`,
-                                                                    default: postMD.market_info[key],
-                                                                    callback: (text) => {
-                                                                        postMD.market_info[key] = text;
-                                                                    },
-                                                                })}</div>`;
+                                                                    })}
+                                                                </div>`;
                                                             })
                                                             .join('');
                                                     })()}
                                                 </div>`,
                                             ].join('<div class="my-2"></div>')
                                         ),
-                                    ].join(`<div class="my-3"></div>`)}
+                                    ].join('<div class="my-3"></div>')}
                                 </div>`);
                             });
                         },
-                        divCreate: { class: `d-flex flex-column flex-column-reverse  flex-md-row`, style: `gap:10px;` },
+                        divCreate: { class: 'd-flex flex-column flex-column-reverse flex-md-row p-0', style: 'gap: 10px;' },
                     };
                 })}
+                ${BgWidget.mb240()}
+                <div class="update-bar-container">
+                    ${BgWidget.save(
+                        gvc.event(() => {
+                            save();
+                        }),
+                        editorData ? `再次送審` : `確認送審`
+                    )}
+                </div>
             `,
-            900
+            BgWidget.getContainerWidth({ rate: { web: 0.68 } })
         );
     }
 
@@ -1958,8 +1964,8 @@ export class BgProject {
         };
         return BgWidget.container(
             html`
-                <div class="d-flex w-100 align-items-center mb-3 ">
-                    ${BgWidget.title(`購物觸發事件`)}
+                <div class="d-flex w-100 align-items-center">
+                    ${BgWidget.title('結帳事件')}
                     <div class="flex-fill"></div>
                     ${BgWidget.darkButton(
                         '儲存事件設定',
@@ -1977,11 +1983,12 @@ export class BgProject {
                         })
                     )}
                 </div>
-                <div class="w-100 alert alert-info p-2">
-                    <div class="border-bottom pb-2 mb-2"><strong>當會員完成購物時，所需執行的額外事件。</strong></div>
-                    <strong>購物車資料</strong>:obj.cartData <strong class="ms-2">用戶資料</strong>:obj.userData <strong class="ms-2">資料庫</strong>:obj.sql
-                    <strong class="ms-2">Firebase推播</strong>:obj.fcm
-                </div>
+                ${BgWidget.container(html` ${BgWidget.alertInfo('當會員完成購物時，所需執行的額外事件', [
+                    html`<strong>購物車資料</strong>:obj.cartData`,
+                    html`<strong>用戶資料</strong>:obj.userData`,
+                    html`<strong>資料庫</strong>:obj.sql`,
+                    html`<strong>Firebase推播</strong>:obj.fcm`,
+                ])}
                 ${gvc.bindView(() => {
                     const id = gvc.glitter.getUUID();
                     return {
@@ -1992,7 +1999,7 @@ export class BgProject {
                                 if (data.response.result[0]) {
                                     keyData = data.response.result[0].value;
                                 }
-                                resolve(html` <div style="width:900px;max-width:100%;">
+                                resolve(html` <div style="width: 100%;">
                                     ${BgWidget.card(
                                         [
                                             EditorElem.codeEditor({
@@ -2009,11 +2016,12 @@ export class BgProject {
                                 </div>`);
                             });
                         },
-                        divCreate: { class: `d-flex flex-column flex-column-reverse  flex-md-row`, style: `gap:10px;` },
+                        divCreate: { class: 'd-flex flex-column flex-column-reverse flex-md-row p-0', style: 'gap: 10px; margin-top: 18px;' },
                     };
-                })}
+                })}`)}
+                ${BgWidget.mbContainer(120)}
             `,
-            900
+            BgWidget.getContainerWidth({ rate: { web: 0.68 } })
         );
     }
 
@@ -2027,8 +2035,8 @@ export class BgProject {
         };
         return BgWidget.container(
             html`
-                <div class="d-flex w-100 align-items-center mb-3 ">
-                    ${BgWidget.title(`SEO設定事件`)}
+                <div class="d-flex w-100 align-items-center">
+                    ${BgWidget.title('SEO 自定義')}
                     <div class="flex-fill"></div>
                     ${BgWidget.darkButton(
                         '儲存事件設定',
@@ -2046,42 +2054,45 @@ export class BgProject {
                         })
                     )}
                 </div>
-                <div class="w-100 alert alert-info p-2">
-                    <div class="border-bottom pb-2 mb-2"><strong>自訂義頁面SEO。</strong></div>
-                </div>
-                ${gvc.bindView(() => {
-                    const id = gvc.glitter.getUUID();
-                    return {
-                        bind: id,
-                        view: () => {
-                            return new Promise(async (resolve, reject) => {
-                                const data = await saasConfig.api.getPrivateConfig((window.parent as any).appName, `seo_webhook`);
-                                if (data.response.result[0]) {
-                                    keyData = data.response.result[0].value;
-                                }
-                                resolve(html` <div style="width:900px;max-width:100%;">
-                                    ${BgWidget.card(
-                                        [
-                                            EditorElem.codeEditor({
-                                                gvc: gvc,
-                                                height: 600,
-                                                structStart: `((db,req)=>{`,
-                                                initial: keyData.value,
-                                                title: `區段代碼`,
-                                                callback: (text) => {
-                                                    keyData.value = text;
-                                                },
-                                            }),
-                                        ].join('<div class="my-2"></div>')
-                                    )}
-                                </div>`);
-                            });
-                        },
-                        divCreate: { class: `d-flex flex-column flex-column-reverse  flex-md-row`, style: `gap:10px;` },
-                    };
-                })}
+                ${BgWidget.container(
+                    [
+                        BgWidget.alertInfo('自定義設定 SEO'),
+                        gvc.bindView(() => {
+                            const id = gvc.glitter.getUUID();
+                            return {
+                                bind: id,
+                                view: () => {
+                                    return new Promise(async (resolve, reject) => {
+                                        const data = await saasConfig.api.getPrivateConfig((window.parent as any).appName, `seo_webhook`);
+                                        if (data.response.result[0]) {
+                                            keyData = data.response.result[0].value;
+                                        }
+                                        resolve(html` <div style="width: 100%;">
+                                            ${BgWidget.card(
+                                                [
+                                                    EditorElem.codeEditor({
+                                                        gvc: gvc,
+                                                        height: 600,
+                                                        structStart: `((db,req)=>{`,
+                                                        initial: keyData.value,
+                                                        title: `區段代碼`,
+                                                        callback: (text) => {
+                                                            keyData.value = text;
+                                                        },
+                                                    }),
+                                                ].join('<div class="my-2"></div>')
+                                            )}
+                                        </div>`);
+                                    });
+                                },
+                                divCreate: { class: 'd-flex flex-column flex-column-reverse flex-md-row p-0', style: 'gap: 10px;' },
+                            };
+                        }),
+                        BgWidget.mbContainer(120),
+                    ].join(html`<div style="margin-top: 18px;"></div>`)
+                )}
             `,
-            900
+            BgWidget.getContainerWidth({ rate: { web: 0.68 } })
         );
     }
 
@@ -2095,8 +2106,8 @@ export class BgProject {
         };
         return BgWidget.container(
             html`
-                <div class="d-flex w-100 align-items-center mb-3 ">
-                    ${BgWidget.title(`SiteMap設定`)}
+                <div class="d-flex w-100 align-items-center">
+                    ${BgWidget.title('SiteMap 自定義')}
                     <div class="flex-fill"></div>
                     ${BgWidget.darkButton(
                         '儲存事件設定',
@@ -2114,42 +2125,45 @@ export class BgProject {
                         })
                     )}
                 </div>
-                <div class="w-100 alert alert-info p-2">
-                    <div class="border-bottom pb-2 mb-2"><strong>自訂義SiteMap。</strong></div>
-                </div>
-                ${gvc.bindView(() => {
-                    const id = gvc.glitter.getUUID();
-                    return {
-                        bind: id,
-                        view: () => {
-                            return new Promise(async (resolve, reject) => {
-                                const data = await saasConfig.api.getPrivateConfig((window.parent as any).appName, `sitemap_webhook`);
-                                if (data.response.result[0]) {
-                                    keyData = data.response.result[0].value;
-                                }
-                                resolve(html` <div style="width:900px;max-width:100%;">
-                                    ${BgWidget.card(
-                                        [
-                                            EditorElem.codeEditor({
-                                                gvc: gvc,
-                                                height: 600,
-                                                structStart: `((db,req)=>{`,
-                                                initial: keyData.value,
-                                                title: `區段代碼`,
-                                                callback: (text) => {
-                                                    keyData.value = text;
-                                                },
-                                            }),
-                                        ].join('<div class="my-2"></div>')
-                                    )}
-                                </div>`);
-                            });
-                        },
-                        divCreate: { class: `d-flex flex-column flex-column-reverse  flex-md-row`, style: `gap:10px;` },
-                    };
-                })}
+                ${BgWidget.container(
+                    [
+                        BgWidget.alertInfo('自定義設定 SiteMap'),
+                        gvc.bindView(() => {
+                            const id = gvc.glitter.getUUID();
+                            return {
+                                bind: id,
+                                view: () => {
+                                    return new Promise(async (resolve, reject) => {
+                                        const data = await saasConfig.api.getPrivateConfig((window.parent as any).appName, `sitemap_webhook`);
+                                        if (data.response.result[0]) {
+                                            keyData = data.response.result[0].value;
+                                        }
+                                        resolve(html` <div style="width: 100%;">
+                                            ${BgWidget.card(
+                                                [
+                                                    EditorElem.codeEditor({
+                                                        gvc: gvc,
+                                                        height: 600,
+                                                        structStart: `((db,req)=>{`,
+                                                        initial: keyData.value,
+                                                        title: `區段代碼`,
+                                                        callback: (text) => {
+                                                            keyData.value = text;
+                                                        },
+                                                    }),
+                                                ].join('<div class="my-2"></div>')
+                                            )}
+                                        </div>`);
+                                    });
+                                },
+                                divCreate: { class: 'd-flex flex-column flex-column-reverse flex-md-row p-0', style: 'gap: 10px;' },
+                            };
+                        }),
+                        BgWidget.mbContainer(120),
+                    ].join(html`<div style="margin-top: 18px;"></div>`)
+                )}
             `,
-            900
+            BgWidget.getContainerWidth({ rate: { web: 0.68 } })
         );
     }
 
@@ -2185,10 +2199,8 @@ export class BgProject {
                         儲存事件設定
                     </button>
                 </div>
-                <div class="w-100 alert alert-info p-2">
-                    <div class="border-bottom pb-2 mb-2"><strong>當會員登入 / 註冊 / 初始化時，所需執行的額外事件。</strong></div>
-                    <strong class="">用戶資料</strong>:obj.userData <strong class="ms-2">Firebase推播</strong>:obj.fcm
-                </div>
+
+                ${BgWidget.alertInfo('當會員登入 / 註冊 / 初始化時，所需執行的額外事件', [html`<strong>用戶資料</strong>:obj.userData`, html`<strong>Firebase推播</strong>:obj.fcm`])}
                 ${gvc.bindView(() => {
                     const id = gvc.glitter.getUUID();
                     return {
@@ -2199,7 +2211,7 @@ export class BgProject {
                                 if (data.response.result[0]) {
                                     keyData = data.response.result[0].value;
                                 }
-                                resolve(html` <div style="width:900px;max-width:100%;">
+                                resolve(html` <div style="width: 100%;">
                                     ${BgWidget.card(
                                         [
                                             EditorElem.codeEditor({
@@ -2216,11 +2228,11 @@ export class BgProject {
                                 </div>`);
                             });
                         },
-                        divCreate: { class: `d-flex flex-column flex-column-reverse  flex-md-row`, style: `gap:10px;` },
+                        divCreate: { class: 'd-flex flex-column flex-column-reverse flex-md-row p-0', style: 'gap: 10px;' },
                     };
                 })}
             `,
-            900
+            BgWidget.getContainerWidth()
         );
     }
 }

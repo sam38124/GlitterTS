@@ -24,11 +24,12 @@ export interface OptionsItem {
 }
 
 export class BgWidget {
-    static getContainerWidth = () => {
+    static getContainerWidth = (obj?: { rate?: { web?: number; pad?: number; phone?: number } }) => {
         const width = document.body.clientWidth;
-        const rateForWeb = 0.79;
-        const rateForPad = 0.92;
-        const rateForPhone = 0.95;
+        const rateForWeb = obj && obj.rate && obj.rate.web ? obj.rate.web : 0.79;
+        const rateForPad = obj && obj.rate && obj.rate.pad ? obj.rate.pad : 0.92;
+        const rateForPhone = obj && obj.rate && obj.rate.phone ? obj.rate.phone : 0.95;
+
         if (width >= 1440) {
             return 1440 * rateForWeb;
         }
@@ -285,7 +286,7 @@ ${(obj.style || []) && obj.style![index] ? obj.style![index] : ``}
                                                                           ${d3.key === '●' || d3.stopDialog ? '' : html` onclick="${gvc.event(() => {})}"`}
                                                                           style="color:#393939 !important;border:none;${(obj.style || []) && obj.style![index] ? obj.style![index] : ``}"
                                                                       >
-                                                                          <div class="my-1" style="${(obj.style || []) && obj.style![index] ? obj.style![index] : ``}">${d3.value}</div>
+                                                                          <div class="my-1 text-nowrap" style="${(obj.style || []) && obj.style![index] ? obj.style![index] : ``}">${d3.value}</div>
                                                                           ${index === dd.length - 1 && obj.editable
                                                                               ? html`
                                                                                     <i
@@ -353,12 +354,17 @@ ${(obj.style || []) && obj.style![index] ? obj.style![index] : ``}
         return html`<div class="${classStyle}" style="">${htmlString}</div>`;
     }
 
-    static mainCard(htmlString: string) {
-        return html`<div class="w-100" style="border-radius: 10px; padding: 20px; background: #FFF; box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.08);">${htmlString}</div>`;
+    static mainCard(htmlString: string, classString?: string, styleString?: string) {
+        return html`<div class="main-card ${classString ?? ''}" style="${styleString ?? ''}">${htmlString ?? ''}</div>`;
     }
 
     static container(htmlString: string, width?: number, style?: string) {
-        return html`<div style="padding: 24px 0; margin: 0 auto; ${width ? `max-width:100%; width:${width}px;` : ``} ${style ?? ''}">${htmlString}</div>`;
+        return html`<div
+            class="${document.body.clientWidth < 768 ? 'row col-12 w-100' : ''}"
+            style="padding: 24px ${document.body.clientWidth < 768 ? '0.75rem' : '0'}; margin: 0 auto; ${width ? `max-width:100%; width:${width}px;` : ``} ${style ?? ''}"
+        >
+            ${htmlString}
+        </div>`;
     }
 
     static title(title: string) {
@@ -839,7 +845,7 @@ ${obj.default ?? ''}</textarea
     }
 
     static grayButton(text: string, event: string, obj?: { icon?: string; textStyle?: string }) {
-        return html`<button class="btn btn-gary" type="button" onclick="${event}">
+        return html`<button class="btn btn-gray" type="button" onclick="${event}">
             <i class="${obj && obj.icon && obj.icon.length > 0 ? obj.icon : 'd-none'}"></i>
             <span class="tx_700" style="${obj?.textStyle ?? ''}">${text}</span>
         </button>`;
@@ -847,6 +853,13 @@ ${obj.default ?? ''}</textarea
 
     static darkButton(text: string, event: string, obj?: { icon?: string; textStyle?: string }) {
         return html`<button class="btn btn-black" type="button" onclick="${event}">
+            <i class="${obj && obj.icon && obj.icon.length > 0 ? obj.icon : 'd-none'}"></i>
+            <span class="tx_700_white" style="${obj?.textStyle ?? ''}">${text}</span>
+        </button>`;
+    }
+
+    static redButton(text: string, event: string, obj?: { icon?: string; textStyle?: string }) {
+        return html`<button class="btn btn-red" type="button" onclick="${event}">
             <i class="${obj && obj.icon && obj.icon.length > 0 ? obj.icon : 'd-none'}"></i>
             <span class="tx_700_white" style="${obj?.textStyle ?? ''}">${text}</span>
         </button>`;
@@ -872,13 +885,14 @@ ${obj.default ?? ''}</textarea
         </div>`;
     }
 
-    static select(obj: { gvc: GVC; callback: (value: any) => void; default: string; options: OptionsItem[]; style?: string }) {
+    static select(obj: { gvc: GVC; callback: (value: any) => void; default: string; options: OptionsItem[]; style?: string; readonly?: boolean }) {
         return html`<select
             class="c_select c_select_w_100"
-            style="${obj.style ?? ''}"
+            style="${obj.style ?? ''}; ${obj.readonly ? 'background: #f7f7f7;' : ''}"
             onchange="${obj.gvc.event((e) => {
                 obj.callback(e.value);
             })}"
+            ${obj.readonly ? 'disabled' : ''}
         >
             ${obj.gvc.map(obj.options.map((opt) => html` <option class="c_select_option" value="${opt.key}" ${obj.default === opt.key ? 'selected' : ''}>${opt.value}</option>`))}
         </select>`;
@@ -1035,14 +1049,14 @@ ${obj.default ?? ''}</textarea
                 }
             `);
 
-            return html`<div style="width: 600px; overflow-y: auto;" class="bg-white shadow rounded-3">
+            return html`<div style="min-width: 400px; width: 600px; overflow-y: auto;" class="bg-white shadow rounded-3">
                 ${obj.gvc.bindView({
                     bind: vm.id,
                     view: () => {
                         if (vm.loading) {
                             return this.spinner();
                         }
-                        return html`<div style="width: 600px; overflow-y: auto;" class="bg-white shadow rounded-3">
+                        return html`<div style="width: 100%; overflow-y: auto;" class="bg-white shadow rounded-3">
                             <div class="w-100 d-flex align-items-center p-3 border-bottom">
                                 <div class="tx_700">${obj.title}</div>
                                 <div class="flex-fill"></div>
@@ -1228,6 +1242,9 @@ ${obj.default ?? ''}</textarea
                     }
                     return '';
                 },
+                divCreate: {
+                    style: vm.show ? '' : 'd-none',
+                },
             })}`;
     }
 
@@ -1405,6 +1422,977 @@ ${obj.default ?? ''}</textarea
         return html` <div class="d-flex align-items-center justify-content-center flex-column w-100 my-3 mx-auto">
             <div class="spinner-border ${obj && obj.spinnerNone ? 'd-none' : ''}" role="status"></div>
             <span class="mt-3 ${obj && obj.textNone ? 'd-none' : ''}">載入中...</span>
+        </div>`;
+    }
+
+    static mbContainer(margin_bottom_px: number) {
+        return html`<div style="margin-bottom: ${margin_bottom_px}px"></div>`;
+    }
+
+    static mb240() {
+        return html`<div style="margin-bottom: 240px"></div>`;
+    }
+
+    static alertInfo(title: string, messageList?: string[]) {
+        let h = '';
+        if (messageList && messageList.length > 0) {
+            messageList.map((str) => {
+                h += html`<p class="mb-1">${str}</p>`;
+            });
+        }
+        return html`<div class="w-100 alert alert-info p-3 mb-0">
+            <div class="fs-5 mb-0"><strong>${title}</strong></div>
+            <div class="mt-2">${h}</div>
+        </div>`;
+    }
+
+    static h(gvc: any) {
+        const config = {
+            id: 229,
+            domain: 'clouthingV2.shopnex.cc',
+            user: '234285319',
+            appName: 'shop-template-clothing-v3',
+            created_time: '2024-02-18T02:28:37.000Z',
+            dead_line: '2024-02-25T02:28:37.000Z',
+            config: {
+                homePage: 'index',
+                dead_line: '2024-02-25T02:28:37.000Z',
+                pagePlugin: [],
+                color_theme: [
+                    {
+                        id: 's5s5s0scs6sbs1sa',
+                        title: '#000000',
+                        content: '#000000',
+                        background: '#ffffff',
+                        'solid-button-bg': '#000000',
+                        'border-button-bg': '#000000',
+                        'solid-button-text': '#FFFFFF',
+                        'border-button-text': '#000000',
+                    },
+                    {
+                        id: 'scsfses4s8s0s4sf',
+                        title: '#FFFFFF',
+                        content: '#FFFFFF',
+                        background: '#000000',
+                        'solid-button-bg': '#FFFFFF',
+                        'border-button-bg': '#FFFFFF',
+                        'solid-button-text': '#FFFFFF',
+                        'border-button-text': '#FFFFFF',
+                    },
+                    {
+                        id: 's7s8scs2s3s2s7s3',
+                        title: '#a81515',
+                        content: '#d70909',
+                        background: '#000000',
+                        'solid-button-bg': '#000000',
+                        'border-button-bg': '#000000',
+                        'solid-button-text': '#000000',
+                        'border-button-text': '#fcfcfc',
+                    },
+                ],
+                eventPlugin: [],
+                globalStyle: [
+                    {
+                        id: 'sasfscses1sds4s1-s6s8s4s2-4s4s7s8-s8sbs6s1-scs2s2s7s8sas4sesdsas6sd',
+                        js: '$style1/official.js',
+                        data: {
+                            attr: [],
+                            elem: 'style',
+                            inner: '/***請輸入設計代碼***/\n@import url(\'https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@100;200;300;400;500;600;700;800;900&display=swap\');\n@import url(\'https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@100;200;300;400;500;600;700;800;900&family=Open+Sans:wght@300;400;500;600;700;800&display=swap\');\n@import url(\'https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap\');\n\nbody{\n     font-family: \'Noto Sans TC\' !important;\n}\n\npagination .page-item.active .page-link {\n    box-shadow: none;\n}\n.page-item.active .page-link {\n    z-index: 3;\n    color: #fff;\n    /*@{{btn_select}}*/\n}\n.page-link {\n    border:none !important;\n}\n.page-item:not(:first-child) .page-link {\n    margin-left: 0;\n}\n.pagination .page-link {\n    display: flex;\n    align-items: center;\n    height: 100%;\n    border-radius: 0.375rem;\n    font-size: .875rem;\n    font-weight: 600;\n}\n.page-link {\n    padding: 0.45rem 0.875rem;\n}\n.page-link {\n    position: relative;\n    display: block;\n    color: #3e4265;\n    text-decoration: none;\n    background-color: transparent;\n    transition: color .2s ease-in-out,background-color .2s ease-in-out,border-color .2s ease-in-out,box-shadow .2s ease-in-out;\n}\n@media (min-width: 1200px) {\n .hy-drawer-content{\n width: 434px;\n}\n.hy-drawer-content.hy-drawer-left{\nleft:-434px;\n}\n}\n\n.dropend-toggle:after {\n    content: "\\f054" !important;\n}\n\n.container img{\nmax-width: 100% !important;\n}\n\n/* 定义淡入动画的关键帧 */\n@keyframes fadeIn {\n  from {\n    opacity: 0; /* 从完全透明开始 */\n  }\n  to {\n    opacity: 1; /* 渐变到完全不透明 */\n  }\n}\n\n/* 应用动画效果的元素 */\n.fade {\n  animation: fadeIn 1s ease-in-out forwards; /* 1秒的动画时间，以及ease-in-out的缓动函数 */\n}\n\n\na {\n  text-decoration: none !important;\n}\n\n.swiper-pagination-bullet{\n  width: 8px !important;\n  height: 8px !important;\n}\n\n.btn-main{\n  background: #554233;\n  color: white !important;\npadding: 10px;\ncursor: pointer;\nborder-radius: 5px;\ntext-align: center;\ndisplay: flex;\nalign-items: center;\njustify-content: center;\n}\n\n.form-check-input:checked {\n  /*@{{check_input}}*/\n}\n\n.form-check-label{\n  /*@{{tc_bold}}*/\n  font-weight: 500;\n}\n\n.offcanvas-backdrop{\n  background-color: rgba(0, 0, 0, 0.3) !important;\n}\n\n\n\n.user-info-btn{\nheight:59px;\nalign-items: center;\njustify-content: center;\ndisplay: flex;\n/*@{{tc_no_select}}*/\nfont-family: "Open Sans";\nfont-size: 16px !important;\nfont-style: normal;\nfont-weight: 400;\nline-height: normal;\n}\n\n.user-info-btn-select{\nfont-family: "Open Sans";\nfont-style: normal;\nfont-weight: 700;\nfont-size: 16px !important;\nline-height: normal;\n/*@{{tc_bold}}*/\n}\n\n.order-table-head{\n/*@{{tc_bold}}*/\ntext-align: center;\nfont-family: "Open Sans";\nfont-size: 16px;\nfont-style: normal;\nfont-weight: 600;\n}\n\n@media (min-width: 1000px) {\n.user-info-btn{\nheight:59px;\nalign-items: center;\njustify-content: center;\ndisplay: flex;\n/*@{{tc_no_select}}*/\nfont-family: "Open Sans";\nfont-size: 18px;\nfont-style: normal;\nfont-weight: 400;\nline-height: normal;\n}\n\n.user-info-btn-select{\nfont-family: "Open Sans";\nfont-style: normal;\nfont-weight: 700;\nline-height: normal;\n/*@{{tc_bold}}*/\n}\n.order-table-head{\n/*@{{tc_bold}}*/\ntext-align: center;\nfont-family: "Open Sans";\nfont-size: 18px;\nfont-style: normal;\nfont-weight: 700;\n}\n       }\n\n\n\n.list-group-item-action:hover{\n  /*@{{tc_bold}}*/\n}\n\n.swiper-pagination-bullet-active{\n  /*@{{swiper_bg}}*/\n}',
+                            dataFrom: 'static',
+                            atrExpand: {
+                                expand: true,
+                            },
+                            elemExpand: {
+                                expand: true,
+                            },
+                            innerEvenet: {},
+                        },
+                        type: 'widget',
+                        index: 0,
+                        label: 'STYLE代碼',
+                        onCreateEvent: {
+                            clickEvent: [],
+                        },
+                        preloadEvenet: {},
+                        refreshAllParameter: {},
+                        refreshComponentParameter: {},
+                    },
+                    {
+                        id: 'scsescs1sas6s7sb-s6sdsdsf-4s4s1s6-s9s7s4se-s8sases0sfs6sds7s0scsbsc',
+                        js: 'https://sam38124.github.io/One-page-plugin/src/official.js',
+                        css: {
+                            class: {},
+                            style: {},
+                        },
+                        data: {
+                            attr: [
+                                {
+                                    attr: 'href',
+                                    type: 'par',
+                                    value: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1707495501605-theme.min.css',
+                                    expand: false,
+                                    attrType: 'link',
+                                    valueFrom: 'manual',
+                                },
+                                {
+                                    attr: 'rel',
+                                    type: 'par',
+                                    value: 'stylesheet',
+                                    expand: false,
+                                    attrType: 'normal',
+                                },
+                            ],
+                            elem: 'link',
+                            note: '',
+                            class: '',
+                            inner: '',
+                            style: '',
+                            setting: [],
+                            dataFrom: 'static',
+                            atrExpand: {
+                                expand: true,
+                            },
+                            elemExpand: {
+                                expand: true,
+                            },
+                            innerEvenet: {},
+                        },
+                        type: 'widget',
+                        index: 1,
+                        label: 'STYLE資源',
+                        styleList: [],
+                        onCreateEvent: {},
+                        preloadEvenet: {},
+                        refreshAllParameter: {},
+                        refreshComponentParameter: {},
+                    },
+                    {
+                        id: 's3s1s7s0sds3s6sd',
+                        js: 'https://sam38124.github.io/One-page-plugin/src/official.js',
+                        css: {
+                            class: {},
+                            style: {},
+                        },
+                        data: {
+                            attr: [
+                                {
+                                    attr: 'href',
+                                    type: 'par',
+                                    value: 'https://kit.fontawesome.com/cccedec0f8.css',
+                                    expand: false,
+                                    attrType: 'normal',
+                                    valueFrom: 'manual',
+                                },
+                                {
+                                    attr: 'rel',
+                                    type: 'par',
+                                    value: 'stylesheet',
+                                    expand: false,
+                                    attrType: 'normal',
+                                },
+                            ],
+                            elem: 'link',
+                            note: '',
+                            class: '',
+                            inner: '',
+                            style: '',
+                            setting: [],
+                            dataFrom: 'static',
+                            atrExpand: {
+                                expand: true,
+                            },
+                            elemExpand: {
+                                expand: true,
+                            },
+                            innerEvenet: {},
+                        },
+                        type: 'widget',
+                        index: 2,
+                        label: 'STYLE資源',
+                        styleList: [],
+                        preloadEvenet: {},
+                        refreshAllParameter: {},
+                        refreshComponentParameter: {},
+                    },
+                ],
+                globalValue: [
+                    {
+                        id: 's7sfsbs3sas3s8s9-ses9s1sc-4s8s8sb-sbscs1sc-sfsfs2sas9s8sfses6s4sds3',
+                        data: {
+                            setting: [
+                                {
+                                    id: 's6s8sdsasbscsbs1-s3s6s3se-4s3s5s9-s8s3s9s5-s0s8s7scses9s3s1s0s3s2s2',
+                                    data: {
+                                        tag: 'tc_bold',
+                                        value: 'color: #554233 !important;',
+                                        tagType: 'style',
+                                    },
+                                    type: 'text',
+                                    index: 0,
+                                    label: '字體顏色-粗體',
+                                    toggle: false,
+                                },
+                                {
+                                    id: 'sds6s3sas0s6s3s7-s7s5s7s2-4s7s7s0-s8s4sesf-s3sfsas4s2sesdsbs6sbs5s1',
+                                    data: {
+                                        tag: 'tc_light',
+                                        value: 'color: #554233;',
+                                        tagType: 'style',
+                                    },
+                                    type: 'text',
+                                    index: 1,
+                                    label: '字體顏色-細體',
+                                    toggle: false,
+                                },
+                                {
+                                    id: 's6s3s6s4s9sbs4sf-s3s0s5s7-4scs8s5-s8s4s3s6-s0s6s9sbs8sesfs5s4scs2sf',
+                                    data: {
+                                        tag: 'tc_no_select',
+                                        value: 'color: #AD9C8F;',
+                                        tagType: 'style',
+                                    },
+                                    type: 'text',
+                                    index: 2,
+                                    label: '字體顏色-未選中',
+                                },
+                                {
+                                    id: 's1s9s7s0s1scsds7-s7sbs7s1-4s7s4s3-s9s3sas8-s6sesascs1sbs3s3s2sfs1se',
+                                    data: {
+                                        tag: 'btn_noselect',
+                                        value: 'background: white;border: 1px #AD9C8F solid;color: #AD9C8F;',
+                                        tagType: 'style',
+                                    },
+                                    type: 'text',
+                                    index: 3,
+                                    label: '按鈕樣式-未選中',
+                                    toggle: false,
+                                },
+                                {
+                                    id: 's8s8s9s6s2sfscs9-s0s8s0sa-4s6sesa-s9sbsbs9-sas9sbs2s0s8sds1s3s2sesc',
+                                    data: {
+                                        tag: 'btn_select',
+                                        value: 'color: #554233;background: #E2D6CD;',
+                                        tagType: 'style',
+                                    },
+                                    type: 'text',
+                                    index: 4,
+                                    label: '按鈕樣式-選中',
+                                    toggle: false,
+                                },
+                                {
+                                    id: 's4s3s6sasbsas6s9-s5s2s8s7-4s3scsb-s8sbsdsa-s9sfsbsbsds9sbs2sfs7sas6',
+                                    data: {
+                                        tag: 'btn_select',
+                                        value: 'color: white;background: #554233;',
+                                        tagType: 'style',
+                                    },
+                                    type: 'text',
+                                    index: 5,
+                                    label: '按鈕樣式-頁面切換',
+                                    toggle: false,
+                                },
+                                {
+                                    id: 's4sescs8sas7s3s7-s5s7sbs9-4s4sbsa-sbs2s7s3-s3s5sasbs5scs2ses8s8s9s5',
+                                    data: {
+                                        tag: 'check_input',
+                                        value: 'background: #554233;border: 1px solid #554233;',
+                                        tagType: 'style',
+                                    },
+                                    type: 'text',
+                                    index: 6,
+                                    label: '勾選匡樣式',
+                                    toggle: false,
+                                },
+                                {
+                                    id: 'sasfs9ses1sbsesb-s1s9s3sb-4s9s3sd-s8sfs2sd-s7sesds0scs8s4s0s8sfs6s3',
+                                    data: {
+                                        tag: 'btn_action',
+                                        value: 'background: #554233;color: white;',
+                                        tagType: 'style',
+                                    },
+                                    type: 'text',
+                                    index: 7,
+                                    label: '主要按鈕樣式',
+                                },
+                                {
+                                    id: 'sfsases3sdsds9s2-s9s3s0s0-4sdscs4-s8sdscs1-scs7sfsfscs5sfs4s9sas8s4',
+                                    data: {
+                                        tag: 'border_color',
+                                        value: 'border-color: #554233;',
+                                        tagType: 'style',
+                                    },
+                                    type: 'text',
+                                    index: 8,
+                                    label: '編筐線條顏色',
+                                    toggle: false,
+                                },
+                                {
+                                    id: 's3s8s7s3s1sas9sf-s0ses6s9-4sds0s9-sbs3sasd-s4sfs6sesbs6sasesfs3s4s9',
+                                    data: {
+                                        tag: 'swiper_bg',
+                                        value: 'background-color: #554233 !important;',
+                                        tagType: 'style',
+                                    },
+                                    type: 'text',
+                                    index: 9,
+                                    label: 'Swiper按鈕背景樣式',
+                                },
+                            ],
+                            tagType: 'value',
+                        },
+                        type: 'container',
+                        index: 0,
+                        label: '設計樣式',
+                        toggle: true,
+                    },
+                ],
+                initialCode: '',
+                initialList: [],
+                globalScript: [
+                    {
+                        id: 's2s1s3s3s3scsbs1-scs7s5s4-4sfs3s7-sascs8s5-scs8s2s6s5s9s2s1s6s7s0sc',
+                        js: '$style1/official.js',
+                        css: {
+                            class: {},
+                            style: {},
+                        },
+                        data: {
+                            clickEvent: {
+                                clickEvent: [
+                                    {
+                                        clickEvent: {
+                                            src: './official_event/event.js',
+                                            route: 'user_token_check',
+                                        },
+                                        errorEvent: {
+                                            clickEvent: [
+                                                {
+                                                    eventList: [
+                                                        {
+                                                            title: '在帳號相關頁面',
+                                                            trigger: {
+                                                                clickEvent: [
+                                                                    {
+                                                                        link: 'login',
+                                                                        clickEvent: {
+                                                                            src: './official_event/event.js',
+                                                                            route: 'link',
+                                                                        },
+                                                                        pluginExpand: {},
+                                                                        stackControl: 'home',
+                                                                        link_change_type: 'inlink',
+                                                                    },
+                                                                ],
+                                                            },
+                                                            yesEvent: {
+                                                                clickEvent: [
+                                                                    {
+                                                                        code: "return ['wishlist','account_userinfo','order_list'].indexOf(glitter.getUrlParameter('page'))!==-1",
+                                                                        clickEvent: {
+                                                                            src: './official_event/event.js',
+                                                                            route: 'code',
+                                                                        },
+                                                                        codeVersion: 'v2',
+                                                                        pluginExpand: {},
+                                                                    },
+                                                                ],
+                                                            },
+                                                        },
+                                                    ],
+                                                    clickEvent: {
+                                                        src: './official_event/event.js',
+                                                        route: 'codeArray',
+                                                    },
+                                                    pluginExpand: {},
+                                                },
+                                            ],
+                                        },
+                                        pluginExpand: {},
+                                        successEvent: {
+                                            clickEvent: [],
+                                        },
+                                    },
+                                ],
+                            },
+                            triggerTime: 'async',
+                        },
+                        type: 'code',
+                        index: 0,
+                        label: '代碼區塊',
+                        preloadEvenet: {},
+                        refreshAllParameter: {},
+                        refreshComponentParameter: {},
+                    },
+                    {
+                        id: 's6s6s8ses7s8s8s7-s8sfs3s7-4s7sas8-sbscs4s5-s5s8s9sbs8s3s7sescsbs6s5',
+                        js: 'https://sam38124.github.io/One-page-plugin/src/official.js',
+                        data: {
+                            attr: [
+                                {
+                                    attr: 'src',
+                                    type: 'par',
+                                    value: 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js',
+                                    expand: false,
+                                    attrType: 'normal',
+                                },
+                                {
+                                    attr: 'crossorigin',
+                                    type: 'par',
+                                    value: 'anonymous',
+                                    expand: false,
+                                    attrType: 'normal',
+                                },
+                                {
+                                    attr: 'async',
+                                    type: 'append',
+                                    attrType: 'normal',
+                                    valueFrom: 'manual',
+                                    clickEvent: [
+                                        {
+                                            code: 'return true;',
+                                            clickEvent: {
+                                                src: './official_event/event.js',
+                                                route: 'code',
+                                            },
+                                            codeVersion: 'v2',
+                                            pluginExpand: {},
+                                        },
+                                    ],
+                                },
+                            ],
+                            elem: 'script',
+                            note: '',
+                            inner: '',
+                            setting: [],
+                            dataFrom: 'static',
+                            atrExpand: {
+                                expand: true,
+                            },
+                            elemExpand: {
+                                expand: true,
+                            },
+                        },
+                        type: 'widget',
+                        index: 1,
+                        label: 'SCRIPT資源',
+                        styleList: [],
+                        onCreateEvent: {},
+                        preloadEvenet: {},
+                        refreshAllParameter: {},
+                        refreshComponentParameter: {},
+                    },
+                ],
+                template_type: 2,
+                backendPlugins: [],
+                globalStyleTag: [
+                    {
+                        id: 's1s2s2s3s8s9s0sb-s6sds8sb-4sas7sc-s8s4s1sf-s1sas6sasbscsas2s8s6s7s6',
+                        data: {
+                            setting: [
+                                {
+                                    id: 's1ses9s0sas1s9s8-s9s9s0sb-4s2s8s3-sasdses4-sasds2sfsfs6s6s3sas2s7se',
+                                    data: {
+                                        tag: '商品卡片',
+                                        value: {
+                                            class: 'col-6 col-lg-3 col-md-4 p-2',
+                                            style: 'margin-bottom: 10px;',
+                                            stylist: [],
+                                            dataType: 'static',
+                                            classDataType: 'static',
+                                        },
+                                        tagType: 'value',
+                                    },
+                                    type: 'text',
+                                    index: 0,
+                                    label: '商品卡片',
+                                    refreshAllParameter: {},
+                                    refreshComponentParameter: {},
+                                },
+                                {
+                                    id: 's8s5s0s6ses4scsd-s1s8sasd-4ses8s3-sbs5s1s8-s0s7s0s8sfs4s3s0sfs5s4s1',
+                                    data: {
+                                        tag: '商品標題',
+                                        value: {
+                                            class: '',
+                                            style: 'color: #171717;text-align: start;font-size: 24px;font-style: normal;font-weight: 400;margin-top:10px;line-height: 140%; /* 33.6px */',
+                                            stylist: [],
+                                            dataType: 'static',
+                                            classDataType: 'static',
+                                        },
+                                        tagType: 'value',
+                                    },
+                                    type: 'text',
+                                    index: 1,
+                                    label: '商品標題',
+                                },
+                                {
+                                    id: 's4sdsds7s2s4s5s9-s9s0s0sc-4s7s7s6-s9s5s8sf-s2s6sds4s0s4s7s4s2sds3sf',
+                                    data: {
+                                        tag: '商品卡片-滑動',
+                                        value: {
+                                            list: [],
+                                            class: '',
+                                            style: 'width: calc(100% - 80px);min-width: calc(100% - 80px);',
+                                            stylist: [
+                                                {
+                                                    size: '1000',
+                                                    class: 'col-6 col-lg-3 col-md-4',
+                                                    style: 'margin-bottom: 10px;',
+                                                    dataType: 'static',
+                                                    classDataType: 'static',
+                                                },
+                                            ],
+                                            version: 'v2',
+                                            dataType: 'static',
+                                            classDataType: 'static',
+                                        },
+                                        tagType: 'value',
+                                    },
+                                    type: 'text',
+                                    index: 2,
+                                    label: '商品卡片-滑動',
+                                    refreshAllParameter: {},
+                                    refreshComponentParameter: {},
+                                },
+                            ],
+                        },
+                        type: 'container',
+                        index: 0,
+                        label: '商品區塊',
+                        toggle: true,
+                    },
+                    {
+                        id: 'sasesesasfs0sfs1-s2s2s2se-4s6s6sa-s9s8sfsf-s0s3s4s2scs8s4sfs1s4s0se',
+                        data: {
+                            setting: [
+                                {
+                                    id: 'sds3s8s9sbs1s5sa-ses7s5s5-4s5s3s1-s9seses5-sbs7s3s8s0s8sas5s4sasfs4',
+                                    data: {
+                                        tag: 'input_conatiner',
+                                        value: {
+                                            list: [],
+                                            class: '',
+                                            style: 'display: flex;flex-direction: column;gap:10px;',
+                                            stylist: [],
+                                            version: 'v2',
+                                            dataType: 'static',
+                                            classDataType: 'static',
+                                        },
+                                        tagType: 'value',
+                                    },
+                                    type: 'text',
+                                    index: 0,
+                                    label: 'input_conatiner',
+                                },
+                                {
+                                    id: 's6s2ses8sfs4sas8-s5s2s8s3-4s5s3sf-s9s0s1s4-s6s5sbsasasbs2s9scs8scsd',
+                                    data: {
+                                        tag: 'input_label',
+                                        value: {
+                                            list: [],
+                                            class: '',
+                                            style: 'text-align: left; font-size: 16px; font-family: Open Sans; font-weight: 400; line-height: 22.40px; word-wrap: break-word;/*@{{tc_bold}}*/',
+                                            stylist: [],
+                                            version: 'v2',
+                                            dataType: 'static',
+                                            classDataType: 'static',
+                                        },
+                                        tagType: 'value',
+                                    },
+                                    type: 'text',
+                                    index: 1,
+                                    label: 'input_label',
+                                },
+                                {
+                                    id: 'sasfs1sas9s3s9sb-s8s8s4s3-4s2s9s3-s8s2sds7-s2sfsas2s4scsbs1s1scs5s9',
+                                    data: {
+                                        tag: 'input',
+                                        value: {
+                                            list: [],
+                                            class: '',
+                                            style: 'height: 44px; background: white; border: 1px #2F2F2F solid;padding-left: 10px;',
+                                            stylist: [],
+                                            version: 'v2',
+                                            dataType: 'static',
+                                            classDataType: 'static',
+                                        },
+                                        tagType: 'value',
+                                    },
+                                    type: 'text',
+                                    index: 2,
+                                    label: 'input',
+                                },
+                            ],
+                        },
+                        type: 'container',
+                        index: 1,
+                        label: '訂單資訊',
+                        toggle: true,
+                    },
+                    {
+                        id: 'sfs3s8s4s4sas3sc-s7s5s5sc-4s5s9se-sascs3s4-s3sbs8sas7s0s3s2s1s1s5sc',
+                        data: {
+                            setting: [
+                                {
+                                    id: 's0s2s5sas8sbsbsf-s9s3sds0-4s6s0s2-sasdses8-s7s0s7sds1s2s5sfscs7sbs1',
+                                    data: {
+                                        tag: '選項分類',
+                                        value: {
+                                            class: 'fs-6',
+                                            style: '',
+                                            stylist: [],
+                                            dataType: 'static',
+                                            classDataType: 'static',
+                                        },
+                                        tagType: 'value',
+                                    },
+                                    type: 'text',
+                                    index: 0,
+                                    label: '選項分類',
+                                },
+                            ],
+                        },
+                        type: 'container',
+                        index: 2,
+                        label: '分類元件',
+                        toggle: false,
+                    },
+                    {
+                        id: 'sfs4s1sesfs9s2s5-s2sas2s8-4s8s0s9-sas0sfsb-sas4sbs2s3s5s6s5s7sfs6sb',
+                        data: {
+                            setting: [
+                                {
+                                    id: 's5sfs1sds2s9s0s0-s9s8s6s7-4s2s0sf-s8s6s4s8-s5s1sfsds8sas0s0s6sfsds5',
+                                    data: {
+                                        tag: '首頁-標題',
+                                        value: {
+                                            class: 'px-3 px-lg-0',
+                                            style: 'text-align: start;            font-family: Open Sans;            font-size: 32px;            font-style: normal;            font-weight: 700;            line-height: 140%;            padding-top: 48px;            padding-bottom: 36px;',
+                                            stylist: [
+                                                {
+                                                    size: '1200',
+                                                    class: 'px-3 px-lg-0',
+                                                    style: 'text-align: start;            font-family: Open Sans;            font-size: 32px;            font-style: normal;            font-weight: 700;            line-height: 140%;            padding-top: 96px;            padding-bottom: 42px;',
+                                                    dataType: 'static',
+                                                    classDataType: 'static',
+                                                },
+                                            ],
+                                            dataType: 'static',
+                                            classDataType: 'static',
+                                        },
+                                        tagType: 'value',
+                                    },
+                                    type: 'text',
+                                    index: 0,
+                                    label: '首頁-標題',
+                                    refreshAllParameter: {},
+                                    refreshComponentParameter: {},
+                                },
+                            ],
+                        },
+                        type: 'container',
+                        index: 3,
+                        label: '首頁',
+                        toggle: false,
+                    },
+                    {
+                        id: 'sfs2s9s8s2s3sds4-s0sas2sa-4sfs2s9-sascsfs5-s4sds8s0s2s3s8s0s6sds3s3',
+                        data: {
+                            setting: [
+                                {
+                                    id: 's5s8scsas9sbs3s2-ses3s6s4-4s4s1s3-s8sfs7s9-s4sdsfsas6sbs1s9sds3sds6',
+                                    data: {
+                                        tag: '輸入框樣式',
+                                        value: {
+                                            list: [],
+                                            class: 'w-auto flex-fill',
+                                            style: 'border: 1px solid #2F2F2F;background: #FFF;font-family: Open Sans;font-size: 14px;font-style: normal;font-weight: 400;line-height: 140%;height: 44px;width: 200px;padding-left: 20px;',
+                                            stylist: [],
+                                            version: 'v2',
+                                            dataType: 'static',
+                                            classDataType: 'static',
+                                        },
+                                        tagType: 'value',
+                                    },
+                                    type: 'text',
+                                    index: 0,
+                                    label: '輸入框樣式',
+                                },
+                                {
+                                    id: 's5sds5ses0sdses5-s8s5s9s0-4s0ses7-sas6s7sf-s4s5sesbs3s4s5sfs0s4sds2',
+                                    data: {
+                                        tag: '容器樣式',
+                                        value: {
+                                            list: [],
+                                            class: 'd-flex',
+                                            style: 'gap:10px;align-items: center;margin-bottom: 19px;',
+                                            stylist: [
+                                                {
+                                                    size: '1000',
+                                                    class: 'd-flex',
+                                                    style: 'gap:30px;align-items: center;margin-bottom: 19px;',
+                                                    dataType: 'static',
+                                                    classDataType: 'static',
+                                                },
+                                            ],
+                                            version: 'v2',
+                                            dataType: 'static',
+                                            classDataType: 'static',
+                                        },
+                                        tagType: 'value',
+                                    },
+                                    type: 'text',
+                                    index: 1,
+                                    label: '容器樣式',
+                                },
+                                {
+                                    id: 'sdsas4s1s5sasas6-s1sasesb-4s8sase-sbsbs8sf-s9s5s2sds3s5s1s1s2sasas8',
+                                    data: {
+                                        tag: 'Label',
+                                        value: {
+                                            list: [],
+                                            class: 'form-label',
+                                            style: 'width: 100px;',
+                                            stylist: [
+                                                {
+                                                    size: '1000',
+                                                    class: 'form-label',
+                                                    style: 'width: 100px;',
+                                                    dataType: 'static',
+                                                    classDataType: 'static',
+                                                },
+                                            ],
+                                            version: 'v2',
+                                            dataType: 'static',
+                                            classDataType: 'static',
+                                        },
+                                        tagType: 'value',
+                                    },
+                                    type: 'text',
+                                    index: 2,
+                                    label: 'Label',
+                                },
+                            ],
+                        },
+                        type: 'container',
+                        index: 4,
+                        label: '表單樣式',
+                        toggle: true,
+                    },
+                    {
+                        id: 'sdscs8s7s8sbs1se-s4s7s7sd-4s6sfs2-s8s0s5sb-s3s8s9s3s7s8s4s9s7s4s1s5',
+                        data: {
+                            setting: [
+                                {
+                                    id: 's5s8scsas9sbs3s2-ses3s6s4-4s4s1s3-s8sfs7s9-s4sdsfsas6sbs1s9sds3sds6',
+                                    data: {
+                                        tag: '註冊頁面-輸入框',
+                                        value: {
+                                            list: [],
+                                            class: 'w-100 form-control',
+                                            style: 'border: 1px solid #554233;background: #FFF;font-family: Open Sans;font-size: 14px;font-style: normal;font-weight: 400;line-height: 140%;height: 60px;width: 200px;padding-left: 20px;border-radius: 100px;',
+                                            stylist: [],
+                                            version: 'v2',
+                                            dataType: 'static',
+                                            classDataType: 'static',
+                                        },
+                                        tagType: 'value',
+                                    },
+                                    type: 'text',
+                                    index: 0,
+                                    label: '註冊頁面-輸入框',
+                                },
+                                {
+                                    id: 's5sds5ses0sdses5-s8s5s9s0-4s0ses7-sas6s7sf-s4s5sesbs3s4s5sfs0s4sds2',
+                                    data: {
+                                        tag: '註冊頁面-容器',
+                                        value: {
+                                            list: [],
+                                            class: 'd-flex',
+                                            style: 'align-items: flex-start;flex-direction: column;margin-bottom: 10px;',
+                                            stylist: [],
+                                            version: 'v2',
+                                            dataType: 'static',
+                                            classDataType: 'static',
+                                        },
+                                        tagType: 'value',
+                                    },
+                                    type: 'text',
+                                    index: 1,
+                                    label: '註冊頁面-容器',
+                                },
+                                {
+                                    id: 'sdsas4s1s5sasas6-s1sasesb-4s8sase-sbsbs8sf-s9s5s2sds3s5s1s1s2sasas8',
+                                    data: {
+                                        tag: '註冊頁面-Label',
+                                        value: {
+                                            list: [],
+                                            class: 'form-label fs-base',
+                                            style: 'text-align: left;font-family: Open Sans;font-style: normal;font-weight: 400;line-height: 140%;/*@{{tc_bold}}*/',
+                                            stylist: [
+                                                {
+                                                    size: '1000',
+                                                    class: 'form-label fs-base',
+                                                    style: '/*@{{tc_bold}}*/text-align: left;font-family: Open Sans;font-style: normal;font-weight: 400;line-height: 140%;width: 150px;',
+                                                    dataType: 'static',
+                                                    classDataType: 'static',
+                                                },
+                                            ],
+                                            version: 'v2',
+                                            dataType: 'static',
+                                            classDataType: 'static',
+                                        },
+                                        tagType: 'value',
+                                    },
+                                    type: 'text',
+                                    index: 2,
+                                    label: '註冊頁面-Label',
+                                },
+                            ],
+                        },
+                        type: 'container',
+                        index: 5,
+                        label: '註冊頁面-表單樣式',
+                        toggle: true,
+                    },
+                    {
+                        id: 's1s0sesfs8s1sds1-s4sbs5s3-4scsfs5-s9sfsds6-s0scs9sas8s2s9s2s5s5sasf',
+                        data: {
+                            setting: [
+                                {
+                                    id: 's5s8scsas9sbs3s2-ses3s6s4-4s4s1s3-s8sfs7s9-s4sdsfsas6sbs1s9sds3sds6',
+                                    data: {
+                                        tag: '輸入框樣式-重設密碼',
+                                        value: {
+                                            class: 'w-auto flex-fill',
+                                            style: 'border: 1px solid #2F2F2F;background: #FFF;font-family: Open Sans;font-size: 14px;font-style: normal;font-weight: 400;line-height: 140%;height: 44px;width: 200px;padding-left: 20px;',
+                                            stylist: [],
+                                            dataType: 'static',
+                                            classDataType: 'static',
+                                        },
+                                        tagType: 'value',
+                                    },
+                                    type: 'text',
+                                    index: 0,
+                                    label: '輸入框樣式-重設密碼',
+                                },
+                                {
+                                    id: 's5sds5ses0sdses5-s8s5s9s0-4s0ses7-sas6s7sf-s4s5sesbs3s4s5sfs0s4sds2',
+                                    data: {
+                                        tag: '容器樣式-重設密碼',
+                                        value: {
+                                            class: 'd-flex',
+                                            style: 'gap:15px;align-items: center;margin-bottom: 19px;',
+                                            stylist: [],
+                                            dataType: 'static',
+                                            classDataType: 'static',
+                                        },
+                                        tagType: 'value',
+                                    },
+                                    type: 'text',
+                                    index: 1,
+                                    label: '容器樣式-重設密碼',
+                                },
+                                {
+                                    id: 'sdsas4s1s5sasas6-s1sasesb-4s8sase-sbsbs8sf-s9s5s2sds3s5s1s1s2sasas8',
+                                    data: {
+                                        tag: 'Label-重設密碼',
+                                        value: {
+                                            class: 'fs-6',
+                                            style: 'color: #000;text-align: right;font-family: Open Sans;font-style: normal;font-weight: 400;line-height: 140%;width: 80px;white-space: nowrap;margin-right: 10px;',
+                                            stylist: [],
+                                            dataType: 'static',
+                                            classDataType: 'static',
+                                        },
+                                        tagType: 'value',
+                                    },
+                                    type: 'text',
+                                    index: 2,
+                                    label: 'Label-重設密碼',
+                                },
+                            ],
+                        },
+                        type: 'container',
+                        index: 6,
+                        label: '表單樣式-重設密碼',
+                        toggle: false,
+                    },
+                    {
+                        id: 's7s5s5s1s3s2sesc-sfs0s4s0-4s7s4sa-sasds6s7-s8sescs5s5sdsfs4s8ses4s7',
+                        data: {
+                            setting: [
+                                {
+                                    id: 's0s1scsds1s9s7s2-sbs1sds9-4s6s6sd-sbs9s7sc-scs5scsbsesfs2sds7s7s5s5',
+                                    data: {
+                                        tag: 'aboutus-container',
+                                        value: {
+                                            class: 'my-2',
+                                            style: '',
+                                            stylist: [],
+                                            dataType: 'static',
+                                            classDataType: 'static',
+                                        },
+                                        tagType: 'style',
+                                    },
+                                    type: 'text',
+                                    index: 0,
+                                    label: 'aboutus-container',
+                                },
+                            ],
+                        },
+                        type: 'container',
+                        index: 7,
+                        label: '表單樣式-關於我們',
+                        toggle: true,
+                    },
+                ],
+                template_config: {
+                    tag: ['電子商務', '服飾產業', '精品產業'],
+                    desc: ' 這是一個關於服飾產業的電子商務主題模板。<br>\n        ．全站支援藍新/綠界/線下金流。<br>\n        ．超商取貨 / 宅配 。',
+                    name: '2406-精品與服飾',
+                    image: [
+                        'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1709091655085-Screenshot 2024-02-28 at 11.39.29 AM.jpg',
+                        'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1709091643540-Screenshot 2024-02-28 at 11.39.51 AM.jpg',
+                    ],
+                    status: 'wait',
+                    post_to: 'all',
+                    version: '1.0',
+                    created_by: 'Jianzhi.wang',
+                    preview_img: '',
+                },
+                initialStyleSheet: [],
+            },
+            brand: 'shopnex',
+            template_config: {
+                tag: ['電子商務', '服飾產業', '精品產業'],
+                desc: ' 這是一個關於服飾產業的電子商務主題模板。<br>\n        ．全站支援藍新/綠界/線下金流。<br>\n        ．超商取貨 / 宅配 。',
+                name: '2406-精品與服飾',
+                image: [
+                    'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1709091655085-Screenshot 2024-02-28 at 11.39.29 AM.jpg',
+                    'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1709091643540-Screenshot 2024-02-28 at 11.39.51 AM.jpg',
+                ],
+                status: 'wait',
+                post_to: 'all',
+                version: '1.0',
+                created_by: 'Jianzhi.wang',
+                preview_img: '',
+            },
+            template_type: 2,
+            sql_pwd: 'utcaai5fdc0u',
+            sql_admin: 'fqezcd',
+            ec2_id: null,
+            update_time: '2024-06-28T00:26:40.000Z',
+            theme_config: null,
+            refer_app: null,
+            plan: null,
+        };
+        const planText = '免費試用';
+        return html`<div class="d-flex ${document.body.clientWidth > 768 ? '' : 'flex-column'}" style="color: #393939;">
+            當前方案:${planText} ${document.body.clientWidth > 768 ? `<div class="mx-2 text-body">/</div>` : '<br />'}
+            <div class="${new Date(config.dead_line).getTime() < new Date().getTime() ? `text-danger` : `text-body`}" style="font-size:14px;">
+                ${new Date(config.dead_line).getTime() < new Date().getTime() ? ` 方案已過期` : ` 方案到期日`} ：${gvc.glitter.ut.dateFormat(new Date(config.dead_line), 'yyyy-MM-dd hh:mm')}
+            </div>
         </div>`;
     }
 }

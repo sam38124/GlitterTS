@@ -81,7 +81,7 @@ export class BgProject {
                 bind: id,
                 view: () => {
                     return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
-                        resolve(html ` <div style="width:900px;max-width:100%;">
+                        resolve(html ` <div style="width: 100%;">
                                     ${BgWidget.card([
                             EditorElem.select({
                                 title: '登入認證',
@@ -509,10 +509,10 @@ export class BgProject {
                                 </div>`);
                     }));
                 },
-                divCreate: { class: `d-flex flex-column flex-column-reverse  flex-md-row`, style: `gap:10px;` },
+                divCreate: { class: 'd-flex flex-column flex-column-reverse flex-md-row p-0', style: 'gap: 10px;' },
             };
         })}
-            `, 900);
+            `, BgWidget.getContainerWidth());
     }
     static userManager(gvc, type = 'list', callback = () => { }) {
         const glitter = gvc.glitter;
@@ -716,7 +716,7 @@ export class BgProject {
                                                 type === 'select'
                                                 ? `d-none`
                                                 : ``}`,
-                                            style: `height:40px;gap:10px;margin-top:10px;`,
+                                            style: `height:40px;gap: 10px;margin-top:10px;`,
                                         };
                                     },
                                 };
@@ -802,7 +802,7 @@ export class BgProject {
                                     儲存
                                 </button>
                             </div>`,
-                        html `<div class="d-flex" style="gap:10px;">
+                        html `<div class="d-flex" style="gap: 10px;">
                                 ${BgWidget.card([
                             gvc.bindView(() => {
                                 const id = gvc.glitter.getUUID();
@@ -817,7 +817,7 @@ export class BgProject {
                                             map.push(html `
                                                             <div class="d-flex align-items-center border-bottom pb-2">
                                                                 <div class="fw-bold fs-7"></div>
-                                                                <div class="d-flex" style="gap:10px;">
+                                                                <div class="d-flex" style="gap: 10px;">
                                                                     <div class="fw-bold fs-7">用戶ID</div>
                                                                     <div class="fw-normal fs-7">${vm.data.userID}</div>
                                                                     <div class="fw-bold fs-7">用戶建立時間</div>
@@ -1019,14 +1019,14 @@ export class BgProject {
                         case 'list':
                             const filterID = gvc.glitter.getUUID();
                             return BgWidget.container(html `
-                                    <div class="d-flex w-100 align-items-center mb-3">
+                                    <div class="d-flex w-100 align-items-center">
                                         ${BgWidget.title(type === 'android_release' ? 'Google Play應用商城' : 'APPLE應用商城')}
                                         <div class="flex-fill"></div>
                                         ${BgWidget.darkButton('新增送審項目', gvc.event(() => {
                                 vm.status = 'add';
                             }))}
                                     </div>
-                                    ${BgWidget.mainCard(BgWidget.tableV2({
+                                    ${BgWidget.container(BgWidget.mainCard(BgWidget.tableV2({
                                 gvc: gvc,
                                 getData: (vmi) => {
                                     ApiApp.getAppRelease({
@@ -1069,7 +1069,10 @@ export class BgProject {
                                                     },
                                                     {
                                                         key: 'APP',
-                                                        value: `<img class="rounded border me-4" alt="" src="${dd.content.logo}" style="width:40px;height:40px;">` + dd.content.name,
+                                                        value: html `<div style="min-width: 150px;">
+                                                                                <img class="rounded border me-4" alt="" src="${dd.content.logo}" style="width:40px;height:40px;" />
+                                                                                <span>${dd.content.name}</span>
+                                                                            </div>`,
                                                     },
                                                     {
                                                         key: '審核狀態',
@@ -1125,11 +1128,11 @@ export class BgProject {
                                     vm.status = 'replace';
                                 },
                                 filter: html `
-                                                ${BgWidget.searchPlace(gvc.event((e, event) => {
+                                                    ${BgWidget.searchPlace(gvc.event((e, event) => {
                                     vm.query = e.value;
                                     gvc.notifyDataChange(id);
                                 }), vm.query || '', '搜尋所有紀錄')}
-                                                ${gvc.bindView(() => {
+                                                    ${gvc.bindView(() => {
                                     return {
                                         bind: filterID,
                                         view: () => {
@@ -1143,9 +1146,9 @@ export class BgProject {
                                                 return [
                                                     html `<span class="fs-7 fw-bold">操作選項</span>`,
                                                     html `<button
-                                                                        class="btn btn-danger fs-7 px-2"
-                                                                        style="height:30px;border:none;"
-                                                                        onclick="${gvc.event(() => {
+                                                                            class="btn btn-danger fs-7 px-2"
+                                                                            style="height:30px;border:none;"
+                                                                            onclick="${gvc.event(() => {
                                                         const dialog = new ShareDialog(gvc.glitter);
                                                         dialog.checkYesOrNot({
                                                             text: '是否確認移除所選項目?',
@@ -1175,9 +1178,9 @@ export class BgProject {
                                                             },
                                                         });
                                                     })}"
-                                                                    >
-                                                                        批量移除
-                                                                    </button>`,
+                                                                        >
+                                                                            批量移除
+                                                                        </button>`,
                                                 ].join(``);
                                             }
                                         },
@@ -1189,13 +1192,13 @@ export class BgProject {
                                                     })
                                                     ? `d-none`
                                                     : ``}`,
-                                                style: `height:40px;gap:10px;margin-top:10px;`,
+                                                style: `height:40px;gap: 10px;margin-top:10px;`,
                                             };
                                         },
                                     };
                                 })}
-                                            `,
-                            }))}
+                                                `,
+                            })))}
                                 `, BgWidget.getContainerWidth());
                         case 'replace':
                             return BgProject.appReleaseForm(vm, gvc, type, replaceData);
@@ -1280,12 +1283,9 @@ export class BgProject {
                 bind: id,
                 view: () => {
                     return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
-                        resolve(html ` <div style="width:900px;max-width:100%;">
+                        resolve(html ` <div style="width: 100%;">
                                     ${[
-                            BgWidget.card(html ` <div class="alert alert-info p-2 m-1" style="white-space: normal;">
-                                            <strong>請注意 !!</strong><br />
-                                            模板發佈請注意上架規範守則，嚴禁發佈觸犯法律條款之內容。
-                                        </div>`),
+                            BgWidget.alertInfo('請注意 !!', ['模板發佈請注意上架規範守則，嚴禁發佈觸犯法律條款之內容']),
                             BgWidget.card([
                                 html `
                                                     ${[
@@ -1422,8 +1422,8 @@ export class BgProject {
                                         return {
                                             bind: id,
                                             view: () => {
-                                                return (EditorElem.h3(html ` <div class="d-flex align-items-center" style="gap:10px;">
-                                                                            模板圖片 [ 首張圖片為預覽圖 ]
+                                                return (EditorElem.h3(html ` <div class="d-flex align-items-center" style="gap: 10px;">
+                                                                            模板圖片（首張圖片為預覽圖）
                                                                             <div class="d-flex align-items-center justify-content-center rounded-3" style="height: 30px;width: 80px;">
                                                                                 <button
                                                                                     class="btn ms-2 btn-primary-c ms-2"
@@ -1455,26 +1455,20 @@ export class BgProject {
                                 ].join('')}
                                                 `,
                             ].join('<div class="my-2"></div>')),
-                            html `<div class=" align-items-center justify-content-end ${postMD.status === 'finish' ? `d-flex` : `d-none`}">
-                                            <div
-                                                class="btn btn-danger"
-                                                style="height:35px;"
-                                                onclick="${gvc.event(() => {
+                            html `<div class="${postMD.status === 'finish' ? `d-flex align-items-center justify-content-end` : `d-none`}">
+                                            ${BgWidget.redButton('取消發佈', gvc.event(() => {
                                 postMD.post_to = 'cancel';
                                 save();
-                            })}"
-                                            >
-                                                <i class="fa-regular fa-trash-can me-2"></i> 取消發佈
-                                            </div>
+                            }), { icon: 'fa-regular fa-trash-can' })}
                                         </div>`,
                         ].join(`<div class="my-3"></div>`)}
                                 </div>`);
                     }));
                 },
-                divCreate: { class: `d-flex flex-column flex-column-reverse  flex-md-row`, style: `gap:10px;` },
+                divCreate: { class: 'd-flex flex-column flex-column-reverse flex-md-row p-0', style: 'gap: 10px;' },
             };
         })}
-            `, 900);
+            `, BgWidget.getContainerWidth({ rate: { web: 0.68 } }));
     }
     static appReleaseForm(vm, gvc, type, editorData) {
         const saasConfig = window.saasConfig;
@@ -1553,9 +1547,6 @@ export class BgProject {
             })();
         })()}
                     <div class="flex-fill"></div>
-                    ${BgWidget.darkButton(editorData ? `再次送審` : `確認送審`, gvc.event(() => {
-            save();
-        }))}
                 </div>
                 ${gvc.bindView(() => {
             const id = gvc.glitter.getUUID();
@@ -1563,13 +1554,13 @@ export class BgProject {
                 bind: id,
                 view: () => {
                     return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
-                        resolve(html ` <div style="width:900px;max-width:100%;">
+                        resolve(html ` <div style="width: 100%;">
                                     ${[
-                            BgWidget.card(html ` <div class="alert alert-info p-2 m-1" style="white-space: normal;">
-                                            <strong>請注意!!</strong><br />
-                                            審核通過的結果可能會因應用程式的完整性、商店條款、隱私權政策、以及符合蘋果公司的政策等方面而有所不同，建議送審時需再三進行確認。
-                                            審核時間會落在7-14個工作天左右。
-                                        </div>`),
+                            BgWidget.alertInfo('請注意!!', [
+                                '審核通過的結果可能會因應用程式的完整性、商店條款、隱私權政策、以及平台政策等方面而有所不同',
+                                '建議送審時，請再三進行確認',
+                                '審核時間預計落在 7 到 14 個工作天',
+                            ]),
                             BgWidget.card([
                                 html ` ${BgWidget.title('APP資訊')}
                                                     <div class="row">
@@ -1629,7 +1620,7 @@ export class BgProject {
                                     })(),
                                 ]
                                     .map((dd) => {
-                                    return `<div class="col-6">${dd}</div>`;
+                                    return html `<div class="col-12 col-md-6">${dd}</div>`;
                                 })
                                     .join('')}
                                                     </div>
@@ -1717,7 +1708,8 @@ export class BgProject {
                                             }
                                         })();
                                         if (['promote_string', 'description'].indexOf(dd) !== -1) {
-                                            return `<div class="col-12">${EditorElem.editeText({
+                                            return html `<div class="col-12">
+                                                                        ${EditorElem.editeText({
                                                 gvc: gvc,
                                                 title: title,
                                                 placeHolder: `請輸入${title}`,
@@ -1725,9 +1717,11 @@ export class BgProject {
                                                 callback: (text) => {
                                                     postMD.market_info[key] = text;
                                                 },
-                                            })}</div>`;
+                                            })}
+                                                                    </div>`;
                                         }
-                                        return `<div class="col-6">${EditorElem.editeInput({
+                                        return html `<div class="col-12 col-md-6">
+                                                                    ${EditorElem.editeInput({
                                             gvc: gvc,
                                             title: title,
                                             placeHolder: `請輸入${title}`,
@@ -1735,20 +1729,27 @@ export class BgProject {
                                             callback: (text) => {
                                                 postMD.market_info[key] = text;
                                             },
-                                        })}</div>`;
+                                        })}
+                                                                </div>`;
                                     })
                                         .join('');
                                 })()}
                                                 </div>`,
                             ].join('<div class="my-2"></div>')),
-                        ].join(`<div class="my-3"></div>`)}
+                        ].join('<div class="my-3"></div>')}
                                 </div>`);
                     }));
                 },
-                divCreate: { class: `d-flex flex-column flex-column-reverse  flex-md-row`, style: `gap:10px;` },
+                divCreate: { class: 'd-flex flex-column flex-column-reverse flex-md-row p-0', style: 'gap: 10px;' },
             };
         })}
-            `, 900);
+                ${BgWidget.mb240()}
+                <div class="update-bar-container">
+                    ${BgWidget.save(gvc.event(() => {
+            save();
+        }), editorData ? `再次送審` : `確認送審`)}
+                </div>
+            `, BgWidget.getContainerWidth({ rate: { web: 0.68 } }));
     }
     static checkoutHook(gvc) {
         const saasConfig = window.saasConfig;
@@ -1756,8 +1757,8 @@ export class BgProject {
             value: '',
         };
         return BgWidget.container(html `
-                <div class="d-flex w-100 align-items-center mb-3 ">
-                    ${BgWidget.title(`購物觸發事件`)}
+                <div class="d-flex w-100 align-items-center">
+                    ${BgWidget.title('結帳事件')}
                     <div class="flex-fill"></div>
                     ${BgWidget.darkButton('儲存事件設定', gvc.event(() => {
             const dialog = new ShareDialog(gvc.glitter);
@@ -1773,11 +1774,12 @@ export class BgProject {
             });
         }))}
                 </div>
-                <div class="w-100 alert alert-info p-2">
-                    <div class="border-bottom pb-2 mb-2"><strong>當會員完成購物時，所需執行的額外事件。</strong></div>
-                    <strong>購物車資料</strong>:obj.cartData <strong class="ms-2">用戶資料</strong>:obj.userData <strong class="ms-2">資料庫</strong>:obj.sql
-                    <strong class="ms-2">Firebase推播</strong>:obj.fcm
-                </div>
+                ${BgWidget.container(html ` ${BgWidget.alertInfo('當會員完成購物時，所需執行的額外事件', [
+            html `<strong>購物車資料</strong>:obj.cartData`,
+            html `<strong>用戶資料</strong>:obj.userData`,
+            html `<strong>資料庫</strong>:obj.sql`,
+            html `<strong>Firebase推播</strong>:obj.fcm`,
+        ])}
                 ${gvc.bindView(() => {
             const id = gvc.glitter.getUUID();
             return {
@@ -1788,7 +1790,7 @@ export class BgProject {
                         if (data.response.result[0]) {
                             keyData = data.response.result[0].value;
                         }
-                        resolve(html ` <div style="width:900px;max-width:100%;">
+                        resolve(html ` <div style="width: 100%;">
                                     ${BgWidget.card([
                             EditorElem.codeEditor({
                                 gvc: gvc,
@@ -1803,10 +1805,11 @@ export class BgProject {
                                 </div>`);
                     }));
                 },
-                divCreate: { class: `d-flex flex-column flex-column-reverse  flex-md-row`, style: `gap:10px;` },
+                divCreate: { class: 'd-flex flex-column flex-column-reverse flex-md-row p-0', style: 'gap: 10px; margin-top: 18px;' },
             };
-        })}
-            `, 900);
+        })}`)}
+                ${BgWidget.mbContainer(120)}
+            `, BgWidget.getContainerWidth({ rate: { web: 0.68 } }));
     }
     static seoHook(gvc) {
         const saasConfig = window.parent.saasConfig;
@@ -1814,8 +1817,8 @@ export class BgProject {
             value: '',
         };
         return BgWidget.container(html `
-                <div class="d-flex w-100 align-items-center mb-3 ">
-                    ${BgWidget.title(`SEO設定事件`)}
+                <div class="d-flex w-100 align-items-center">
+                    ${BgWidget.title('SEO 自定義')}
                     <div class="flex-fill"></div>
                     ${BgWidget.darkButton('儲存事件設定', gvc.event(() => {
             const dialog = new ShareDialog(gvc.glitter);
@@ -1831,39 +1834,40 @@ export class BgProject {
             });
         }))}
                 </div>
-                <div class="w-100 alert alert-info p-2">
-                    <div class="border-bottom pb-2 mb-2"><strong>自訂義頁面SEO。</strong></div>
-                </div>
-                ${gvc.bindView(() => {
-            const id = gvc.glitter.getUUID();
-            return {
-                bind: id,
-                view: () => {
-                    return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
-                        const data = yield saasConfig.api.getPrivateConfig(window.parent.appName, `seo_webhook`);
-                        if (data.response.result[0]) {
-                            keyData = data.response.result[0].value;
-                        }
-                        resolve(html ` <div style="width:900px;max-width:100%;">
-                                    ${BgWidget.card([
-                            EditorElem.codeEditor({
-                                gvc: gvc,
-                                height: 600,
-                                structStart: `((db,req)=>{`,
-                                initial: keyData.value,
-                                title: `區段代碼`,
-                                callback: (text) => {
-                                    keyData.value = text;
-                                },
-                            }),
-                        ].join('<div class="my-2"></div>'))}
-                                </div>`);
-                    }));
-                },
-                divCreate: { class: `d-flex flex-column flex-column-reverse  flex-md-row`, style: `gap:10px;` },
-            };
-        })}
-            `, 900);
+                ${BgWidget.container([
+            BgWidget.alertInfo('自定義設定 SEO'),
+            gvc.bindView(() => {
+                const id = gvc.glitter.getUUID();
+                return {
+                    bind: id,
+                    view: () => {
+                        return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+                            const data = yield saasConfig.api.getPrivateConfig(window.parent.appName, `seo_webhook`);
+                            if (data.response.result[0]) {
+                                keyData = data.response.result[0].value;
+                            }
+                            resolve(html ` <div style="width: 100%;">
+                                            ${BgWidget.card([
+                                EditorElem.codeEditor({
+                                    gvc: gvc,
+                                    height: 600,
+                                    structStart: `((db,req)=>{`,
+                                    initial: keyData.value,
+                                    title: `區段代碼`,
+                                    callback: (text) => {
+                                        keyData.value = text;
+                                    },
+                                }),
+                            ].join('<div class="my-2"></div>'))}
+                                        </div>`);
+                        }));
+                    },
+                    divCreate: { class: 'd-flex flex-column flex-column-reverse flex-md-row p-0', style: 'gap: 10px;' },
+                };
+            }),
+            BgWidget.mbContainer(120),
+        ].join(html `<div style="margin-top: 18px;"></div>`))}
+            `, BgWidget.getContainerWidth({ rate: { web: 0.68 } }));
     }
     static siteMapHook(gvc) {
         const saasConfig = window.parent.saasConfig;
@@ -1871,8 +1875,8 @@ export class BgProject {
             value: '',
         };
         return BgWidget.container(html `
-                <div class="d-flex w-100 align-items-center mb-3 ">
-                    ${BgWidget.title(`SiteMap設定`)}
+                <div class="d-flex w-100 align-items-center">
+                    ${BgWidget.title('SiteMap 自定義')}
                     <div class="flex-fill"></div>
                     ${BgWidget.darkButton('儲存事件設定', gvc.event(() => {
             const dialog = new ShareDialog(gvc.glitter);
@@ -1888,39 +1892,40 @@ export class BgProject {
             });
         }))}
                 </div>
-                <div class="w-100 alert alert-info p-2">
-                    <div class="border-bottom pb-2 mb-2"><strong>自訂義SiteMap。</strong></div>
-                </div>
-                ${gvc.bindView(() => {
-            const id = gvc.glitter.getUUID();
-            return {
-                bind: id,
-                view: () => {
-                    return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
-                        const data = yield saasConfig.api.getPrivateConfig(window.parent.appName, `sitemap_webhook`);
-                        if (data.response.result[0]) {
-                            keyData = data.response.result[0].value;
-                        }
-                        resolve(html ` <div style="width:900px;max-width:100%;">
-                                    ${BgWidget.card([
-                            EditorElem.codeEditor({
-                                gvc: gvc,
-                                height: 600,
-                                structStart: `((db,req)=>{`,
-                                initial: keyData.value,
-                                title: `區段代碼`,
-                                callback: (text) => {
-                                    keyData.value = text;
-                                },
-                            }),
-                        ].join('<div class="my-2"></div>'))}
-                                </div>`);
-                    }));
-                },
-                divCreate: { class: `d-flex flex-column flex-column-reverse  flex-md-row`, style: `gap:10px;` },
-            };
-        })}
-            `, 900);
+                ${BgWidget.container([
+            BgWidget.alertInfo('自定義設定 SiteMap'),
+            gvc.bindView(() => {
+                const id = gvc.glitter.getUUID();
+                return {
+                    bind: id,
+                    view: () => {
+                        return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+                            const data = yield saasConfig.api.getPrivateConfig(window.parent.appName, `sitemap_webhook`);
+                            if (data.response.result[0]) {
+                                keyData = data.response.result[0].value;
+                            }
+                            resolve(html ` <div style="width: 100%;">
+                                            ${BgWidget.card([
+                                EditorElem.codeEditor({
+                                    gvc: gvc,
+                                    height: 600,
+                                    structStart: `((db,req)=>{`,
+                                    initial: keyData.value,
+                                    title: `區段代碼`,
+                                    callback: (text) => {
+                                        keyData.value = text;
+                                    },
+                                }),
+                            ].join('<div class="my-2"></div>'))}
+                                        </div>`);
+                        }));
+                    },
+                    divCreate: { class: 'd-flex flex-column flex-column-reverse flex-md-row p-0', style: 'gap: 10px;' },
+                };
+            }),
+            BgWidget.mbContainer(120),
+        ].join(html `<div style="margin-top: 18px;"></div>`))}
+            `, BgWidget.getContainerWidth({ rate: { web: 0.68 } }));
     }
     static loginHook(gvc) {
         const saasConfig = window.saasConfig;
@@ -1951,10 +1956,8 @@ export class BgProject {
                         儲存事件設定
                     </button>
                 </div>
-                <div class="w-100 alert alert-info p-2">
-                    <div class="border-bottom pb-2 mb-2"><strong>當會員登入 / 註冊 / 初始化時，所需執行的額外事件。</strong></div>
-                    <strong class="">用戶資料</strong>:obj.userData <strong class="ms-2">Firebase推播</strong>:obj.fcm
-                </div>
+
+                ${BgWidget.alertInfo('當會員登入 / 註冊 / 初始化時，所需執行的額外事件', [html `<strong>用戶資料</strong>:obj.userData`, html `<strong>Firebase推播</strong>:obj.fcm`])}
                 ${gvc.bindView(() => {
             const id = gvc.glitter.getUUID();
             return {
@@ -1965,7 +1968,7 @@ export class BgProject {
                         if (data.response.result[0]) {
                             keyData = data.response.result[0].value;
                         }
-                        resolve(html ` <div style="width:900px;max-width:100%;">
+                        resolve(html ` <div style="width: 100%;">
                                     ${BgWidget.card([
                             EditorElem.codeEditor({
                                 gvc: gvc,
@@ -1980,10 +1983,10 @@ export class BgProject {
                                 </div>`);
                     }));
                 },
-                divCreate: { class: `d-flex flex-column flex-column-reverse  flex-md-row`, style: `gap:10px;` },
+                divCreate: { class: 'd-flex flex-column flex-column-reverse flex-md-row p-0', style: 'gap: 10px;' },
             };
         })}
-            `, 900);
+            `, BgWidget.getContainerWidth());
     }
 }
 window.glitter.setModule(import.meta.url, BgProject);
