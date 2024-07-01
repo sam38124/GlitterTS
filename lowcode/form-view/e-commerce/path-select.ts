@@ -133,7 +133,7 @@ export class PathSelect {
                                     if (linkComp.loading) {
                                         return html`<div
                                             class="form-control"
-                                            style="${obj.style ?? ''} margin-top:8px; white-space: normal; word-break: break-all"
+                                            style="margin-top:8px; white-space: normal; word-break: break-all; ${obj.style ?? ''}"
                                             onclick="${obj.gvc.event(() => {
                                                 componentFresh();
                                             })}"
@@ -142,27 +142,37 @@ export class PathSelect {
                                         </div>`;
                                     } else {
                                         return html`
-                                            <input
-                                                class="form-control"
-                                                style="${obj.style ?? ''} margin-top:8px;"
-                                                type="text"
-                                                placeholder="${obj.placeHolder}"
-                                                onchange="${obj.gvc.event((e) => {
-                                                    callbackEvent({ link: e.value });
-                                                })}"
-                                                oninput="${obj.gvc.event((e) => {
-                                                    if (obj.pattern) {
-                                                        const value = e.value;
-                                                        const regex = new RegExp(`[^${obj.pattern}]`, 'g');
-                                                        const validValue = value.replace(regex, '');
-                                                        if (value !== validValue) {
-                                                            e.value = validValue;
+                                            <div class="d-flex align-items-center" style="margin-top: 8px;">
+                                                <input
+                                                    class="form-control"
+                                                    style="${obj.style ?? ''}"
+                                                    type="text"
+                                                    placeholder="${obj.placeHolder}"
+                                                    onchange="${obj.gvc.event((e) => {
+                                                        callbackEvent({ link: e.value });
+                                                    })}"
+                                                    oninput="${obj.gvc.event((e) => {
+                                                        if (obj.pattern) {
+                                                            const value = e.value;
+                                                            const regex = new RegExp(`[^${obj.pattern}]`, 'g');
+                                                            const validValue = value.replace(regex, '');
+                                                            if (value !== validValue) {
+                                                                e.value = validValue;
+                                                            }
                                                         }
-                                                    }
-                                                })}"
-                                                value="${linkComp.text}"
-                                                ${obj.readonly ? `readonly` : ``}
-                                            />
+                                                    })}"
+                                                    value="${linkComp.text}"
+                                                    ${obj.readonly ? `readonly` : ``}
+                                                />
+                                                <span class="ms-2"
+                                                    ><i
+                                                        class="fa-solid fa-xmark text-dark cursor_pointer"
+                                                        onclick="${obj.gvc.event(() => {
+                                                            componentFresh();
+                                                        })}"
+                                                    ></i
+                                                ></span>
+                                            </div>
                                         `;
                                     }
                                 },

@@ -369,7 +369,6 @@ export class Setting_editor {
                                                 ]);
                                             }
 
-
                                             ApiPageConfig.getPrivateConfigV2('backend_list').then((res) => {
                                                 res.response.result[0] && (items = res.response.result[0].value);
                                                 items = items.filter((dd: any) => {

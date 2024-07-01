@@ -11,10 +11,10 @@ const router = express_1.default.Router();
 router.put('/config', async (req, resp) => {
     try {
         if (await ut_permission_js_1.UtPermission.isManager(req)) {
-            await (new manager_js_1.Manager(req.body.token)).setConfig({
+            await new manager_js_1.Manager(req.body.token).setConfig({
                 appName: req.get('g-app'),
                 key: req.body.key,
-                value: req.body.value
+                value: req.body.value,
             });
             return response_1.default.succ(resp, { result: true });
         }
@@ -29,10 +29,13 @@ router.put('/config', async (req, resp) => {
 router.get('/config', async (req, resp) => {
     var _a, _b;
     try {
-        return response_1.default.succ(resp, { result: true, value: (_b = ((_a = (await (new manager_js_1.Manager(req.body.token)).getConfig({
+        return response_1.default.succ(resp, {
+            result: true,
+            value: (_b = ((_a = (await new manager_js_1.Manager(req.body.token).getConfig({
                 appName: req.get('g-app'),
-                key: req.query.key
-            }))[0]) !== null && _a !== void 0 ? _a : {})['value']) !== null && _b !== void 0 ? _b : "" });
+                key: req.query.key,
+            }))[0]) !== null && _a !== void 0 ? _a : {})['value']) !== null && _b !== void 0 ? _b : '',
+        });
     }
     catch (err) {
         return response_1.default.fail(resp, err);
