@@ -875,11 +875,15 @@ export class Shopping {
         orderString?: string;
     }) {
         try {
-            // 訂單編號(Cart_token) 訂購人(orderData.user_info.name) 手機(orderData.user_info.phone) 商品名稱(orderData.lineItems[array].title) 商品編號(orderData.lineItems[array].sku) 發票號碼(orderData.invoice_number)
+            // 訂單編號(Cart_token)
+            // 訂購人(orderData.user_info.name)
+            // 手機(orderData.user_info.phone)
+            // 商品名稱(orderData.lineItems[array].title)
+            // 商品編號(orderData.lineItems[array].sku)
+            // 發票號碼(orderData.invoice_number)
 
             let querySql = ['1=1'];
             let orderString = 'order by id desc';
-            console.log(query);
             if (query.search && query.searchType) {
                 switch (query.searchType) {
                     case 'cart_token':
@@ -956,10 +960,8 @@ export class Shopping {
             query.email && querySql.push(`email=${db.escape(query.email)}`);
             query.id && querySql.push(`(content->>'$.id'=${query.id})`);
             let sql = `SELECT *
-                       FROM \`${this.app}\`.t_checkout
-   where ${querySql.join(' and ')}
-                       ${orderString}`;
-            console.log(sql);
+                        FROM \`${this.app}\`.t_checkout
+                        WHERE ${querySql.join(' and ')} ${orderString}`;
             if (query.id) {
                 const data = (
                     await db.query(

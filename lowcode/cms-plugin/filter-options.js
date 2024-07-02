@@ -77,9 +77,9 @@ FilterOptions.orderFunnel = [
         type: 'multi_checkbox',
         name: '訂單狀態',
         data: [
-            { key: "1", name: '已完成' },
-            { key: "0", name: '處理中' },
-            { key: "-1", name: '已取消' },
+            { key: '1', name: '已完成' },
+            { key: '0', name: '處理中' },
+            { key: '-1', name: '已取消' },
         ],
     },
     {
@@ -87,10 +87,10 @@ FilterOptions.orderFunnel = [
         type: 'multi_checkbox',
         name: '付款狀態',
         data: [
-            { key: "-1", name: '付款失敗' },
-            { key: "1", name: '已付款' },
-            { key: "0", name: '未付款' },
-            { key: "-2", name: '已退款' },
+            { key: '-1', name: '付款失敗' },
+            { key: '1', name: '已付款' },
+            { key: '0', name: '未付款' },
+            { key: '-2', name: '已退款' },
         ],
     },
     {
@@ -98,11 +98,11 @@ FilterOptions.orderFunnel = [
         type: 'multi_checkbox',
         name: '出貨狀況',
         data: [
-            { key: "shipping", name: '配送中' },
-            { key: "wait", name: '未出貨' },
-            { key: "finish", name: '已取貨' },
-            { key: "returns", name: '已退貨' },
-            { key: "arrived", name: '已到貨' },
+            { key: 'shipping', name: '配送中' },
+            { key: 'wait', name: '未出貨' },
+            { key: 'finish', name: '已取貨' },
+            { key: 'returns', name: '已退貨' },
+            { key: 'arrived', name: '已到貨' },
         ],
     },
     {
@@ -110,11 +110,11 @@ FilterOptions.orderFunnel = [
         type: 'multi_checkbox',
         name: '運送方式',
         data: [
-            { key: "normal", name: '宅配' },
-            { key: "UNIMARTC2C", name: '7-11店到店' },
-            { key: "FAMIC2C", name: '全家店到店' },
-            { key: "OKMARTC2C", name: 'OK店到店' },
-            { key: "HILIFEC2C", name: '萊爾富店到店' },
+            { key: 'normal', name: '宅配' },
+            { key: 'UNIMARTC2C', name: '7-11店到店' },
+            { key: 'FAMIC2C', name: '全家店到店' },
+            { key: 'OKMARTC2C', name: 'OK店到店' },
+            { key: 'HILIFEC2C', name: '萊爾富店到店' },
         ],
     },
     {
@@ -145,7 +145,7 @@ FilterOptions.orderSelect = [
     { key: 'invoice_number', value: '發票號碼' },
 ];
 FilterOptions.productOrderBy = [
-    { key: 'default', value: '商品名稱' },
+    { key: 'default', value: '預設' },
     { key: 'max_price', value: '價格高 > 低' },
     { key: 'min_price', value: '價格低 > 高' },
 ];
