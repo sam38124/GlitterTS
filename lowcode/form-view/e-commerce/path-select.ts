@@ -270,14 +270,14 @@ export class PathSelect {
                                                 `;
                                             });
                                         return html`
-                                            <div class="border border-2 rounded-2 p-2" style="width: 260px">
+                                            <div class="border border-2 rounded-2 p-2" style="width: 240px">
                                                 ${h1}
                                                 <div style="overflow-y: auto; max-height: 42.5vh;">${h2}</div>
                                             </div>
                                         `;
                                     }
                                 },
-                                divCreate: { style: 'position: absolute; top: 42.5px; left: 0; z-index: 1; background-color: #fff;' },
+                                divCreate: { style: 'position: absolute; top: 42.5px; right: 0; z-index: 1; background-color: #fff;' },
                             })}
                         </div>`;
                 }

@@ -53,7 +53,7 @@ export class SaasViewModel {
                                                         if (vm.type === 'list') {
                                                             return html` <div style="width: 600px; max-width: 95vw; overflow-y: auto;" class="bg-white shadow rounded-3">
                                                                 <div class="w-100 d-flex align-items-center p-3 border-bottom">
-                                                                    <div class="tx_700 me-2">所有商店</div>
+                                                                    <div class="tx_700 me-3">所有商店</div>
                                                                     ${BgWidget.grayButton(
                                                                         '新增商店',
                                                                         gvc.event(() => {
@@ -103,15 +103,15 @@ export class SaasViewModel {
                                                                                 return vm.data
                                                                                     .map((dd: any) => {
                                                                                         dd.theme_config = dd.theme_config ?? {};
-                                                                                        return html` <div class="p-3" style="display: flex; align-items: center;">
-                                                                                            <div
-                                                                                                class="rounded-3 shadow ${document.body.clientWidth > 768 ? '' : 'd-none'}"
-                                                                                                style="width: 110px; height: 94px; background-position: center; background-repeat: no-repeat; background-size: cover; 
+                                                                                        const storeList = [
+                                                                                            html`<div
+                                                                                                class="rounded-3 shadow"
+                                                                                                style="width: 120px; height: 94px; background-position: center; background-repeat: no-repeat; background-size: cover; 
                                                                                                 background-image: url('${dd.theme_config.preview_image ||
                                                                                                 (dd.config && dd.template_config && dd.template_config.image && dd.template_config.image[0]) ||
                                                                                                 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713445383494-未命名(1080x1080像素).jpg'}');"
-                                                                                            ></div>
-                                                                                            <div class="d-flex flex-column" style="margin-left: 15px; gap:1px;">
+                                                                                            ></div>`,
+                                                                                            html`<div class="d-flex flex-column" style="margin-left: 15px; gap:1px;">
                                                                                                 <div class="fw-500 fs-5 cl_39">${dd.theme_config.name || dd.appName}</div>
                                                                                                 ${(() => {
                                                                                                     const config = dd;
@@ -138,12 +138,8 @@ export class SaasViewModel {
                                                                                                 <div class="fw-500 cl_39" style="font-size: 13px;">
                                                                                                     上次儲存時間：${gvc.glitter.ut.dateFormat(new Date(dd.update_time), 'MM-dd hh:mm')}
                                                                                                 </div>
-                                                                                            </div>
-                                                                                            <div class="flex-fill"></div>
-                                                                                            <div class="d-none btn btn-sm bgf6 text-black" style="color: black; width: 40px;">
-                                                                                                <i class="fa-regular fa-trash"></i>
-                                                                                            </div>
-                                                                                            <div class="p-0 me-3" style="width: 40px;">
+                                                                                            </div>`,
+                                                                                            html`<div class="p-0 me-3" style="width: 40px;">
                                                                                                 <button
                                                                                                     class="btn btn-sm bgf6 text-black w-100 me-2"
                                                                                                     style="color: black; border-radius: 10px; box-shadow: 0px 0px 2px 0px rgba(0, 0, 0, 0.08); height: 28px"
@@ -226,8 +222,8 @@ export class SaasViewModel {
                                                                                                         >刪除商店</a
                                                                                                     >
                                                                                                 </div>
-                                                                                            </div>
-                                                                                            <div>
+                                                                                            </div>`,
+                                                                                            html`<div>
                                                                                                 ${BgWidget.darkButton(
                                                                                                     '更換商店',
                                                                                                     gvc.event(() => {
@@ -239,6 +235,26 @@ export class SaasViewModel {
                                                                                                     }),
                                                                                                     { size: 'sm' }
                                                                                                 )}
+                                                                                            </div>`,
+                                                                                        ];
+
+                                                                                        if (document.body.clientWidth > 768) {
+                                                                                            return html` <div class="p-4" style="display: flex; align-items: center;">
+                                                                                                ${storeList[0]}${storeList[1]}
+                                                                                                <div class="flex-fill"></div>
+                                                                                                ${storeList[2]}${storeList[3]}
+                                                                                            </div>`;
+                                                                                        }
+                                                                                        return html` <div
+                                                                                            class="p-4"
+                                                                                            style="display: flex; align-items: center; justify-content: flex-start; gap: 16px;"
+                                                                                        >
+                                                                                            ${storeList[0]}
+                                                                                            <div style="width: 100%;">
+                                                                                                ${storeList[1]}
+                                                                                                <div style="display: flex; justify-content: flex-end; margin-top: 12px;">
+                                                                                                    ${storeList[2]}${storeList[3]}
+                                                                                                </div>
                                                                                             </div>
                                                                                         </div>`;
                                                                                     })

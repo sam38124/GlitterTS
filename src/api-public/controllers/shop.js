@@ -194,6 +194,7 @@ router.get('/order', async (req, resp) => {
     var _a, _b, _c, _d;
     try {
         if (await ut_permission_1.UtPermission.isManager(req)) {
+            console.log(1);
             return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).getCheckOut({
                 page: ((_a = req.query.page) !== null && _a !== void 0 ? _a : 0),
                 limit: ((_b = req.query.limit) !== null && _b !== void 0 ? _b : 50),
@@ -210,6 +211,7 @@ router.get('/order', async (req, resp) => {
             }));
         }
         else if (await ut_permission_1.UtPermission.isAppUser(req)) {
+            console.log(2);
             const user_data = await new user_js_1.User(req.get('g-app'), req.body.token).getUserData(req.body.token.userID, 'userID');
             return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).getCheckOut({
                 page: ((_c = req.query.page) !== null && _c !== void 0 ? _c : 0),
@@ -218,6 +220,7 @@ router.get('/order', async (req, resp) => {
                 id: req.query.id,
                 email: user_data.account,
                 status: req.query.status,
+                searchType: req.query.searchType,
             }));
         }
         else {

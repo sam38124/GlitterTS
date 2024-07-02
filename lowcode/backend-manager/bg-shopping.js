@@ -111,7 +111,7 @@ export class BgShopping {
                                                     value: (() => {
                                                         switch (dd.status) {
                                                             case 0:
-                                                                return `<div class="badge  fs-7 " style="color:black;background:#ffd6a4;">付款待處理</div>`;
+                                                                return `<div class="badge fs-7 " style="color:black;background:#ffd6a4;">付款待處理</div>`;
                                                             case 1:
                                                                 return `<div class="badge fs-7" style="background:#0000000f;color:black;">已付款</div>`;
                                                             case -1:
@@ -166,8 +166,11 @@ export class BgShopping {
                                         }
                                         else {
                                             return [
-                                                `<span class="fs-7 fw-bold">操作選項</span>`,
-                                                `<button class="btn btn-danger fs-7 px-2" style="height:30px;border:none;" onclick="${gvc.event(() => {
+                                                html `<span class="fs-7 fw-bold">操作選項</span>`,
+                                                html `<button
+                                                        class="btn btn-danger fs-7 px-2"
+                                                        style="height:30px;border:none;"
+                                                        onclick="${gvc.event(() => {
                                                     const dialog = new ShareDialog(gvc.glitter);
                                                     dialog.checkYesOrNot({
                                                         text: '是否確認移除所選項目?',
@@ -196,7 +199,10 @@ export class BgShopping {
                                                             }
                                                         },
                                                     });
-                                                })}">批量移除</button>`,
+                                                })}"
+                                                    >
+                                                        批量移除
+                                                    </button>`,
                                             ].join(``);
                                         }
                                     },
@@ -627,9 +633,9 @@ export class BgShopping {
                                     case 'UNIMARTC2C':
                                         return [
                                             `<div class="fw-bold fs-6">配送門市</div>`,
-                                            `<div class="fw-normal fs-6">名稱:${orderData.orderData.user_info.CVSStoreName}</div>`,
-                                            `<div class="fw-normal fs-6">代號:${orderData.orderData.user_info.CVSStoreID}</div>`,
-                                            `<div class="fw-normal fs-6">地址:${orderData.orderData.user_info.CVSAddress}</div>`,
+                                            `<div class="fw-normal fs-6">名稱: ${orderData.orderData.user_info.CVSStoreName}</div>`,
+                                            `<div class="fw-normal fs-6">代號: ${orderData.orderData.user_info.CVSStoreID}</div>`,
+                                            `<div class="fw-normal fs-6">地址: ${orderData.orderData.user_info.CVSAddress}</div>`,
                                             `<div class="my-2 bgf6" style="height: 1px;"></div>`,
                                         ].join('');
                                     case 'normal':
@@ -1364,10 +1370,10 @@ ${EditorElem.editeInput({
                     bind: id,
                     view: () => {
                         return [
-                            ` <h6 class="fs-7 mb-2">有效日期</h6>`,
-                            `<div class="d-flex align-items-center mb-2">
-<div>
-${EditorElem.editeInput({
+                            html ` <h6 class="fs-7 mb-2">有效日期</h6>`,
+                            html `<div class="d-flex align-items-center mb-2">
+                                                    <div>
+                                                        ${EditorElem.editeInput({
                                 gvc: gvc,
                                 title: '<span class="me-2 fs-7">開始日期</span>',
                                 type: 'date',
@@ -1378,9 +1384,9 @@ ${EditorElem.editeInput({
                                     voucherData.startDate = text;
                                 },
                             })}
-</div>
-<div class="ms-3">
-${EditorElem.editeInput({
+                                                    </div>
+                                                    <div class="ms-3">
+                                                        ${EditorElem.editeInput({
                                 gvc: gvc,
                                 title: '<span class="me-2 fs-7 ms-2">開始時間</span>',
                                 type: 'time',
@@ -1391,8 +1397,8 @@ ${EditorElem.editeInput({
                                     voucherData.startTime = text;
                                 },
                             })}
-</div>
-</div>`,
+                                                    </div>
+                                                </div>`,
                             (() => {
                                 const endDate = voucherData.endDate ? `withEnd` : `noEnd`;
                                 return EditorElem.checkBox({
@@ -1407,9 +1413,9 @@ ${EditorElem.editeInput({
                                         {
                                             title: '有效期限',
                                             value: 'withEnd',
-                                            innerHtml: `<div class="d-flex align-items-center mb-2">
-<div>
-${EditorElem.editeInput({
+                                            innerHtml: html `<div class="d-flex align-items-center mb-2">
+                                                                    <div>
+                                                                        ${EditorElem.editeInput({
                                                 gvc: gvc,
                                                 title: '<span class="me-2 fs-7">結束日期</span>',
                                                 type: 'date',
@@ -1420,9 +1426,9 @@ ${EditorElem.editeInput({
                                                     voucherData.endDate = text;
                                                 },
                                             })}
-</div>
-<div class="ms-3">
-${EditorElem.editeInput({
+                                                                    </div>
+                                                                    <div class="ms-3">
+                                                                        ${EditorElem.editeInput({
                                                 gvc: gvc,
                                                 title: '<span class="me-2 fs-7 ms-2">結束時間</span>',
                                                 type: 'time',
@@ -1433,8 +1439,8 @@ ${EditorElem.editeInput({
                                                     voucherData.endTime = text;
                                                 },
                                             })}
-</div>
-</div>`,
+                                                                    </div>
+                                                                </div>`,
                                         },
                                     ],
                                     callback: (text) => {
@@ -1458,10 +1464,13 @@ ${EditorElem.editeInput({
                     </div>
                 </div>
                 ${obj.type === 'replace'
-            ? `
-               <div class="d-flex w-100">
-               <div class="flex-fill"></div>
-                 <button class="btn btn-danger mt-3 ${obj.type === 'replace' ? `` : `d-none`}  ms-auto px-2" style="height:30px;width:100px;" onclick="${obj.gvc.event(() => {
+            ? html `
+                          <div class="d-flex w-100">
+                              <div class="flex-fill"></div>
+                              <button
+                                  class="btn btn-danger mt-3 ${obj.type === 'replace' ? `` : `d-none`}  ms-auto px-2"
+                                  style="height:30px;width:100px;"
+                                  onclick="${obj.gvc.event(() => {
                 const dialog = new ShareDialog(obj.gvc.glitter);
                 dialog.checkYesOrNot({
                     text: '是否確認刪除優惠券?',
@@ -1482,9 +1491,12 @@ ${EditorElem.editeInput({
                         }
                     },
                 });
-            })}">刪除優惠券</button>
-</div>
-                `
+            })}"
+                              >
+                                  刪除優惠券
+                              </button>
+                          </div>
+                      `
             : ``}
             `, 700);
     }
@@ -1632,8 +1644,11 @@ ${EditorElem.editeInput({
                                             }
                                             else {
                                                 return [
-                                                    `<span class="fs-7 fw-bold">操作選項</span>`,
-                                                    `<button class="btn btn-danger fs-7 px-2" style="height:30px;border:none;" onclick="${gvc.event(() => {
+                                                    html `<span class="fs-7 fw-bold">操作選項</span>`,
+                                                    html `<button
+                                                                class="btn btn-danger fs-7 px-2"
+                                                                style="height:30px;border:none;"
+                                                                onclick="${gvc.event(() => {
                                                         const dialog = new ShareDialog(gvc.glitter);
                                                         dialog.checkYesOrNot({
                                                             text: '是否確認移除所選項目?',
@@ -1662,7 +1677,10 @@ ${EditorElem.editeInput({
                                                                 }
                                                             },
                                                         });
-                                                    })}">批量移除</button>`,
+                                                    })}"
+                                                            >
+                                                                批量移除
+                                                            </button>`,
                                                 ].join(``);
                                             }
                                         },
@@ -1714,10 +1732,13 @@ ${EditorElem.editeInput({
             return {
                 bind: id,
                 view: () => {
-                    return ` <div class="d-flex w-100 align-items-center mb-3 ">
-                    ${BgWidget.title('商品系列管理')}
-                    <div class="flex-fill"></div>
-                    <button class="btn btn-primary-c" style="height:38px;font-size: 14px;" onclick="${obj.gvc.event(() => {
+                    return html ` <div class="d-flex w-100 align-items-center mb-3 ">
+                                ${BgWidget.title('商品系列管理')}
+                                <div class="flex-fill"></div>
+                                <button
+                                    class="btn btn-primary-c"
+                                    style="height:38px;font-size: 14px;"
+                                    onclick="${obj.gvc.event(() => {
                         dialog.dataLoading({ text: '商品上傳中...', visible: true });
                         ApiShop.setCollection(array).then((response) => {
                             dialog.dataLoading({ text: '上傳中...', visible: false });
@@ -1728,9 +1749,12 @@ ${EditorElem.editeInput({
                                 dialog.errorMessage({ text: '上傳失敗...' });
                             }
                         });
-                    })}">儲存</button>
-                </div>
-                ${BgWidget.card((() => {
+                    })}"
+                                >
+                                    儲存
+                                </button>
+                            </div>
+                            ${BgWidget.card((() => {
                         function renderArray(title, array, notify) {
                             return EditorElem.arrayItem({
                                 gvc: obj.gvc,
@@ -1819,10 +1843,13 @@ ${EditorElem.editeInput({
             return {
                 bind: id,
                 view: () => {
-                    return ` <div class="d-flex w-100 align-items-center mb-3 ">
-                    ${BgWidget.title('商品顯示區塊')}
-                    <div class="flex-fill"></div>
-                    <button class="btn btn-primary-c" style="height:38px;font-size: 14px;" onclick="${obj.gvc.event(() => {
+                    return html ` <div class="d-flex w-100 align-items-center mb-3 ">
+                                ${BgWidget.title('商品顯示區塊')}
+                                <div class="flex-fill"></div>
+                                <button
+                                    class="btn btn-primary-c"
+                                    style="height:38px;font-size: 14px;"
+                                    onclick="${obj.gvc.event(() => {
                         dialog.dataLoading({ text: '商品上傳中...', visible: true });
                         ApiShop.setShowList(array).then((response) => {
                             dialog.dataLoading({ text: '上傳中...', visible: false });
@@ -1833,9 +1860,12 @@ ${EditorElem.editeInput({
                                 dialog.errorMessage({ text: '上傳失敗...' });
                             }
                         });
-                    })}">儲存</button>
-                </div>
-                ${BgWidget.card((() => {
+                    })}"
+                                >
+                                    儲存
+                                </button>
+                            </div>
+                            ${BgWidget.card((() => {
                         function renderArray(title, array, notify) {
                             return EditorElem.arrayItem({
                                 gvc: obj.gvc,
@@ -1886,7 +1916,8 @@ ${EditorElem.editeInput({
                                                                         obj.gvc.notifyDataChange(id);
                                                                     },
                                                                 }),
-                                                                `<div class="mx-n2">${EditorElem.arrayItem({
+                                                                html `<div class="mx-n2">
+                                                                                ${EditorElem.arrayItem({
                                                                     gvc: gvc,
                                                                     title: '商品項目',
                                                                     array: () => {
@@ -1976,7 +2007,8 @@ ${EditorElem.editeInput({
                                                                     refreshComponent: () => {
                                                                         gvc.recreateView();
                                                                     },
-                                                                })}</div>`,
+                                                                })}
+                                                                            </div>`,
                                                             ]);
                                                         },
                                                     };
@@ -2030,12 +2062,16 @@ ${EditorElem.editeInput({
         const gvc = obj.gvc;
         const seoID = gvc.glitter.getUUID();
         return html ` <div class="d-flex">
-            ${BgWidget.container(`<div class="d-flex w-100 align-items-center mb-3 ">
-                ${BgWidget.goBack(obj.gvc.event(() => {
+            ${BgWidget.container(html `<div class="d-flex w-100 align-items-center mb-3 ">
+                        ${BgWidget.goBack(obj.gvc.event(() => {
             obj.vm.status = 'list';
-        }))} ${BgWidget.title(obj.type === 'replace' ? `編輯商品` : `新增商品`)}
-        <div class="flex-fill"></div>
-         <button class="btn btn-primary-c" style="height:38px;font-size: 14px;" onclick="${obj.gvc.event(() => {
+        }))}
+                        ${BgWidget.title(obj.type === 'replace' ? `編輯商品` : `新增商品`)}
+                        <div class="flex-fill"></div>
+                        <button
+                            class="btn btn-primary-c"
+                            style="height:38px;font-size: 14px;"
+                            onclick="${obj.gvc.event(() => {
             setTimeout(() => {
                 if (obj.type === 'replace') {
                     BgShopping.putEvent(postMD, obj.gvc, obj.vm);
@@ -2044,10 +2080,14 @@ ${EditorElem.editeInput({
                     BgShopping.postEvent(postMD, obj.gvc, obj.vm);
                 }
             }, 500);
-        })}">${obj.type === 'replace' ? `儲存並更改` : `儲存並新增`}</button>
-        </div>
-     <div class="d-flex flex-column flex-column-reverse  flex-md-row" style="gap:10px;">
-     <div style="width:800px;max-width:100%;">  ${BgWidget.card([
+        })}"
+                        >
+                            ${obj.type === 'replace' ? `儲存並更改` : `儲存並新增`}
+                        </button>
+                    </div>
+                    <div class="d-flex flex-column flex-column-reverse  flex-md-row" style="gap:10px;">
+                        <div style="width:800px;max-width:100%;">
+                            ${BgWidget.card([
             EditorElem.editeInput({
                 gvc: obj.gvc,
                 title: '商品標題',
@@ -2063,57 +2103,63 @@ ${EditorElem.editeInput({
                     bind: bi,
                     view: () => {
                         return [
-                            EditorElem.h3(`<div class="d-flex align-items-center">商品內文<button class=" btn ms-2 btn-primary-c ms-2" style="height: 30px;width: 60px;" onclick="${obj.gvc.event(() => {
-                                postMD.content = `<h3 style="padding: 32px 0px;">商品資訊</h3>
+                            EditorElem.h3(html `<div class="d-flex align-items-center">
+                                                        商品內文<button
+                                                            class=" btn ms-2 btn-primary-c ms-2"
+                                                            style="height: 30px;width: 60px;"
+                                                            onclick="${obj.gvc.event(() => {
+                                postMD.content = html `<h3 style="padding: 32px 0px;">商品資訊</h3>
 
-<p>优雅家居经典绒面椅将为您的家居空间带来一抹优雅和舒适。</p>
+                                                                    <p>优雅家居经典绒面椅将为您的家居空间带来一抹优雅和舒适。</p>
 
-<p>这款椅子结合了现代舒适和经典风格，为您提供了完美的休憩之地。</p>
+                                                                    <p>这款椅子结合了现代舒适和经典风格，为您提供了完美的休憩之地。</p>
 
-<p>绒面面料舒适柔软，而实木框架确保了椅子的坚固性。</p>
+                                                                    <p>绒面面料舒适柔软，而实木框架确保了椅子的坚固性。</p>
 
-<p>您可以在这把椅子上放松身体和心灵，无论是阅读一本好书还是与家人共度美好时光。</p>
+                                                                    <p>您可以在这把椅子上放松身体和心灵，无论是阅读一本好书还是与家人共度美好时光。</p>
 
-<p>它的多用途设计使它适用于各种房间和场合，是一个实用且具有装饰性的家居家具选择。</p>
-<hr style="margin-top: 48px;" color="#E0E0E0">
+                                                                    <p>它的多用途设计使它适用于各种房间和场合，是一个实用且具有装饰性的家居家具选择。</p>
+                                                                    <hr style="margin-top: 48px;" color="#E0E0E0" />
 
-<h3 style="padding: 32px 0px;">商品材質</h3>
+                                                                    <h3 style="padding: 32px 0px;">商品材質</h3>
 
-<p>坐面：塑膠</p>
-<hr style="margin-top: 48px;" color="#E0E0E0">
+                                                                    <p>坐面：塑膠</p>
+                                                                    <hr style="margin-top: 48px;" color="#E0E0E0" />
 
-<h3 style="padding: 32px 0px;">商品交期</h3>
+                                                                    <h3 style="padding: 32px 0px;">商品交期</h3>
 
-<p>標準交期：家具製造商已備妥家具組件，將在接單後直接組裝出貨，預計交期為 5-6 週。</p>
+                                                                    <p>標準交期：家具製造商已備妥家具組件，將在接單後直接組裝出貨，預計交期為 5-6 週。</p>
 
-<p>平均交期：家具製造商無現成家具組件，須再加上製造時間，平均交期為 10 至 12 週。</p>
+                                                                    <p>平均交期：家具製造商無現成家具組件，須再加上製造時間，平均交期為 10 至 12 週。</p>
 
-<p>若逢春節期間、國定假日及雙 11 檔期，交期可能會受到影響，建議提早下單，避免久候。</p>
-<hr style="margin-top: 48px;" color="#E0E0E0">
+                                                                    <p>若逢春節期間、國定假日及雙 11 檔期，交期可能會受到影響，建議提早下單，避免久候。</p>
+                                                                    <hr style="margin-top: 48px;" color="#E0E0E0" />
 
-<h3 style="padding: 32px 0px;">商品規格</h3>
+                                                                    <h3 style="padding: 32px 0px;">商品規格</h3>
 
-<p>長：56 公分</p>
+                                                                    <p>長：56 公分</p>
 
-<p>寬：52 公分</p>
+                                                                    <p>寬：52 公分</p>
 
-<p>高：83.5 公分</p>
+                                                                    <p>高：83.5 公分</p>
 
-<p>座高：48 公分</p>
-<hr style="margin-top: 48px;" color="#E0E0E0">
+                                                                    <p>座高：48 公分</p>
+                                                                    <hr style="margin-top: 48px;" color="#E0E0E0" />
 
-<h3 style="padding: 32px 0px;">保養資訊</h3>
+                                                                    <h3 style="padding: 32px 0px;">保養資訊</h3>
 
-<p><strong>塑膠</strong></p>
+                                                                    <p><strong>塑膠</strong></p>
 
-<p><span style="font-weight: 400;">清潔時，可使用些許水擦拭並用乾淨的布擦乾。避免日曬。</span></p>
+                                                                    <p><span style="font-weight: 400;">清潔時，可使用些許水擦拭並用乾淨的布擦乾。避免日曬。</span></p>
 
-<p><span style="font-weight: 400;">使用時，應防止硬物碰撞。壁面金屬刷具清潔。</span></p>
-<hr style="margin-top: 48px;" color="#E0E0E0">
-`;
+                                                                    <p><span style="font-weight: 400;">使用時，應防止硬物碰撞。壁面金屬刷具清潔。</span></p>
+                                                                    <hr style="margin-top: 48px;" color="#E0E0E0" /> `;
                                 obj.gvc.notifyDataChange(bi);
-                            })}">範例
-                                </button></div>`),
+                            })}"
+                                                        >
+                                                            範例
+                                                        </button>
+                                                    </div>`),
                             EditorElem.richText({
                                 gvc: obj.gvc,
                                 def: postMD.content,
@@ -2128,23 +2174,23 @@ ${EditorElem.editeInput({
                 };
             }),
         ].join('<div class="my-2"></div>'))}
-       <div class="my-2"></div>
-       ${BgWidget.card(obj.gvc.bindView(() => {
+                            <div class="my-2"></div>
+                            ${BgWidget.card(obj.gvc.bindView(() => {
             const id = obj.gvc.glitter.getUUID();
             return {
                 bind: id,
                 view: () => {
                     return (EditorElem.h3(html ` <div class="d-flex align-items-center" style="gap:10px;">
-                               多媒體檔案
-                               <div
-                                   class="d-flex align-items-center justify-content-center rounded-3"
-                                   style="height: 30px;width: 80px;
+                                                    多媒體檔案
+                                                    <div
+                                                        class="d-flex align-items-center justify-content-center rounded-3"
+                                                        style="height: 30px;width: 80px;
 "
-                               >
-                                   <button
-                                       class="btn ms-2 btn-primary-c ms-2"
-                                       style="height: 30px;width: 80px;"
-                                       onclick="${obj.gvc.event(() => {
+                                                    >
+                                                        <button
+                                                            class="btn ms-2 btn-primary-c ms-2"
+                                                            style="height: 30px;width: 80px;"
+                                                            onclick="${obj.gvc.event(() => {
                         EditorElem.uploadFileFunction({
                             gvc: obj.gvc,
                             callback: (text) => {
@@ -2154,11 +2200,11 @@ ${EditorElem.editeInput({
                             type: `image/*, video/*`,
                         });
                     })}"
-                                   >
-                                       添加檔案
-                                   </button>
-                               </div>
-                           </div>`) +
+                                                        >
+                                                            添加檔案
+                                                        </button>
+                                                    </div>
+                                                </div>`) +
                         html ` <div class="my-2"></div>` +
                         EditorElem.flexMediaManager({
                             gvc: obj.gvc,
@@ -2168,8 +2214,8 @@ ${EditorElem.editeInput({
                 divCreate: {},
             };
         }))}
-        <div class="my-2"></div>
-       ${BgWidget.card(obj.gvc.bindView(() => {
+                            <div class="my-2"></div>
+                            ${BgWidget.card(obj.gvc.bindView(() => {
             const id = obj.gvc.glitter.getUUID();
             function refresh() {
                 obj.gvc.notifyDataChange(id);
@@ -2187,14 +2233,16 @@ ${EditorElem.editeInput({
                                     var _a;
                                     dd.option = (_a = dd.option) !== null && _a !== void 0 ? _a : [];
                                     return {
-                                        title: `<div class="d-flex flex-column w-100 ps-2" style="gap:5px;">
-<span>${dd.title || '尚未設定規格名稱'}</span>
-<div class="d-flex">${dd.option
+                                        title: html `<div class="d-flex flex-column w-100 ps-2" style="gap:5px;">
+                                                                    <span>${dd.title || '尚未設定規格名稱'}</span>
+                                                                    <div class="d-flex">
+                                                                        ${dd.option
                                             .map((d2) => {
                                             return `<div class="badge bg-secondary">${d2.title}</div>`;
                                         })
-                                            .join('<div class="mx-1"></div>')}</div>
-</div>`,
+                                            .join('<div class="mx-1"></div>')}
+                                                                    </div>
+                                                                </div>`,
                                         innerHtml: (gvc) => {
                                             var _a;
                                             refresh();
@@ -2209,14 +2257,16 @@ ${EditorElem.editeInput({
                                                         refresh();
                                                     },
                                                 }),
-                                                `<div class="mx-n2 mt-2">${EditorElem.arrayItem({
+                                                html `<div class="mx-n2 mt-2">
+                                                                            ${EditorElem.arrayItem({
                                                     gvc: obj.gvc,
                                                     title: '分類選項',
                                                     array: () => {
                                                         return dd.option.map((dd) => {
                                                             var _a;
                                                             return {
-                                                                title: `<div class="px-2 w-100">${EditorElem.editeInput({
+                                                                title: html `<div class="px-2 w-100">
+                                                                                                ${EditorElem.editeInput({
                                                                     gvc: gvc,
                                                                     title: '',
                                                                     default: (_a = dd.title) !== null && _a !== void 0 ? _a : '',
@@ -2225,7 +2275,8 @@ ${EditorElem.editeInput({
                                                                         dd.title = text;
                                                                         refresh();
                                                                     },
-                                                                })}</div>`,
+                                                                })}
+                                                                                            </div>`,
                                                                 innerHtml: () => {
                                                                     return ``;
                                                                 },
@@ -2249,7 +2300,7 @@ ${EditorElem.editeInput({
                                                         gvc.recreateView();
                                                     },
                                                 })}
-</div>`,
+                                                                        </div>`,
                                             ].join('');
                                         },
                                         editTitle: `編輯規格`,
@@ -2278,8 +2329,8 @@ ${EditorElem.editeInput({
                 divCreate: {},
             };
         }))}
-        <div class="my-2"></div>
-         ${BgWidget.card(EditorElem.h3('商品項目') +
+                            <div class="my-2"></div>
+                            ${BgWidget.card(EditorElem.h3('商品項目') +
             obj.gvc.bindView(() => {
                 const id = obj.gvc.glitter.getUUID();
                 function refresh() {
@@ -2300,16 +2351,16 @@ ${EditorElem.editeInput({
                                 shipmentSetting = data.response.result[0].value;
                             }
                             resolve([
-                                `<div class="w-100 bgf6 d-flex" >
-<div style=" width:calc(100% / 7 - 90px);"></div>
-<div style=" width:${wi};padding-left:10px; ">子類</div>
-<div style=" width:${wi}; ">販售價格</div>
-<div style=" width:${wi}; ">比較價格</div>
-<div style=" width:${wi}; ">存貨數量</div>
-<div style=" width:${wi};">存貨單位(SKU)</div>
-<div style=" width:${wi};margin-left: 20px;">運費權重</div>
-<div style=" width:${wi}; "></div>
-</div>`,
+                                html `<div class="w-100 bgf6 d-flex">
+                                                                <div style=" width:calc(100% / 7 - 90px);"></div>
+                                                                <div style=" width:${wi};padding-left:10px; ">子類</div>
+                                                                <div style=" width:${wi}; ">販售價格</div>
+                                                                <div style=" width:${wi}; ">比較價格</div>
+                                                                <div style=" width:${wi}; ">存貨數量</div>
+                                                                <div style=" width:${wi};">存貨單位(SKU)</div>
+                                                                <div style=" width:${wi};margin-left: 20px;">運費權重</div>
+                                                                <div style=" width:${wi}; "></div>
+                                                            </div>`,
                                 EditorElem.arrayItem({
                                     customEditor: true,
                                     gvc: obj.gvc,
@@ -2319,9 +2370,12 @@ ${EditorElem.editeInput({
                                             var _a, _b, _c, _d, _e;
                                             const wi = `calc(100% / 6 + 47px);`;
                                             return {
-                                                title: `<div class="d-flex align-items-center p-0 px-2" style="gap:10px;">${[
-                                                    dd.preview_image ? `<img class="rounded border" alt="" src="${dd.preview_image}" style="width:40px;height:40px;">` : '',
-                                                    `<div style="width:calc(100% / 6.5);white-space:normal;">${dd.spec.join('-') || postMD.title}</div>`,
+                                                title: html `<div class="d-flex align-items-center p-0 px-2" style="gap:10px;">
+                                                                                ${[
+                                                    dd.preview_image
+                                                        ? html `<img class="rounded border" alt="" src="${dd.preview_image}" style="width:40px;height:40px;" />`
+                                                        : '',
+                                                    html `<div style="width:calc(100% / 6.5);white-space:normal;">${dd.spec.join('-') || postMD.title}</div>`,
                                                     EditorElem.editeInput({
                                                         gvc: obj.gvc,
                                                         title: '',
@@ -2378,36 +2432,39 @@ ${EditorElem.editeInput({
                                                         style: ` width:${wi};;`,
                                                     }),
                                                 ].join('')}
-<button class="btn ms-2 btn-primary-c ms-2" style="height: 38px; " onclick="${obj.gvc.event(() => {
+                                                                                <button
+                                                                                    class="btn ms-2 btn-primary-c ms-2"
+                                                                                    style="height: 38px; "
+                                                                                    onclick="${obj.gvc.event(() => {
                                                     obj.gvc.glitter.innerDialog((gvc) => {
                                                         var _a, _b, _c, _d, _e;
                                                         return html ` <div
-                                                                     class="dropdown-menu mx-0 position-fixed pb-0 border p-0 show "
-                                                                     style="z-index:999999;400px;"
-                                                                     onclick="${gvc.event((e, event) => {
+                                                                                                class="dropdown-menu mx-0 position-fixed pb-0 border p-0 show "
+                                                                                                style="z-index:999999;400px;"
+                                                                                                onclick="${gvc.event((e, event) => {
                                                             event.preventDefault();
                                                             event.stopPropagation();
                                                         })}"
-                                                                 >
-                                                                     <div class="d-flex align-items-center px-2 border-bottom" style="height:50px;min-width:400px;">
-                                                                         <h3 style="font-size:15px;font-weight:500;" class="m-0">${`編輯內容`}</h3>
-                                                                         <div class="flex-fill"></div>
-                                                                         <div
-                                                                             class="hoverBtn p-2"
-                                                                             data-bs-toggle="dropdown"
-                                                                             aria-haspopup="true"
-                                                                             aria-expanded="false"
-                                                                             style="color:black;font-size:20px;"
-                                                                             onclick="${gvc.event((e, event) => {
+                                                                                            >
+                                                                                                <div class="d-flex align-items-center px-2 border-bottom" style="height:50px;min-width:400px;">
+                                                                                                    <h3 style="font-size:15px;font-weight:500;" class="m-0">${`編輯內容`}</h3>
+                                                                                                    <div class="flex-fill"></div>
+                                                                                                    <div
+                                                                                                        class="hoverBtn p-2"
+                                                                                                        data-bs-toggle="dropdown"
+                                                                                                        aria-haspopup="true"
+                                                                                                        aria-expanded="false"
+                                                                                                        style="color:black;font-size:20px;"
+                                                                                                        onclick="${gvc.event((e, event) => {
                                                             gvc.closeDialog();
                                                             refresh();
                                                         })}"
-                                                                         >
-                                                                             <i class="fa-sharp fa-regular fa-circle-xmark"></i>
-                                                                         </div>
-                                                                     </div>
-                                                                     <div class="px-2 pb-2 pt-2" style="max-height:calc(100vh - 150px);overflow-y:auto;">
-                                                                         ${[
+                                                                                                    >
+                                                                                                        <i class="fa-sharp fa-regular fa-circle-xmark"></i>
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                                <div class="px-2 pb-2 pt-2" style="max-height:calc(100vh - 150px);overflow-y:auto;">
+                                                                                                    ${[
                                                             EditorElem.uploadImage({
                                                                 title: '商品圖片',
                                                                 gvc: obj.gvc,
@@ -2462,15 +2519,17 @@ ${EditorElem.editeInput({
                                                                 return EditorElem.editeInput({
                                                                     gvc: obj.gvc,
                                                                     title: html ` <div class="d-flex flex-column">
-                                                                                         <span>運費權重</span>
-                                                                                         <div class="alert-info alert mt-2 mb-0">
-                                                                                             <span>( 每單位金額*權重 ) + 基本運費 = 總運費</span><br />
-                                                                                             <span style=""
-                                                                                                 >試算 : ( ${shipmentSetting.weight} * ${dd.shipment_weight} ) + ${shipmentSetting.basic_fee} =
-                                                                                                 ${shipmentSetting.weight * dd.shipment_weight + shipmentSetting.basic_fee}</span
-                                                                                             >
-                                                                                         </div>
-                                                                                     </div>`,
+                                                                                                                    <span>運費權重</span>
+                                                                                                                    <div class="alert-info alert mt-2 mb-0">
+                                                                                                                        <span>( 每單位金額*權重 ) + 基本運費 = 總運費</span><br />
+                                                                                                                        <span style=""
+                                                                                                                            >試算 : ( ${shipmentSetting.weight} * ${dd.shipment_weight} ) +
+                                                                                                                            ${shipmentSetting.basic_fee} =
+                                                                                                                            ${shipmentSetting.weight * dd.shipment_weight +
+                                                                        shipmentSetting.basic_fee}</span
+                                                                                                                        >
+                                                                                                                    </div>
+                                                                                                                </div>`,
                                                                     default: `${(_a = dd.shipment_weight) !== null && _a !== void 0 ? _a : 0}`,
                                                                     placeHolder: '',
                                                                     type: 'number',
@@ -2480,11 +2539,14 @@ ${EditorElem.editeInput({
                                                                 });
                                                             })(),
                                                         ].join('')}
-                                                                     </div>
-                                                                 </div>`;
+                                                                                                </div>
+                                                                                            </div>`;
                                                     }, obj.gvc.glitter.getUUID());
-                                                })}">編輯商品</button>
-</div>`,
+                                                })}"
+                                                                                >
+                                                                                    編輯商品
+                                                                                </button>
+                                                                            </div>`,
                                                 innerHtml: (gvc) => {
                                                     return [].join('');
                                                 },
@@ -2553,8 +2615,8 @@ ${EditorElem.editeInput({
                     },
                 };
             }))}
-          <div class="my-2"></div>
-         ${BgWidget.card(obj.gvc.bindView(() => {
+                            <div class="my-2"></div>
+                            ${BgWidget.card(obj.gvc.bindView(() => {
             var _a;
             postMD.seo = (_a = postMD.seo) !== null && _a !== void 0 ? _a : {
                 title: '',
@@ -2566,13 +2628,20 @@ ${EditorElem.editeInput({
                 bind: id,
                 view: () => {
                     let view = [
-                        `<div class="fs-sm fw-500 d-flex align-items-center justify-content-between mb-2">搜尋引擎列表
-<div class="fw-500 fs-sm ${toggle ? `d-none` : ``}" style="cursor: pointer;color:rgba(0, 91, 211, 1);" onclick="${obj.gvc.event(() => {
+                        html `<div class="fs-sm fw-500 d-flex align-items-center justify-content-between mb-2">
+                                                    搜尋引擎列表
+                                                    <div
+                                                        class="fw-500 fs-sm ${toggle ? `d-none` : ``}"
+                                                        style="cursor: pointer;color:rgba(0, 91, 211, 1);"
+                                                        onclick="${obj.gvc.event(() => {
                             toggle = !toggle;
                             obj.gvc.notifyDataChange(id);
-                        })}">編輯</div>
-</div>`,
-                        `<div class="fs-6 fw-500" style="color:#1a0dab;">${postMD.seo.title || '尚未設定'}</div>`,
+                        })}"
+                                                    >
+                                                        編輯
+                                                    </div>
+                                                </div>`,
+                        html `<div class="fs-6 fw-500" style="color:#1a0dab;">${postMD.seo.title || '尚未設定'}</div>`,
                         (() => {
                             const href = (() => {
                                 const url = new URL('', gvc.glitter.share.editorViewModel.domain ? `https://${gvc.glitter.share.editorViewModel.domain}/` : location.href);
@@ -2584,9 +2653,9 @@ ${EditorElem.editeInput({
                                 }
                                 return url.href;
                             })();
-                            return `<a class="fs-sm fw-500" style="color:#006621;cursor: pointer;" href="${href}">${href}</a>`;
+                            return html `<a class="fs-sm fw-500" style="color:#006621;cursor: pointer;" href="${href}">${href}</a>`;
                         })(),
-                        `<div class="fs-sm fw-500" style="color:#545454;white-space: normal;">${postMD.seo.content || '尚未設定'}</div>`,
+                        html `<div class="fs-sm fw-500" style="color:#545454;white-space: normal;">${postMD.seo.content || '尚未設定'}</div>`,
                     ];
                     if (toggle) {
                         view = view.concat([
@@ -2614,15 +2683,9 @@ ${EditorElem.editeInput({
                 },
             };
         }))}
-         </div>
-         <div style="width:300px;max-width:100%;">
-       
-         ${BgWidget.card(`  ${postMD.id
-            ? `
-         ${EditorElem.h3('商品ID')}
-         ${postMD.id}
-         `
-            : ``}` +
+                        </div>
+                        <div style="width:300px;max-width:100%;">
+                            ${BgWidget.card(`  ${postMD.id ? html ` ${EditorElem.h3('商品ID')} ${postMD.id} ` : ``}` +
             EditorElem.select({
                 gvc: obj.gvc,
                 title: '商品狀態',
@@ -2635,11 +2698,11 @@ ${EditorElem.editeInput({
                     postMD.status = text;
                 },
             }))}
-${(() => {
+                            ${(() => {
             return ``;
         })()}
-<div class="mt-2"></div>
-         ${BgWidget.card(obj.gvc.bindView(() => {
+                            <div class="mt-2"></div>
+                            ${BgWidget.card(obj.gvc.bindView(() => {
             const id = obj.gvc.glitter.getUUID();
             function refresh() {
                 obj.gvc.notifyDataChange(id);
@@ -2653,31 +2716,33 @@ ${(() => {
                                 const indt = ind ? `${ind} / ${dd.title}` : dd.title;
                                 if (dd.array && dd.array.length > 0) {
                                     return html ` <li class="btn-group d-flex flex-column" style="margin-top:1px;margin-bottom:1px;">
-                                                     <div
-                                                         class="editor_item d-flex   pe-2 my-0 hi me-n1 "
-                                                         style=""
-                                                         onclick="${gvc.event(() => {
+                                                                        <div
+                                                                            class="editor_item d-flex   pe-2 my-0 hi me-n1 "
+                                                                            style=""
+                                                                            onclick="${gvc.event(() => {
                                         dd.toogle = !dd.toogle;
                                         gvc.recreateView();
                                     })}"
-                                                     >
-                                                         <div class="subBt ps-0 ms-n2">
-                                                             ${dd.toogle ? `<i class="fa-sharp fa-regular fa-chevron-down"></i>` : `  <i class="fa-regular fa-angle-right hoverBtn "></i>`}
-                                                         </div>
-                                                         ${dd.title}
-                                                         <div class="flex-fill"></div>
-                                                     </div>
-                                                     <ul class="ps-2 ${dd.toogle ? `` : `d-none`}">
-                                                         ${convertF(dd.array, indt)}
-                                                     </ul>
-                                                 </li>`;
+                                                                        >
+                                                                            <div class="subBt ps-0 ms-n2">
+                                                                                ${dd.toogle
+                                        ? `<i class="fa-sharp fa-regular fa-chevron-down"></i>`
+                                        : `  <i class="fa-regular fa-angle-right hoverBtn "></i>`}
+                                                                            </div>
+                                                                            ${dd.title}
+                                                                            <div class="flex-fill"></div>
+                                                                        </div>
+                                                                        <ul class="ps-2 ${dd.toogle ? `` : `d-none`}">
+                                                                            ${convertF(dd.array, indt)}
+                                                                        </ul>
+                                                                    </li>`;
                                 }
                                 else {
                                     return html ` <li class="btn-group d-flex flex-column" style="margin-top:1px;margin-bottom:1px;">
-                                                     <div
-                                                         class="editor_item d-flex   pe-2 my-0 hi  "
-                                                         style=""
-                                                         onclick="${gvc.event(() => {
+                                                                        <div
+                                                                            class="editor_item d-flex   pe-2 my-0 hi  "
+                                                                            style=""
+                                                                            onclick="${gvc.event(() => {
                                         if (postMD.collection.find((dd) => {
                                             return dd === indt;
                                         })) {
@@ -2689,15 +2754,18 @@ ${(() => {
                                             gvc: gvc,
                                         });
                                     })}"
-                                                     >
-                                                         ${dd.title}
-                                                         <div class="flex-fill"></div>
+                                                                        >
+                                                                            ${dd.title}
+                                                                            <div class="flex-fill"></div>
 
-                                                         <div class="subBt ">
-                                                             <i class="fa-duotone fa-check d-flex align-items-center justify-content-center subBt " style="width:15px;height:15px;"></i>
-                                                         </div>
-                                                     </div>
-                                                 </li>`;
+                                                                            <div class="subBt ">
+                                                                                <i
+                                                                                    class="fa-duotone fa-check d-flex align-items-center justify-content-center subBt "
+                                                                                    style="width:15px;height:15px;"
+                                                                                ></i>
+                                                                            </div>
+                                                                        </div>
+                                                                    </li>`;
                                 }
                             })
                                 .join('');
@@ -2765,8 +2833,11 @@ ${(() => {
                 divCreate: {},
             };
         }))}
-         <div class="d-flex align-items-center justify-content-end">
-            <button class="btn btn-danger mt-3 ${obj.type === 'replace' ? `` : `d-none`}  ms-auto px-2" style="height:30px;width:100px;" onclick="${obj.gvc.event(() => {
+                            <div class="d-flex align-items-center justify-content-end">
+                                <button
+                                    class="btn btn-danger mt-3 ${obj.type === 'replace' ? `` : `d-none`}  ms-auto px-2"
+                                    style="height:30px;width:100px;"
+                                    onclick="${obj.gvc.event(() => {
             const dialog = new ShareDialog(obj.gvc.glitter);
             dialog.checkYesOrNot({
                 text: '是否確認刪除商品?',
@@ -2787,12 +2858,14 @@ ${(() => {
                     }
                 },
             });
-        })}">刪除商品</button>
-</div>
-         </div>
-         <div></div>
-</div>
-`, 1100)}
+        })}"
+                                >
+                                    刪除商品
+                                </button>
+                            </div>
+                        </div>
+                        <div></div>
+                    </div> `, 1100)}
         </div>`;
     }
     static postEvent(postMD, gvc, vm) {
@@ -3299,10 +3372,9 @@ ${(() => {
                         if (data.response.result[0]) {
                             keyData = data.response.result[0].value;
                         }
-                        resolve(` <div style="width:900px;max-width:100%;"> ${BgWidget.card([
-                            `<div class="alert alert-info">
-總運費金額為 = 基本運費 + ( 商品運費權重*每單位費用 )
-</div>`,
+                        resolve(html ` <div style="width:900px;max-width:100%;">
+                                    ${BgWidget.card([
+                            html `<div class="alert alert-info">總運費金額為 = 基本運費 + ( 商品運費權重*每單位費用 )</div>`,
                             EditorElem.editeInput({
                                 gvc: gvc,
                                 title: '基本運費',
@@ -3322,7 +3394,7 @@ ${(() => {
                                 placeHolder: '請輸入每單位費用',
                             }),
                         ].join('<div class="my-2"></div>'))}
-                </div>`);
+                                </div>`);
                     }));
                 },
                 divCreate: { class: `d-flex flex-column flex-column-reverse  flex-md-row`, style: `gap:10px;` },

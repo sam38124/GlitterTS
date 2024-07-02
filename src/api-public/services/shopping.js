@@ -601,7 +601,8 @@ class Shopping {
         try {
             let querySql = ['1=1'];
             let orderString = 'order by id desc';
-            if (query.search) {
+            console.log(query);
+            if (query.search && query.searchType) {
                 switch (query.searchType) {
                     case 'cart_token':
                         querySql.push(`(cart_token like '%${query.search}%')`);
@@ -675,6 +676,7 @@ class Shopping {
                        FROM \`${this.app}\`.t_checkout
    where ${querySql.join(' and ')}
                        ${orderString}`;
+            console.log(sql);
             if (query.id) {
                 const data = (await database_js_1.default.query(`SELECT *
                               FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}`, []))[0];

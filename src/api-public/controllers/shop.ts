@@ -192,6 +192,7 @@ router.post('/checkout/preview', async (req: express.Request, resp: express.Resp
 router.get('/order', async (req: express.Request, resp: express.Response) => {
     try {
         if (await UtPermission.isManager(req)) {
+            console.log(1);
             return response.succ(
                 resp,
                 await new Shopping(req.get('g-app') as string, req.body.token).getCheckOut({
@@ -210,6 +211,7 @@ router.get('/order', async (req: express.Request, resp: express.Response) => {
                 })
             );
         } else if (await UtPermission.isAppUser(req)) {
+            console.log(2);
             const user_data = await new User(req.get('g-app') as string, req.body.token).getUserData(req.body.token.userID as any, 'userID');
 
             return response.succ(
@@ -221,6 +223,7 @@ router.get('/order', async (req: express.Request, resp: express.Response) => {
                     id: req.query.id as string,
                     email: user_data.account,
                     status: req.query.status as string,
+                    searchType: req.query.searchType as string,
                 })
             );
         } else {

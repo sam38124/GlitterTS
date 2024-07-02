@@ -879,7 +879,8 @@ export class Shopping {
 
             let querySql = ['1=1'];
             let orderString = 'order by id desc';
-            if (query.search) {
+            console.log(query);
+            if (query.search && query.searchType) {
                 switch (query.searchType) {
                     case 'cart_token':
                         querySql.push(`(cart_token like '%${query.search}%')`);
@@ -958,6 +959,7 @@ export class Shopping {
                        FROM \`${this.app}\`.t_checkout
    where ${querySql.join(' and ')}
                        ${orderString}`;
+            console.log(sql);
             if (query.id) {
                 const data = (
                     await db.query(
