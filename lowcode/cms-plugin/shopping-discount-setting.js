@@ -261,6 +261,7 @@ export class ShoppingDiscountSetting {
         ];
         function getVoucherTextList() {
             var _a, _b;
+            voucherData.target = voucherData.target || 'all';
             return [
                 `活動標題：${voucherData.title && voucherData.title.length > 0 ? voucherData.title : '尚無標題'}`,
                 `適用商品：${(() => {

@@ -262,7 +262,7 @@ ${(obj.style || []) && obj.style![index] ? obj.style![index] : ``}
                                     </thead>
                                     <tbody>
                                         ${vm.data.length === 0
-                                            ? html` <div class="fs-2 text-center" style="padding-bottom:32px;">${vm.stateText}</div>`
+                                            ? html` <div class="fs-2 text-center" style="padding-bottom:32px;white-space:nowrap;">${vm.stateText}</div>`
                                             : html`${vm.data
                                                   .map((dd: any, index: number) => {
                                                       const pencilId = gvc.glitter.getUUID();
@@ -802,7 +802,7 @@ ${obj.default ?? ''}</textarea
                                     data.response.data.map((item: { content: { name: string; tag: string } }) => {
                                         const { name, tag } = item.content;
                                         if (name) {
-                                            acticleList.push({ name: name, icon: '', link: `./article?appName=${appName}&article=${tag}` });
+                                            acticleList.push({ name: name, icon: '', link: `./article?article=${tag}` });
                                         }
                                     });
                                 }

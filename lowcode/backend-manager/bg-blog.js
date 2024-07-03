@@ -107,7 +107,7 @@ export class BgBlog {
                 dataList: [{ obj: vm, key: 'type' }],
                 view: () => {
                     if (vm.type === 'list') {
-                        return BgWidget.container(html `
+                        return BgWidget.container(BgWidget.card(html `
                                 <div class="d-flex w-100 align-items-center mb-3 ${type === 'select' ? `d-none` : ``}">
                                     ${BgWidget.title(is_page ? '頁面管理' : '網誌文章')}
                                     <div class="flex-fill"></div>
@@ -230,7 +230,7 @@ export class BgBlog {
                             })}
                                         `,
                         }))}
-                            `, BgWidget.getContainerWidth());
+                           ${BgWidget.getContainerWidth()} `));
                     }
                     else if (vm.type == 'replace') {
                         return editor({

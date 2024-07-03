@@ -1397,8 +1397,8 @@ export class Shopping {
 
     async putCollection(data: any) {
         try {
-            const config = (await db.query(`SELECT * FROM \`${this.app}\`.public_config WHERE \`key\` = 'collection';`, []))[0];
-
+            let config = (await db.query(`SELECT * FROM \`${this.app}\`.public_config WHERE \`key\` = 'collection';`, []))[0] ?? {};
+            config.value=config.value || [];
             if (data.id == -1 || data.parent_name !== data.origin.parent_name || data.name !== data.origin.item_name) {
                 if (data.parent_id === undefined && config.value.find((item: { title: string }) => item.title === data.name)) {
                     return { result: false, message: `上層分類已存在「${data.name}」類別名稱` };
@@ -1531,6 +1531,7 @@ export class Shopping {
             }
             return { result: true };
         } catch (e) {
+            console.error(e)
             throw exception.BadRequestError('BAD_REQUEST', 'getCollectionProducts Error:' + e, null);
         }
     }

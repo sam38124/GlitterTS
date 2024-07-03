@@ -118,27 +118,27 @@ export class BgBlog {
                 view: () => {
                     if (vm.type === 'list') {
                         return BgWidget.container(
-                            html`
+                            BgWidget.card(html`
                                 <div class="d-flex w-100 align-items-center mb-3 ${type === 'select' ? `d-none` : ``}">
                                     ${BgWidget.title(is_page ? '頁面管理' : '網誌文章')}
                                     <div class="flex-fill"></div>
                                     <div style="display: flex; gap: 12px;">
                                         ${is_page
-                                            ? ''
-                                            : BgWidget.grayButton(
-                                                  '網誌分類',
-                                                  gvc.event(() => {
-                                                      vm.type = 'collection';
-                                                      gvc.notifyDataChange(id);
-                                                  })
-                                              )}
+                                    ? ''
+                                    : BgWidget.grayButton(
+                                        '網誌分類',
+                                        gvc.event(() => {
+                                            vm.type = 'collection';
+                                            gvc.notifyDataChange(id);
+                                        })
+                                    )}
                                         ${BgWidget.darkButton(
-                                            `新增${is_page ? `頁面` : `網誌`}`,
-                                            gvc.event(() => {
-                                                vm.data = { content: {} };
-                                                vm.type = 'add';
-                                            })
-                                        )}
+                                    `新增${is_page ? `頁面` : `網誌`}`,
+                                    gvc.event(() => {
+                                        vm.data = { content: {} };
+                                        vm.type = 'add';
+                                    })
+                                )}
                                     </div>
                                 </div>
                                 ${BgWidget.mainCard(
@@ -177,88 +177,88 @@ export class BgBlog {
                                         },
                                         filter: html`
                                             ${BgWidget.searchPlace(
-                                                gvc.event((e, event) => {
-                                                    vm.query = e.value;
-                                                    gvc.notifyDataChange(id);
-                                                }),
-                                                vm.query || '',
-                                                '搜尋所有文章'
-                                            )}
+                                            gvc.event((e, event) => {
+                                                vm.query = e.value;
+                                                gvc.notifyDataChange(id);
+                                            }),
+                                            vm.query || '',
+                                            '搜尋所有文章'
+                                        )}
                                             ${gvc.bindView(() => {
-                                                return {
-                                                    bind: filterID,
-                                                    view: () => {
-                                                        if (
+                                            return {
+                                                bind: filterID,
+                                                view: () => {
+                                                    if (
+                                                        !vm.dataList ||
+                                                        !vm.dataList.find((dd: any) => {
+                                                            return dd.checked;
+                                                        }) ||
+                                                        type === 'select'
+                                                    ) {
+                                                        return ``;
+                                                    } else {
+                                                        return [
+                                                            html`<span class="fs-7 fw-bold">操作選項</span>`,
+                                                            html` <button
+                                                                    class="btn btn-danger fs-7 px-2"
+                                                                    style="height:30px;border:none;"
+                                                                    onclick="${gvc.event(() => {
+                                                                const dialog = new ShareDialog(gvc.glitter);
+                                                                dialog.checkYesOrNot({
+                                                                    text: '是否確認移除所選項目?',
+                                                                    callback: (response) => {
+                                                                        if (response) {
+                                                                            dialog.dataLoading({ visible: true });
+                                                                            Article.deleteV2({
+                                                                                id: vm.dataList
+                                                                                    .filter((dd: any) => {
+                                                                                        return dd.checked;
+                                                                                    })
+                                                                                    .map((dd: any) => {
+                                                                                        return dd.id;
+                                                                                    })
+                                                                                    .join(`,`),
+                                                                            }).then((res) => {
+                                                                                dialog.dataLoading({ visible: false });
+                                                                                if (res.result) {
+                                                                                    vm.dataList = undefined;
+                                                                                    gvc.notifyDataChange(id);
+                                                                                } else {
+                                                                                    dialog.errorMessage({ text: '刪除失敗' });
+                                                                                }
+                                                                            });
+                                                                        }
+                                                                    },
+                                                                });
+                                                            })}"
+                                                                >
+                                                                    批量移除
+                                                                </button>`,
+                                                        ].join(``);
+                                                    }
+                                                },
+                                                divCreate: () => {
+                                                    return {
+                                                        class: `d-flex mt-2 align-items-center p-2 py-3 ${
                                                             !vm.dataList ||
                                                             !vm.dataList.find((dd: any) => {
                                                                 return dd.checked;
                                                             }) ||
                                                             type === 'select'
-                                                        ) {
-                                                            return ``;
-                                                        } else {
-                                                            return [
-                                                                html`<span class="fs-7 fw-bold">操作選項</span>`,
-                                                                html` <button
-                                                                    class="btn btn-danger fs-7 px-2"
-                                                                    style="height:30px;border:none;"
-                                                                    onclick="${gvc.event(() => {
-                                                                        const dialog = new ShareDialog(gvc.glitter);
-                                                                        dialog.checkYesOrNot({
-                                                                            text: '是否確認移除所選項目?',
-                                                                            callback: (response) => {
-                                                                                if (response) {
-                                                                                    dialog.dataLoading({ visible: true });
-                                                                                    Article.deleteV2({
-                                                                                        id: vm.dataList
-                                                                                            .filter((dd: any) => {
-                                                                                                return dd.checked;
-                                                                                            })
-                                                                                            .map((dd: any) => {
-                                                                                                return dd.id;
-                                                                                            })
-                                                                                            .join(`,`),
-                                                                                    }).then((res) => {
-                                                                                        dialog.dataLoading({ visible: false });
-                                                                                        if (res.result) {
-                                                                                            vm.dataList = undefined;
-                                                                                            gvc.notifyDataChange(id);
-                                                                                        } else {
-                                                                                            dialog.errorMessage({ text: '刪除失敗' });
-                                                                                        }
-                                                                                    });
-                                                                                }
-                                                                            },
-                                                                        });
-                                                                    })}"
-                                                                >
-                                                                    批量移除
-                                                                </button>`,
-                                                            ].join(``);
-                                                        }
-                                                    },
-                                                    divCreate: () => {
-                                                        return {
-                                                            class: `d-flex mt-2 align-items-center p-2 py-3 ${
-                                                                !vm.dataList ||
-                                                                !vm.dataList.find((dd: any) => {
-                                                                    return dd.checked;
-                                                                }) ||
-                                                                type === 'select'
-                                                                    ? `d-none`
-                                                                    : ``
-                                                            }`,
-                                                            style: `height:40px;gap:10px;margin-top:10px;`,
-                                                        };
-                                                    },
-                                                };
-                                            })}
+                                                                ? `d-none`
+                                                                : ``
+                                                        }`,
+                                                        style: `height:40px;gap:10px;margin-top:10px;`,
+                                                    };
+                                                },
+                                            };
+                                        })}
                                         `,
                                     })
                                 )}
-                            `,
-                            BgWidget.getContainerWidth()
-                        );
+                           ${ BgWidget.getContainerWidth()} `,
+
+                        ));
                     } else if (vm.type == 'replace') {
                         return editor({
                             gvc: gvc,
