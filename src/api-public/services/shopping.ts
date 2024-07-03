@@ -662,11 +662,13 @@ export class Shopping {
                 switch (dd.for) {
                     case 'collection':
                         item = cart.lineItems.filter((dp) => {
-                            return dd.forKey.filter((d1) => {
-                                return dp.collection.find((d2) => {
-                                    return d2 === d1;
-                                });
-                            });
+                            return (
+                                dd.forKey.filter((d1) => {
+                                    return dp.collection.find((d2) => {
+                                        return d2 === d1;
+                                    });
+                                }).length > 0
+                            );
                         });
                         dd.bind = item;
                         return item.length > 0;
@@ -683,9 +685,7 @@ export class Shopping {
                         dd.bind = item;
                         return item.length > 0;
                     case 'all':
-                        item = cart.lineItems.filter((dp) => {
-                            return true;
-                        });
+                        item = cart.lineItems;
                         dd.bind = item;
                         return item.length > 0;
                 }
