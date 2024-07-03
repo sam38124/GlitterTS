@@ -368,7 +368,7 @@ export const widgetComponent = {
                     return [
                         EditorElem.editeInput({
                             gvc:gvc,
-                            title:'容器最大寬度(輸入0則為自適應寬度)',
+                            title:'容器最大寬度(為空則自適應寬度)',
                             default:widget.data._max_width,
                             placeHolder:'單位PX',
                             callback:(text)=>{

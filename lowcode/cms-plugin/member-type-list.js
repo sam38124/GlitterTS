@@ -1,3 +1,12 @@
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
 import { BgWidget } from '../backend-manager/bg-widget.js';
 import { ApiUser } from '../glitter-base/route/user.js';
@@ -80,7 +89,7 @@ export class MemberTypeList {
                     },
                     {
                         key: '會員數',
-                        value: `<span class="fs-7">0</span>`,
+                        value: `<span class="fs-7">${dd.counts}</span>`,
                     },
                 ];
             });
@@ -103,20 +112,24 @@ export class MemberTypeList {
                                 </div>
                                 ${BgWidget.container(BgWidget.mainCard(BgWidget.tableV2({
                             gvc: gvc,
-                            getData: (vd) => {
+                            getData: (vd) => __awaiter(this, void 0, void 0, function* () {
                                 vmi = vd;
+                                const member_levels_count_list = (yield ApiUser.getPublicConfig('member_levels_count_list', 'manager')).response.value || {};
                                 ApiUser.getPublicConfig('member_level_config', 'manager').then((dd) => {
                                     const data = dd.response.value || {};
                                     vmi.pageSize = 1;
                                     data.levels = (data.levels || []).filter((dd) => {
                                         return dd;
                                     });
-                                    vm.dataList = data.levels;
+                                    vm.dataList = data.levels.map((data) => {
+                                        data.counts = member_levels_count_list[data.id] || 0;
+                                        return data;
+                                    });
                                     vmi.data = getDatalist();
                                     vmi.loading = false;
                                     vmi.callback();
                                 });
-                            },
+                            }),
                             rowClick: (data, index) => {
                                 vm.index = index;
                                 vm.type = 'replace';

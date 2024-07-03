@@ -95,7 +95,7 @@ export class MemberTypeList {
                     },
                     {
                         key: '會員數',
-                        value: `<span class="fs-7">0</span>`,
+                        value: `<span class="fs-7">${dd.counts}</span>`,
                     },
                 ];
             });
@@ -125,15 +125,19 @@ export class MemberTypeList {
                                     BgWidget.mainCard(
                                         BgWidget.tableV2({
                                             gvc: gvc,
-                                            getData: (vd) => {
+                                            getData: async (vd) => {
                                                 vmi = vd;
+                                                const member_levels_count_list:any=(await ApiUser.getPublicConfig('member_levels_count_list','manager')).response.value || {};
                                                 ApiUser.getPublicConfig('member_level_config', 'manager').then((dd: any) => {
                                                     const data = dd.response.value || {};
                                                     vmi.pageSize = 1;
                                                     data.levels = (data.levels || []).filter((dd: any) => {
                                                         return dd;
                                                     });
-                                                    vm.dataList = data.levels;
+                                                    vm.dataList = data.levels.map((data:any)=>{
+                                                        data.counts=member_levels_count_list[data.id] || 0
+                                                        return data
+                                                    });
                                                     vmi.data = getDatalist();
                                                     vmi.loading = false;
                                                     vmi.callback();

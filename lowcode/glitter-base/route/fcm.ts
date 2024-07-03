@@ -10,7 +10,8 @@ export class ApiFcm {
     public static send(json: {
         "device_token":string[],
         "title":string,
-        "content":string
+        "content":string,
+        link:string
     }) {
         return BaseApi.create({
             "url": getBaseUrl() + `/api-public/v1/fcm`,

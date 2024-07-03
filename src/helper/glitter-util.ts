@@ -30,8 +30,6 @@ export class GlitterUtil {
     }[]) {
         for (const dd of rout) {
             express.use(dd.rout, async (req: express.Request, resp: express.Response, next) => {
-                console.log(`req.baseUrl->`, req.baseUrl)
-                console.log(`dd.root_path->`, dd.root_path)
                 //判斷是檔案路徑則直接返回檔案
                 const fileURL = (() => {
                     if (req.baseUrl.startsWith(dd.root_path)) {

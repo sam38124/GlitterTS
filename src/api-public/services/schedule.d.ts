@@ -5,6 +5,7 @@ export declare class Schedule {
     isDatabaseExists(): Promise<boolean>;
     isDatabasePass(): Promise<boolean>;
     isTableExists(table: string): Promise<boolean>;
+    refreshMember(sec: number): Promise<void>;
     example(sec: number): Promise<void>;
     birthRebate(sec: number): Promise<void>;
     main(): Promise<void>;

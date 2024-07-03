@@ -11,6 +11,7 @@ import e from 'express';
 import { Rebate } from './rebate.js';
 import { CustomCode } from '../services/custom-code.js';
 import moment from 'moment';
+import {ManagerNotify} from "./notify.js";
 
 interface VoucherData {
     title: string;
@@ -552,6 +553,10 @@ export class Shopping {
                 }).createOrderPage(carData);
                 // 線下付款
                 if (keyData.TYPE === 'off_line') {
+                    new ManagerNotify(this.app).checkout({
+                        orderData:carData,
+                        status:0
+                    })
                     return {
                         off_line: true,
                     };
@@ -1031,6 +1036,11 @@ export class Shopping {
                         [order_id]
                     )
                 )[0];
+                //管理員通知新訂單
+                new ManagerNotify(this.app).checkout({
+                    orderData:cartData.orderData,
+                    status:status
+                })
                 const userData = await new User(this.app).getUserData(cartData.email, 'account');
 
                 if (userData && cartData.orderData.rebate > 0) {

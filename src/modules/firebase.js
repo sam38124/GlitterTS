@@ -101,7 +101,7 @@ class Firebase {
                     }).messaging().send({
                         notification: {
                             title: cf.title,
-                            body: cf.body,
+                            body: cf.body.replace(/<br>/g, ''),
                         },
                         android: {
                             notification: {

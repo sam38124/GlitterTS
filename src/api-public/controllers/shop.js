@@ -471,7 +471,7 @@ router.get('/dataAnalyze', async (req, resp) => {
     try {
         const tags = `${req.query.tags}`;
         const fake = {
-            'g-app': 'shop-template-clothing-v3',
+            'g-app': 't_1719819344426',
             Authorization: {
                 account: 'service@ncdesign.info',
                 userID: 252530754,

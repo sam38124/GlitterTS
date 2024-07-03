@@ -218,7 +218,7 @@ class App {
         }
     }
     async changeTheme(config) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j;
+        var _a, _b, _c, _d, _e;
         try {
             const temp_app_name = tool_1.default.randomString(4) + new Date().getTime();
             const temp_app_theme = tool_1.default.randomString(4) + new Date().getTime();
@@ -251,25 +251,26 @@ class App {
             await tran.execute(`update \`${config_1.saasConfig.SAAS_NAME}\`.page_config
                                 set appName=${database_1.default.escape(temp_app_name)}
                                 where appName = ${database_1.default.escape(config.app_name)}
-                                  and userID = ?`, [(_e = this.token) === null || _e === void 0 ? void 0 : _e.userID]);
+                                 `, []);
             await tran.execute(`update \`${config_1.saasConfig.SAAS_NAME}\`.page_config
                                 set appName=${database_1.default.escape(temp_app_theme)}
                                 where appName = ${database_1.default.escape(config.theme)}
-                                  and userID = ?`, [(_f = this.token) === null || _f === void 0 ? void 0 : _f.userID]);
+                                  `, []);
             await tran.execute(`update \`${config_1.saasConfig.SAAS_NAME}\`.page_config
                                 set appName=${database_1.default.escape(config.app_name)}
                                 where appName = ${database_1.default.escape(temp_app_theme)}
-                                  and userID = ?`, [(_g = this.token) === null || _g === void 0 ? void 0 : _g.userID]);
+                         `, []);
             await tran.execute(`update \`${config_1.saasConfig.SAAS_NAME}\`.page_config
                                 set appName=${database_1.default.escape(config.theme)}
                                 where appName = ${database_1.default.escape(temp_app_name)}
-                                  and userID = ?`, [(_h = this.token) === null || _h === void 0 ? void 0 : _h.userID]);
+                                 `, []);
             await tran.commit();
             await tran.release();
             return true;
         }
         catch (e) {
-            throw exception_1.default.BadRequestError((_j = e.code) !== null && _j !== void 0 ? _j : 'BAD_REQUEST', e, null);
+            console.log(`error-->`, e);
+            throw exception_1.default.BadRequestError((_e = e.code) !== null && _e !== void 0 ? _e : 'BAD_REQUEST', e, null);
         }
     }
     async getAPP(query) {

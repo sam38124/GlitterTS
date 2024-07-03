@@ -280,7 +280,7 @@ ${(obj.style || []) && obj.style[index] ? obj.style[index] : ``}
         </div>`;
     }
     static title(title) {
-        return html ` <h3 class="my-auto tx_title">${title}</h3>`;
+        return html ` <h3 class="my-auto tx_title" style="white-space: nowrap;">${title}</h3>`;
     }
     static goBack(event) {
         return html `<div class="d-flex align-items-center justify-content-center" style="width: 5px; height: 11px; cursor:pointer; margin-right: 10px;" onclick="${event}">
@@ -1251,7 +1251,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                 h += html `<p class="mb-1">${str}</p>`;
             });
         }
-        return html `<div class="w-100 alert alert-info p-3 mb-0">
+        return html `<div class="w-100 alert  alert-secondary p-3 mb-0" style="" >
             <div class="fs-5 mb-0"><strong>${title}</strong></div>
             <div class="mt-2">${h}</div>
         </div>`;
@@ -1261,7 +1261,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             id: 229,
             domain: 'clouthingV2.shopnex.cc',
             user: '234285319',
-            appName: 'shop-template-clothing-v3',
+            appName: 't_1719819344426',
             created_time: '2024-02-18T02:28:37.000Z',
             dead_line: '2024-02-25T02:28:37.000Z',
             config: {
@@ -2204,6 +2204,28 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                 ${new Date(config.dead_line).getTime() < new Date().getTime() ? ` 方案已過期` : ` 方案到期日`} ：${gvc.glitter.ut.dateFormat(new Date(config.dead_line), 'yyyy-MM-dd hh:mm')}
             </div>
         </div>`;
+    }
+    static tab(data, gvc, select, callback) {
+        return html `
+            <div class=""
+                 style="justify-content: flex-start; align-items: flex-start; gap: 22px; display: inline-flex;cursor: pointer;margin-top: 24px;margin-bottom: 24px;">
+                ${data.map((dd) => {
+            if (select === dd.key) {
+                return `<div style=" flex-direction: column; justify-content: flex-start; align-items: center; gap: 8px; display: inline-flex">
+    <div style="align-self: stretch; text-align: center; color: #393939; font-size: 18px; font-family: Noto Sans; font-weight: 700; line-height: 18px; word-wrap: break-word">${dd.title}</div>
+    <div style="align-self: stretch; height: 0px; border: 2px #393939 solid"></div>
+  </div>`;
+            }
+            else {
+                return `<div style=" flex-direction: column; justify-content: flex-start; align-items: center; gap: 8px; display: inline-flex" onclick="${gvc.event(() => {
+                    callback(dd.key);
+                })}">
+    <div style="align-self: stretch; text-align: center; color: #393939; font-size: 18px; font-family: Noto Sans; font-weight: 400; line-height: 18px; word-wrap: break-word">${dd.title}</div>
+    <div style="align-self: stretch; height: 0px"></div>
+  </div>`;
+            }
+        }).join('')}
+            </div>`;
     }
 }
 BgWidget.getContainerWidth = (obj) => {

@@ -4,6 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 const express_1 = __importDefault(require("express"));
 const response_1 = __importDefault(require("../../modules/response"));
+const database_1 = __importDefault(require("../../modules/database"));
 const exception_1 = __importDefault(require("../../modules/exception"));
 const ut_permission_js_1 = require("../utils/ut-permission.js");
 const firebase_1 = require("../../modules/firebase");
@@ -13,8 +14,23 @@ router.post('/', async (req, resp) => {
         if (await ut_permission_js_1.UtPermission.isManager(req)) {
             for (const b of chunkArray(Array.from(new Set(req.body.device_token)), 20)) {
                 let check = b.length;
-                await new Promise((resolve) => {
+                let t_notice_insert = {};
+                await new Promise(async (resolve) => {
+                    var _a;
                     for (const d of b) {
+                        const app = req.get('g-app');
+                        const userID = ((_a = (await database_1.default.query(`select userID from \`${app}\`.t_fcm where deviceToken=?`, [d]))[0]) !== null && _a !== void 0 ? _a : {}).userID;
+                        if (userID && !t_notice_insert[userID]) {
+                            t_notice_insert[userID] = true;
+                            await database_1.default.query(`insert into \`${app}\`.t_notice (user_id, tag, title, content, link)
+                                        values (?, ?, ?, ?, ?)`, [
+                                userID,
+                                'manual',
+                                req.body.title,
+                                req.body.content,
+                                req.body.link || ''
+                            ]);
+                        }
                         if (d) {
                             new firebase_1.Firebase(req.get('g-app')).sendMessage({
                                 title: req.body.title,

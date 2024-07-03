@@ -342,35 +342,36 @@ export class App {
                 `update \`${saasConfig.SAAS_NAME}\`.page_config
                                 set appName=${db.escape(temp_app_name)}
                                 where appName = ${db.escape(config.app_name)}
-                                  and userID = ?`,
-                [this.token?.userID]
+                                 `,
+                []
             );
             await tran.execute(
                 `update \`${saasConfig.SAAS_NAME}\`.page_config
                                 set appName=${db.escape(temp_app_theme)}
                                 where appName = ${db.escape(config.theme)}
-                                  and userID = ?`,
-                [this.token?.userID]
+                                  `,
+                []
             );
 
             await tran.execute(
                 `update \`${saasConfig.SAAS_NAME}\`.page_config
                                 set appName=${db.escape(config.app_name)}
                                 where appName = ${db.escape(temp_app_theme)}
-                                  and userID = ?`,
-                [this.token?.userID]
+                         `,
+                []
             );
             await tran.execute(
                 `update \`${saasConfig.SAAS_NAME}\`.page_config
                                 set appName=${db.escape(config.theme)}
                                 where appName = ${db.escape(temp_app_name)}
-                                  and userID = ?`,
-                [this.token?.userID]
+                                 `,
+                []
             );
             await tran.commit();
             await tran.release();
             return true;
         } catch (e: any) {
+            console.log(`error-->`,e)
             throw exception.BadRequestError(e.code ?? 'BAD_REQUEST', e, null);
         }
     }

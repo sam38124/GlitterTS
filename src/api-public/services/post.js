@@ -33,6 +33,7 @@ const app_js_1 = require("../../services/app.js");
 const message_js_1 = require("../../firebase/message.js");
 const shopping_js_1 = require("./shopping.js");
 const ut_database_js_1 = require("../utils/ut-database.js");
+const notify_js_1 = require("./notify.js");
 class Post {
     static addPostObserver(callback) {
         Post.postObserverList.push(callback);
@@ -40,16 +41,21 @@ class Post {
     async postContent(content, tb = 't_post') {
         try {
             const data = await database_1.default.query(`INSERT INTO \`${this.app}\`.\`${tb}\`
-                                         SET ?`, [content]);
+                 SET ?`, [content]);
             const reContent = JSON.parse(content.content);
             if (reContent.type === 'product' && tb === 't_manager_post') {
                 await new shopping_js_1.Shopping(this.app, this.token).postVariantsAndPriceValue(reContent);
             }
+            if (reContent.type === 'post-form-config') {
+                await new notify_js_1.ManagerNotify(this.app).formSubmit({
+                    user_id: content.userID
+                });
+            }
             reContent.id = data.insertId;
             content.content = JSON.stringify(reContent);
             await database_1.default.query(`update \`${this.app}\`.\`${tb}\`
-                            SET ?
-                            WHERE id = ${data.insertId}`, [content]);
+                 SET ?
+                 WHERE id = ${data.insertId}`, [content]);
             Post.postObserverList.map((value, index, array) => {
                 value(content, this.app);
             });
@@ -93,8 +99,8 @@ class Post {
                 if (this.token) {
                     user =
                         (_b = (await sql.query(`select *
-                                             from t_user
-                                             where userID = ${(_a = this.token.userID) !== null && _a !== void 0 ? _a : 0}`, []))[0]) !== null && _b !== void 0 ? _b : user;
+                                     from t_user
+                                     where userID = ${(_a = this.token.userID) !== null && _a !== void 0 ? _a : 0}`, []))[0]) !== null && _b !== void 0 ? _b : user;
                 }
                 const html = String.raw;
                 const myFunction = new Function(html `try { return
@@ -153,10 +159,10 @@ class Post {
                 content.content = JSON.stringify(reContent);
             }
             const data = await database_1.default.query(`update \`${this.app}\`.\`${tb}\`
-                                         SET ?
-                                         where 1 = 1 
-                                           and userID = ${this.token.userID}
-                                           and id = ${reContent.id}`, [content]);
+                 SET ?
+                 where 1 = 1
+                   and userID = ${this.token.userID}
+                   and id = ${reContent.id}`, [content]);
             return data;
         }
         catch (e) {
@@ -284,15 +290,15 @@ class Post {
                             }
                         }
                         countSql = `select count(1)
+                                        from \`${this.app}\`.\`t_post\`
+                                        where 1 = 1
+                                            ${query}
+                                        order by id desc ${(0, database_1.limit)(content)}`;
+                        return `select ${selectOnly}
                                     from \`${this.app}\`.\`t_post\`
                                     where 1 = 1
                                         ${query}
                                     order by id desc ${(0, database_1.limit)(content)}`;
-                        return `select ${selectOnly}
-                                from \`${this.app}\`.\`t_post\`
-                                where 1 = 1
-                                    ${query}
-                                order by id desc ${(0, database_1.limit)(content)}`;
                     }
                 })();
                 console.log(`sql---${sql.replace('$countIndex', '')}`);
@@ -304,10 +310,11 @@ class Post {
                     if (!userData[dd.userID]) {
                         try {
                             userData[dd.userID] = (await v.query(`select userData
-                                                                  from \`${this.app}\`.\`t_user\`
-                                                                  where userID = ${dd.userID}`, []))[0]['userData'];
+                                         from \`${this.app}\`.\`t_user\`
+                                         where userID = ${dd.userID}`, []))[0]['userData'];
                         }
-                        catch (e) { }
+                        catch (e) {
+                        }
                     }
                     dd.userData = userData[dd.userID];
                 }
@@ -315,7 +322,7 @@ class Post {
                     if (sql.indexOf('$countIndex') !== -1) {
                         const index = sql.indexOf('$countIndex');
                         return `select count(1)
-                                from ${sql.substring(index + 11)}`;
+                                    from ${sql.substring(index + 11)}`;
                     }
                     else {
                         return `select count(1)

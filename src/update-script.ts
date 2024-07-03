@@ -6,8 +6,8 @@ export class UpdateScript {
             return dd.appName
         }).concat('shop_template_black_style','3131_shop')
 
-        // UpdateScript.migrateTermsOfService(['3131_shop', 't_1717152410650', 't_1717141688550', 't_1717129048727', 'shop-template-clothing-v3'])
-        // UpdateScript.migrateHeaderAndFooter(['3131_shop','shop-template-clothing-v3','t_1717129048727','t_1717141688550','t_1717152410650','t_1717407696327','t_1717385441550','t_1717386839537','t_1717397588096'])
+        // UpdateScript.migrateTermsOfService(['3131_shop', 't_1717152410650', 't_1717141688550', 't_1717129048727', 't_1719819344426'])
+        // UpdateScript.migrateHeaderAndFooter(['3131_shop','t_1719819344426','t_1717129048727','t_1717141688550','t_1717152410650','t_1717407696327','t_1717385441550','t_1717386839537','t_1717397588096'])
         // UpdateScript.migrateAccount('shop_template_black_style')
        await UpdateScript.migrateDialog(migrate_template)
     }
@@ -25,7 +25,7 @@ for (const p of page_list){
     public static async migrateAccount(appName:string){
         const page_list=(await db.query(`SELECT *
                                              FROM glitter.page_config
-                                             where appName = 'shop-template-clothing-v3'
+                                             where appName = 't_1719819344426'
                                                and tag in ('account_userinfo','rebate','order_list','wishlist','register')`, []));
         page_list.map((d: any) => {
             Object.keys(d).map((dd) => {
@@ -98,7 +98,7 @@ for (const p of page_list){
     public static async migrateRebatePage(appList: string[]) {
         const rebate_page = (await db.query(`SELECT *
                                              FROM glitter.page_config
-                                             where appName = 'shop-template-clothing-v3'
+                                             where appName = 't_1719819344426'
                                                and tag = 'rebate'`, []))[0];
         const migrate = appList
         Object.keys(rebate_page).map((dd) => {

@@ -1,8 +1,8 @@
 import moment from 'moment';
 import db from '../../modules/database';
 import exception from '../../modules/exception';
-import { Rebate } from './rebate';
-import { User } from './user';
+import {Rebate} from './rebate';
+import {User} from './user';
 
 type ScheduleItem = {
     second: number;
@@ -31,8 +31,10 @@ export class Schedule {
 
     async isDatabasePass() {
         const SQL = `
-            SELECT * FROM glitter.app_config
-            WHERE appName = \'${this.app}\' AND (refer_app is null OR refer_app = appName);
+            SELECT *
+            FROM glitter.app_config
+            WHERE appName = \'${this.app}\'
+              AND (refer_app is null OR refer_app = appName);
         `;
         return (await db.query(SQL, [])).length > 0;
     }
@@ -41,10 +43,40 @@ export class Schedule {
         return (await db.query(`SHOW TABLES IN \`${this.app}\` LIKE \'${table}\';`, [])).length > 0;
     }
 
+    async refreshMember(sec: number) {
+        try {
+            if (await this.perload()) {
+                const userClass = new User(this.app);
+                //紀錄當前分級會員的數量
+                const member_count: any = {}
+                for (const user of (await db.query(`select *
+                                                    from \`${this.app}\`.t_user`, []))) {
+                    const member_levels = (await userClass.refreshMember(user)).find((dd: any) => {
+                        return dd.trigger
+                    });
+                    if (member_levels) {
+                        member_count[member_levels.id] = member_count[member_levels.id] || 0
+                        member_count[member_levels.id]++
+                    }
+                }
+                await userClass.setConfig({
+                    key: 'member_levels_count_list',
+                    value: member_count,
+                    user_id: 'manager'
+                })
+            }
+        } catch (e) {
+            throw exception.BadRequestError('BAD_REQUEST', 'Example Error: ' + e, null);
+        }
+        setTimeout(() => this.example(sec), sec * 1000);
+    }
+
     async example(sec: number) {
         try {
             if (await this.perload()) {
+
                 // 排程範例
+                // await
             }
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'Example Error: ' + e, null);
@@ -59,7 +91,7 @@ export class Schedule {
                 const userClass = new User(this.app);
 
                 if (await rebateClass.mainStatus()) {
-                    const getRS = await userClass.getConfig({ key: 'rebate_setting', user_id: 'manager' });
+                    const getRS = await userClass.getConfig({key: 'rebate_setting', user_id: 'manager'});
                     const rgs = getRS[0] && getRS[0].value.birth ? getRS[0].value.birth : {};
                     if (rgs && rgs.switch) {
                         async function postUserRebate(id: number, value: number) {
@@ -73,8 +105,9 @@ export class Schedule {
                         }
 
                         const users = await db.query(
-                            `SELECT * FROM \`${this.app}\`.t_user 
-                                WHERE MONTH(JSON_EXTRACT(userData, '$.birth')) = MONTH(CURDATE());`,
+                            `SELECT *
+                             FROM \`${this.app}\`.t_user
+                             WHERE MONTH (JSON_EXTRACT(userData, '$.birth')) = MONTH (CURDATE());`,
                             []
                         );
 
@@ -105,8 +138,9 @@ export class Schedule {
 
     async main() {
         const scheduleList: ScheduleItem[] = [
-            { second: 10, status: false, func: 'example', desc: '排程啟用範例' },
-            { second: 60 * 60, status: true, func: 'birthRebate', desc: '生日禮發放購物金' },
+            {second: 10, status: false, func: 'example', desc: '排程啟用範例'},
+            {second: 60 * 60, status: true, func: 'birthRebate', desc: '生日禮發放購物金'},
+            {second: 600, status: true, func: 'refreshMember', desc: '更新會員分級'}
         ];
 
         try {

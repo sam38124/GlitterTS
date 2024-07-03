@@ -16,6 +16,7 @@ export declare class User {
     app: string;
     token?: IToken;
     createUser(account: string, pwd: string, userData: any, req: any): Promise<any>;
+    createUserHook(userID: string): Promise<void>;
     updateAccount(account: string, userID: string): Promise<any>;
     login(account: string, pwd: string): Promise<any>;
     loginWithFb(token: string): Promise<any>;

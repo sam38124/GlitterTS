@@ -25,7 +25,7 @@ class UpdateScript {
     static async migrateAccount(appName) {
         const page_list = (await database_1.default.query(`SELECT *
                                              FROM glitter.page_config
-                                             where appName = 'shop-template-clothing-v3'
+                                             where appName = 't_1719819344426'
                                                and tag in ('account_userinfo','rebate','order_list','wishlist','register')`, []));
         page_list.map((d) => {
             Object.keys(d).map((dd) => {
@@ -92,7 +92,7 @@ class UpdateScript {
     static async migrateRebatePage(appList) {
         const rebate_page = (await database_1.default.query(`SELECT *
                                              FROM glitter.page_config
-                                             where appName = 'shop-template-clothing-v3'
+                                             where appName = 't_1719819344426'
                                                and tag = 'rebate'`, []))[0];
         const migrate = appList;
         Object.keys(rebate_page).map((dd) => {

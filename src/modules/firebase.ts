@@ -88,7 +88,6 @@ export class Firebase {
                 const user_cf = (((await db.query(`select \`value\`
                                                    from \`${cf.app || this.app}\`.t_user_public_config
                                                    where \`key\` ='notify_setting' and user_id=?`, [cf.userID]))[0]) ?? {value: {}}).value;
-
                 if (`${user_cf[cf.tag]}` !== 'false') {
                     if (cf.userID && cf.tag && cf.title && cf.body && cf.link) {
                         await db.query(`insert into \`${cf.app || this.app}\`.t_notice (user_id, tag, title, content, link)
@@ -116,7 +115,7 @@ export class Firebase {
                     })!.messaging().send({
                         notification: {
                             title: cf.title,
-                            body: cf.body,
+                            body: cf.body.replace(/<br>/g,''),
                         },
                         android: {
                             notification: {

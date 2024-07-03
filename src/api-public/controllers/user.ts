@@ -10,6 +10,7 @@ import UserUtil from "../../utils/UserUtil.js";
 import {UtPermission} from "../utils/ut-permission.js";
 import {Post} from "../services/post.js";
 import {UtDatabase} from "../utils/ut-database.js";
+import {ManagerNotify} from "../services/notify.js";
 
 const router: express.Router = express.Router();
 
@@ -21,6 +22,7 @@ router.post('/register', async (req: express.Request, resp: express.Response) =>
         if ((await user.checkUserExists(req.body.account))) {
             throw exception.BadRequestError('BAD_REQUEST', 'user is already exists.', null);
         } else {
+
             const res = (await user.createUser(req.body.account, req.body.pwd, req.body.userData, req))
             res.type=res.verify;
             res.needVerify=res.verify;

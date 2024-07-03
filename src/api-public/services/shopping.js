@@ -16,6 +16,7 @@ const express_1 = __importDefault(require("express"));
 const rebate_js_1 = require("./rebate.js");
 const custom_code_js_1 = require("../services/custom-code.js");
 const moment_1 = __importDefault(require("moment"));
+const notify_js_1 = require("./notify.js");
 class Shopping {
     constructor(app, token) {
         this.app = app;
@@ -359,6 +360,10 @@ class Shopping {
                     TYPE: keyData.TYPE,
                 }).createOrderPage(carData);
                 if (keyData.TYPE === 'off_line') {
+                    new notify_js_1.ManagerNotify(this.app).checkout({
+                        orderData: carData,
+                        status: 0
+                    });
                     return {
                         off_line: true,
                     };
@@ -709,6 +714,10 @@ class Shopping {
                     SET status = ? WHERE cart_token = ?`, [1, order_id]);
                 const cartData = (await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_checkout
                         WHERE cart_token = ?;`, [order_id]))[0];
+                new notify_js_1.ManagerNotify(this.app).checkout({
+                    orderData: cartData.orderData,
+                    status: status
+                });
                 const userData = await new user_js_1.User(this.app).getUserData(cartData.email, 'account');
                 if (userData && cartData.orderData.rebate > 0) {
                     const rebateClass = new rebate_js_1.Rebate(this.app);

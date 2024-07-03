@@ -18,8 +18,22 @@ router.post('/', async (req: express.Request, resp: express.Response) => {
         if (await UtPermission.isManager(req)) {
             for (const b of chunkArray(Array.from(new Set(req.body.device_token)), 20)) {
                 let check = b.length;
-                await new Promise((resolve) => {
+                let t_notice_insert:any={}
+                await new Promise(async (resolve) => {
                     for (const d of b) {
+                        const app=req.get('g-app') as string
+                        const userID=((await db.query(`select userID from \`${app}\`.t_fcm where deviceToken=?`,[d]))[0] ?? {}).userID
+                        if(userID && !t_notice_insert[userID]){
+                            t_notice_insert[userID]=true
+                            await db.query(`insert into \`${app}\`.t_notice (user_id, tag, title, content, link)
+                                        values (?, ?, ?, ?, ?)`, [
+                                userID,
+                                'manual',
+                                req.body.title,
+                                req.body.content,
+                                req.body.link || ''
+                            ])
+                        }
                         if(d){
                             new Firebase(req.get('g-app') as string).sendMessage({
                                 title:req.body.title,
