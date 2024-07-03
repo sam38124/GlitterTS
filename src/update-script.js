@@ -9,7 +9,7 @@ class UpdateScript {
     static async run() {
         const migrate_template = (await database_1.default.query('SELECT appName FROM glitter.app_config where template_type!=0;', [])).map((dd) => {
             return dd.appName;
-        }).concat('shop_template_black_style', '3131_shop');
+        }).concat('shop_template_black_style', '3131_shop', 'proshake_v2');
         await UpdateScript.migrateDialog(migrate_template);
     }
     static async migrateRichText() {

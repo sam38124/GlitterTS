@@ -13,6 +13,56 @@ export class EditorConfig {
                 };
         }
     }
+    static paymentInfo(gvc) {
+        if (gvc.glitter.getUrlParameter('function') !== 'backend-manger') {
+            return ``;
+        }
+        const plan = EditorConfig.getPaymentStatus();
+        let text = '';
+        let paymentBtn = `<span style="color: white; font-size: 16px; font-family: Noto Sans; font-weight: 700; text-decoration: underline; word-wrap: break-word;cursor: pointer;"  class="" onclick="${gvc.event(() => {
+            gvc.glitter.setUrlParameter('tab', 'member_plan');
+            gvc.recreateView();
+        })}">前往續約</span>`;
+        let differenceInTime = new Date(plan.dead_line).getTime() - new Date().getTime();
+        let differenceInDays = differenceInTime / (1000 * 3600 * 24);
+        if (plan.plan === 'free' && differenceInDays > 1) {
+            text = `<span style="color: white; font-size: 16px; font-family: Noto Sans; font-weight: 700;" class="me-3">方案提醒：當前為免費試用方案，立即升級方案，享受全方位支援服務。</span>${paymentBtn}`;
+        }
+        else if ((new Date(plan.dead_line).getTime() < new Date().getTime())) {
+            text = `<span style="color: white; font-size: 16px; font-family: Noto Sans; font-weight: 700; ">方案到期提醒：您的方案已過期，為維護您的權益，請儘速${paymentBtn}。</span>`;
+        }
+        else if (differenceInDays < 30) {
+            text = `<span style="color: white; font-size: 16px; font-family: Noto Sans; font-weight: 700; ">方案到期提醒：您的方案將於${differenceInDays}天後到期，為維護您的權益，請儘速${paymentBtn}。</span>`;
+        }
+        else {
+            return ``;
+        }
+        return `<div class="position-fixed vw-100 p-2" style="z-index:999;margin-top:56px;width: 100%; min-height: 42px; background: #FEAD20; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.08); ">
+  <div style="text-align: center;white-space:normal;" class="w-100">
+    <i class="fa-sharp fa-solid fa-bullhorn" style="color: white;"></i>
+    ${text}
+  </div>
+</div>`;
+    }
+    static getPaddingTop(gvc) {
+        return EditorConfig.paymentInfo(gvc) ? gvc.glitter.ut.frSize({
+            sm: 40
+        }, 67) : 0;
+    }
+    static getPaymentStatus() {
+        const config = window.parent.glitter.share.editorViewModel.app_config_original;
+        let planText = 'free';
+        if (config.plan === 'basic') {
+            planText = 'basic';
+        }
+        else if (config.plan === 'web+app') {
+            planText = 'web+app';
+        }
+        return {
+            plan: planText,
+            dead_line: config.dead_line
+        };
+    }
 }
 EditorConfig.page_type_list = [
     {

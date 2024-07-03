@@ -4,7 +4,7 @@ export class UpdateScript {
     public static async run() {
         const migrate_template=(await db.query('SELECT appName FROM glitter.app_config where template_type!=0;',[])).map((dd:any)=>{
             return dd.appName
-        }).concat('shop_template_black_style','3131_shop')
+        }).concat('shop_template_black_style','3131_shop','proshake_v2')
 
         // UpdateScript.migrateTermsOfService(['3131_shop', 't_1717152410650', 't_1717141688550', 't_1717129048727', 't_1719819344426'])
         // UpdateScript.migrateHeaderAndFooter(['3131_shop','t_1719819344426','t_1717129048727','t_1717141688550','t_1717152410650','t_1717407696327','t_1717385441550','t_1717386839537','t_1717397588096'])

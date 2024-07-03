@@ -1295,8 +1295,28 @@ export class BgNotify {
                                                                                                             )}
                                                                                                             ${BgWidget.title(`選擇群發對象`)}
                                                                                                             <div class="flex-fill"></div>
+                                                                                                            <button class="btn bt_c39 me-2"  style="height:38px;font-size: 14px;" onclick="${gvc.event(()=>{
+                                                                                                                const dialog = new ShareDialog(gvc.glitter);
+                                                                                                                dialog.dataLoading({
+                                                                                                                    text: '發送中...',
+                                                                                                                    visible: true,
+                                                                                                                });
+                                                                                                                ApiFcm.send({
+                                                                                                                    device_token:['all'],
+                                                                                                                    title: dd.content.title,
+                                                                                                                    content: dd.content.content,
+                                                                                                                    link:dd.content.link
+                                                                                                                }).then(() => {
+                                                                                                                    dialog.dataLoading({
+                                                                                                                        visible: false,
+                                                                                                                    });
+                                                                                                                    dialog.successMessage({ text: `發送成功!` });
+                                                                                                                });
+                                                                                                            })}">
+                                                                                                                發送給所有用戶
+                                                                                                            </button>
                                                                                                             <button
-                                                                                                                class="btn btn-primary-c"
+                                                                                                                class="btn bt_c39"
                                                                                                                 style="height:38px;font-size: 14px;"
                                                                                                                 onclick="${gvc.event(() => {
                                                                                                                     const dialog = new ShareDialog(gvc.glitter);

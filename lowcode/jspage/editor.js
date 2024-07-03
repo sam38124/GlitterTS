@@ -99,12 +99,21 @@ export class Editor {
                 <div class="position-relative vh-100 vw-100 overflow-auto"
                      style="word-break: break-word;white-space: nowrap;background:whitesmoke;">
                     <!-- Navbar -->
-                    <header class="header navbar navbar-expand navbar-light bg-light border-bottom border-light shadow fixed-top"
+                    <header class="header navbar navbar-expand navbar-light bg-light border-bottom   fixed-top"
                             data-scroll-header style="height: 56px;">
                         <div class="container-fluid pe-lg-4" style="position: relative">
-                            <div class="navbar-brand  text-dark d-none d-lg-flex py-0 h-100" style="width:220px;">
+                            <div class="navbar-brand text-dark d-none d-lg-flex py-0 h-100 " style="${(() => {
+                switch (gvc.glitter.getUrlParameter('function')) {
+                    case 'page-editor':
+                        return `width: 219px;`;
+                    case 'user-editor':
+                        return `width: 300px;`;
+                    default:
+                        return `width: 218px;`;
+                }
+            })()}">
                                 <div class="d-flex align-items-center justify-content-center border-end "
-                                     style="width:50px;height: 56px;">
+                                     style="min-width:38px;height: 56px;width:38px;">
                                     <i
                                             class="fa-solid fa-left-to-bracket hoverBtn"
                                             style="cursor:pointer;"
@@ -114,24 +123,15 @@ export class Editor {
                                     >
                                     </i>
                                 </div>
-                                ${glitter.share.blogEditor
-                ? html `
-                                            <span
-                                                    class="ms-3 fw-500"
-                                                    style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                                <span
+                                        class="ms-3 fw-500"
+                                        style="  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
    background: -webkit-linear-gradient(135deg, #667eea 0%, #764ba2 100%);
    background-clip: text;
    -webkit-background-clip: text;
    color: transparent;"
-                                            >${getEditorTitle()}</span
-                                            >
-                                        `
-                : `<span class="ms-3 fw-500" style="  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-   background: -webkit-linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-   background-clip: text;
-   -webkit-background-clip: text;
-   color: transparent;">${getEditorTitle()}</span>
-                                        `}
+                                >${getEditorTitle()}</span
+                                >
                             </div>
                             <div
                                     class="border-end d-flex align-items-center justify-content-center ms-n2 fs-3 d-sm-none"
@@ -144,6 +144,7 @@ export class Editor {
                             </div>
                             <div class="border-end d-none d-sm-block"
                                  style="width:${glitter.getUrlParameter('blogEditor') ? `100px` : `37px`};height: 56px; "></div>
+
                             ${(() => {
                 if (Storage.select_function === 'backend-manger') {
                     return html `
@@ -587,7 +588,7 @@ color:white;
                                         }, 100);
                                     })}">
                                                                                 ${(toggle) ? `<i class="fa-solid fa-xmark"></i>` : `<i class="fa-regular fa-bell"></i>`}
-                                                                              
+
                                                                             </div>`,
                                     gvc.bindView(() => {
                                         return {
@@ -598,7 +599,8 @@ color:white;
 ">${unread}</div>`;
                                             },
                                             divCreate: {
-                                                class: `position-absolute`, style: `font-size: 10px;right: 13px;top: 3px;`
+                                                class: `position-absolute`,
+                                                style: `font-size: 10px;right: 13px;top: 3px;`
                                             }
                                         };
                                     })
@@ -607,23 +609,27 @@ color:white;
                                     glitter.ut.frSize({
                                         sm: () => {
                                             view.push(html `
-                                                                 <div class="position-fixed vw-100 vh-100 top-0 start-0" style="z-index: 999;" onclick="${gvc.event(() => {
+                                                                                    <div class="position-fixed vw-100 vh-100 top-0 start-0"
+                                                                                         style="z-index: 999;"
+                                                                                         onclick="${gvc.event(() => {
                                                 toggle = !toggle;
                                                 setTimeout(() => {
                                                     gvc.notifyDataChange(id);
                                                 }, 100);
                                             })}">
-                                                                     
-                                                                 </div>
-                                                                            <div class="card rounded-3 shadow position-absolute "
-                                                                                 style="max-width:100vw;width:450px;height: 600px;right: 0px;top:42px;z-index: 9999;">
-                                                                                <iframe class="card rounded-3 shadow position-absolute"
-                                                                                        src="${glitter.root_path}notice-widget?appName=cms_system&cms=true"></iframe>
-                                                                            </div>`);
+
+                                                                                    </div>
+                                                                                    <div class="card rounded-3 shadow position-absolute "
+                                                                                         style="max-width:100vw;width:450px;height: 600px;right: 0px;top:42px;z-index: 9999;">
+                                                                                        <iframe class="card rounded-3 shadow position-absolute"
+                                                                                                src="${glitter.root_path}notice-widget?appName=cms_system&cms=true"></iframe>
+                                                                                    </div>`);
                                         }
                                     }, () => {
                                         view.push(html `
-                                                                                <div class="position-fixed vw-100 vh-100 top-0 start-0" style="z-index: 999;" onclick="${gvc.event(() => {
+                                                                                <div class="position-fixed vw-100 vh-100 top-0 start-0"
+                                                                                     style="z-index: 999;"
+                                                                                     onclick="${gvc.event(() => {
                                             toggle = !toggle;
                                             setTimeout(() => {
                                                 gvc.notifyDataChange(id);
@@ -631,11 +637,11 @@ color:white;
                                         })}">
 
                                                                                 </div>
-                                                                            <div class="card  shadow position-fixed "
-                                                                                 style="max-width:100vw;width:100vw;height:calc(100vh - 50px);right: 0px;top:50px;z-index: 999;">
-                                                                                <iframe class="card  shadow position-absolute"
-                                                                                        src="${glitter.root_path}notice-widget?appName=cms_system&cms=true"></iframe>
-                                                                            </div>`);
+                                                                                <div class="card  shadow position-fixed "
+                                                                                     style="max-width:100vw;width:100vw;height:calc(100vh - 50px);right: 0px;top:50px;z-index: 999;">
+                                                                                    <iframe class="card  shadow position-absolute"
+                                                                                            src="${glitter.root_path}notice-widget?appName=cms_system&cms=true"></iframe>
+                                                                                </div>`);
                                     })();
                                 }
                                 return view.join('');
@@ -653,10 +659,12 @@ color:white;
             })()}
                         </div>
                     </header>
+                    <!--當到期日付費時-->
+                   ${EditorConfig.paymentInfo(gvc)}
                     <aside
                             id="componentsNav"
                             class="${viewModel.type === ViewType.fullScreen ? `d-none` : ``} offcanvas offcanvas-start offcanvas-expand-lg position-fixed top-0 start-0 vh-100 bg-light overflow-hidden"
-                            style="${size < 800 ? `width: 0px;` : Storage.select_function === 'user-editor' ? `width: 365px;` : `width: 284px;`}"
+                            style="${size < 800 ? `width: 0px;` : Storage.select_function === 'user-editor' ? `width: 365px;` : `width: 284px;`}z-index:10 !important;"
                     >
                         <div class="offcanvas-header d-none d-lg-flex justify-content-start border-bottom px-0 ${Storage.select_function === 'user-editor' ? `border-end` : ``}"
                              style="height: 56px;">
@@ -688,7 +696,7 @@ color:white;
                     <!-- Page container -->
                     <main
                             class="docs-container"
-                            style="padding-top: 56px;
+                            style="padding-top: ${EditorConfig.getPaddingTop(gvc) + 56}px;
                           padding-right:${(viewModel.type === ViewType.col3 || viewModel.type === ViewType.mobile) &&
                 Storage.select_function !== 'backend-manger' &&
                 Storage.select_function !== 'server-manager'

@@ -31,87 +31,100 @@ export class BgWidget {
                 view: () => {
                     var _a, _b;
                     if (vm.loading) {
-                        return html ` <div class="fs-2 text-center" style="padding:32px;">${vm.stateText}</div>`;
+                        return html `
+                            <div class="fs-2 text-center" style="padding:32px;">${vm.stateText}</div>`;
                     }
                     else {
-                        return html ` <div class="p-0" style="">
-                            <div class="" style="overflow-x:scroll;">
-                                <table
-                                    class="table table-centered table-nowrap  text-center table-hover fw-500 fs-7"
-                                    style="overflow-x:scroll;margin-left: 32px;margin-right: 32px;width:calc(100% - 64px);${(_a = obj.table_style) !== null && _a !== void 0 ? _a : ''}"
-                                >
-                                    <div class="" style="padding: 16px 32px;">${(_b = obj.filter) !== null && _b !== void 0 ? _b : ''}</div>
+                        return html `
+                            <div class="p-0" style="">
+                                <div class="" style="overflow-x:scroll;">
+                                    <table
+                                            class="table table-centered table-nowrap  text-center table-hover fw-500 fs-7"
+                                            style="overflow-x:scroll;margin-left: 32px;margin-right: 32px;width:calc(100% - 64px);${(_a = obj.table_style) !== null && _a !== void 0 ? _a : ''}"
+                                    >
+                                        <div class="" style="padding: 16px 32px;">${(_b = obj.filter) !== null && _b !== void 0 ? _b : ''}</div>
 
-                                    <thead class="" style="">
+                                        <thead class="" style="">
                                         ${vm.data.length === 0
                             ? ''
-                            : html ` <tr>
-                                                  ${vm.data[0]
+                            : html `
+                                                    <tr>
+                                                        ${vm.data[0]
                                 .map((dd, index) => {
                                 var _a;
-                                return html ` <th
-                                                                  class="${(_a = dd.position) !== null && _a !== void 0 ? _a : 'text-start'} tx_normal fw-bold"
-                                                                  style="border:none;padding-bottom: 30px;color:#393939 !important;${(obj.style || []) && obj.style[index] ? obj.style[index] : ``}"
-                                                              >
-                                                                  ${dd.key}
-                                                              </th>`;
+                                return html `
+                                                                                    <th
+                                                                                            class="${(_a = dd.position) !== null && _a !== void 0 ? _a : 'text-start'} tx_normal fw-bold"
+                                                                                            style="border:none;padding-bottom: 30px;color:#393939 !important;${(obj.style || []) && obj.style[index] ? obj.style[index] : ``}"
+                                                                                    >
+                                                                                        ${dd.key}
+                                                                                    </th>`;
                             })
                                 .join('')}
-                                              </tr>`}
-                                    </thead>
+                                                    </tr>`}
+                                        </thead>
 
-                                    <tbody>
+                                        <tbody>
                                         ${vm.data.length === 0
-                            ? html ` <div class=" fs-2 text-center" style="padding-bottom:32px;">${vm.stateText}</div>`
+                            ? html `
+                                                    <div class=" fs-2 text-center" style="padding-bottom:32px;">
+                                                        ${vm.stateText}
+                                                    </div>`
                             : html `${vm.data
                                 .map((dd, index) => {
                                 const pencilId = gvc.glitter.getUUID();
-                                return html ` <tr
-                                                          style="${obj.rowClick ? `cursor:pointer;` : ``};color:#303030;position: relative;"
-                                                          onclick="${gvc.event(() => {
+                                return html `
+                                                                <tr
+                                                                        style="${obj.rowClick ? `cursor:pointer;` : ``};color:#303030;position: relative;"
+                                                                        onclick="${gvc.event(() => {
                                     obj.rowClick && obj.rowClick(dd, index);
                                 })}"
-                                                          onmouseover="${gvc.event(() => {
+                                                                        onmouseover="${gvc.event(() => {
                                     $('#' + pencilId).removeClass('d-none');
                                 })}"
-                                                          onmouseout="${gvc.event(() => {
+                                                                        onmouseout="${gvc.event(() => {
                                     $('#' + pencilId).addClass('d-none');
                                 })}"
-                                                      >
-                                                          ${dd
+                                                                >
+                                                                    ${dd
                                     .map((d3, index) => {
                                     var _a;
-                                    return html ` <td
-                                                                          class="${(_a = d3.position) !== null && _a !== void 0 ? _a : 'text-start'}  tx_normal"
-                                                                          ${d3.key === '●' || d3.stopDialog ? '' : html ` onclick="${gvc.event(() => { })}"`}
-                                                                          style="color:#393939 !important;border:none;
+                                    return html `
+                                                                                                <td
+                                                                                                        class="${(_a = d3.position) !== null && _a !== void 0 ? _a : 'text-start'}  tx_normal"
+                                                                                                        ${d3.key === '●' || d3.stopDialog ? '' : html ` onclick="${gvc.event(() => {
+                                    })}"`}
+                                                                                                        style="color:#393939 !important;border:none;
 ${(obj.style || []) && obj.style[index] ? obj.style[index] : ``}
 "
-                                                                      >
-                                                                          <div class="my-auto" style="${(obj.style || []) && obj.style[index] ? obj.style[index] : ``}">${d3.value}</div>
-                                                                          ${index === dd.length - 1 && obj.editable
+                                                                                                >
+                                                                                                    <div class="my-auto"
+                                                                                                         style="${(obj.style || []) && obj.style[index] ? obj.style[index] : ``}">
+                                                                                                        ${d3.value}
+                                                                                                    </div>
+                                                                                                    ${index === dd.length - 1 && obj.editable
                                         ? `
                                                                                                       <i id="${pencilId}" class="fa-regular fa-pencil position-absolute d-none me-2" style="right: 5px;transform: translateY(-50%);top:50%;"></i>
                                                                                                     `
                                         : ``}
-                                                                      </td>`;
+                                                                                                </td>`;
                                 })
                                     .join('')}
-                                                      </tr>`;
+                                                                </tr>`;
                             })
                                 .join('')}`}
-                                    </tbody>
-                                </table>
-                                <div>
-                                    ${vm.data.length === 0
+                                        </tbody>
+                                    </table>
+                                    <div>
+                                        ${vm.data.length === 0
                             ? ''
                             : ps.pageSplit(vm.pageSize, vm.page, (page) => {
                                 (vm.data = []), (vm.editData = []), (vm.page = page);
                                 (vm.loading = true), gvc.notifyDataChange(id);
                             }, false)}
+                                    </div>
                                 </div>
-                            </div>
-                        </div>`;
+                            </div>`;
                     }
                 },
                 divCreate: {
@@ -160,84 +173,99 @@ ${(obj.style || []) && obj.style[index] ? obj.style[index] : ``}
                 view: () => {
                     var _a;
                     if (vm.loading) {
-                        return html ` <div class="fs-2 text-center" style="padding: 32px;">${vm.stateText}</div>`;
+                        return html `
+                            <div class="fs-2 text-center" style="padding: 32px;">${vm.stateText}</div>`;
                     }
                     else {
-                        return html ` <div class="m-0 p-0" style="${(_a = obj.table_style) !== null && _a !== void 0 ? _a : ''}">
-                            ${obj.filter ? html `<div style="padding: 12px;">${obj.filter}</div>` : ''}
-                            <div style="overflow-x:scroll; z-index: 1;">
-                                <table class="table table-centered table-nowrap text-center table-hover fw-400 fs-7" style="overflow-x:scroll; ">
-                                    <thead>
+                        return html `
+                            <div class="m-0 p-0" style="${(_a = obj.table_style) !== null && _a !== void 0 ? _a : ''}">
+                                ${obj.filter ? html `
+                                    <div style="padding: 12px;">${obj.filter}</div>` : ''}
+                                <div style="overflow-x:scroll; z-index: 1;">
+                                    <table class="table table-centered table-nowrap text-center table-hover fw-400 fs-7"
+                                           style="overflow-x:scroll; ">
+                                        <thead>
                                         ${vm.data.length === 0
                             ? ''
-                            : html ` <tr>
-                                                  ${vm.data[0]
+                            : html `
+                                                    <tr>
+                                                        ${vm.data[0]
                                 .map((dd, index) => {
                                 var _a;
-                                return html ` <th
-                                                                  class="${(_a = dd.position) !== null && _a !== void 0 ? _a : 'text-start'} tx_700"
-                                                                  style="white-space:nowrap;border:none; color:#393939 !important; ${(obj.style || []) && obj.style[index] ? obj.style[index] : ``}"
-                                                              >
-                                                                  ${dd.key}
-                                                              </th>`;
+                                return html `
+                                                                                    <th
+                                                                                            class="${(_a = dd.position) !== null && _a !== void 0 ? _a : 'text-start'} tx_700"
+                                                                                            style="white-space:nowrap;border:none; color:#393939 !important; ${(obj.style || []) && obj.style[index] ? obj.style[index] : ``}"
+                                                                                    >
+                                                                                        ${dd.key}
+                                                                                    </th>`;
                             })
                                 .join('')}
-                                              </tr>`}
-                                    </thead>
-                                    <tbody>
+                                                    </tr>`}
+                                        </thead>
+                                        <tbody>
                                         ${vm.data.length === 0
-                            ? html ` <div class="fs-2 text-center" style="padding-bottom:32px;white-space:nowrap;">${vm.stateText}</div>`
+                            ? html `
+                                                    <div class="fs-2 text-center"
+                                                         style="padding-bottom:32px;white-space:nowrap;">${vm.stateText}
+                                                    </div>`
                             : html `${vm.data
                                 .map((dd, index) => {
                                 const pencilId = gvc.glitter.getUUID();
-                                return html ` <tr
-                                                          style="${obj.rowClick ? `cursor:pointer;` : ``};color:#303030;position: relative;"
-                                                          onclick="${gvc.event(() => {
+                                return html `
+                                                                <tr
+                                                                        style="${obj.rowClick ? `cursor:pointer;` : ``};color:#303030;position: relative;"
+                                                                        onclick="${gvc.event(() => {
                                     obj.rowClick && obj.rowClick(dd, index);
                                 })}"
-                                                          onmouseover="${gvc.event(() => {
+                                                                        onmouseover="${gvc.event(() => {
                                     $('#' + pencilId).removeClass('d-none');
                                 })}"
-                                                          onmouseout="${gvc.event(() => {
+                                                                        onmouseout="${gvc.event(() => {
                                     $('#' + pencilId).addClass('d-none');
                                 })}"
-                                                      >
-                                                          ${dd
+                                                                >
+                                                                    ${dd
                                     .map((d3, index) => {
                                     var _a;
-                                    return html ` <td
-                                                                          class="${(_a = d3.position) !== null && _a !== void 0 ? _a : 'text-start'} tx_normal"
-                                                                          ${d3.key === '●' || d3.stopDialog ? '' : html ` onclick="${gvc.event(() => { })}"`}
-                                                                          style="color:#393939 !important;border:none;${(obj.style || []) && obj.style[index] ? obj.style[index] : ``}"
-                                                                      >
-                                                                          <div class="my-1 text-nowrap" style="${(obj.style || []) && obj.style[index] ? obj.style[index] : ``}">${d3.value}</div>
-                                                                          ${index === dd.length - 1 && obj.editable
+                                    return html `
+                                                                                                <td
+                                                                                                        class="${(_a = d3.position) !== null && _a !== void 0 ? _a : 'text-start'} tx_normal"
+                                                                                                        ${d3.key === '●' || d3.stopDialog ? '' : html ` onclick="${gvc.event(() => {
+                                    })}"`}
+                                                                                                        style="color:#393939 !important;border:none;${(obj.style || []) && obj.style[index] ? obj.style[index] : ``}"
+                                                                                                >
+                                                                                                    <div class="my-1 text-nowrap"
+                                                                                                         style="${(obj.style || []) && obj.style[index] ? obj.style[index] : ``}">
+                                                                                                        ${d3.value}
+                                                                                                    </div>
+                                                                                                    ${index === dd.length - 1 && obj.editable
                                         ? html `
-                                                                                    <i
-                                                                                        id="${pencilId}"
-                                                                                        class="fa-regular fa-pencil position-absolute d-none me-2"
-                                                                                        style="right: 5px;transform: translateY(-50%);top:50%;"
-                                                                                    ></i>
-                                                                                `
+                                                                                                                <i
+                                                                                                                        id="${pencilId}"
+                                                                                                                        class="fa-regular fa-pencil position-absolute d-none me-2"
+                                                                                                                        style="right: 5px;transform: translateY(-50%);top:50%;"
+                                                                                                                ></i>
+                                                                                                            `
                                         : ``}
-                                                                      </td>`;
+                                                                                                </td>`;
                                 })
                                     .join('')}
-                                                      </tr>`;
+                                                                </tr>`;
                             })
                                 .join('')}`}
-                                    </tbody>
-                                </table>
-                                <div>
-                                    ${vm.data.length === 0
+                                        </tbody>
+                                    </table>
+                                    <div>
+                                        ${vm.data.length === 0
                             ? ''
                             : ps.pageSplitV2(vm.pageSize, vm.page, (page) => {
                                 (vm.data = []), (vm.editData = []), (vm.page = page);
                                 (vm.loading = true), gvc.notifyDataChange(id);
                             }, false)}
+                                    </div>
                                 </div>
-                            </div>
-                        </div>`;
+                            </div>`;
                     }
                 },
                 divCreate: {},
@@ -250,42 +278,72 @@ ${(obj.style || []) && obj.style[index] ? obj.style[index] : ``}
         });
     }
     static cancel(event, text = '取消') {
-        return html `<button class="btn btn-snow" type="button" onclick="${event}">
-            <span class="tx_700">${text}</span>
-        </button> `;
+        return html `
+            <button class="btn btn-snow" type="button" onclick="${event}">
+                <span class="tx_700">${text}</span>
+            </button> `;
     }
     static save(event, text = '儲存') {
-        return html ` <button class="btn btn-black" type="button" onclick="${event}">
-            <span class="tx_700_white">${text}</span>
-        </button>`;
+        return html `
+            <button class="btn btn-black" type="button" onclick="${event}">
+                <span class="tx_700_white">${text}</span>
+            </button>`;
     }
     static maintenance() {
-        return html `<div class="d-flex flex-column align-items-center justify-content-center vh-100 vw-100">
-            <iframe src="https://embed.lottiefiles.com/animation/99312" style="width:50vw;height:50vw;"></iframe>
-            <h3 style="margin-top: 36px;">此頁面功能維護中</h3>
-        </div>`;
+        return html `
+            <div class="d-flex flex-column align-items-center justify-content-center vh-100 vw-100">
+                <iframe src="https://embed.lottiefiles.com/animation/99312" style="width:50vw;height:50vw;"></iframe>
+                <h3 style="margin-top: 36px;">此頁面功能維護中</h3>
+            </div>`;
     }
     static card(htmlString, classStyle = 'p-3 bg-white rounded-3 shadow border w-100') {
-        return html `<div class="${classStyle}" style="">${htmlString}</div>`;
+        return html `
+            <div class="${classStyle}" style="">${htmlString}</div>`;
     }
     static mainCard(htmlString, classString, styleString) {
-        return html `<div class="main-card ${classString !== null && classString !== void 0 ? classString : ''}" style="${styleString !== null && styleString !== void 0 ? styleString : ''}">${htmlString !== null && htmlString !== void 0 ? htmlString : ''}</div>`;
+        return html `
+            <div class="main-card ${classString !== null && classString !== void 0 ? classString : ''}" style="${styleString !== null && styleString !== void 0 ? styleString : ''}">${htmlString !== null && htmlString !== void 0 ? htmlString : ''}</div>`;
     }
     static container(htmlString, width, style) {
-        return html `<div
-            class="${document.body.clientWidth < 768 ? 'row col-12 w-100' : ''}"
-            style="padding: 24px ${document.body.clientWidth < 768 ? '0.75rem' : '0'}; margin: 0 auto; ${width ? `max-width:100%; width:${width}px;` : ``} ${style !== null && style !== void 0 ? style : ''}"
-        >
-            ${htmlString}
-        </div>`;
+        return html `
+            <div
+                    class="${document.body.clientWidth < 768 ? 'row col-12 w-100' : ''}"
+                    style="padding: 24px ${document.body.clientWidth < 768 ? '0.75rem' : '0'}; margin: 0 auto; ${width ? `max-width:100%; width:${width}px;` : ``} ${style !== null && style !== void 0 ? style : ''}"
+            >
+                ${htmlString}
+            </div>`;
     }
     static title(title) {
         return html ` <h3 class="my-auto tx_title" style="white-space: nowrap;">${title}</h3>`;
     }
+    static tab(data, gvc, select, callback) {
+        return html `
+            <div class=""
+                 style="justify-content: flex-start; align-items: flex-start; gap: 22px; display: inline-flex;cursor: pointer;margin-top: 24px;margin-bottom: 24px;">
+                ${data.map((dd) => {
+            if (select === dd.key) {
+                return `<div style=" flex-direction: column; justify-content: flex-start; align-items: center; gap: 8px; display: inline-flex">
+    <div style="align-self: stretch; text-align: center; color: #393939; font-size: 18px; font-family: Noto Sans; font-weight: 700; line-height: 18px; word-wrap: break-word">${dd.title}</div>
+    <div style="align-self: stretch; height: 0px; border: 2px #393939 solid"></div>
+  </div>`;
+            }
+            else {
+                return `<div style=" flex-direction: column; justify-content: flex-start; align-items: center; gap: 8px; display: inline-flex" onclick="${gvc.event(() => {
+                    callback(dd.key);
+                })}">
+    <div style="align-self: stretch; text-align: center; color: #393939; font-size: 18px; font-family: Noto Sans; font-weight: 400; line-height: 18px; word-wrap: break-word">${dd.title}</div>
+    <div style="align-self: stretch; height: 0px"></div>
+  </div>`;
+            }
+        }).join('')}
+            </div>`;
+    }
     static goBack(event) {
-        return html `<div class="d-flex align-items-center justify-content-center" style="width: 5px; height: 11px; cursor:pointer; margin-right: 10px;" onclick="${event}">
-            <i class="fa-solid fa-angle-left" style="color: #393939;"></i>
-        </div>`;
+        return html `
+            <div class="d-flex align-items-center justify-content-center"
+                 style="width: 5px; height: 11px; cursor:pointer; margin-right: 10px;" onclick="${event}">
+                <i class="fa-solid fa-angle-left" style="color: #393939;"></i>
+            </div>`;
     }
     static inlineCheckBox(obj) {
         var _a;
@@ -311,9 +369,9 @@ ${(obj.style || []) && obj.style[index] ? obj.style[index] : ``}
                             }
                         }
                         return html `
-                                    <div
-                                        class="d-flex align-items-center cursor_pointer"
-                                        onclick="${obj.gvc.event(() => {
+                                        <div
+                                                class="d-flex align-items-center cursor_pointer"
+                                                onclick="${obj.gvc.event(() => {
                             if (obj.type === 'multiple') {
                                 if (obj.def.find((d2) => {
                                     return d2 === dd.value;
@@ -333,13 +391,13 @@ ${(obj.style || []) && obj.style[index] ? obj.style[index] : ``}
                             }
                             gvc.notifyDataChange(id);
                         })}"
-                                        style="gap:6px;"
-                                    >
-                                        ${isSelect() ? `<i class="fa-sharp fa-solid fa-circle-dot cl_39"></i>` : ` <div class="c_39_checkbox"></div>`}
-                                        <span class="tx_normal">${dd.title}</span>
-                                    </div>
-                                    ${obj.def === dd.value && dd.innerHtml ? `<div class="mt-1">${dd.innerHtml}</div>` : ``}
-                                `;
+                                                style="gap:6px;"
+                                        >
+                                            ${isSelect() ? `<i class="fa-sharp fa-solid fa-circle-dot cl_39"></i>` : ` <div class="c_39_checkbox"></div>`}
+                                            <span class="tx_normal">${dd.title}</span>
+                                        </div>
+                                        ${obj.def === dd.value && dd.innerHtml ? `<div class="mt-1">${dd.innerHtml}</div>` : ``}
+                                    `;
                     })
                         .join('');
                 },
@@ -356,18 +414,21 @@ ${(obj.style || []) && obj.style[index] ? obj.style[index] : ``}
         obj.title = (_a = obj.title) !== null && _a !== void 0 ? _a : '';
         return html `
             <div style="${(_b = obj.divStyle) !== null && _b !== void 0 ? _b : ''}">
-                ${obj.title ? html `<div class="tx_normal fw-normal" style="${(_c = obj.titleStyle) !== null && _c !== void 0 ? _c : ''}">${obj.title}</div>` : ``}
-                <div class="d-flex align-items-center border rounded-3 ${obj.readonly ? `bgw-input-readonly` : ``}" style="margin: 8px 0;">
-                    ${obj.startText ? html `<div class="py-2 ps-3">${obj.startText}</div>` : ''}
+                ${obj.title ? html `
+                    <div class="tx_normal fw-normal" style="${(_c = obj.titleStyle) !== null && _c !== void 0 ? _c : ''}">${obj.title}</div>` : ``}
+                <div class="d-flex align-items-center border rounded-3 ${obj.readonly ? `bgw-input-readonly` : ``}"
+                     style="margin: 8px 0;">
+                    ${obj.startText ? html `
+                        <div class="py-2 ps-3">${obj.startText}</div>` : ''}
                     <input
-                        class="bgw-input ${obj.readonly ? `bgw-input-readonly` : ``}"
-                        style="${(_d = obj.style) !== null && _d !== void 0 ? _d : ''}"
-                        type="${(_e = obj.type) !== null && _e !== void 0 ? _e : 'text'}"
-                        placeholder="${obj.placeHolder}"
-                        onchange="${obj.gvc.event((e) => {
+                            class="bgw-input ${obj.readonly ? `bgw-input-readonly` : ``}"
+                            style="${(_d = obj.style) !== null && _d !== void 0 ? _d : ''}"
+                            type="${(_e = obj.type) !== null && _e !== void 0 ? _e : 'text'}"
+                            placeholder="${obj.placeHolder}"
+                            onchange="${obj.gvc.event((e) => {
             obj.callback(e.value);
         })}"
-                        oninput="${obj.gvc.event((e) => {
+                            oninput="${obj.gvc.event((e) => {
             if (obj.pattern) {
                 const value = e.value;
                 const regex = new RegExp(`[^${obj.pattern}]`, 'g');
@@ -377,10 +438,11 @@ ${(obj.style || []) && obj.style[index] ? obj.style[index] : ``}
                 }
             }
         })}"
-                        value="${(_f = obj.default) !== null && _f !== void 0 ? _f : ''}"
-                        ${obj.readonly ? `readonly` : ``}
+                            value="${(_f = obj.default) !== null && _f !== void 0 ? _f : ''}"
+                            ${obj.readonly ? `readonly` : ``}
                     />
-                    ${obj.endText ? html `<div class="py-2 pe-3">${obj.endText}</div>` : ''}
+                    ${obj.endText ? html `
+                        <div class="py-2 pe-3">${obj.endText}</div>` : ''}
                 </div>
             </div>
         `;
@@ -388,27 +450,33 @@ ${(obj.style || []) && obj.style[index] ? obj.style[index] : ``}
     static textArea(obj) {
         var _a, _b, _c;
         obj.title = (_a = obj.title) !== null && _a !== void 0 ? _a : '';
-        return html `${obj.title ? html `<div class="tx_normal fw-normal">${obj.title}</div>` : ''}
-            <div class="w-100 px-1" style="margin-top:8px;">
+        return html `${obj.title ? html `
+            <div class="tx_normal fw-normal">${obj.title}</div>` : ''}
+        <div class="w-100 px-1" style="margin-top:8px;">
                 <textarea
-                    class="form-control border rounded"
-                    style="font-size: 16px; color: #393939;"
-                    rows="4"
-                    onchange="${obj.gvc.event((e) => {
+                        class="form-control border rounded"
+                        style="font-size: 16px; color: #393939;"
+                        rows="4"
+                        onchange="${obj.gvc.event((e) => {
             obj.callback(e.value);
         })}"
-                    placeholder="${(_b = obj.placeHolder) !== null && _b !== void 0 ? _b : ''}"
-                    ${obj.readonly ? `readonly` : ``}
+                        placeholder="${(_b = obj.placeHolder) !== null && _b !== void 0 ? _b : ''}"
+                        ${obj.readonly ? `readonly` : ``}
                 >
 ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                 >
-            </div>`;
+        </div>`;
     }
     static searchPlace(event, vale, placeholder, margin = '16px 0 0 0') {
-        return html `<div class="w-100 position-relative" style="margin: ${margin};">
-            <i class=" fa-regular fa-magnifying-glass" style=" font-size: 18px;color: #A0A0A0;position: absolute;left:20px;top:50%;transform: translateY(-50%);" aria-hidden="true"></i>
-            <input class="form-control h-100 " style="border-radius: 10px; border: 1px solid #DDD; padding-left: 50px;" placeholder="${placeholder}" onchange="${event}" value="${vale}" />
-        </div>`;
+        return html `
+            <div class="w-100 position-relative" style="margin: ${margin};">
+                <i class=" fa-regular fa-magnifying-glass"
+                   style=" font-size: 18px;color: #A0A0A0;position: absolute;left:20px;top:50%;transform: translateY(-50%);"
+                   aria-hidden="true"></i>
+                <input class="form-control h-100 "
+                       style="border-radius: 10px; border: 1px solid #DDD; padding-left: 50px;"
+                       placeholder="${placeholder}" onchange="${event}" value="${vale}"/>
+            </div>`;
     }
     static linkList(obj) {
         var _a, _b;
@@ -458,14 +526,16 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         const formatLinkHTML = (icon, pathList) => {
             let pathHTML = '';
             pathList.map((path, index) => {
-                pathHTML += html `<span class="mx-1">${path}</span>${index === pathList.length - 1 ? '' : html `<i class="fa-solid fa-chevron-right"></i>`}`;
+                pathHTML += html `<span class="mx-1">${path}</span>${index === pathList.length - 1 ? '' : html `<i
+                        class="fa-solid fa-chevron-right"></i>`}`;
             });
-            return html ` <div style="display: flex; flex-wrap: wrap; align-items: center; font-size: 16px; font-weight: 500; gap: 6px; line-height: 140%;cursor: default;">
-                <div style="width: 28px;height: 28px;display: flex; align-items: center; justify-content:center;">
-                    <i class="${icon.length > 0 ? icon : 'fa-regular fa-image'}"></i>
-                </div>
-                ${pathHTML}
-            </div>`;
+            return html `
+                <div style="display: flex; flex-wrap: wrap; align-items: center; font-size: 16px; font-weight: 500; gap: 6px; line-height: 140%;cursor: default;">
+                    <div style="width: 28px;height: 28px;display: flex; align-items: center; justify-content:center;">
+                        <i class="${icon.length > 0 ? icon : 'fa-regular fa-image'}"></i>
+                    </div>
+                    ${pathHTML}
+                </div>`;
         };
         const formatLinkText = (text) => {
             const firstRound = dropMenu.recentList.find((item) => item.link === text);
@@ -497,17 +567,19 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                 }
                 else {
                     let dataList = JSON.parse(JSON.stringify(dropMenu.recentList));
-                    return html `${obj.title ? html `<div class="tx_normal fw-normal">${obj.title}</div>` : ``}
-                        <div style="position: relative">
-                            ${obj.gvc.bindView({
+                    return html `${obj.title ? html `
+                        <div class="tx_normal fw-normal">${obj.title}</div>` : ``}
+                    <div style="position: relative">
+                        ${obj.gvc.bindView({
                         bind: linkComp.id,
                         view: () => {
                             var _a, _b;
                             if (linkComp.loading) {
-                                return html `<div
-                                            class="form-control"
-                                            style="${(_a = obj.style) !== null && _a !== void 0 ? _a : ''} margin-top:8px;"
-                                            onclick="${obj.gvc.event(() => {
+                                return html `
+                                        <div
+                                                class="form-control"
+                                                style="${(_a = obj.style) !== null && _a !== void 0 ? _a : ''} margin-top:8px;"
+                                                onclick="${obj.gvc.event(() => {
                                     componentFresh();
                                 })}"
                                         >
@@ -516,7 +588,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                             }
                             else {
                                 return html `
-                                            <input
+                                        <input
                                                 class="form-control"
                                                 style="${(_b = obj.style) !== null && _b !== void 0 ? _b : ''} margin-top:8px;"
                                                 type="text"
@@ -536,14 +608,15 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                 })}"
                                                 value="${linkComp.text}"
                                                 ${obj.readonly ? `readonly` : ``}
-                                            />
-                                        `;
+                                        />
+                                    `;
                             }
                         },
                         divCreate: {},
-                        onCreate: () => { },
+                        onCreate: () => {
+                        },
                     })}
-                            ${obj.gvc.bindView({
+                        ${obj.gvc.bindView({
                         bind: dropMenu.id,
                         view: () => {
                             if (dropMenu.loading) {
@@ -552,7 +625,8 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                             else {
                                 let h1 = '';
                                 if (dropMenu.prevList.length > 0) {
-                                    h1 += html ` <div
+                                    h1 += html `
+                                            <div
                                                     class="m-3"
                                                     style="font-size: 16px; font-weight: 500; gap: 6px; line-height: 140%;cursor: pointer;"
                                                     onclick=${obj.gvc.event(() => {
@@ -562,11 +636,11 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                         dropMenu.search = '';
                                         obj.gvc.notifyDataChange(dropMenu.id);
                                     })}
-                                                >
-                                                    <i class="fa-solid fa-chevron-left me-2 hoverF2"></i>
-                                                    <span>${dropMenu.recentParent[dropMenu.recentParent.length - 1]}</span>
-                                                </div>
-                                                <input
+                                            >
+                                                <i class="fa-solid fa-chevron-left me-2 hoverF2"></i>
+                                                <span>${dropMenu.recentParent[dropMenu.recentParent.length - 1]}</span>
+                                            </div>
+                                            <input
                                                     class="form-control m-2"
                                                     style="width: 92%"
                                                     type="text"
@@ -586,7 +660,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                         }
                                     })}"
                                                     value="${dropMenu.search}"
-                                                />`;
+                                            />`;
                                 }
                                 let h2 = '';
                                 dataList
@@ -595,58 +669,62 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                 })
                                     .map((tag) => {
                                     h2 += html `
-                                                    <div class="m-3" style="cursor:pointer;display: flex; align-items: center; justify-content: space-between;">
+                                                    <div class="m-3"
+                                                         style="cursor:pointer;display: flex; align-items: center; justify-content: space-between;">
                                                         <div
-                                                            class="link-item-container ${tag.link && tag.link.length > 0 ? 'hoverF2' : ''}"
-                                                            style="cursor: pointer;"
-                                                            onclick=${obj.gvc.event(() => {
+                                                                class="link-item-container ${tag.link && tag.link.length > 0 ? 'hoverF2' : ''}"
+                                                                style="cursor: pointer;"
+                                                                onclick=${obj.gvc.event(() => {
                                         tag.link && tag.link.length > 0 && callbackEvent(tag);
                                     })}
                                                         >
                                                             <div style="width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">
                                                                 ${(() => {
                                         if (tag.icon.includes('https://')) {
-                                            return html `<div
-                                                                            style="
+                                            return html `
+                                                                            <div
+                                                                                    style="
                                                                                 width: 25px; height: 25px;
                                                                                 background-image: url('${tag.icon}');
                                                                                 background-position: center;
                                                                                 background-size: cover;
                                                                                 background-repeat: no-repeat;
                                                                             "
-                                                                        ></div>`;
+                                                                            ></div>`;
                                         }
-                                        return html `<i class="${tag.icon.length > 0 ? tag.icon : 'fa-regular fa-image'}"></i>`;
+                                        return html `<i
+                                                                            class="${tag.icon.length > 0 ? tag.icon : 'fa-regular fa-image'}"></i>`;
                                     })()}
                                                             </div>
                                                             ${tag.name}
                                                         </div>
                                                         <div
-                                                            class="hoverF2 pe-2"
-                                                            style=""
-                                                            onclick=${obj.gvc.event(() => {
+                                                                class="hoverF2 pe-2"
+                                                                style=""
+                                                                onclick=${obj.gvc.event(() => {
                                         dropMenu.prevList.push(dataList);
                                         dropMenu.recentParent.push(tag.name);
                                         tag.items && (dataList = tag.items);
                                         obj.gvc.notifyDataChange(dropMenu.id);
                                     })}
                                                         >
-                                                            <i class="fa-solid fa-chevron-right ${tag.items && tag.items.length > 0 ? '' : 'd-none'}" style="cursor: pointer;"></i>
+                                                            <i class="fa-solid fa-chevron-right ${tag.items && tag.items.length > 0 ? '' : 'd-none'}"
+                                                               style="cursor: pointer;"></i>
                                                         </div>
                                                     </div>
                                                 `;
                                 });
                                 return html `
-                                            <div class="border border-2 rounded-2 p-2" style="width: 310px;">
-                                                ${h1}
-                                                <div style="overflow-y: auto; max-height: 42.5vh;">${h2}</div>
-                                            </div>
-                                        `;
+                                        <div class="border border-2 rounded-2 p-2" style="width: 310px;">
+                                            ${h1}
+                                            <div style="overflow-y: auto; max-height: 42.5vh;">${h2}</div>
+                                        </div>
+                                    `;
                             }
                         },
                         divCreate: { style: 'position: absolute; top: 42.5px; left: 0; z-index: 1; background-color: #fff;' },
                     })}
-                        </div>`;
+                    </div>`;
                 }
             },
             divCreate: {},
@@ -668,7 +746,11 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                     (data.response.data || []).map((item) => {
                                         const { id, title, preview_image } = item.content;
                                         const icon = preview_image && preview_image[0] ? preview_image[0] : '';
-                                        productList.push({ name: title, icon: icon, link: `./product_detail?product_id=${id}` });
+                                        productList.push({
+                                            name: title,
+                                            icon: icon,
+                                            link: `./product_detail?product_id=${id}`
+                                        });
                                     });
                                     resolve();
                                 }
@@ -692,7 +774,12 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                             { name: '首頁', icon: 'fa-regular fa-house', link: './index' },
                             { name: '商品', icon: 'fa-regular fa-tag', link: './all_product', items: productList },
                             { name: '商品分類', icon: 'fa-regular fa-tags', link: '', items: collectionList },
-                            { name: '網誌文章', icon: 'fa-regular fa-newspaper', link: './blog_list', items: acticleList },
+                            {
+                                name: '網誌文章',
+                                icon: 'fa-regular fa-newspaper',
+                                link: './blog_list',
+                                items: acticleList
+                            },
                             { name: '關於我們', icon: 'fa-regular fa-user-group', link: './aboutus' },
                         ].filter((menu) => {
                             if (menu.items === undefined)
@@ -710,20 +797,24 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         return html `<span style="color: #8D8D8D; font-size: 16px; font-weight: 400; ${style}">${text}</span>`;
     }
     static blueNote(text, event, style) {
-        return html `<span style="color: #4D86DB; font-size: 16px; font-weight: 400; cursor:pointer; ${style}" onclick="${event()}">${text}</span>`;
+        return html `<span style="color: #4D86DB; font-size: 16px; font-weight: 400; cursor:pointer; ${style}"
+                          onclick="${event()}">${text}</span>`;
     }
     static leftLineBar() {
-        return html `<div class="ms-2 border-end position-absolute h-100" style="left: 0px;"></div>`;
+        return html `
+            <div class="ms-2 border-end position-absolute h-100" style="left: 0px;"></div>`;
     }
     static bottomLineBar() {
-        return html `<div class="ms-2 border-end position-absolute h-100" style="left: 0px;"></div>`;
+        return html `
+            <div class="ms-2 border-end position-absolute h-100" style="left: 0px;"></div>`;
     }
     static grayButton(text, event, obj) {
         var _a;
-        return html `<button class="btn btn-gray" type="button" onclick="${event}">
-            <i class="${obj && obj.icon && obj.icon.length > 0 ? obj.icon : 'd-none'}"></i>
-            <span class="tx_700" style="${(_a = obj === null || obj === void 0 ? void 0 : obj.textStyle) !== null && _a !== void 0 ? _a : ''}">${text}</span>
-        </button>`;
+        return html `
+            <button class="btn btn-gray" type="button" onclick="${event}">
+                <i class="${obj && obj.icon && obj.icon.length > 0 ? obj.icon : 'd-none'}"></i>
+                <span class="tx_700" style="${(_a = obj === null || obj === void 0 ? void 0 : obj.textStyle) !== null && _a !== void 0 ? _a : ''}">${text}</span>
+            </button>`;
     }
     static darkButton(text, event, obj) {
         var _a;
@@ -739,52 +830,65 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
     }
     static redButton(text, event, obj) {
         var _a;
-        return html `<button class="btn btn-red" type="button" onclick="${event}">
-            <i class="${obj && obj.icon && obj.icon.length > 0 ? obj.icon : 'd-none'}"></i>
-            <span class="tx_700_white" style="${(_a = obj === null || obj === void 0 ? void 0 : obj.textStyle) !== null && _a !== void 0 ? _a : ''}">${text}</span>
-        </button>`;
+        return html `
+            <button class="btn btn-red" type="button" onclick="${event}">
+                <i class="${obj && obj.icon && obj.icon.length > 0 ? obj.icon : 'd-none'}"></i>
+                <span class="tx_700_white" style="${(_a = obj === null || obj === void 0 ? void 0 : obj.textStyle) !== null && _a !== void 0 ? _a : ''}">${text}</span>
+            </button>`;
     }
     static switchButton(gvc, def, callback) {
-        return html `<div class="form-check form-switch m-0" style="margin-top: 10px; cursor: pointer;">
-            <input
-                class="form-check-input"
-                type="checkbox"
-                onchange="${gvc.event((e) => {
+        return html `
+            <div class="form-check form-switch m-0" style="margin-top: 10px; cursor: pointer;">
+                <input
+                        class="form-check-input"
+                        type="checkbox"
+                        onchange="${gvc.event((e) => {
             callback(e.checked);
         })}"
-                ${def ? `checked` : ``}
-            />
-        </div>`;
+                        ${def ? `checked` : ``}
+                />
+            </div>`;
     }
     static searchFilter(event, vale, placeholder, margin) {
-        return html `<div class="w-100 position-relative" style="margin: ${margin !== null && margin !== void 0 ? margin : 0};">
-            <i class="fa-regular fa-magnifying-glass" style="font-size: 18px; color: #A0A0A0; position: absolute; left: 18px; top: 50%; transform: translateY(-50%);" aria-hidden="true"></i>
-            <input class="form-control h-100" style="border-radius: 10px; border: 1px solid #DDD; padding-left: 50px;" placeholder="${placeholder}" onchange="${event}" value="${vale}" />
-        </div>`;
+        return html `
+            <div class="w-100 position-relative" style="margin: ${margin !== null && margin !== void 0 ? margin : 0};">
+                <i class="fa-regular fa-magnifying-glass"
+                   style="font-size: 18px; color: #A0A0A0; position: absolute; left: 18px; top: 50%; transform: translateY(-50%);"
+                   aria-hidden="true"></i>
+                <input class="form-control h-100"
+                       style="border-radius: 10px; border: 1px solid #DDD; padding-left: 50px;"
+                       placeholder="${placeholder}" onchange="${event}" value="${vale}"/>
+            </div>`;
     }
     static select(obj) {
         var _a;
         return html `<select
-            class="c_select c_select_w_100"
-            style="${(_a = obj.style) !== null && _a !== void 0 ? _a : ''}; ${obj.readonly ? 'background: #f7f7f7;' : ''}"
-            onchange="${obj.gvc.event((e) => {
+                class="c_select c_select_w_100"
+                style="${(_a = obj.style) !== null && _a !== void 0 ? _a : ''}; ${obj.readonly ? 'background: #f7f7f7;' : ''}"
+                onchange="${obj.gvc.event((e) => {
             obj.callback(e.value);
         })}"
-            ${obj.readonly ? 'disabled' : ''}
+                ${obj.readonly ? 'disabled' : ''}
         >
-            ${obj.gvc.map(obj.options.map((opt) => html ` <option class="c_select_option" value="${opt.key}" ${obj.default === opt.key ? 'selected' : ''}>${opt.value}</option>`))}
+            ${obj.gvc.map(obj.options.map((opt) => html `
+                <option class="c_select_option" value="${opt.key}" ${obj.default === opt.key ? 'selected' : ''}>
+                    ${opt.value}
+                </option>`))}
         </select>`;
     }
     static selectFilter(obj) {
         var _a;
         return html `<select
-            class="c_select"
-            style="${(_a = obj.style) !== null && _a !== void 0 ? _a : ''}"
-            onchange="${obj.gvc.event((e) => {
+                class="c_select"
+                style="${(_a = obj.style) !== null && _a !== void 0 ? _a : ''}"
+                onchange="${obj.gvc.event((e) => {
             obj.callback(e.value);
         })}"
         >
-            ${obj.gvc.map(obj.options.map((opt) => html ` <option class="c_select_option" value="${opt.key}" ${obj.default === opt.key ? 'selected' : ''}>${opt.value}</option>`))}
+            ${obj.gvc.map(obj.options.map((opt) => html `
+                <option class="c_select_option" value="${opt.key}" ${obj.default === opt.key ? 'selected' : ''}>
+                    ${opt.value}
+                </option>`))}
         </select>`;
     }
     static selectDropList(obj) {
@@ -810,10 +914,11 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                 const defLine = obj.options.filter((item) => {
                     return obj.default.includes(item.key);
                 });
-                return html `<div class="c_select" style="position: relative; ${(_a = obj.style) !== null && _a !== void 0 ? _a : ''}">
-                    <div
-                        class="w-100 h-100"
-                        onclick="${obj.gvc.event(() => {
+                return html `
+                    <div class="c_select" style="position: relative; ${(_a = obj.style) !== null && _a !== void 0 ? _a : ''}">
+                        <div
+                                class="w-100 h-100"
+                                onclick="${obj.gvc.event(() => {
                     vm.show = !vm.show;
                     if (!vm.show) {
                         obj.callback(obj.default.filter((item) => {
@@ -822,22 +927,23 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                     }
                     obj.gvc.notifyDataChange(vm.id);
                 })}"
-                    >
-                        <div style="font-size: 15px; cursor: pointer; color: #000;">
-                            ${defLine.length > 0
+                        >
+                            <div style="font-size: 15px; cursor: pointer; color: #000;">
+                                ${defLine.length > 0
                     ? defLine
                         .map((item) => {
                         return item.value;
                     })
                         .join(' / ')
                     : BgWidget.grayNote('（點擊選擇項目）')}
+                            </div>
                         </div>
-                    </div>
-                    ${vm.show
-                    ? html `<div class="c_dropdown">
-                              <div class="c_dropdown_body">
-                                  <div class="c_dropdown_main">
-                                      ${obj.gvc.map(obj.options.map((opt) => {
+                        ${vm.show
+                    ? html `
+                                    <div class="c_dropdown">
+                                        <div class="c_dropdown_body">
+                                            <div class="c_dropdown_main">
+                                                ${obj.gvc.map(obj.options.map((opt) => {
                         function call() {
                             if (obj.default.includes(opt.key)) {
                                 obj.default = obj.default.filter((item) => item !== opt.key);
@@ -847,40 +953,47 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                             }
                             obj.gvc.notifyDataChange(vm.id);
                         }
-                        return html `<div class="d-flex align-items-center" style="gap: 24px">
-                                                  <input
-                                                      class="form-check-input mt-0 ${vm.checkClass}"
-                                                      type="checkbox"
-                                                      id="${opt.key}"
-                                                      name="radio_${vm.id}"
-                                                      onclick="${obj.gvc.event(() => call())}"
-                                                      ${obj.default.includes(opt.key) ? 'checked' : ''}
-                                                  />
-                                                  <div class="form-check-label c_updown_label cursor_pointer" onclick="${obj.gvc.event(() => call())}">
-                                                      <div class="tx_normal ${opt.note ? 'mb-1' : ''}">${opt.value}</div>
-                                                      ${opt.note ? html ` <div class="tx_gray_12">${opt.note}</div> ` : ''}
-                                                  </div>
-                                              </div>`;
+                        return html `
+                                                                <div class="d-flex align-items-center"
+                                                                     style="gap: 24px">
+                                                                    <input
+                                                                            class="form-check-input mt-0 ${vm.checkClass}"
+                                                                            type="checkbox"
+                                                                            id="${opt.key}"
+                                                                            name="radio_${vm.id}"
+                                                                            onclick="${obj.gvc.event(() => call())}"
+                                                                            ${obj.default.includes(opt.key) ? 'checked' : ''}
+                                                                    />
+                                                                    <div class="form-check-label c_updown_label cursor_pointer"
+                                                                         onclick="${obj.gvc.event(() => call())}">
+                                                                        <div class="tx_normal ${opt.note ? 'mb-1' : ''}">
+                                                                            ${opt.value}
+                                                                        </div>
+                                                                        ${opt.note ? html `
+                                                                            <div class="tx_gray_12">${opt.note}
+                                                                            </div> ` : ''}
+                                                                    </div>
+                                                                </div>`;
                     }))}
-                                  </div>
-                                  <div class="c_dropdown_bar">
-                                      ${BgWidget.cancel(obj.gvc.event(() => {
+                                            </div>
+                                            <div class="c_dropdown_bar">
+                                                ${BgWidget.cancel(obj.gvc.event(() => {
                         obj.callback(vm.def);
                         vm.show = !vm.show;
                         obj.gvc.notifyDataChange(vm.id);
                     }))}
-                                      ${BgWidget.save(obj.gvc.event(() => {
+                                                ${BgWidget.save(obj.gvc.event(() => {
                         obj.callback(obj.default.filter((item) => {
                             return obj.options.find((opt) => opt.key === item);
                         }));
                         vm.show = !vm.show;
                         obj.gvc.notifyDataChange(vm.id);
                     }), '確認')}
-                                  </div>
-                              </div>
-                          </div>`
+                                            </div>
+                                        </div>
+                                    </div>`
                     : ''}
-                </div>`;
+                    </div>`;
             },
         });
     }
@@ -903,35 +1016,37 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                     background-position: center center;
                 }
             `);
-            return html `<div style="min-width: 400px; width: 600px; overflow-y: auto;" class="bg-white shadow rounded-3">
-                ${obj.gvc.bindView({
+            return html `
+                <div style="min-width: 400px; width: 600px; overflow-y: auto;" class="bg-white shadow rounded-3">
+                    ${obj.gvc.bindView({
                 bind: vm.id,
                 view: () => {
                     if (vm.loading) {
                         return this.spinner();
                     }
-                    return html `<div style="width: 100%; overflow-y: auto;" class="bg-white shadow rounded-3">
-                            <div class="w-100 d-flex align-items-center p-3 border-bottom">
-                                <div class="tx_700">${obj.title}</div>
-                                <div class="flex-fill"></div>
-                                <i
-                                    class="fa-regular fa-circle-xmark fs-5 text-dark cursor_pointer"
-                                    onclick="${gvc.event(() => {
+                    return html `
+                                <div style="width: 100%; overflow-y: auto;" class="bg-white shadow rounded-3">
+                                    <div class="w-100 d-flex align-items-center p-3 border-bottom">
+                                        <div class="tx_700">${obj.title}</div>
+                                        <div class="flex-fill"></div>
+                                        <i
+                                                class="fa-regular fa-circle-xmark fs-5 text-dark cursor_pointer"
+                                                onclick="${gvc.event(() => {
                         obj.callback(vm.def);
                         gvc.closeDialog();
                     })}"
-                                ></i>
-                            </div>
-                            <div class="c_dialog">
-                                <div class="c_dialog_body">
-                                    <div class="c_dialog_main">
-                                        <div class="d-flex" style="gap: 12px;">
-                                            ${this.searchFilter(gvc.event((e, event) => {
+                                        ></i>
+                                    </div>
+                                    <div class="c_dialog">
+                                        <div class="c_dialog_body">
+                                            <div class="c_dialog_main">
+                                                <div class="d-flex" style="gap: 12px;">
+                                                    ${this.searchFilter(gvc.event((e, event) => {
                         vm.query = e.value;
                         vm.loading = true;
                         obj.gvc.notifyDataChange(vm.id);
                     }), vm.query || '', '搜尋')}
-                                            ${this.updownFilter({
+                                                    ${this.updownFilter({
                         gvc,
                         callback: (value) => {
                             vm.orderString = value;
@@ -941,8 +1056,8 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                         default: vm.orderString || 'default',
                         options: obj.updownOptions || [],
                     })}
-                                        </div>
-                                        ${obj.gvc.map(vm.options.map((opt) => {
+                                                </div>
+                                                ${obj.gvc.map(vm.options.map((opt) => {
                         function call() {
                             if (obj.default.includes(opt.key)) {
                                 obj.default = obj.default.filter((item) => item !== opt.key);
@@ -952,41 +1067,48 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                             }
                             obj.gvc.notifyDataChange(vm.id);
                         }
-                        return html `<div class="d-flex align-items-center" style="gap: 24px">
-                                                    <input
-                                                        class="form-check-input mt-0 ${vm.checkClass}"
-                                                        type="checkbox"
-                                                        id="${opt.key}"
-                                                        name="radio_${vm.id}"
-                                                        onclick="${obj.gvc.event(() => call())}"
-                                                        ${obj.default.includes(opt.key) ? 'checked' : ''}
-                                                    />
-                                                    <div class="form-check-label c_updown_label cursor_pointer" onclick="${obj.gvc.event(() => call())}">
-                                                        <div class="tx_normal ${opt.note ? 'mb-1' : ''}">${opt.value}</div>
-                                                        ${opt.note ? html ` <div class="tx_gray_12">${opt.note}</div> ` : ''}
-                                                    </div>
-                                                </div>`;
+                        return html `
+                                                                <div class="d-flex align-items-center"
+                                                                     style="gap: 24px">
+                                                                    <input
+                                                                            class="form-check-input mt-0 ${vm.checkClass}"
+                                                                            type="checkbox"
+                                                                            id="${opt.key}"
+                                                                            name="radio_${vm.id}"
+                                                                            onclick="${obj.gvc.event(() => call())}"
+                                                                            ${obj.default.includes(opt.key) ? 'checked' : ''}
+                                                                    />
+                                                                    <div class="form-check-label c_updown_label cursor_pointer"
+                                                                         onclick="${obj.gvc.event(() => call())}">
+                                                                        <div class="tx_normal ${opt.note ? 'mb-1' : ''}">
+                                                                            ${opt.value}
+                                                                        </div>
+                                                                        ${opt.note ? html `
+                                                                            <div class="tx_gray_12">${opt.note}
+                                                                            </div> ` : ''}
+                                                                    </div>
+                                                                </div>`;
                     }))}
-                                    </div>
-                                    <div class="c_dialog_bar">
-                                        ${BgWidget.cancel(obj.gvc.event(() => {
+                                            </div>
+                                            <div class="c_dialog_bar">
+                                                ${BgWidget.cancel(obj.gvc.event(() => {
                         obj.callback([]);
                         gvc.closeDialog();
                     }), '清除全部')}
-                                        ${BgWidget.cancel(obj.gvc.event(() => {
+                                                ${BgWidget.cancel(obj.gvc.event(() => {
                         obj.callback(vm.def);
                         gvc.closeDialog();
                     }))}
-                                        ${BgWidget.save(obj.gvc.event(() => {
+                                                ${BgWidget.save(obj.gvc.event(() => {
                         obj.callback(obj.default.filter((item) => {
                             return vm.options.find((opt) => opt.key === item);
                         }));
                         gvc.closeDialog();
                     }), '確認')}
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
-                            </div>
-                        </div>`;
+                                </div>`;
                 },
                 onCreate: () => {
                     if (vm.loading) {
@@ -1001,18 +1123,19 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                     }
                 },
             })}
-            </div>`;
+                </div>`;
         }, obj.tag);
     }
     static funnelFilter(obj) {
-        return html `<div
-            class="c_funnel"
-            onclick="${obj.gvc.event((e) => {
+        return html `
+            <div
+                    class="c_funnel"
+                    onclick="${obj.gvc.event((e) => {
             obj.callback('c_funnel');
         })}"
-        >
-            <i class="fa-regular fa-filter"></i>
-        </div>`;
+            >
+                <i class="fa-regular fa-filter"></i>
+            </div>`;
     }
     static updownFilter(obj) {
         const vm = {
@@ -1030,9 +1153,10 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                 background-position: center center;
             }
         `);
-        return html `<div
-                class="c_updown"
-                onclick="${obj.gvc.event((e) => {
+        return html `
+            <div
+                    class="c_updown"
+                    onclick="${obj.gvc.event((e) => {
             vm.show = !vm.show;
             const element = document.querySelector('.c_updown');
             const rect = element === null || element === void 0 ? void 0 : element.getBoundingClientRect();
@@ -1049,27 +1173,30 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             bind: vm.id,
             view: () => {
                 if (vm.show) {
-                    return html ` <div class="c_fixed" style="top: ${vm.top}px; right: calc(100vw - ${vm.right}px)">
-                            <div class="form-check d-flex flex-column" style="gap: 16px">
-                                ${obj.gvc.map(obj.options.map((opt) => {
-                        return html `<div>
-                                            <input
-                                                class="form-check-input ${vm.checkClass}"
-                                                type="radio"
-                                                id="${opt.key}"
-                                                name="radio_${vm.id}"
-                                                onclick="${obj.gvc.event((e) => {
+                    return html `
+                            <div class="c_fixed" style="top: ${vm.top}px; right: calc(100vw - ${vm.right}px)">
+                                <div class="form-check d-flex flex-column" style="gap: 16px">
+                                    ${obj.gvc.map(obj.options.map((opt) => {
+                        return html `
+                                                    <div>
+                                                        <input
+                                                                class="form-check-input ${vm.checkClass}"
+                                                                type="radio"
+                                                                id="${opt.key}"
+                                                                name="radio_${vm.id}"
+                                                                onclick="${obj.gvc.event((e) => {
                             vm.show = !vm.show;
                             obj.callback(e.id);
                             obj.gvc.notifyDataChange(vm.id);
                         })}"
-                                                ${obj.default === opt.key ? 'checked' : ''}
-                                            />
-                                            <label class="form-check-label c_updown_label" for="${opt.key}" style="">${opt.value}</label>
-                                        </div>`;
+                                                                ${obj.default === opt.key ? 'checked' : ''}
+                                                        />
+                                                        <label class="form-check-label c_updown_label" for="${opt.key}"
+                                                               style="">${opt.value}</label>
+                                                    </div>`;
                     }))}
-                            </div>
-                        </div>`;
+                                </div>
+                            </div>`;
                 }
                 return '';
             },
@@ -1099,27 +1226,27 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             return html `
                 <div style="width: 100%; display: flex; flex-direction: column; gap: 6px;">
                     <input
-                        class="form-control"
-                        type="${(_a = first.type) !== null && _a !== void 0 ? _a : 'text'}"
-                        style="border-radius: 10px; border: 1px solid #DDD; padding-left: 18px;"
-                        placeholder="${(_b = first.placeHolder) !== null && _b !== void 0 ? _b : ''}"
-                        onchange="${gvc.event((e, ele) => {
+                            class="form-control"
+                            type="${(_a = first.type) !== null && _a !== void 0 ? _a : 'text'}"
+                            style="border-radius: 10px; border: 1px solid #DDD; padding-left: 18px;"
+                            placeholder="${(_b = first.placeHolder) !== null && _b !== void 0 ? _b : ''}"
+                            onchange="${gvc.event((e, ele) => {
                 defualt[0] = e.value;
                 callback(defualt);
             })}"
-                        value="${defualt[0]}"
+                            value="${defualt[0]}"
                     />
                     <span>${obj.centerText}</span>
                     <input
-                        class="form-control"
-                        type="${(_c = second.type) !== null && _c !== void 0 ? _c : 'text'}"
-                        style="border-radius: 10px; border: 1px solid #DDD; padding-left: 18px;"
-                        placeholder="${(_d = second.placeHolder) !== null && _d !== void 0 ? _d : ''}"
-                        onchange="${gvc.event((e, ele) => {
+                            class="form-control"
+                            type="${(_c = second.type) !== null && _c !== void 0 ? _c : 'text'}"
+                            style="border-radius: 10px; border: 1px solid #DDD; padding-left: 18px;"
+                            placeholder="${(_d = second.placeHolder) !== null && _d !== void 0 ? _d : ''}"
+                            onchange="${gvc.event((e, ele) => {
                 defualt[1] = e.value;
                 callback(defualt);
             })}"
-                        value="${defualt[1]}"
+                            value="${defualt[1]}"
                     />
                 </div>
             `;
@@ -1149,17 +1276,17 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             checkboxHTML += html `
                 <div class="form-check">
                     <input
-                        class="form-check-input ${randomString}"
-                        style="margin-top: 0.35rem;"
-                        type="checkbox"
-                        id="${id}_${item.key}"
-                        onclick="${gvc.event((e, ev) => {
+                            class="form-check-input ${randomString}"
+                            style="margin-top: 0.35rem;"
+                            type="checkbox"
+                            id="${id}_${item.key}"
+                            onclick="${gvc.event((e, ev) => {
                 if (readonly) {
                     ev.preventDefault();
                     return;
                 }
             })}"
-                        onchange="${gvc.event((e, ev) => {
+                            onchange="${gvc.event((e, ev) => {
                 if (e.checked) {
                     def.push(item.key);
                 }
@@ -1168,13 +1295,15 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                 }
                 callback(def);
             })}"
-                        ${def.includes(item.key) ? 'checked' : ''}
+                            ${def.includes(item.key) ? 'checked' : ''}
                     />
-                    <label class="form-check-label" for="${id}_${item.key}" style="font-size: 16px; color: #393939;">${item.name}</label>
+                    <label class="form-check-label" for="${id}_${item.key}"
+                           style="font-size: 16px; color: #393939;">${item.name}</label>
                 </div>
             `;
         });
-        return html ` <div style="width: 100%; display: flex; flex-direction: column; gap: 6px;">${checkboxHTML}</div> `;
+        return html `
+            <div style="width: 100%; display: flex; flex-direction: column; gap: 6px;">${checkboxHTML}</div> `;
     }
     static radioInputContainer(gvc, data, def, callback) {
         const id = gvc.glitter.getUUID();
@@ -1198,51 +1327,58 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                         <div class="m-1">
                             <div class="form-check ps-0">
                                 <input
-                                    class="${randomString}"
-                                    type="radio"
-                                    id="${id}_${item.key}"
-                                    name="radio_${id}"
-                                    onchange="${gvc.event(() => {
+                                        class="${randomString}"
+                                        type="radio"
+                                        id="${id}_${item.key}"
+                                        name="radio_${id}"
+                                        onchange="${gvc.event(() => {
                         def.key = item.key;
                         gvc.notifyDataChange(id);
                     })}"
-                                    ${def.key === item.key ? 'checked' : ''}
+                                        ${def.key === item.key ? 'checked' : ''}
                                 />
-                                <label class="form-check-label" for="${id}_${item.key}" style="font-size: 16px; color: #393939;">${item.name}</label>
+                                <label class="form-check-label" for="${id}_${item.key}"
+                                       style="font-size: 16px; color: #393939;">${item.name}</label>
                             </div>
                             <div class="d-flex align-items-center border rounded-3">
                                 <input
-                                    class="form-control border-0 bg-transparent shadow-none"
-                                    type="${(_a = item.type) !== null && _a !== void 0 ? _a : 'text'}"
-                                    style="border-radius: 10px; border: 1px solid #DDD; padding-left: 18px;"
-                                    placeholder="${(_b = item.placeHolder) !== null && _b !== void 0 ? _b : ''}"
-                                    onchange="${gvc.event((e) => {
+                                        class="form-control border-0 bg-transparent shadow-none"
+                                        type="${(_a = item.type) !== null && _a !== void 0 ? _a : 'text'}"
+                                        style="border-radius: 10px; border: 1px solid #DDD; padding-left: 18px;"
+                                        placeholder="${(_b = item.placeHolder) !== null && _b !== void 0 ? _b : ''}"
+                                        onchange="${gvc.event((e) => {
                         def.value = e.value;
                         callback(def);
                     })}"
-                                    value="${def.key === item.key ? def.value : ''}"
-                                    ${def.key === item.key ? '' : 'disabled'}
+                                        value="${def.key === item.key ? def.value : ''}"
+                                        ${def.key === item.key ? '' : 'disabled'}
                                 />
-                                ${item.unit ? html `<div class="py-2 pe-3">${item.unit}</div>` : ''}
+                                ${item.unit ? html `
+                                    <div class="py-2 pe-3">${item.unit}</div>` : ''}
                             </div>
                         </div>
                     `;
                 });
-                return html ` <div style="width: 100%; display: flex; flex-direction: column; gap: 6px;">${radioInputHTML}</div> `;
+                return html `
+                    <div style="width: 100%; display: flex; flex-direction: column; gap: 6px;">${radioInputHTML}
+                    </div> `;
             },
         });
     }
     static spinner(obj) {
-        return html ` <div class="d-flex align-items-center justify-content-center flex-column w-100 my-3 mx-auto">
-            <div class="spinner-border ${obj && obj.spinnerNone ? 'd-none' : ''}" role="status"></div>
-            <span class="mt-3 ${obj && obj.textNone ? 'd-none' : ''}">載入中...</span>
-        </div>`;
+        return html `
+            <div class="d-flex align-items-center justify-content-center flex-column w-100 my-3 mx-auto">
+                <div class="spinner-border ${obj && obj.spinnerNone ? 'd-none' : ''}" role="status"></div>
+                <span class="mt-3 ${obj && obj.textNone ? 'd-none' : ''}">載入中...</span>
+            </div>`;
     }
     static mbContainer(margin_bottom_px) {
-        return html `<div style="margin-bottom: ${margin_bottom_px}px"></div>`;
+        return html `
+            <div style="margin-bottom: ${margin_bottom_px}px"></div>`;
     }
     static mb240() {
-        return html `<div style="margin-bottom: 240px"></div>`;
+        return html `
+            <div style="margin-bottom: 240px"></div>`;
     }
     static alertInfo(title, messageList) {
         let h = '';
@@ -1251,10 +1387,11 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                 h += html `<p class="mb-1">${str}</p>`;
             });
         }
-        return html `<div class="w-100 alert  alert-secondary p-3 mb-0" style="" >
-            <div class="fs-5 mb-0"><strong>${title}</strong></div>
-            <div class="mt-2">${h}</div>
-        </div>`;
+        return html `
+            <div class="w-100 alert  alert-secondary p-3 mb-0" style="">
+                <div class="fs-5 mb-0"><strong>${title}</strong></div>
+                <div class="mt-2">${h}</div>
+            </div>`;
     }
     static h(gvc) {
         const config = {
@@ -2198,33 +2335,15 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             plan: null,
         };
         const planText = '免費試用';
-        return html `<div class="d-flex ${document.body.clientWidth > 768 ? '' : 'flex-column'}" style="color: #393939;">
-            當前方案:${planText} ${document.body.clientWidth > 768 ? `<div class="mx-2 text-body">/</div>` : '<br />'}
-            <div class="${new Date(config.dead_line).getTime() < new Date().getTime() ? `text-danger` : `text-body`}" style="font-size:14px;">
-                ${new Date(config.dead_line).getTime() < new Date().getTime() ? ` 方案已過期` : ` 方案到期日`} ：${gvc.glitter.ut.dateFormat(new Date(config.dead_line), 'yyyy-MM-dd hh:mm')}
-            </div>
-        </div>`;
-    }
-    static tab(data, gvc, select, callback) {
         return html `
-            <div class=""
-                 style="justify-content: flex-start; align-items: flex-start; gap: 22px; display: inline-flex;cursor: pointer;margin-top: 24px;margin-bottom: 24px;">
-                ${data.map((dd) => {
-            if (select === dd.key) {
-                return `<div style=" flex-direction: column; justify-content: flex-start; align-items: center; gap: 8px; display: inline-flex">
-    <div style="align-self: stretch; text-align: center; color: #393939; font-size: 18px; font-family: Noto Sans; font-weight: 700; line-height: 18px; word-wrap: break-word">${dd.title}</div>
-    <div style="align-self: stretch; height: 0px; border: 2px #393939 solid"></div>
-  </div>`;
-            }
-            else {
-                return `<div style=" flex-direction: column; justify-content: flex-start; align-items: center; gap: 8px; display: inline-flex" onclick="${gvc.event(() => {
-                    callback(dd.key);
-                })}">
-    <div style="align-self: stretch; text-align: center; color: #393939; font-size: 18px; font-family: Noto Sans; font-weight: 400; line-height: 18px; word-wrap: break-word">${dd.title}</div>
-    <div style="align-self: stretch; height: 0px"></div>
-  </div>`;
-            }
-        }).join('')}
+            <div class="d-flex ${document.body.clientWidth > 768 ? '' : 'flex-column'}" style="color: #393939;">
+                    當前方案:${planText}
+                ${document.body.clientWidth > 768 ? `<div class="mx-2 text-body">/</div>` : '<br />'}
+                <div class="${new Date(config.dead_line).getTime() < new Date().getTime() ? `text-danger` : `text-body`}"
+                     style="font-size:14px;">
+                    ${new Date(config.dead_line).getTime() < new Date().getTime() ? ` 方案已過期` : ` 方案到期日`}
+                        ：${gvc.glitter.ut.dateFormat(new Date(config.dead_line), 'yyyy-MM-dd hh:mm')}
+                </div>
             </div>`;
     }
 }

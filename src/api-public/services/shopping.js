@@ -574,7 +574,9 @@ class Shopping {
         try {
             const update = {};
             data.orderData && (update.orderData = JSON.stringify(data.orderData));
-            update.status = (_a = data.status) !== null && _a !== void 0 ? _a : 0;
+            if (update.status) {
+                update.status = (_a = data.status) !== null && _a !== void 0 ? _a : 0;
+            }
             await database_js_1.default.query(`UPDATE \`${this.app}\`.t_checkout
                             set ?
                             WHERE id = ?`, [update, data.id]);
@@ -674,6 +676,12 @@ class Shopping {
             query.status && querySql.push(`status IN (${query.status})`);
             query.email && querySql.push(`email=${database_js_1.default.escape(query.email)}`);
             query.id && querySql.push(`(content->>'$.id'=${query.id})`);
+            if (query.archived === 'true') {
+                querySql.push(`(orderData->>'$.archived'="${query.archived}")`);
+            }
+            else if (query.archived === 'false') {
+                querySql.push(`((orderData->>'$.archived' is null) or (orderData->>'$.archived'!='true'))`);
+            }
             let sql = `SELECT *
                         FROM \`${this.app}\`.t_checkout
                         WHERE ${querySql.join(' and ')} ${orderString}`;

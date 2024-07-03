@@ -89,6 +89,7 @@ export class User {
         }
     }
 
+
     //用戶初次建立的initial函式。
     public async createUserHook(userID:string){
         //發送歡迎信件
@@ -944,18 +945,18 @@ export class User {
         return originUserData;
     }
 
-    public async resetPwd(userID: string, newPwd: string) {
+    public async resetPwd(user_id_and_account: string, newPwd: string) {
         try {
             const result = (await db.query(
                 `update \`${this.app}\`.t_user
                  SET ?
                  WHERE 1 = 1
-                   and userID = ?`,
+                   and ( (account = ?))`,
                 [
                     {
                         pwd: await tool.hashPwd(newPwd),
                     },
-                    userID,
+                    user_id_and_account
                 ]
             )) as any;
             return {
@@ -1207,6 +1208,14 @@ export class User {
             console.error(e);
             throw exception.BadRequestError('ERROR', 'ERROR.' + e, null);
         }
+    }
+
+    public  async forgetPassword(email:string){
+        const data = await AutoSendEmail.getDefCompare(this.app, 'auto-email-forget');
+        const code = Tool.randomNumber(6);
+        await redis.setValue(`forget-${email}`, code);
+        await redis.setValue(`forget-count-${email}`, '0');
+        sendmail(`${data.name} <${process.env.smtp}>`, email, data.title, data.content.replace('@{{code}}',code));
     }
 
     constructor(app: string, token?: IToken) {

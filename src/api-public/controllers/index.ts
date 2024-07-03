@@ -57,6 +57,8 @@ const whiteList: {}[] = [
     { url: config.getRoute(config.public_route.user + '/register', 'public'), method: 'POST' },
     { url: config.getRoute(config.public_route.user + '/login', 'public'), method: 'POST' },
     { url: config.getRoute(config.public_route.user + '/forget', 'public'), method: 'POST' },
+    { url: config.getRoute(config.public_route.user + '/forget/check-code', 'public'), method: 'POST' },
+    { url: config.getRoute(config.public_route.user + '/reset/pwd', 'public'), method: 'PUT' },
     { url: config.getRoute(config.public_route.post, 'public'), method: 'GET' },
     { url: config.getRoute(config.public_route.post, 'public'), method: 'POST' },
     { url: config.getRoute(config.public_route.post + '/user', 'public'), method: 'GET' },

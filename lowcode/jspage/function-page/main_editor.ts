@@ -830,8 +830,8 @@ export class Main_editor {
                             ? `d-flex align-items-center justify-content-center flex-column mx-auto`
                             : `d-flex align-items-center justify-content-center flex-column`}"
                     style="${viewModel.type === ViewType.mobile && (Storage.select_function === 'page-editor' || Storage.select_function === 'user-editor')
-                            ? `width: 414px;height: calc(100vh - 56px);`
-                            : `width: calc(100%);height: calc(100vh - 56px);overflow:hidden;`}"
+                            ? `width: 414px;height: calc(100vh - ${56 + EditorConfig.getPaddingTop(gvc)}px);`
+                            : `width: calc(100%);height: calc(100vh - ${56 + EditorConfig.getPaddingTop(gvc)}px);overflow:hidden;`}"
             >
                 <div class="" style="width:100%;height: calc(100%);" id="editerCenter">
                     <iframe class="w-100 h-100  bg-white"

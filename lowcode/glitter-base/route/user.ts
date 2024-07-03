@@ -382,6 +382,35 @@ export class ApiUser {
             }),
         });
     }
+    public static forgetPwdCheckCode(email: string,code:string) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/user/forget/check-code`,
+            type: 'POST',
+            headers: {
+                'g-app': getConfig().config.appName,
+                'Content-Type': 'application/json',
+            },
+            data: JSON.stringify({
+                email: email,
+                code: code,
+            }),
+        });
+    }
+    public static   resetPwdV2(email: string,code:string,pwd:string) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/user/reset/pwd`,
+            type: 'PUT',
+            headers: {
+                'g-app': getConfig().config.appName,
+                'Content-Type': 'application/json',
+            },
+            data: JSON.stringify({
+                email: email,
+                code: code,
+                pwd:pwd
+            }),
+        });
+    }
 
     public static resetPwd(pwd: string) {
         return BaseApi.create({

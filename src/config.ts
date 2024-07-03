@@ -3,6 +3,8 @@ import path from 'path';
 import dotenv from 'dotenv';
 
 export class ConfigSetting {
+
+    public static runSchedule=true
     public static config_path = '';
 
     public static setConfig(envPath: string) {

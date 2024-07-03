@@ -228,6 +228,7 @@ class EcPay {
         this.appName = appName;
     }
     async createOrderPage(orderData) {
+        console.log(`orderData.orderID->`, orderData.orderID);
         const params = {
             MerchantTradeNo: orderData.orderID,
             MerchantTradeDate: (0, moment_timezone_1.default)().tz('Asia/Taipei').format('YYYY/MM/DD HH:mm:ss'),

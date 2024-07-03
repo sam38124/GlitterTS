@@ -68,6 +68,8 @@ router.get('/', async (req: express.Request, resp: express.Response) => {
             preload_data: preload_data
         });
     } catch (err) {
+        console.log(err)
+
         return response.fail(resp, err);
     }
 });

@@ -78,7 +78,7 @@ export declare class User {
         manager: boolean;
         userID: string;
     }): Promise<any>;
-    resetPwd(userID: string, newPwd: string): Promise<{
+    resetPwd(user_id_and_account: string, newPwd: string): Promise<{
         result: boolean;
     }>;
     resetPwdNeedCheck(userID: string, pwd: string, newPwd: string): Promise<{
@@ -108,6 +108,7 @@ export declare class User {
     getNotice(cf: {
         query: any;
     }): Promise<any>;
+    forgetPassword(email: string): Promise<void>;
     constructor(app: string, token?: IToken);
 }
 export {};

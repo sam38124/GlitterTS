@@ -207,6 +207,7 @@ router.get('/order', async (req, resp) => {
                 orderStatus: req.query.orderStatus,
                 created_time: req.query.created_time,
                 orderString: req.query.orderString,
+                archived: req.query.archived
             }));
         }
         else if (await ut_permission_1.UtPermission.isAppUser(req)) {

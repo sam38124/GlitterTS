@@ -786,16 +786,16 @@ class User {
         mapUserData(cf.updateUserData, originUserData);
         return originUserData;
     }
-    async resetPwd(userID, newPwd) {
+    async resetPwd(user_id_and_account, newPwd) {
         try {
             const result = (await database_1.default.query(`update \`${this.app}\`.t_user
                  SET ?
                  WHERE 1 = 1
-                   and userID = ?`, [
+                   and ( (account = ?))`, [
                 {
                     pwd: await tool_1.default.hashPwd(newPwd),
                 },
-                userID,
+                user_id_and_account
             ]));
             return {
                 result: true,
@@ -996,6 +996,13 @@ class User {
             console.error(e);
             throw exception_1.default.BadRequestError('ERROR', 'ERROR.' + e, null);
         }
+    }
+    async forgetPassword(email) {
+        const data = await auto_send_email_js_1.AutoSendEmail.getDefCompare(this.app, 'auto-email-forget');
+        const code = tool_js_1.default.randomNumber(6);
+        await redis_js_1.default.setValue(`forget-${email}`, code);
+        await redis_js_1.default.setValue(`forget-count-${email}`, '0');
+        (0, ses_js_1.sendmail)(`${data.name} <${process_1.default.env.smtp}>`, email, data.title, data.content.replace('@{{code}}', code));
     }
     constructor(app, token) {
         this.app = app;

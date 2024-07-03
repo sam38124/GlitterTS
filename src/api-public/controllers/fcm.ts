@@ -16,12 +16,24 @@ export = router;
 router.post('/', async (req: express.Request, resp: express.Response) => {
     try {
         if (await UtPermission.isManager(req)) {
+            const app=req.get('g-app') as string
+            let device_token_stack:any=[];
+            for (const b of req.body.device_token){
+                //所有用戶
+                if(b==='all'){
+                    device_token_stack=device_token_stack.concat((await db.query(`select * from \`${app}\`.t_fcm`,[])).map((dd:any)=>{
+                        return dd.deviceToken
+                    }));
+                }else{
+                    device_token_stack.push(b)
+                }
+            }
+            req.body.device_token=device_token_stack;
             for (const b of chunkArray(Array.from(new Set(req.body.device_token)), 20)) {
                 let check = b.length;
                 let t_notice_insert:any={}
                 await new Promise(async (resolve) => {
                     for (const d of b) {
-                        const app=req.get('g-app') as string
                         const userID=((await db.query(`select userID from \`${app}\`.t_fcm where deviceToken=?`,[d]))[0] ?? {}).userID
                         if(userID && !t_notice_insert[userID]){
                             t_notice_insert[userID]=true

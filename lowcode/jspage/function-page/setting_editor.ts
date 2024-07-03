@@ -9,6 +9,7 @@ import {ApiPageConfig} from '../../api/pageConfig.js';
 import {NormalPageEditor} from '../../editor/normal-page-editor.js';
 import {AddComponent} from '../../editor/add-component.js';
 import {component} from '../../official_view_component/official/component.js';
+import {EditorConfig} from "../../editor-config.js";
 
 export class Setting_editor {
     public static pluginUrl = '';
@@ -32,7 +33,8 @@ export class Setting_editor {
                                           style="font-size: 11px;color: orange;">${glitter.share.editerVersion}</span>
                                 </div>
                                 <div class="w-100 bg-white"
-                                     style="overflow-y:auto;${document.body.offsetWidth < 800 ? `height:calc(100vh - 60px);` : `max-height:calc(100vh - 100px);`}">
+                                     style="overflow-y:auto;${document.body.offsetWidth < 800 ? `height:calc(100vh - 60px);` : `max-height:calc(100vh - 100px);padding-top:${EditorConfig.getPaddingTop(gvc)}px;`}">
+                                    
                                     ${(() => {
                                         return gvc.bindView(() => {
                                             const id = gvc.glitter.getUUID();

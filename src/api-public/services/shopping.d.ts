@@ -248,6 +248,7 @@ export declare class Shopping {
         orderStatus?: string;
         created_time?: string;
         orderString?: string;
+        archived?: string;
     }): Promise<{
         data: any;
         result: boolean;

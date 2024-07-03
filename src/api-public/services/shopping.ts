@@ -833,7 +833,10 @@ export class Shopping {
         try {
             const update: any = {};
             data.orderData && (update.orderData = JSON.stringify(data.orderData));
-            update.status = data.status ?? 0;
+            if(update.status){
+                update.status = data.status ?? 0;
+            }
+
             await db.query(
                 `UPDATE \`${this.app}\`.t_checkout
                             set ?
@@ -878,8 +881,10 @@ export class Shopping {
         orderStatus?: string;
         created_time?: string;
         orderString?: string;
+        archived?:string
     }) {
         try {
+<<<<<<< HEAD
             // 訂單編號(Cart_token)
             // 訂購人(orderData.user_info.name)
             // 手機(orderData.user_info.phone)
@@ -887,6 +892,9 @@ export class Shopping {
             // 商品編號(orderData.lineItems[array].sku)
             // 發票號碼(orderData.invoice_number)
 
+=======
+            // 訂單編號(Cart_token) 訂購人(orderData.user_info.name) 手機(orderData.user_info.phone) 商品名稱(orderData.lineItems[array].title) 商品編號(orderData.lineItems[array].sku) 發票號碼(orderData.invoice_number)
+>>>>>>> 04ee60b5 (update to 8.9.2)
             let querySql = ['1=1'];
             let orderString = 'order by id desc';
             if (query.search && query.searchType) {
@@ -964,6 +972,11 @@ export class Shopping {
             query.status && querySql.push(`status IN (${query.status})`);
             query.email && querySql.push(`email=${db.escape(query.email)}`);
             query.id && querySql.push(`(content->>'$.id'=${query.id})`);
+            if(query.archived==='true'){
+                querySql.push(`(orderData->>'$.archived'="${query.archived}")`)
+            }else if(query.archived==='false'){
+                querySql.push(`((orderData->>'$.archived' is null) or (orderData->>'$.archived'!='true'))`)
+            }
             let sql = `SELECT *
                         FROM \`${this.app}\`.t_checkout
                         WHERE ${querySql.join(' and ')} ${orderString}`;
