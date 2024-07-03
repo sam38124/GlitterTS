@@ -440,28 +440,15 @@ class Shopping {
         })
             .filter((dd) => {
             let item = [];
-            console.log('================================');
-            console.log(dd.for);
-            console.log(dd.forKey);
-            console.log('--------------------------------');
             switch (dd.for) {
                 case 'collection':
                     item = cart.lineItems.filter((dp) => {
-                        console.log(dp.id);
-                        console.log(dp.collection);
-                        console.log(dd.forKey.filter((d1) => {
-                            return dp.collection.find((d2) => {
-                                return d2 === d1;
-                            });
-                        }));
                         return (dd.forKey.filter((d1) => {
                             return dp.collection.find((d2) => {
                                 return d2 === d1;
                             });
                         }).length > 0);
                     });
-                    console.log(item);
-                    console.log('================================');
                     dd.bind = item;
                     return item.length > 0;
                 case 'product':
@@ -475,9 +462,7 @@ class Shopping {
                     dd.bind = item;
                     return item.length > 0;
                 case 'all':
-                    item = cart.lineItems.filter((dp) => {
-                        return true;
-                    });
+                    item = cart.lineItems;
                     dd.bind = item;
                     return item.length > 0;
             }
