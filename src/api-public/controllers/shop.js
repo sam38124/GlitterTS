@@ -218,6 +218,7 @@ router.get('/order', async (req, resp) => {
                 id: req.query.id,
                 email: user_data.account,
                 status: req.query.status,
+                searchType: req.query.searchType,
             }));
         }
         else {

@@ -851,10 +851,15 @@ ${obj.default ?? ''}</textarea
         </button>`;
     }
 
-    static darkButton(text: string, event: string, obj?: { icon?: string; textStyle?: string }) {
-        return html`<button class="btn btn-black" type="button" onclick="${event}">
+    static darkButton(text: string, event: string, obj?: { icon?: string; textStyle?: string; size?: 'sm' | 'lg' }) {
+        const size = { btn: '', font: '' };
+        if (obj && obj.size) {
+            size.btn = `btn-black-${obj.size}`;
+            size.font = `tx_white_${obj.size}`;
+        }
+        return html`<button class="btn btn-black ${size.btn}" type="button" onclick="${event}">
             <i class="${obj && obj.icon && obj.icon.length > 0 ? obj.icon : 'd-none'}"></i>
-            <span class="tx_700_white" style="${obj?.textStyle ?? ''}">${text}</span>
+            <span class="tx_700_white ${size.font}" style="${obj?.textStyle ?? ''}">${text}</span>
         </button>`;
     }
 

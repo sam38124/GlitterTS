@@ -727,9 +727,14 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
     }
     static darkButton(text, event, obj) {
         var _a;
-        return html `<button class="btn btn-black" type="button" onclick="${event}">
+        const size = { btn: '', font: '' };
+        if (obj && obj.size) {
+            size.btn = `btn-black-${obj.size}`;
+            size.font = `tx_white_${obj.size}`;
+        }
+        return html `<button class="btn btn-black ${size.btn}" type="button" onclick="${event}">
             <i class="${obj && obj.icon && obj.icon.length > 0 ? obj.icon : 'd-none'}"></i>
-            <span class="tx_700_white" style="${(_a = obj === null || obj === void 0 ? void 0 : obj.textStyle) !== null && _a !== void 0 ? _a : ''}">${text}</span>
+            <span class="tx_700_white ${size.font}" style="${(_a = obj === null || obj === void 0 ? void 0 : obj.textStyle) !== null && _a !== void 0 ? _a : ''}">${text}</span>
         </button>`;
     }
     static redButton(text, event, obj) {

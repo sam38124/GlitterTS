@@ -14,6 +14,7 @@ import { ApiPageConfig } from '../api/pageConfig.js';
 import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
 import { ShareDialog } from '../dialog/ShareDialog.js';
 import { BaseApi } from '../glitterBundle/api/base.js';
+import { BgWidget } from '../backend-manager/bg-widget.js';
 const html = String.raw;
 export class SaasViewModel {
     static app_manager(gvc) {
@@ -25,7 +26,7 @@ export class SaasViewModel {
                 view: () => {
                     return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
                         const userData = (yield ApiUser.getSaasUserData(GlobalUser.saas_token, 'me')).response;
-                        resolve(html ` <div class="btn btn-outline-secondary dropdown-toggle border-0 p-1" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        resolve(html ` <div class="btn btn-outline-secondary dropdown-toggle border-0 p-1 position-relative" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <div class="d-flex align-items-center ">
                                     <img
                                         src="https://assets.imgix.net/~text?bg=7ED379&txtclr=ffffff&w=100&h=100&txtsize=40&txt=${userData.userData.name}&txtfont=Helvetica&txtalign=middle,center"
@@ -40,7 +41,7 @@ export class SaasViewModel {
                                     </div>
                                 </div>
                             </div>
-                            <div class="dropdown-menu" style="top:50px; right:0px;">
+                            <div class="dropdown-menu position-absolute" style="top:50px; ${document.body.clientWidth > 768 ? 'right: 0;' : 'left: -110px;'}">
                                 <a
                                     class="dropdown-item cursor_pointer"
                                     onclick="${gvc.event(() => {
@@ -54,25 +55,17 @@ export class SaasViewModel {
                                         bind: id,
                                         view: () => {
                                             if (vm.type === 'list') {
-                                                return html ` <div style="width:600px;overflow-y: auto;" class="bg-white shadow rounded-3">
+                                                return html ` <div style="width: 600px; max-width: 95vw; overflow-y: auto;" class="bg-white shadow rounded-3">
                                                                 <div class="w-100 d-flex align-items-center p-3 border-bottom">
-                                                                    <div class="fw-500" style="color:black;">所有商店</div>
-                                                                    <div
-                                                                        class="btn  btn-sm ms-3 "
-                                                                        style="background:${EditorConfig.editor_layout.btn_background};font-size:14px;"
-                                                                        onclick="${gvc.event(() => {
+                                                                    <div class="tx_700 me-3">所有商店</div>
+                                                                    ${BgWidget.grayButton('新增商店', gvc.event(() => {
                                                     vm.type = 'replace';
                                                     gvc.notifyDataChange(id);
-                                                })}"
-                                                                    >
-                                                                        <i class="fa-regular fa-circle-plus me-2 fs-6"></i>
-                                                                        新增商店
-                                                                    </div>
+                                                }), { icon: 'fa-regular fa-circle-plus tx_normal' })}
                                                                     <div class="flex-fill"></div>
-
                                                                     <i
                                                                         class="fa-regular fa-circle-xmark fs-5"
-                                                                        style="color:black;cursor:pointer;"
+                                                                        style="color:black; cursor:pointer;"
                                                                         onclick="${gvc.event(() => {
                                                     gvc.closeDialog();
                                                 })}"
@@ -107,51 +100,47 @@ export class SaasViewModel {
                                                                     .map((dd) => {
                                                                     var _a;
                                                                     dd.theme_config = (_a = dd.theme_config) !== null && _a !== void 0 ? _a : {};
-                                                                    return html ` <div class="p-4" style="display: flex; align-items: center;">
-                                                                                            <div
+                                                                    const storeList = [
+                                                                        html `<div
                                                                                                 class="rounded-3 shadow"
-                                                                                                style="width: 110px; height: 94px; background-position: center; background-repeat: no-repeat; background-size: cover; 
+                                                                                                style="width: 120px; height: 94px; background-position: center; background-repeat: no-repeat; background-size: cover; 
                                                                                                 background-image: url('${dd.theme_config.preview_image ||
-                                                                        (dd.config && dd.template_config && dd.template_config.image && dd.template_config.image[0]) ||
-                                                                        'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713445383494-未命名(1080x1080像素).jpg'}');"
-                                                                                            ></div>
-                                                                                            <div class="d-flex flex-column" style="margin-left: 15px; gap:1px;">
+                                                                            (dd.config && dd.template_config && dd.template_config.image && dd.template_config.image[0]) ||
+                                                                            'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713445383494-未命名(1080x1080像素).jpg'}');"
+                                                                                            ></div>`,
+                                                                        html `<div class="d-flex flex-column" style="margin-left: 15px; gap:1px;">
                                                                                                 <div class="fw-500 fs-5 cl_39">${dd.theme_config.name || dd.appName}</div>
                                                                                                 ${(() => {
-                                                                        const config = dd;
-                                                                        let planText = '免費試用方案';
-                                                                        if (config.plan === 'basic') {
-                                                                            planText = '基本開店方案';
-                                                                        }
-                                                                        else if (config.plan === 'web+app') {
-                                                                            planText = 'Web+App方案';
-                                                                        }
-                                                                        return html `<div class="d-flex flex-column fw-500 cl_39" style="font-size:14px;">
+                                                                            const config = dd;
+                                                                            let planText = '免費試用方案';
+                                                                            if (config.plan === 'basic') {
+                                                                                planText = '基本開店方案';
+                                                                            }
+                                                                            else if (config.plan === 'web+app') {
+                                                                                planText = 'Web+App方案';
+                                                                            }
+                                                                            return html `<div class="d-flex flex-column fw-500 cl_39" style="font-size:14px;">
                                                                                                         當前方案 : ${planText}
                                                                                                         <div
                                                                                                             style="font-size: 13px; color: ${new Date(config.dead_line).getTime() < new Date().getTime()
-                                                                            ? `#EF4444`
-                                                                            : `#295ed1`};"
+                                                                                ? `#EF4444`
+                                                                                : `#295ed1`};"
                                                                                                         >
                                                                                                             ${new Date(config.dead_line).getTime() < new Date().getTime()
-                                                                            ? ` 方案已過期`
-                                                                            : ` 方案到期日`}
+                                                                                ? ` 方案已過期`
+                                                                                : ` 方案到期日`}
                                                                                                             ：${gvc.glitter.ut.dateFormat(new Date(config.dead_line), 'yyyy-MM-dd hh:mm')}
                                                                                                         </div>
                                                                                                     </div>`;
-                                                                    })()}
+                                                                        })()}
                                                                                                 <div class="fw-500 cl_39" style="font-size: 13px;">
                                                                                                     上次儲存時間：${gvc.glitter.ut.dateFormat(new Date(dd.update_time), 'MM-dd hh:mm')}
                                                                                                 </div>
-                                                                                            </div>
-                                                                                            <div class="flex-fill"></div>
-                                                                                            <div class="d-none btn btn-sm bgf6 text-black" style="color: black; width: 40px;">
-                                                                                                <i class="fa-regular fa-trash"></i>
-                                                                                            </div>
-                                                                                            <div class="p-0" style="width: 40px;">
+                                                                                            </div>`,
+                                                                        html `<div class="p-0 me-3" style="width: 40px;">
                                                                                                 <button
-                                                                                                    class="btn btn-sm bgf6 text-black w-100"
-                                                                                                    style="color: black;"
+                                                                                                    class="btn btn-sm bgf6 text-black w-100 me-2"
+                                                                                                    style="color: black; border-radius: 10px; box-shadow: 0px 0px 2px 0px rgba(0, 0, 0, 0.08); height: 28px"
                                                                                                     type="button"
                                                                                                     data-bs-toggle="dropdown"
                                                                                                     aria-haspopup="true"
@@ -163,83 +152,98 @@ export class SaasViewModel {
                                                                                                     <a
                                                                                                         class="dropdown-item"
                                                                                                         onclick="${gvc.event(() => {
-                                                                        SaasViewModel.renew(gvc);
-                                                                    })}"
+                                                                            SaasViewModel.renew(gvc);
+                                                                        })}"
                                                                                                         >續費</a
                                                                                                     >
                                                                                                     <div class="dropdown-divider"></div>
                                                                                                     <a
                                                                                                         class=" dropdown-item"
                                                                                                         onclick="${gvc.event(() => {
-                                                                        EditorElem.openEditorDialog(gvc, (gvc) => {
-                                                                            const appName = dd.theme_config.name || dd.appName;
-                                                                            let deleteText = '';
-                                                                            return html `<div class="p-2">
+                                                                            EditorElem.openEditorDialog(gvc, (gvc) => {
+                                                                                const appName = dd.theme_config.name || dd.appName;
+                                                                                let deleteText = '';
+                                                                                return html `<div class="p-2">
                                                                                                                         ${[
-                                                                                html ` <div
+                                                                                    html ` <div
                                                                                                                                 class="alert alert-danger p-2 fs-base"
                                                                                                                                 style="white-space: normal;"
                                                                                                                             >
                                                                                                                                 是否確認刪除此商店，刪除之後則無法復原，請謹慎進行操作!
                                                                                                                             </div>`,
-                                                                                EditorElem.editeInput({
-                                                                                    gvc: gvc,
-                                                                                    title: '刪除確認',
-                                                                                    placeHolder: `請輸入 -> ${appName}`,
-                                                                                    default: deleteText,
-                                                                                    callback: (text) => {
-                                                                                        deleteText = text;
-                                                                                    },
-                                                                                }),
-                                                                                html `<div
+                                                                                    EditorElem.editeInput({
+                                                                                        gvc: gvc,
+                                                                                        title: '刪除確認',
+                                                                                        placeHolder: `請輸入 -> ${appName}`,
+                                                                                        default: deleteText,
+                                                                                        callback: (text) => {
+                                                                                            deleteText = text;
+                                                                                        },
+                                                                                    }),
+                                                                                    html `<div
                                                                                                                                 class="d-flex align-items-center justify-content-end pt-2 border-top mt-2"
                                                                                                                             >
                                                                                                                                 <button
                                                                                                                                     class="btn btn-danger btn-sm"
                                                                                                                                     onclick="${gvc.event(() => {
-                                                                                    if (deleteText === appName) {
-                                                                                        const dialog = new ShareDialog(gvc.glitter);
-                                                                                        dialog.dataLoading({ visible: true });
-                                                                                        ApiPageConfig.deleteApp(dd.appName).then((res) => {
-                                                                                            dialog.dataLoading({ visible: false });
-                                                                                            if (dd.appName === window.appName) {
-                                                                                                const url = new URL(location.href);
-                                                                                                location.href = url.href.replace(url.search, '');
-                                                                                            }
-                                                                                            else {
-                                                                                                gvc.closeDialog();
-                                                                                                refresh();
-                                                                                            }
-                                                                                        });
-                                                                                    }
-                                                                                    else {
-                                                                                        alert('輸入錯誤');
-                                                                                    }
-                                                                                })}"
+                                                                                        if (deleteText === appName) {
+                                                                                            const dialog = new ShareDialog(gvc.glitter);
+                                                                                            dialog.dataLoading({ visible: true });
+                                                                                            ApiPageConfig.deleteApp(dd.appName).then((res) => {
+                                                                                                dialog.dataLoading({ visible: false });
+                                                                                                if (dd.appName === window.appName) {
+                                                                                                    const url = new URL(location.href);
+                                                                                                    location.href = url.href.replace(url.search, '');
+                                                                                                }
+                                                                                                else {
+                                                                                                    gvc.closeDialog();
+                                                                                                    refresh();
+                                                                                                }
+                                                                                            });
+                                                                                        }
+                                                                                        else {
+                                                                                            alert('輸入錯誤');
+                                                                                        }
+                                                                                    })}"
                                                                                                                                 >
                                                                                                                                     確認刪除
                                                                                                                                 </button>
                                                                                                                             </div>`,
-                                                                            ].join('')}
+                                                                                ].join('')}
                                                                                                                     </div>`;
-                                                                        }, () => { }, 400, '刪除商店');
-                                                                    })}"
+                                                                            }, () => { }, 400, '刪除商店');
+                                                                        })}"
                                                                                                         >刪除商店</a
                                                                                                     >
                                                                                                 </div>
-                                                                                            </div>
-                                                                                            <div
-                                                                                                class=" btn btn-primary-c btn-sm"
-                                                                                                style="margin-left: 10px;color: white;height: 28px; "
-                                                                                                onclick="${gvc.event(() => {
-                                                                        const url = new URL(gvc.glitter.root_path);
-                                                                        url.searchParams.set('type', 'editor');
-                                                                        url.searchParams.set('function', 'backend-manger');
-                                                                        url.searchParams.set('appName', dd.appName);
-                                                                        location.href = url.href;
-                                                                    })}"
-                                                                                            >
-                                                                                                更換商店
+                                                                                            </div>`,
+                                                                        html `<div>
+                                                                                                ${BgWidget.darkButton('更換商店', gvc.event(() => {
+                                                                            const url = new URL(gvc.glitter.root_path);
+                                                                            url.searchParams.set('type', 'editor');
+                                                                            url.searchParams.set('function', 'backend-manger');
+                                                                            url.searchParams.set('appName', dd.appName);
+                                                                            location.href = url.href;
+                                                                        }), { size: 'sm' })}
+                                                                                            </div>`,
+                                                                    ];
+                                                                    if (document.body.clientWidth > 768) {
+                                                                        return html ` <div class="p-4" style="display: flex; align-items: center;">
+                                                                                                ${storeList[0]}${storeList[1]}
+                                                                                                <div class="flex-fill"></div>
+                                                                                                ${storeList[2]}${storeList[3]}
+                                                                                            </div>`;
+                                                                    }
+                                                                    return html ` <div
+                                                                                            class="p-4"
+                                                                                            style="display: flex; align-items: center; justify-content: flex-start; gap: 16px;"
+                                                                                        >
+                                                                                            ${storeList[0]}
+                                                                                            <div style="width: 100%;">
+                                                                                                ${storeList[1]}
+                                                                                                <div style="display: flex; justify-content: flex-end; margin-top: 12px;">
+                                                                                                    ${storeList[2]}${storeList[3]}
+                                                                                                </div>
                                                                                             </div>
                                                                                         </div>`;
                                                                 })

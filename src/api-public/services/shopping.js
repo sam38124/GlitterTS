@@ -443,11 +443,11 @@ class Shopping {
             switch (dd.for) {
                 case 'collection':
                     item = cart.lineItems.filter((dp) => {
-                        return dd.forKey.filter((d1) => {
+                        return (dd.forKey.filter((d1) => {
                             return dp.collection.find((d2) => {
                                 return d2 === d1;
                             });
-                        });
+                        }).length > 0);
                     });
                     dd.bind = item;
                     return item.length > 0;
@@ -462,9 +462,7 @@ class Shopping {
                     dd.bind = item;
                     return item.length > 0;
                 case 'all':
-                    item = cart.lineItems.filter((dp) => {
-                        return true;
-                    });
+                    item = cart.lineItems;
                     dd.bind = item;
                     return item.length > 0;
             }
@@ -601,7 +599,7 @@ class Shopping {
         try {
             let querySql = ['1=1'];
             let orderString = 'order by id desc';
-            if (query.search) {
+            if (query.search && query.searchType) {
                 switch (query.searchType) {
                     case 'cart_token':
                         querySql.push(`(cart_token like '%${query.search}%')`);
@@ -672,9 +670,8 @@ class Shopping {
             query.email && querySql.push(`email=${database_js_1.default.escape(query.email)}`);
             query.id && querySql.push(`(content->>'$.id'=${query.id})`);
             let sql = `SELECT *
-                       FROM \`${this.app}\`.t_checkout
-   where ${querySql.join(' and ')}
-                       ${orderString}`;
+                        FROM \`${this.app}\`.t_checkout
+                        WHERE ${querySql.join(' and ')} ${orderString}`;
             if (query.id) {
                 const data = (await database_js_1.default.query(`SELECT *
                               FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}`, []))[0];

@@ -244,33 +244,33 @@ export class EditorElem {
                     return html`
                         <ul id="${bid}" class="d-flex " style="gap:10px;overflow-x: auto;max-width: 700px;">
                             ${data
-                                    .map((dd, index) => {
-                                        return html` <li
-                                            class="d-flex align-items-center justify-content-center rounded-3 shadow"
-                                            index="${index}"
-                                            style="min-width:135px;135px;height:135px;cursor:pointer;background: 50%/cover url('${dd}');"
+                                .map((dd, index) => {
+                                    return html` <li
+                                        class="d-flex align-items-center justify-content-center rounded-3 shadow"
+                                        index="${index}"
+                                        style="min-width:135px;135px;height:135px;cursor:pointer;background: 50%/cover url('${dd}');"
+                                    >
+                                        <div
+                                            class="w-100 h-100 d-flex align-items-center justify-content-center rounded-3 p-hover-image"
+                                            style="opacity:0;background: rgba(0,0,0,0.5);gap:20px;color:white;font-size:22px;"
                                         >
-                                            <div
-                                                class="w-100 h-100 d-flex align-items-center justify-content-center rounded-3 p-hover-image"
-                                                style="opacity:0;background: rgba(0,0,0,0.5);gap:20px;color:white;font-size:22px;"
-                                            >
-                                                <i
-                                                    class="fa-regular fa-eye"
-                                                    onclick="${obj.gvc.event(() => {
-                                            obj.gvc.glitter.openDiaLog(new URL('../../dialog/image-preview.js', import.meta.url).href, 'preview', dd);
-                                        })}"
-                                                ></i>
-                                                <i
-                                                    class="fa-regular fa-trash"
-                                                    onclick="${obj.gvc.event(() => {
-                                            data.splice(index, 1);
-                                            obj.gvc.notifyDataChange(id);
-                                        })}"
-                                                ></i>
-                                            </div>
-                                        </li>`;
-                                    })
-                                    .join('')}
+                                            <i
+                                                class="fa-regular fa-eye"
+                                                onclick="${obj.gvc.event(() => {
+                                                    obj.gvc.glitter.openDiaLog(new URL('../../dialog/image-preview.js', import.meta.url).href, 'preview', dd);
+                                                })}"
+                                            ></i>
+                                            <i
+                                                class="fa-regular fa-trash"
+                                                onclick="${obj.gvc.event(() => {
+                                                    data.splice(index, 1);
+                                                    obj.gvc.notifyDataChange(id);
+                                                })}"
+                                            ></i>
+                                        </div>
+                                    </li>`;
+                                })
+                                .join('')}
                         </ul>
                     `;
                 },
@@ -1755,7 +1755,7 @@ ${obj.gvc.bindView(() => {
         title: string;
         gvc: GVC;
         def: string;
-        array: string[] | { title: string; value: string; }[];
+        array: string[] | { title: string; value: string }[];
         callback: (text: string) => void;
         style?: string;
         class?: string;
@@ -2120,7 +2120,7 @@ ${obj.gvc.bindView(() => {
     public static arrayItem(obj: {
         gvc: GVC;
         title: string;
-        position?:string,
+        position?: string;
         array: () => {
             title: string;
             innerHtml?: string | ((gvc: GVC) => string);
@@ -2177,7 +2177,7 @@ ${obj.gvc.bindView(() => {
                                         <li class="btn-group" style="margin-top:1px;margin-bottom:1px;">
                                             <div
                                                 class="h-auto  align-items-center px-2 my-0 hi me-n1 ${dd.isSelect ? `bgf6 border` : ``}"
-                                                style="cursor: pointer;min-height:100px;width: calc(100% - 10px);display: flex;font-size: 14px;line-height: 20px;font-weight: 500;text-rendering: optimizelegibility;user-select: none;margin: 5px 10px;"
+                                                style="cursor: pointer;min-height:36px;width: calc(100% - 10px);display: flex;font-size: 14px;line-height: 20px;font-weight: 500;text-rendering: optimizelegibility;user-select: none;margin: 5px 10px;"
                                                 onclick="${gvc.event(() => {
                                                     if (!dd.innerHtml) {
                                                         return;
@@ -2258,8 +2258,11 @@ ${obj.gvc.bindView(() => {
                                                 >
                                                     <i class="fa-regular fa-circle-minus d-flex align-items-center justify-content-center subBt " style="width:15px;height:15px;color:red;"></i>
                                                 </div>
-                                                <div class="subBt ${obj.draggable === false ? `d-none` : ``} ${obj.position  ? `` : `d-none`}">
-                                                    <i class="dragItem fa-solid fa-grip-dots-vertical d-flex align-items-center justify-content-center  " style="width:15px;height:15px;padding-right: 14px;"></i>
+                                                <div class="subBt ${obj.draggable === false ? `d-none` : ``} ${obj.position ? `` : `d-none`}">
+                                                    <i
+                                                        class="dragItem fa-solid fa-grip-dots-vertical d-flex align-items-center justify-content-center  "
+                                                        style="width:15px;height:15px;padding-right: 14px;"
+                                                    ></i>
                                                 </div>
                                                 ${dd.title}
                                                 <div class="flex-fill"></div>
@@ -2331,7 +2334,7 @@ ${obj.gvc.bindView(() => {
                                                         </div>
                                                     </div>`;
                                                 })()}
-                                                <div class="dragItem subBt ${obj.draggable === false ? `d-none` : ``} ${obj.position  ? `d-none` : ``}">
+                                                <div class="dragItem subBt ${obj.draggable === false ? `d-none` : ``} ${obj.position ? `d-none` : ``}">
                                                     <i class="fa-solid fa-grip-dots-vertical d-flex align-items-center justify-content-center  " style="width:15px;height:15px;"></i>
                                                 </div>
                                             </div>

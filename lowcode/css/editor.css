@@ -368,6 +368,16 @@ ul {
     font-weight: 700;
 }
 
+.tx_white_sm {
+    font-size: 14px;
+    color: #fff;
+}
+
+.tx_white_lg {
+    font-size: 20px;
+    color: #fff;
+}
+
 .tx_title {
     color: #393939;
     font-size: 24px;
@@ -523,6 +533,15 @@ ul {
 
 .btn-black:hover {
     background: #646464;
+}
+
+.btn-black-sm {
+    max-height: 28px;
+    padding: 6px 12px;
+}
+
+.btn-black-lg {
+    max-height: 54px;
 }
 
 .btn-red {

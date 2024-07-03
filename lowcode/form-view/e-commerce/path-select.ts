@@ -133,7 +133,7 @@ export class PathSelect {
                                     if (linkComp.loading) {
                                         return html`<div
                                             class="form-control"
-                                            style="${obj.style ?? ''} margin-top:8px; white-space: normal; word-break: break-all"
+                                            style="margin-top:8px; white-space: normal; word-break: break-all; ${obj.style ?? ''}"
                                             onclick="${obj.gvc.event(() => {
                                                 componentFresh();
                                             })}"
@@ -142,27 +142,37 @@ export class PathSelect {
                                         </div>`;
                                     } else {
                                         return html`
-                                            <input
-                                                class="form-control"
-                                                style="${obj.style ?? ''} margin-top:8px;"
-                                                type="text"
-                                                placeholder="${obj.placeHolder}"
-                                                onchange="${obj.gvc.event((e) => {
-                                                    callbackEvent({ link: e.value });
-                                                })}"
-                                                oninput="${obj.gvc.event((e) => {
-                                                    if (obj.pattern) {
-                                                        const value = e.value;
-                                                        const regex = new RegExp(`[^${obj.pattern}]`, 'g');
-                                                        const validValue = value.replace(regex, '');
-                                                        if (value !== validValue) {
-                                                            e.value = validValue;
+                                            <div class="d-flex align-items-center" style="margin-top: 8px;">
+                                                <input
+                                                    class="form-control"
+                                                    style="${obj.style ?? ''}"
+                                                    type="text"
+                                                    placeholder="${obj.placeHolder}"
+                                                    onchange="${obj.gvc.event((e) => {
+                                                        callbackEvent({ link: e.value });
+                                                    })}"
+                                                    oninput="${obj.gvc.event((e) => {
+                                                        if (obj.pattern) {
+                                                            const value = e.value;
+                                                            const regex = new RegExp(`[^${obj.pattern}]`, 'g');
+                                                            const validValue = value.replace(regex, '');
+                                                            if (value !== validValue) {
+                                                                e.value = validValue;
+                                                            }
                                                         }
-                                                    }
-                                                })}"
-                                                value="${linkComp.text}"
-                                                ${obj.readonly ? `readonly` : ``}
-                                            />
+                                                    })}"
+                                                    value="${linkComp.text}"
+                                                    ${obj.readonly ? `readonly` : ``}
+                                                />
+                                                <span class="ms-2"
+                                                    ><i
+                                                        class="fa-solid fa-xmark text-dark cursor_pointer"
+                                                        onclick="${obj.gvc.event(() => {
+                                                            componentFresh();
+                                                        })}"
+                                                    ></i
+                                                ></span>
+                                            </div>
                                         `;
                                     }
                                 },
@@ -260,14 +270,14 @@ export class PathSelect {
                                                 `;
                                             });
                                         return html`
-                                            <div class="border border-2 rounded-2 p-2" style="width: 260px">
+                                            <div class="border border-2 rounded-2 p-2" style="width: 240px">
                                                 ${h1}
                                                 <div style="overflow-y: auto; max-height: 42.5vh;">${h2}</div>
                                             </div>
                                         `;
                                     }
                                 },
-                                divCreate: { style: 'position: absolute; top: 42.5px; left: 0; z-index: 1; background-color: #fff;' },
+                                divCreate: { style: 'position: absolute; top: 42.5px; right: 0; z-index: 1; background-color: #fff;' },
                             })}
                         </div>`;
                 }

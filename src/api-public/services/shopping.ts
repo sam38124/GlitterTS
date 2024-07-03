@@ -662,11 +662,13 @@ export class Shopping {
                 switch (dd.for) {
                     case 'collection':
                         item = cart.lineItems.filter((dp) => {
-                            return dd.forKey.filter((d1) => {
-                                return dp.collection.find((d2) => {
-                                    return d2 === d1;
-                                });
-                            });
+                            return (
+                                dd.forKey.filter((d1) => {
+                                    return dp.collection.find((d2) => {
+                                        return d2 === d1;
+                                    });
+                                }).length > 0
+                            );
                         });
                         dd.bind = item;
                         return item.length > 0;
@@ -683,9 +685,7 @@ export class Shopping {
                         dd.bind = item;
                         return item.length > 0;
                     case 'all':
-                        item = cart.lineItems.filter((dp) => {
-                            return true;
-                        });
+                        item = cart.lineItems;
                         dd.bind = item;
                         return item.length > 0;
                 }
@@ -875,11 +875,16 @@ export class Shopping {
         orderString?: string;
     }) {
         try {
-            // 訂單編號(Cart_token) 訂購人(orderData.user_info.name) 手機(orderData.user_info.phone) 商品名稱(orderData.lineItems[array].title) 商品編號(orderData.lineItems[array].sku) 發票號碼(orderData.invoice_number)
+            // 訂單編號(Cart_token)
+            // 訂購人(orderData.user_info.name)
+            // 手機(orderData.user_info.phone)
+            // 商品名稱(orderData.lineItems[array].title)
+            // 商品編號(orderData.lineItems[array].sku)
+            // 發票號碼(orderData.invoice_number)
 
             let querySql = ['1=1'];
             let orderString = 'order by id desc';
-            if (query.search) {
+            if (query.search && query.searchType) {
                 switch (query.searchType) {
                     case 'cart_token':
                         querySql.push(`(cart_token like '%${query.search}%')`);
@@ -955,9 +960,8 @@ export class Shopping {
             query.email && querySql.push(`email=${db.escape(query.email)}`);
             query.id && querySql.push(`(content->>'$.id'=${query.id})`);
             let sql = `SELECT *
-                       FROM \`${this.app}\`.t_checkout
-   where ${querySql.join(' and ')}
-                       ${orderString}`;
+                        FROM \`${this.app}\`.t_checkout
+                        WHERE ${querySql.join(' and ')} ${orderString}`;
             if (query.id) {
                 const data = (
                     await db.query(
