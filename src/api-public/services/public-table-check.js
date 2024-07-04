@@ -358,7 +358,7 @@ class ApiPublic {
             }
         }
         catch (e) {
-            console.log(e);
+            console.error(e);
             ApiPublic.checkApp = ApiPublic.checkApp.filter((dd) => {
                 return dd.app_name === appName;
             });

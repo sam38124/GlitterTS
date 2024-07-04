@@ -846,7 +846,6 @@ class Shopping {
     async resetVoucherHistory() {
         try {
             const now = (0, moment_1.default)().tz('Asia/Taipei').format('YYYY-MM-DD HH:mm:ss');
-            console.log(this.app, now);
             await database_js_1.default.query(`
                 UPDATE \`${this.app}\`.t_voucher_history SET status = 0
                 WHERE status = 2 AND updated_at < DATE_SUB('${now}', INTERVAL 2 MINUTE);`, []);
