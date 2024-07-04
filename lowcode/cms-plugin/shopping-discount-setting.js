@@ -247,6 +247,8 @@ export class ShoppingDiscountSetting {
             rebateEndDay: '0',
             target: 'all',
             targetList: [],
+            macroLimited: 0,
+            microLimited: 0,
         };
         gvc.addStyle(`
             .bg-warning {
@@ -953,7 +955,41 @@ export class ShoppingDiscountSetting {
                         view: () => {
                             const inputStyle = 'font-size: 16px; height:40px; width:200px;';
                             return [
-                                html ` <h6 class="tx_700">有效日期</h6>`,
+                                html `<h6 class="tx_700">全館總使用次數</h6>`,
+                                html `<div class="mb-3">
+                                                    ${EditorElem.radio({
+                                    gvc: gvc,
+                                    title: '',
+                                    def: '',
+                                    array: [
+                                        {
+                                            title: '無限制',
+                                            value: 'noLimited',
+                                        },
+                                        {
+                                            title: '限制次數',
+                                            value: 'hasLimited',
+                                            innerHtml: EditorElem.editeInput({
+                                                gvc: gvc,
+                                                title: html `<h6 class="tx_700">可使用次數</h6>`,
+                                                type: 'number',
+                                                default: '',
+                                                placeHolder: '',
+                                                callback: (text) => {
+                                                    console.log(text);
+                                                },
+                                                unit: '次',
+                                            }),
+                                        },
+                                    ],
+                                    callback: (text) => {
+                                        if (text === 'noLimited') {
+                                            voucherData.macroLimited = 0;
+                                        }
+                                    },
+                                })}
+                                                </div>`,
+                                html `<h6 class="tx_700">有效日期</h6>`,
                                 html `<div class="d-flex mb-3 ${document.body.clientWidth < 768 ? 'flex-column' : ''}" style="gap: 12px">
                                                     ${EditorElem.editeInput({
                                     gvc: gvc,
