@@ -138,7 +138,7 @@ export class EditorElem {
                 bind: id,
                 view: () => {
                     if (data.length === 0) {
-                        return html` <div class="w-100 d-flex align-items-center justify-content-center fw-bold fs-6 alert bgf6">尚未新增任何檔案...</div>`;
+                        return html` <div class="w-100 d-flex align-items-center justify-content-center fw-bold fs-6 alert m-0 bgf6">尚未新增任何檔案...</div>`;
                     }
                     return html`
                         <div class="" style="gap:10px; ">
@@ -239,7 +239,7 @@ export class EditorElem {
                 bind: id,
                 view: () => {
                     if (data.length === 0) {
-                        return html` <div class="w-100 d-flex align-items-center justify-content-center fw-bold fs-6 alert bgf6">尚未新增任何檔案...</div>`;
+                        return html` <div class="w-100 d-flex align-items-center justify-content-center fw-bold fs-6 alert m-0 bgf6">尚未新增任何檔案...</div>`;
                     }
                     return html`
                         <ul id="${bid}" class="d-flex " style="gap:10px;overflow-x: auto;max-width: 700px;">
@@ -2143,6 +2143,7 @@ ${obj.gvc.bindView(() => {
         draggable?: boolean;
         copyable?: boolean;
         customEditor?: boolean;
+        hoverGray?: boolean;
         minusEvent?: (data: any, index: number) => void;
     }) {
         const gvc = obj.gvc;
@@ -2162,6 +2163,20 @@ ${obj.gvc.bindView(() => {
                         () => {},
                         () => {}
                     );
+                    if (obj.hoverGray){
+                        gvc.addStyle(`
+                            #${parId} :hover{
+                                background-color:#F7F7F7;
+                            }
+                            #${parId} :hover .option{
+                                background-color:#DDD;
+                            }
+                            #${parId} :hover .pen{
+                                display:block;
+                            }
+                            
+                        `)
+                    }
                     return {
                         bind: parId,
                         view: () => {
