@@ -884,17 +884,7 @@ export class Shopping {
         archived?:string
     }) {
         try {
-<<<<<<< HEAD
-            // 訂單編號(Cart_token)
-            // 訂購人(orderData.user_info.name)
-            // 手機(orderData.user_info.phone)
-            // 商品名稱(orderData.lineItems[array].title)
-            // 商品編號(orderData.lineItems[array].sku)
-            // 發票號碼(orderData.invoice_number)
 
-=======
-            // 訂單編號(Cart_token) 訂購人(orderData.user_info.name) 手機(orderData.user_info.phone) 商品名稱(orderData.lineItems[array].title) 商品編號(orderData.lineItems[array].sku) 發票號碼(orderData.invoice_number)
->>>>>>> 04ee60b5 (update to 8.9.2)
             let querySql = ['1=1'];
             let orderString = 'order by id desc';
             if (query.search && query.searchType) {
