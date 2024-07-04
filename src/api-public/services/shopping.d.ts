@@ -1,5 +1,6 @@
 import { IToken } from '../models/Auth.js';
 interface VoucherData {
+    id: number;
     title: string;
     method: 'percent' | 'fixed';
     reBackType: 'rebate' | 'discount' | 'shipment_free';
@@ -131,6 +132,7 @@ export declare class Shopping {
                 limit?: number | undefined;
                 condition?: number | undefined;
             } | undefined;
+            voucherList?: VoucherData[] | undefined;
         };
         is_free?: undefined;
         off_line?: undefined;
@@ -259,6 +261,10 @@ export declare class Shopping {
         result?: undefined;
     }>;
     releaseCheckout(status: 1 | 0 | -1, order_id: string): Promise<void>;
+    checkVoucherLimited(user_id: number, voucher_id: number): Promise<boolean>;
+    insertVoucherHistory(user_id: number, order_id: string, voucher_id: number): Promise<void>;
+    releaseVoucherHistory(order_id: string, status: 1 | 0): Promise<void>;
+    resetVoucherHistory(): Promise<void>;
     postVariantsAndPriceValue(content: any): Promise<void>;
     getDataAnalyze(tags: string[]): Promise<any>;
     getOrderToDay(): Promise<{

@@ -207,7 +207,7 @@ router.get('/order', async (req: express.Request, resp: express.Response) => {
                     orderStatus: req.query.orderStatus as string,
                     created_time: req.query.created_time as string,
                     orderString: req.query.orderString as string,
-                    archived:req.query.archived as string
+                    archived: req.query.archived as string,
                 })
             );
         } else if (await UtPermission.isAppUser(req)) {
@@ -299,35 +299,36 @@ router.delete('/voucher', async (req: express.Request, resp: express.Response) =
 router.post('/redirect', async (req: express.Request, resp: express.Response) => {
     try {
         let return_url = new URL((await redis.getValue(req.query.return as string)) as any);
-        return resp.send(`<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-
-<body>
-    <script>
-        try {
-            window.webkit.messageHandlers.addJsInterFace.postMessage(JSON.stringify({
-                functionName: 'closeWebView',
-                callBackId: 0,
-                data: {}
-            }));
-
-        } catch (e) { }
-        location.href = '${return_url.href}';
-    </script>
-</body>
-
-</html>
-`);
+        const html = String.raw;
+        return resp.send(html`<!DOCTYPE html>
+            <html lang="en">
+                <head>
+                    <meta charset="UTF-8" />
+                    <title>Title</title>
+                </head>
+                <body>
+                    <script>
+                        try {
+                            window.webkit.messageHandlers.addJsInterFace.postMessage(
+                                JSON.stringify({
+                                    functionName: 'closeWebView',
+                                    callBackId: 0,
+                                    data: {},
+                                })
+                            );
+                        } catch (e) {}
+                        location.href = '${return_url.href}';
+                    </script>
+                </body>
+            </html> `);
     } catch (err) {
         return response.fail(resp, err);
     }
 });
-const storage = multer.memoryStorage(); // 将文件存储在内存中
+
+const storage = multer.memoryStorage(); // 文件暫存
 const upload = multer({ storage });
+
 router.post('/notify', upload.single('file'), async (req: express.Request, resp: express.Response) => {
     try {
         const appName = req.query['g-app'] as string;

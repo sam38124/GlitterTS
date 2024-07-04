@@ -190,6 +190,21 @@ class ApiPublic {
                 },
                 {
                     scheme: appName,
+                    table: 't_voucher_history',
+                    sql: `(
+                        \`id\` int NOT NULL AUTO_INCREMENT,
+                        \`user_id\` int NOT NULL COMMENT '會員id',
+                        \`order_id\` varchar(200) NOT NULL COMMENT '購物車id',
+                        \`voucher_id\` varchar(200) NOT NULL COMMENT '優惠券id',
+                        \`created_at\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '建立日期',
+                        \`updated_at\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                        \`status\` int NOT NULL DEFAULT 0 COMMENT '0未付款 1已付款 2等待付款',
+                        PRIMARY KEY (\`id\`),
+                        UNIQUE KEY \`id_UNIQUE\` (\`id\`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+                },
+                {
+                    scheme: appName,
                     table: 't_subscribe',
                     sql: `(
   \`id\` int NOT NULL AUTO_INCREMENT,

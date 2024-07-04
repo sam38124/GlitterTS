@@ -9,16 +9,19 @@ const database_1 = __importDefault(require("../../modules/database"));
 const exception_1 = __importDefault(require("../../modules/exception"));
 const rebate_1 = require("./rebate");
 const user_1 = require("./user");
+const shopping_1 = require("./shopping");
 class Schedule {
     constructor(app) {
         this.app = app;
     }
     async perload() {
-        if (!(await this.isDatabaseExists()))
-            return false;
         if (!(await this.isDatabasePass()))
             return false;
+        if (!(await this.isDatabaseExists()))
+            return false;
         if (!(await this.isTableExists('t_user_public_config')))
+            return false;
+        if (!(await this.isTableExists('t_voucher_history')))
             return false;
         return true;
     }
@@ -42,8 +45,8 @@ class Schedule {
             if (await this.perload()) {
                 const userClass = new user_1.User(this.app);
                 const member_count = {};
-                for (const user of (await database_1.default.query(`select *
-                                                    from \`${this.app}\`.t_user`, []))) {
+                for (const user of await database_1.default.query(`select *
+                                                    from \`${this.app}\`.t_user`, [])) {
                     const member_levels = (await userClass.refreshMember(user)).find((dd) => {
                         return dd.trigger;
                     });
@@ -55,14 +58,14 @@ class Schedule {
                 await userClass.setConfig({
                     key: 'member_levels_count_list',
                     value: member_count,
-                    user_id: 'manager'
+                    user_id: 'manager',
                 });
             }
         }
         catch (e) {
-            throw exception_1.default.BadRequestError('BAD_REQUEST', 'Example Error: ' + e, null);
+            throw exception_1.default.BadRequestError('BAD_REQUEST', 'refreshMember Error: ' + e, null);
         }
-        setTimeout(() => this.example(sec), sec * 1000);
+        setTimeout(() => this.refreshMember(sec), sec * 1000);
     }
     async example(sec) {
         try {
@@ -121,11 +124,23 @@ class Schedule {
         }
         setTimeout(() => this.birthRebate(sec), sec * 1000);
     }
+    async resetVoucherHistory(sec) {
+        try {
+            if (await this.perload()) {
+                await new shopping_1.Shopping(this.app).resetVoucherHistory();
+            }
+        }
+        catch (e) {
+            throw exception_1.default.BadRequestError('BAD_REQUEST', 'resetVoucherHistory Error: ' + e, null);
+        }
+        setTimeout(() => this.resetVoucherHistory(sec), sec * 1000);
+    }
     async main() {
         const scheduleList = [
             { second: 10, status: false, func: 'example', desc: '排程啟用範例' },
-            { second: 60 * 60, status: true, func: 'birthRebate', desc: '生日禮發放購物金' },
-            { second: 600, status: true, func: 'refreshMember', desc: '更新會員分級' }
+            { second: 3600, status: true, func: 'birthRebate', desc: '生日禮發放購物金' },
+            { second: 600, status: true, func: 'refreshMember', desc: '更新會員分級' },
+            { second: 30, status: true, func: 'resetVoucherHistory', desc: '未付款歷史優惠券重設' },
         ];
         try {
             scheduleList.forEach((schedule) => {

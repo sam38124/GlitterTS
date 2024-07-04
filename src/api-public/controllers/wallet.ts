@@ -204,7 +204,7 @@ router.delete('/', async (req: express.Request, resp: express.Response) => {
     }
 });
 
-const storage = multer.memoryStorage(); // 将文件存储在内存中
+const storage = multer.memoryStorage(); // 文件暫存
 const upload = multer({ storage });
 router.post('/notify', upload.single('file'), async (req: express.Request, resp: express.Response) => {
     try {

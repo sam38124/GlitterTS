@@ -11,9 +11,10 @@ import e from 'express';
 import { Rebate } from './rebate.js';
 import { CustomCode } from '../services/custom-code.js';
 import moment from 'moment';
-import {ManagerNotify} from "./notify.js";
+import { ManagerNotify } from './notify.js';
 
 interface VoucherData {
+    id: number;
     title: string;
     method: 'percent' | 'fixed';
     reBackType: 'rebate' | 'discount' | 'shipment_free';
@@ -353,6 +354,7 @@ export class Shopping {
                 user_email: string;
                 method: string;
                 useRebateInfo?: { point: number; limit?: number; condition?: number };
+                voucherList?: VoucherData[];
             } = {
                 lineItems: [],
                 total: 0,
@@ -491,6 +493,12 @@ export class Shopping {
                 order_id: carData.orderID,
             });
 
+            if (carData.voucherList && carData.voucherList.length > 0) {
+                for (const voucher of carData.voucherList) {
+                    await this.insertVoucherHistory(userData.userID, carData.orderID, voucher.id);
+                }
+            }
+
             if (userData && userData.userID) {
                 // 判斷錢包是否有餘額
                 const sum =
@@ -554,9 +562,9 @@ export class Shopping {
                 // 線下付款
                 if (keyData.TYPE === 'off_line') {
                     new ManagerNotify(this.app).checkout({
-                        orderData:carData,
-                        status:0
-                    })
+                        orderData: carData,
+                        status: 0,
+                    });
                     return {
                         off_line: true,
                     };
@@ -646,15 +654,29 @@ export class Shopping {
         const code = cart.code;
         // 用戶資訊
         const userData = await new User(this.app).getUserData(cart.email, 'account');
-        // 過濾可使用優惠券
-        const voucherList = (
+
+        const allVoucher = (
             await this.querySql([`(content->>'$.type'='voucher')`], {
                 page: 0,
                 limit: 10000,
             })
-        ).data
+        ).data;
+
+        const pass_id: number[] = [];
+        for (const voucher of allVoucher) {
+            if (await this.checkVoucherLimited(userData.userID, voucher.id)) {
+                pass_id.push(voucher.id);
+            }
+        }
+
+        // 過濾可使用優惠券
+        const voucherList = allVoucher
             .map((dd: any) => {
                 return dd.content;
+            })
+            .filter((dd: VoucherData) => {
+                // 判斷歷史紀錄
+                return pass_id.includes(dd.id);
             })
             .filter((dd: VoucherData) => {
                 // 判斷有效期限
@@ -798,6 +820,7 @@ export class Shopping {
             cart.shipment_fee = cart.shipment_fee - basic;
             cart.total -= basic;
         }
+
         cart.total = cart.total - cart.discount;
         cart.voucherList = voucherList;
     }
@@ -833,7 +856,7 @@ export class Shopping {
         try {
             const update: any = {};
             data.orderData && (update.orderData = JSON.stringify(data.orderData));
-            if(update.status){
+            if (update.status) {
                 update.status = data.status ?? 0;
             }
 
@@ -881,10 +904,9 @@ export class Shopping {
         orderStatus?: string;
         created_time?: string;
         orderString?: string;
-        archived?:string
+        archived?: string;
     }) {
         try {
-
             let querySql = ['1=1'];
             let orderString = 'order by id desc';
             if (query.search && query.searchType) {
@@ -962,10 +984,10 @@ export class Shopping {
             query.status && querySql.push(`status IN (${query.status})`);
             query.email && querySql.push(`email=${db.escape(query.email)}`);
             query.id && querySql.push(`(content->>'$.id'=${query.id})`);
-            if(query.archived==='true'){
-                querySql.push(`(orderData->>'$.archived'="${query.archived}")`)
-            }else if(query.archived==='false'){
-                querySql.push(`((orderData->>'$.archived' is null) or (orderData->>'$.archived'!='true'))`)
+            if (query.archived === 'true') {
+                querySql.push(`(orderData->>'$.archived'="${query.archived}")`);
+            } else if (query.archived === 'false') {
+                querySql.push(`((orderData->>'$.archived' is null) or (orderData->>'$.archived'!='true'))`);
             }
             let sql = `SELECT *
                         FROM \`${this.app}\`.t_checkout
@@ -1011,6 +1033,7 @@ export class Shopping {
                     SET status = ? WHERE cart_token = ?`,
                     [-1, order_id]
                 );
+                await this.releaseVoucherHistory(order_id, 0);
             }
 
             if (status === 1) {
@@ -1039,11 +1062,12 @@ export class Shopping {
                         [order_id]
                     )
                 )[0];
-                //管理員通知新訂單
+
+                // 管理員通知新訂單
                 new ManagerNotify(this.app).checkout({
-                    orderData:cartData.orderData,
-                    status:status
-                })
+                    orderData: cartData.orderData,
+                    status: status,
+                });
                 const userData = await new User(this.app).getUserData(cartData.email, 'account');
 
                 if (userData && cartData.orderData.rebate > 0) {
@@ -1079,6 +1103,11 @@ export class Shopping {
                         }
                     }
                 }
+
+                if (cartData.orderData.voucherList && cartData.orderData.voucherList.length > 0) {
+                    await this.releaseVoucherHistory(order_id, 1);
+                }
+
                 try {
                     await new CustomCode(this.app).checkOutHook({ userData, cartData });
                 } catch (e) {
@@ -1088,6 +1117,84 @@ export class Shopping {
             }
         } catch (error) {
             throw exception.BadRequestError('BAD_REQUEST', 'Release Checkout Error:' + e, null);
+        }
+    }
+
+    public async checkVoucherLimited(user_id: number, voucher_id: number): Promise<boolean> {
+        try {
+            const vouchers = await db.query(
+                `SELECT 
+                        id,
+                        JSON_EXTRACT(content, '$.macroLimited') AS macroLimited,
+                        JSON_EXTRACT(content, '$.microLimited') AS microLimited 
+                    FROM \`${this.app}\`.t_manager_post
+                    WHERE id = ?;`,
+                [voucher_id]
+            );
+            if (!vouchers[0]) {
+                return false;
+            }
+            if (vouchers[0].macroLimited === 0 && vouchers[0].microLimited === 0) {
+                return true;
+            }
+            const history = await db.query(
+                `SELECT * FROM \`${this.app}\`.t_voucher_history 
+                WHERE voucher_id = ? AND status in (1, 2);`,
+                [voucher_id]
+            );
+            if (vouchers[0].macroLimited > 0 && history.length >= vouchers[0].macroLimited) {
+                return false;
+            }
+            if (
+                vouchers[0].microLimited > 0 &&
+                history.filter((item: { user_id: number }) => {
+                    return item.user_id === user_id;
+                }).length >= vouchers[0].microLimited
+            ) {
+                return false;
+            }
+            return true;
+        } catch (error) {
+            throw exception.BadRequestError('BAD_REQUEST', 'checkVoucherHistory Error:' + e, null);
+        }
+    }
+
+    public async insertVoucherHistory(user_id: number, order_id: string, voucher_id: number) {
+        try {
+            await db.query(`INSERT INTO \`${this.app}\`.\`t_voucher_history\` set ?`, [
+                {
+                    user_id,
+                    order_id,
+                    voucher_id,
+                    created_at: new Date(),
+                    updated_at: new Date(),
+                    status: 2,
+                },
+            ]);
+        } catch (error) {
+            throw exception.BadRequestError('BAD_REQUEST', 'insertVoucherHistory Error:' + e, null);
+        }
+    }
+
+    public async releaseVoucherHistory(order_id: string, status: 1 | 0) {
+        try {
+            await db.query(`UPDATE \`${this.app}\`.t_voucher_history SET status = ? WHERE order_id = ?;`, [status, order_id]);
+        } catch (error) {
+            throw exception.BadRequestError('BAD_REQUEST', 'insertVoucherHistory Error:' + e, null);
+        }
+    }
+
+    public async resetVoucherHistory() {
+        try {
+            const now = moment().tz('Asia/Taipei').format('YYYY-MM-DD HH:mm:ss');
+            await db.query(
+                `
+                UPDATE \`${this.app}\`.t_voucher_history SET status = 0
+                WHERE status = 2 AND updated_at < DATE_SUB('${now}', INTERVAL 2 MINUTE);`,
+                []
+            );
+        } catch (error) {
+            throw exception.BadRequestError('BAD_REQUEST', 'insertVoucherHistory Error:' + e, null);
         }
     }
 
@@ -1411,7 +1518,7 @@ export class Shopping {
     async putCollection(data: any) {
         try {
             let config = (await db.query(`SELECT * FROM \`${this.app}\`.public_config WHERE \`key\` = 'collection';`, []))[0] ?? {};
-            config.value=config.value || [];
+            config.value = config.value || [];
             if (data.id == -1 || data.parent_name !== data.origin.parent_name || data.name !== data.origin.item_name) {
                 if (data.parent_id === undefined && config.value.find((item: { title: string }) => item.title === data.name)) {
                     return { result: false, message: `上層分類已存在「${data.name}」類別名稱` };
@@ -1544,7 +1651,7 @@ export class Shopping {
             }
             return { result: true };
         } catch (e) {
-            console.error(e)
+            console.error(e);
             throw exception.BadRequestError('BAD_REQUEST', 'getCollectionProducts Error:' + e, null);
         }
     }

@@ -1019,52 +1019,77 @@ export class ShoppingDiscountSetting {
                                             const inputStyle = 'font-size: 16px; height:40px; width:200px;';
                                             return [
                                                 html`<h6 class="tx_700">全館總使用次數</h6>`,
-                                                html`<div class="mb-3">
-                                                    ${EditorElem.radio({
-                                                        gvc: gvc,
-                                                        title: '',
-                                                        def: '',
-                                                        array: [
-                                                            {
-                                                                title: '無限制',
-                                                                value: 'noLimited',
-                                                            },
-                                                            {
-                                                                title: '限制次數',
-                                                                value: 'hasLimited',
-                                                                innerHtml: EditorElem.editeInput({
+                                                EditorElem.radio({
+                                                    gvc: gvc,
+                                                    title: '',
+                                                    def: voucherData.macroLimited === 0 ? 'noLimited' : 'hasLimited',
+                                                    array: [
+                                                        {
+                                                            title: '無限制',
+                                                            value: 'noLimited',
+                                                        },
+                                                        {
+                                                            title: '限制次數',
+                                                            value: 'hasLimited',
+                                                            innerHtml: html`<div class="my-3">
+                                                                ${EditorElem.editeInput({
                                                                     gvc: gvc,
                                                                     title: html`<h6 class="tx_700">可使用次數</h6>`,
                                                                     type: 'number',
-                                                                    default: '',
+                                                                    style: 'width: 125px;',
+                                                                    default: `${voucherData.macroLimited ?? 0}`,
                                                                     placeHolder: '',
                                                                     callback: (text) => {
-                                                                        console.log(text);
+                                                                        voucherData.macroLimited = parseInt(text, 10);
                                                                     },
                                                                     unit: '次',
-                                                                }),
-                                                                // innerHtml: html`<div class="d-flex align-items-center border rounded-3 mx-2">
-                                                                //     <input
-                                                                //         class="form-control border-0 bg-transparent shadow-none"
-                                                                //         type="number"
-                                                                //         style="border-radius: 10px; border: 1px solid #DDD; padding-left: 18px;"
-                                                                //         placeholder=""
-                                                                //         onchange="${gvc.event((e) => {
-                                                                //             voucherData.ruleValue = parseInt(e.value, 10);
-                                                                //         })}"
-                                                                //         value="${voucherData.ruleValue ?? 0}"
-                                                                //     />
-                                                                //     <div class="py-2 pe-3">個</div>
-                                                                // </div>`,
-                                                            },
-                                                        ],
-                                                        callback: (text) => {
-                                                            if (text === 'noLimited') {
-                                                                voucherData.macroLimited = 0;
-                                                            }
+                                                                })}
+                                                            </div>`,
                                                         },
-                                                    })}
-                                                </div>`,
+                                                    ],
+                                                    callback: (text) => {
+                                                        if (text === 'noLimited') {
+                                                            voucherData.macroLimited = 0;
+                                                        }
+                                                    },
+                                                }),
+                                                html`<div class="gray-top-bottom-line-18"></div>`,
+                                                html`<h6 class="tx_700">個人總使用次數</h6>`,
+                                                EditorElem.radio({
+                                                    gvc: gvc,
+                                                    title: '',
+                                                    def: voucherData.microLimited === 0 ? 'noLimited' : 'hasLimited',
+                                                    array: [
+                                                        {
+                                                            title: '無限制',
+                                                            value: 'noLimited',
+                                                        },
+                                                        {
+                                                            title: '限制次數',
+                                                            value: 'hasLimited',
+                                                            innerHtml: html`<div class="my-3">
+                                                                ${EditorElem.editeInput({
+                                                                    gvc: gvc,
+                                                                    title: html`<h6 class="tx_700">可使用次數</h6>`,
+                                                                    type: 'number',
+                                                                    style: 'width: 125px;',
+                                                                    default: `${voucherData.microLimited ?? 0}`,
+                                                                    placeHolder: '',
+                                                                    callback: (text) => {
+                                                                        voucherData.microLimited = parseInt(text, 10);
+                                                                    },
+                                                                    unit: '次',
+                                                                })}
+                                                            </div>`,
+                                                        },
+                                                    ],
+                                                    callback: (text) => {
+                                                        if (text === 'noLimited') {
+                                                            voucherData.microLimited = 0;
+                                                        }
+                                                    },
+                                                }),
+                                                html`<div class="gray-top-bottom-line-18"></div>`,
                                                 html`<h6 class="tx_700">有效日期</h6>`,
                                                 html`<div class="d-flex mb-3 ${document.body.clientWidth < 768 ? 'flex-column' : ''}" style="gap: 12px">
                                                     ${EditorElem.editeInput({

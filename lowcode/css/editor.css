@@ -324,12 +324,12 @@ ul {
     height: 38px;
     padding: 8px 24px;
     border-radius: 8px;
-    border: 1px #FFB400 solid;
+    border: 1px #ffb400 solid;
     justify-content: center;
     align-items: center;
     gap: 10px;
     display: inline-flex;
-    background: linear-gradient(143deg, #FFB400 -22.7%, #FF6C02 114.57%);
+    background: linear-gradient(143deg, #ffb400 -22.7%, #ff6c02 114.57%);
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -628,6 +628,12 @@ ul {
 .gray-bottom-line-18 {
     border-bottom: 1px solid #e2e5f1;
     padding-bottom: 18px;
+}
+
+.gray-top-bottom-line-18 {
+    border-bottom: 1px solid #e2e5f1;
+    padding-bottom: 18px;
+    margin-bottom: 18px;
 }
 
 .link-item-container {

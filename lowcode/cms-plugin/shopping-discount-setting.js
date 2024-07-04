@@ -953,14 +953,14 @@ export class ShoppingDiscountSetting {
                     return {
                         bind: id,
                         view: () => {
+                            var _a, _b;
                             const inputStyle = 'font-size: 16px; height:40px; width:200px;';
                             return [
                                 html `<h6 class="tx_700">全館總使用次數</h6>`,
-                                html `<div class="mb-3">
-                                                    ${EditorElem.radio({
+                                EditorElem.radio({
                                     gvc: gvc,
                                     title: '',
-                                    def: '',
+                                    def: voucherData.macroLimited === 0 ? 'noLimited' : 'hasLimited',
                                     array: [
                                         {
                                             title: '無限制',
@@ -969,17 +969,20 @@ export class ShoppingDiscountSetting {
                                         {
                                             title: '限制次數',
                                             value: 'hasLimited',
-                                            innerHtml: EditorElem.editeInput({
+                                            innerHtml: html `<div class="my-3">
+                                                                ${EditorElem.editeInput({
                                                 gvc: gvc,
                                                 title: html `<h6 class="tx_700">可使用次數</h6>`,
                                                 type: 'number',
-                                                default: '',
+                                                style: 'width: 125px;',
+                                                default: `${(_a = voucherData.macroLimited) !== null && _a !== void 0 ? _a : 0}`,
                                                 placeHolder: '',
                                                 callback: (text) => {
-                                                    console.log(text);
+                                                    voucherData.macroLimited = parseInt(text, 10);
                                                 },
                                                 unit: '次',
-                                            }),
+                                            })}
+                                                            </div>`,
                                         },
                                     ],
                                     callback: (text) => {
@@ -987,8 +990,44 @@ export class ShoppingDiscountSetting {
                                             voucherData.macroLimited = 0;
                                         }
                                     },
-                                })}
-                                                </div>`,
+                                }),
+                                html `<div class="gray-top-bottom-line-18"></div>`,
+                                html `<h6 class="tx_700">個人總使用次數</h6>`,
+                                EditorElem.radio({
+                                    gvc: gvc,
+                                    title: '',
+                                    def: voucherData.microLimited === 0 ? 'noLimited' : 'hasLimited',
+                                    array: [
+                                        {
+                                            title: '無限制',
+                                            value: 'noLimited',
+                                        },
+                                        {
+                                            title: '限制次數',
+                                            value: 'hasLimited',
+                                            innerHtml: html `<div class="my-3">
+                                                                ${EditorElem.editeInput({
+                                                gvc: gvc,
+                                                title: html `<h6 class="tx_700">可使用次數</h6>`,
+                                                type: 'number',
+                                                style: 'width: 125px;',
+                                                default: `${(_b = voucherData.microLimited) !== null && _b !== void 0 ? _b : 0}`,
+                                                placeHolder: '',
+                                                callback: (text) => {
+                                                    voucherData.microLimited = parseInt(text, 10);
+                                                },
+                                                unit: '次',
+                                            })}
+                                                            </div>`,
+                                        },
+                                    ],
+                                    callback: (text) => {
+                                        if (text === 'noLimited') {
+                                            voucherData.microLimited = 0;
+                                        }
+                                    },
+                                }),
+                                html `<div class="gray-top-bottom-line-18"></div>`,
                                 html `<h6 class="tx_700">有效日期</h6>`,
                                 html `<div class="d-flex mb-3 ${document.body.clientWidth < 768 ? 'flex-column' : ''}" style="gap: 12px">
                                                     ${EditorElem.editeInput({

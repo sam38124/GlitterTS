@@ -207,7 +207,7 @@ router.get('/order', async (req, resp) => {
                 orderStatus: req.query.orderStatus,
                 created_time: req.query.created_time,
                 orderString: req.query.orderString,
-                archived: req.query.archived
+                archived: req.query.archived,
             }));
         }
         else if (await ut_permission_1.UtPermission.isAppUser(req)) {
@@ -296,29 +296,28 @@ router.delete('/voucher', async (req, resp) => {
 router.post('/redirect', async (req, resp) => {
     try {
         let return_url = new URL((await redis_js_1.default.getValue(req.query.return)));
-        return resp.send(`<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-
-<body>
-    <script>
-        try {
-            window.webkit.messageHandlers.addJsInterFace.postMessage(JSON.stringify({
-                functionName: 'closeWebView',
-                callBackId: 0,
-                data: {}
-            }));
-
-        } catch (e) { }
-        location.href = '${return_url.href}';
-    </script>
-</body>
-
-</html>
-`);
+        const html = String.raw;
+        return resp.send(html `<!DOCTYPE html>
+            <html lang="en">
+                <head>
+                    <meta charset="UTF-8" />
+                    <title>Title</title>
+                </head>
+                <body>
+                    <script>
+                        try {
+                            window.webkit.messageHandlers.addJsInterFace.postMessage(
+                                JSON.stringify({
+                                    functionName: 'closeWebView',
+                                    callBackId: 0,
+                                    data: {},
+                                })
+                            );
+                        } catch (e) {}
+                        location.href = '${return_url.href}';
+                    </script>
+                </body>
+            </html> `);
     }
     catch (err) {
         return response_1.default.fail(resp, err);

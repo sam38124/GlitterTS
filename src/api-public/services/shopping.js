@@ -315,6 +315,11 @@ class Shopping {
             await rebateClass.insertRebate(userData.userID, carData.use_rebate * -1, '使用折抵', {
                 order_id: carData.orderID,
             });
+            if (carData.voucherList && carData.voucherList.length > 0) {
+                for (const voucher of carData.voucherList) {
+                    await this.insertVoucherHistory(userData.userID, carData.orderID, voucher.id);
+                }
+            }
             if (userData && userData.userID) {
                 const sum = (await database_js_1.default.query(`SELECT sum(money)
                                          FROM \`${this.app}\`.t_wallet
@@ -362,7 +367,7 @@ class Shopping {
                 if (keyData.TYPE === 'off_line') {
                     new notify_js_1.ManagerNotify(this.app).checkout({
                         orderData: carData,
-                        status: 0
+                        status: 0,
                     });
                     return {
                         off_line: true,
@@ -433,12 +438,22 @@ class Shopping {
         let overlay = false;
         const code = cart.code;
         const userData = await new user_js_1.User(this.app).getUserData(cart.email, 'account');
-        const voucherList = (await this.querySql([`(content->>'$.type'='voucher')`], {
+        const allVoucher = (await this.querySql([`(content->>'$.type'='voucher')`], {
             page: 0,
             limit: 10000,
-        })).data
+        })).data;
+        const pass_id = [];
+        for (const voucher of allVoucher) {
+            if (await this.checkVoucherLimited(userData.userID, voucher.id)) {
+                pass_id.push(voucher.id);
+            }
+        }
+        const voucherList = allVoucher
             .map((dd) => {
             return dd.content;
+        })
+            .filter((dd) => {
+            return pass_id.includes(dd.id);
         })
             .filter((dd) => {
             return new Date(dd.start_ISO_Date).getTime() < new Date().getTime() && (!dd.end_ISO_Date || new Date(dd.end_ISO_Date).getTime() > new Date().getTime());
@@ -711,6 +726,7 @@ class Shopping {
             if (status === -1) {
                 await database_js_1.default.execute(`UPDATE \`${this.app}\`.t_checkout 
                     SET status = ? WHERE cart_token = ?`, [-1, order_id]);
+                await this.releaseVoucherHistory(order_id, 0);
             }
             if (status === 1) {
                 const notProgress = (await database_js_1.default.query(`SELECT count(1) FROM \`${this.app}\`.t_checkout
@@ -724,7 +740,7 @@ class Shopping {
                         WHERE cart_token = ?;`, [order_id]))[0];
                 new notify_js_1.ManagerNotify(this.app).checkout({
                     orderData: cartData.orderData,
-                    status: status
+                    status: status,
                 });
                 const userData = await new user_js_1.User(this.app).getUserData(cartData.email, 'account');
                 if (userData && cartData.orderData.rebate > 0) {
@@ -755,6 +771,9 @@ class Shopping {
                         }
                     }
                 }
+                if (cartData.orderData.voucherList && cartData.orderData.voucherList.length > 0) {
+                    await this.releaseVoucherHistory(order_id, 1);
+                }
                 try {
                     await new custom_code_js_1.CustomCode(this.app).checkOutHook({ userData, cartData });
                 }
@@ -766,6 +785,74 @@ class Shopping {
         }
         catch (error) {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'Release Checkout Error:' + express_1.default, null);
+        }
+    }
+    async checkVoucherLimited(user_id, voucher_id) {
+        try {
+            const vouchers = await database_js_1.default.query(`SELECT 
+                        id,
+                        JSON_EXTRACT(content, '$.macroLimited') AS macroLimited,
+                        JSON_EXTRACT(content, '$.microLimited') AS microLimited 
+                    FROM \`${this.app}\`.t_manager_post
+                    WHERE id = ?;`, [voucher_id]);
+            if (!vouchers[0]) {
+                return false;
+            }
+            if (vouchers[0].macroLimited === 0 && vouchers[0].microLimited === 0) {
+                return true;
+            }
+            const history = await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_voucher_history 
+                WHERE voucher_id = ? AND status in (1, 2);`, [voucher_id]);
+            if (vouchers[0].macroLimited > 0 && history.length >= vouchers[0].macroLimited) {
+                return false;
+            }
+            if (vouchers[0].microLimited > 0 &&
+                history.filter((item) => {
+                    return item.user_id === user_id;
+                }).length >= vouchers[0].microLimited) {
+                return false;
+            }
+            return true;
+        }
+        catch (error) {
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'checkVoucherHistory Error:' + express_1.default, null);
+        }
+    }
+    async insertVoucherHistory(user_id, order_id, voucher_id) {
+        try {
+            await database_js_1.default.query(`INSERT INTO \`${this.app}\`.\`t_voucher_history\` set ?`, [
+                {
+                    user_id,
+                    order_id,
+                    voucher_id,
+                    created_at: new Date(),
+                    updated_at: new Date(),
+                    status: 2,
+                },
+            ]);
+        }
+        catch (error) {
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'insertVoucherHistory Error:' + express_1.default, null);
+        }
+    }
+    async releaseVoucherHistory(order_id, status) {
+        try {
+            await database_js_1.default.query(`UPDATE \`${this.app}\`.t_voucher_history SET status = ? WHERE order_id = ?;`, [status, order_id]);
+        }
+        catch (error) {
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'insertVoucherHistory Error:' + express_1.default, null);
+        }
+    }
+    async resetVoucherHistory() {
+        try {
+            const now = (0, moment_1.default)().tz('Asia/Taipei').format('YYYY-MM-DD HH:mm:ss');
+            console.log(this.app, now);
+            await database_js_1.default.query(`
+                UPDATE \`${this.app}\`.t_voucher_history SET status = 0
+                WHERE status = 2 AND updated_at < DATE_SUB('${now}', INTERVAL 2 MINUTE);`, []);
+        }
+        catch (error) {
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'insertVoucherHistory Error:' + express_1.default, null);
         }
     }
     async postVariantsAndPriceValue(content) {
