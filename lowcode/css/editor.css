@@ -324,12 +324,15 @@ ul {
     height: 38px;
     padding: 8px 24px;
     border-radius: 8px;
-    border: 1px #ffb400 solid;
+    border: 1px #FFB400 solid;
     justify-content: center;
     align-items: center;
     gap: 10px;
     display: inline-flex;
-    color: #ffb400;
+    background: linear-gradient(143deg, #FFB400 -22.7%, #FF6C02 114.57%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
     font-size: 16px;
     font-weight: 700;
     letter-spacing: 0.64px;

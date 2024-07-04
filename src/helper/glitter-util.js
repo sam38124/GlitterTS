@@ -29,8 +29,6 @@ class GlitterUtil {
     static async set_frontend_v2(express, rout) {
         for (const dd of rout) {
             express.use(dd.rout, async (req, resp, next) => {
-                console.log(`req.baseUrl->`, req.baseUrl);
-                console.log(`dd.root_path->`, dd.root_path);
                 const fileURL = (() => {
                     if (req.baseUrl.startsWith(dd.root_path)) {
                         return dd.path + '/' + req.baseUrl.replace(dd.root_path, '');

@@ -230,7 +230,9 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                 },
                 divCreate: {
                     class: glitter.htmlGenerate.styleEditor(gBundle.page_config).class(),
-                    style: `overflow-x:hidden;min-height: 100vh;min-width: 100vw;${glitter.htmlGenerate.styleEditor(gBundle.page_config).style()}`
+                    style: `overflow-x:hidden;min-height: 100vh;min-width: 100vw;overflow-x:hidden;min-height: 100vh;min-width: 100vw;${glitter.htmlGenerate.styleEditor(gBundle.page_config).style()}
+                    
+                    `
                 },
                 onCreate: () => {
                     var _a;

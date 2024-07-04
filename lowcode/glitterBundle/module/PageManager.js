@@ -110,8 +110,7 @@ export class PageManager {
     }
     static setHome(url, tag, obj, option = {}) {
         const glitter = Glitter.glitter;
-        const now_page = glitter.pageConfig.filter((dd) => { return dd.type === GVCType.Page; }).reverse()[0];
-        now_page && (now_page.scrollTop = window.scrollY);
+        const now_page = glitter.pageConfig.filter((dd) => { return dd.type === GVCType.Page; }).reverse()[1];
         glitter.htmlGenerate.loadScript(glitter, [
             {
                 src: PageManager.getRelativeUrl(url),

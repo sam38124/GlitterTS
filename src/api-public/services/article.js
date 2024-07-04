@@ -28,6 +28,7 @@ class Article {
     }
     async putArticle(tData) {
         try {
+            tData.content.type = 'article';
             await database_js_1.default.query(`update \`${this.app_name}\`.t_manager_post set content=? , updated_time=? ,status=? where id=? `, [JSON.stringify(tData.content), new Date(), tData.status || 1, tData.id]);
             return true;
         }

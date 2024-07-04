@@ -15,7 +15,7 @@ import { Storage } from "../helper/storage.js";
 import { NormalPageEditor } from "../../editor/normal-page-editor.js";
 export const widgetComponent = {
     render: (gvc, widget, setting, hoverID, sub, htmlGenerate, document) => {
-        var _a, _b, _c;
+        var _a, _b, _c, _d, _e, _f;
         const rootHtmlGenerate = htmlGenerate;
         const glitter = gvc.glitter;
         if (widget.data.onCreateEvent) {
@@ -25,6 +25,9 @@ export const widgetComponent = {
         widget.data.elem = (_a = widget.data.elem) !== null && _a !== void 0 ? _a : "div";
         widget.data.inner = (_b = widget.data.inner) !== null && _b !== void 0 ? _b : "";
         widget.data.attr = (_c = widget.data.attr) !== null && _c !== void 0 ? _c : [];
+        widget.data._padding = (_d = widget.data._padding) !== null && _d !== void 0 ? _d : {};
+        widget.data._margin = (_e = widget.data._margin) !== null && _e !== void 0 ? _e : {};
+        widget.data._max_width = (_f = widget.data._max_width) !== null && _f !== void 0 ? _f : 0;
         const id = htmlGenerate.widgetComponentID;
         const subData = sub !== null && sub !== void 0 ? sub : {};
         let formData = subData;
@@ -108,10 +111,20 @@ export const widgetComponent = {
                     }
                     classList.push(glitter.htmlGenerate.styleEditor(widget.data, gvc, widget, subData).class());
                     widget.hashTag && classList.push(`glitterTag${widget.hashTag}`);
+                    let style_user = '';
+                    if (widget.type === 'container') {
+                        ['top', 'bottom', 'left', 'right'].map((dd) => {
+                            widget.data._padding[dd] && (style_user += `padding-${dd}:${widget.data._padding[dd]}px;`);
+                        });
+                        ['top', 'bottom', 'left', 'right'].map((dd) => {
+                            widget.data._margin[dd] && (style_user += `margin-${dd}:${widget.data._margin[dd]}px;`);
+                        });
+                        widget.data._max_width && (style_user += `width:${widget.data._max_width}px;max-width:100%;margin:auto;`);
+                    }
                     return {
                         elem: widget.data.elem,
                         class: classList.join(' '),
-                        style: glitter.htmlGenerate.styleEditor(widget.data, gvc, widget, subData).style() + ` ${(window.parent.editerData !== undefined) ? `${(widget.visible === false) ? `display:none;` : ``}` : ``}`,
+                        style: glitter.htmlGenerate.styleEditor(widget.data, gvc, widget, subData).style() + ` ${(window.parent.editerData !== undefined) ? `${(widget.visible === false) ? `display:none;` : ``}` : ``} ${style_user}`,
                         option: option.concat(htmlGenerate.option),
                     };
                 }
@@ -356,6 +369,89 @@ export const widgetComponent = {
             },
             editor: () => {
                 var _a, _b, _c;
+                if (widget.type === 'container' && Storage.select_function === 'user-editor') {
+                    return [
+                        EditorElem.editeInput({
+                            gvc: gvc,
+                            title: '容器最大寬度(為空則自適應寬度)',
+                            default: widget.data._max_width,
+                            placeHolder: '單位PX',
+                            callback: (text) => {
+                                widget.data._max_width = text;
+                                widget.refreshComponent();
+                            }
+                        }),
+                        `<div class="my-2"></div>`,
+                        EditorElem.toggleExpand({
+                            gvc: gvc,
+                            title: '內距',
+                            data: widget.data._padding,
+                            innerText: () => {
+                                return [{
+                                        title: '上',
+                                        key: 'top'
+                                    },
+                                    {
+                                        title: '下',
+                                        key: 'bottom'
+                                    },
+                                    {
+                                        title: '左',
+                                        key: 'left'
+                                    },
+                                    {
+                                        title: '右',
+                                        key: 'right'
+                                    }].map((dd) => {
+                                    return EditorElem.editeInput({
+                                        gvc: gvc,
+                                        title: dd.title,
+                                        default: widget.data._padding[dd.key] || '0',
+                                        placeHolder: '單位px',
+                                        callback: (text) => {
+                                            widget.data._padding[dd.key] = text;
+                                            widget.refreshComponent();
+                                        }
+                                    });
+                                }).join('');
+                            }
+                        }),
+                        EditorElem.toggleExpand({
+                            gvc: gvc,
+                            title: '外距',
+                            data: widget.data._margin,
+                            innerText: () => {
+                                return [{
+                                        title: '上',
+                                        key: 'top'
+                                    },
+                                    {
+                                        title: '下',
+                                        key: 'bottom'
+                                    },
+                                    {
+                                        title: '左',
+                                        key: 'left'
+                                    },
+                                    {
+                                        title: '右',
+                                        key: 'right'
+                                    }].map((dd) => {
+                                    return EditorElem.editeInput({
+                                        gvc: gvc,
+                                        title: dd.title,
+                                        default: widget.data._margin[dd.key] || '0',
+                                        placeHolder: '單位px',
+                                        callback: (text) => {
+                                            widget.data._margin[dd.key] = text;
+                                            widget.refreshComponent();
+                                        }
+                                    });
+                                }).join('');
+                            },
+                        })
+                    ].join('');
+                }
                 widget.type = (_a = widget.type) !== null && _a !== void 0 ? _a : "elem";
                 widget.data.elemExpand = (_b = widget.data.elemExpand) !== null && _b !== void 0 ? _b : {};
                 widget.data.atrExpand = (_c = widget.data.atrExpand) !== null && _c !== void 0 ? _c : {};

@@ -27,13 +27,42 @@ class Schedule {
     }
     async isDatabasePass() {
         const SQL = `
-            SELECT * FROM glitter.app_config
-            WHERE appName = \'${this.app}\' AND (refer_app is null OR refer_app = appName);
+            SELECT *
+            FROM glitter.app_config
+            WHERE appName = \'${this.app}\'
+              AND (refer_app is null OR refer_app = appName);
         `;
         return (await database_1.default.query(SQL, [])).length > 0;
     }
     async isTableExists(table) {
         return (await database_1.default.query(`SHOW TABLES IN \`${this.app}\` LIKE \'${table}\';`, [])).length > 0;
+    }
+    async refreshMember(sec) {
+        try {
+            if (await this.perload()) {
+                const userClass = new user_1.User(this.app);
+                const member_count = {};
+                for (const user of (await database_1.default.query(`select *
+                                                    from \`${this.app}\`.t_user`, []))) {
+                    const member_levels = (await userClass.refreshMember(user)).find((dd) => {
+                        return dd.trigger;
+                    });
+                    if (member_levels) {
+                        member_count[member_levels.id] = member_count[member_levels.id] || 0;
+                        member_count[member_levels.id]++;
+                    }
+                }
+                await userClass.setConfig({
+                    key: 'member_levels_count_list',
+                    value: member_count,
+                    user_id: 'manager'
+                });
+            }
+        }
+        catch (e) {
+            throw exception_1.default.BadRequestError('BAD_REQUEST', 'Example Error: ' + e, null);
+        }
+        setTimeout(() => this.example(sec), sec * 1000);
     }
     async example(sec) {
         try {
@@ -63,8 +92,9 @@ class Schedule {
                                 });
                             }
                         }
-                        const users = await database_1.default.query(`SELECT * FROM \`${this.app}\`.t_user 
-                                WHERE MONTH(JSON_EXTRACT(userData, '$.birth')) = MONTH(CURDATE());`, []);
+                        const users = await database_1.default.query(`SELECT *
+                             FROM \`${this.app}\`.t_user
+                             WHERE MONTH (JSON_EXTRACT(userData, '$.birth')) = MONTH (CURDATE());`, []);
                         if (rgs.type === 'base') {
                             for (const user of users) {
                                 await postUserRebate(user.userID, rgs.value);
@@ -95,6 +125,7 @@ class Schedule {
         const scheduleList = [
             { second: 10, status: false, func: 'example', desc: '排程啟用範例' },
             { second: 60 * 60, status: true, func: 'birthRebate', desc: '生日禮發放購物金' },
+            { second: 600, status: true, func: 'refreshMember', desc: '更新會員分級' }
         ];
         try {
             scheduleList.forEach((schedule) => {

@@ -800,11 +800,13 @@ export class BgNotify {
             id: string;
             content: string;
             title: string;
+            link:string;
             type: 'notify-message-config';
             name: string;
         } = vm.data ?? {
             content: '',
             title: '',
+            link:'',
             type: 'notify-message-config',
             name: '',
         };
@@ -842,6 +844,15 @@ export class BgNotify {
                                                     placeHolder: '請輸入推播標題',
                                                     callback: (text) => {
                                                         postData.title = text;
+                                                    },
+                                                }),
+                                                EditorElem.editeInput({
+                                                    gvc: gvc,
+                                                    title: '跳轉連結',
+                                                    default: postData.link,
+                                                    placeHolder: '請輸入要跳轉的連結',
+                                                    callback: (text) => {
+                                                        postData.link = text;
                                                     },
                                                 }),
                                                 EditorElem.editeText({
@@ -1259,7 +1270,7 @@ export class BgNotify {
                                                                 },
                                                                 {
                                                                     key: '推播內文',
-                                                                    value: `<span class="fs-7">${dd.content.content.replace(/<[^>]*>/g, '').substring(0, 60)}...</span>`,
+                                                                    value: `<span class="fs-7">${dd.content.content.replace(/<[^>]*>/g, '').substring(0, 30)}...</span>`,
                                                                 },
                                                                 {
                                                                     key: '發送推播',
@@ -1284,8 +1295,28 @@ export class BgNotify {
                                                                                                             )}
                                                                                                             ${BgWidget.title(`選擇群發對象`)}
                                                                                                             <div class="flex-fill"></div>
+                                                                                                            <button class="btn bt_c39 me-2"  style="height:38px;font-size: 14px;" onclick="${gvc.event(()=>{
+                                                                                                                const dialog = new ShareDialog(gvc.glitter);
+                                                                                                                dialog.dataLoading({
+                                                                                                                    text: '發送中...',
+                                                                                                                    visible: true,
+                                                                                                                });
+                                                                                                                ApiFcm.send({
+                                                                                                                    device_token:['all'],
+                                                                                                                    title: dd.content.title,
+                                                                                                                    content: dd.content.content,
+                                                                                                                    link:dd.content.link
+                                                                                                                }).then(() => {
+                                                                                                                    dialog.dataLoading({
+                                                                                                                        visible: false,
+                                                                                                                    });
+                                                                                                                    dialog.successMessage({ text: `發送成功!` });
+                                                                                                                });
+                                                                                                            })}">
+                                                                                                                發送給所有用戶
+                                                                                                            </button>
                                                                                                             <button
-                                                                                                                class="btn btn-primary-c"
+                                                                                                                class="btn bt_c39"
                                                                                                                 style="height:38px;font-size: 14px;"
                                                                                                                 onclick="${gvc.event(() => {
                                                                                                                     const dialog = new ShareDialog(gvc.glitter);
@@ -1300,6 +1331,7 @@ export class BgNotify {
                                                                                                                             }),
                                                                                                                             title: dd.content.title,
                                                                                                                             content: dd.content.content,
+                                                                                                                            link:dd.content.link
                                                                                                                         }).then(() => {
                                                                                                                             dialog.dataLoading({
                                                                                                                                 visible: false,

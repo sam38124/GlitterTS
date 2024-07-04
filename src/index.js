@@ -41,7 +41,6 @@ const database_1 = __importDefault(require("./modules/database"));
 const saas_table_check_1 = require("./services/saas-table-check");
 const database_2 = __importDefault(require("./modules/database"));
 const AWSLib_1 = require("./modules/AWSLib");
-const aws_sdk_1 = __importDefault(require("aws-sdk"));
 const live_source_1 = require("./live_source");
 const process = __importStar(require("process"));
 const body_parser_1 = __importDefault(require("body-parser"));
@@ -55,7 +54,6 @@ const seo_js_1 = require("./services/seo.js");
 const shopping_js_1 = require("./api-public/services/shopping.js");
 const web_socket_js_1 = require("./services/web-socket.js");
 const ut_database_js_1 = require("./api-public/utils/ut-database.js");
-const update_script_js_1 = require("./update-script.js");
 const compression_1 = __importDefault(require("compression"));
 const user_js_1 = require("./api-public/services/user.js");
 const schedule_js_1 = require("./api-public/services/schedule.js");
@@ -95,124 +93,12 @@ async function initial(serverPort) {
         if (process.env.firebase) {
             await firebase_js_1.Firebase.initial();
         }
-        update_script_js_1.UpdateScript.run();
         web_socket_js_1.WebSocket.start();
         logger.info('[Init]', `Server is listening on port: ${serverPort}`);
         console.log('Starting up the server now.');
     })();
 }
 exports.initial = initial;
-async function createDomain(domainName) {
-    const route53domains = new aws_sdk_1.default.Route53Domains();
-    const contact = {
-        FirstName: 'jianzhi',
-        LastName: 'wang',
-        ContactType: 'PERSON',
-        OrganizationName: 'liondesign',
-        AddressLine1: 'No. 12, Lane 15, Lane 150, Section 3, Changming Road, Tanzi District, Taichung City',
-        City: 'Taichung',
-        CountryCode: 'TW',
-        ZipCode: '427',
-        PhoneNumber: '+886.978028730',
-        Email: 'sam38124@gmail.com',
-    };
-    const domainParams = {
-        DomainName: domainName,
-        DurationInYears: 1,
-        AutoRenew: true,
-        AdminContact: contact,
-        RegistrantContact: contact,
-        TechContact: contact,
-        PrivacyProtectAdminContact: true,
-        PrivacyProtectRegistrantContact: true,
-        PrivacyProtectTechContact: true,
-    };
-    await route53domains.registerDomain(domainParams, (err, data) => {
-        if (err) {
-            console.error(err);
-        }
-        else {
-            console.log('域名注册成功：', data);
-        }
-    });
-}
-async function setDNS(domainName) {
-    const route53 = new aws_sdk_1.default.Route53();
-    const domainParams = {
-        Name: domainName,
-        CallerReference: Date.now().toString(),
-    };
-    await route53.createHostedZone(domainParams, async (err, data) => {
-        if (err) {
-            console.error(err);
-        }
-        else {
-            console.log(`Domain ${domainName} created with ID ${data.HostedZone.Id}`);
-            const resourceRecordSet = {
-                Name: domainName,
-                Type: 'A',
-                ResourceRecords: [
-                    {
-                        Value: `3.36.55.11`,
-                    },
-                ],
-                TTL: 300,
-            };
-            const changeBatch = {
-                Changes: [
-                    {
-                        Action: 'UPSERT',
-                        ResourceRecordSet: resourceRecordSet,
-                    },
-                ],
-            };
-            const changeParams = {
-                HostedZoneId: data.HostedZone.Id,
-                ChangeBatch: changeBatch,
-            };
-            await route53.changeResourceRecordSets(changeParams, (err, data) => {
-                if (err) {
-                    console.error(err);
-                }
-                else {
-                    console.log(`A record created for ${domainName} with ID ${data.ChangeInfo.Id}`);
-                }
-            });
-        }
-    });
-}
-async function changeDNSRecord() {
-    const route53 = new aws_sdk_1.default.Route53();
-    const params = {
-        ChangeBatch: {
-            Changes: [
-                {
-                    Action: 'CREATE',
-                    ResourceRecordSet: {
-                        Name: 'teadd.shopnex.cc',
-                        Type: 'A',
-                        TTL: 300,
-                        ResourceRecords: [
-                            {
-                                Value: '192.0.2.1',
-                            },
-                        ],
-                    },
-                },
-            ],
-            Comment: 'Adding A record for example.com',
-        },
-        HostedZoneId: 'Z06668613MA008TSZJ1HW',
-    };
-    route53.changeResourceRecordSets(params, function (err, data) {
-        if (err) {
-            console.log(err, err.stack);
-        }
-        else {
-            console.log(data);
-        }
-    });
-}
 function createContext(req, res, next) {
     const uuid = (0, uuid_1.v4)();
     const ip = req.ip;
@@ -221,7 +107,8 @@ function createContext(req, res, next) {
     next();
 }
 async function createAppRoute() {
-    const apps = await database_2.default.execute(`SELECT appName FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_config;`, []);
+    const apps = await database_2.default.execute(`SELECT appName
+                                   FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_config;`, []);
     for (const dd of apps) {
         await createAPP(dd);
     }
@@ -229,7 +116,9 @@ async function createAppRoute() {
 async function createAPP(dd) {
     const html = String.raw;
     live_source_1.Live_source.liveAPP.push(dd.appName);
-    new schedule_js_1.Schedule(dd.appName).main();
+    if (config_1.ConfigSetting.runSchedule) {
+        new schedule_js_1.Schedule(dd.appName).main();
+    }
     const file_path = path_1.default.resolve(__dirname, '../lowcode');
     return await glitter_util_js_1.GlitterUtil.set_frontend_v2(exports.app, [
         {
@@ -318,14 +207,14 @@ async function createAPP(dd) {
                             return html `
                                 <head>
                                     <title>${(_a = d.title) !== null && _a !== void 0 ? _a : '尚未設定標題'}</title>
-                                    <link rel="canonical" href="${relative_root}${data.tag}" />
-                                    <meta name="keywords" content="${(_b = d.keywords) !== null && _b !== void 0 ? _b : '尚未設定關鍵字'}" />
-                                    <link id="appImage" rel="shortcut icon" href="${(_c = d.logo) !== null && _c !== void 0 ? _c : ''}" type="image/x-icon" />
-                                    <link rel="icon" href="${(_d = d.logo) !== null && _d !== void 0 ? _d : ''}" type="image/png" sizes="128x128" />
-                                    <meta property="og:image" content="${(_e = d.image) !== null && _e !== void 0 ? _e : ''}" />
-                                    <meta property="og:title" content="${((_f = d.title) !== null && _f !== void 0 ? _f : '').replace(/\n/g, '')}" />
-                                    <meta name="description" content="${((_g = d.content) !== null && _g !== void 0 ? _g : '').replace(/\n/g, '')}" />
-                                    <meta name="og:description" content="${((_h = d.content) !== null && _h !== void 0 ? _h : '').replace(/\n/g, '')}" />
+                                    <link rel="canonical" href="${relative_root}${data.tag}"/>
+                                    <meta name="keywords" content="${(_b = d.keywords) !== null && _b !== void 0 ? _b : '尚未設定關鍵字'}"/>
+                                    <link id="appImage" rel="shortcut icon" href="${(_c = d.logo) !== null && _c !== void 0 ? _c : ''}" type="image/x-icon"/>
+                                    <link rel="icon" href="${(_d = d.logo) !== null && _d !== void 0 ? _d : ''}" type="image/png" sizes="128x128"/>
+                                    <meta property="og:image" content="${(_e = d.image) !== null && _e !== void 0 ? _e : ''}"/>
+                                    <meta property="og:title" content="${((_f = d.title) !== null && _f !== void 0 ? _f : '').replace(/\n/g, '')}"/>
+                                    <meta name="description" content="${((_g = d.content) !== null && _g !== void 0 ? _g : '').replace(/\n/g, '')}"/>
+                                    <meta name="og:description" content="${((_h = d.content) !== null && _h !== void 0 ? _h : '').replace(/\n/g, '')}"/>
                                     ${(_j = d.code) !== null && _j !== void 0 ? _j : ''}
                                     ${(() => {
                                 var _a;
@@ -436,16 +325,17 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                     limit: 10000,
                 });
                 const domain = (await database_2.default.query(`select \`domain\`
-                                                from \`${config_1.saasConfig.SAAS_NAME}\`.app_config
-                                                where appName = ?`, [appName]))[0]['domain'];
+                         from \`${config_1.saasConfig.SAAS_NAME}\`.app_config
+                         where appName = ?`, [appName]))[0]['domain'];
                 const site_map = await getSeoSiteMap(appName, req);
                 const sitemap = html `<?xml version="1.0" encoding="UTF-8"?>
-                    <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
-                        ${(await database_2.default.query(`select page_config, tag, updated_time
-                                       from \`${config_1.saasConfig.SAAS_NAME}\`.page_config
-                                       where appName = ?
-                                         and page_config ->>'$.seo.type'='custom'
-                    `, [appName]))
+                <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+                        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+                    ${(await database_2.default.query(`select page_config, tag, updated_time
+                                     from \`${config_1.saasConfig.SAAS_NAME}\`.page_config
+                                     where appName = ?
+                                       and page_config ->>'$.seo.type'='custom'
+                                    `, [appName]))
                     .map((d2) => {
                     return `<url>
 <loc>${`https://${domain}/${d2.tag}`.replace(/ /g, '+')}</loc>
@@ -454,7 +344,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 `;
                 })
                     .join('')}
-                        ${article.data
+                    ${article.data
                     .map((d2) => {
                     if (!d2.content.template) {
                         return ``;
@@ -466,7 +356,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 `;
                 })
                     .join('')}
-                        ${(site_map || []).map((d2) => {
+                    ${(site_map || []).map((d2) => {
                     return `<url>
 <loc>${`https://${domain}/${d2.url}`.replace(/ /g, '+')}</loc>
 <lastmod>${d2.updated_time ? (0, moment_js_1.default)(new Date(d2.updated_time)).format('YYYY-MM-DD') : (0, moment_js_1.default)(new Date()).format('YYYY-MM-DDTHH:mm:SS+00:00')}</lastmod>
@@ -474,7 +364,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 </url>
 `;
                 })}
-                    </urlset> `;
+                </urlset> `;
                 return (0, xml_formatter_1.default)(sitemap, {
                     indentation: '  ',
                     filter: (node) => node.type !== 'Comment',
@@ -487,15 +377,15 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                     appName = req.query.appName;
                 }
                 const domain = (await database_2.default.query(`select \`domain\`
-                                                from \`${config_1.saasConfig.SAAS_NAME}\`.app_config
-                                                where appName = ?`, [appName]))[0]['domain'];
+                         from \`${config_1.saasConfig.SAAS_NAME}\`.app_config
+                         where appName = ?`, [appName]))[0]['domain'];
                 return html `<?xml version="1.0" encoding="UTF-8"?>
-                    <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-                        <!-- This is the parent sitemap linking to additional sitemaps for products, collections and pages as shown below. The sitemap can not be edited manually, but is kept up to date in real time. -->
-                        <sitemap>
-                            <loc>https://${domain}/sitemap_detail.xml</loc>
-                        </sitemap>
-                    </sitemapindex> `;
+                <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+                    <!-- This is the parent sitemap linking to additional sitemaps for products, collections and pages as shown below. The sitemap can not be edited manually, but is kept up to date in real time. -->
+                    <sitemap>
+                        <loc>https://${domain}/sitemap_detail.xml</loc>
+                    </sitemap>
+                </sitemapindex> `;
             },
             robots: async (req, resp) => {
                 let appName = dd.appName;
@@ -503,8 +393,8 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                     appName = req.query.appName;
                 }
                 const domain = (await database_2.default.query(`select \`domain\`
-                                                from \`${config_1.saasConfig.SAAS_NAME}\`.app_config
-                                                where appName = ?`, [appName]))[0]['domain'];
+                         from \`${config_1.saasConfig.SAAS_NAME}\`.app_config
+                         where appName = ?`, [appName]))[0]['domain'];
                 return html `# we use SHOPNEX as our ecommerce platform User-agent: * Sitemap: https://${domain}/sitemap.xml `;
             },
             sitemap_test: async (req, resp) => {
@@ -513,8 +403,8 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                     appName = req.query.appName;
                 }
                 const domain = (await database_2.default.query(`select \`domain\`
-                                                from \`${config_1.saasConfig.SAAS_NAME}\`.app_config
-                                                where appName = ?`, [appName]))[0]['domain'];
+                         from \`${config_1.saasConfig.SAAS_NAME}\`.app_config
+                         where appName = ?`, [appName]))[0]['domain'];
                 return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd http://www.google.com/schemas/sitemap-image/1.1 http://www.google.com/schemas/sitemap-image/1.1/sitemap-image.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>

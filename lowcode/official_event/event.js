@@ -416,9 +416,17 @@ TriggerEvent.create(import.meta.url, {
         title: '用戶相關 / 忘記密碼',
         fun: TriggerEvent.setEventRouter(import.meta.url, './user/forget_pwd.js'),
     },
+    checkForgetCode: {
+        title: '用戶相關 / 忘記密碼 / 確認驗證碼',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './user/forget-check-code.js'),
+    },
     forgetPwd_Reset: {
         title: '用戶相關 / 忘記密碼 / 進行重設',
         fun: TriggerEvent.setEventRouter(import.meta.url, './user/forget_reset_pwd.js'),
+    },
+    reset_v2: {
+        title: '用戶相關 / 忘記密碼 / 重設密碼V2',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './user/reset-pwd-v2.js'),
     },
     reset_pwd: {
         title: '用戶相關 / 個人檔案 / 重設密碼',

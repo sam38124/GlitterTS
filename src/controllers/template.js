@@ -71,6 +71,7 @@ router.get('/', async (req, resp) => {
         });
     }
     catch (err) {
+        console.log(err);
         return response_1.default.fail(resp, err);
     }
 });

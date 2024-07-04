@@ -1,23 +1,24 @@
 import db from '../../modules/database';
 import exception from '../../modules/exception';
-import tool, { getUUID } from '../../services/tool';
+import tool, {getUUID} from '../../services/tool';
 import UserUtil from '../../utils/UserUtil';
 import config from '../../config.js';
-import { sendmail } from '../../services/ses.js';
+import {sendmail} from '../../services/ses.js';
 import App from '../../app.js';
 import redis from '../../modules/redis.js';
 import Tool from '../../modules/tool.js';
 import process from 'process';
-import { UtDatabase } from '../utils/ut-database.js';
-import { CustomCode } from './custom-code.js';
-import { IToken } from '../models/Auth.js';
+import {UtDatabase} from '../utils/ut-database.js';
+import {CustomCode} from './custom-code.js';
+import {IToken} from '../models/Auth.js';
 import axios from 'axios';
-import { AutoSendEmail } from './auto-send-email.js';
+import {AutoSendEmail} from './auto-send-email.js';
 import qs from 'qs';
 import jwt from 'jsonwebtoken';
-import { OAuth2Client } from 'google-auth-library';
-import { Rebate } from './rebate.js';
+import {OAuth2Client} from 'google-auth-library';
+import {Rebate} from './rebate.js';
 import moment from 'moment';
+import {ManagerNotify} from "./notify.js";
 
 interface UserQuery {
     page?: number;
@@ -52,9 +53,9 @@ export class User {
             } else if (login_config.email_verify) {
                 await db.execute(
                     `delete
-                                  from \`${this.app}\`.\`t_user\`
-                                  where account = ${db.escape(account)}
-                                    and status = 0`,
+                     from \`${this.app}\`.\`t_user\`
+                     where account = ${db.escape(account)}
+                       and status = 0`,
                     []
                 );
                 const data = await AutoSendEmail.getDefCompare(this.app, 'auto-email-verify');
@@ -66,25 +67,13 @@ export class User {
                     verify: 'mail',
                 };
             }
-            const data = await AutoSendEmail.getDefCompare(this.app, 'auto-email-welcome');
-            if (data.toggle) {
-                sendmail(`${data.name} <${process.env.smtp}>`, account, data.title, data.content);
-            }
-
             await db.execute(
                 `INSERT INTO \`${this.app}\`.\`t_user\` (\`userID\`, \`account\`, \`pwd\`, \`userData\`, \`status\`)
-                              VALUES (?, ?, ?, ?, ?);`,
+                 VALUES (?, ?, ?, ?, ?);`,
                 [userID, account, await tool.hashPwd(pwd), userData ?? {}, 1]
             );
 
-            const getRS = await this.getConfig({ key: 'rebate_setting', user_id: 'manager' });
-            const rgs = getRS[0] && getRS[0].value.register ? getRS[0].value.register : {};
-            if (rgs && rgs.switch) {
-                await new Rebate(this.app).insertRebate(userID, rgs.value ?? 0, '新加入會員', {
-                    type: 'first_regiser',
-                    deadTime: rgs.unlimited ? undefined : moment().add(rgs.date, 'd').format('YYYY-MM-DD HH:mm:ss'),
-                });
-            }
+            await this.createUserHook(userID);
 
             const usData: any = await this.getUserData(userID, 'userID');
             usData.pwd = undefined;
@@ -93,12 +82,37 @@ export class User {
                 account: usData['account'],
                 userData: {},
             });
+
             return usData;
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'Register Error:' + e, null);
         }
     }
 
+
+    //用戶初次建立的initial函式。
+    public async createUserHook(userID:string){
+        //發送歡迎信件
+        const usData: any = await this.getUserData(userID, 'userID');
+        const data = await AutoSendEmail.getDefCompare(this.app, 'auto-email-welcome');
+        if (data.toggle) {
+            sendmail(`${data.name} <${process.env.smtp}>`, usData.account, data.title, data.content);
+        }
+
+        //發送回饋金
+        const getRS = await this.getConfig({key: 'rebate_setting', user_id: 'manager'});
+        const rgs = getRS[0] && getRS[0].value.register ? getRS[0].value.register : {};
+        if (rgs && rgs.switch) {
+            await new Rebate(this.app).insertRebate(userID, rgs.value ?? 0, '新加入會員', {
+                type: 'first_regiser',
+                deadTime: rgs.unlimited ? undefined : moment().add(rgs.date, 'd').format('YYYY-MM-DD HH:mm:ss'),
+            });
+        }
+
+        //發送用戶註冊通知
+        const manager=new ManagerNotify(this.app);
+        manager.userRegister({user_id:userID})
+    }
     public async updateAccount(account: string, userID: string): Promise<any> {
         try {
             const configAd = await App.getAdConfig(this.app, 'glitter_loginConfig');
@@ -130,9 +144,9 @@ export class User {
             const data: any = (
                 (await db.execute(
                     `select *
-                                                 from \`${this.app}\`.t_user
-                                                 where account = ?
-                                                   and status = 1`,
+                     from \`${this.app}\`.t_user
+                     where account = ?
+                       and status = 1`,
                     [account]
                 )) as any
             )[0];
@@ -175,8 +189,8 @@ export class User {
             (
                 await db.query(
                     `select count(1)
-                             from \`${this.app}\`.t_user
-                             where account = ?`,
+                     from \`${this.app}\`.t_user
+                     where account = ?`,
                     [fbResponse.email]
                 )
             )[0]['count(1)'] == 0
@@ -184,7 +198,7 @@ export class User {
             const userID = generateUserID();
             await db.execute(
                 `INSERT INTO \`${this.app}\`.\`t_user\` (\`userID\`, \`account\`, \`pwd\`, \`userData\`, \`status\`)
-                              VALUES (?, ?, ?, ?, ?);`,
+                 VALUES (?, ?, ?, ?, ?);`,
                 [
                     userID,
                     fbResponse.email,
@@ -197,13 +211,14 @@ export class User {
                     1,
                 ]
             );
+            await this.createUserHook(userID)
         }
         const data: any = (
             (await db.execute(
                 `select *
-                                             from \`${this.app}\`.t_user
-                                             where account = ?
-                                               and status = 1`,
+                 from \`${this.app}\`.t_user
+                 where account = ?
+                   and status = 1`,
                 [fbResponse.email]
             )) as any
         )[0];
@@ -255,8 +270,8 @@ export class User {
                 (
                     await db.query(
                         `select count(1)
-                             from \`${this.app}\`.t_user
-                             where userData->>'$.lineID'=?`,
+                         from \`${this.app}\`.t_user
+                         where userData ->>'$.lineID'=?`,
                         [(userData as any).sub]
                     )
                 )[0]['count(1)'] == 0
@@ -264,7 +279,7 @@ export class User {
                 const userID = generateUserID();
                 await db.execute(
                     `INSERT INTO \`${this.app}\`.\`t_user\` (\`userID\`, \`account\`, \`pwd\`, \`userData\`, \`status\`)
-                              VALUES (?, ?, ?, ?, ?);`,
+                     VALUES (?, ?, ?, ?, ?);`,
                     [
                         userID,
                         (userData as any).sub,
@@ -276,12 +291,13 @@ export class User {
                         1,
                     ]
                 );
+                await this.createUserHook(userID)
             }
             const data: any = (
                 (await db.execute(
                     `select *
-                                             from \`${this.app}\`.t_user
-                                             where userData->>'$.lineID'=?`,
+                     from \`${this.app}\`.t_user
+                     where userData ->>'$.lineID'=?`,
                     [(userData as any).sub]
                 )) as any
             )[0];
@@ -306,7 +322,7 @@ export class User {
             });
             const oauth2Client = new OAuth2Client(config.id, config.secret, redirect);
             // 使用授权码交换令牌
-            const { tokens } = await oauth2Client.getToken(code);
+            const {tokens} = await oauth2Client.getToken(code);
             oauth2Client.setCredentials(tokens);
 
             // 验证 ID 令牌
@@ -320,8 +336,8 @@ export class User {
                 (
                     await db.query(
                         `select count(1)
-                             from \`${this.app}\`.t_user
-                             where account = ?`,
+                         from \`${this.app}\`.t_user
+                         where account = ?`,
                         [payload?.email]
                     )
                 )[0]['count(1)'] == 0
@@ -329,7 +345,7 @@ export class User {
                 const userID = generateUserID();
                 await db.execute(
                     `INSERT INTO \`${this.app}\`.\`t_user\` (\`userID\`, \`account\`, \`pwd\`, \`userData\`, \`status\`)
-                              VALUES (?, ?, ?, ?, ?);`,
+                     VALUES (?, ?, ?, ?, ?);`,
                     [
                         userID,
                         payload?.email,
@@ -341,13 +357,14 @@ export class User {
                         1,
                     ]
                 );
+               await this.createUserHook(userID);
             }
             const data: any = (
                 (await db.execute(
                     `select *
-                                             from \`${this.app}\`.t_user
-                                             where account = ?
-                                               and status = 1`,
+                     from \`${this.app}\`.t_user
+                     where account = ?
+                       and status = 1`,
                     [payload?.email]
                 )) as any
             )[0];
@@ -394,137 +411,156 @@ export class User {
     }
 
     public async refreshMember(userData: any) {
-        //分級配置檔案
-        const member_list =
-            (
-                await this.getConfigV2({
-                    key: 'member_level_config',
-                    user_id: 'manager',
-                })
-            ).levels || [];
-        //用戶訂單
-        const order_list = (
-            await db.query(
-                `SELECT orderData ->> '$.total' as total, created_time
-                                            FROM \`${this.app}\`.t_checkout
-                                            where email = ${db.escape(userData.account)}
-                                              and status = 1
-                                            order by id desc`,
-                []
-            )
-        ).map((dd: any) => {
-            return { total_amount: parseInt(`${dd.total}`, 10), date: dd.created_time };
+        const member_update = await this.getConfigV2({
+            key: 'member_update',
+            user_id: userData.userID
         });
-        // 判斷是否符合上個等級
-        let pass_level = true;
-        const member = member_list.map(
-            (dd: {
-                id: string;
-                tag_name: string;
-                condition: {
-                    type: 'total' | 'single';
-                    value: string;
-                };
-                duration: {
-                    type: 'noLimit' | 'day';
-                    value: number;
-                };
-                dead_line: {
-                    type: 'noLimit' | 'date';
-                    value: number;
-                };
-            }) => {
-                if (dd.condition.type === 'single') {
-                    const time = order_list.find((d1: any) => {
-                        return d1.total_amount >= parseInt(dd.condition.value, 10);
-                    });
-                    if (time) {
-                        let dead_line = new Date(time.created_time);
-                        if (dd.dead_line.type === 'noLimit') {
-                            dead_line.setDate(dead_line.getDate() + 365 * 10);
-                            return {
-                                id: dd.id,
-                                trigger: pass_level,
-                                tag_name: dd.tag_name,
-                                dead_line: dead_line,
-                                og: dd,
-                            };
-                        } else {
-                            dead_line.setDate(dead_line.getDate() + dd.dead_line.value);
-                            return {
-                                id: dd.id,
-                                trigger: pass_level,
-                                tag_name: dd.tag_name,
-                                dead_line: dead_line,
-                                og: dd,
-                            };
-                        }
-                    } else {
-                        let leak = parseInt(dd.condition.value, 10);
-                        if (leak !== 0) {
-                            pass_level = false;
-                        }
-                        return {
-                            id: dd.id,
-                            tag_name: dd.tag_name,
-                            dead_line: '',
-                            trigger: leak === 0 && pass_level,
-                            og: dd,
-                            leak: leak,
-                        };
-                    }
-                } else {
-                    const date = this.find30DayPeriodWith3000Spent(order_list, parseInt(dd.condition.value, 10), dd.duration.type === 'noLimit' ? 365 * 10 : dd.duration.value, 365 * 10);
-                    if (date) {
-                        const latest = new Date(date.end_date);
-                        if (dd.dead_line.type === 'noLimit') {
-                            latest.setDate(latest.getDate() + 365 * 10);
-                            return {
-                                id: dd.id,
-                                trigger: pass_level,
-                                tag_name: dd.tag_name,
-                                dead_line: latest,
-                                og: dd,
-                            };
-                        } else {
-                            latest.setDate(latest.getDate() + dd.dead_line.value);
-                            return {
-                                id: dd.id,
-                                trigger: pass_level,
-                                tag_name: dd.tag_name,
-                                dead_line: latest,
-                                og: dd,
-                            };
-                        }
-                    } else {
-                        let leak = parseInt(dd.condition.value, 10);
-                        let sum = 0;
-
-                        const compareDate = new Date();
-                        compareDate.setDate(compareDate.getDate() - (dd.duration.type === 'noLimit' ? 365 * 10 : dd.duration.value));
-                        order_list.map((dd: any) => {
-                            if (new Date().getTime() > compareDate.getTime()) {
-                                leak = leak - dd.total_amount;
-                                sum += dd.total_amount;
-                            }
+        member_update.time = member_update.time || new Date('1997-01-29').toISOString()
+        //上次更新時間(每10分鐘更新一次會級資料)
+        const update_time=new Date(member_update.time)
+        if(update_time.getTime()<(new Date().getTime() - 1000 * 600)){
+            //分級配置檔案
+            const member_list =
+                (
+                    await this.getConfigV2({
+                        key: 'member_level_config',
+                        user_id: 'manager',
+                    })
+                ).levels || [];
+            //用戶訂單
+            const order_list = (
+                await db.query(
+                    `SELECT orderData ->> '$.total' as total, created_time
+                 FROM \`${this.app}\`.t_checkout
+                 where email = ${db.escape(userData.account)}
+                   and status = 1
+                 order by id desc`,
+                    []
+                )
+            ).map((dd: any) => {
+                return {total_amount: parseInt(`${dd.total}`, 10), date: dd.created_time};
+            });
+            // 判斷是否符合上個等級
+            let pass_level = true;
+            const member = member_list.map(
+                (dd: {
+                    id: string;
+                    tag_name: string;
+                    condition: {
+                        type: 'total' | 'single';
+                        value: string;
+                    };
+                    duration: {
+                        type: 'noLimit' | 'day';
+                        value: number;
+                    };
+                    dead_line: {
+                        type: 'noLimit' | 'date';
+                        value: number;
+                    };
+                }) => {
+                    if (dd.condition.type === 'single') {
+                        const time = order_list.find((d1: any) => {
+                            return d1.total_amount >= parseInt(dd.condition.value, 10);
                         });
-                        if (leak !== 0) {
-                            pass_level = false;
+                        if (time) {
+                            let dead_line = new Date(time.created_time);
+                            if (dd.dead_line.type === 'noLimit') {
+                                dead_line.setDate(dead_line.getDate() + 365 * 10);
+                                return {
+                                    id: dd.id,
+                                    trigger: pass_level,
+                                    tag_name: dd.tag_name,
+                                    dead_line: dead_line,
+                                    og: dd,
+                                };
+                            } else {
+                                dead_line.setDate(dead_line.getDate() + dd.dead_line.value);
+                                return {
+                                    id: dd.id,
+                                    trigger: pass_level,
+                                    tag_name: dd.tag_name,
+                                    dead_line: dead_line,
+                                    og: dd,
+                                };
+                            }
+                        } else {
+                            let leak = parseInt(dd.condition.value, 10);
+                            if (leak !== 0) {
+                                pass_level = false;
+                            }
+                            return {
+                                id: dd.id,
+                                tag_name: dd.tag_name,
+                                dead_line: '',
+                                trigger: leak === 0 && pass_level,
+                                og: dd,
+                                leak: leak,
+                            };
                         }
-                        return {
-                            id: dd.id,
-                            tag_name: dd.tag_name,
-                            dead_line: '',
-                            trigger: leak === 0 && pass_level,
-                            leak: leak,
-                            sum: sum,
-                            og: dd,
-                        };
+                    } else {
+                        const date = this.find30DayPeriodWith3000Spent(order_list, parseInt(dd.condition.value, 10), dd.duration.type === 'noLimit' ? 365 * 10 : dd.duration.value, 365 * 10);
+                        if (date) {
+                            const latest = new Date(date.end_date);
+                            if (dd.dead_line.type === 'noLimit') {
+                                latest.setDate(latest.getDate() + 365 * 10);
+                                return {
+                                    id: dd.id,
+                                    trigger: pass_level,
+                                    tag_name: dd.tag_name,
+                                    dead_line: latest,
+                                    og: dd,
+                                };
+                            } else {
+                                latest.setDate(latest.getDate() + dd.dead_line.value);
+                                return {
+                                    id: dd.id,
+                                    trigger: pass_level,
+                                    tag_name: dd.tag_name,
+                                    dead_line: latest,
+                                    og: dd,
+                                };
+                            }
+                        } else {
+                            let leak = parseInt(dd.condition.value, 10);
+                            let sum = 0;
+
+                            const compareDate = new Date();
+                            compareDate.setDate(compareDate.getDate() - (dd.duration.type === 'noLimit' ? 365 * 10 : dd.duration.value));
+                            order_list.map((dd: any) => {
+                                if (new Date().getTime() > compareDate.getTime()) {
+                                    leak = leak - dd.total_amount;
+                                    sum += dd.total_amount;
+                                }
+                            });
+                            if (leak !== 0) {
+                                pass_level = false;
+                            }
+                            return {
+                                id: dd.id,
+                                tag_name: dd.tag_name,
+                                dead_line: '',
+                                trigger: leak === 0 && pass_level,
+                                leak: leak,
+                                sum: sum,
+                                og: dd,
+                            };
+                        }
                     }
                 }
-            }
-        );
-        return member.reverse();
+            );
+            member_update.value=member.reverse()
+            member_update.time=new Date()
+            await this.setConfig({
+                key: 'member_update',
+                user_id: userData.userID,
+                value:member_update
+            })
+            return member.reverse();
+        }else{
+            return member_update.value
+        }
+
     }
 
     public find30DayPeriodWith3000Spent(
@@ -576,19 +612,15 @@ export class User {
     getUserAndOrderSQL(obj: { select: string; where: string[]; orderBy: string; page?: number; limit?: number }) {
         const sql = `
             SELECT ${obj.select}
-            FROM 
-                (SELECT 
-                    email, 
-                    COUNT(*) AS order_count, 
-                    SUM(CAST(JSON_EXTRACT(orderData, '$.total') AS DECIMAL(10, 2))) AS total_amount
-                FROM 
-                    \`${this.app}\`.t_checkout
-                WHERE status = 1
-                GROUP BY email) as o
-            RIGHT JOIN 
-                \`${this.app}\`.t_user u ON o.email = u.account
-            WHERE
-                (${obj.where.filter((str) => str.length > 0).join(' AND ')})
+            FROM (SELECT email,
+                         COUNT(*)                                                        AS order_count,
+                         SUM(CAST(JSON_EXTRACT(orderData, '$.total') AS DECIMAL(10, 2))) AS total_amount
+                  FROM \`${this.app}\`.t_checkout
+                  WHERE status = 1
+                  GROUP BY email) as o
+                     RIGHT JOIN
+                 \`${this.app}\`.t_user u ON o.email = u.account
+            WHERE (${obj.where.filter((str) => str.length > 0).join(' AND ')})
             ORDER BY ${(() => {
                 switch (obj.orderBy) {
                     case 'order_total_desc':
@@ -608,8 +640,7 @@ export class User {
                     default:
                         return 'u.id DESC';
                 }
-            })()} 
-            ${obj.page !== undefined && obj.limit !== undefined ? `LIMIT ${obj.page * obj.limit}, ${obj.limit}` : ''};
+            })()} ${obj.page !== undefined && obj.limit !== undefined ? `LIMIT ${obj.page * obj.limit}, ${obj.limit}` : ''};
         `;
         return sql;
     }
@@ -709,7 +740,7 @@ export class User {
                 async (sql) => {
                     await sql.query(
                         `replace
-                into t_subscribe (email,tag) values (?,?)`,
+                        into t_subscribe (email,tag) values (?,?)`,
                         [email, tag]
                     );
                 }
@@ -728,7 +759,7 @@ export class User {
                 async (sql) => {
                     await sql.query(
                         `replace
-                into t_fcm (userID,deviceToken) values (?,?)`,
+                        into t_fcm (userID,deviceToken) values (?,?)`,
                         [userID, deviceToken]
                     );
                 }
@@ -742,8 +773,8 @@ export class User {
         try {
             await db.query(
                 `delete
-                            FROM \`${this.app}\`.t_subscribe
-                            where email in (?)`,
+                 FROM \`${this.app}\`.t_subscribe
+                 where email in (?)`,
                 [email.split(',')]
             );
             return {
@@ -777,14 +808,14 @@ export class User {
             const querySql: any = [];
             //'%${query.search}%'
             query.search &&
-                querySql.push([`(userID in (select userID from \`${this.app}\`.t_user where (UPPER(JSON_UNQUOTE(JSON_EXTRACT(userData, '$.name')) LIKE UPPER('%${query.search}%')))))`].join(` || `));
+            querySql.push([`(userID in (select userID from \`${this.app}\`.t_user where (UPPER(JSON_UNQUOTE(JSON_EXTRACT(userData, '$.name')) LIKE UPPER('%${query.search}%')))))`].join(` || `));
             const data = await new UtDatabase(this.app, `t_fcm`).querySql(querySql, query as any);
             for (const b of data.data) {
                 let userData = (
                     await db.query(
                         `select userData
-                                                from \`${this.app}\`.t_user
-                                                where userID = ?`,
+                         from \`${this.app}\`.t_user
+                         where userID = ?`,
                         [b.userID]
                     )
                 )[0];
@@ -800,8 +831,8 @@ export class User {
         try {
             await db.query(
                 `delete
-                            FROM \`${this.app}\`.t_user
-                            where id in (?)`,
+                 FROM \`${this.app}\`.t_user
+                 where id in (?)`,
                 [query.id.split(',')]
             );
             return {
@@ -817,8 +848,8 @@ export class User {
             const userData = (
                 await db.query(
                     `select *
-                                              from \`${this.app}\`.\`t_user\`
-                                              where userID = ${db.escape(userID)}`,
+                     from \`${this.app}\`.\`t_user\`
+                     where userID = ${db.escape(userID)}`,
                     []
                 )
             )[0];
@@ -844,9 +875,9 @@ export class User {
             } else if (par.userData.email) {
                 await db.query(
                     `update \`${this.app}\`.t_checkout
-                                set email=?
-                                where id > 0
-                                  and email = ?`,
+                     set email=?
+                     where id > 0
+                       and email = ?`,
                     [par.userData.email, userData.account]
                 );
                 userData.account = par.userData.email;
@@ -867,9 +898,9 @@ export class User {
             return {
                 data: (await db.query(
                     `update \`${this.app}\`.t_user
-                                       SET ?
-                                       WHERE 1 = 1
-                                         and userID = ?`,
+                     SET ?
+                     WHERE 1 = 1
+                       and userID = ?`,
                     [par, userID]
                 )) as any,
             };
@@ -883,8 +914,8 @@ export class User {
         let originUserData = (
             await db.query(
                 `select userData
-                                              from \`${this.app}\`.\`t_user\`
-                                              where userID = ${db.escape(cf.userID)}`,
+                 from \`${this.app}\`.\`t_user\`
+                 where userID = ${db.escape(cf.userID)}`,
                 []
             )
         )[0]['userData'];
@@ -914,18 +945,18 @@ export class User {
         return originUserData;
     }
 
-    public async resetPwd(userID: string, newPwd: string) {
+    public async resetPwd(user_id_and_account: string, newPwd: string) {
         try {
             const result = (await db.query(
                 `update \`${this.app}\`.t_user
-                                            SET ?
-                                            WHERE 1 = 1
-                                              and userID = ?`,
+                 SET ?
+                 WHERE 1 = 1
+                   and ( (account = ?))`,
                 [
                     {
                         pwd: await tool.hashPwd(newPwd),
                     },
-                    userID,
+                    user_id_and_account
                 ]
             )) as any;
             return {
@@ -941,18 +972,18 @@ export class User {
             const data: any = (
                 (await db.execute(
                     `select *
-                                                 from \`${this.app}\`.t_user
-                                                 where userID = ?
-                                                   and status = 1`,
+                     from \`${this.app}\`.t_user
+                     where userID = ?
+                       and status = 1`,
                     [userID]
                 )) as any
             )[0];
             if (await tool.compareHash(pwd, data.pwd)) {
                 const result = (await db.query(
                     `update \`${this.app}\`.t_user
-                                                SET ?
-                                                WHERE 1 = 1
-                                                  and userID = ?`,
+                     SET ?
+                     WHERE 1 = 1
+                       and userID = ?`,
                     [
                         {
                             pwd: await tool.hashPwd(newPwd),
@@ -979,8 +1010,8 @@ export class User {
             const userData = (await db.query(sql, []))[0]['userData'];
             await db.execute(
                 `update \`${this.app}\`.t_user
-                              set account=${db.escape(userData.updateAccount)}
-                              where JSON_EXTRACT(userData, '$.mailVerify') = ?`,
+                 set account=${db.escape(userData.updateAccount)}
+                 where JSON_EXTRACT(userData, '$.mailVerify') = ?`,
                 [token]
             );
         } catch (e) {
@@ -995,9 +1026,9 @@ export class User {
             };
             return (await db.query(
                 `update \`${this.app}\`.t_user
-                                    SET ?
-                                    WHERE 1 = 1
-                                      and JSON_EXTRACT(userData, '$.mailVerify') = ?`,
+                 SET ?
+                 WHERE 1 = 1
+                   and JSON_EXTRACT(userData, '$.mailVerify') = ?`,
                 [par, token]
             )) as any;
         } catch (e) {
@@ -1011,9 +1042,9 @@ export class User {
                 (
                     (await db.execute(
                         `select count(1)
-                                      from \`${this.app}\`.t_user
-                                      where account = ?
-                                        and status!=0`,
+                         from \`${this.app}\`.t_user
+                         where account = ?
+                           and status!=0`,
                         [account]
                     )) as any
                 )[0]['count(1)'] == 1
@@ -1025,7 +1056,9 @@ export class User {
 
     public async checkUserIdExists(id: number) {
         try {
-            const count = (await db.query(`select count(1) from \`${this.app}\`.t_user where userID = ?`, [id]))[0]['count(1)'];
+            const count = (await db.query(`select count(1)
+                                           from \`${this.app}\`.t_user
+                                           where userID = ?`, [id]))[0]['count(1)'];
             return count;
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'CheckUserExists Error:' + e, null);
@@ -1041,24 +1074,26 @@ export class User {
                 (
                     await db.query(
                         `select count(1)
-                                 from \`${this.app}\`.t_user_public_config
-                                 where \`key\` = ? and user_id=? `,
+                         from \`${this.app}\`.t_user_public_config
+                         where \`key\` = ?
+                           and user_id = ? `,
                         [config.key, config.user_id ?? this.token!.userID]
                     )
                 )[0]['count(1)'] === 1
             ) {
                 await db.query(
                     `update \`${this.app}\`.t_user_public_config
-                                set value=?
-                                where \`key\` = ? and user_id=?`,
-                    [config.value, config.key, config.user_id ?? this.token!.userID]
+                     set value=? , updated_at=?
+                     where \`key\` = ?
+                       and user_id = ?`,
+                    [config.value, new Date(),config.key, config.user_id ?? this.token!.userID]
                 );
             } else {
                 await db.query(
                     `insert
-                                into \`${this.app}\`.t_user_public_config (\`user_id\`, \`key\`, \`value\`, updated_at)
-                                values (?, ?, ?, ?)
-                `,
+                     into \`${this.app}\`.t_user_public_config (\`user_id\`, \`key\`, \`value\`, updated_at)
+                     values (?, ?, ?, ?)
+                    `,
                     [config.user_id ?? this.token!.userID, config.key, config.value, new Date()]
                 );
             }
@@ -1072,10 +1107,10 @@ export class User {
         try {
             return await db.execute(
                 `select *
-                                     from \`${this.app}\`.t_user_public_config
-                                     where \`key\` = ${db.escape(config.key)}
-                                       and user_id = ${db.escape(config.user_id)}
-            `,
+                 from \`${this.app}\`.t_user_public_config
+                 where \`key\` = ${db.escape(config.key)}
+                   and user_id = ${db.escape(config.user_id)}
+                `,
                 []
             );
         } catch (e) {
@@ -1088,10 +1123,10 @@ export class User {
         try {
             const data = await db.execute(
                 `select *
-                                           from \`${this.app}\`.t_user_public_config
-                                           where \`key\` = ${db.escape(config.key)}
-                                             and user_id = ${db.escape(config.user_id)}
-            `,
+                 from \`${this.app}\`.t_user_public_config
+                 where \`key\` = ${db.escape(config.key)}
+                   and user_id = ${db.escape(config.user_id)}
+                `,
                 []
             );
             return (data[0] && data[0].value) || {};
@@ -1103,7 +1138,9 @@ export class User {
 
     public async checkEmailExists(email: string) {
         try {
-            const count = (await db.query(`select count(1) from \`${this.app}\`.t_user where account=?`, [email]))[0]['count(1)'];
+            const count = (await db.query(`select count(1)
+                                           from \`${this.app}\`.t_user
+                                           where account = ?`, [email]))[0]['count(1)'];
             return count;
         } catch (e) {
             throw exception.BadRequestError('ERROR', 'ERROR.' + e, null);
@@ -1114,18 +1151,18 @@ export class User {
         try {
             const last_read_time = await db.query(
                 `SELECT value
-                                                   FROM \`${this.app}\`.t_user_public_config
-                                                   where \`key\` = 'notice_last_read'
-                                                     and user_id = ?;`,
+                 FROM \`${this.app}\`.t_user_public_config
+                 where \`key\` = 'notice_last_read'
+                   and user_id = ?;`,
                 [this.token?.userID]
             );
             const date = !last_read_time[0] ? new Date('2022-01-29') : new Date(last_read_time[0].value.time);
             const count = (
                 await db.query(
                     `select count(1)
-                                           from \`${this.app}\`.t_notice
-                                           where user_id = ?
-                                             and created_time > ?`,
+                     from \`${this.app}\`.t_notice
+                     where user_id = ?
+                       and created_time > ?`,
                     [this.token?.userID, date]
                 )
             )[0]['count(1)'];
@@ -1143,25 +1180,25 @@ export class User {
             let last_time_read = 0;
             const last_read_time = await db.query(
                 `SELECT value
-                                                   FROM \`${this.app}\`.t_user_public_config
-                                                   where \`key\` = 'notice_last_read'
-                                                     and user_id = ?;`,
+                 FROM \`${this.app}\`.t_user_public_config
+                 where \`key\` = 'notice_last_read'
+                   and user_id = ?;`,
                 [this.token?.userID]
             );
             if (!last_read_time[0]) {
                 await db.query(
                     `insert into \`${this.app}\`.t_user_public_config (user_id, \`key\`, value, updated_at)
-                                values (?, ?, ?, ?)`,
-                    [this.token?.userID, 'notice_last_read', JSON.stringify({ time: new Date() }), new Date()]
+                     values (?, ?, ?, ?)`,
+                    [this.token?.userID, 'notice_last_read', JSON.stringify({time: new Date()}), new Date()]
                 );
             } else {
                 last_time_read = new Date(last_read_time[0].value.time).getTime();
                 await db.query(
                     `update \`${this.app}\`.t_user_public_config
-                                set \`value\`=?
-                                where user_id = ?
-                                  and \`key\` = ?`,
-                    [JSON.stringify({ time: new Date() }), `${this.token?.userID}`, 'notice_last_read']
+                     set \`value\`=?
+                     where user_id = ?
+                       and \`key\` = ?`,
+                    [JSON.stringify({time: new Date()}), `${this.token?.userID}`, 'notice_last_read']
                 );
             }
             const response: any = await new UtDatabase(this.app, `t_notice`).querySql(query, cf.query);
@@ -1171,6 +1208,14 @@ export class User {
             console.error(e);
             throw exception.BadRequestError('ERROR', 'ERROR.' + e, null);
         }
+    }
+
+    public  async forgetPassword(email:string){
+        const data = await AutoSendEmail.getDefCompare(this.app, 'auto-email-forget');
+        const code = Tool.randomNumber(6);
+        await redis.setValue(`forget-${email}`, code);
+        await redis.setValue(`forget-count-${email}`, '0');
+        sendmail(`${data.name} <${process.env.smtp}>`, email, data.title, data.content.replace('@{{code}}',code));
     }
 
     constructor(app: string, token?: IToken) {

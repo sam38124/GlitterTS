@@ -11,6 +11,7 @@ import e from 'express';
 import { Rebate } from './rebate.js';
 import { CustomCode } from '../services/custom-code.js';
 import moment from 'moment';
+import {ManagerNotify} from "./notify.js";
 
 interface VoucherData {
     title: string;
@@ -552,6 +553,10 @@ export class Shopping {
                 }).createOrderPage(carData);
                 // 線下付款
                 if (keyData.TYPE === 'off_line') {
+                    new ManagerNotify(this.app).checkout({
+                        orderData:carData,
+                        status:0
+                    })
                     return {
                         off_line: true,
                     };
@@ -828,7 +833,10 @@ export class Shopping {
         try {
             const update: any = {};
             data.orderData && (update.orderData = JSON.stringify(data.orderData));
-            update.status = data.status ?? 0;
+            if(update.status){
+                update.status = data.status ?? 0;
+            }
+
             await db.query(
                 `UPDATE \`${this.app}\`.t_checkout
                             set ?
@@ -873,14 +881,9 @@ export class Shopping {
         orderStatus?: string;
         created_time?: string;
         orderString?: string;
+        archived?:string
     }) {
         try {
-            // 訂單編號(Cart_token)
-            // 訂購人(orderData.user_info.name)
-            // 手機(orderData.user_info.phone)
-            // 商品名稱(orderData.lineItems[array].title)
-            // 商品編號(orderData.lineItems[array].sku)
-            // 發票號碼(orderData.invoice_number)
 
             let querySql = ['1=1'];
             let orderString = 'order by id desc';
@@ -959,6 +962,11 @@ export class Shopping {
             query.status && querySql.push(`status IN (${query.status})`);
             query.email && querySql.push(`email=${db.escape(query.email)}`);
             query.id && querySql.push(`(content->>'$.id'=${query.id})`);
+            if(query.archived==='true'){
+                querySql.push(`(orderData->>'$.archived'="${query.archived}")`)
+            }else if(query.archived==='false'){
+                querySql.push(`((orderData->>'$.archived' is null) or (orderData->>'$.archived'!='true'))`)
+            }
             let sql = `SELECT *
                         FROM \`${this.app}\`.t_checkout
                         WHERE ${querySql.join(' and ')} ${orderString}`;
@@ -1031,6 +1039,11 @@ export class Shopping {
                         [order_id]
                     )
                 )[0];
+                //管理員通知新訂單
+                new ManagerNotify(this.app).checkout({
+                    orderData:cartData.orderData,
+                    status:status
+                })
                 const userData = await new User(this.app).getUserData(cartData.email, 'account');
 
                 if (userData && cartData.orderData.rebate > 0) {
@@ -1397,8 +1410,8 @@ export class Shopping {
 
     async putCollection(data: any) {
         try {
-            const config = (await db.query(`SELECT * FROM \`${this.app}\`.public_config WHERE \`key\` = 'collection';`, []))[0];
-
+            let config = (await db.query(`SELECT * FROM \`${this.app}\`.public_config WHERE \`key\` = 'collection';`, []))[0] ?? {};
+            config.value=config.value || [];
             if (data.id == -1 || data.parent_name !== data.origin.parent_name || data.name !== data.origin.item_name) {
                 if (data.parent_id === undefined && config.value.find((item: { title: string }) => item.title === data.name)) {
                     return { result: false, message: `上層分類已存在「${data.name}」類別名稱` };
@@ -1531,6 +1544,7 @@ export class Shopping {
             }
             return { result: true };
         } catch (e) {
+            console.error(e)
             throw exception.BadRequestError('BAD_REQUEST', 'getCollectionProducts Error:' + e, null);
         }
     }

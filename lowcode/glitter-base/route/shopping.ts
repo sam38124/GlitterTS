@@ -1,9 +1,10 @@
-import { GlobalUser } from '../global/global-user.js';
-import { BaseApi } from '../../glitterBundle/api/base.js';
-import { Glitter } from '../../glitterBundle/Glitter.js';
+import {GlobalUser} from '../global/global-user.js';
+import {BaseApi} from '../../glitterBundle/api/base.js';
+import {Glitter} from '../../glitterBundle/Glitter.js';
 
 export class ApiShop {
-    constructor() {}
+    constructor() {
+    }
 
     static getRebate(query: { userID?: string }) {
         return BaseApi.create({
@@ -125,10 +126,11 @@ export class ApiShop {
             },
         });
     }
+
     public static orderListFilterString(obj: any): string[] {
         if (!obj) return [];
         let list = [] as string[];
-        if(obj){
+        if (obj) {
             if (obj.created_time && obj.created_time.length > 1 && obj?.created_time[0].length > 0 && obj?.created_time[1].length > 0) {
                 list.push(`created_time=${obj.created_time[0]},${obj.created_time[1]}`);
             }
@@ -161,6 +163,7 @@ export class ApiShop {
         order?: string;
         orderString?: string;
         filter?: any;
+        archived?: string
     }) {
         const filterString = this.orderListFilterString(json.filter);
 
@@ -175,6 +178,7 @@ export class ApiShop {
                     json.status && par.push(`status=${json.status}`);
                     json.searchType && par.push(`searchType=${json.searchType}`);
                     json.orderString && par.push(`orderString=${json.orderString}`);
+                    json.archived && par.push(`archived=${json.archived}`)
                     filterString.length > 0 && par.push(filterString.join('&'));
                     return par.join('&');
                 })()}`,
@@ -293,6 +297,7 @@ export class ApiShop {
             },
         });
     }
+
     public static getLoginForOrder() {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/check-login-for-order`,
@@ -402,11 +407,13 @@ export class ApiShop {
     }
 
     static setVoucherCode(code: string) {
-        (window as any).glitter.setPro(ApiShop.voucherID, code, () => {});
+        (window as any).glitter.setPro(ApiShop.voucherID, code, () => {
+        });
     }
 
     static setRebateValue(value: string) {
-        (window as any).glitter.setPro(ApiShop.rebateID, value, () => {});
+        (window as any).glitter.setPro(ApiShop.rebateID, value, () => {
+        });
     }
 
     static getRebateValue() {
@@ -427,7 +434,8 @@ export class ApiShop {
             const cartData = response.data ? JSON.parse(response.data) : {};
             cartData[id] = cartData[id] ?? 0;
             cartData[id] += parseInt(count, 10);
-            (window as any).glitter.setPro(ApiShop.cartID, JSON.stringify(cartData), () => {});
+            (window as any).glitter.setPro(ApiShop.cartID, JSON.stringify(cartData), () => {
+            });
         });
     }
 
@@ -439,12 +447,14 @@ export class ApiShop {
             } else {
                 cartData[id] = parseInt(count, 10);
             }
-            (window as any).glitter.setPro(ApiShop.cartID, JSON.stringify(cartData), () => {});
+            (window as any).glitter.setPro(ApiShop.cartID, JSON.stringify(cartData), () => {
+            });
         });
     }
 
     static clearCart() {
-        (window as any).glitter.setPro(ApiShop.cartID, JSON.stringify({}), () => {});
+        (window as any).glitter.setPro(ApiShop.cartID, JSON.stringify({}), () => {
+        });
     }
 
     static getCart() {
@@ -470,16 +480,17 @@ export class ApiShop {
 
     static getShippingStatusArray() {
         return [
-            { title: '未出貨', value: 'wait' },
-            { title: '配送中', value: 'shipping' },
-            { title: '已送達', value: 'finish' },
+            {title: '未出貨', value: 'wait'},
+            {title: '配送中', value: 'shipping'},
+            {title: '已送達', value: 'finish'},
         ];
     }
+
     static getOrderStatusArray() {
         return [
-            { title: '已完成', value: '1' },
-            { title: '處理中', value: '0' },
-            { title: '已取消', value: '-1' },
+            {title: '已完成', value: '1'},
+            {title: '處理中', value: '0'},
+            {title: '已取消', value: '-1'},
         ];
     }
 }

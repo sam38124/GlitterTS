@@ -2289,61 +2289,7 @@ ${EditorElem.editeInput({
                                             view: () => {
                                                 return [
                                                     EditorElem.h3(html`<div class="d-flex align-items-center">
-                                                        商品內文<button
-                                                            class=" btn ms-2 btn-primary-c ms-2"
-                                                            style="height: 30px;width: 60px;"
-                                                            onclick="${obj.gvc.event(() => {
-                                                                postMD.content = html`<h3 style="padding: 32px 0px;">商品資訊</h3>
-
-                                                                    <p>优雅家居经典绒面椅将为您的家居空间带来一抹优雅和舒适。</p>
-
-                                                                    <p>这款椅子结合了现代舒适和经典风格，为您提供了完美的休憩之地。</p>
-
-                                                                    <p>绒面面料舒适柔软，而实木框架确保了椅子的坚固性。</p>
-
-                                                                    <p>您可以在这把椅子上放松身体和心灵，无论是阅读一本好书还是与家人共度美好时光。</p>
-
-                                                                    <p>它的多用途设计使它适用于各种房间和场合，是一个实用且具有装饰性的家居家具选择。</p>
-                                                                    <hr style="margin-top: 48px;" color="#E0E0E0" />
-
-                                                                    <h3 style="padding: 32px 0px;">商品材質</h3>
-
-                                                                    <p>坐面：塑膠</p>
-                                                                    <hr style="margin-top: 48px;" color="#E0E0E0" />
-
-                                                                    <h3 style="padding: 32px 0px;">商品交期</h3>
-
-                                                                    <p>標準交期：家具製造商已備妥家具組件，將在接單後直接組裝出貨，預計交期為 5-6 週。</p>
-
-                                                                    <p>平均交期：家具製造商無現成家具組件，須再加上製造時間，平均交期為 10 至 12 週。</p>
-
-                                                                    <p>若逢春節期間、國定假日及雙 11 檔期，交期可能會受到影響，建議提早下單，避免久候。</p>
-                                                                    <hr style="margin-top: 48px;" color="#E0E0E0" />
-
-                                                                    <h3 style="padding: 32px 0px;">商品規格</h3>
-
-                                                                    <p>長：56 公分</p>
-
-                                                                    <p>寬：52 公分</p>
-
-                                                                    <p>高：83.5 公分</p>
-
-                                                                    <p>座高：48 公分</p>
-                                                                    <hr style="margin-top: 48px;" color="#E0E0E0" />
-
-                                                                    <h3 style="padding: 32px 0px;">保養資訊</h3>
-
-                                                                    <p><strong>塑膠</strong></p>
-
-                                                                    <p><span style="font-weight: 400;">清潔時，可使用些許水擦拭並用乾淨的布擦乾。避免日曬。</span></p>
-
-                                                                    <p><span style="font-weight: 400;">使用時，應防止硬物碰撞。壁面金屬刷具清潔。</span></p>
-                                                                    <hr style="margin-top: 48px;" color="#E0E0E0" /> `;
-                                                                obj.gvc.notifyDataChange(bi);
-                                                            })}"
-                                                        >
-                                                            範例
-                                                        </button>
+                                                        商品內文
                                                     </div>`),
                                                     EditorElem.richText({
                                                         gvc: obj.gvc,

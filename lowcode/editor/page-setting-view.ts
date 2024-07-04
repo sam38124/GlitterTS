@@ -36,7 +36,6 @@ export class PageSettingView {
         PageSettingView.refresh = () => {
             gvc.notifyDataChange(id)
         }
-
         return gvc.bindView(() => {
             return {
                 bind: id,
@@ -74,7 +73,6 @@ export class PageSettingView {
                                 //     icon: '  <i class="fa-regular fa-square-list"></i>'
                                 // }
                             ]
-
                             if (['page', 'blog'].indexOf(glitter.share.editorViewModel.data.page_type) === -1) {
                                 if (Storage.page_set_select === 'seo') {
                                     Storage.page_set_select = 'normal'
@@ -107,6 +105,7 @@ export class PageSettingView {
                             return {
                                 bind: docID,
                                 view: () => {
+
                                     switch (Storage.page_set_select) {
                                         case "module":
                                             return PageSettingView.module(gvc)
@@ -169,7 +168,7 @@ export class PageSettingView {
                                                         class: `p-2`
                                                     }
                                                 }
-                                            })
+                                            });
                                         case "seo":
                                             return `<div class="mx-n2">
 ${PageSettingView.seoSetting({

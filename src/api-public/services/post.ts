@@ -1,12 +1,13 @@
-import db, { limit, queryLambada } from '../../modules/database';
+import db, {limit, queryLambada} from '../../modules/database';
 import exception from '../../modules/exception';
 import tool from '../../services/tool';
 import UserUtil from '../../utils/UserUtil';
-import { IToken } from '../models/Auth.js';
-import { App } from '../../services/app.js';
-import { sendMessage } from '../../firebase/message.js';
-import { Shopping } from './shopping.js';
-import { UtDatabase } from '../utils/ut-database.js';
+import {IToken} from '../models/Auth.js';
+import {App} from '../../services/app.js';
+import {sendMessage} from '../../firebase/message.js';
+import {Shopping} from './shopping.js';
+import {UtDatabase} from '../utils/ut-database.js';
+import {ManagerNotify} from "./notify.js";
 
 export class Post {
     public app: string;
@@ -21,19 +22,24 @@ export class Post {
         try {
             const data = await db.query(
                 `INSERT INTO \`${this.app}\`.\`${tb}\`
-                                         SET ?`,
+                 SET ?`,
                 [content]
             );
             const reContent = JSON.parse(content.content);
             if (reContent.type === 'product' && tb === 't_manager_post') {
                 await new Shopping(this.app, this.token).postVariantsAndPriceValue(reContent);
             }
+            if (reContent.type === 'post-form-config') {
+                await new ManagerNotify(this.app).formSubmit({
+                    user_id: content.userID
+                })
+            }
             reContent.id = data.insertId;
             content.content = JSON.stringify(reContent);
             await db.query(
                 `update \`${this.app}\`.\`${tb}\`
-                            SET ?
-                            WHERE id = ${data.insertId}`,
+                 SET ?
+                 WHERE id = ${data.insertId}`,
                 [content]
             );
 
@@ -83,8 +89,8 @@ export class Post {
                             (
                                 await sql.query(
                                     `select *
-                                             from t_user
-                                             where userID = ${this.token.userID ?? 0}`,
+                                     from t_user
+                                     where userID = ${this.token.userID ?? 0}`,
                                     []
                                 )
                             )[0] ?? user;
@@ -92,8 +98,8 @@ export class Post {
                     const html = String.raw;
                     const myFunction = new Function(html`try { return
                     ${sq.sql.replace(
-                        /new\s*Promise\s*\(\s*async\s*\(\s*resolve\s*,\s*reject\s*\)\s*=>\s*\{([\s\S]*)\}\s*\)/i,
-                        'new Promise(async (resolve, reject) => { try { $1 } catch (error) { console.log(error);reject(error); } })'
+                            /new\s*Promise\s*\(\s*async\s*\(\s*resolve\s*,\s*reject\s*\)\s*=>\s*\{([\s\S]*)\}\s*\)/i,
+                            'new Promise(async (resolve, reject) => { try { $1 } catch (error) { console.log(error);reject(error); } })'
                     )}
                     } catch (error) { return 'error'; }`);
 
@@ -129,10 +135,10 @@ export class Post {
                                         },
                                     })
                                     .then((data: any) => {
-                                        resolve({ result: true, data: data });
+                                        resolve({result: true, data: data});
                                     })
                                     .catch((e: any) => {
-                                        resolve({ result: false, message: e });
+                                        resolve({result: false, message: e});
                                     });
                             } catch (e) {
                                 console.log(e);
@@ -156,10 +162,10 @@ export class Post {
             }
             const data = await db.query(
                 `update \`${this.app}\`.\`${tb}\`
-                                         SET ?
-                                         where 1 = 1 
-                                           and userID = ${this.token.userID}
-                                           and id = ${reContent.id}`,
+                 SET ?
+                 where 1 = 1
+                   and userID = ${this.token.userID}
+                   and id = ${reContent.id}`,
                 [content]
             );
             return data;
@@ -175,18 +181,18 @@ export class Post {
             let querySql: any = [];
             query.id && querySql.push(`id=${query.id}`);
             query.search &&
-                query.search.split(',').map((dd: any) => {
-                    if (dd.includes('->')) {
-                        const qu = dd.split('->');
-                        querySql.push(`(content->>'$.${qu[0]}'='${qu[1]}')`);
-                    } else if (dd.includes('-|>')) {
-                        const qu = dd.split('-|>');
-                        querySql.push(`(content->>'$.${qu[0]}' like '%${qu[1]}%')`);
-                    } else if (dd.includes('-[]>')) {
-                        const qu = dd.split('-[]>');
-                        querySql.push(`(JSON_CONTAINS(content, '"${qu[1]}"', '$.${qu[0]}'))`);
-                    }
-                });
+            query.search.split(',').map((dd: any) => {
+                if (dd.includes('->')) {
+                    const qu = dd.split('->');
+                    querySql.push(`(content->>'$.${qu[0]}'='${qu[1]}')`);
+                } else if (dd.includes('-|>')) {
+                    const qu = dd.split('-|>');
+                    querySql.push(`(content->>'$.${qu[0]}' like '%${qu[1]}%')`);
+                } else if (dd.includes('-[]>')) {
+                    const qu = dd.split('-[]>');
+                    querySql.push(`(JSON_CONTAINS(content, '"${qu[1]}"', '$.${qu[0]}'))`);
+                }
+            });
             return await new UtDatabase(this.app, manager ? `t_manager_post` : `t_post`).querySql(querySql, query);
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'GetContentV2 Error:' + e, null);
@@ -284,16 +290,16 @@ export class Post {
                                 }
                             }
                             countSql = `select count(1)
+                                        from \`${this.app}\`.\`t_post\`
+                                        where 1 = 1
+                                            ${query}
+                                        order by id desc ${limit(content)}`;
+
+                            return `select ${selectOnly}
                                     from \`${this.app}\`.\`t_post\`
                                     where 1 = 1
                                         ${query}
                                     order by id desc ${limit(content)}`;
-
-                            return `select ${selectOnly}
-                                from \`${this.app}\`.\`t_post\`
-                                where 1 = 1
-                                    ${query}
-                                order by id desc ${limit(content)}`;
                         }
                     })();
                     console.log(`sql---${sql.replace('$countIndex', '')}`);
@@ -308,12 +314,13 @@ export class Post {
                                 userData[dd.userID] = (
                                     await v.query(
                                         `select userData
-                                                                  from \`${this.app}\`.\`t_user\`
-                                                                  where userID = ${dd.userID}`,
+                                         from \`${this.app}\`.\`t_user\`
+                                         where userID = ${dd.userID}`,
                                         []
                                     )
                                 )[0]['userData'];
-                            } catch (e) {}
+                            } catch (e) {
+                            }
                         }
                         dd.userData = userData[dd.userID];
                     }
@@ -322,7 +329,7 @@ export class Post {
                         if (sql.indexOf('$countIndex') !== -1) {
                             const index = sql.indexOf('$countIndex');
                             return `select count(1)
-                                from ${sql.substring(index + 11)}`;
+                                    from ${sql.substring(index + 11)}`;
                         } else {
                             return `select count(1)
                                      ${sql.substring(sql.lastIndexOf(' from '))}`;

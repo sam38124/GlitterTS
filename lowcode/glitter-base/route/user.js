@@ -24,24 +24,37 @@ export class ApiUser {
         });
     }
     static getNotice(cf) {
-        return BaseApi.create({
-            url: getBaseUrl() + `/api-public/v1/user/notice?page=${cf.page}&limit=${cf.limit}`,
-            type: 'GET',
-            headers: {
-                'g-app': getConfig().config.appName,
-                'Content-Type': 'application/json',
-                Authorization: GlobalUser.userToken,
-            },
-        });
+        if (window.glitter.getUrlParameter('cms') === 'true') {
+            return BaseApi.create({
+                url: getBaseUrl() + `/api-public/v1/user/notice?page=${cf.page}&limit=${cf.limit}`,
+                type: 'GET',
+                headers: {
+                    'g-app': window.parent.glitterBase,
+                    'Content-Type': 'application/json',
+                    Authorization: window.parent.saasConfig.config.token,
+                },
+            });
+        }
+        else {
+            return BaseApi.create({
+                url: getBaseUrl() + `/api-public/v1/user/notice?page=${cf.page}&limit=${cf.limit}`,
+                type: 'GET',
+                headers: {
+                    'g-app': getConfig().config.appName,
+                    'Content-Type': 'application/json',
+                    Authorization: GlobalUser.userToken,
+                },
+            });
+        }
     }
-    static getNoticeUnread() {
+    static getNoticeUnread(appName, token) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user/notice/unread/count`,
             type: 'GET',
             headers: {
-                'g-app': getConfig().config.appName,
+                'g-app': appName || getConfig().config.appName,
                 'Content-Type': 'application/json',
-                Authorization: GlobalUser.userToken,
+                Authorization: token || GlobalUser.userToken,
             },
         });
     }
@@ -351,6 +364,35 @@ export class ApiUser {
             data: JSON.stringify({
                 email: email,
                 host_name: href,
+            }),
+        });
+    }
+    static forgetPwdCheckCode(email, code) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/user/forget/check-code`,
+            type: 'POST',
+            headers: {
+                'g-app': getConfig().config.appName,
+                'Content-Type': 'application/json',
+            },
+            data: JSON.stringify({
+                email: email,
+                code: code,
+            }),
+        });
+    }
+    static resetPwdV2(email, code, pwd) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/user/reset/pwd`,
+            type: 'PUT',
+            headers: {
+                'g-app': getConfig().config.appName,
+                'Content-Type': 'application/json',
+            },
+            data: JSON.stringify({
+                email: email,
+                code: code,
+                pwd: pwd
             }),
         });
     }

@@ -154,6 +154,7 @@ export class SaasViewModel {
                                                                                                     <a
                                                                                                         class="dropdown-item"
                                                                                                         onclick="${gvc.event(() => {
+                                                                                                            gvc.glitter.setUrlParameter('appName',dd.appName)
                                                                                                             SaasViewModel.renew(gvc);
                                                                                                         })}"
                                                                                                         >續費</a
@@ -369,7 +370,7 @@ export class SaasViewModel {
                                         });
                                         return;
                                     }
-                                    SaasViewModel.createApp(gvc, postMD.appName, postMD.name, 'shop-template-clothing-v3', postMD.sub_domain, register!);
+                                    SaasViewModel.createApp(gvc, postMD.appName, postMD.name, 't_1719819344426', postMD.sub_domain, register!);
                                 })}"
                             >
                                 確認建立
@@ -399,173 +400,10 @@ background-size: cover;
     }
 
     public static renew(gvc: GVC) {
-        EditorElem.openEditorDialog(
-            gvc,
-            (gvc) => {
-                return html` <div class="w-100">
-                    <div class="d-flex align-items-center p-4 justify-content-between" style="gap:20px;">
-                        ${[
-                            {
-                                title: '基本電商方案',
-                                money: 999,
-                                array: [
-                                    ['頁面編輯系統', '多規格多價格'],
-                                    ['綠界 / 藍新金流', '配送方式'],
-                                    ['SEO設定', '商品庫存管理'],
-                                    ['無限制商品數量', '優惠券系統'],
-                                ],
-                                sku: 'basic-year',
-                            },
-                            {
-                                title: '電商+APP方案',
-                                money: 4999,
-                                array: [
-                                    ['IOS應用程式', 'Android應用程式'],
-                                    ['手機訊息推播', '商城上架協助'],
-                                    ['專人開店顧問', '基本方案所有功能'],
-                                ],
-                                sku: 'app-year',
-                            },
-                        ]
-                            .map((dd) => {
-                                return html` <div class="position-relative rounded-3" style="width: calc(50% - 10px); height: 470px;">
-                                    <div
-                                        class="w-100 h-100"
-                                        style="display: flex;position: relative;flex-direction: column;align-items: center;gap: 42px;border-radius: 30px;background: #FFF;background: #FFF;box-shadow: 5px 5px 20px 0px rgba(0, 0, 0, 0.15);     padding: 44px 52px;    width: 500px; "
-                                    >
-                                        <div style="display: flex;flex-direction: column;align-items: center;align-self: stretch;     gap: 32px; ">
-                                            <div>
-                                                <div
-                                                    class="cl_39"
-                                                    style='     text-align: center;font-family: "Noto Sans";font-size: 24px;font-style: normal;font-weight: 700;line-height: normal;margin-bottom: 16px; '
-                                                >
-                                                    ${dd.title}
-                                                </div>
-                                                <div class="cl_39" style='  text-align: center;font-family: "Noto Sans";font-size: 27.915px;font-style: normal;font-weight: 400;line-height: 140%; '>
-                                                    NT$.<span
-                                                        style="background: linear-gradient(143deg, #FFB400 -22.7%, #FF6C02 114.57%);
-background-clip: text;
--webkit-background-clip: text;
--webkit-text-fill-color: transparent;
-font-size: 50px;
-font-style: normal;
-font-weight: 700;
-line-height: 140%;"
-                                                        >${dd.money}</span
-                                                    >
-                                                    / 月 <span style="font-size: 12px;">(限年繳)</span>
-                                                </div>
-                                            </div>
-                                            <div
-                                                class=" flex-column flex-lg-row flex-wrap"
-                                                style="display: flex;justify-content: space-between;align-items: center;align-self: stretch;     gap: 14px; "
-                                            >
-                                                ${dd.array
-                                                    .map((dd) => {
-                                                        return html` <div class=" w-100" style="display: flex;align-items: flex-start;     gap: 14px;">
-                                                            ${dd
-                                                                .map((d1) => {
-                                                                    return html` <div class=" flex-row w-50" style="display: flex;align-items: center;gap: 8px; ">
-                                                                        <img
-                                                                            style="width: 20px;height: 20px; "
-                                                                            src="https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1715139786902-Vector (11).svg"
-                                                                        />
-                                                                        <div class="cl_39" style='    font-family: "Noto Sans";font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%; '>
-                                                                            ${d1}
-                                                                        </div>
-                                                                    </div>`;
-                                                                })
-                                                                .join('')}
-                                                        </div>`;
-                                                    })
-                                                    .join('')}
-                                            </div>
-                                        </div>
-                                        <svg
-                                            class="d-none"
-                                            style="position: absolute;    top: -5px;    right: 35px; "
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            width="61"
-                                            height="137"
-                                            viewBox="0 0 61 137"
-                                            fill="none"
-                                        >
-                                            <path
-                                                d="M0 4.80564C0 2.59382 1.49324 0.810576 3.69857 0.641117C7.5866 0.342357 15.3477 -8.90411e-09 30.5 0C45.6523 8.90411e-09 53.4134 0.342357 57.3014 0.641117C59.5068 0.810576 61 2.5938 61 4.80563V131.163C61 134.817 57.207 137.237 53.8928 135.697L31.7643 125.413C30.9626 125.041 30.0374 125.041 29.2357 125.413L7.10721 135.697C3.79297 137.237 0 134.817 0 131.163V4.80564Z"
-                                                fill="#E80000"
-                                            ></path>
-                                        </svg>
-                                        <span
-                                            class="d-none"
-                                            style='     position: absolute;    top: 12.5px;    right: 55px;    width: 21px;    height: 97.474px;    color: #FFF;    text-align: center;    font-family: "Noto Sans";    font-size: 18px;    font-weight: 700;    line-height: 130%;
-white-space: normal;'
-                                            >免費30天</span
-                                        >
-                                    </div>
-                                    <div class="position-absolute  w-100 d-flex align-items-center justify-content-center" style="bottom: 40px;">
-                                        <div
-                                            style="background: linear-gradient(143deg, #FFB400 -22.7%, #FF6C02 114.57%);color: #FFF;display: flex;flex-direction: column;justify-content: center;align-items: center;gap: 10px;cursor:pointer;box-shadow: 5px 5px 10px 0px rgba(0, 0, 0, 0.20);border-radius: 100px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 1.6px;text-align: center;     padding: 11px 40px;font-size: 16px; "
-                                            onclick="${gvc.event(async () => {
-                                                const key = dd.sku;
-                                                const saasConfig: { config: any; api: any } = (window.parent as any).saasConfig;
-                                                const product: any = (
-                                                    await BaseApi.create({
-                                                        url:
-                                                            saasConfig.config.url +
-                                                            `/api-public/v1/ec/product?${(() => {
-                                                                let par = [`sku=${key}`];
-                                                                return par.join('&');
-                                                            })()}`,
-                                                        type: 'GET',
-                                                        headers: {
-                                                            'Content-Type': 'application/json',
-                                                            'g-app': encodeURIComponent((window.parent as any).glitterBase),
-                                                        },
-                                                    })
-                                                ).response.data[0];
+        gvc.closeDialog();
+        (window.parent as any).glitter.setUrlParameter('tab','member_plan');
+        (window.parent as any).glitter.pageConfig[0].gvc!.recreateView();
 
-                                                BaseApi.create({
-                                                    url: saasConfig.config.url + `/api-public/v1/ec/checkout`,
-                                                    type: 'POST',
-                                                    headers: {
-                                                        'Content-Type': 'application/json',
-                                                        'g-app': (window.parent as any).glitterBase,
-                                                        Authorization: GlobalUser.saas_token,
-                                                    },
-                                                    data: JSON.stringify({
-                                                        line_items: [
-                                                            {
-                                                                id: product.id,
-                                                                spec: product.content.variants.find((dd: any) => {
-                                                                    return dd.sku === key;
-                                                                }).spec,
-                                                                count: 1,
-                                                            },
-                                                        ],
-                                                        user_info: {
-                                                            appName: (window.parent as any).appName,
-                                                        },
-                                                        return_url: location.href,
-                                                    }),
-                                                }).then((res) => {
-                                                    $('body').html(res.response.form);
-                                                    (document.querySelector('#submit') as any).click();
-                                                });
-                                            })}"
-                                        >
-                                            立即續費
-                                        </div>
-                                    </div>
-                                </div>`;
-                            })
-                            .join('')}
-                    </div>
-                </div>`;
-            },
-            () => {},
-            950,
-            '方案續費'
-        );
     }
 
     public static createApp(gvc: GVC, app_name: string, pick_name: string, refer_app: string, sub_domain: string, register: boolean) {

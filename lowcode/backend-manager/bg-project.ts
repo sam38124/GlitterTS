@@ -10,6 +10,8 @@ import { ApiApp } from '../glitter-base/route/app.js';
 import { FormWidget } from '../official_view_component/official/form.js';
 import { ApiWallet } from '../glitter-base/route/wallet.js';
 import { ApiPageConfig } from '../api/pageConfig.js';
+import {Storage} from "../glitterBundle/helper/storage.js";
+import {EditorConfig} from "../editor-config.js";
 
 const html = String.raw;
 
@@ -1054,6 +1056,7 @@ export class BgProject {
 
     public static appRelease(gvc: GVC, type: string) {
         const glitter = gvc.glitter;
+
         const vm: {
             status: 'list' | 'add' | 'replace';
             dataList: any;
@@ -1082,16 +1085,39 @@ export class BgProject {
                             const filterID = gvc.glitter.getUUID();
                             return BgWidget.container(
                                 html`
-                                    <div class="d-flex w-100 align-items-center">
-                                        ${BgWidget.title(type === 'android_release' ? 'Google Play應用商城' : 'APPLE應用商城')}
-                                        <div class="flex-fill"></div>
-                                        ${BgWidget.darkButton(
-                                            '新增送審項目',
-                                            gvc.event(() => {
-                                                vm.status = 'add';
-                                            })
-                                        )}
+                                    <div class="d-flex w-100 align-items-sm-center flex-column flex-sm-row" style="gap:20px;">
+                                        ${BgWidget.title('應用上架審核')}
+                                       <div class="d-flex  w-100 justify-content-between">
+                                           <div class="ms-sm-3" style="max-width: 200px;">
+                                               ${EditorElem.select({
+                                                   title: '',
+                                                   gvc: gvc,
+                                                   def: type,
+                                                   array: [
+                                                       {title:'IOS應用商城',value:'apple_release'},
+                                                       {title:'Android應用商城',value:'android_release'}
+                                                   ],
+                                                   callback: (text: string) => {
+                                                       type=text
+                                                       gvc.notifyDataChange(id);
+                                                   },
+                                               })}
+                                           </div>
+                                           <div class="flex-fill"></div>
+                                           ${BgWidget.darkButton(
+                                                   '新增送審項目',
+                                                   gvc.event(() => {
+                                                       vm.status = 'add';
+                                                   })
+                                           )}
+                                       </div>
                                     </div>
+                                    <div class="my-3"></div>
+                                    ${BgWidget.alertInfo('請注意!!', [
+                                        '必須升級至電商+APP方案才能使用此功能',
+                                        '審核通過的結果可能會因應用程式的完整性、商店條款、隱私權政策、以及平台政策等方面而有所不同，建議送審時，請再三進行確認',
+                                        '審核時間預計落在 7 到 14 個工作天',
+                                    ])}
                                     ${BgWidget.container(
                                         BgWidget.mainCard(
                                             BgWidget.tableV2({
@@ -1105,7 +1131,6 @@ export class BgProject {
                                                     }).then((data) => {
                                                         vmi.pageSize = Math.ceil(data.response.total / 50);
                                                         vm.dataList = data.response.data;
-
                                                         function getDatalist() {
                                                             return data.response.data.map(
                                                                 (dd: {
@@ -1164,9 +1189,9 @@ export class BgProject {
                                                                             }),
                                                                         },
                                                                         {
-                                                                            key: 'APP',
+                                                                            key: 'APP資訊',
                                                                             value: html`<div style="min-width: 150px;">
-                                                                                <img class="rounded border me-4" alt="" src="${dd.content.logo}" style="width:40px;height:40px;" />
+                                                                                <img class="rounded border me-4 ${dd.content.logo || 'd-none'}" alt="" src="${dd.content.logo}" style="width:40px;height:40px;" />
                                                                                 <span>${dd.content.name}</span>
                                                                             </div>`,
                                                                         },
@@ -1620,6 +1645,7 @@ export class BgProject {
         type: string,
         editorData?: any
     ) {
+
         const saasConfig: {
             config: any;
             api: any;
@@ -1787,11 +1813,11 @@ export class BgProject {
                                                                             def: postMD.status,
                                                                             array: [
                                                                                 {
-                                                                                    title: '自行送審(僅下載專案包)',
+                                                                                    title: '自行上架(僅下載APP原始碼，並自行上架至商城)',
                                                                                     value: 'manual',
                                                                                 },
                                                                                 {
-                                                                                    title: '官方送審(透過GLITTER官方代為審核)',
+                                                                                    title: '官方送審(透過SHOPNEX官方協助上架)',
                                                                                     value: 'wait',
                                                                                 },
                                                                             ],

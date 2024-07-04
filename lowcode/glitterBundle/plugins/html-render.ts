@@ -1,5 +1,6 @@
 import {init} from '../GVController.js';
 import {TriggerEvent} from "./trigger-event.js";
+import {EditorConfig} from "../../editor-config.js";
 
 init(import.meta.url, (gvc, glitter, gBundle) => {
     glitter.share.htmlExtension = glitter.share.htmlExtension ?? {};
@@ -212,7 +213,9 @@ is_page:true
                 },
                 divCreate: {
                     class: glitter.htmlGenerate.styleEditor(gBundle.page_config).class(),
-                    style: `overflow-x:hidden;min-height: 100vh;min-width: 100vw;${glitter.htmlGenerate.styleEditor(gBundle.page_config).style()}`
+                    style: `overflow-x:hidden;min-height: 100vh;min-width: 100vw;overflow-x:hidden;min-height: 100vh;min-width: 100vw;${glitter.htmlGenerate.styleEditor(gBundle.page_config).style()}
+                    
+                    `
                 },
                 onCreate: () => {
                     (gBundle.page_config.initialList ?? []).map((dd: any) => {

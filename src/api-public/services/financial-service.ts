@@ -348,6 +348,7 @@ export class EcPay {
         use_wallet:number,
         method:string
     }) {
+        console.log(`orderData.orderID->`,orderData.orderID)
         const params = {
             MerchantTradeNo: orderData.orderID,
             MerchantTradeDate: moment().tz('Asia/Taipei').format('YYYY/MM/DD HH:mm:ss'),

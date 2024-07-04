@@ -20,13 +20,15 @@ export const widgetComponent = {
         widget.data.elem = widget.data.elem ?? "div"
         widget.data.inner = widget.data.inner ?? ""
         widget.data.attr = widget.data.attr ?? []
+        widget.data._padding=widget.data._padding ?? {}
+        widget.data._margin=widget.data._margin ?? {}
+        widget.data._max_width=widget.data._max_width ?? 0
         const id = htmlGenerate.widgetComponentID
         const subData = sub ?? {};
         let formData = subData;
 
         return {
             view: () => {
-
                 let innerText = (() => {
                     if ((widget.data.dataFrom === "code") || (widget.data.dataFrom === "code_text")) {
                         return ``
@@ -100,10 +102,21 @@ export const widgetComponent = {
                     }
                     classList.push(glitter.htmlGenerate.styleEditor(widget.data, gvc, widget as any, subData).class())
                     widget.hashTag && classList.push(`glitterTag${widget.hashTag}`);
+                    let style_user=''
+                    if(widget.type === 'container'){
+                        ['top','bottom','left','right'].map((dd)=>{
+                            widget.data._padding[dd] && (style_user+=`padding-${dd}:${widget.data._padding[dd]}px;`)
+                        });
+
+                        ['top','bottom','left','right'].map((dd)=>{
+                            widget.data._margin[dd] && (style_user+=`margin-${dd}:${widget.data._margin[dd]}px;`)
+                        })
+                        widget.data._max_width && (style_user+=`width:${widget.data._max_width}px;max-width:100%;margin:auto;`)
+                    }
                     return {
                         elem: widget.data.elem,
                         class: classList.join(' '),
-                        style: glitter.htmlGenerate.styleEditor(widget.data, gvc, widget as any, subData).style() + ` ${((window.parent as any).editerData !== undefined) ? `${((widget as any).visible === false) ? `display:none;` : ``}` : ``}`,
+                        style: glitter.htmlGenerate.styleEditor(widget.data, gvc, widget as any, subData).style() + ` ${((window.parent as any).editerData !== undefined) ? `${((widget as any).visible === false) ? `display:none;` : ``}` : ``} ${style_user}`,
                         option: option.concat(htmlGenerate.option),
                     }
                 }
@@ -117,14 +130,14 @@ export const widgetComponent = {
                         innerText = '';
                         return htmlGenerate.render(gvc, {
                             containerID: id,
-                            tag:(widget as any).tag,
+                            tag: (widget as any).tag,
                             onCreate: () => {
                                 TriggerEvent.trigger({
                                     gvc,
                                     widget: widget as any,
                                     clickEvent: (widget as any).onCreateEvent,
                                     subData: subData,
-                                    element:gvc.getBindViewElem(id).get(0)
+                                    element: gvc.getBindViewElem(id).get(0)
                                 })
                                 gvc.glitter.document.querySelector(`[gvc-id="${gvc.id(id)}"]`).onResumeEvent = () => {
                                     TriggerEvent.trigger({
@@ -298,7 +311,7 @@ export const widgetComponent = {
                                         }
                                     })
                                 ];
-                                if ((window.parent as any).editerData !== undefined && htmlGenerate.root && widget.data.elem!=='textArea') {
+                                if ((window.parent as any).editerData !== undefined && htmlGenerate.root && widget.data.elem !== 'textArea') {
                                     view.push(glitter.htmlGenerate.getEditorSelectSection({
                                         id: widget.id,
                                         gvc: gvc,
@@ -320,7 +333,7 @@ export const widgetComponent = {
                                 widget: widget as any,
                                 clickEvent: (widget as any).onCreateEvent,
                                 subData: subData,
-                                element:gvc.getBindViewElem(id).get(0)
+                                element: gvc.getBindViewElem(id).get(0)
                             })
                             gvc.glitter.document.querySelector(`[gvc-id="${gvc.id(id)}"]`).onResumeEvent = () => {
                                 TriggerEvent.trigger({
@@ -351,6 +364,89 @@ export const widgetComponent = {
                 })
             },
             editor: () => {
+                if (widget.type === 'container' && Storage.select_function === 'user-editor') {
+                    return [
+                        EditorElem.editeInput({
+                            gvc:gvc,
+                            title:'容器最大寬度(為空則自適應寬度)',
+                            default:widget.data._max_width,
+                            placeHolder:'單位PX',
+                            callback:(text)=>{
+                                widget.data._max_width=text
+                                widget.refreshComponent()
+                            }
+                        }),
+                        `<div class="my-2"></div>`,
+                        EditorElem.toggleExpand({
+                            gvc: gvc,
+                            title: '內距',
+                            data: widget.data._padding,
+                            innerText: () => {
+                                return [{
+                                    title: '上',
+                                    key: 'top'
+                                },
+                                    {
+                                        title: '下',
+                                        key: 'bottom'
+                                    },
+                                    {
+                                        title: '左',
+                                        key: 'left'
+                                    },
+                                    {
+                                        title: '右',
+                                        key: 'right'
+                                    }].map((dd)=>{
+                                        return EditorElem.editeInput({
+                                            gvc:gvc,
+                                            title:dd.title,
+                                            default:widget.data._padding[dd.key] || '0',
+                                            placeHolder:'單位px',
+                                            callback:(text)=>{
+                                                widget.data._padding[dd.key]=text
+                                                widget.refreshComponent()
+                                            }
+                                        })
+                                }).join('')
+                            }
+                        }),
+                        EditorElem.toggleExpand({
+                            gvc: gvc,
+                            title: '外距',
+                            data: widget.data._margin,
+                            innerText: () => {
+                                return [{
+                                    title: '上',
+                                    key: 'top'
+                                },
+                                    {
+                                        title: '下',
+                                        key: 'bottom'
+                                    },
+                                    {
+                                        title: '左',
+                                        key: 'left'
+                                    },
+                                    {
+                                        title: '右',
+                                        key: 'right'
+                                    }].map((dd)=>{
+                                    return EditorElem.editeInput({
+                                        gvc:gvc,
+                                        title:dd.title,
+                                        default:widget.data._margin[dd.key] || '0',
+                                        placeHolder:'單位px',
+                                        callback:(text)=>{
+                                            widget.data._margin[dd.key]=text
+                                            widget.refreshComponent()
+                                        }
+                                    })
+                                }).join('')
+                            },
+                        })
+                    ].join('')
+                }
                 widget.type = widget.type ?? "elem"
                 widget.data.elemExpand = widget.data.elemExpand ?? {}
                 widget.data.atrExpand = widget.data.atrExpand ?? {}

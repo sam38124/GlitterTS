@@ -16,6 +16,7 @@ const express_1 = __importDefault(require("express"));
 const rebate_js_1 = require("./rebate.js");
 const custom_code_js_1 = require("../services/custom-code.js");
 const moment_1 = __importDefault(require("moment"));
+const notify_js_1 = require("./notify.js");
 class Shopping {
     constructor(app, token) {
         this.app = app;
@@ -359,6 +360,10 @@ class Shopping {
                     TYPE: keyData.TYPE,
                 }).createOrderPage(carData);
                 if (keyData.TYPE === 'off_line') {
+                    new notify_js_1.ManagerNotify(this.app).checkout({
+                        orderData: carData,
+                        status: 0
+                    });
                     return {
                         off_line: true,
                     };
@@ -569,7 +574,9 @@ class Shopping {
         try {
             const update = {};
             data.orderData && (update.orderData = JSON.stringify(data.orderData));
-            update.status = (_a = data.status) !== null && _a !== void 0 ? _a : 0;
+            if (update.status) {
+                update.status = (_a = data.status) !== null && _a !== void 0 ? _a : 0;
+            }
             await database_js_1.default.query(`UPDATE \`${this.app}\`.t_checkout
                             set ?
                             WHERE id = ?`, [update, data.id]);
@@ -669,6 +676,12 @@ class Shopping {
             query.status && querySql.push(`status IN (${query.status})`);
             query.email && querySql.push(`email=${database_js_1.default.escape(query.email)}`);
             query.id && querySql.push(`(content->>'$.id'=${query.id})`);
+            if (query.archived === 'true') {
+                querySql.push(`(orderData->>'$.archived'="${query.archived}")`);
+            }
+            else if (query.archived === 'false') {
+                querySql.push(`((orderData->>'$.archived' is null) or (orderData->>'$.archived'!='true'))`);
+            }
             let sql = `SELECT *
                         FROM \`${this.app}\`.t_checkout
                         WHERE ${querySql.join(' and ')} ${orderString}`;
@@ -709,6 +722,10 @@ class Shopping {
                     SET status = ? WHERE cart_token = ?`, [1, order_id]);
                 const cartData = (await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_checkout
                         WHERE cart_token = ?;`, [order_id]))[0];
+                new notify_js_1.ManagerNotify(this.app).checkout({
+                    orderData: cartData.orderData,
+                    status: status
+                });
                 const userData = await new user_js_1.User(this.app).getUserData(cartData.email, 'account');
                 if (userData && cartData.orderData.rebate > 0) {
                     const rebateClass = new rebate_js_1.Rebate(this.app);
@@ -1043,8 +1060,10 @@ class Shopping {
         }
     }
     async putCollection(data) {
+        var _a;
         try {
-            const config = (await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.public_config WHERE \`key\` = 'collection';`, []))[0];
+            let config = (_a = (await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.public_config WHERE \`key\` = 'collection';`, []))[0]) !== null && _a !== void 0 ? _a : {};
+            config.value = config.value || [];
             if (data.id == -1 || data.parent_name !== data.origin.parent_name || data.name !== data.origin.item_name) {
                 if (data.parent_id === undefined && config.value.find((item) => item.title === data.name)) {
                     return { result: false, message: `上層分類已存在「${data.name}」類別名稱` };
@@ -1168,6 +1187,7 @@ class Shopping {
             return { result: true };
         }
         catch (e) {
+            console.error(e);
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getCollectionProducts Error:' + e, null);
         }
     }

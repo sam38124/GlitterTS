@@ -271,12 +271,12 @@ export class BgBlog {
         return (html ` <div class="p-2 border-bottom" style="">
                 <div class="input-group mb-2">
                     <input
-                        class="form-control input-sm"
-                        placeholder="輸入關鍵字或標籤名稱"
-                        onchange="${gvc.event((e, event) => {
+                            class="form-control input-sm"
+                            placeholder="輸入關鍵字或標籤名稱"
+                            onchange="${gvc.event((e, event) => {
             vm.search = e.value;
         })}"
-                        value="${vm.search || ''}"
+                            value="${vm.search || ''}"
                     />
                     <span class="input-group-text" style="cursor: pointer;border-left:none;">
                         <i class="fa-solid fa-magnifying-glass" style="color:black;"></i>
@@ -327,8 +327,8 @@ export class BgBlog {
                                             else {
                                                 return html `
                                                     <div
-                                                        class="w-100"
-                                                        style=" max-height:${Storage.select_function === 'user-editor' ? `calc(100vh - 200px)` : `calc(100vh - 220px)`};overflow-y: auto;"
+                                                            class="w-100"
+                                                            style=" max-height:${Storage.select_function === 'user-editor' ? `calc(100vh - 200px)` : `calc(100vh - 220px)`};overflow-y: auto;"
                                                     >
                                                         <div class="row m-0 pt-2 w-100">
                                                             ${data.response.result.data
@@ -358,27 +358,27 @@ export class BgBlog {
                                                     .map((dd, index) => {
                                                     var _a, _b;
                                                     return html `
-                                                                        <div class="col-6 mb-3">
-                                                                            <div class="d-flex flex-column justify-content-center w-100" style="gap:5px;cursor:pointer;">
-                                                                                <div class="card w-100 position-relative rounded hoverHidden bgf6 rounded-3" style="padding-bottom: 58%;">
-                                                                                    <div
-                                                                                        class="position-absolute w-100 h-100 d-flex align-items-center justify-content-center"
-                                                                                        style="overflow: hidden;"
-                                                                                    >
-                                                                                        <img
-                                                                                            class="w-100 "
-                                                                                            src="${(_a = dd.template_config.image[0]) !== null && _a !== void 0 ? _a : 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713445383494-未命名(1080x1080像素).jpg'}"
-                                                                                        />
-                                                                                    </div>
+                                                                            <div class="col-6 mb-3">
+                                                                                <div class="d-flex flex-column justify-content-center w-100" style="gap:5px;cursor:pointer;">
+                                                                                    <div class="card w-100 position-relative rounded hoverHidden bgf6 rounded-3" style="padding-bottom: 58%;">
+                                                                                        <div
+                                                                                                class="position-absolute w-100 h-100 d-flex align-items-center justify-content-center"
+                                                                                                style="overflow: hidden;"
+                                                                                        >
+                                                                                            <img
+                                                                                                    class="w-100 "
+                                                                                                    src="${(_a = dd.template_config.image[0]) !== null && _a !== void 0 ? _a : 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713445383494-未命名(1080x1080像素).jpg'}"
+                                                                                            />
+                                                                                        </div>
 
-                                                                                    <div
-                                                                                        class="position-absolute w-100 h-100  align-items-center justify-content-center rounded fs-6 flex-column"
-                                                                                        style="background: rgba(0,0,0,0.5);gap:5px;"
-                                                                                    >
-                                                                                        <button
-                                                                                            class="btn btn-primary-c  d-flex align-items-center"
-                                                                                            style="height: 28px;width: 75px;gap:5px;"
-                                                                                            onclick="${gvc.event(() => {
+                                                                                        <div
+                                                                                                class="position-absolute w-100 h-100  align-items-center justify-content-center rounded fs-6 flex-column"
+                                                                                                style="background: rgba(0,0,0,0.5);gap:5px;"
+                                                                                        >
+                                                                                            <button
+                                                                                                    class="btn btn-primary-c  d-flex align-items-center"
+                                                                                                    style="height: 28px;width: 75px;gap:5px;"
+                                                                                                    onclick="${gvc.event(() => {
                                                         BaseApi.create({
                                                             url: `${window.glitterBackend}/api/v1/template?appName=${dd.appName}&tag=${dd.tag}`,
                                                             type: 'get',
@@ -386,40 +386,40 @@ export class BgBlog {
                                                             callback(res.response.result[0].config);
                                                         });
                                                     })}"
-                                                                                        >
-                                                                                            <i class="fa-regular fa-circle-plus "></i>新增
-                                                                                        </button>
-                                                                                        <button
-                                                                                            class="btn btn-warning d-flex align-items-center d-none"
-                                                                                            style="height: 28px;width: 75px;color:black;gap:5px;"
-                                                                                            onclick="${gvc.event(() => {
+                                                                                            >
+                                                                                                <i class="fa-regular fa-circle-plus "></i>新增
+                                                                                            </button>
+                                                                                            <button
+                                                                                                    class="btn btn-warning d-flex align-items-center d-none"
+                                                                                                    style="height: 28px;width: 75px;color:black;gap:5px;"
+                                                                                                    onclick="${gvc.event(() => {
                                                         gvc.glitter.openDiaLog(new URL('./preview-app.js', import.meta.url).href, 'preview', {
                                                             page: dd.tag,
                                                             appName: dd.appName,
                                                             title: dd.name,
                                                         });
                                                     })}"
-                                                                                        >
-                                                                                            <i class="fa-solid fa-eye "></i>預覽
-                                                                                        </button>
+                                                                                            >
+                                                                                                <i class="fa-solid fa-eye "></i>預覽
+                                                                                            </button>
+                                                                                        </div>
                                                                                     </div>
-                                                                                </div>
-                                                                                <h3 class="fs-6 mb-0">${dd.template_config.name}</h3>
-                                                                                <div class="d-flex flex-wrap">
-                                                                                    ${((_b = dd.template_config.tag) !== null && _b !== void 0 ? _b : [])
+                                                                                    <h3 class="fs-6 mb-0">${dd.template_config.name}</h3>
+                                                                                    <div class="d-flex flex-wrap">
+                                                                                        ${((_b = dd.template_config.tag) !== null && _b !== void 0 ? _b : [])
                                                         .map((dd) => {
                                                         return html ` <div
-                                                                                                class="d-flex align-items-center justify-content-center p-2 mb-1 bgf6 fw-500 border"
-                                                                                                style="color:black; border-radius: 11px; font-size:11px; height:22px; cursor: pointer;"
-                                                                                            >
-                                                                                                #${dd}
-                                                                                            </div>`;
+                                                                                                            class="d-flex align-items-center justify-content-center p-2 mb-1 bgf6 fw-500 border"
+                                                                                                            style="color:black; border-radius: 11px; font-size:11px; height:22px; cursor: pointer;"
+                                                                                                    >
+                                                                                                            #${dd}
+                                                                                                    </div>`;
                                                     })
                                                         .join('<div class="me-1"></div>')}
+                                                                                    </div>
                                                                                 </div>
                                                                             </div>
-                                                                        </div>
-                                                                    `;
+                                                                        `;
                                                 })
                                                     .join('')}
                                                         </div>

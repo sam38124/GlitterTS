@@ -17,6 +17,9 @@ import { EditorConfig } from "./editor-config.js";
 export class Entry {
     static onCreate(glitter) {
         var _a;
+        glitter.share.editor_util = {
+            baseApi: BaseApi
+        };
         glitter.page = window.glitter_page;
         glitter.share.GlobalUser = GlobalUser;
         Entry.checkRedirectPage(glitter);
@@ -32,7 +35,7 @@ export class Entry {
         }
         window.renderClock = (_a = window.renderClock) !== null && _a !== void 0 ? _a : clockF();
         console.log(`Entry-time:`, window.renderClock.stop());
-        glitter.share.editerVersion = "V_8.7.0";
+        glitter.share.editerVersion = "V_8.9.4";
         glitter.share.start = (new Date());
         const vm = {
             appConfig: [],

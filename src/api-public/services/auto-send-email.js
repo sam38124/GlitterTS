@@ -81,7 +81,7 @@ class AutoSendEmail {
             {
                 tag: 'auto-email-forget',
                 tag_name: '忘記密碼',
-                content: '[@{{app_name}}] 重設密碼',
+                content: '[@{{app_name}}]，請輸入驗證碼「 @{{code}} 」。請於1分鐘內輸入並完成驗證。',
                 title: '[@{{app_name}}] 重設密碼',
                 name: '@{{app_name}}',
                 toggle: true

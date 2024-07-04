@@ -207,6 +207,7 @@ router.get('/order', async (req: express.Request, resp: express.Response) => {
                     orderStatus: req.query.orderStatus as string,
                     created_time: req.query.created_time as string,
                     orderString: req.query.orderString as string,
+                    archived:req.query.archived as string
                 })
             );
         } else if (await UtPermission.isAppUser(req)) {
@@ -497,7 +498,7 @@ router.get('/dataAnalyze', async (req: express.Request, resp: express.Response) 
     try {
         const tags = `${req.query.tags}`;
         const fake = {
-            'g-app': 'shop-template-clothing-v3',
+            'g-app': 't_1719819344426',
             Authorization: {
                 account: 'service@ncdesign.info',
                 userID: 252530754,

@@ -46,9 +46,9 @@ const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const google_auth_library_1 = require("google-auth-library");
 const rebate_js_1 = require("./rebate.js");
 const moment_1 = __importDefault(require("moment"));
+const notify_js_1 = require("./notify.js");
 class User {
     async createUser(account, pwd, userData, req) {
-        var _a;
         try {
             const login_config = await this.getConfigV2({
                 key: 'login_config',
@@ -62,9 +62,9 @@ class User {
             }
             else if (login_config.email_verify) {
                 await database_1.default.execute(`delete
-                                  from \`${this.app}\`.\`t_user\`
-                                  where account = ${database_1.default.escape(account)}
-                                    and status = 0`, []);
+                     from \`${this.app}\`.\`t_user\`
+                     where account = ${database_1.default.escape(account)}
+                       and status = 0`, []);
                 const data = await auto_send_email_js_1.AutoSendEmail.getDefCompare(this.app, 'auto-email-verify');
                 const code = tool_js_1.default.randomNumber(6);
                 await redis_js_1.default.setValue(`verify-${account}`, code);
@@ -74,20 +74,9 @@ class User {
                     verify: 'mail',
                 };
             }
-            const data = await auto_send_email_js_1.AutoSendEmail.getDefCompare(this.app, 'auto-email-welcome');
-            if (data.toggle) {
-                (0, ses_js_1.sendmail)(`${data.name} <${process_1.default.env.smtp}>`, account, data.title, data.content);
-            }
             await database_1.default.execute(`INSERT INTO \`${this.app}\`.\`t_user\` (\`userID\`, \`account\`, \`pwd\`, \`userData\`, \`status\`)
-                              VALUES (?, ?, ?, ?, ?);`, [userID, account, await tool_1.default.hashPwd(pwd), userData !== null && userData !== void 0 ? userData : {}, 1]);
-            const getRS = await this.getConfig({ key: 'rebate_setting', user_id: 'manager' });
-            const rgs = getRS[0] && getRS[0].value.register ? getRS[0].value.register : {};
-            if (rgs && rgs.switch) {
-                await new rebate_js_1.Rebate(this.app).insertRebate(userID, (_a = rgs.value) !== null && _a !== void 0 ? _a : 0, '新加入會員', {
-                    type: 'first_regiser',
-                    deadTime: rgs.unlimited ? undefined : (0, moment_1.default)().add(rgs.date, 'd').format('YYYY-MM-DD HH:mm:ss'),
-                });
-            }
+                 VALUES (?, ?, ?, ?, ?);`, [userID, account, await tool_1.default.hashPwd(pwd), userData !== null && userData !== void 0 ? userData : {}, 1]);
+            await this.createUserHook(userID);
             const usData = await this.getUserData(userID, 'userID');
             usData.pwd = undefined;
             usData.token = await UserUtil_1.default.generateToken({
@@ -100,6 +89,24 @@ class User {
         catch (e) {
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'Register Error:' + e, null);
         }
+    }
+    async createUserHook(userID) {
+        var _a;
+        const usData = await this.getUserData(userID, 'userID');
+        const data = await auto_send_email_js_1.AutoSendEmail.getDefCompare(this.app, 'auto-email-welcome');
+        if (data.toggle) {
+            (0, ses_js_1.sendmail)(`${data.name} <${process_1.default.env.smtp}>`, usData.account, data.title, data.content);
+        }
+        const getRS = await this.getConfig({ key: 'rebate_setting', user_id: 'manager' });
+        const rgs = getRS[0] && getRS[0].value.register ? getRS[0].value.register : {};
+        if (rgs && rgs.switch) {
+            await new rebate_js_1.Rebate(this.app).insertRebate(userID, (_a = rgs.value) !== null && _a !== void 0 ? _a : 0, '新加入會員', {
+                type: 'first_regiser',
+                deadTime: rgs.unlimited ? undefined : (0, moment_1.default)().add(rgs.date, 'd').format('YYYY-MM-DD HH:mm:ss'),
+            });
+        }
+        const manager = new notify_js_1.ManagerNotify(this.app);
+        manager.userRegister({ user_id: userID });
     }
     async updateAccount(account, userID) {
         try {
@@ -130,9 +137,9 @@ class User {
     async login(account, pwd) {
         try {
             const data = (await database_1.default.execute(`select *
-                                                 from \`${this.app}\`.t_user
-                                                 where account = ?
-                                                   and status = 1`, [account]))[0];
+                     from \`${this.app}\`.t_user
+                     where account = ?
+                       and status = 1`, [account]))[0];
             if (await tool_1.default.compareHash(pwd, data.pwd)) {
                 data.pwd = undefined;
                 data.token = await UserUtil_1.default.generateToken({
@@ -170,11 +177,11 @@ class User {
             });
         });
         if ((await database_1.default.query(`select count(1)
-                             from \`${this.app}\`.t_user
-                             where account = ?`, [fbResponse.email]))[0]['count(1)'] == 0) {
+                     from \`${this.app}\`.t_user
+                     where account = ?`, [fbResponse.email]))[0]['count(1)'] == 0) {
             const userID = generateUserID();
             await database_1.default.execute(`INSERT INTO \`${this.app}\`.\`t_user\` (\`userID\`, \`account\`, \`pwd\`, \`userData\`, \`status\`)
-                              VALUES (?, ?, ?, ?, ?);`, [
+                 VALUES (?, ?, ?, ?, ?);`, [
                 userID,
                 fbResponse.email,
                 await tool_1.default.hashPwd(generateUserID()),
@@ -185,11 +192,12 @@ class User {
                 },
                 1,
             ]);
+            await this.createUserHook(userID);
         }
         const data = (await database_1.default.execute(`select *
-                                             from \`${this.app}\`.t_user
-                                             where account = ?
-                                               and status = 1`, [fbResponse.email]))[0];
+                 from \`${this.app}\`.t_user
+                 where account = ?
+                   and status = 1`, [fbResponse.email]))[0];
         const usData = await this.getUserData(data.userID, 'userID');
         usData.pwd = undefined;
         usData.token = await UserUtil_1.default.generateToken({
@@ -234,11 +242,11 @@ class User {
             }
             const userData = jsonwebtoken_1.default.decode(lineResponse.id_token);
             if ((await database_1.default.query(`select count(1)
-                             from \`${this.app}\`.t_user
-                             where userData->>'$.lineID'=?`, [userData.sub]))[0]['count(1)'] == 0) {
+                         from \`${this.app}\`.t_user
+                         where userData ->>'$.lineID'=?`, [userData.sub]))[0]['count(1)'] == 0) {
                 const userID = generateUserID();
                 await database_1.default.execute(`INSERT INTO \`${this.app}\`.\`t_user\` (\`userID\`, \`account\`, \`pwd\`, \`userData\`, \`status\`)
-                              VALUES (?, ?, ?, ?, ?);`, [
+                     VALUES (?, ?, ?, ?, ?);`, [
                     userID,
                     userData.sub,
                     await tool_1.default.hashPwd(generateUserID()),
@@ -248,10 +256,11 @@ class User {
                     },
                     1,
                 ]);
+                await this.createUserHook(userID);
             }
             const data = (await database_1.default.execute(`select *
-                                             from \`${this.app}\`.t_user
-                                             where userData->>'$.lineID'=?`, [userData.sub]))[0];
+                     from \`${this.app}\`.t_user
+                     where userData ->>'$.lineID'=?`, [userData.sub]))[0];
             const usData = await this.getUserData(data.userID, 'userID');
             usData.pwd = undefined;
             usData.token = await UserUtil_1.default.generateToken({
@@ -280,11 +289,11 @@ class User {
             });
             const payload = ticket.getPayload();
             if ((await database_1.default.query(`select count(1)
-                             from \`${this.app}\`.t_user
-                             where account = ?`, [payload === null || payload === void 0 ? void 0 : payload.email]))[0]['count(1)'] == 0) {
+                         from \`${this.app}\`.t_user
+                         where account = ?`, [payload === null || payload === void 0 ? void 0 : payload.email]))[0]['count(1)'] == 0) {
                 const userID = generateUserID();
                 await database_1.default.execute(`INSERT INTO \`${this.app}\`.\`t_user\` (\`userID\`, \`account\`, \`pwd\`, \`userData\`, \`status\`)
-                              VALUES (?, ?, ?, ?, ?);`, [
+                     VALUES (?, ?, ?, ?, ?);`, [
                     userID,
                     payload === null || payload === void 0 ? void 0 : payload.email,
                     await tool_1.default.hashPwd(generateUserID()),
@@ -294,11 +303,12 @@ class User {
                     },
                     1,
                 ]);
+                await this.createUserHook(userID);
             }
             const data = (await database_1.default.execute(`select *
-                                             from \`${this.app}\`.t_user
-                                             where account = ?
-                                               and status = 1`, [payload === null || payload === void 0 ? void 0 : payload.email]))[0];
+                     from \`${this.app}\`.t_user
+                     where account = ?
+                       and status = 1`, [payload === null || payload === void 0 ? void 0 : payload.email]))[0];
             const usData = await this.getUserData(data.userID, 'userID');
             usData.pwd = undefined;
             usData.token = await UserUtil_1.default.generateToken({
@@ -342,113 +352,131 @@ class User {
         }
     }
     async refreshMember(userData) {
-        const member_list = (await this.getConfigV2({
-            key: 'member_level_config',
-            user_id: 'manager',
-        })).levels || [];
-        const order_list = (await database_1.default.query(`SELECT orderData ->> '$.total' as total, created_time
-                                            FROM \`${this.app}\`.t_checkout
-                                            where email = ${database_1.default.escape(userData.account)}
-                                              and status = 1
-                                            order by id desc`, [])).map((dd) => {
-            return { total_amount: parseInt(`${dd.total}`, 10), date: dd.created_time };
+        const member_update = await this.getConfigV2({
+            key: 'member_update',
+            user_id: userData.userID
         });
-        let pass_level = true;
-        const member = member_list.map((dd) => {
-            if (dd.condition.type === 'single') {
-                const time = order_list.find((d1) => {
-                    return d1.total_amount >= parseInt(dd.condition.value, 10);
-                });
-                if (time) {
-                    let dead_line = new Date(time.created_time);
-                    if (dd.dead_line.type === 'noLimit') {
-                        dead_line.setDate(dead_line.getDate() + 365 * 10);
-                        return {
-                            id: dd.id,
-                            trigger: pass_level,
-                            tag_name: dd.tag_name,
-                            dead_line: dead_line,
-                            og: dd,
-                        };
-                    }
-                    else {
-                        dead_line.setDate(dead_line.getDate() + dd.dead_line.value);
-                        return {
-                            id: dd.id,
-                            trigger: pass_level,
-                            tag_name: dd.tag_name,
-                            dead_line: dead_line,
-                            og: dd,
-                        };
-                    }
-                }
-                else {
-                    let leak = parseInt(dd.condition.value, 10);
-                    if (leak !== 0) {
-                        pass_level = false;
-                    }
-                    return {
-                        id: dd.id,
-                        tag_name: dd.tag_name,
-                        dead_line: '',
-                        trigger: leak === 0 && pass_level,
-                        og: dd,
-                        leak: leak,
-                    };
-                }
-            }
-            else {
-                const date = this.find30DayPeriodWith3000Spent(order_list, parseInt(dd.condition.value, 10), dd.duration.type === 'noLimit' ? 365 * 10 : dd.duration.value, 365 * 10);
-                if (date) {
-                    const latest = new Date(date.end_date);
-                    if (dd.dead_line.type === 'noLimit') {
-                        latest.setDate(latest.getDate() + 365 * 10);
-                        return {
-                            id: dd.id,
-                            trigger: pass_level,
-                            tag_name: dd.tag_name,
-                            dead_line: latest,
-                            og: dd,
-                        };
-                    }
-                    else {
-                        latest.setDate(latest.getDate() + dd.dead_line.value);
-                        return {
-                            id: dd.id,
-                            trigger: pass_level,
-                            tag_name: dd.tag_name,
-                            dead_line: latest,
-                            og: dd,
-                        };
-                    }
-                }
-                else {
-                    let leak = parseInt(dd.condition.value, 10);
-                    let sum = 0;
-                    const compareDate = new Date();
-                    compareDate.setDate(compareDate.getDate() - (dd.duration.type === 'noLimit' ? 365 * 10 : dd.duration.value));
-                    order_list.map((dd) => {
-                        if (new Date().getTime() > compareDate.getTime()) {
-                            leak = leak - dd.total_amount;
-                            sum += dd.total_amount;
-                        }
+        member_update.time = member_update.time || new Date('1997-01-29').toISOString();
+        const update_time = new Date(member_update.time);
+        if (update_time.getTime() < (new Date().getTime() - 1000 * 600)) {
+            const member_list = (await this.getConfigV2({
+                key: 'member_level_config',
+                user_id: 'manager',
+            })).levels || [];
+            const order_list = (await database_1.default.query(`SELECT orderData ->> '$.total' as total, created_time
+                 FROM \`${this.app}\`.t_checkout
+                 where email = ${database_1.default.escape(userData.account)}
+                   and status = 1
+                 order by id desc`, [])).map((dd) => {
+                return { total_amount: parseInt(`${dd.total}`, 10), date: dd.created_time };
+            });
+            let pass_level = true;
+            const member = member_list.map((dd) => {
+                if (dd.condition.type === 'single') {
+                    const time = order_list.find((d1) => {
+                        return d1.total_amount >= parseInt(dd.condition.value, 10);
                     });
-                    if (leak !== 0) {
-                        pass_level = false;
+                    if (time) {
+                        let dead_line = new Date(time.created_time);
+                        if (dd.dead_line.type === 'noLimit') {
+                            dead_line.setDate(dead_line.getDate() + 365 * 10);
+                            return {
+                                id: dd.id,
+                                trigger: pass_level,
+                                tag_name: dd.tag_name,
+                                dead_line: dead_line,
+                                og: dd,
+                            };
+                        }
+                        else {
+                            dead_line.setDate(dead_line.getDate() + dd.dead_line.value);
+                            return {
+                                id: dd.id,
+                                trigger: pass_level,
+                                tag_name: dd.tag_name,
+                                dead_line: dead_line,
+                                og: dd,
+                            };
+                        }
                     }
-                    return {
-                        id: dd.id,
-                        tag_name: dd.tag_name,
-                        dead_line: '',
-                        trigger: leak === 0 && pass_level,
-                        leak: leak,
-                        sum: sum,
-                        og: dd,
-                    };
+                    else {
+                        let leak = parseInt(dd.condition.value, 10);
+                        if (leak !== 0) {
+                            pass_level = false;
+                        }
+                        return {
+                            id: dd.id,
+                            tag_name: dd.tag_name,
+                            dead_line: '',
+                            trigger: leak === 0 && pass_level,
+                            og: dd,
+                            leak: leak,
+                        };
+                    }
                 }
-            }
-        });
-        return member.reverse();
+                else {
+                    const date = this.find30DayPeriodWith3000Spent(order_list, parseInt(dd.condition.value, 10), dd.duration.type === 'noLimit' ? 365 * 10 : dd.duration.value, 365 * 10);
+                    if (date) {
+                        const latest = new Date(date.end_date);
+                        if (dd.dead_line.type === 'noLimit') {
+                            latest.setDate(latest.getDate() + 365 * 10);
+                            return {
+                                id: dd.id,
+                                trigger: pass_level,
+                                tag_name: dd.tag_name,
+                                dead_line: latest,
+                                og: dd,
+                            };
+                        }
+                        else {
+                            latest.setDate(latest.getDate() + dd.dead_line.value);
+                            return {
+                                id: dd.id,
+                                trigger: pass_level,
+                                tag_name: dd.tag_name,
+                                dead_line: latest,
+                                og: dd,
+                            };
+                        }
+                    }
+                    else {
+                        let leak = parseInt(dd.condition.value, 10);
+                        let sum = 0;
+                        const compareDate = new Date();
+                        compareDate.setDate(compareDate.getDate() - (dd.duration.type === 'noLimit' ? 365 * 10 : dd.duration.value));
+                        order_list.map((dd) => {
+                            if (new Date().getTime() > compareDate.getTime()) {
+                                leak = leak - dd.total_amount;
+                                sum += dd.total_amount;
+                            }
+                        });
+                        if (leak !== 0) {
+                            pass_level = false;
+                        }
+                        return {
+                            id: dd.id,
+                            tag_name: dd.tag_name,
+                            dead_line: '',
+                            trigger: leak === 0 && pass_level,
+                            leak: leak,
+                            sum: sum,
+                            og: dd,
+                        };
+                    }
+                }
+            });
+            member_update.value = member.reverse();
+            member_update.time = new Date();
+            await this.setConfig({
+                key: 'member_update',
+                user_id: userData.userID,
+                value: member_update
+            });
+            return member.reverse();
+        }
+        else {
+            return member_update.value;
+        }
     }
     find30DayPeriodWith3000Spent(transactions, total, duration, dead_line) {
         const ONE_YEAR_MS = dead_line * 24 * 60 * 60 * 1000;
@@ -483,19 +511,15 @@ class User {
     getUserAndOrderSQL(obj) {
         const sql = `
             SELECT ${obj.select}
-            FROM 
-                (SELECT 
-                    email, 
-                    COUNT(*) AS order_count, 
-                    SUM(CAST(JSON_EXTRACT(orderData, '$.total') AS DECIMAL(10, 2))) AS total_amount
-                FROM 
-                    \`${this.app}\`.t_checkout
-                WHERE status = 1
-                GROUP BY email) as o
-            RIGHT JOIN 
-                \`${this.app}\`.t_user u ON o.email = u.account
-            WHERE
-                (${obj.where.filter((str) => str.length > 0).join(' AND ')})
+            FROM (SELECT email,
+                         COUNT(*)                                                        AS order_count,
+                         SUM(CAST(JSON_EXTRACT(orderData, '$.total') AS DECIMAL(10, 2))) AS total_amount
+                  FROM \`${this.app}\`.t_checkout
+                  WHERE status = 1
+                  GROUP BY email) as o
+                     RIGHT JOIN
+                 \`${this.app}\`.t_user u ON o.email = u.account
+            WHERE (${obj.where.filter((str) => str.length > 0).join(' AND ')})
             ORDER BY ${(() => {
             switch (obj.orderBy) {
                 case 'order_total_desc':
@@ -515,8 +539,7 @@ class User {
                 default:
                     return 'u.id DESC';
             }
-        })()} 
-            ${obj.page !== undefined && obj.limit !== undefined ? `LIMIT ${obj.page * obj.limit}, ${obj.limit}` : ''};
+        })()} ${obj.page !== undefined && obj.limit !== undefined ? `LIMIT ${obj.page * obj.limit}, ${obj.limit}` : ''};
         `;
         return sql;
     }
@@ -601,7 +624,7 @@ class User {
                 database: this.app,
             }, async (sql) => {
                 await sql.query(`replace
-                into t_subscribe (email,tag) values (?,?)`, [email, tag]);
+                        into t_subscribe (email,tag) values (?,?)`, [email, tag]);
             });
         }
         catch (e) {
@@ -614,7 +637,7 @@ class User {
                 database: this.app,
             }, async (sql) => {
                 await sql.query(`replace
-                into t_fcm (userID,deviceToken) values (?,?)`, [userID, deviceToken]);
+                        into t_fcm (userID,deviceToken) values (?,?)`, [userID, deviceToken]);
             });
         }
         catch (e) {
@@ -624,8 +647,8 @@ class User {
     async deleteSubscribe(email) {
         try {
             await database_1.default.query(`delete
-                            FROM \`${this.app}\`.t_subscribe
-                            where email in (?)`, [email.split(',')]);
+                 FROM \`${this.app}\`.t_subscribe
+                 where email in (?)`, [email.split(',')]);
             return {
                 result: true,
             };
@@ -662,8 +685,8 @@ class User {
             const data = await new ut_database_js_1.UtDatabase(this.app, `t_fcm`).querySql(querySql, query);
             for (const b of data.data) {
                 let userData = (await database_1.default.query(`select userData
-                                                from \`${this.app}\`.t_user
-                                                where userID = ?`, [b.userID]))[0];
+                         from \`${this.app}\`.t_user
+                         where userID = ?`, [b.userID]))[0];
                 b.userData = userData && userData.userData;
             }
             return data;
@@ -675,8 +698,8 @@ class User {
     async deleteUser(query) {
         try {
             await database_1.default.query(`delete
-                            FROM \`${this.app}\`.t_user
-                            where id in (?)`, [query.id.split(',')]);
+                 FROM \`${this.app}\`.t_user
+                 where id in (?)`, [query.id.split(',')]);
             return {
                 result: true,
             };
@@ -688,8 +711,8 @@ class User {
     async updateUserData(userID, par, manager = false) {
         try {
             const userData = (await database_1.default.query(`select *
-                                              from \`${this.app}\`.\`t_user\`
-                                              where userID = ${database_1.default.escape(userID)}`, []))[0];
+                     from \`${this.app}\`.\`t_user\`
+                     where userID = ${database_1.default.escape(userID)}`, []))[0];
             const configAd = await app_js_1.default.getAdConfig(this.app, 'glitter_loginConfig');
             if (!manager &&
                 par.userData.email &&
@@ -709,9 +732,9 @@ class User {
             }
             else if (par.userData.email) {
                 await database_1.default.query(`update \`${this.app}\`.t_checkout
-                                set email=?
-                                where id > 0
-                                  and email = ?`, [par.userData.email, userData.account]);
+                     set email=?
+                     where id > 0
+                       and email = ?`, [par.userData.email, userData.account]);
                 userData.account = par.userData.email;
             }
             par.userData = await this.checkUpdate({
@@ -729,9 +752,9 @@ class User {
             }
             return {
                 data: (await database_1.default.query(`update \`${this.app}\`.t_user
-                                       SET ?
-                                       WHERE 1 = 1
-                                         and userID = ?`, [par, userID])),
+                     SET ?
+                     WHERE 1 = 1
+                       and userID = ?`, [par, userID])),
             };
         }
         catch (e) {
@@ -741,8 +764,8 @@ class User {
     async checkUpdate(cf) {
         let config = await app_js_1.default.getAdConfig(this.app, 'glitterUserForm');
         let originUserData = (await database_1.default.query(`select userData
-                                              from \`${this.app}\`.\`t_user\`
-                                              where userID = ${database_1.default.escape(cf.userID)}`, []))[0]['userData'];
+                 from \`${this.app}\`.\`t_user\`
+                 where userID = ${database_1.default.escape(cf.userID)}`, []))[0]['userData'];
         if (typeof originUserData !== 'object') {
             originUserData = {};
         }
@@ -763,16 +786,16 @@ class User {
         mapUserData(cf.updateUserData, originUserData);
         return originUserData;
     }
-    async resetPwd(userID, newPwd) {
+    async resetPwd(user_id_and_account, newPwd) {
         try {
             const result = (await database_1.default.query(`update \`${this.app}\`.t_user
-                                            SET ?
-                                            WHERE 1 = 1
-                                              and userID = ?`, [
+                 SET ?
+                 WHERE 1 = 1
+                   and ( (account = ?))`, [
                 {
                     pwd: await tool_1.default.hashPwd(newPwd),
                 },
-                userID,
+                user_id_and_account
             ]));
             return {
                 result: true,
@@ -785,14 +808,14 @@ class User {
     async resetPwdNeedCheck(userID, pwd, newPwd) {
         try {
             const data = (await database_1.default.execute(`select *
-                                                 from \`${this.app}\`.t_user
-                                                 where userID = ?
-                                                   and status = 1`, [userID]))[0];
+                     from \`${this.app}\`.t_user
+                     where userID = ?
+                       and status = 1`, [userID]))[0];
             if (await tool_1.default.compareHash(pwd, data.pwd)) {
                 const result = (await database_1.default.query(`update \`${this.app}\`.t_user
-                                                SET ?
-                                                WHERE 1 = 1
-                                                  and userID = ?`, [
+                     SET ?
+                     WHERE 1 = 1
+                       and userID = ?`, [
                     {
                         pwd: await tool_1.default.hashPwd(newPwd),
                     },
@@ -817,8 +840,8 @@ class User {
                          where JSON_EXTRACT(userData, '$.mailVerify') = ${database_1.default.escape(token)}`;
             const userData = (await database_1.default.query(sql, []))[0]['userData'];
             await database_1.default.execute(`update \`${this.app}\`.t_user
-                              set account=${database_1.default.escape(userData.updateAccount)}
-                              where JSON_EXTRACT(userData, '$.mailVerify') = ?`, [token]);
+                 set account=${database_1.default.escape(userData.updateAccount)}
+                 where JSON_EXTRACT(userData, '$.mailVerify') = ?`, [token]);
         }
         catch (e) {
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'updateAccountBack Error:' + e, null);
@@ -830,9 +853,9 @@ class User {
                 status: 1,
             };
             return (await database_1.default.query(`update \`${this.app}\`.t_user
-                                    SET ?
-                                    WHERE 1 = 1
-                                      and JSON_EXTRACT(userData, '$.mailVerify') = ?`, [par, token]));
+                 SET ?
+                 WHERE 1 = 1
+                   and JSON_EXTRACT(userData, '$.mailVerify') = ?`, [par, token]));
         }
         catch (e) {
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'Verify Error:' + e, null);
@@ -841,9 +864,9 @@ class User {
     async checkUserExists(account) {
         try {
             return ((await database_1.default.execute(`select count(1)
-                                      from \`${this.app}\`.t_user
-                                      where account = ?
-                                        and status!=0`, [account]))[0]['count(1)'] == 1);
+                         from \`${this.app}\`.t_user
+                         where account = ?
+                           and status!=0`, [account]))[0]['count(1)'] == 1);
         }
         catch (e) {
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'CheckUserExists Error:' + e, null);
@@ -851,7 +874,9 @@ class User {
     }
     async checkUserIdExists(id) {
         try {
-            const count = (await database_1.default.query(`select count(1) from \`${this.app}\`.t_user where userID = ?`, [id]))[0]['count(1)'];
+            const count = (await database_1.default.query(`select count(1)
+                                           from \`${this.app}\`.t_user
+                                           where userID = ?`, [id]))[0]['count(1)'];
             return count;
         }
         catch (e) {
@@ -865,17 +890,19 @@ class User {
                 config.value = JSON.stringify(config.value);
             }
             if ((await database_1.default.query(`select count(1)
-                                 from \`${this.app}\`.t_user_public_config
-                                 where \`key\` = ? and user_id=? `, [config.key, (_a = config.user_id) !== null && _a !== void 0 ? _a : this.token.userID]))[0]['count(1)'] === 1) {
+                         from \`${this.app}\`.t_user_public_config
+                         where \`key\` = ?
+                           and user_id = ? `, [config.key, (_a = config.user_id) !== null && _a !== void 0 ? _a : this.token.userID]))[0]['count(1)'] === 1) {
                 await database_1.default.query(`update \`${this.app}\`.t_user_public_config
-                                set value=?
-                                where \`key\` = ? and user_id=?`, [config.value, config.key, (_b = config.user_id) !== null && _b !== void 0 ? _b : this.token.userID]);
+                     set value=? , updated_at=?
+                     where \`key\` = ?
+                       and user_id = ?`, [config.value, new Date(), config.key, (_b = config.user_id) !== null && _b !== void 0 ? _b : this.token.userID]);
             }
             else {
                 await database_1.default.query(`insert
-                                into \`${this.app}\`.t_user_public_config (\`user_id\`, \`key\`, \`value\`, updated_at)
-                                values (?, ?, ?, ?)
-                `, [(_c = config.user_id) !== null && _c !== void 0 ? _c : this.token.userID, config.key, config.value, new Date()]);
+                     into \`${this.app}\`.t_user_public_config (\`user_id\`, \`key\`, \`value\`, updated_at)
+                     values (?, ?, ?, ?)
+                    `, [(_c = config.user_id) !== null && _c !== void 0 ? _c : this.token.userID, config.key, config.value, new Date()]);
             }
         }
         catch (e) {
@@ -886,10 +913,10 @@ class User {
     async getConfig(config) {
         try {
             return await database_1.default.execute(`select *
-                                     from \`${this.app}\`.t_user_public_config
-                                     where \`key\` = ${database_1.default.escape(config.key)}
-                                       and user_id = ${database_1.default.escape(config.user_id)}
-            `, []);
+                 from \`${this.app}\`.t_user_public_config
+                 where \`key\` = ${database_1.default.escape(config.key)}
+                   and user_id = ${database_1.default.escape(config.user_id)}
+                `, []);
         }
         catch (e) {
             console.error(e);
@@ -899,10 +926,10 @@ class User {
     async getConfigV2(config) {
         try {
             const data = await database_1.default.execute(`select *
-                                           from \`${this.app}\`.t_user_public_config
-                                           where \`key\` = ${database_1.default.escape(config.key)}
-                                             and user_id = ${database_1.default.escape(config.user_id)}
-            `, []);
+                 from \`${this.app}\`.t_user_public_config
+                 where \`key\` = ${database_1.default.escape(config.key)}
+                   and user_id = ${database_1.default.escape(config.user_id)}
+                `, []);
             return (data[0] && data[0].value) || {};
         }
         catch (e) {
@@ -912,7 +939,9 @@ class User {
     }
     async checkEmailExists(email) {
         try {
-            const count = (await database_1.default.query(`select count(1) from \`${this.app}\`.t_user where account=?`, [email]))[0]['count(1)'];
+            const count = (await database_1.default.query(`select count(1)
+                                           from \`${this.app}\`.t_user
+                                           where account = ?`, [email]))[0]['count(1)'];
             return count;
         }
         catch (e) {
@@ -923,14 +952,14 @@ class User {
         var _a, _b;
         try {
             const last_read_time = await database_1.default.query(`SELECT value
-                                                   FROM \`${this.app}\`.t_user_public_config
-                                                   where \`key\` = 'notice_last_read'
-                                                     and user_id = ?;`, [(_a = this.token) === null || _a === void 0 ? void 0 : _a.userID]);
+                 FROM \`${this.app}\`.t_user_public_config
+                 where \`key\` = 'notice_last_read'
+                   and user_id = ?;`, [(_a = this.token) === null || _a === void 0 ? void 0 : _a.userID]);
             const date = !last_read_time[0] ? new Date('2022-01-29') : new Date(last_read_time[0].value.time);
             const count = (await database_1.default.query(`select count(1)
-                                           from \`${this.app}\`.t_notice
-                                           where user_id = ?
-                                             and created_time > ?`, [(_b = this.token) === null || _b === void 0 ? void 0 : _b.userID, date]))[0]['count(1)'];
+                     from \`${this.app}\`.t_notice
+                     where user_id = ?
+                       and created_time > ?`, [(_b = this.token) === null || _b === void 0 ? void 0 : _b.userID, date]))[0]['count(1)'];
             return {
                 count: count,
             };
@@ -945,19 +974,19 @@ class User {
             const query = [`user_id=${(_a = this.token) === null || _a === void 0 ? void 0 : _a.userID}`];
             let last_time_read = 0;
             const last_read_time = await database_1.default.query(`SELECT value
-                                                   FROM \`${this.app}\`.t_user_public_config
-                                                   where \`key\` = 'notice_last_read'
-                                                     and user_id = ?;`, [(_b = this.token) === null || _b === void 0 ? void 0 : _b.userID]);
+                 FROM \`${this.app}\`.t_user_public_config
+                 where \`key\` = 'notice_last_read'
+                   and user_id = ?;`, [(_b = this.token) === null || _b === void 0 ? void 0 : _b.userID]);
             if (!last_read_time[0]) {
                 await database_1.default.query(`insert into \`${this.app}\`.t_user_public_config (user_id, \`key\`, value, updated_at)
-                                values (?, ?, ?, ?)`, [(_c = this.token) === null || _c === void 0 ? void 0 : _c.userID, 'notice_last_read', JSON.stringify({ time: new Date() }), new Date()]);
+                     values (?, ?, ?, ?)`, [(_c = this.token) === null || _c === void 0 ? void 0 : _c.userID, 'notice_last_read', JSON.stringify({ time: new Date() }), new Date()]);
             }
             else {
                 last_time_read = new Date(last_read_time[0].value.time).getTime();
                 await database_1.default.query(`update \`${this.app}\`.t_user_public_config
-                                set \`value\`=?
-                                where user_id = ?
-                                  and \`key\` = ?`, [JSON.stringify({ time: new Date() }), `${(_d = this.token) === null || _d === void 0 ? void 0 : _d.userID}`, 'notice_last_read']);
+                     set \`value\`=?
+                     where user_id = ?
+                       and \`key\` = ?`, [JSON.stringify({ time: new Date() }), `${(_d = this.token) === null || _d === void 0 ? void 0 : _d.userID}`, 'notice_last_read']);
             }
             const response = await new ut_database_js_1.UtDatabase(this.app, `t_notice`).querySql(query, cf.query);
             response.last_time_read = last_time_read;
@@ -967,6 +996,13 @@ class User {
             console.error(e);
             throw exception_1.default.BadRequestError('ERROR', 'ERROR.' + e, null);
         }
+    }
+    async forgetPassword(email) {
+        const data = await auto_send_email_js_1.AutoSendEmail.getDefCompare(this.app, 'auto-email-forget');
+        const code = tool_js_1.default.randomNumber(6);
+        await redis_js_1.default.setValue(`forget-${email}`, code);
+        await redis_js_1.default.setValue(`forget-count-${email}`, '0');
+        (0, ses_js_1.sendmail)(`${data.name} <${process_1.default.env.smtp}>`, email, data.title, data.content.replace('@{{code}}', code));
     }
     constructor(app, token) {
         this.app = app;

@@ -1,4 +1,5 @@
 export declare class ConfigSetting {
+    static runSchedule: boolean;
     static config_path: string;
     static setConfig(envPath: string): void;
 }

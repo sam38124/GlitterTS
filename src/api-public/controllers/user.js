@@ -8,9 +8,8 @@ const database_1 = __importDefault(require("../../modules/database"));
 const user_1 = require("../services/user");
 const exception_1 = __importDefault(require("../../modules/exception"));
 const config_js_1 = __importDefault(require("../../config.js"));
-const ses_js_1 = require("../../services/ses.js");
-const UserUtil_js_1 = __importDefault(require("../../utils/UserUtil.js"));
 const ut_permission_js_1 = require("../utils/ut-permission.js");
+const redis_js_1 = __importDefault(require("../../modules/redis.js"));
 const router = express_1.default.Router();
 router.post('/register', async (req, resp) => {
     try {
@@ -76,149 +75,14 @@ router.get('/checkMail/updateAccount', async (req, resp) => {
     }
 });
 router.post('/forget', async (req, resp) => {
-    var _a;
     try {
-        let data = await database_1.default.query(`select \`value\`
-                                   from \`${config_js_1.default.DB_NAME}\`.private_config
-                                   where app_name = '${req.get('g-app')}'
-                                     and \`key\` = 'glitter_loginConfig'`, []);
-        if (data.length > 0) {
-            data = data[0]['value'];
-        }
-        else {
-            data = {
-                verify: `normal`,
-                link: ``
-            };
-        }
         const sql = `select *
                      from \`${req.get('g-app')}\`.t_user
                      where account = ${database_1.default.escape(req.body.email)}
                        and status = 1`;
         const userData = await database_1.default.execute(sql, []);
-        console.log(`userData:${sql}`);
         if (userData.length > 0) {
-            const token = await UserUtil_js_1.default.generateToken({
-                user_id: userData[0]["userID"],
-                account: userData[0]["account"],
-                userData: userData[0]
-            });
-            data.forget_content = (_a = data.forget_content) !== null && _a !== void 0 ? _a : '';
-            if (data.forget_content.indexOf('@{{code}}') === -1) {
-                data.forget_content = `<div style="margin:0">
-                                                        <table style="height:100%!important;width:100%!important;border-spacing:0;border-collapse:collapse">
-                                                            <tbody>
-                                                            <tr>
-                                                                <td style="font-family:-apple-system,BlinkMacSystemFont,&quot;Segoe UI&quot;,&quot;Roboto&quot;,&quot;Oxygen&quot;,&quot;Ubuntu&quot;,&quot;Cantarell&quot;,&quot;Fira Sans&quot;,&quot;Droid Sans&quot;,&quot;Helvetica Neue&quot;,sans-serif">
-                                                                    <table class="m_-7325585852261570963header"
-                                                                           style="width:100%;border-spacing:0;border-collapse:collapse;margin:40px 0 20px">
-                                                                        <tbody>
-                                                                        <tr>
-                                                                            <td style="font-family:-apple-system,BlinkMacSystemFont,&quot;Segoe UI&quot;,&quot;Roboto&quot;,&quot;Oxygen&quot;,&quot;Ubuntu&quot;,&quot;Cantarell&quot;,&quot;Fira Sans&quot;,&quot;Droid Sans&quot;,&quot;Helvetica Neue&quot;,sans-serif">
-                                                                                <center>
-
-                                                                                    <table class="m_-7325585852261570963container"
-                                                                                           style="width:560px;text-align:left;border-spacing:0;border-collapse:collapse;margin:0 auto">
-                                                                                        <tbody>
-                                                                                        <tr>
-                                                                                            <td style="font-family:-apple-system,BlinkMacSystemFont,&quot;Segoe UI&quot;,&quot;Roboto&quot;,&quot;Oxygen&quot;,&quot;Ubuntu&quot;,&quot;Cantarell&quot;,&quot;Fira Sans&quot;,&quot;Droid Sans&quot;,&quot;Helvetica Neue&quot;,sans-serif">
-
-                                                                                                <table style="width:100%;border-spacing:0;border-collapse:collapse">
-                                                                                                    <tbody>
-                                                                                                    <tr>
-                                                                                                        <td class="m_-7325585852261570963shop-name__cell"
-                                                                                                            style="font-family:-apple-system,BlinkMacSystemFont,&quot;Segoe UI&quot;,&quot;Roboto&quot;,&quot;Oxygen&quot;,&quot;Ubuntu&quot;,&quot;Cantarell&quot;,&quot;Fira Sans&quot;,&quot;Droid Sans&quot;,&quot;Helvetica Neue&quot;,sans-serif">
-                                                                                                            <h1 style="font-weight:normal;font-size:30px;color:#333;margin:0">
-                                                                                                                <a href="">GLITTER.AI</a>
-                                                                                                            </h1>
-                                                                                                        </td>
-
-                                                                                                    </tr>
-                                                                                                    </tbody>
-                                                                                                </table>
-
-                                                                                            </td>
-                                                                                        </tr>
-                                                                                        </tbody>
-                                                                                    </table>
-
-                                                                                </center>
-                                                                            </td>
-                                                                        </tr>
-                                                                        </tbody>
-                                                                    </table>
-
-                                                                    <table style="width:100%;border-spacing:0;border-collapse:collapse">
-                                                                        <tbody>
-                                                                        <tr>
-                                                                            <td style="font-family:-apple-system,BlinkMacSystemFont,&quot;Segoe UI&quot;,&quot;Roboto&quot;,&quot;Oxygen&quot;,&quot;Ubuntu&quot;,&quot;Cantarell&quot;,&quot;Fira Sans&quot;,&quot;Droid Sans&quot;,&quot;Helvetica Neue&quot;,sans-serif;padding-bottom:40px;border-width:0">
-                                                                                <center>
-                                                                                    <table class="m_-7325585852261570963container"
-                                                                                           style="width:560px;text-align:left;border-spacing:0;border-collapse:collapse;margin:0 auto">
-                                                                                        <tbody>
-                                                                                        <tr>
-                                                                                            <td style="font-family:-apple-system,BlinkMacSystemFont,&quot;Segoe UI&quot;,&quot;Roboto&quot;,&quot;Oxygen&quot;,&quot;Ubuntu&quot;,&quot;Cantarell&quot;,&quot;Fira Sans&quot;,&quot;Droid Sans&quot;,&quot;Helvetica Neue&quot;,sans-serif">
-
-                                                                                                <h2 style="font-weight:normal;font-size:24px;margin:0 0 10px">
-                                                                                                    重設密碼</h2>
-                                                                                                <p style="color:#777;line-height:150%;font-size:16px;margin:0">
-                                                                                                    利用此連結前往 <a
-                                                                                                >GLITTER.AI</a>
-                                                                                                    重設你的顧客帳號密碼。如果你沒有申請新密碼，
-                                                                                                    <wbr>
-                                                                                                    可以安心刪除這封電子郵件。
-                                                                                                </p>
-                                                                                                <table style="width:100%;border-spacing:0;border-collapse:collapse;margin-top:20px">
-                                                                                                    <tbody>
-                                                                                                    <tr>
-                                                                                                        <td style="font-family:-apple-system,BlinkMacSystemFont,&quot;Segoe UI&quot;,&quot;Roboto&quot;,&quot;Oxygen&quot;,&quot;Ubuntu&quot;,&quot;Cantarell&quot;,&quot;Fira Sans&quot;,&quot;Droid Sans&quot;,&quot;Helvetica Neue&quot;,sans-serif;line-height:0em">
-                                                                                                            &nbsp;
-                                                                                                        </td>
-                                                                                                    </tr>
-                                                                                                    <tr>
-                                                                                                        <td style="font-family:-apple-system,BlinkMacSystemFont,&quot;Segoe UI&quot;,&quot;Roboto&quot;,&quot;Oxygen&quot;,&quot;Ubuntu&quot;,&quot;Cantarell&quot;,&quot;Fira Sans&quot;,&quot;Droid Sans&quot;,&quot;Helvetica Neue&quot;,sans-serif">
-                                                                                                            <table class="m_-7325585852261570963button m_-7325585852261570963main-action-cell"
-                                                                                                                   style="border-spacing:0;border-collapse:collapse;float:left;margin-right:15px">
-                                                                                                                <tbody>
-                                                                                                                <tr>
-                                                                                                                    <td style="font-family:-apple-system,BlinkMacSystemFont,&quot;Segoe UI&quot;,&quot;Roboto&quot;,&quot;Oxygen&quot;,&quot;Ubuntu&quot;,&quot;Cantarell&quot;,&quot;Fira Sans&quot;,&quot;Droid Sans&quot;,&quot;Helvetica Neue&quot;,sans-serif;border-radius:4px"
-                                                                                                                        align="center"
-                                                                                                                        bgcolor="black">
-                                                                                                                        <a href="@{{code}}"
-                                                                                                                           class="m_-7325585852261570963button__text"
-                                                                                                                           style="font-size:16px;text-decoration:none;display:block;color:#fff;padding:20px 25px">重設密碼</a>
-                                                                                                                    </td>
-                                                                                                                </tr>
-                                                                                                                </tbody>
-                                                                                                            </table>
-
-
-                                                                                                        </td>
-                                                                                                    </tr>
-                                                                                                    </tbody>
-                                                                                                </table>
-
-
-                                                                                            </td>
-                                                                                        </tr>
-                                                                                        </tbody>
-                                                                                    </table>
-                                                                                </center>
-                                                                            </td>
-                                                                        </tr>
-                                                                        </tbody>
-                                                                    </table>
-                                                                </td>
-                                                            </tr>
-                                                            </tbody>
-                                                        </table>
-                                                        <div class="yj6qo"></div>
-                                                        <div class="adL">
-                                                        </div>
-                                                    </div>`;
-            }
-            let url = data.forget_content.replace(`@{{code}}`, `${req.body.host_name}?page=${data.forget_page}&token=${token}&appName=${req.get('g-app')}&return_type=resetPassword`);
-            await (0, ses_js_1.sendmail)(`service@ncdesign.info`, req.body.email, data.forget_title || "忘記密碼", url);
+            await new user_1.User(req.get('g-app')).forgetPassword(req.body.email);
             return response_1.default.succ(resp, {
                 result: true
             });
@@ -227,6 +91,42 @@ router.post('/forget', async (req, resp) => {
             return response_1.default.succ(resp, {
                 result: false
             });
+        }
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.post('/forget/check-code', async (req, resp) => {
+    try {
+        const forget_code = (await redis_js_1.default.getValue(`forget-${req.body.email}`));
+        const forget_count = parseInt((await redis_js_1.default.getValue(`forget-count-${req.body.email}`)) || '5', 10);
+        if (forget_code && (forget_code === req.body.code) && (forget_count < 5)) {
+            return response_1.default.succ(resp, {
+                result: true
+            });
+        }
+        else {
+            (await redis_js_1.default.setValue(`forget-count-${req.body.email}`, `${forget_count + 1}`));
+            throw exception_1.default.BadRequestError('AUTH_FALSE', 'Code is not equal.', null);
+        }
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.put('/reset/pwd', async (req, resp) => {
+    try {
+        const forget_code = (await redis_js_1.default.getValue(`forget-${req.body.email}`));
+        if (forget_code && (forget_code === req.body.code)) {
+            await new user_1.User(req.get('g-app')).resetPwd(req.body.email, req.body.pwd);
+            return response_1.default.succ(resp, {
+                result: true
+            });
+        }
+        else {
+            (await redis_js_1.default.deleteKey(`forget-${req.body.email}`));
+            throw exception_1.default.BadRequestError('AUTH_FALSE', 'Code is not equal.', null);
         }
     }
     catch (err) {
@@ -413,10 +313,12 @@ router.get('/public/config', async (req, resp) => {
     var _a, _b;
     try {
         const post = new user_1.User(req.get('g-app'), req.body.token);
-        return response_1.default.succ(resp, { result: true, value: (_b = ((_a = (await post.getConfig({
+        return response_1.default.succ(resp, {
+            result: true, value: (_b = ((_a = (await post.getConfig({
                 key: req.query.key,
                 user_id: req.query.user_id
-            }))[0]) !== null && _a !== void 0 ? _a : {})['value']) !== null && _b !== void 0 ? _b : "" });
+            }))[0]) !== null && _a !== void 0 ? _a : {})['value']) !== null && _b !== void 0 ? _b : ""
+        });
     }
     catch (err) {
         return response_1.default.fail(resp, err);
