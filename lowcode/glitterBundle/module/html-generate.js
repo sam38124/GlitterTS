@@ -1616,6 +1616,9 @@ ${obj.gvc.bindView({
                         scrollToHover(gvc.glitter.$(`.editor_it_${widgetComponentID}`).get(0));
                     });
                 }
+                if (document.body.clientWidth < 800) {
+                    glitter.openDrawer();
+                }
                 event && event.stopPropagation && event.stopPropagation();
             }
             catch (e) {

@@ -50,7 +50,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
 
       .scroll-out {
         left: 0%; /* 將元素移到畫面外 */
-        animation: slideOutFromLeft 1s ease-out forwards;
+        animation: slideOutFromLeft 0.5s ease-out forwards;
       }
 
       /* @keyframes 定義動畫 */
@@ -80,7 +80,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
 
       .scroll-right-out {
         right: 0; /* 將元素移到畫面外 */
-        animation: slideOutRight 1s ease-out forwards;
+        animation: slideOutRight 0.5s ease-out forwards;
       }
 
       /* @keyframes 定義動畫 */
@@ -492,8 +492,7 @@ ${(Storage.page_setting_item === `${da.index}`) ? `background:${EditorConfig.edi
                                             }
                                         })();
                                         if (document.body.offsetWidth < 800) {
-                                            glitter.setDrawer(view, () => {
-                                            });
+                                            glitter.setDrawer(`<div class="bg-white vh-100 overflow-auto">${view}</div>`, () => { });
                                             return ``;
                                         }
                                         else {
@@ -614,6 +613,7 @@ function initialEditor(gvc, viewModel) {
         }
     }
     glitter.share.addComponent = (data) => {
+        AddComponent.toggle(false);
         resetId(data);
         const url = new URL(location.href);
         url.search = '';
@@ -648,6 +648,7 @@ function initialEditor(gvc, viewModel) {
         AddComponent.toggle(false);
     };
     glitter.share.addWithIndex = (cf) => {
+        AddComponent.toggle(false);
         resetId(cf.data);
         const arrayData = glitter.share.findWidgetIndex(cf.index);
         const url = new URL(location.href);

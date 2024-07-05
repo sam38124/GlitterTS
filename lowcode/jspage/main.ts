@@ -44,7 +44,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
 
       .scroll-out {
         left: 0%; /* 將元素移到畫面外 */
-        animation: slideOutFromLeft 1s ease-out forwards;
+        animation: slideOutFromLeft 0.5s ease-out forwards;
       }
 
       /* @keyframes 定義動畫 */
@@ -74,7 +74,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
 
       .scroll-right-out {
         right: 0; /* 將元素移到畫面外 */
-        animation: slideOutRight 1s ease-out forwards;
+        animation: slideOutRight 0.5s ease-out forwards;
       }
 
       /* @keyframes 定義動畫 */
@@ -521,8 +521,7 @@ ${(Storage.page_setting_item === `${da.index}`) ? `background:${EditorConfig.edi
                                                 }
                                             })()
                                             if (document.body.offsetWidth < 800) {
-                                                glitter.setDrawer(view, () => {
-                                                })
+                                                glitter.setDrawer(`<div class="bg-white vh-100 overflow-auto">${view}</div>`, () => {})
                                                 return ``
                                             } else {
                                                 return view
@@ -672,6 +671,7 @@ function initialEditor(gvc: GVC, viewModel: any) {
 
     //添加Component至當前頁面
     glitter.share.addComponent = (data: any) => {
+        AddComponent.toggle(false)
         resetId(data);
         const url = new URL(location.href)
         url.search = ''
@@ -711,6 +711,7 @@ function initialEditor(gvc: GVC, viewModel: any) {
         index: string,
         direction: number
     }) => {
+        AddComponent.toggle(false)
         resetId(cf.data);
         const arrayData = glitter.share.findWidgetIndex(cf.index);
         const url = new URL(location.href)

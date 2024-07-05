@@ -310,10 +310,23 @@ ${(obj.style || []) && obj.style[index] ? obj.style[index] : ``}
         return html `
             <div class="main-card ${classString !== null && classString !== void 0 ? classString : ''}" style="${styleString !== null && styleString !== void 0 ? styleString : ''}">${htmlString !== null && htmlString !== void 0 ? htmlString : ''}</div>`;
     }
+    static mainCardMbp0(htmlString, classString, styleString) {
+        return html `
+            <div class="main-card ${classString !== null && classString !== void 0 ? classString : ''}  " style="${document.body.clientWidth < 800 ? `border-radius: 0px;` : ``}${styleString !== null && styleString !== void 0 ? styleString : ''} ">${htmlString !== null && htmlString !== void 0 ? htmlString : ''}</div>`;
+    }
     static container(htmlString, width, style) {
         return html `
             <div
                     class="${document.body.clientWidth < 768 ? 'row col-12 w-100' : ''}"
+                    style="padding: 24px ${document.body.clientWidth < 768 ? '0.75rem' : '0'}; margin: 0 auto; ${width ? `max-width:100%; width:${width}px;` : ``} ${style !== null && style !== void 0 ? style : ''}"
+            >
+                ${htmlString}
+            </div>`;
+    }
+    static containerMax(htmlString, width, style) {
+        return html `
+            <div
+                    class="${document.body.clientWidth < 768 ? 'row col-12 w-100 px-0' : ''}"
                     style="padding: 24px ${document.body.clientWidth < 768 ? '0.75rem' : '0'}; margin: 0 auto; ${width ? `max-width:100%; width:${width}px;` : ``} ${style !== null && style !== void 0 ? style : ''}"
             >
                 ${htmlString}
@@ -823,15 +836,15 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             </button>`;
     }
     static darkButton(text, event, obj) {
-        var _a;
+        var _a, _b;
         const size = { btn: '', font: '' };
         if (obj && obj.size) {
             size.btn = `btn-black-${obj.size}`;
             size.font = `tx_white_${obj.size}`;
         }
-        return html `<button class="btn btn-black ${size.btn}" type="button" onclick="${event}">
+        return html `<button class="btn btn-black ${size.btn}" type="button" style="${(_a = obj === null || obj === void 0 ? void 0 : obj.style) !== null && _a !== void 0 ? _a : ""}" onclick="${event}">
             <i class="${obj && obj.icon && obj.icon.length > 0 ? obj.icon : 'd-none'}"></i>
-            <span class="tx_700_white ${size.font}" style="${(_a = obj === null || obj === void 0 ? void 0 : obj.textStyle) !== null && _a !== void 0 ? _a : ''}">${text}</span>
+            <span class="tx_700_white ${size.font}" style="${(_b = obj === null || obj === void 0 ? void 0 : obj.textStyle) !== null && _b !== void 0 ? _b : ''}">${text}</span>
         </button>`;
     }
     static redButton(text, event, obj) {

@@ -625,7 +625,7 @@ export class Main_editor {
             html `
                 <div
                         class="right_scroll"
-                        style="overflow-y:auto;${Storage.select_function === 'user-editor' ? `height:calc(100vh - 50px)` : `height:calc(100vh - 150px);`}"
+                        style="overflow-y:auto;${Storage.select_function === 'user-editor' ? `height:calc(100vh - ${document.body.clientWidth < 800 ? 0 : 56}px)` : `height:calc(100vh - 150px);`}"
                         onscroll="${gvc.event(() => {
                 if (document.querySelector('.right_scroll').scrollTop > 0) {
                     glitter.share.lastRightScrollTop = document.querySelector('.right_scroll').scrollTop;
@@ -672,7 +672,7 @@ export class Main_editor {
                                                         <i class="fa-solid fa-chevron-left"></i>
                                                         <span style="max-width: calc(100% - 50px);text-overflow: ellipsis;white-space: nowrap;overflow: hidden;">${viewModel.selectItem.label}</span>
                                                         <div class="flex-fill"></div>
-                                                        <div class="hoverBtn  child p-1" onclick="${gvc.event(() => {
+                                                        <div class="p-1" onclick="${gvc.event(() => {
                                 glitter.htmlGenerate.deleteWidget(glitter.share.editorViewModel.selectContainer, viewModel.selectItem);
                             })}">
                                                             <i class="fa-regular fa-trash d-flex align-items-center justify-content-center "
@@ -1041,7 +1041,7 @@ ${dd.value === vm.select ? `background:linear-gradient(135deg, #667eea 0%, #764b
                 },
                 divCreate: option.divCreate || {
                     class: `w-100`,
-                    style: `height:calc(100vh - 56px);overflow-y:auto;`,
+                    style: `height:calc(100vh - ${(document.body.clientWidth < 800) ? 0 : 56}px);overflow-y:auto;`,
                 },
             };
         });

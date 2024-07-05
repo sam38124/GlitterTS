@@ -298,7 +298,12 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
 
     public setDrawer(src: string, callback: () => void) {
         const gliter = this;
-        $("#Navigation").hide()
+        if((window as any).drawer && (window as any).drawer.opened){
+            $("#Navigation").show()
+        }else{
+            $("#Navigation").hide()
+        }
+
         if ((window as any).drawer === undefined) {
             gliter.addMtScript([new URL('./plugins/NaviGation.js', import.meta.url)], () => {
                 callback()

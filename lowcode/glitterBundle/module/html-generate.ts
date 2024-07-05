@@ -1964,7 +1964,6 @@ ${e.line}
         while (!glitter.share.editorViewModel) {
             glitter = (window.parent as any).glitter
         }
-
         function active() {
             try {
                 Storage.page_setting_item = 'layout';
@@ -1979,12 +1978,14 @@ ${e.line}
                         scrollToHover(gvc.glitter.$(`.editor_it_${widgetComponentID}`).get(0))
                     })
                 }
+                if(document.body.clientWidth<800){
+                    glitter.openDrawer()
+                }
                 event && event.stopPropagation && event.stopPropagation();
             } catch (e) {
                 console.log(e)
             }
         }
-
         if ((new Date().getTime() - HtmlGenerate.block_timer) > 500) {
             active()
         }

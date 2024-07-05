@@ -398,6 +398,11 @@ ${(obj.style || []) && obj.style![index] ? obj.style![index] : ``}
             <div class="main-card ${classString ?? ''}" style="${styleString ?? ''}">${htmlString ?? ''}</div>`;
     }
 
+    static mainCardMbp0(htmlString: string, classString?: string, styleString?: string) {
+        return html`
+            <div class="main-card ${classString ?? ''}  " style="${document.body.clientWidth<800 ? `border-radius: 0px;`:``}${styleString ?? ''} ">${htmlString ?? ''}</div>`;
+    }
+
     static container(htmlString: string, width?: number, style?: string) {
         return html`
             <div
@@ -407,6 +412,17 @@ ${(obj.style || []) && obj.style![index] ? obj.style![index] : ``}
                 ${htmlString}
             </div>`;
     }
+
+    static containerMax(htmlString: string, width?: number, style?: string) {
+        return html`
+            <div
+                    class="${document.body.clientWidth < 768 ? 'row col-12 w-100 px-0' : ''}"
+                    style="padding: 24px ${document.body.clientWidth < 768 ? '0.75rem' : '0'}; margin: 0 auto; ${width ? `max-width:100%; width:${width}px;` : ``} ${style ?? ''}"
+            >
+                ${htmlString}
+            </div>`;
+    }
+
 
     static title(title: string) {
         return html` <h3 class="my-auto tx_title" style="white-space: nowrap;">${title}</h3>`;
@@ -952,13 +968,13 @@ ${obj.default ?? ''}</textarea
             </button>`;
     }
 
-    static darkButton(text: string, event: string, obj?: { icon?: string; textStyle?: string; size?: 'sm' | 'lg' }) {
+    static darkButton(text: string, event: string, obj?: { icon?: string; textStyle?: string; size?: 'sm' | 'lg' ,style?:string}) {
         const size = { btn: '', font: '' };
         if (obj && obj.size) {
             size.btn = `btn-black-${obj.size}`;
             size.font = `tx_white_${obj.size}`;
         }
-        return html`<button class="btn btn-black ${size.btn}" type="button" onclick="${event}">
+        return html`<button class="btn btn-black ${size.btn}" type="button" style="${obj?.style ?? ""}" onclick="${event}">
             <i class="${obj && obj.icon && obj.icon.length > 0 ? obj.icon : 'd-none'}"></i>
             <span class="tx_700_white ${size.font}" style="${obj?.textStyle ?? ''}">${text}</span>
         </button>`;
