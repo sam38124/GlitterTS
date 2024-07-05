@@ -4,13 +4,55 @@ export class UpdateScript {
     public static async run() {
         const migrate_template=(await db.query('SELECT appName FROM glitter.app_config where template_type!=0;',[])).map((dd:any)=>{
             return dd.appName
-        }).concat('shop_template_black_style','3131_shop','proshake_v2')
+        }).concat('shop_template_black_style','3131_shop')
 
         // UpdateScript.migrateTermsOfService(['3131_shop', 't_1717152410650', 't_1717141688550', 't_1717129048727', 't_1719819344426'])
         // UpdateScript.migrateHeaderAndFooter(['3131_shop','t_1719819344426','t_1717129048727','t_1717141688550','t_1717152410650','t_1717407696327','t_1717385441550','t_1717386839537','t_1717397588096'])
         // UpdateScript.migrateAccount('shop_template_black_style')
-       await UpdateScript.migrateDialog(migrate_template)
+       await UpdateScript.migrateLink(migrate_template)
     }
+
+    public static async migrateLink(appList: string[]){
+        for (const appName of appList){
+            for (const b of appList) {
+                await db.query(`update \`${b}\`.t_user_public_config set value=? where \`key\`='menu-setting' and id>0`, [JSON.stringify([
+                    {
+                        "link": "./index",
+                        "items": [],
+                        "title": "首頁"
+                    },
+                    {
+                        "link": "/all-product",
+                        "items": [
+                            {
+                                "link": "/all-product?collection=分類一",
+                                "items": [],
+                                "title": "分類一"
+                            },
+                            {
+                                "link": "/all-product?collection=分類二",
+                                "items": [],
+                                "title": "分類二"
+                            }
+                        ],
+                        "title": "所有商品",
+                        "toggle": false
+                    },
+                    {
+                        "link": "/blogs",
+                        "items": [],
+                        "title": "部落格 / 網誌"
+                    },
+                    {
+                        "link": "./pages/about-us",
+                        "items": [],
+                        "title": "關於我們"
+                    }
+                ])]);
+            }
+        }
+    }
+
 
     public static async migrateRichText(){
         const page_list=(await db.query(`select page_config,id

@@ -9,8 +9,48 @@ class UpdateScript {
     static async run() {
         const migrate_template = (await database_1.default.query('SELECT appName FROM glitter.app_config where template_type!=0;', [])).map((dd) => {
             return dd.appName;
-        }).concat('shop_template_black_style', '3131_shop', 'proshake_v2');
-        await UpdateScript.migrateDialog(migrate_template);
+        }).concat('shop_template_black_style', '3131_shop');
+        await UpdateScript.migrateLink(migrate_template);
+    }
+    static async migrateLink(appList) {
+        for (const appName of appList) {
+            for (const b of appList) {
+                await database_1.default.query(`update \`${b}\`.t_user_public_config set value=? where \`key\`='menu-setting' and id>0`, [JSON.stringify([
+                        {
+                            "link": "./index",
+                            "items": [],
+                            "title": "首頁"
+                        },
+                        {
+                            "link": "/all-product",
+                            "items": [
+                                {
+                                    "link": "/all-product?collection=分類一",
+                                    "items": [],
+                                    "title": "分類一"
+                                },
+                                {
+                                    "link": "/all-product?collection=分類二",
+                                    "items": [],
+                                    "title": "分類二"
+                                }
+                            ],
+                            "title": "所有商品",
+                            "toggle": false
+                        },
+                        {
+                            "link": "/blogs",
+                            "items": [],
+                            "title": "部落格 / 網誌"
+                        },
+                        {
+                            "link": "./pages/about-us",
+                            "items": [],
+                            "title": "關於我們"
+                        }
+                    ])]);
+            }
+        }
     }
     static async migrateRichText() {
         const page_list = (await database_1.default.query(`select page_config,id

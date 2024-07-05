@@ -51,6 +51,7 @@ export declare class Template {
         data: any;
         tag: string;
     }): Promise<boolean>;
+    static getRealPage(query_page: string, appName: string): Promise<string>;
     getPage(config: {
         appName?: string;
         tag?: string;

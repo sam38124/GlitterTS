@@ -165,16 +165,6 @@ export async function createAPP(dd: any) {
                         } else if (d.type !== 'custom') {
                             data = await Seo.getPageInfo(appName, data.config.homePage);
                         }
-                        const relative_root = (req.query.page as string)
-                            .split('/')
-                            .map((dd, index) => {
-                                if (index === 0) {
-                                    return './';
-                                } else {
-                                    return '../';
-                                }
-                            })
-                            .join('');
                         const preload = req.query.type === 'editor' || req.query.isIframe === 'true' ? {} : await App.preloadPageData(appName, req.query.page as any);
                         data.page_config = data.page_config ?? {};
                         data.page_config.seo = data.page_config.seo ?? {};
@@ -184,13 +174,21 @@ export async function createAPP(dd: any) {
                                 data.page_config.seo[dd] = seo_detail[dd];
                             });
                         }
+                        let link_prefix = req.originalUrl.split('/')[1]
+                        if(ConfigSetting.is_local){
+                            if ((link_prefix !== 'shopnex') && (link_prefix !== 'codenex_v2')) {
+                                link_prefix = ''
+                            }
+                        }else{
+                            link_prefix=''
+                        }
 
                         return `${(() => {
                             const d = data.page_config.seo;
                             return html`
                                 <head>
                                     <title>${d.title ?? '尚未設定標題'}</title>
-                                    <link rel="canonical" href="${relative_root}${data.tag}"/>
+                                    <link rel="canonical" href="/${link_prefix && `${link_prefix}/`}${data.tag}"/>
                                     <meta name="keywords" content="${d.keywords ?? '尚未設定關鍵字'}"/>
                                     <link id="appImage" rel="shortcut icon" href="${d.logo ?? ''}" type="image/x-icon"/>
                                     <link rel="icon" href="${d.logo ?? ''}" type="image/png" sizes="128x128"/>
@@ -240,7 +238,7 @@ ${[
                             // 'glitterBundle/Glitter.css'
                         ]
                             .map((dd) => {
-                                return `<script src="${relative_root}${dd.src}" type="${dd.type}"></script>`;
+                                return `<script src="/${link_prefix && `${link_prefix}/`}${dd.src}" type="${dd.type}"></script>`;
                             })
                             .join('')}
 ${(preload.event ?? [])
@@ -249,7 +247,7 @@ ${(preload.event ?? [])
                                 return link.substring(0, link.length - 2);
                             })
                             .map((dd: any) => {
-                                return `<script src="${relative_root}${dd}" type="module"></script>`;
+                                return `<script src="/${link_prefix && `${link_prefix}/`}${dd}" type="module"></script>`;
                             })
                             .join('')}
               </head>
@@ -291,7 +289,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                     }
                 } catch (e: any) {
                     console.log(e);
-                    return e.message;
+                    return `${e}`;
                 }
             },
             sitemap: async (req, resp) => {
@@ -340,9 +338,8 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                                 if (!d2.content.template) {
                                     return ``;
                                 }
-
                                 return `<url>
-<loc>${`https://${domain}/${d2.content.template}?article=${d2.content.tag}`.replace(/ /g, '+')}</loc>
+<loc>${`https://${domain}/${(d2.content.for_index==='false') ? `pages`:`blogs`}/${d2.content.tag}`.replace(/ /g, '+')}</loc>
 <lastmod>${moment(new Date(d2.updated_time)).format('YYYY-MM-DD')}</lastmod>
 </url>
 `;

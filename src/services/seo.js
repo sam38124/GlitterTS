@@ -6,21 +6,28 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Seo = void 0;
 const database_js_1 = __importDefault(require("../modules/database.js"));
 const config_js_1 = require("../config.js");
+const template_js_1 = require("./template.js");
 class Seo {
-    static async getPageInfo(appName, page) {
-        return (await database_js_1.default.execute(`SELECT page_config, \`${config_js_1.saasConfig.SAAS_NAME}\`.app_config.\`config\`, tag,page_type,tag
-                                                  FROM \`${config_js_1.saasConfig.SAAS_NAME}\`.page_config,
-                                                       \`${config_js_1.saasConfig.SAAS_NAME}\`.app_config
-                                                  where \`${config_js_1.saasConfig.SAAS_NAME}\`.page_config.appName = ${database_js_1.default.escape(appName)}
-                                                    and tag = ${database_js_1.default.escape(page)}
-                                                    and \`${config_js_1.saasConfig.SAAS_NAME}\`.page_config.appName = \`${config_js_1.saasConfig.SAAS_NAME}\`.app_config.appName;
-                    `, []))[0];
+    static async getPageInfo(appName, query_page) {
+        let page = await template_js_1.Template.getRealPage(query_page, appName);
+        return (await database_js_1.default.execute(`SELECT page_config,
+                                         \`${config_js_1.saasConfig.SAAS_NAME}\`.app_config.\`config\`,
+                                         tag,
+                                         page_type,
+                                         tag
+                                  FROM \`${config_js_1.saasConfig.SAAS_NAME}\`.page_config,
+                                       \`${config_js_1.saasConfig.SAAS_NAME}\`.app_config
+                                  where \`${config_js_1.saasConfig.SAAS_NAME}\`.page_config.appName = ${database_js_1.default.escape(appName)}
+                                    and tag = ${database_js_1.default.escape(page)}
+                                    and \`${config_js_1.saasConfig.SAAS_NAME}\`.page_config.appName = \`${config_js_1.saasConfig.SAAS_NAME}\`.app_config.appName;
+        `, []))[0];
     }
     static async getAppConfig(appName) {
-        return (await database_js_1.default.execute(`SELECT \`${config_js_1.saasConfig.SAAS_NAME}\`.app_config.\`config\`
-                                                          FROM \`${config_js_1.saasConfig.SAAS_NAME}\`.app_config
-                                                          where \`${config_js_1.saasConfig.SAAS_NAME}\`.app_config.appName = ${database_js_1.default.escape(appName)} limit 0,1
-                        `, []))[0]['config'];
+        return (await database_js_1.default.execute(`SELECT \`${config_js_1.saasConfig.SAAS_NAME}\`.app_config.\`config\`,
+                                         \`${config_js_1.saasConfig.SAAS_NAME}\`.app_config.\`brand\`
+                                  FROM \`${config_js_1.saasConfig.SAAS_NAME}\`.app_config
+                                  where \`${config_js_1.saasConfig.SAAS_NAME}\`.app_config.appName = ${database_js_1.default.escape(appName)} limit 0,1
+        `, []))[0]['config'];
     }
     static async redirectToHomePage(appName, req) {
         var _a;
@@ -35,37 +42,49 @@ class Seo {
         }).join('');
         const config = await Seo.getAppConfig(appName);
         if (config && ((await database_js_1.default.execute(`SELECT count(1)
-                                                          FROM \`${config_js_1.saasConfig.SAAS_NAME}\`.page_config
-                                                          where \`${config_js_1.saasConfig.SAAS_NAME}\`.page_config.appName = ${database_js_1.default.escape(appName)}
-                                                            and tag = ${database_js_1.default.escape(config['homePage'])}
-                        `, []))[0]["count(1)"] === 1)) {
+                                          FROM \`${config_js_1.saasConfig.SAAS_NAME}\`.page_config
+                                          where \`${config_js_1.saasConfig.SAAS_NAME}\`.page_config.appName = ${database_js_1.default.escape(appName)}
+                                            and tag = ${database_js_1.default.escape(config['homePage'])}
+        `, []))[0]["count(1)"] === 1)) {
             redirect = config['homePage'];
         }
         else {
             redirect = (await database_js_1.default.execute(`SELECT tag
-                                                          FROM \`${config_js_1.saasConfig.SAAS_NAME}\`.page_config
-                                                          where \`${config_js_1.saasConfig.SAAS_NAME}\`.page_config.appName = ${database_js_1.default.escape(appName)} limit 0,1
-                            `, []))[0]['tag'];
+                                          FROM \`${config_js_1.saasConfig.SAAS_NAME}\`.page_config
+                                          where \`${config_js_1.saasConfig.SAAS_NAME}\`.page_config.appName = ${database_js_1.default.escape(appName)} limit 0,1
+            `, []))[0]['tag'];
         }
         let data = await Seo.getPageInfo(appName, redirect);
+        let query_stack = [];
         if (req.query.type) {
-            redirect += `&type=${req.query.type}`;
+            query_stack.push(`type=${req.query.type}`);
         }
         if (req.query.appName) {
-            redirect += `&appName=${req.query.appName}`;
+            query_stack.push(`appName=${req.query.appName}`);
         }
         if (req.query.function) {
-            redirect += `&function=${req.query.function}`;
+            query_stack.push(`function=${req.query.function}`);
         }
-        return `
-<head>
+        if (query_stack.length > 0) {
+            redirect += `?${query_stack.join('&')}`;
+        }
+        let link_prefix = req.originalUrl.split('/')[1];
+        if (config_js_1.ConfigSetting.is_local) {
+            if ((link_prefix !== 'shopnex') && (link_prefix !== 'codenex_v2')) {
+                link_prefix = '';
+            }
+        }
+        else {
+            link_prefix = '';
+        }
+        return `<head>
 ${(() => {
             var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l;
             data.page_config = (_a = data.page_config) !== null && _a !== void 0 ? _a : {};
             const d = (_b = data.page_config.seo) !== null && _b !== void 0 ? _b : {};
             return `
 <title>${(_c = d.title) !== null && _c !== void 0 ? _c : "尚未設定標題"}</title>
-    <link rel="canonical" href="./?page=${data.tag}">
+    <link rel="canonical" href="/${link_prefix && `${link_prefix}/`}${data.tag}">
     <meta name="keywords" content="${(_d = d.keywords) !== null && _d !== void 0 ? _d : "尚未設定關鍵字"}" />
     <link id="appImage" rel="shortcut icon" href="${(_e = d.logo) !== null && _e !== void 0 ? _e : ""}" type="image/x-icon">
     <link rel="icon" href="${(_f = d.logo) !== null && _f !== void 0 ? _f : ""}" type="image/png" sizes="128x128">
@@ -78,7 +97,7 @@ ${(() => {
         })()}
 <script>
 window.glitter_page='${req.query.page}';
-window.redirct_tohome='./?page=${redirect}';
+window.redirct_tohome='/${link_prefix && `${link_prefix}/`}${redirect}';
 </script>
 </head>
 `;

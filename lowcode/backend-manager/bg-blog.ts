@@ -723,9 +723,7 @@ function editor(cf: { gvc: GVC; vm: any; is_page: boolean; widget: any }) {
                                                         html` <div class="fs-6 fw-500" style="color:#1a0dab;">${vm.data.content.seo.title || '尚未設定'}</div>`,
                                                         (() => {
                                                             const href = (() => {
-                                                                return `https://${(window.parent as any).glitter.share.editorViewModel.domain}/${vm.data.content.template}?article=${
-                                                                    vm.data.content.tag
-                                                                }`;
+                                                                return `https://${(window.parent as any).glitter.share.editorViewModel.domain}/${(cf.is_page) ? `pages`:`blogs`}/${vm.data.content.tag}`;
                                                             })();
                                                             return html`<a
                                                                             class="fs-sm fw-500"
@@ -746,8 +744,17 @@ function editor(cf: { gvc: GVC; vm: any; is_page: boolean; widget: any }) {
                                                                 default: vm.data.content.tag,
                                                                 placeHolder: `請輸入網誌連結`,
                                                                 callback: (text) => {
-                                                                    vm.data.content.tag = text;
-                                                                    gvc.notifyDataChange(id);
+                                                                    
+                                                                    const regex = /^[a-zA-Z0-9-]+$/;
+                                                                    if(!regex.test(text)){
+                                                                        alert('僅能輸入英文或數字與連接號')
+                                                                        gvc.notifyDataChange(id);
+                                                                    }else{
+                                                                        vm.data.content.tag = text;
+                                                                        gvc.notifyDataChange(id);
+                                                                    }
+                                                                     
+                                                                  
                                                                 },
                                                             }),
                                                             EditorElem.editeInput({
@@ -767,6 +774,16 @@ function editor(cf: { gvc: GVC; vm: any; is_page: boolean; widget: any }) {
                                                                 placeHolder: `請輸入中繼描述`,
                                                                 callback: (text) => {
                                                                     vm.data.content.seo.content = text;
+                                                                    gvc.notifyDataChange(id);
+                                                                },
+                                                            }),
+                                                            EditorElem.editeText({
+                                                                gvc: gvc,
+                                                                title: 'SEO關鍵字',
+                                                                default: vm.data.content.seo.keywords,
+                                                                placeHolder: `請輸入SEO關鍵字`,
+                                                                callback: (text) => {
+                                                                    vm.data.content.seo.keywords = text;
                                                                     gvc.notifyDataChange(id);
                                                                 },
                                                             }),
@@ -972,19 +989,7 @@ function editor(cf: { gvc: GVC; vm: any; is_page: boolean; widget: any }) {
                             ${BgWidget.cancel(
                         gvc.event(() => {
                             const href = (() => {
-                                const url = new URL(
-                                    '',
-                                    (window.parent as any).glitter.share.editorViewModel.domain
-                                        ? `https://${(window.parent as any).glitter.share.editorViewModel.domain}/`
-                                        : (window.parent as any).location.href
-                                );
-                                url.search = '';
-                                url.searchParams.set('page', vm.data.content.template);
-                                url.searchParams.set('article', vm.data.content.tag);
-                                if (!(window.parent as any).glitter.share.editorViewModel.domain) {
-                                    url.searchParams.set('appName', (window.parent as any).appName);
-                                }
-                                return url.href;
+                                return `https://${(window.parent as any).glitter.share.editorViewModel.domain}/${(cf.is_page) ? `pages`:`blogs`}/${vm.data.content.tag}`;
                             })();
                             (window.parent as any).glitter.openNewTab(href);
                         }),

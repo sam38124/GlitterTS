@@ -36,7 +36,7 @@ export declare class App {
         brand: any;
         userData: any;
     }>;
-    static preloadPageData(appName: string, page: string): Promise<any>;
+    static preloadPageData(appName: string, refer_page: string): Promise<any>;
     setAppConfig(config: {
         appName: string;
         data: any;

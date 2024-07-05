@@ -41,7 +41,7 @@ export class PathSelect {
         const setCollectionPath = (target: MenuItem[], data: CollecrtionItem[]) => {
             data.map((item, index) => {
                 const { title, array } = item;
-                target.push({ name: title, icon: '', link: `./?appName=${appName}&collection=${title}&page=all_product` });
+                target.push({ name: title, icon: '', link: `./?appName=${appName}&collection=${title}&page=all-product` });
                 if (array && array.length > 0) {
                     target[index].items = [];
                     setCollectionPath(target[index].items as MenuItem[], array);
@@ -324,10 +324,9 @@ export class PathSelect {
                     ]).then(() => {
                         dropMenu.recentList = [
                             { name: '首頁', icon: 'fa-regular fa-house', link: './?page=index' },
-                            { name: '商品', icon: 'fa-regular fa-tag', link: './?page=all_product', items: productList },
+                            { name: '商品', icon: 'fa-regular fa-tag', link: './?page=all-product', items: productList },
                             { name: '商品分類', icon: 'fa-regular fa-tags', link: '', items: collectionList },
-                            { name: '網誌文章', icon: 'fa-regular fa-newspaper', link: './?page=blog_list', items: acticleList },
-                            { name: '關於我們', icon: 'fa-regular fa-user-group', link: './?page=aboutus' },
+                            { name: '網誌文章', icon: 'fa-regular fa-newspaper', link: '/blogs', items: acticleList }
                         ].filter((menu) => {
                             if (menu.items === undefined) return true;
                             return menu.items.length > 0 || menu.link.length > 0;

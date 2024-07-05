@@ -499,7 +499,8 @@ export class App {
         };
     }
 
-    public static async preloadPageData(appName: string, page: string) {
+    public static async preloadPageData(appName: string, refer_page: string) {
+        const page=await Template.getRealPage(refer_page,appName)
         const app = new App();
         const preloadData: {
             component: any;

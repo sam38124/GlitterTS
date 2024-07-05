@@ -373,7 +373,8 @@ class App {
             userData: userData.userData,
         };
     }
-    static async preloadPageData(appName, page) {
+    static async preloadPageData(appName, refer_page) {
+        const page = await template_js_1.Template.getRealPage(refer_page, appName);
         const app = new App();
         const preloadData = {
             component: [],

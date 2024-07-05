@@ -283,6 +283,12 @@ ${(obj.style || []) && obj.style[index] ? obj.style[index] : ``}
                 <span class="tx_700">${text}</span>
             </button> `;
     }
+    static danger(event, text = '取消') {
+        return html `
+            <button class="btn btn-red" type="button" onclick="${event}">
+                <span class="text-white">${text}</span>
+            </button> `;
+    }
     static save(event, text = '儲存') {
         return html `
             <button class="btn btn-black" type="button" onclick="${event}">
@@ -502,7 +508,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         const setCollectionPath = (target, data) => {
             (data || []).map((item, index) => {
                 const { title, array } = item;
-                target.push({ name: title, icon: '', link: `./?collection=${title}&page=all_product` });
+                target.push({ name: title, icon: '', link: `./?collection=${title}&page=all-product` });
                 if (array && array.length > 0) {
                     target[index].items = [];
                     setCollectionPath(target[index].items, array);
@@ -772,7 +778,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                     ]).then(() => {
                         dropMenu.recentList = [
                             { name: '首頁', icon: 'fa-regular fa-house', link: './index' },
-                            { name: '商品', icon: 'fa-regular fa-tag', link: './all_product', items: productList },
+                            { name: '商品', icon: 'fa-regular fa-tag', link: './all-product', items: productList },
                             { name: '商品分類', icon: 'fa-regular fa-tags', link: '', items: collectionList },
                             {
                                 name: '網誌文章',
@@ -1260,7 +1266,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             text += possible.charAt(Math.floor(Math.random() * possible.length));
         return text;
     }
-    static multiCheckboxContainer(gvc, data, def, callback, readonly) {
+    static multiCheckboxContainer(gvc, data, def, callback, readonly, single) {
         const id = gvc.glitter.getUUID();
         const randomString = this.randomString(5);
         let checkboxHTML = '';
@@ -1287,13 +1293,18 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                 }
             })}"
                             onchange="${gvc.event((e, ev) => {
-                if (e.checked) {
-                    def.push(item.key);
+                if (single) {
+                    callback([item.key]);
                 }
                 else {
-                    def = def.filter((d) => d !== item.key);
+                    if (e.checked) {
+                        def.push(item.key);
+                    }
+                    else {
+                        def = def.filter((d) => d !== item.key);
+                    }
+                    callback(def);
                 }
-                callback(def);
             })}"
                             ${def.includes(item.key) ? 'checked' : ''}
                     />

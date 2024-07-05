@@ -181,17 +181,6 @@ async function createAPP(dd) {
                         else if (d.type !== 'custom') {
                             data = await seo_js_1.Seo.getPageInfo(appName, data.config.homePage);
                         }
-                        const relative_root = req.query.page
-                            .split('/')
-                            .map((dd, index) => {
-                            if (index === 0) {
-                                return './';
-                            }
-                            else {
-                                return '../';
-                            }
-                        })
-                            .join('');
                         const preload = req.query.type === 'editor' || req.query.isIframe === 'true' ? {} : await app_js_1.App.preloadPageData(appName, req.query.page);
                         data.page_config = (_h = data.page_config) !== null && _h !== void 0 ? _h : {};
                         data.page_config.seo = (_j = data.page_config.seo) !== null && _j !== void 0 ? _j : {};
@@ -201,13 +190,22 @@ async function createAPP(dd) {
                                 data.page_config.seo[dd] = seo_detail[dd];
                             });
                         }
+                        let link_prefix = req.originalUrl.split('/')[1];
+                        if (config_1.ConfigSetting.is_local) {
+                            if ((link_prefix !== 'shopnex') && (link_prefix !== 'codenex_v2')) {
+                                link_prefix = '';
+                            }
+                        }
+                        else {
+                            link_prefix = '';
+                        }
                         return `${(() => {
                             var _a, _b, _c, _d, _e, _f, _g, _h, _j;
                             const d = data.page_config.seo;
                             return html `
                                 <head>
                                     <title>${(_a = d.title) !== null && _a !== void 0 ? _a : '尚未設定標題'}</title>
-                                    <link rel="canonical" href="${relative_root}${data.tag}"/>
+                                    <link rel="canonical" href="/${link_prefix && `${link_prefix}/`}${data.tag}"/>
                                     <meta name="keywords" content="${(_b = d.keywords) !== null && _b !== void 0 ? _b : '尚未設定關鍵字'}"/>
                                     <link id="appImage" rel="shortcut icon" href="${(_c = d.logo) !== null && _c !== void 0 ? _c : ''}" type="image/x-icon"/>
                                     <link rel="icon" href="${(_d = d.logo) !== null && _d !== void 0 ? _d : ''}" type="image/png" sizes="128x128"/>
@@ -257,7 +255,7 @@ ${[
                             { src: 'api/pageConfig.js', type: 'module' },
                         ]
                             .map((dd) => {
-                            return `<script src="${relative_root}${dd.src}" type="${dd.type}"></script>`;
+                            return `<script src="/${link_prefix && `${link_prefix}/`}${dd.src}" type="${dd.type}"></script>`;
                         })
                             .join('')}
 ${((_k = preload.event) !== null && _k !== void 0 ? _k : [])
@@ -266,7 +264,7 @@ ${((_k = preload.event) !== null && _k !== void 0 ? _k : [])
                             return link.substring(0, link.length - 2);
                         })
                             .map((dd) => {
-                            return `<script src="${relative_root}${dd}" type="module"></script>`;
+                            return `<script src="/${link_prefix && `${link_prefix}/`}${dd}" type="module"></script>`;
                         })
                             .join('')}
               </head>
@@ -311,7 +309,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                 }
                 catch (e) {
                     console.log(e);
-                    return e.message;
+                    return `${e}`;
                 }
             },
             sitemap: async (req, resp) => {
@@ -350,7 +348,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                         return ``;
                     }
                     return `<url>
-<loc>${`https://${domain}/${d2.content.template}?article=${d2.content.tag}`.replace(/ /g, '+')}</loc>
+<loc>${`https://${domain}/${(d2.content.for_index === 'false') ? `pages` : `blogs`}/${d2.content.tag}`.replace(/ /g, '+')}</loc>
 <lastmod>${(0, moment_js_1.default)(new Date(d2.updated_time)).format('YYYY-MM-DD')}</lastmod>
 </url>
 `;
