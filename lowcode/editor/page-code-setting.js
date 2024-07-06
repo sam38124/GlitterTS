@@ -270,7 +270,7 @@ export class PageCodeSetting {
 
             <div id="PageCodeSettingView"
                  class="position-fixed left-0 top-0 h-100 bg-white shadow-lg "
-                 style="width:400px;z-index: 99999;left: -100%;">
+                 style="width:400px;z-index: 99999;left: -120%;">
                 ${PageCodeSetting.view(gvc)}
             </div>`;
     }

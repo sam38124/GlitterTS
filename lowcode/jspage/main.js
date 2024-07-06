@@ -44,7 +44,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
 
       .scroll-in {
 
-        left: -100%; /* 將元素移到畫面外 */
+        left: -120%; /* 將元素移到畫面外 */
         animation: slideInFromLeft 0.5s ease-out forwards;
       }
 
@@ -56,7 +56,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
       /* @keyframes 定義動畫 */
       @keyframes slideInFromLeft {
         0% {
-          left: -100%; /* 起始位置在畫面外 */
+          left: -120%; /* 起始位置在畫面外 */
         }
         100% {
           left: 0; /* 結束位置在畫面內 */
@@ -68,13 +68,13 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
           left: 0; /* 起始位置在畫面外 */
         }
         100% {
-          left: -100%; /* 結束位置在畫面內 */
+          left: -120%; /* 結束位置在畫面內 */
         }
       }
     `);
     gvc.addStyle(css `
       .scroll-right-in {
-        right: -100%; /* 將元素移到畫面外 */
+        right: -120%; /* 將元素移到畫面外 */
         animation: slideInRight 0.5s ease-out forwards;
       }
 
@@ -86,7 +86,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
       /* @keyframes 定義動畫 */
       @keyframes slideInRight {
         0% {
-          right: -100%; /* 起始位置在畫面外 */
+          right: -120%; /* 起始位置在畫面外 */
         }
         100% {
           right: 0; /* 結束位置在畫面內 */
@@ -98,7 +98,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
           right: 0; /* 起始位置在畫面外 */
         }
         100% {
-          right: -100%; /* 結束位置在畫面內 */
+          right: -120%; /* 結束位置在畫面內 */
         }
       }`);
     const swal = new Swal(gvc);
@@ -447,11 +447,11 @@ ${(Storage.page_setting_item === `${da.index}`) ? `background:${EditorConfig.edi
                                     },
                                     divCreate: {
                                         style: `width:60px;gap:20px;padding-top: 15px;`,
-                                        class: `${(Storage.select_function === 'user-editor' || Storage.select_function === 'page-editor') ? `` : `d-none`} h-100 border-end d-flex flex-column align-items-center`
+                                        class: `${(Storage.select_function === 'user-editor' || Storage.select_function === 'page-editor') ? `` : `d-none`} h-120 border-end d-flex flex-column align-items-center`
                                     }
                                 };
                             })}
-                                            <div class="offcanvas-body swiper scrollbar-hover  w-100 ${(() => {
+                                            <div class="offcanvas-body swiper scrollbar-hover  w-120 ${(() => {
                                 switch (Storage.select_function) {
                                     case 'backend-manger':
                                     case 'server-manager':
@@ -462,7 +462,7 @@ ${(Storage.page_setting_item === `${da.index}`) ? `background:${EditorConfig.edi
                                         return `p-0`;
                                 }
                             })()}" style="overflow-y: auto;overflow-x:hidden;height:calc(100vh - 56px);">
-                                                <div class="h-100" style="">
+                                                <div class="h-120" style="">
                                                     ${gvc.bindView(() => {
                                 return {
                                     bind: 'MainEditorLeft',
@@ -492,7 +492,7 @@ ${(Storage.page_setting_item === `${da.index}`) ? `background:${EditorConfig.edi
                                             }
                                         })();
                                         if (document.body.offsetWidth < 800) {
-                                            glitter.setDrawer(`<div class="bg-white vh-100 overflow-auto">${view}</div>`, () => { });
+                                            glitter.setDrawer(`<div class="bg-white vh-120 overflow-auto">${view}</div>`, () => { });
                                             return ``;
                                         }
                                         else {
@@ -500,7 +500,7 @@ ${(Storage.page_setting_item === `${da.index}`) ? `background:${EditorConfig.edi
                                         }
                                     },
                                     divCreate: {
-                                        class: "h-100"
+                                        class: "h-120"
                                     }
                                 };
                             })}
