@@ -310,7 +310,9 @@ router.post('/redirect', async (req, resp) => {
                                 JSON.stringify({
                                     functionName: 'closeWebView',
                                     callBackId: 0,
-                                    data: {},
+                                    data: {
+                                        redirect:'${return_url.href}'
+                                    }
                                 })
                             );
                         } catch (e) {}

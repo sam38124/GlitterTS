@@ -47,10 +47,16 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                             return_url:location.href
                         }).then(async (res) => {
                             if(res.response.form){
-                                $('body').html(res.response.form)
-                                setTimeout(() => {
-                                    console.log((document.querySelector('#submit') as any).click())
-                                }, 1000)
+                                const id=gvc.glitter.getUUID()
+                                if(gvc.glitter.deviceType===gvc.glitter.deviceTypeEnum.Ios){
+                                    gvc.glitter.runJsInterFace("toCheckout",{
+                                        form:res.response.form
+                                    },()=>{})
+                                }else{
+                                    $('body').append(`<div id="${id}" style="display: none;">${res.response.form}</div>`);
+                                    (document.querySelector(`#${id} #submit`) as any).click()
+                                }
+
                             }else{
                                  await TriggerEvent.trigger({
                                     gvc: gvc,
