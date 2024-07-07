@@ -24,7 +24,7 @@ export class EditorConfig {
             gvc.recreateView();
         })}">前往續約</span>`;
         let differenceInTime = new Date(plan.dead_line).getTime() - new Date().getTime();
-        let differenceInDays = differenceInTime / (1000 * 3600 * 24);
+        let differenceInDays = (differenceInTime / (1000 * 3600 * 24)).toFixed(0);
         if (plan.plan === 'free' && differenceInDays > 1) {
             text = `<span style="color: white; font-size: 16px; font-family: Noto Sans; font-weight: 700;" class="me-3">方案提醒：當前為免費試用方案，立即升級方案，享受全方位支援服務。</span>${paymentBtn}`;
         }

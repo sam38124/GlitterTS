@@ -12,6 +12,7 @@ const ses_js_1 = require("../../services/ses.js");
 const app_js_1 = require("../../services/app.js");
 const web_socket_js_1 = require("../../services/web-socket.js");
 const firebase_js_1 = require("../../modules/firebase.js");
+const auto_send_email_js_1 = require("./auto-send-email.js");
 class Chat {
     async addChatRoom(room) {
         try {
@@ -217,6 +218,7 @@ class Chat {
                 const id = ['0'].concat(notifyUser);
                 return id.join(',');
             })()});`, []);
+            const managerUser = (await app_js_1.App.checkBrandAndMemberType(this.app));
             for (const dd of userData) {
                 ((_g = web_socket_js_1.WebSocket.messageChangeMem[`${dd.userID}`]) !== null && _g !== void 0 ? _g : []).map((d2) => {
                     d2.callback({
@@ -242,7 +244,8 @@ class Chat {
                                 }
                             }
                             else if (room.user_id === 'manager') {
-                                await (0, ses_js_1.sendmail)(`service@ncdesign.info`, dd.userData.email, `官方客服訊息`, this.templateWithCustomerMessage('客服訊息', `收到客服回覆:`, room.message.text));
+                                const template = (await auto_send_email_js_1.AutoSendEmail.getDefCompare(this.app, 'get-customer-message'));
+                                await (0, ses_js_1.sendmail)(`service@ncdesign.info`, dd.userData.email, template.title, template.content.replace(/@{{text}}/g, room.message.text).replace(/@{{link}}/g, managerUser.domain));
                             }
                             else {
                                 await (0, ses_js_1.sendmail)(`service@ncdesign.info`, dd.userData.email, "有人傳送訊息給您", this.templateWithCustomerMessage('收到匿名訊息', `有一則匿名訊息:`, room.message.text));
@@ -254,13 +257,8 @@ class Chat {
             if (particpant.find((dd) => {
                 return dd.user_id === 'manager';
             }) && room.user_id !== 'manager') {
-                const managerUser = (await app_js_1.App.checkBrandAndMemberType(this.app));
-                if (user) {
-                    await (0, ses_js_1.sendmail)(`service@ncdesign.info`, managerUser['userData'].email, `有一則客服訊息`, this.templateWithCustomerMessage('收到客服訊息', ` ${user.userData.name}傳送一則客服訊息:`, room.message.text));
-                }
-                else {
-                    await (0, ses_js_1.sendmail)(`service@ncdesign.info`, managerUser['userData'].email, "有一則匿名客服訊息", this.templateWithCustomerMessage('收到客服訊息', `收到一則匿名客服訊息:`, room.message.text));
-                }
+                const template = (await auto_send_email_js_1.AutoSendEmail.getDefCompare(this.app, 'get-customer-message'));
+                await (0, ses_js_1.sendmail)(`service@ncdesign.info`, managerUser['userData'].email, template.title, template.content.replace(/@{{text}}/g, room.message.text).replace(/@{{link}}/g, managerUser.domain));
             }
         }
         catch (e) {

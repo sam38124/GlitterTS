@@ -5,7 +5,36 @@ import {Glitter} from '../../glitterBundle/Glitter.js';
 export class ApiShop {
     constructor() {
     }
-
+    public static postProduct(cf: {
+        data: any,
+        token?:string
+    }) {
+        return BaseApi.create({
+            "url": getBaseUrl() + `/api-public/v1/ec/product`,
+            "type": "POST",
+            "headers": {
+                "Content-Type": "application/json",
+                "g-app": getConfig().config.appName,
+                "Authorization": cf.token || getConfig().config.token
+            },
+            data: JSON.stringify(cf.data)
+        })
+    }
+    public static putProduct(cf: {
+        data: any,
+        token?:string
+    }) {
+        return BaseApi.create({
+            "url": getBaseUrl() + `/api-public/v1/ec/product`,
+            "type": "PUT",
+            "headers": {
+                "Content-Type": "application/json",
+                "g-app": getConfig().config.appName,
+                "Authorization": cf.token || getConfig().config.token
+            },
+            data: JSON.stringify(cf.data)
+        })
+    }
     static getRebate(query: { userID?: string }) {
         return BaseApi.create({
             url:

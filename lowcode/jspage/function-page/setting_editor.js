@@ -203,6 +203,15 @@ export class Setting_editor {
                                         },
                                         {
                                             icon: '',
+                                            page: 'customer_message',
+                                            group: '顧客管理',
+                                            title: '客服系統',
+                                            appName: 'cms_system',
+                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713514549253-calendar-lines-pen-regular.svg',
+                                            moduleName: '表單管理',
+                                        },
+                                        {
+                                            icon: '',
                                             page: 'form_receive',
                                             group: '顧客管理',
                                             title: '提交表單',
@@ -392,6 +401,7 @@ export class Setting_editor {
                                                         $('#editerCenter').html(`<iframe src="${url.href}" style="border: none;height: calc(100%);"></iframe>`);
                                                         glitter.closeDrawer();
                                                     }
+                                                    return true;
                                                 }
                                                 items
                                                     .filter((dd) => {
@@ -485,8 +495,7 @@ export class Setting_editor {
                                                                             gvc.notifyDataChange(id);
                                                                         }
                                                                         else {
-                                                                            click_item(dd.index);
-                                                                            if (['page_layout', 'dev_mode'].indexOf(items[parseInt(dd.index)].page) === -1) {
+                                                                            if (click_item(dd.index) && ['page_layout', 'dev_mode'].indexOf(items[parseInt(dd.index)].page) === -1) {
                                                                                 dd.toggle = true;
                                                                                 refreshContainer();
                                                                             }

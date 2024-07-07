@@ -709,7 +709,7 @@ export class ShoppingProductSetting {
         } = {
             title: '',
             productType: {
-                product: false,
+                product: true,
                 addProduct: false,
                 giveaway: false
             },
@@ -751,6 +751,29 @@ export class ShoppingProductSetting {
             shipment_config = shipment_config.response.result[0].value || {}
         } else {
             shipment_config = {}
+
+        }
+
+        //當規格為空時，需補一個進去
+        if(postMD.variants.length===0){
+            postMD.variants.push({
+                show_understocking: 'true',
+                type: "variants",
+                sale_price: 0,
+                compare_price: 0,
+                cost: 0,
+                spec: [],
+                profit: 0,
+                v_length: 0,
+                v_width: 0,
+                v_height: 0,
+                weight: 0,
+                shipment_type: shipment_config.selectCalc || "weight",
+                sku: "",
+                barcode: "",
+                stock: 0,
+                preview_image: ""
+            })
         }
 
         function updateVariants() {
@@ -883,7 +906,7 @@ export class ShoppingProductSetting {
                                             obj.vm.status = 'list';
                                         })
                                 )}
-                                ${BgWidget.title(obj.type === 'replace' ? postMD.title ?? "編輯商品" : `新增商品`)}
+                                ${BgWidget.title(obj.type === 'replace' ? postMD.title || "編輯商品" : `新增商品`)}
                                 <div class="flex-fill"></div>
                                 <button
                                         class="btn btn-primary-c d-none"
@@ -2511,10 +2534,9 @@ color: ${((data as any).checked) ? `#393939` : `#DDD`};font-size: 18px;"
         const dialog = new ShareDialog(gvc.glitter);
         dialog.dataLoading({text: '商品上傳中...', visible: true});
         postMD.type = 'product';
-        ApiPost.put({
-            postData: postMD,
-            token: (window.parent as any).config.token,
-            type: 'manager',
+        ApiShop.putProduct({
+            data: postMD,
+            token: (window.parent as any).config.token
         }).then((re) => {
             dialog.dataLoading({visible: false});
             if (re.result) {
@@ -2529,10 +2551,9 @@ color: ${((data as any).checked) ? `#393939` : `#DDD`};font-size: 18px;"
         const dialog = new ShareDialog(gvc.glitter);
         dialog.dataLoading({text: '商品上傳中...', visible: true});
         postMD.type = 'product';
-        ApiPost.post({
-            postData: postMD,
-            token: (window.parent as any).config.token,
-            type: 'manager',
+        ApiShop.postProduct({
+            data: postMD,
+            token: (window.parent as any).config.token
         }).then((re) => {
             dialog.dataLoading({visible: false});
             if (re.result) {

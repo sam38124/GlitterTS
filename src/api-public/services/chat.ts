@@ -10,6 +10,7 @@ import {App} from "../../services/app.js";
 import {WebSocket} from "../../services/web-socket.js";
 import {sendMessage} from "../../firebase/message.js";
 import {Firebase} from "../../modules/firebase.js";
+import {AutoSendEmail} from "./auto-send-email.js";
 
 export interface ChatRoom {
     chat_id: string,
@@ -242,6 +243,9 @@ export class Chat {
                                                  return id.join(',')
                                              })()});`, [])
 
+            //SAAS品牌和用戶類型
+            const managerUser = (await App.checkBrandAndMemberType(this.app))
+
             for (const dd of userData) {
                 (WebSocket.messageChangeMem[`${dd.userID}`] ?? []).map((d2)=>{
                     d2.callback({
@@ -274,11 +278,8 @@ export class Chat {
 
 
                             } else if (room.user_id === 'manager') {
-                                await sendmail(`service@ncdesign.info`, dd.userData.email, `官方客服訊息`, this.templateWithCustomerMessage(
-                                    '客服訊息',
-                                    `收到客服回覆:`,
-                                    room.message.text
-                                ))
+                                const template=(await AutoSendEmail.getDefCompare(this.app, 'get-customer-message'))
+                                await sendmail(`service@ncdesign.info`, dd.userData.email, template.title, template.content.replace(/@{{text}}/g,room.message.text).replace(/@{{link}}/g,managerUser.domain))
                             } else {
                                 await sendmail(`service@ncdesign.info`, dd.userData.email, "有人傳送訊息給您", this.templateWithCustomerMessage(
                                     '收到匿名訊息',
@@ -294,21 +295,8 @@ export class Chat {
             if (particpant.find((dd: any) => {
                 return dd.user_id === 'manager'
             }) && room.user_id !== 'manager') {
-                //SAAS品牌和用戶類型
-                const managerUser = (await App.checkBrandAndMemberType(this.app))
-                if (user) {
-                    await sendmail(`service@ncdesign.info`, managerUser['userData'].email, `有一則客服訊息`, this.templateWithCustomerMessage(
-                        '收到客服訊息',
-                        ` ${user.userData.name}傳送一則客服訊息:`,
-                        room.message.text
-                    ))
-                } else {
-                    await sendmail(`service@ncdesign.info`, managerUser['userData'].email, "有一則匿名客服訊息", this.templateWithCustomerMessage(
-                        '收到客服訊息',
-                        `收到一則匿名客服訊息:`,
-                        room.message.text
-                    ))
-                }
+                const template=(await AutoSendEmail.getDefCompare(this.app, 'get-customer-message'))
+                await sendmail(`service@ncdesign.info`, managerUser['userData'].email, template.title, template.content.replace(/@{{text}}/g,room.message.text).replace(/@{{link}}/g,managerUser.domain))
             }
         } catch (e: any) {
             console.log(e);

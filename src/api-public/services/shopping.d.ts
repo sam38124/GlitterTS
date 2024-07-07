@@ -308,6 +308,8 @@ export declare class Shopping {
         result: boolean;
         message?: undefined;
     }>;
+    postProduct(content: any): Promise<any>;
+    putProduct(content: any): Promise<any>;
     deleteCollection(id_array: any): Promise<{
         result: boolean;
     }>;

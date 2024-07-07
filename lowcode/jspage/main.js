@@ -27,6 +27,7 @@ import { PageCodeSetting } from "../editor/page-code-setting.js";
 import { NormalPageEditor } from "../editor/normal-page-editor.js";
 import { EditorConfig } from "../editor-config.js";
 import { HtmlGenerate } from "../glitterBundle/module/html-generate.js";
+import { BgCustomerMessage } from "../backend-manager/bg-customer-message.js";
 const html = String.raw;
 const editorContainerID = `HtmlEditorContainer`;
 init(import.meta.url, (gvc, glitter, gBundle) => {
@@ -405,6 +406,9 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                             view.push(AddComponent.leftNav(gvc));
                             view.push(SetGlobalValue.leftNav(gvc));
                         }
+                        else {
+                            view.push(BgCustomerMessage.leftNav(gvc));
+                        }
                         view.push(PageSettingView.leftNav(gvc));
                         view.push(AddPage.leftNav(gvc));
                         view.push(PageCodeSetting.leftNav(gvc));
@@ -446,7 +450,7 @@ ${(Storage.page_setting_item === `${da.index}`) ? `background:${EditorConfig.edi
                                         }).join('')}`;
                                     },
                                     divCreate: {
-                                        style: `width:60px;gap:20px;padding-top: 15px;`,
+                                        style: `width:50px;gap:20px;padding-top: 15px;min-width:50px;`,
                                         class: `${(Storage.select_function === 'user-editor' || Storage.select_function === 'page-editor') ? `` : `d-none`} h-120 border-end d-flex flex-column align-items-center`
                                     }
                                 };

@@ -2,18 +2,18 @@ import express from 'express';
 import response from '../../modules/response';
 import multer from 'multer';
 import exception from '../../modules/exception';
-import { Shopping } from '../services/shopping';
-import { UtPermission } from '../utils/ut-permission';
-import { EcPay, EzPay } from '../services/financial-service.js';
-import { Private_config } from '../../services/private_config.js';
+import {Shopping} from '../services/shopping';
+import {UtPermission} from '../utils/ut-permission';
+import {EcPay, EzPay} from '../services/financial-service.js';
+import {Private_config} from '../../services/private_config.js';
 import db from '../../modules/database.js';
-import { Invoice } from '../services/invoice.js';
-import { User } from '../services/user.js';
-import { UtDatabase } from '../utils/ut-database.js';
-import { Post } from '../services/post.js';
+import {Invoice} from '../services/invoice.js';
+import {User} from '../services/user.js';
+import {UtDatabase} from '../utils/ut-database.js';
+import {Post} from '../services/post.js';
 import crypto from 'crypto';
 import redis from '../../modules/redis.js';
-import { Rebate, IRebateSearch } from '../services/rebate';
+import {Rebate, IRebateSearch} from '../services/rebate';
 
 const router: express.Router = express.Router();
 
@@ -23,9 +23,9 @@ router.get('/rebate/sum', async (req: express.Request, resp: express.Response) =
     try {
         const app = req.get('g-app') as string;
         const rebateClass = new Rebate(app);
-        const data = await rebateClass.getOneRebate({ user_id: req.query.userID || req.body.token.userID });
+        const data = await rebateClass.getOneRebate({user_id: req.query.userID || req.body.token.userID});
         const main = await rebateClass.mainStatus();
-        return response.succ(resp, { main: main, sum: data ? data.point : 0 });
+        return response.succ(resp, {main: main, sum: data ? data.point : 0});
     } catch (err) {
         return response.fail(resp, err);
     }
@@ -71,25 +71,25 @@ router.get('/rebate', async (req: express.Request, resp: express.Response) => {
 
         const user = await new User(app).getUserData(req.body.token.userID, 'userID');
         if (user.id) {
-            const historyList = await rebateClass.getCustomerRebateHistory({ user_id: req.body.token.userID });
+            const historyList = await rebateClass.getCustomerRebateHistory({user_id: req.body.token.userID});
             const oldest = await rebateClass.getOldestRebate(req.body.token.userID);
             const historyMaps = historyList
                 ? historyList.data.map((item: any) => {
-                      return {
-                          id: item.id,
-                          orderID: item.content.order_id ?? '',
-                          userID: item.user_id,
-                          money: item.origin,
-                          remain: item.remain,
-                          status: 1,
-                          note: item.note,
-                          created_time: item.created_at,
-                          deadline: item.deadline,
-                          userData: user.userData,
-                      };
-                  })
+                    return {
+                        id: item.id,
+                        orderID: item.content.order_id ?? '',
+                        userID: item.user_id,
+                        money: item.origin,
+                        remain: item.remain,
+                        status: 1,
+                        note: item.note,
+                        created_time: item.created_at,
+                        deadline: item.deadline,
+                        userData: user.userData,
+                    };
+                })
                 : [];
-            return response.succ(resp, { data: historyMaps, oldest: oldest?.data });
+            return response.succ(resp, {data: historyMaps, oldest: oldest?.data});
         }
         return response.fail(resp, '使用者不存在');
     } catch (err) {
@@ -131,7 +131,7 @@ router.delete('/product', async (req: express.Request, resp: express.Response) =
             await new Shopping(req.get('g-app') as string, req.body.token).deleteProduct({
                 id: req.query.id as string,
             });
-            return response.succ(resp, { result: true });
+            return response.succ(resp, {result: true});
         } else {
             return response.fail(resp, exception.BadRequestError('BAD_REQUEST', 'No permission.', null));
         }
@@ -288,7 +288,7 @@ router.delete('/voucher', async (req: express.Request, resp: express.Response) =
             await new Shopping(req.get('g-app') as string, req.body.token).deleteVoucher({
                 id: req.query.id as string,
             });
-            return response.succ(resp, { result: true });
+            return response.succ(resp, {result: true});
         } else {
             return response.fail(resp, exception.BadRequestError('BAD_REQUEST', 'No permission.', null));
         }
@@ -301,35 +301,36 @@ router.post('/redirect', async (req: express.Request, resp: express.Response) =>
         let return_url = new URL((await redis.getValue(req.query.return as string)) as any);
         const html = String.raw;
         return resp.send(html`<!DOCTYPE html>
-            <html lang="en">
-                <head>
-                    <meta charset="UTF-8" />
-                    <title>Title</title>
-                </head>
-                <body>
-                    <script>
-                        try {
-                            window.webkit.messageHandlers.addJsInterFace.postMessage(
-                                JSON.stringify({
-                                    functionName: 'closeWebView',
-                                    callBackId: 0,
-                                    data: {
-                                        redirect:'${return_url.href}'
-                                    }
-                                })
-                            );
-                        } catch (e) {}
-                        location.href = '${return_url.href}';
-                    </script>
-                </body>
-            </html> `);
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8"/>
+            <title>Title</title>
+        </head>
+        <body>
+        <script>
+            try {
+                window.webkit.messageHandlers.addJsInterFace.postMessage(
+                        JSON.stringify({
+                            functionName: 'closeWebView',
+                            callBackId: 0,
+                            data: {
+                                redirect: '${return_url.href}'
+                            }
+                        })
+                );
+            } catch (e) {
+            }
+            location.href = '${return_url.href}';
+        </script>
+        </body>
+        </html> `);
     } catch (err) {
         return response.fail(resp, err);
     }
 });
 
 const storage = multer.memoryStorage(); // 文件暫存
-const upload = multer({ storage });
+const upload = multer({storage});
 
 router.post('/notify', upload.single('file'), async (req: express.Request, resp: express.Response) => {
     try {
@@ -476,7 +477,7 @@ router.post('/wishlist', async (req: express.Request, resp: express.Response) =>
                 't_post'
             );
         }
-        return response.succ(resp, { result: true });
+        return response.succ(resp, {result: true});
     } catch (err) {
         return response.fail(resp, err);
     }
@@ -492,7 +493,7 @@ router.delete('/wishlist', async (req: express.Request, resp: express.Response) 
             `,
             [req.body.token.userID]
         );
-        return response.succ(resp, { result: true });
+        return response.succ(resp, {result: true});
     } catch (err) {
         return response.fail(resp, err);
     }
@@ -608,6 +609,30 @@ router.get('/check-login-for-order', async (req: express.Request, resp: express.
         return response.succ(resp, {
             result: keyData.login_in_to_order,
         });
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+
+router.post('/product', async (req: express.Request, resp: express.Response) => {
+    try {
+        if (!await UtPermission.isManager(req)) {
+            return response.fail(resp, exception.BadRequestError('BAD_REQUEST', 'No permission.', null));
+        } else {
+            return response.succ(resp, {result: true, id: await (new Shopping(req.get('g-app') as string,req.body.token).postProduct(req.body))});
+        }
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+
+router.put('/product', async (req: express.Request, resp: express.Response) => {
+    try {
+        if (!await UtPermission.isManager(req)) {
+            return response.fail(resp, exception.BadRequestError('BAD_REQUEST', 'No permission.', null));
+        } else {
+            return response.succ(resp, {result: true, id: await (new Shopping(req.get('g-app') as string,req.body.token).putProduct(req.body))});
+        }
     } catch (err) {
         return response.fail(resp, err);
     }

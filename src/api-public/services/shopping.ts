@@ -1,17 +1,20 @@
-import { IToken } from '../models/Auth.js';
+import {IToken} from '../models/Auth.js';
 import exception from '../../modules/exception.js';
 import db from '../../modules/database.js';
 import FinancialService from './financial-service.js';
-import { Private_config } from '../../services/private_config.js';
+import {Private_config} from '../../services/private_config.js';
 import redis from '../../modules/redis.js';
-import { User } from './user.js';
+import {User} from './user.js';
 import Tool from '../../modules/tool.js';
-import { Invoice } from './invoice.js';
+import {Invoice} from './invoice.js';
 import e from 'express';
-import { Rebate } from './rebate.js';
-import { CustomCode } from '../services/custom-code.js';
+import {Rebate} from './rebate.js';
+import {CustomCode} from '../services/custom-code.js';
 import moment from 'moment';
-import { ManagerNotify } from './notify.js';
+import {ManagerNotify} from './notify.js';
+import {Post} from "./post.js";
+import {UtPermission} from "../utils/ut-permission.js";
+import response from "../../modules/response.js";
 
 interface VoucherData {
     id: number;
@@ -84,22 +87,22 @@ export class Shopping {
             query.search && querySql.push(`(UPPER(JSON_UNQUOTE(JSON_EXTRACT(content, '$.title'))) LIKE UPPER('%${query.search}%'))`);
             query.id && querySql.push(`(content->>'$.id' = ${query.id})`);
             query.collection &&
-                querySql.push(
-                    `(${query.collection
-                        .split(',')
-                        .map((dd) => {
-                            return `(JSON_EXTRACT(content, '$.collection') LIKE '%${dd}%')`;
-                        })
-                        .join(' or ')})`
-                );
-            query.sku && querySql.push(`id in (SELECT CAST(content->>'$.product_id' AS UNSIGNED) as id from \`${this.app}\`.t_manager_post WHERE content->>'$.sku'=${db.escape(query.sku)})`);
+            querySql.push(
+                `(${query.collection
+                    .split(',')
+                    .map((dd) => {
+                        return `(JSON_EXTRACT(content, '$.collection') LIKE '%${dd}%')`;
+                    })
+                    .join(' or ')})`
+            );
+            query.sku && querySql.push(`(id in ( select product_id from \`${this.app}\`.t_variants where content->>'$.sku'=${db.escape(query.sku)}))`);
             if (!query.id && query.status === 'active' && query.with_hide_index !== 'true') {
                 querySql.push(`((content->>'$.hideIndex' is NULL) || (content->>'$.hideIndex'='false'))`);
             }
             query.id_list && querySql.push(`(content->>'$.id' in (${query.id_list}))`);
             query.status && querySql.push(`(JSON_EXTRACT(content, '$.status') = '${query.status}')`);
-            query.min_price && querySql.push(`(CAST(JSON_UNQUOTE(JSON_EXTRACT(content, '$.variants[0].sale_price')) AS SIGNED)>=${query.min_price}) `);
-            query.max_price && querySql.push(`(CAST(JSON_UNQUOTE(JSON_EXTRACT(content, '$.variants[0].sale_price')) AS SIGNED)<=${query.max_price}) `);
+            query.min_price && querySql.push(`(id in (select product_id from \`${this.app}\`.t_variants where content->>'$.sale_price'>=${query.min_price})) `);
+            query.max_price && querySql.push(`(id in (select product_id from \`${this.app}\`.t_variants where content->>'$.sale_price'<=${query.max_price})) `);
             const data = await this.querySql(querySql, query);
 
             // 產品清單
@@ -111,10 +114,11 @@ export class Shopping {
                     b.content.in_wish_list =
                         (
                             await db.query(
-                                `SELECT count(1) FROM \`${this.app}\`.t_post
-                                      WHERE (content ->>'$.type'='wishlist')
-                                        and userID = ${this.token.userID}
-                                        and (content ->>'$.product_id'=${b.id})`,
+                                `SELECT count(1)
+                                 FROM \`${this.app}\`.t_post
+                                 WHERE (content ->>'$.type'='wishlist')
+                                   and userID = ${this.token.userID}
+                                   and (content ->>'$.product_id'=${b.id})`,
                                 []
                             )
                         )[0]['count(1)'] == '1';
@@ -125,14 +129,15 @@ export class Shopping {
             if (productList.length > 0) {
                 const stockList = await db.query(
                     `SELECT *, \`${this.app}\`.t_stock_recover.id as recoverID
-                          FROM \`${this.app}\`.t_stock_recover, \`${this.app}\`.t_checkout
-                          WHERE product_id in (${productList
-                              .map((dd) => {
-                                  return dd.id;
-                              })
-                              .join(',')})
-                           and order_id = cart_token
-                           and dead_line < ?;`,
+                     FROM \`${this.app}\`.t_stock_recover,
+                          \`${this.app}\`.t_checkout
+                     WHERE product_id in (${productList
+                             .map((dd) => {
+                                 return dd.id;
+                             })
+                             .join(',')})
+                       and order_id = cart_token
+                       and dead_line < ?;`,
                     [new Date()]
                 );
                 const trans = await db.Transaction.build();
@@ -149,15 +154,17 @@ export class Shopping {
                             // 回寫商品訂單
                             await trans.execute(
                                 `UPDATE \`${this.app}\`.\`t_manager_post\`
-                                      SET ?
-                                      WHERE 1 = 1 and id = ${stock.product_id}`,
-                                [{ content: JSON.stringify(product.content) }]
+                                 SET ?
+                                 WHERE 1 = 1
+                                   and id = ${stock.product_id}`,
+                                [{content: JSON.stringify(product.content)}]
                             );
                         }
                         // 移除紀錄
                         await trans.execute(
-                            `DELETE FROM \`${this.app}\`.t_stock_recover 
-                                WHERE id = ?`,
+                            `DELETE
+                             FROM \`${this.app}\`.t_stock_recover
+                             WHERE id = ?`,
                             [stock.recoverID]
                         );
                     }
@@ -179,20 +186,25 @@ export class Shopping {
         if (query.id) {
             const data = (
                 await db.query(
-                    `SELECT * FROM (${sql}) as subqyery 
-                          limit ${query.page * query.limit}, ${query.limit}`,
+                    `SELECT *
+                     FROM (${sql}) as subqyery
+                         limit ${query.page * query.limit}
+                        , ${query.limit}`,
                     []
                 )
             )[0];
-            return { data: data, result: !!data };
+            return {data: data, result: !!data};
         } else {
             return {
                 data: await db.query(
-                    `SELECT * FROM (${sql}) as subqyery 
-                          limit ${query.page * query.limit}, ${query.limit}`,
+                    `SELECT *
+                     FROM (${sql}) as subqyery
+                         limit ${query.page * query.limit}
+                        , ${query.limit}`,
                     []
                 ),
-                total: (await db.query(`SELECT count(1) FROM (${sql}) as subqyery`, []))[0]['count(1)'],
+                total: (await db.query(`SELECT count(1)
+                                        FROM (${sql}) as subqyery`, []))[0]['count(1)'],
             };
         }
     }
@@ -200,8 +212,9 @@ export class Shopping {
     public async deleteProduct(query: { id: string }) {
         try {
             await db.query(
-                `DELETE FROM \`${this.app}\`.t_manager_post
-                      WHERE id in (?)`,
+                `DELETE
+                 FROM \`${this.app}\`.t_manager_post
+                 WHERE id in (?)`,
                 [query.id.split(',')]
             );
             return {
@@ -215,8 +228,9 @@ export class Shopping {
     public async deleteVoucher(query: { id: string }) {
         try {
             await db.query(
-                `DELETE FROM \`${this.app}\`.t_manager_post
-                    WHERE id in (?)`,
+                `DELETE
+                 FROM \`${this.app}\`.t_manager_post
+                 WHERE id in (?)`,
                 [query.id.split(',')]
             );
             return {
@@ -285,7 +299,7 @@ export class Shopping {
             // 判斷回饋金是否可用
             if (data.use_rebate && data.use_rebate > 0) {
                 if (userData) {
-                    const userRebate = await rebateClass.getOneRebate({ user_id: userData.userID });
+                    const userRebate = await rebateClass.getOneRebate({user_id: userData.userID});
                     const sum = userRebate ? userRebate.point : 0;
                     if (sum < data.use_rebate) {
                         data.use_rebate = 0;
@@ -368,7 +382,7 @@ export class Shopping {
                 use_wallet: 0,
                 method: data.user_info && data.user_info.method,
                 user_email: (userData && userData.account) || (data.email ?? ((data.user_info && data.user_info.email) || '')),
-                useRebateInfo: { point: 0 },
+                useRebateInfo: {point: 0},
             };
 
             function calculateShipment(dataList: { key: string; value: string }[], value: number | string) {
@@ -452,16 +466,18 @@ export class Shopping {
                                 variant.stock = countless > 0 ? countless : 0;
                                 await db.query(
                                     `UPDATE \`${this.app}\`.\`t_manager_post\`
-                                          SET ?
-                                          WHERE 1 = 1 and id = ${pdDqlData.id}`,
-                                    [{ content: JSON.stringify(pd) }]
+                                     SET ?
+                                     WHERE 1 = 1
+                                       and id = ${pdDqlData.id}`,
+                                    [{content: JSON.stringify(pd)}]
                                 );
                                 // 獲取當前時間
                                 let deadTime = new Date();
                                 // 添加10分鐘
                                 deadTime.setMinutes(deadTime.getMinutes() + 15);
                                 // 設定15分鐘後回寫訂單庫存
-                                await db.query(`INSERT INTO \`${this.app}\`.\`t_stock_recover\` set ?`, [
+                                await db.query(`INSERT INTO \`${this.app}\`.\`t_stock_recover\`
+                                                set ?`, [
                                     {
                                         product_id: pdDqlData.id,
                                         spec: variant.spec.join('-'),
@@ -473,7 +489,8 @@ export class Shopping {
                             }
                         }
                     }
-                } catch (e) {}
+                } catch (e) {
+                }
             }
             carData.total += carData.shipment_fee!;
 
@@ -486,7 +503,7 @@ export class Shopping {
             await this.checkVoucher(carData);
 
             // ================================ Preview UP ================================
-            if (type === 'preview') return { data: carData };
+            if (type === 'preview') return {data: carData};
             // ================================ Add DOWN ================================
 
             await rebateClass.insertRebate(userData.userID, carData.use_rebate * -1, '使用折抵', {
@@ -505,9 +522,9 @@ export class Shopping {
                     (
                         await db.query(
                             `SELECT sum(money)
-                                         FROM \`${this.app}\`.t_wallet
-                                         WHERE status in (1, 2)
-                                           and userID = ?`,
+                             FROM \`${this.app}\`.t_wallet
+                             WHERE status in (1, 2)
+                               and userID = ?`,
                             [userData.userID]
                         )
                     )[0]['sum(money)'] || 0;
@@ -518,7 +535,7 @@ export class Shopping {
             if (carData.use_wallet === carData.total) {
                 await db.query(
                     `INSERT INTO \`${this.app}\`.t_wallet (orderID, userID, money, status, note)
-                          values (?, ?, ?, ?, ?);`,
+                     values (?, ?, ?, ?, ?);`,
                     [
                         carData.orderID,
                         userData.userID,
@@ -532,7 +549,7 @@ export class Shopping {
                 );
                 await db.execute(
                     `INSERT INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
-                          values (?, ?, ?, ?)`,
+                     values (?, ?, ?, ?)`,
                     [carData.orderID, 1, carData.email, carData]
                 );
                 if (carData.use_wallet > 0) {
@@ -581,7 +598,7 @@ export class Shopping {
 
     public async formatUseRebate(total: number, useRebate: number): Promise<{ point: number; limit?: number; condition?: number }> {
         try {
-            const getRS = await new User(this.app).getConfig({ key: 'rebate_setting', user_id: 'manager' });
+            const getRS = await new User(this.app).getConfig({key: 'rebate_setting', user_id: 'manager'});
             if (getRS[0] && getRS[0].value) {
                 const configData = getRS[0].value.config;
                 if (configData.condition.type === 'total_price' && configData.condition.value > total) {
@@ -739,23 +756,23 @@ export class Shopping {
             .sort(function (a: VoucherData, b: VoucherData) {
                 let compareB = b
                     .bind!.map((dd) => {
-                        if (b.reBackType === 'shipment_free') {
-                            return dd.shipment_fee;
-                        } else {
-                            return b.method === 'percent' ? (dd.sale_price * parseFloat(b.value)) / 100 : parseFloat(b.value);
-                        }
-                    })
+                    if (b.reBackType === 'shipment_free') {
+                        return dd.shipment_fee;
+                    } else {
+                        return b.method === 'percent' ? (dd.sale_price * parseFloat(b.value)) / 100 : parseFloat(b.value);
+                    }
+                })
                     .reduce(function (accumulator, currentValue) {
                         return accumulator + currentValue;
                     }, 0);
                 let compareA = a
                     .bind!.map((dd) => {
-                        if (a.reBackType === 'shipment_free') {
-                            return dd.shipment_fee;
-                        } else {
-                            return a.method === 'percent' ? (dd.sale_price * parseFloat(a.value)) / 100 : parseFloat(a.value);
-                        }
-                    })
+                    if (a.reBackType === 'shipment_free') {
+                        return dd.shipment_fee;
+                    } else {
+                        return a.method === 'percent' ? (dd.sale_price * parseFloat(a.value)) / 100 : parseFloat(a.value);
+                    }
+                })
                     .reduce(function (accumulator, currentValue) {
                         return accumulator + currentValue;
                     }, 0);
@@ -862,8 +879,8 @@ export class Shopping {
 
             await db.query(
                 `UPDATE \`${this.app}\`.t_checkout
-                            set ?
-                            WHERE id = ?`,
+                 set ?
+                 WHERE id = ?`,
                 [update, data.id]
             );
             return {
@@ -879,8 +896,8 @@ export class Shopping {
         try {
             await db.query(
                 `DELETE
-                            FROM \`${this.app}\`.t_checkout
-                            WHERE id in (?)`,
+                 FROM \`${this.app}\`.t_checkout
+                 WHERE id in (?)`,
                 [req.id.split(',')]
             );
             return {
@@ -990,13 +1007,13 @@ export class Shopping {
                 querySql.push(`((orderData->>'$.archived' is null) or (orderData->>'$.archived'!='true'))`);
             }
             let sql = `SELECT *
-                        FROM \`${this.app}\`.t_checkout
-                        WHERE ${querySql.join(' and ')} ${orderString}`;
+                       FROM \`${this.app}\`.t_checkout
+                       WHERE ${querySql.join(' and ')} ${orderString}`;
             if (query.id) {
                 const data = (
                     await db.query(
                         `SELECT *
-                              FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}`,
+                         FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}`,
                         []
                     )
                 )[0];
@@ -1008,13 +1025,13 @@ export class Shopping {
                 return {
                     data: await db.query(
                         `SELECT *
-                                   FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}`,
+                         FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}`,
                         []
                     ),
                     total: (
                         await db.query(
                             `SELECT count(1)
-                                            FROM (${sql}) as subqyery`,
+                             FROM (${sql}) as subqyery`,
                             []
                         )
                     )[0]['count(1)'],
@@ -1029,8 +1046,9 @@ export class Shopping {
         try {
             if (status === -1) {
                 await db.execute(
-                    `UPDATE \`${this.app}\`.t_checkout 
-                    SET status = ? WHERE cart_token = ?`,
+                    `UPDATE \`${this.app}\`.t_checkout
+                     SET status = ?
+                     WHERE cart_token = ?`,
                     [-1, order_id]
                 );
                 await this.releaseVoucherHistory(order_id, 0);
@@ -1039,8 +1057,10 @@ export class Shopping {
             if (status === 1) {
                 const notProgress = (
                     await db.query(
-                        `SELECT count(1) FROM \`${this.app}\`.t_checkout
-                        WHERE cart_token = ? AND status = 0;`,
+                        `SELECT count(1)
+                         FROM \`${this.app}\`.t_checkout
+                         WHERE cart_token = ?
+                           AND status = 0;`,
                         [order_id]
                     )
                 )[0]['count(1)'];
@@ -1051,14 +1071,16 @@ export class Shopping {
 
                 await db.execute(
                     `UPDATE \`${this.app}\`.t_checkout
-                    SET status = ? WHERE cart_token = ?`,
+                     SET status = ?
+                     WHERE cart_token = ?`,
                     [1, order_id]
                 );
 
                 const cartData = (
                     await db.query(
-                        `SELECT * FROM \`${this.app}\`.t_checkout
-                        WHERE cart_token = ?;`,
+                        `SELECT *
+                         FROM \`${this.app}\`.t_checkout
+                         WHERE cart_token = ?;`,
                         [order_id]
                     )
                 )[0];
@@ -1076,8 +1098,10 @@ export class Shopping {
                         const orderVoucher = cartData.orderData.voucherList[i];
 
                         const voucherRow = await db.query(
-                            `SELECT * FROM \`${this.app}\`.t_manager_post
-                            WHERE JSON_EXTRACT(content, '$.type') = 'voucher' AND id = ?;`,
+                            `SELECT *
+                             FROM \`${this.app}\`.t_manager_post
+                             WHERE JSON_EXTRACT(content, '$.type') = 'voucher'
+                               AND id = ?;`,
                             [orderVoucher.id]
                         );
 
@@ -1109,7 +1133,7 @@ export class Shopping {
                 }
 
                 try {
-                    await new CustomCode(this.app).checkOutHook({ userData, cartData });
+                    await new CustomCode(this.app).checkOutHook({userData, cartData});
                 } catch (e) {
                     console.error(e);
                 }
@@ -1123,12 +1147,11 @@ export class Shopping {
     public async checkVoucherLimited(user_id: number, voucher_id: number): Promise<boolean> {
         try {
             const vouchers = await db.query(
-                `SELECT 
-                        id,
+                `SELECT id,
                         JSON_EXTRACT(content, '$.macroLimited') AS macroLimited,
-                        JSON_EXTRACT(content, '$.microLimited') AS microLimited 
-                    FROM \`${this.app}\`.t_manager_post
-                    WHERE id = ?;`,
+                        JSON_EXTRACT(content, '$.microLimited') AS microLimited
+                 FROM \`${this.app}\`.t_manager_post
+                 WHERE id = ?;`,
                 [voucher_id]
             );
             if (!vouchers[0]) {
@@ -1138,8 +1161,10 @@ export class Shopping {
                 return true;
             }
             const history = await db.query(
-                `SELECT * FROM \`${this.app}\`.t_voucher_history 
-                WHERE voucher_id = ? AND status in (1, 2);`,
+                `SELECT *
+                 FROM \`${this.app}\`.t_voucher_history
+                 WHERE voucher_id = ?
+                   AND status in (1, 2);`,
                 [voucher_id]
             );
             if (vouchers[0].macroLimited > 0 && history.length >= vouchers[0].macroLimited) {
@@ -1161,7 +1186,8 @@ export class Shopping {
 
     public async insertVoucherHistory(user_id: number, order_id: string, voucher_id: number) {
         try {
-            await db.query(`INSERT INTO \`${this.app}\`.\`t_voucher_history\` set ?`, [
+            await db.query(`INSERT INTO \`${this.app}\`.\`t_voucher_history\`
+                            set ?`, [
                 {
                     user_id,
                     order_id,
@@ -1178,7 +1204,9 @@ export class Shopping {
 
     public async releaseVoucherHistory(order_id: string, status: 1 | 0) {
         try {
-            await db.query(`UPDATE \`${this.app}\`.t_voucher_history SET status = ? WHERE order_id = ?;`, [status, order_id]);
+            await db.query(`UPDATE \`${this.app}\`.t_voucher_history
+                            SET status = ?
+                            WHERE order_id = ?;`, [status, order_id]);
         } catch (error) {
             throw exception.BadRequestError('BAD_REQUEST', 'insertVoucherHistory Error:' + e, null);
         }
@@ -1189,8 +1217,10 @@ export class Shopping {
             const now = moment().tz('Asia/Taipei').format('YYYY-MM-DD HH:mm:ss');
             await db.query(
                 `
-                UPDATE \`${this.app}\`.t_voucher_history SET status = 0
-                WHERE status = 2 AND updated_at < DATE_SUB('${now}', INTERVAL 2 MINUTE);`,
+                    UPDATE \`${this.app}\`.t_voucher_history
+                    SET status = 0
+                    WHERE status = 2
+                      AND updated_at < DATE_SUB('${now}', INTERVAL 2 MINUTE);`,
                 []
             );
         } catch (error) {
@@ -1201,12 +1231,12 @@ export class Shopping {
     public async postVariantsAndPriceValue(content: any) {
         content.variants = content.variants ?? [];
         content.id &&
-            (await db.query(
-                `DELETE
-                                       from \`${this.app}\`.t_manager_post
-                                       WHERE (content ->>'$.product_id'=${content.id})`,
-                []
-            ));
+        (await db.query(
+            `DELETE
+             from \`${this.app}\`.t_variants
+             WHERE (product_id=${content.id}) and id>0`,
+            []
+        ));
         for (const a of content.variants) {
             content.min_price = content.min_price ?? a.sale_price;
             content.max_price = content.max_price ?? a.sale_price;
@@ -1219,12 +1249,12 @@ export class Shopping {
             a.type = 'variants';
             a.product_id = content.id;
             await db.query(
-                `INSERT INTO \`${this.app}\`.t_manager_post
-                            SET ?`,
+                `INSERT INTO \`${this.app}\`.t_variants
+                 SET ?`,
                 [
                     {
                         content: JSON.stringify(a),
-                        userID: this.token!.userID,
+                        product_id: content.id,
                     },
                 ]
             );
@@ -1264,7 +1294,7 @@ export class Shopping {
                 }
                 return result;
             }
-            return { result: false };
+            return {result: false};
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'getDataAnalyze Error:' + e, null);
         }
@@ -1272,7 +1302,9 @@ export class Shopping {
 
     async getOrderToDay() {
         try {
-            const order = await db.query(`SELECT * FROM \`${this.app}\`.t_checkout  WHERE DATE(created_time) = CURDATE()`, []);
+            const order = await db.query(`SELECT *
+                                          FROM \`${this.app}\`.t_checkout
+                                          WHERE DATE (created_time) = CURDATE()`, []);
 
             return {
                 //訂單總數
@@ -1280,9 +1312,12 @@ export class Shopping {
                     return dd.status === 1;
                 }).length,
                 //未出貨訂單
-                un_shipment: (await db.query(`SELECT count(1) from \`${this.app}\`.t_checkout WHERE (orderData->'$.progress' is null || orderData->'$.progress'='wait') and status=1`, []))[0][
+                un_shipment: (await db.query(`SELECT count(1)
+                                              from \`${this.app}\`.t_checkout
+                                              WHERE (orderData - > '$.progress' is null || orderData - > '$.progress' = 'wait')
+                                                and status = 1`, []))[0][
                     'count(1)'
-                ],
+                    ],
                 //未付款訂單
                 un_pay: order.filter((dd: any) => {
                     return dd.status === 0;
@@ -1308,16 +1343,18 @@ export class Shopping {
     async getRecentActiveUser() {
         try {
             const recentSQL = `
-                SELECT * FROM \`${this.app}\`.t_user
+                SELECT *
+                FROM \`${this.app}\`.t_user
                 WHERE online_time BETWEEN DATE_SUB(NOW(), INTERVAL 10 MINUTE) AND NOW();
             `;
             const recent_users = await db.query(recentSQL, []);
             const monthSQL = `
-                SELECT * FROM \`${this.app}\`.t_user
-                WHERE MONTH(online_time) = MONTH(NOW()) AND YEAR(online_time) = YEAR(NOW());
+                SELECT *
+                FROM \`${this.app}\`.t_user
+                WHERE MONTH (online_time) = MONTH (NOW()) AND YEAR (online_time) = YEAR (NOW());
             `;
             const month_users = await db.query(monthSQL, []);
-            return { recent: recent_users.length, months: month_users.length };
+            return {recent: recent_users.length, months: month_users.length};
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
         }
@@ -1326,8 +1363,9 @@ export class Shopping {
     async getSalesInRecentMonth() {
         try {
             const recentMonthSQL = `
-                SELECT * FROM \`${this.app}\`.t_checkout
-                WHERE MONTH(created_time) = MONTH(NOW()) AND YEAR(created_time) = YEAR(NOW()) AND status = 1;
+                SELECT *
+                FROM \`${this.app}\`.t_checkout
+                WHERE MONTH (created_time) = MONTH (NOW()) AND YEAR (created_time) = YEAR (NOW()) AND status = 1;
             `;
             const recentMonthCheckouts = await db.query(recentMonthSQL, []);
             let recent_month_total = 0;
@@ -1336,11 +1374,14 @@ export class Shopping {
             });
 
             const previousMonthSQL = `
-                SELECT * FROM \`${this.app}\`.t_checkout
-                WHERE 
-                    MONTH(created_time) = MONTH(DATE_SUB(NOW(), INTERVAL 1 MONTH)) 
-                    AND YEAR(created_time) = YEAR(DATE_SUB(NOW(), INTERVAL 1 MONTH))
-                    AND status = 1;
+                SELECT *
+                FROM \`${this.app}\`.t_checkout
+                WHERE
+                    MONTH (created_time) = MONTH (DATE_SUB(NOW()
+                    , INTERVAL 1 MONTH))
+                  AND YEAR (created_time) = YEAR (DATE_SUB(NOW()
+                    , INTERVAL 1 MONTH))
+                  AND status = 1;
             `;
             const previousMonthCheckouts = await db.query(previousMonthSQL, []);
             let previous_month_total = 0;
@@ -1353,7 +1394,7 @@ export class Shopping {
                 gap = Math.floor(((recent_month_total - previous_month_total) / previous_month_total) * 10000) / 10000;
             }
 
-            return { recent_month_total, previous_month_total, gap };
+            return {recent_month_total, previous_month_total, gap};
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
         }
@@ -1362,7 +1403,8 @@ export class Shopping {
     async getHotProducts() {
         try {
             const checkoutSQL = `
-                SELECT JSON_EXTRACT(orderData, '$.lineItems') as lineItems FROM \`${this.app}\`.t_checkout
+                SELECT JSON_EXTRACT(orderData, '$.lineItems') as lineItems
+                FROM \`${this.app}\`.t_checkout
                 WHERE created_time BETWEEN DATE_SUB(NOW(), INTERVAL 1 MONTH) AND NOW();
             `;
             const checkouts = await db.query(checkoutSQL, []);
@@ -1374,7 +1416,7 @@ export class Shopping {
                 for (const item1 of checkout.lineItems) {
                     const index = product_list.findIndex((item2) => item1.title === item2.title);
                     if (index === -1) {
-                        product_list.push({ title: item1.title, count: item1.count });
+                        product_list.push({title: item1.title, count: item1.count});
                     } else {
                         product_list[index].count += item1.count;
                     }
@@ -1390,7 +1432,7 @@ export class Shopping {
                 }
             }
 
-            return { series, categories };
+            return {series, categories};
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
         }
@@ -1399,18 +1441,22 @@ export class Shopping {
     async getOrdersInRecentMonth() {
         try {
             const recentMonthSQL = `
-                SELECT id FROM \`${this.app}\`.t_checkout
-                WHERE MONTH(created_time) = MONTH(NOW()) AND YEAR(created_time) = YEAR(NOW()) AND status = 1;
+                SELECT id
+                FROM \`${this.app}\`.t_checkout
+                WHERE MONTH (created_time) = MONTH (NOW()) AND YEAR (created_time) = YEAR (NOW()) AND status = 1;
             `;
             const recentMonthCheckouts = await db.query(recentMonthSQL, []);
             let recent_month_total = recentMonthCheckouts.length;
 
             const previousMonthSQL = `
-                SELECT id FROM \`${this.app}\`.t_checkout
-                WHERE 
-                    MONTH(created_time) = MONTH(DATE_SUB(NOW(), INTERVAL 1 MONTH)) 
-                    AND YEAR(created_time) = YEAR(DATE_SUB(NOW(), INTERVAL 1 MONTH))
-                    AND status = 1;
+                SELECT id
+                FROM \`${this.app}\`.t_checkout
+                WHERE
+                    MONTH (created_time) = MONTH (DATE_SUB(NOW()
+                    , INTERVAL 1 MONTH))
+                  AND YEAR (created_time) = YEAR (DATE_SUB(NOW()
+                    , INTERVAL 1 MONTH))
+                  AND status = 1;
             `;
             const previousMonthCheckouts = await db.query(previousMonthSQL, []);
             let previous_month_total = previousMonthCheckouts.length;
@@ -1420,7 +1466,7 @@ export class Shopping {
                 gap = Math.floor(((recent_month_total - previous_month_total) / previous_month_total) * 10000) / 10000;
             }
 
-            return { recent_month_total, previous_month_total, gap };
+            return {recent_month_total, previous_month_total, gap};
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
         }
@@ -1432,17 +1478,20 @@ export class Shopping {
 
             for (let index = 0; index < 12; index++) {
                 const orderCountSQL = `
-                    SELECT count(id) as c FROM \`${this.app}\`.t_checkout
-                    WHERE 
-                        MONTH(created_time) = MONTH(DATE_SUB(NOW(), INTERVAL ${index} MONTH)) 
-                        AND YEAR(created_time) = YEAR(DATE_SUB(NOW(), INTERVAL ${index} MONTH))
-                        AND status = 1;
+                    SELECT count(id) as c
+                    FROM \`${this.app}\`.t_checkout
+                    WHERE
+                        MONTH (created_time) = MONTH (DATE_SUB(NOW()
+                        , INTERVAL ${index} MONTH))
+                      AND YEAR (created_time) = YEAR (DATE_SUB(NOW()
+                        , INTERVAL ${index} MONTH))
+                      AND status = 1;
                 `;
                 const orders = await db.query(orderCountSQL, []);
                 countArray.unshift(orders[0].c);
             }
 
-            return { countArray };
+            return {countArray};
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
         }
@@ -1454,11 +1503,14 @@ export class Shopping {
 
             for (let index = 0; index < 12; index++) {
                 const monthCheckoutSQL = `
-                    SELECT orderData FROM \`${this.app}\`.t_checkout
-                    WHERE 
-                        MONTH(created_time) = MONTH(DATE_SUB(NOW(), INTERVAL ${index} MONTH)) 
-                        AND YEAR(created_time) = YEAR(DATE_SUB(NOW(), INTERVAL ${index} MONTH))
-                        AND status = 1;
+                    SELECT orderData
+                    FROM \`${this.app}\`.t_checkout
+                    WHERE
+                        MONTH (created_time) = MONTH (DATE_SUB(NOW()
+                        , INTERVAL ${index} MONTH))
+                      AND YEAR (created_time) = YEAR (DATE_SUB(NOW()
+                        , INTERVAL ${index} MONTH))
+                      AND status = 1;
                 `;
                 const monthCheckout = await db.query(monthCheckoutSQL, []);
                 let total = 0;
@@ -1468,7 +1520,7 @@ export class Shopping {
                 countArray.unshift(total);
             }
 
-            return { countArray };
+            return {countArray};
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
         }
@@ -1480,12 +1532,16 @@ export class Shopping {
 
             for (let index = 0; index < 14; index++) {
                 const monthCheckoutSQL = `
-                    SELECT orderData FROM \`${this.app}\`.t_checkout
-                    WHERE 
-                        DAY(created_time) = DAY(DATE_SUB(NOW(), INTERVAL ${index} DAY))
-                        AND MONTH(created_time) = MONTH(DATE_SUB(NOW(), INTERVAL ${index} DAY)) 
-                        AND YEAR(created_time) = YEAR(DATE_SUB(NOW(), INTERVAL ${index} DAY))
-                        AND status = 1;
+                    SELECT orderData
+                    FROM \`${this.app}\`.t_checkout
+                    WHERE
+                        DAY (created_time) = DAY (DATE_SUB(NOW()
+                        , INTERVAL ${index} DAY))
+                      AND MONTH (created_time) = MONTH (DATE_SUB(NOW()
+                        , INTERVAL ${index} DAY))
+                      AND YEAR (created_time) = YEAR (DATE_SUB(NOW()
+                        , INTERVAL ${index} DAY))
+                      AND status = 1;
                 `;
                 const monthCheckout = await db.query(monthCheckoutSQL, []);
                 let total = 0;
@@ -1499,7 +1555,7 @@ export class Shopping {
                 }
             }
 
-            return { countArray };
+            return {countArray};
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
         }
@@ -1507,7 +1563,9 @@ export class Shopping {
 
     async getCollectionProducts(tag: string) {
         try {
-            const products_sql = `SELECT * FROM \`${this.app}\`.t_manager_post WHERE JSON_EXTRACT(content, '$.type') = 'product';`;
+            const products_sql = `SELECT *
+                                  FROM \`${this.app}\`.t_manager_post
+                                  WHERE JSON_EXTRACT(content, '$.type') = 'product';`;
             const products = await db.query(products_sql, []);
             return products.filter((product: any) => product.content.collection.includes(tag));
         } catch (e) {
@@ -1517,39 +1575,44 @@ export class Shopping {
 
     async putCollection(data: any) {
         try {
-            let config = (await db.query(`SELECT * FROM \`${this.app}\`.public_config WHERE \`key\` = 'collection';`, []))[0] ?? {};
+            let config = (await db.query(`SELECT *
+                                          FROM \`${this.app}\`.public_config
+                                          WHERE \`key\` = 'collection';`, []))[0] ?? {};
             config.value = config.value || [];
             if (data.id == -1 || data.parent_name !== data.origin.parent_name || data.name !== data.origin.item_name) {
                 if (data.parent_id === undefined && config.value.find((item: { title: string }) => item.title === data.name)) {
-                    return { result: false, message: `上層分類已存在「${data.name}」類別名稱` };
+                    return {result: false, message: `上層分類已存在「${data.name}」類別名稱`};
                 }
                 if (data.parent_id !== undefined && config.value[data.parent_id].array.find((item: { title: string }) => item.title === data.name)) {
-                    return { result: false, message: `上層分類「${config.value[data.parent_id].title}」已存在「${data.name}」類別名稱` };
+                    return {
+                        result: false,
+                        message: `上層分類「${config.value[data.parent_id].title}」已存在「${data.name}」類別名稱`
+                    };
                 }
             }
 
             if (data.id == -1) {
                 if (data.parent_id === undefined) {
                     // 新增父層類別
-                    config.value.push({ array: [], title: data.name });
+                    config.value.push({array: [], title: data.name});
                 } else {
                     // 新增子層類別
-                    config.value[data.parent_id].array.push({ array: [], title: data.name });
+                    config.value[data.parent_id].array.push({array: [], title: data.name});
                 }
             } else if (data.origin.parent_id === undefined) {
                 // 編輯父層類別
                 config.value[data.origin.item_id] = {
-                    array: data.children_collections.map((col: { name: string }) => ({ array: [], title: col.name })),
+                    array: data.children_collections.map((col: { name: string }) => ({array: [], title: col.name})),
                     title: data.name,
                 };
             } else {
                 if (data.origin.parent_id === data.parent_id) {
                     // 編輯子層類別，沒有調整父層
-                    config.value[data.origin.parent_id].array[data.origin.item_id] = { array: [], title: data.name };
+                    config.value[data.origin.parent_id].array[data.origin.item_id] = {array: [], title: data.name};
                 } else {
                     // 編輯子層類別，有調整父層
                     config.value[data.origin.parent_id].array.splice(data.origin.item_id, 1);
-                    config.value[data.parent_id].array.push({ array: [], title: data.name });
+                    config.value[data.parent_id].array.push({array: [], title: data.name});
                 }
             }
 
@@ -1566,7 +1629,9 @@ export class Shopping {
             }
 
             // 更新商品類別 config
-            const update_col_sql = `UPDATE \`${this.app}\`.public_config SET value = ? WHERE \`key\` = 'collection';`;
+            const update_col_sql = `UPDATE \`${this.app}\`.public_config
+                                    SET value = ?
+                                    WHERE \`key\` = 'collection';`;
             await db.execute(update_col_sql, [config.value]);
 
             // 類別刪除產品
@@ -1579,7 +1644,9 @@ export class Shopping {
                         return o_prod.id;
                     });
                 if (delete_id_list.length > 0) {
-                    const products_sql = `SELECT * FROM \`${this.app}\`.t_manager_post WHERE id in (${delete_id_list.join(',')});`;
+                    const products_sql = `SELECT *
+                                          FROM \`${this.app}\`.t_manager_post
+                                          WHERE id in (${delete_id_list.join(',')});`;
                     const delete_product_list = await db.query(products_sql, []);
                     for (const product of delete_product_list) {
                         product.content.collection = product.content.collection.filter((str: string) => {
@@ -1600,7 +1667,9 @@ export class Shopping {
             }
 
             // 更新類別下商品
-            const get_product_sql = `SELECT * FROM \`${this.app}\`.t_manager_post WHERE id = ?`;
+            const get_product_sql = `SELECT *
+                                     FROM \`${this.app}\`.t_manager_post
+                                     WHERE id = ?`;
             for (const p of data.product_list) {
                 const get_product = await db.query(get_product_sql, [p.id]);
                 if (get_product[0]) {
@@ -1649,27 +1718,68 @@ export class Shopping {
                     await this.updateProductCollection(product.content, product.id);
                 }
             }
-            return { result: true };
+            return {result: true};
         } catch (e) {
             console.error(e);
             throw exception.BadRequestError('BAD_REQUEST', 'getCollectionProducts Error:' + e, null);
         }
     }
 
+    async postProduct(content: any) {
+        try {
+            content.type='product'
+            const data = await db.query(
+                `INSERT INTO \`${this.app}\`.\`t_manager_post\`
+                 SET ?`,
+                [{
+                    userID:this.token?.userID,
+                    content:JSON.stringify(content)
+                }]
+            );
+            content.id=data.insertId
+            await new Shopping(this.app, this.token).postVariantsAndPriceValue(content);
+            return data.insertId
+        } catch (e) {
+            console.error(e);
+            throw exception.BadRequestError('BAD_REQUEST', 'postProduct Error:' + e, null);
+        }
+    }
+
+    async putProduct(content: any) {
+        try {
+            content.type='product'
+            const data = await db.query(
+                `update \`${this.app}\`.\`t_manager_post\`
+                 SET ? where id=?`,
+                [{
+                    content:JSON.stringify(content)
+                },
+                    content.id]
+            );
+            await new Shopping(this.app, this.token).postVariantsAndPriceValue(content);
+            return content.insertId
+        } catch (e) {
+            console.error(e);
+            throw exception.BadRequestError('BAD_REQUEST', 'postProduct Error:' + e, null);
+        }
+    }
+
     async deleteCollection(id_array: any) {
         try {
-            const config = (await db.query(`SELECT * FROM \`${this.app}\`.public_config WHERE \`key\` = 'collection';`, []))[0];
+            const config = (await db.query(`SELECT *
+                                            FROM \`${this.app}\`.public_config
+                                            WHERE \`key\` = 'collection';`, []))[0];
             const delete_index_array: { parent: number; child: number[] }[] = [];
 
             // format 刪除類別 index
             id_array.map((id: string | number) => {
                 if (typeof id === 'number') {
-                    delete_index_array.push({ parent: id, child: [-1] });
+                    delete_index_array.push({parent: id, child: [-1]});
                 } else {
                     const arr = id.split('_').map((str) => parseInt(str, 10));
                     const n = delete_index_array.findIndex((obj) => obj.parent === arr[0]);
                     if (n === -1) {
-                        delete_index_array.push({ parent: arr[0], child: [arr[1]] });
+                        delete_index_array.push({parent: arr[0], child: [arr[1]]});
                     } else {
                         delete_index_array[n].child.push(arr[1]);
                     }
@@ -1706,10 +1816,12 @@ export class Shopping {
             });
 
             // 更新商品類別
-            const update_col_sql = `UPDATE \`${this.app}\`.public_config SET value = ? WHERE \`key\` = 'collection';`;
+            const update_col_sql = `UPDATE \`${this.app}\`.public_config
+                                    SET value = ?
+                                    WHERE \`key\` = 'collection';`;
             await db.execute(update_col_sql, [config.value]);
 
-            return { result: true };
+            return {result: true};
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'getCollectionProducts Error:' + e, null);
         }
@@ -1735,19 +1847,23 @@ export class Shopping {
                     await this.updateProductCollection(product.content, product.id);
                 }
             }
-            return { result: true };
+            return {result: true};
         } catch (error) {
             throw exception.BadRequestError('BAD_REQUEST', 'deleteCollectionProduct Error:' + e, null);
         }
     }
 
     containsTagSQL(name: string) {
-        return `SELECT * FROM \`${this.app}\`.t_manager_post WHERE JSON_CONTAINS(content->'$.collection', '"${name}"');`;
+        return `SELECT *
+                FROM \`${this.app}\`.t_manager_post
+                WHERE JSON_CONTAINS(content - > '$.collection', '"${name}"');`;
     }
 
     async updateProductCollection(content: string[], id: number) {
         try {
-            const updateProdSQL = `UPDATE \`${this.app}\`.t_manager_post SET content = ? WHERE \`id\` = ?;`;
+            const updateProdSQL = `UPDATE \`${this.app}\`.t_manager_post
+                                   SET content = ?
+                                   WHERE \`id\` = ?;`;
             await db.execute(updateProdSQL, [content, id]);
         } catch (error) {
             throw exception.BadRequestError('BAD_REQUEST', 'updateProductCollection Error:' + e, null);

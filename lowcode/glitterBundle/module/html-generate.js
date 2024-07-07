@@ -360,7 +360,7 @@ export class HtmlGenerate {
                             }
                         })()));
                         if (isEditMode()) {
-                            elem_.class = `${elem_.class} editor_it_${container_id} position-relative`;
+                            elem_.class = `${elem_.class} editor_it_${container_id} `;
                         }
                         return elem_;
                     },
@@ -1963,6 +1963,7 @@ HtmlGenerate.loadScript = (glitter, js, where = 'htmlExtension') => {
 HtmlGenerate.loadEvent = (glitter, js) => {
     var _a;
     glitter.share.componentData = (_a = glitter.share.componentData) !== null && _a !== void 0 ? _a : {};
+    let addJsList = [];
     js.map((dd) => {
         var _a, _b;
         let key = glitter.htmlGenerate.resourceHook(dd.src);
@@ -1997,9 +1998,10 @@ HtmlGenerate.loadEvent = (glitter, js) => {
                     configurable: true
                 });
             }
+            addJsList.push(dd);
         }
     });
-    glitter.addMtScript(js.map((dd) => {
+    glitter.addMtScript(addJsList.map((dd) => {
         let key = glitter.htmlGenerate.configureCDN(glitter.htmlGenerate.resourceHook(dd.src));
         if (!key.includes('http')) {
             key = new URL(key, new URL('../../', import.meta.url).href).href;

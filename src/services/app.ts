@@ -467,14 +467,14 @@ export class App {
     }
 
     public static async checkBrandAndMemberType(app: string) {
-        let brand = (
+        let base = (
             await db.query(
-                `SELECT brand
+                `SELECT brand,domain
                                      FROM \`${saasConfig.SAAS_NAME}\`.app_config
                                      where appName = ? `,
                 [app]
             )
-        )[0]['brand'];
+        )[0];
 
         const userID = (
             await db.query(
@@ -487,15 +487,16 @@ export class App {
         const userData = (
             await db.query(
                 `SELECT userData
-                                          FROM \`${brand}\`.t_user
+                                          FROM \`${base.brand}\`.t_user
                                           where userID = ? `,
                 [userID]
             )
         )[0];
         return {
             memberType: userData.userData.menber_type,
-            brand: brand,
+            brand: base.brand,
             userData: userData.userData,
+            domain:base.domain
         };
     }
 
@@ -555,30 +556,34 @@ export class App {
                         preloadData.component.push(pageData);
                         await loop(pageData.config ?? []);
                     }
-                } else if (dd && typeof dd === 'object') {
-                    const data = dd;
-                    // console.log(data)
-                    Object.keys(data).map((dd) => {
-                        if (dd === 'src' && data['route'] && data['src'].includes('official_event')) {
-                            if (
-                                !preloadData.event.find((dd: any) => {
-                                    return dd === event_[data['route']];
-                                })
-                            ) {
-                                preloadData.event.push(event_[data['route']]);
-                            }
-                            // console.log(`src:${data[dd]} - route:${data['route']}`)
-                        }
-
-                        if (Array.isArray(data[dd])) {
-                            loop(data[dd]);
-                        } else if (typeof data[dd] === 'object') {
-                            loop([data[dd]]);
-                        }
-                    });
-                } else if (Array.isArray(dd)) {
-                    await loop(dd);
                 }
+                // if (dd && typeof dd === 'object') {
+                //     // console.log(data)
+                //     async function loopObject(data:any){
+                //         // console.log(`loopObject->`,data)
+                //         for (const dd of Object.keys(data)){
+                //             if (dd === 'src' && data['route'] && data['src'].includes('official_event')) {
+                //                 if (
+                //                     !preloadData.event.find((dd: any) => {
+                //                         return dd === event_[data['route']];
+                //                     })
+                //                 ) {
+                //                     preloadData.event.push(event_[data['route']]);
+                //                 }
+                //             }else{
+                //                 if (Array.isArray(data[dd])) {
+                //                     await loop(data[dd]);
+                //                 }else if (typeof data[dd] === 'object') {
+                //                     // await loopObject(data[dd]);
+                //                 }
+                //             }
+                //
+                //         }
+                //     }
+                //     await loopObject(dd)
+                // } else if (Array.isArray(dd)) {
+                //     await loop(dd);
+                // }
             }
         }
 
@@ -596,6 +601,21 @@ export class App {
                 data: { response: { result: [dd] } },
             };
         });
+
+       //  // 查找匹配的字串
+        const match1 = JSON.stringify(preloadData.component).match(/\{"src":"\.\/official_event\/[^"]+\.js","route":"[^"]+"}/g);
+       // 輸出結果
+        if (match1) {
+            match1.map((d1)=>{
+                if(!preloadData.event.find((dd:any)=>{
+                    return event_[JSON.parse(d1)['route']]===dd
+                })){
+                    preloadData.event.push(event_[JSON.parse(d1)['route']])
+                }
+            })
+        } else {
+            console.log('未找到匹配的字串');
+        }
         mapPush.event = preloadData.event;
         return mapPush;
     }

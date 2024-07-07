@@ -10,6 +10,7 @@ import {NormalPageEditor} from '../../editor/normal-page-editor.js';
 import {AddComponent} from '../../editor/add-component.js';
 import {component} from '../../official_view_component/official/component.js';
 import {EditorConfig} from "../../editor-config.js";
+import {BgCustomerMessage} from "../../backend-manager/bg-customer-message.js";
 
 export class Setting_editor {
     public static pluginUrl = '';
@@ -223,6 +224,15 @@ export class Setting_editor {
                                                 },
                                                 {
                                                     icon: '',
+                                                    page: 'customer_message',
+                                                    group: '顧客管理',
+                                                    title: '客服系統',
+                                                    appName: 'cms_system',
+                                                    groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713514549253-calendar-lines-pen-regular.svg',
+                                                    moduleName: '表單管理',
+                                                },
+                                                {
+                                                    icon: '',
                                                     page: 'form_receive',
                                                     group: '顧客管理',
                                                     title: '提交表單',
@@ -382,6 +392,7 @@ export class Setting_editor {
                                                     // },
                                                 ]);
                                             }
+                                            // BgCustomerMessage.toggle(true,gvc)
                                             mustItem.map((dd, index) => {
                                                 if (dd.page === glitter.getUrlParameter('tab')) {
                                                     Storage.select_item = index
@@ -435,6 +446,7 @@ export class Setting_editor {
                                                                 $('#editerCenter').html(`<iframe src="${url.href}" style="border: none;height: calc(100%);"></iframe>`);
                                                                 glitter.closeDrawer();
                                                             }
+                                                            return true
                                                         }
 
                                                         items
@@ -531,8 +543,8 @@ export class Setting_editor {
                                                                                                             dd.toggle = !dd.toggle;
                                                                                                             gvc.notifyDataChange(id);
                                                                                                         } else {
-                                                                                                            click_item(dd.index);
-                                                                                                            if (['page_layout', 'dev_mode'].indexOf(items[parseInt(dd.index)].page) === -1) {
+                                                                                                           
+                                                                                                            if ( click_item(dd.index) && ['page_layout', 'dev_mode'].indexOf(items[parseInt(dd.index)].page) === -1) {
                                                                                                                 dd.toggle = true;
                                                                                                                 refreshContainer();
                                                                                                             }

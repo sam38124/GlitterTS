@@ -40,6 +40,17 @@ export class ApiPublic {
                 },
                 {
                     scheme: appName,
+                    table: 't_variants',
+                    sql: `(
+  \`id\` int NOT NULL AUTO_INCREMENT,
+  \`product_id\` int DEFAULT NULL,
+  \`content\` json NOT NULL,
+  PRIMARY KEY (\`id\`),
+  KEY \`index2\` (\`product_id\`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+                },
+                {
+                    scheme: appName,
                     table: 't_api_router',
                     sql: `(
   \`id\` int NOT NULL AUTO_INCREMENT,
