@@ -1,36 +1,31 @@
 import { GlobalUser } from '../global/global-user.js';
 import { BaseApi } from '../../glitterBundle/api/base.js';
 export class ApiShop {
-<<<<<<< HEAD
-    constructor() {
-    }
+    constructor() { }
     static postProduct(cf) {
         return BaseApi.create({
-            "url": getBaseUrl() + `/api-public/v1/ec/product`,
-            "type": "POST",
-            "headers": {
-                "Content-Type": "application/json",
-                "g-app": getConfig().config.appName,
-                "Authorization": cf.token || getConfig().config.token
+            url: getBaseUrl() + `/api-public/v1/ec/product`,
+            type: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: cf.token || getConfig().config.token,
             },
-            data: JSON.stringify(cf.data)
+            data: JSON.stringify(cf.data),
         });
     }
     static putProduct(cf) {
         return BaseApi.create({
-            "url": getBaseUrl() + `/api-public/v1/ec/product`,
-            "type": "PUT",
-            "headers": {
-                "Content-Type": "application/json",
-                "g-app": getConfig().config.appName,
-                "Authorization": cf.token || getConfig().config.token
+            url: getBaseUrl() + `/api-public/v1/ec/product`,
+            type: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: cf.token || getConfig().config.token,
             },
-            data: JSON.stringify(cf.data)
+            data: JSON.stringify(cf.data),
         });
     }
-=======
-    constructor() { }
->>>>>>> 93348080 (create: product list filter and table)
     static getRebate(query) {
         return BaseApi.create({
             url: getBaseUrl() +

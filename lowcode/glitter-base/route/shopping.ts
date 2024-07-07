@@ -4,8 +4,6 @@ import { Glitter } from '../../glitterBundle/Glitter.js';
 
 export class ApiShop {
     constructor() {}
-
-    constructor() {}
     public static postProduct(cf: { data: any; token?: string }) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/product`,

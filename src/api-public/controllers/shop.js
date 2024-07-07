@@ -314,31 +314,6 @@ router.post('/redirect', async (req, resp) => {
         let return_url = new URL((await redis_js_1.default.getValue(req.query.return)));
         const html = String.raw;
         return resp.send(html `<!DOCTYPE html>
-<<<<<<< HEAD
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8"/>
-            <title>Title</title>
-        </head>
-        <body>
-        <script>
-            try {
-                window.webkit.messageHandlers.addJsInterFace.postMessage(
-                        JSON.stringify({
-                            functionName: 'closeWebView',
-                            callBackId: 0,
-                            data: {
-                                redirect: '${return_url.href}'
-                            }
-                        })
-                );
-            } catch (e) {
-            }
-            location.href = '${return_url.href}';
-        </script>
-        </body>
-        </html> `);
-=======
             <html lang="en">
                 <head>
                     <meta charset="UTF-8" />
@@ -361,7 +336,6 @@ router.post('/redirect', async (req, resp) => {
                     </script>
                 </body>
             </html> `);
->>>>>>> 93348080 (create: product list filter and table)
     }
     catch (err) {
         return response_1.default.fail(resp, err);
@@ -627,11 +601,11 @@ router.get('/check-login-for-order', async (req, resp) => {
 });
 router.post('/product', async (req, resp) => {
     try {
-        if (!await ut_permission_1.UtPermission.isManager(req)) {
+        if (!(await ut_permission_1.UtPermission.isManager(req))) {
             return response_1.default.fail(resp, exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null));
         }
         else {
-            return response_1.default.succ(resp, { result: true, id: await (new shopping_1.Shopping(req.get('g-app'), req.body.token).postProduct(req.body)) });
+            return response_1.default.succ(resp, { result: true, id: await new shopping_1.Shopping(req.get('g-app'), req.body.token).postProduct(req.body) });
         }
     }
     catch (err) {
@@ -640,11 +614,11 @@ router.post('/product', async (req, resp) => {
 });
 router.put('/product', async (req, resp) => {
     try {
-        if (!await ut_permission_1.UtPermission.isManager(req)) {
+        if (!(await ut_permission_1.UtPermission.isManager(req))) {
             return response_1.default.fail(resp, exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null));
         }
         else {
-            return response_1.default.succ(resp, { result: true, id: await (new shopping_1.Shopping(req.get('g-app'), req.body.token).putProduct(req.body)) });
+            return response_1.default.succ(resp, { result: true, id: await new shopping_1.Shopping(req.get('g-app'), req.body.token).putProduct(req.body) });
         }
     }
     catch (err) {

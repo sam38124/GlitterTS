@@ -23,8 +23,6 @@ class Shopping {
         this.token = token;
     }
     async getProduct(query) {
-        console.log('order query');
-        console.log(query);
         try {
             let querySql = [`(content->>'$.type'='product')`];
             if (query.search) {
