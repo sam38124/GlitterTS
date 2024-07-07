@@ -37,6 +37,7 @@ router.get('/product', async (req, resp) => {
             page: ((_a = req.query.page) !== null && _a !== void 0 ? _a : 0),
             limit: ((_b = req.query.limit) !== null && _b !== void 0 ? _b : 50),
             search: req.query.search,
+            searchType: req.query.searchType,
             sku: req.query.sku,
             id: req.query.id,
             collection: req.query.collection,
@@ -46,10 +47,25 @@ router.get('/product', async (req, resp) => {
             id_list: req.query.id_list,
             order_by: (() => {
                 switch (req.query.order_by) {
+                    case 'title':
+                        return `order by JSON_EXTRACT(content, '$.title')`;
                     case 'max_price':
-                        return `order by (CAST(JSON_UNQUOTE(JSON_EXTRACT(content, '$.max_price')) AS SIGNED))  desc`;
+                        return `order by (CAST(JSON_UNQUOTE(JSON_EXTRACT(content, '$.max_price')) AS SIGNED)) desc`;
                     case 'min_price':
-                        return `order by (CAST(JSON_UNQUOTE(JSON_EXTRACT(content, '$.min_price')) AS SIGNED))  asc`;
+                        return `order by (CAST(JSON_UNQUOTE(JSON_EXTRACT(content, '$.min_price')) AS SIGNED)) asc`;
+                    case 'created_time_desc':
+                        return `order by created_time desc`;
+                    case 'created_time_asc':
+                        return `order by created_time`;
+                    case 'updated_time_desc':
+                        return `order by updated_time desc`;
+                    case 'updated_time_asc':
+                        return `order by updated_time`;
+                    case 'stock_desc':
+                        return ``;
+                    case 'stock_asc':
+                        return ``;
+                    case 'default':
                     default:
                         return `order by id desc`;
                 }
@@ -298,6 +314,7 @@ router.post('/redirect', async (req, resp) => {
         let return_url = new URL((await redis_js_1.default.getValue(req.query.return)));
         const html = String.raw;
         return resp.send(html `<!DOCTYPE html>
+<<<<<<< HEAD
         <html lang="en">
         <head>
             <meta charset="UTF-8"/>
@@ -321,6 +338,30 @@ router.post('/redirect', async (req, resp) => {
         </script>
         </body>
         </html> `);
+=======
+            <html lang="en">
+                <head>
+                    <meta charset="UTF-8" />
+                    <title>Title</title>
+                </head>
+                <body>
+                    <script>
+                        try {
+                            window.webkit.messageHandlers.addJsInterFace.postMessage(
+                                JSON.stringify({
+                                    functionName: 'closeWebView',
+                                    callBackId: 0,
+                                    data: {
+                                        redirect: '${return_url.href}',
+                                    },
+                                })
+                            );
+                        } catch (e) {}
+                        location.href = '${return_url.href}';
+                    </script>
+                </body>
+            </html> `);
+>>>>>>> 93348080 (create: product list filter and table)
     }
     catch (err) {
         return response_1.default.fail(resp, err);

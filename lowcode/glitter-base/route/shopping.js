@@ -1,6 +1,7 @@
 import { GlobalUser } from '../global/global-user.js';
 import { BaseApi } from '../../glitterBundle/api/base.js';
 export class ApiShop {
+<<<<<<< HEAD
     constructor() {
     }
     static postProduct(cf) {
@@ -27,6 +28,9 @@ export class ApiShop {
             data: JSON.stringify(cf.data)
         });
     }
+=======
+    constructor() { }
+>>>>>>> 93348080 (create: product list filter and table)
     static getRebate(query) {
         return BaseApi.create({
             url: getBaseUrl() +
@@ -118,6 +122,7 @@ export class ApiShop {
                     json.orderBy && par.push(`order_by=${json.orderBy}`);
                     json.id_list && par.push(`id_list=${json.id_list}`);
                     json.with_hide_index && par.push(`with_hide_index=${json.with_hide_index}`);
+                    json.searchType && par.push(`searchType=${json.searchType}`);
                     return par.join('&');
                 })()}`,
             type: 'GET',
@@ -351,12 +356,10 @@ export class ApiShop {
         });
     }
     static setVoucherCode(code) {
-        window.glitter.setPro(ApiShop.voucherID, code, () => {
-        });
+        window.glitter.setPro(ApiShop.voucherID, code, () => { });
     }
     static setRebateValue(value) {
-        window.glitter.setPro(ApiShop.rebateID, value, () => {
-        });
+        window.glitter.setPro(ApiShop.rebateID, value, () => { });
     }
     static getRebateValue() {
         const glitter = window.glitter;
@@ -372,8 +375,7 @@ export class ApiShop {
             const cartData = response.data ? JSON.parse(response.data) : {};
             cartData[id] = (_a = cartData[id]) !== null && _a !== void 0 ? _a : 0;
             cartData[id] += parseInt(count, 10);
-            window.glitter.setPro(ApiShop.cartID, JSON.stringify(cartData), () => {
-            });
+            window.glitter.setPro(ApiShop.cartID, JSON.stringify(cartData), () => { });
         });
     }
     static setToCart(id, count) {
@@ -385,13 +387,11 @@ export class ApiShop {
             else {
                 cartData[id] = parseInt(count, 10);
             }
-            window.glitter.setPro(ApiShop.cartID, JSON.stringify(cartData), () => {
-            });
+            window.glitter.setPro(ApiShop.cartID, JSON.stringify(cartData), () => { });
         });
     }
     static clearCart() {
-        window.glitter.setPro(ApiShop.cartID, JSON.stringify({}), () => {
-        });
+        window.glitter.setPro(ApiShop.cartID, JSON.stringify({}), () => { });
     }
     static getCart() {
         return new Promise((resolve, reject) => {

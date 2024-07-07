@@ -2288,9 +2288,7 @@ ${EditorElem.editeInput({
                                             bind: bi,
                                             view: () => {
                                                 return [
-                                                    EditorElem.h3(html`<div class="d-flex align-items-center">
-                                                        商品內文
-                                                    </div>`),
+                                                    EditorElem.h3(html`<div class="d-flex align-items-center">商品內文</div>`),
                                                     EditorElem.richText({
                                                         gvc: obj.gvc,
                                                         def: postMD.content,

@@ -1,13 +1,13 @@
-import db, {limit, queryLambada} from '../../modules/database';
+import db, { limit, queryLambada } from '../../modules/database';
 import exception from '../../modules/exception';
 import tool from '../../services/tool';
 import UserUtil from '../../utils/UserUtil';
-import {IToken} from '../models/Auth.js';
-import {App} from '../../services/app.js';
-import {sendMessage} from '../../firebase/message.js';
-import {Shopping} from './shopping.js';
-import {UtDatabase} from '../utils/ut-database.js';
-import {ManagerNotify} from "./notify.js";
+import { IToken } from '../models/Auth.js';
+import { App } from '../../services/app.js';
+import { sendMessage } from '../../firebase/message.js';
+import { Shopping } from './shopping.js';
+import { UtDatabase } from '../utils/ut-database.js';
+import { ManagerNotify } from './notify.js';
 
 export class Post {
     public app: string;
@@ -31,11 +31,13 @@ export class Post {
             }
             if (reContent.type === 'post-form-config') {
                 await new ManagerNotify(this.app).formSubmit({
-                    user_id: content.userID
-                })
+                    user_id: content.userID,
+                });
             }
             reContent.id = data.insertId;
             content.content = JSON.stringify(reContent);
+            console.log('content');
+            console.log(content);
             await db.query(
                 `update \`${this.app}\`.\`${tb}\`
                  SET ?
@@ -98,8 +100,8 @@ export class Post {
                     const html = String.raw;
                     const myFunction = new Function(html`try { return
                     ${sq.sql.replace(
-                            /new\s*Promise\s*\(\s*async\s*\(\s*resolve\s*,\s*reject\s*\)\s*=>\s*\{([\s\S]*)\}\s*\)/i,
-                            'new Promise(async (resolve, reject) => { try { $1 } catch (error) { console.log(error);reject(error); } })'
+                        /new\s*Promise\s*\(\s*async\s*\(\s*resolve\s*,\s*reject\s*\)\s*=>\s*\{([\s\S]*)\}\s*\)/i,
+                        'new Promise(async (resolve, reject) => { try { $1 } catch (error) { console.log(error);reject(error); } })'
                     )}
                     } catch (error) { return 'error'; }`);
 
@@ -135,10 +137,10 @@ export class Post {
                                         },
                                     })
                                     .then((data: any) => {
-                                        resolve({result: true, data: data});
+                                        resolve({ result: true, data: data });
                                     })
                                     .catch((e: any) => {
-                                        resolve({result: false, message: e});
+                                        resolve({ result: false, message: e });
                                     });
                             } catch (e) {
                                 console.log(e);
@@ -160,6 +162,7 @@ export class Post {
                 await new Shopping(this.app, this.token).postVariantsAndPriceValue(reContent);
                 content.content = JSON.stringify(reContent);
             }
+            content.updated_time = new Date();
             const data = await db.query(
                 `update \`${this.app}\`.\`${tb}\`
                  SET ?
@@ -181,18 +184,18 @@ export class Post {
             let querySql: any = [];
             query.id && querySql.push(`id=${query.id}`);
             query.search &&
-            query.search.split(',').map((dd: any) => {
-                if (dd.includes('->')) {
-                    const qu = dd.split('->');
-                    querySql.push(`(content->>'$.${qu[0]}'='${qu[1]}')`);
-                } else if (dd.includes('-|>')) {
-                    const qu = dd.split('-|>');
-                    querySql.push(`(content->>'$.${qu[0]}' like '%${qu[1]}%')`);
-                } else if (dd.includes('-[]>')) {
-                    const qu = dd.split('-[]>');
-                    querySql.push(`(JSON_CONTAINS(content, '"${qu[1]}"', '$.${qu[0]}'))`);
-                }
-            });
+                query.search.split(',').map((dd: any) => {
+                    if (dd.includes('->')) {
+                        const qu = dd.split('->');
+                        querySql.push(`(content->>'$.${qu[0]}'='${qu[1]}')`);
+                    } else if (dd.includes('-|>')) {
+                        const qu = dd.split('-|>');
+                        querySql.push(`(content->>'$.${qu[0]}' like '%${qu[1]}%')`);
+                    } else if (dd.includes('-[]>')) {
+                        const qu = dd.split('-[]>');
+                        querySql.push(`(JSON_CONTAINS(content, '"${qu[1]}"', '$.${qu[0]}'))`);
+                    }
+                });
             return await new UtDatabase(this.app, manager ? `t_manager_post` : `t_post`).querySql(querySql, query);
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'GetContentV2 Error:' + e, null);
@@ -319,8 +322,7 @@ export class Post {
                                         []
                                     )
                                 )[0]['userData'];
-                            } catch (e) {
-                            }
+                            } catch (e) {}
                         }
                         dd.userData = userData[dd.userID];
                     }

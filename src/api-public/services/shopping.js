@@ -23,9 +23,24 @@ class Shopping {
         this.token = token;
     }
     async getProduct(query) {
+        console.log('order query');
+        console.log(query);
         try {
             let querySql = [`(content->>'$.type'='product')`];
-            query.search && querySql.push(`(UPPER(JSON_UNQUOTE(JSON_EXTRACT(content, '$.title'))) LIKE UPPER('%${query.search}%'))`);
+            if (query.search) {
+                switch (query.searchType) {
+                    case 'sku':
+                        querySql.push(`JSON_EXTRACT(content, '$.variants[*].sku') LIKE '%${query.search}%'`);
+                        break;
+                    case 'barcode':
+                        querySql.push(`JSON_EXTRACT(content, '$.variants[*].barcode') LIKE '%${query.search}%'`);
+                        break;
+                    case 'title':
+                    default:
+                        querySql.push(`(UPPER(JSON_UNQUOTE(JSON_EXTRACT(content, '$.title'))) LIKE UPPER('%${query.search}%'))`);
+                        break;
+                }
+            }
             query.id && querySql.push(`(content->>'$.id' = ${query.id})`);
             query.collection &&
                 querySql.push(`(${query.collection

@@ -149,3 +149,16 @@ FilterOptions.productOrderBy = [
     { key: 'max_price', value: '價格高 > 低' },
     { key: 'min_price', value: '價格低 > 高' },
 ];
+FilterOptions.productListOrderBy = [
+    { key: 'default', value: '預設' },
+    { key: 'title', value: '商品名稱' },
+    { key: 'created_time_desc', value: '建立時間新 > 舊' },
+    { key: 'created_time_asc', value: '建立時間舊 > 新' },
+    { key: 'updated_time_desc', value: '更新時間新 > 舊' },
+    { key: 'updated_time_asc', value: '更新時間舊 > 新' },
+];
+FilterOptions.productSelect = [
+    { key: 'title', value: '商品名稱' },
+    { key: 'sku', value: '庫存單位(SKU)' },
+    { key: 'barcode', value: '商品條碼' },
+];

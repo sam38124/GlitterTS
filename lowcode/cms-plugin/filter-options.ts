@@ -81,7 +81,7 @@ export class FilterOptions {
         { key: 'email', value: '電子信箱' },
         { key: 'phone', value: '電話號碼' },
     ];
-    // --------------------------order Filter-------------------
+
     static orderFilterFrame = {
         orderStatus: [],
         payload: [],
@@ -174,5 +174,22 @@ export class FilterOptions {
         // { key: 'sale_volume_asc', value: '銷售數量少 > 多' },
         // { key: 'stock_desc', value: '庫存數量多 > 少' },
         // { key: 'stock_asc', value: '庫存數量少 > 多' },
+    ];
+
+    static productListOrderBy = [
+        { key: 'default', value: '預設' },
+        { key: 'title', value: '商品名稱' },
+        { key: 'created_time_desc', value: '建立時間新 > 舊' },
+        { key: 'created_time_asc', value: '建立時間舊 > 新' },
+        { key: 'updated_time_desc', value: '更新時間新 > 舊' },
+        { key: 'updated_time_asc', value: '更新時間舊 > 新' },
+        // { key: 'stock_desc', value: '庫存數量多 > 少' },
+        // { key: 'stock_asc', value: '庫存數量少 > 多' },
+    ];
+
+    static productSelect = [
+        { key: 'title', value: '商品名稱' },
+        { key: 'sku', value: '庫存單位(SKU)' },
+        { key: 'barcode', value: '商品條碼' },
     ];
 }

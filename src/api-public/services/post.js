@@ -48,11 +48,13 @@ class Post {
             }
             if (reContent.type === 'post-form-config') {
                 await new notify_js_1.ManagerNotify(this.app).formSubmit({
-                    user_id: content.userID
+                    user_id: content.userID,
                 });
             }
             reContent.id = data.insertId;
             content.content = JSON.stringify(reContent);
+            console.log('content');
+            console.log(content);
             await database_1.default.query(`update \`${this.app}\`.\`${tb}\`
                  SET ?
                  WHERE id = ${data.insertId}`, [content]);
@@ -158,6 +160,7 @@ class Post {
                 await new shopping_js_1.Shopping(this.app, this.token).postVariantsAndPriceValue(reContent);
                 content.content = JSON.stringify(reContent);
             }
+            content.updated_time = new Date();
             const data = await database_1.default.query(`update \`${this.app}\`.\`${tb}\`
                  SET ?
                  where 1 = 1
@@ -313,8 +316,7 @@ class Post {
                                          from \`${this.app}\`.\`t_user\`
                                          where userID = ${dd.userID}`, []))[0]['userData'];
                         }
-                        catch (e) {
-                        }
+                        catch (e) { }
                     }
                     dd.userData = userData[dd.userID];
                 }

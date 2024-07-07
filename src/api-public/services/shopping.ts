@@ -74,6 +74,7 @@ export class Shopping {
         sku?: string;
         id?: string;
         search?: string;
+        searchType?: string;
         collection?: string;
         min_price?: string;
         max_price?: string;
@@ -84,7 +85,21 @@ export class Shopping {
     }) {
         try {
             let querySql = [`(content->>'$.type'='product')`];
-            query.search && querySql.push(`(UPPER(JSON_UNQUOTE(JSON_EXTRACT(content, '$.title'))) LIKE UPPER('%${query.search}%'))`);
+            if (query.search) {
+                switch (query.searchType) {
+                    case 'sku':
+                        querySql.push(`JSON_EXTRACT(content, '$.variants[*].sku') LIKE '%${query.search}%'`);
+                        break;
+                    case 'barcode':
+                        querySql.push(`JSON_EXTRACT(content, '$.variants[*].barcode') LIKE '%${query.search}%'`);
+                        break;
+                    case 'title':
+                    default:
+                        querySql.push(`(UPPER(JSON_UNQUOTE(JSON_EXTRACT(content, '$.title'))) LIKE UPPER('%${query.search}%'))`);
+                        break;
+                }
+            }
+
             query.id && querySql.push(`(content->>'$.id' = ${query.id})`);
             query.collection &&
             querySql.push(

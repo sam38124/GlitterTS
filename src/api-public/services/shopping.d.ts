@@ -45,6 +45,7 @@ export declare class Shopping {
         sku?: string;
         id?: string;
         search?: string;
+        searchType?: string;
         collection?: string;
         min_price?: string;
         max_price?: string;
