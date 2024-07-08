@@ -2,7 +2,7 @@ import { init } from '../GVController.js';
 init(import.meta.url, (gvc, glitter, gBundle) => {
     return {
         onCreateView: () => {
-            var _a, _b;
+            var _a, _b, _c;
             const html = String.raw;
             switch (gBundle.type) {
                 case 'dataLoading':
@@ -32,42 +32,20 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                         </div>
                     `;
                 case 'successMessage':
-                    return gvc.bindView((() => {
-                        const id = gvc.glitter.getUUID();
-                        return {
-                            bind: id,
-                            view: () => {
-                                var _a;
-                                return html `
-                                        <div
-                                            class="vw-100 vh-100 position-fixed top-0 left-0 d-flex align-items-center justify-content-center"
-                                            style="background-color: rgba(0,0,0,0.5);z-index: 10000;"
-                                        >
-                                            <div
-                                                class="m-auto rounded-3 shadow"
-                                                style="width: 200px;background: white;padding: 24px;display: flex;align-items: center;justify-content: center;flex-direction: column;"
-                                            >
-                                                <i class="fa-regular fa-circle-check" style="font-size: 50px;color: #393939;" aria-hidden="true"></i>
-                                                <div class="mt-3 fs-6 fw-500" style="color: #393939;">${(_a = gBundle.obj.text) !== null && _a !== void 0 ? _a : '成功!'}</div>
-                                            </div>
-                                        </div>
-                                    `;
-                            },
-                            divCreate: {},
-                            onCreate: () => {
-                                setTimeout(() => {
-                                    const elements = document.querySelectorAll(`[gvc-id="${gvc.id(id)}"]`);
-                                    for (var i = 0; i < elements.length; i++) {
-                                        const element = elements[i];
-                                        const parentElement = element.parentNode;
-                                        if (parentElement && parentElement.parentNode) {
-                                            parentElement.parentNode.removeChild(parentElement);
-                                        }
-                                    }
-                                }, 1200);
-                            },
-                        };
-                    })());
+                    setTimeout(() => {
+                        gvc.closeDialog();
+                    }, 1000);
+                    return html `
+                        <div class="vw-100 vh-100 position-fixed top-0 left-0 d-flex align-items-center justify-content-center" style="background-color: rgba(0,0,0,0.5);z-index: 10000;">
+                            <div
+                                class="m-auto rounded-3 shadow"
+                                style="width: 200px;background: white;padding: 24px;display: flex;align-items: center;justify-content: center;flex-direction: column;  "
+                            >
+                                <i class="fa-regular fa-circle-check" style="font-size: 50px;color: #393939;  " aria-hidden="true"></i>
+                                <div class="mt-3 fs-6 fw-500" style="color: #393939;  ">${(_c = gBundle.obj.text) !== null && _c !== void 0 ? _c : '成功!'}</div>
+                            </div>
+                        </div>
+                    `;
                 case 'checkYesOrNot':
                     return html `
                         <div class="vw-100 vh-100 position-fixed top-0 left-0 d-flex align-items-center justify-content-center" style="background-color: rgba(0,0,0,0.5);z-index: 10000;">
@@ -98,39 +76,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                 </div>
                             </div>
                         </div>
-<<<<<<< HEAD
-                     `;
-                case 'successMessage':
-                    setTimeout(() => {
-                        gvc.closeDialog();
-                    }, 1000);
-                    return `
-<div class="vw-100 vh-100 position-fixed top-0 left-0 d-flex align-items-center justify-content-center"  style="background-color: rgba(0,0,0,0.5);z-index: 10000;">
-<div class=" m-auto rounded-3 shadow" style="     width: 200px;background: white;padding: 24px;display: flex;align-items: center;justify-content: center;flex-direction: column;  "  ><i class=" fa-regular fa-circle-check" style="     font-size: 50px;color: #393939;  "   aria-hidden="true"></i><div class=" mt-3 fs-6 fw-500" style="     color: #393939;  "  >${(_c = gBundle.obj.text) !== null && _c !== void 0 ? _c : "成功!"}</div></div>
-</div>
-`;
-                case 'checkYesOrNot':
-                    return `
-<div class="vw-100 vh-100 position-fixed top-0 left-0 d-flex align-items-center justify-content-center"  style="background-color: rgba(0,0,0,0.5);z-index: 10000;">
-<div style="width: 250px;background-color: white;border-radius: 5px;display: flex;flex-direction: column;align-items: center;">
-        <h3 style="height:40px;font-size:20px;color: black;margin-top: 5px;margin-bottom: 5px;border-bottom: whitesmoke solid 1px;width: 100%;display: flex;align-items: center;justify-content: center;flex-direction: column;">再次確認</h3>
-<h3 class="text-danger fw-bold my-2 mx-2" style="font-size: 16px;">${gBundle.title}</h3>
-<div class="mb-2 border-top pt-2 mt-2" style="display: flex;width: 100%;justify-content: space-around;">
-<div style="height:35px;border-radius: 5px;border:1px solid gray;color: black;width: calc(50% - 15px);display: flex;align-items: center;
-justify-content: center;cursor: pointer;" onclick="${gvc.event(() => {
-                        gBundle.callback(false);
-                    })}">取消</div>
-<div style="height:35px;border-radius: 5px;background-color: dodgerblue;color: white;width: calc(50% - 15px);display: flex;align-items: center;
-justify-content: center;cursor: pointer;" onclick="${gvc.event(() => {
-                        gBundle.callback(true);
-                    })}">確定</div>
-</div>
-</div>
-</div>
-`;
-=======
                     `;
->>>>>>> f3eebf4a (fix: 0708 meeting debug)
                 default:
                     return '';
             }

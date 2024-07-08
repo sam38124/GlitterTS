@@ -618,7 +618,6 @@ class Shopping {
                 status: data.status
             };
             data.orderData && (update.orderData = JSON.stringify(data.orderData));
-            console.log(" data.orderData --- ", data.orderData);
             await database_js_1.default.query(`UPDATE \`${this.app}\`.t_checkout
                  set ?
                  WHERE id = ?`, [update, data.id]);
