@@ -7,7 +7,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { ShareDialog } from '../dialog/ShareDialog.js';
 import { BgWidget } from '../backend-manager/bg-widget.js';
 const html = String.raw;
 export class ShoppingFinanceSetting {
@@ -16,8 +15,6 @@ export class ShoppingFinanceSetting {
     }
     static fin_setting(gvc, widget) {
         const saasConfig = window.parent.saasConfig;
-        const glitter = window.glitter;
-        const dialog = new ShareDialog(glitter);
         let keyData = {
             MERCHANT_ID: 'MS350015371',
             HASH_KEY: 'yP9K0sXy1P2WcWfcbhcZDfHASdREcCz1',
@@ -272,7 +269,6 @@ export class ShoppingFinanceSetting {
             vm.loading = false;
             gvc.notifyDataChange(vm.id);
         });
-        const dialog = new ShareDialog(gvc.glitter);
         return gvc.bindView(() => {
             return {
                 bind: vm.id,
@@ -285,7 +281,7 @@ export class ShoppingFinanceSetting {
                     vm.data.support = vm.data.support || [];
                     return BgWidget.container(html `
                             <div class="d-flex w-100 align-items-center">
-                                ${BgWidget.title('宅配設定')}
+                                ${BgWidget.title('配送設定')}
                                 <div class="flex-fill"></div>
                             </div>
                             ${gvc.bindView(() => {

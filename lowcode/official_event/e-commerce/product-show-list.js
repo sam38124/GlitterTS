@@ -8,7 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { TriggerEvent } from '../../glitterBundle/plugins/trigger-event.js';
-import { ApiShop } from "../../glitter-base/route/shopping.js";
+import { ApiShop } from '../../glitter-base/route/shopping.js';
 TriggerEvent.createSingleEvent(import.meta.url, () => {
     return {
         fun: (gvc, widget, object, subData) => {
@@ -16,9 +16,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
             object.tagFrom = (_a = object.tagFrom) !== null && _a !== void 0 ? _a : {};
             return {
                 editor: () => {
-                    return [
-                        TriggerEvent.editer(gvc, widget, object.tagFrom, { title: "取得商品系列標籤", hover: false, option: [] })
-                    ].join('');
+                    return [TriggerEvent.editer(gvc, widget, object.tagFrom, { title: '取得商品分類標籤', hover: false, option: [] })].join('');
                 },
                 event: () => {
                     return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
@@ -26,15 +24,22 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                             gvc: gvc,
                             widget: widget,
                             clickEvent: object.tagFrom,
-                            subData: subData
+                            subData: subData,
                         });
                         ApiShop.getShowList().then((res) => {
                             try {
-                                ApiShop.getProduct({ page: 0, limit: 50, id_list: res.response.value.find((dd) => {
+                                ApiShop.getProduct({
+                                    page: 0,
+                                    limit: 50,
+                                    id_list: res.response.value
+                                        .find((dd) => {
                                         return dd.tag === tag;
-                                    }).array.map((dd) => {
+                                    })
+                                        .array.map((dd) => {
                                         return dd.id;
-                                    }).join(',') }).then((data) => {
+                                    })
+                                        .join(','),
+                                }).then((data) => {
                                     if (data.result && data.response.data) {
                                         resolve(data.response.data.map((dd) => {
                                             return dd.content;

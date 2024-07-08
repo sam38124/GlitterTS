@@ -1,6 +1,4 @@
-import { ShareDialog } from '../dialog/ShareDialog.js';
 import { BgWidget } from '../backend-manager/bg-widget.js';
-import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
 import { GVC } from '../glitterBundle/GVController.js';
 
 const html = String.raw;
@@ -12,8 +10,6 @@ export class ShoppingFinanceSetting {
 
     public static fin_setting(gvc: GVC, widget: any) {
         const saasConfig: { config: any; api: any } = (window.parent as any).saasConfig;
-        const glitter = (window as any).glitter;
-        const dialog = new ShareDialog(glitter);
         let keyData: {
             MERCHANT_ID: string;
             HASH_KEY: string;
@@ -293,7 +289,6 @@ export class ShoppingFinanceSetting {
             vm.loading = false;
             gvc.notifyDataChange(vm.id);
         });
-        const dialog = new ShareDialog(gvc.glitter);
         return gvc.bindView(() => {
             return {
                 bind: vm.id,
@@ -307,7 +302,7 @@ export class ShoppingFinanceSetting {
                     return BgWidget.container(
                         html`
                             <div class="d-flex w-100 align-items-center">
-                                ${BgWidget.title('宅配設定')}
+                                ${BgWidget.title('配送設定')}
                                 <div class="flex-fill"></div>
                             </div>
                             ${gvc.bindView(() => {

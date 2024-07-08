@@ -160,6 +160,7 @@ export class MenusSetting {
                             this.setMenu({
                                 gvc: gvc,
                                 widget: widget,
+                                title: '新增選單',
                                 key: vm.dataList[vm.index].tag,
                                 goBack: () => {},
                             })
@@ -170,6 +171,7 @@ export class MenusSetting {
                                 gvc: gvc,
                                 widget: widget,
                                 key: vm.dataList[vm.index].tag,
+                                title: vm.dataList[vm.index].title,
                                 goBack: () => {
                                     vm.type = 'list';
                                     gvc.notifyDataChange(id);
@@ -186,7 +188,7 @@ export class MenusSetting {
         });
     }
 
-    public static setMenu(cf: { goBack: () => void; gvc: GVC; widget: any; key: 'menu-setting' | 'footer-setting' }) {
+    public static setMenu(cf: { goBack: () => void; gvc: GVC; widget: any; key: 'menu-setting' | 'footer-setting'; title: string }) {
         const vm: {
             id: string;
             link: MenuItem[];
@@ -280,7 +282,7 @@ export class MenusSetting {
                                 cf.gvc.event(() => {
                                     cf.goBack();
                                 })
-                            )}${BgWidget.title('選單設定')}
+                            )}${BgWidget.title(cf.title ?? '選單設定')}
                         </div>
                         ${BgWidget.container(
                             html`<div
@@ -577,7 +579,11 @@ export class MenusSetting {
         const gvc: GVC = (window.parent as any).glitter.pageConfig[0].gvc;
         const rightMenu = (window.parent as any).glitter.share.NormalPageEditor;
 
-        rightMenu.closeEvent = () => save(data);
+        rightMenu.closeEvent = () => {
+            if (data.title.length > 0 && data.link.length > 0) {
+                save(data);
+            }
+        };
         rightMenu.toggle({
             visible: true,
             title: '新增選單',
@@ -623,7 +629,11 @@ export class MenusSetting {
         const rightMenu = (window.parent as any).glitter.share.NormalPageEditor;
         const id = gvc.glitter.getUUID();
 
-        rightMenu.closeEvent = () => save(data);
+        rightMenu.closeEvent = () => {
+            if (data.title.length > 0 && data.link.length > 0) {
+                save(data);
+            }
+        };
         rightMenu.toggle({
             visible: true,
             title: '新增分類',

@@ -62,7 +62,7 @@ export class MemberTypeList {
                     },
                     {
                         key: '等級順序',
-                        value: `<span class="fs-7">等級${index + 1}</span>`,
+                        value: `<span class="fs-7">等級${vm.dataList.length - index}</span>`,
                     },
                     {
                         key: '有效期限',
@@ -118,7 +118,7 @@ export class MemberTypeList {
                                 ApiUser.getPublicConfig('member_level_config', 'manager').then((dd) => {
                                     const data = dd.response.value || {};
                                     vmi.pageSize = 1;
-                                    data.levels = (data.levels || []).filter((dd) => {
+                                    data.levels = (data.levels || []).reverse().filter((dd) => {
                                         return dd;
                                     });
                                     vm.dataList = data.levels.map((data) => {
@@ -532,7 +532,7 @@ export class MemberTypeList {
                                                     </div>
                                                 `);
                                 },
-                                divCreate: { class: 'p-0' },
+                                divCreate: { class: 'summary-card p-0' },
                             };
                         }), undefined, 'padding: 0; margin: 0 !important; width: 35%;')}
                             </div>`,

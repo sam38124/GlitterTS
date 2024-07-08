@@ -245,7 +245,7 @@ TriggerEvent.create(import.meta.url, {
         fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/all-product.js'),
     },
     getCollection: {
-        title: '電子商務 / 取得商品系列',
+        title: '電子商務 / 取得商品分類',
         fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/all-collection.js'),
     },
     productShowList: {

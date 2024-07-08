@@ -289,7 +289,7 @@ export class FormSetting {
                         return BgWidget.container(
                             html`
                                 <div class="d-flex w-100 align-items-center">
-                                    ${BgWidget.title('用戶提交表單')}
+                                    ${BgWidget.title('表單收集')}
                                     <div class="flex-fill"></div>
                                 </div>
                                 ${BgWidget.container(
@@ -619,7 +619,6 @@ export class FormSetting {
                                                 gvc: gvc,
                                                 array: postMd.form_format,
                                                 refresh: () => {
-
                                                     gvc.notifyDataChange(id);
                                                 },
                                                 title: '',

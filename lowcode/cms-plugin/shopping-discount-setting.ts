@@ -5,7 +5,7 @@ import { ApiShop } from '../glitter-base/route/shopping.js';
 import { ApiPost } from '../glitter-base/route/post.js';
 import { ApiUser } from '../glitter-base/route/user.js';
 import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
-import { ShareDialog } from '../dialog/ShareDialog.js';
+import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
 import { FilterOptions } from './filter-options.js';
 
 export class ShoppingDiscountSetting {
@@ -103,7 +103,7 @@ export class ShoppingDiscountSetting {
                                                                 },
                                                                 {
                                                                     key: '對象',
-                                                                    value: html`<span class="fs-7">${dd.content.for === 'product' ? `指定商品` : `商品系列`}</span>`,
+                                                                    value: html`<span class="fs-7">${dd.content.for === 'product' ? `指定商品` : `商品分類`}</span>`,
                                                                 },
                                                                 {
                                                                     key: '折扣項目',
@@ -297,7 +297,7 @@ export class ShoppingDiscountSetting {
         `);
         const productForList = [
             { title: '所有商品', value: 'all' },
-            { title: '商品系列', value: 'collection' },
+            { title: '商品分類', value: 'collection' },
             { title: '單一商品', value: 'product' },
         ];
 
@@ -315,12 +315,13 @@ export class ShoppingDiscountSetting {
                 })()}`,
                 `活動對象：${(() => {
                     switch (voucherData.target) {
-                        case 'all':
-                            return '所有顧客';
                         case 'customer':
                             return '特定顧客';
                         case 'levels':
                             return '會員等級';
+                        case 'all':
+                        default:
+                            return '所有顧客';
                     }
                 })()}`,
                 '',
@@ -348,12 +349,13 @@ export class ShoppingDiscountSetting {
                 })()}`,
                 `將此優惠套用至：${(() => {
                     switch (voucherData.for) {
-                        case 'all':
-                            return '所有商品';
                         case 'collection':
-                            return `指定 ${voucherData.forKey.length} 種商品系列`;
+                            return `指定 ${voucherData.forKey.length} 種商品分類`;
                         case 'product':
                             return `指定 ${voucherData.forKey.length} 個商品`;
+                        case 'all':
+                        default:
+                            return '所有商品';
                     }
                 })()}`,
                 '',
@@ -780,10 +782,10 @@ export class ShoppingDiscountSetting {
                                                                             <div class="d-flex flex-column p-2" style="gap: 18px;">
                                                                                 <div class="d-flex align-items-center gray-bottom-line-18" style="gap: 24px; justify-content: space-between;">
                                                                                     <div class="form-check-label c_updown_label">
-                                                                                        <div class="tx_normal">系列列表</div>
+                                                                                        <div class="tx_normal">分類列表</div>
                                                                                     </div>
                                                                                     ${BgWidget.grayButton(
-                                                                                        '選擇系列',
+                                                                                        '選擇分類',
                                                                                         gvc.event(() => {
                                                                                             BgProduct.collectionsDialog({
                                                                                                 gvc: gvc,
@@ -849,7 +851,7 @@ export class ShoppingDiscountSetting {
                                                                             <div class="d-flex flex-column p-2" style="gap: 18px;">
                                                                                 <div class="d-flex align-items-center gray-bottom-line-18" style="gap: 24px; justify-content: space-between;">
                                                                                     <div class="form-check-label c_updown_label">
-                                                                                        <div class="tx_normal">產品列表</div>
+                                                                                        <div class="tx_normal">商品列表</div>
                                                                                     </div>
                                                                                     ${BgWidget.grayButton(
                                                                                         '選擇商品',
@@ -1204,7 +1206,7 @@ export class ShoppingDiscountSetting {
                                     );
                                 },
                                 divCreate: {
-                                    class: 'p-0',
+                                    class: 'summary-card p-0',
                                 },
                             };
                         }),

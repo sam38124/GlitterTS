@@ -250,7 +250,7 @@ export class FormSetting {
                     if (vm.type === 'list') {
                         return BgWidget.container(html `
                                 <div class="d-flex w-100 align-items-center">
-                                    ${BgWidget.title('用戶提交表單')}
+                                    ${BgWidget.title('表單收集')}
                                     <div class="flex-fill"></div>
                                 </div>
                                 ${BgWidget.container(BgWidget.mainCard(BgWidget.tableV2({

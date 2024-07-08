@@ -408,20 +408,18 @@ export class MemberSetting {
                                             html`<div class="w-100 border-top my-3"></div>`,
                                             html`<div class="tx_normal fw-bolder mt-2" style="margin-bottom: 12px;">結帳設定</div>`,
                                             html` <div class="d-flex align-items-center w-100" style="gap:4px;margin-bottom: 12px;">
-                                                <div class="tx_normal fw-bolder " style="">只允許登入下單</div>
-                                                <div class="tx_normal ms-2">${vm.data.login_in_to_order ? `開啟` : `關閉`}</div>
-                                                <div class="cursor_pointer form-check form-switch m-0" style=" ">
+                                                <div class="tx_normal fw-bolder ">允許訪客結帳</div>
+                                                <div class="tx_normal ms-2">${vm.data.login_in_to_order ? `關閉` : `開啟`}</div>
+                                                <div class="cursor_pointer form-check form-switch m-0">
                                                     <input
-                                                        class=" form-check-input"
-                                                        style=" "
+                                                        class="form-check-input"
                                                         type="checkbox"
-                                                        value=""
                                                         onchange="${gvc.event((e, event) => {
                                                             vm.data.login_in_to_order = !vm.data.login_in_to_order;
                                                             saveEvent();
                                                             gvc.notifyDataChange(vm.id);
                                                         })}"
-                                                        ${vm.data.login_in_to_order ? `checked` : ``}
+                                                        ${vm.data.login_in_to_order ? `` : `checked`}
                                                     />
                                                 </div>
                                                 <div class="flex-fill"></div>
@@ -481,7 +479,7 @@ export class MemberSetting {
                                 <div class="ms-auto" style="right: 0px;top: 0px;">
                                     <div
                                         class="btn-sm bt_primary btn fs-sm fw-normal"
-                                        style="height:25px;width:25px;"
+                                        style="height:25px; width:25px;"
                                         onclick="${gvc.event(() => {
                                             it.editor_preview_view();
                                         })}"

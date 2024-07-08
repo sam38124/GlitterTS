@@ -161,22 +161,37 @@ export class ShoppingProductSetting {
                                                             },
                                                             {
                                                                 key: '售價',
-                                                                value: '$ ' +
-                                                                    Math.min(...dd.content.variants.map((dd) => {
-                                                                        return parseInt(dd.sale_price, 10);
-                                                                    })).toLocaleString(),
+                                                                value: (() => {
+                                                                    if (!dd.content.variants || dd.content.variants.length === 0) {
+                                                                        return '尚未設定';
+                                                                    }
+                                                                    return ('$ ' +
+                                                                        Math.min(...dd.content.variants.map((dd) => {
+                                                                            return parseInt(dd.sale_price, 10);
+                                                                        })).toLocaleString());
+                                                                })(),
                                                             },
                                                             {
                                                                 key: '庫存',
-                                                                value: Math.min(...dd.content.variants.map((dd) => {
-                                                                    return dd.stock;
-                                                                })),
+                                                                value: (() => {
+                                                                    if (!dd.content.variants || dd.content.variants.length === 0) {
+                                                                        return 0;
+                                                                    }
+                                                                    return Math.min(...dd.content.variants.map((dd) => {
+                                                                        return dd.stock;
+                                                                    }));
+                                                                })(),
                                                             },
                                                             {
                                                                 key: '已售出',
-                                                                value: Math.min(...dd.content.variants.map((dd) => {
-                                                                    return dd.stock;
-                                                                })),
+                                                                value: (() => {
+                                                                    if (!dd.content.variants || dd.content.variants.length === 0) {
+                                                                        return 0;
+                                                                    }
+                                                                    return Math.min(...dd.content.variants.map((dd) => {
+                                                                        return dd.stock;
+                                                                    }));
+                                                                })(),
                                                             },
                                                             {
                                                                 key: '狀態',
@@ -921,22 +936,9 @@ export class ShoppingProductSetting {
                             }))}
                                     ${BgWidget.title(obj.type === 'replace' ? postMD.title || '編輯商品' : `新增商品`)}
                                     <div class="flex-fill"></div>
-                                    <button
-                                        class="btn btn-primary-c d-none"
-                                        style="height:38px;font-size: 14px;"
-                                        onclick="${obj.gvc.event(() => {
-                                setTimeout(() => {
-                                    if (obj.type === 'replace') {
-                                        ShoppingProductSetting.putEvent(postMD, obj.gvc, obj.vm);
-                                    }
-                                    else {
-                                        ShoppingProductSetting.postEvent(postMD, obj.gvc, obj.vm);
-                                    }
-                                }, 500);
-                            })}"
-                                    >
-                                        ${obj.type === 'replace' ? `儲存並更改` : `儲存並新增`}
-                                    </button>
+                                    ${BgWidget.grayButton('預覽商品', gvc.event(() => {
+                                window.open(`https://${window.parent.glitter.share.editorViewModel.domain}/products?product_id=${postMD.id}`, '_blank');
+                            }), { icon: 'fa-regular fa-eye' })}
                                 </div>
                                 <div class="d-flex flex-column flex-column-reverse flex-md-row w-100 p-0" style="gap:10px;">
                                     <div class="d-flex flex-column" style="gap: 24px;">
@@ -2466,14 +2468,14 @@ ${(_e = postMD.seo.keywords) !== null && _e !== void 0 ? _e : ''}</textarea
                                     bind: id,
                                     view: () => {
                                         return [
-                                            EditorElem.h3('商品系列'),
+                                            EditorElem.h3('商品分類'),
                                             postMD.collection
                                                 .map((dd, index) => {
                                                 return `<span style="font-size: 14px;">${dd}</span>`;
                                             })
                                                 .join(`<div class="my-1"></div>`),
                                             html ` <div class="w-100 mt-3">
-                                                                ${BgWidget.darkButton(`設定商品系列`, gvc.event(() => {
+                                                                ${BgWidget.darkButton(`設定商品分類`, gvc.event(() => {
                                                 BgProduct.collectionsDialog({
                                                     gvc: gvc,
                                                     default: postMD.collection.map((dd) => {
@@ -2532,6 +2534,7 @@ ${(_e = postMD.seo.keywords) !== null && _e !== void 0 ? _e : ''}</textarea
                                     else {
                                         ShoppingProductSetting.postEvent(postMD, obj.gvc, obj.vm);
                                     }
+                                    obj.vm.status = 'list';
                                 }, 500);
                             }), '儲存')}
                         </div>`,

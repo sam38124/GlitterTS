@@ -77,7 +77,7 @@ export class ShoppingShipmentSetting {
                                     BgWidget.container(html `
                                                             ${BgWidget.mainCard(html `
                                                                 <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 18px;">
-                                                                    <div style="font-size: 16px;font-weight: 700;">依材積計算</div>
+                                                                    <div style="font-size: 16px;font-weight: 700;">整份訂單依「材積」計算</div>
                                                                     <div style="display: flex;flex-direction: column;align-items: center;gap: 8px;align-self: stretch;">
                                                                         <div style="display: flex;align-items: flex-start;gap: 12px;align-self: stretch;font-size: 16px;font-weight: 400;">
                                                                             <div style="width: 60%">材積區間</div>
@@ -186,7 +186,7 @@ export class ShoppingShipmentSetting {
                                                             <div style="margin-bottom: 24px;"></div>
                                                             ${BgWidget.mainCard(html `
                                                                 <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 18px;">
-                                                                    <div style="font-size: 16px;font-weight: 700;">依重量計算</div>
+                                                                    <div style="font-size: 16px;font-weight: 700;">整份訂單依「重量」計算</div>
                                                                     <div style="display: flex;flex-direction: column;align-items: center;gap: 8px;align-self: stretch;">
                                                                         <div style="display: flex;align-items: flex-start;gap: 12px;align-self: stretch;font-size: 16px;font-weight: 400;">
                                                                             <div style="width: 60%">重量區間</div>
@@ -295,51 +295,55 @@ export class ShoppingShipmentSetting {
                                                         `, undefined, 'padding: 0; margin: 0 !important; width: 73.5%;'),
                                     BgWidget.container(html `
                                                             ${BgWidget.mainCard(html `
-                                                                <div style="gap: 18px;display: flex;flex-direction: column;">
-                                                                    <div style="font-size: 16px;font-weight: 700;">摘要</div>
-                                                                    <div style="font-size: 16px;font-weight: 400;">預設運費設定: 依${shipmentArray.selectCalc == 'weight' ? '重量' : '材積'}計算</div>
-                                                                    <div style="width:100%;height:1px;background-color: #DDD"></div>
-                                                                    <div style="display: flex;flex-direction: column;gap: 12px;">
-                                                                        <div style="color:#393939;font-weight: 400;font-size: 16px;">依材積計算:</div>
-                                                                        <div style="border-radius: 10px;border: 1px solid #DDD;color: #393939;font-weight: 400;font-size: 14px;padding: 20px;gap:12px;">
-                                                                            ${(() => {
+                                                                    <div style="gap: 18px;display: flex;flex-direction: column;">
+                                                                        <div style="font-size: 16px;font-weight: 700;">摘要</div>
+                                                                        <div style="font-size: 16px;font-weight: 400;">
+                                                                            預設運費設定: 依${shipmentArray.selectCalc == 'weight' ? '重量' : '材積'}計算
+                                                                        </div>
+                                                                        <div style="width:100%;height:1px;background-color: #DDD"></div>
+                                                                        <div style="display: flex;flex-direction: column;gap: 12px;">
+                                                                            <div style="color:#393939;font-weight: 400;font-size: 16px;">依材積計算:</div>
+                                                                            <div
+                                                                                style="border-radius: 10px;border: 1px solid #DDD;color: #393939;font-weight: 400;font-size: 14px;padding: 20px;gap:12px;"
+                                                                            >
+                                                                                ${(() => {
                                         let returnHTML = ``;
                                         shipmentArray.volume.map((data) => {
                                             returnHTML += html `
-                                                                                        <div class="">
-                                                                                            <span style="font-size: 24px;">${data.key}</span>
-                                                                                            公分(含)以上,運費
-                                                                                            <span style="font-size: 24px;">${data.value}</span>
-                                                                                            元
-                                                                                        </div>
-                                                                                    `;
+                                                                                            <div class="">
+                                                                                                <span style="font-size: 24px;">${data.key}</span>
+                                                                                                公分(含)以上,運費
+                                                                                                <span style="font-size: 24px;">${data.value}</span>
+                                                                                                元
+                                                                                            </div>
+                                                                                        `;
                                         });
                                         return returnHTML;
                                     })()}
+                                                                            </div>
                                                                         </div>
-                                                                    </div>
-                                                                    <div style="display: flex;flex-direction: column;gap: 12px;">
-                                                                        <div style="color:#393939;font-weight: 400;font-size: 16px;">依重量計算:</div>
-                                                                        <div style="border-radius: 10px;border: 1px solid #DDD;color: #393939;font-weight: 400;font-size: 14px;padding: 20px;">
-                                                                            ${(() => {
+                                                                        <div style="display: flex;flex-direction: column;gap: 12px;">
+                                                                            <div style="color:#393939;font-weight: 400;font-size: 16px;">依重量計算:</div>
+                                                                            <div style="border-radius: 10px;border: 1px solid #DDD;color: #393939;font-weight: 400;font-size: 14px;padding: 20px;">
+                                                                                ${(() => {
                                         let returnHTML = ``;
                                         shipmentArray.weight.map((data) => {
                                             returnHTML += html `
-                                                                                        <div class="">
-                                                                                            <span style="font-size: 24px;">${data.key}</span>
-                                                                                            公斤(含)以上,運費
-                                                                                            <span style="font-size: 24px;">${data.value}</span>
-                                                                                            元
-                                                                                        </div>
-                                                                                    `;
+                                                                                            <div class="">
+                                                                                                <span style="font-size: 24px;">${data.key}</span>
+                                                                                                公斤(含)以上,運費
+                                                                                                <span style="font-size: 24px;">${data.value}</span>
+                                                                                                元
+                                                                                            </div>
+                                                                                        `;
                                         });
                                         return returnHTML;
                                     })()}
+                                                                            </div>
                                                                         </div>
                                                                     </div>
-                                                                </div>
-                                                            `)}
-                                                        `, undefined, 'padding: 0; margin: 0 !important; width: 26.5%;min-width:300px;'),
+                                                                `, 'summary-card')}
+                                                        `, undefined, 'padding: 0; margin: 0 !important; width: 26.5%; min-width:300px;'),
                                     BgWidget.mb240(),
                                     html ` <div class="update-bar-container">
                                                         ${BgWidget.save(gvc.event(() => {
