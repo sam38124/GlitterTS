@@ -34,6 +34,16 @@ export class ShoppingProductSetting {
                 dataList: [{ obj: vm, key: 'status' }],
                 bind: vm.id,
                 view: () => {
+                    gvc.addStyle(`
+                        input[type="number"]::-webkit-outer-spin-button,
+                        input[type="number"]::-webkit-inner-spin-button {
+                            -webkit-appearance: none;
+                            margin: 0;
+                        }
+                        input[type="number"] {
+                            -moz-appearance: textfield;
+                        }
+                    `);
                     switch (vm.status) {
                         case 'add':
                             return ShoppingProductSetting.editProduct({ vm: vm, gvc: gvc, type: 'add' });
@@ -423,6 +433,7 @@ export class ShoppingProductSetting {
                                                 onchange="${gvc.event((e) => {
             variant.sale_price = e.value;
         })}"
+                                                min="0"
                                                 value="${variant.sale_price || '0'}"
                                                 type="number"
                                             />
@@ -432,6 +443,7 @@ export class ShoppingProductSetting {
                                             <input
                                                 style="width: 100%;border-radius: 10px;border: 1px solid #DDD;height: 40px;padding: 0px 18px;"
                                                 placeholder="請輸入比較價格"
+                                                min="0"
                                                 onchange="${gvc.event((e) => {
             variant.compare_price = e.value;
         })}"
@@ -446,6 +458,7 @@ export class ShoppingProductSetting {
                                             <input
                                                 style="width: 100%;border-radius: 10px;border: 1px solid #DDD;height: 40px;padding: 0px 18px;"
                                                 placeholder="請輸入成本"
+                                                min="0"
                                                 onchange="${gvc.event((e) => {
             variant.stock = e.value;
         })}"
@@ -457,6 +470,7 @@ export class ShoppingProductSetting {
                                             <div>利潤</div>
                                             <input
                                                 style="width: 100%;border-radius: 10px;border: 1px solid #DDD;height: 40px;padding: 0px 18px;"
+                                                min="0"
                                                 onchange="${gvc.event((e) => {
             variant.profit = e.value;
         })}"
@@ -2050,6 +2064,7 @@ color: ${isCheck ? `#393939` : `#DDD`};font-size: 18px;
                                                                                                                               style="height: 40px;width:100%;padding: 0px 18px;border-radius: 10px;border: 1px solid #DDD;background: #FFF;font-size: 13px;"
                                                                                                                               placeholder="${dd.title}"
                                                                                                                               type="number"
+                                                                                                                              min="0"
                                                                                                                               onchange="${gvc.event((e) => {
                                                                                             postMD.variants
                                                                                                 .filter((dd) => {
@@ -2156,6 +2171,7 @@ color: ${data.checked ? `#393939` : `#DDD`};font-size: 18px;"
                                                                                                                                                   <input
                                                                                                                                                       style="width: 100%;height: 40px;padding: 0px 18px;border-radius: 10px;border: 1px solid #DDD;background: #FFF;"
                                                                                                                                                       value="${(_a = data[dd]) !== null && _a !== void 0 ? _a : 0}"
+                                                                                                                                                      min="0"
                                                                                                                                                       onchange="${gvc.event((e) => {
                                                                                                         data[dd] = e.value;
                                                                                                         gvc.notifyDataChange(vm.id);

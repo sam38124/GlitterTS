@@ -891,7 +891,7 @@ export class Shopping {
                 status:data.status
             };
             data.orderData && (update.orderData = JSON.stringify(data.orderData));
-            console.log(" data.orderData --- " , data.orderData)
+        
 
             await db.query(
                 `UPDATE \`${this.app}\`.t_checkout

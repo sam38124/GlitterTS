@@ -22,7 +22,7 @@ export class ShoppingOrderManager {
         const glitter = gvc.glitter;
         const vm = {
             id: glitter.getUUID(),
-            type: 'list',
+            type: 'add',
             data: {},
             dataList: undefined,
             query: '',
@@ -371,6 +371,13 @@ export class ShoppingOrderManager {
                                 text: "免運費活動",
                             },
                         ];
+                        let tempData = {
+                            title: "",
+                            reBackType: "discount",
+                            method: 'percent',
+                            value: "",
+                            discount: 0,
+                        };
                         function showOrderDetail() {
                             function showDiscount() {
                                 return html `
@@ -383,12 +390,7 @@ export class ShoppingOrderManager {
                                         ${(showDiscountEdit) ? `` : gvc.bindView({
                                     bind: `editDiscount`,
                                     view: () => {
-                                        let tempData = {
-                                            title: "",
-                                            reBackType: "discount",
-                                            method: 'percent',
-                                            value: ""
-                                        };
+                                        var _a;
                                         let discountHTML = ``;
                                         let checkBox = html `
                                                     <div style="margin-right:6px;display: flex;width: 16px;height: 16px;justify-content: center;align-items: center;border-radius: 20px;border: 4px solid #393939"></div>`;
@@ -422,6 +424,8 @@ export class ShoppingOrderManager {
                                                                                         </svg>
                                                                                         <input class="w-100"
                                                                                                style="border-radius: 10px;border: 1px solid #DDD;padding: 9px 18px;"
+                                                                                               type="number"
+                                                                                               value="${rowData.discount}"
                                                                                                onchange="${gvc.event((e) => {
                                                                 rowData.discount = e.value;
                                                             })}">
@@ -449,6 +453,8 @@ export class ShoppingOrderManager {
                                                                                         </svg>
                                                                                         <input class="w-100"
                                                                                                style="border-radius: 10px;border: 1px solid #DDD;padding: 9px 18px;"
+                                                                                               type="number";
+                                                                                               value="${rowData.discount}"
                                                                                                onchange="${gvc.event((e) => {
                                                                 rowData.discount = e.value;
                                                             })}">
@@ -505,6 +511,7 @@ export class ShoppingOrderManager {
                                                         折扣名稱
                                                         <input class="w-100"
                                                                style="border-radius: 10px;border: 1px solid #DDD;padding: 9px 18px;"
+                                                               value="${(_a = tempData.title) !== null && _a !== void 0 ? _a : ''}"
                                                                onchange="${gvc.event((e) => {
                                             tempData.title = e.value;
                                         })}">
