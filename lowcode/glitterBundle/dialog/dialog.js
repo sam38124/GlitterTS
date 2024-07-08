@@ -40,7 +40,14 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                         </div>
                      `;
                 case 'successMessage':
-                    return `<div class=" m-auto rounded-3 shadow" style="     width: 200px;background: white;padding: 24px;display: flex;align-items: center;justify-content: center;flex-direction: column;  "  ><i class=" fa-regular fa-circle-check" style="     font-size: 50px;color: #393939;  "   aria-hidden="true"></i><div class=" mt-3 fs-6 fw-500" style="     color: #393939;  "  >${(_c = gBundle.obj.text) !== null && _c !== void 0 ? _c : "成功!"}</div></div>`;
+                    setTimeout(() => {
+                        gvc.closeDialog();
+                    }, 1000);
+                    return `
+<div class="vw-100 vh-100 position-fixed top-0 left-0 d-flex align-items-center justify-content-center"  style="background-color: rgba(0,0,0,0.5);z-index: 10000;">
+<div class=" m-auto rounded-3 shadow" style="     width: 200px;background: white;padding: 24px;display: flex;align-items: center;justify-content: center;flex-direction: column;  "  ><i class=" fa-regular fa-circle-check" style="     font-size: 50px;color: #393939;  "   aria-hidden="true"></i><div class=" mt-3 fs-6 fw-500" style="     color: #393939;  "  >${(_c = gBundle.obj.text) !== null && _c !== void 0 ? _c : "成功!"}</div></div>
+</div>
+`;
                 case 'checkYesOrNot':
                     return `
 <div class="vw-100 vh-100 position-fixed top-0 left-0 d-flex align-items-center justify-content-center"  style="background-color: rgba(0,0,0,0.5);z-index: 10000;">

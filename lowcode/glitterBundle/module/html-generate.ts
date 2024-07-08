@@ -826,9 +826,7 @@ ${obj.gvc.bindView({
                                         }
                                         resolve(container.map((widget, index) => {
                                             function loadWebResource() {
-                                                if (widget.data.elem === 'link' || widget.data.elem === 'script') {
-                                                    console.log(`loadWebResource->`, widget.data)
-                                                }
+
                                                 try {
                                                     if ((widget.data.elem === 'link') && (widget.data.attr.find((dd: any) => {
                                                         return dd.attr === 'rel' && dd.value === 'stylesheet'
@@ -854,7 +852,6 @@ ${obj.gvc.bindView({
 
                                             //判斷如果是資源檔案，直接返回空字串。
                                             if (loadWebResource()) {
-                                                console.log(`isWebResource`)
                                                 return ``
                                             }
                                             if (widget.data.elem === 'header') {

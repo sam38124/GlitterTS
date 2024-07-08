@@ -248,9 +248,6 @@ export class HtmlGenerate {
                                             }
                                             resolve(container.map((widget, index) => {
                                                 function loadWebResource() {
-                                                    if (widget.data.elem === 'link' || widget.data.elem === 'script') {
-                                                        console.log(`loadWebResource->`, widget.data);
-                                                    }
                                                     try {
                                                         if ((widget.data.elem === 'link') && (widget.data.attr.find((dd) => {
                                                             return dd.attr === 'rel' && dd.value === 'stylesheet';
@@ -276,7 +273,6 @@ export class HtmlGenerate {
                                                     }
                                                 }
                                                 if (loadWebResource()) {
-                                                    console.log(`isWebResource`);
                                                     return ``;
                                                 }
                                                 if (widget.data.elem === 'header') {

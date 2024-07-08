@@ -8,7 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { TriggerEvent } from "../../glitterBundle/plugins/trigger-event.js";
-TriggerEvent.createSingleEvent(import.meta.url, (glitter) => {
+export const messageChange = TriggerEvent.createSingleEvent(import.meta.url, (glitter) => {
     return {
         fun: (gvc, widget, object, subData, element) => {
             var _a, _b;
@@ -34,7 +34,6 @@ TriggerEvent.createSingleEvent(import.meta.url, (glitter) => {
                         const userID = yield TriggerEvent.trigger({
                             gvc: gvc, widget: widget, clickEvent: object.who
                         });
-                        console.log(`linstiner_message->`, userID);
                         let socket = undefined;
                         const url = new URL(window.glitterBackend);
                         let vm = {

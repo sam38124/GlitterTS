@@ -1290,12 +1290,6 @@ export class ShoppingProductSetting {
                                                                 <div
                                                                     style="width:100%;display:flex;align-items: center;justify-content: center;color: #36B;gap:6px;cursor: pointer;"
                                                                     onclick="${gvc.event(() => {
-                                                                        // postMD.specs.push({
-                                                                        //     title: '',
-                                                                        //     option: [],
-                                                                        // });
-                                                                        // obj.gvc.notifyDataChange([id]);
-                                                                        // obj.gvc.notifyDataChange("oneSpec")
                                                                         createPage.page = 'edit';
                                                                     })}"
                                                                 >
@@ -1323,7 +1317,7 @@ export class ShoppingProductSetting {
                                                                                     postMD.specs.push(temp);
                                                                                     createPage.page = 'add';
                                                                                     updateVariants();
-                                                                                    gvc.notifyDataChange([specid]);
+                                                                                    gvc.notifyDataChange([vm.id]);
                                                                                 },
                                                                             })}
                                                                         </div>

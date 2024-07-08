@@ -9,6 +9,8 @@ import {Article} from '../glitter-base/route/article.js';
 import {MenusSetting} from '../cms-plugin/menus-setting.js';
 import {Storage} from '../glitterBundle/helper/storage.js';
 import {BaseApi} from '../glitterBundle/api/base.js';
+import {ApiShop} from "../glitter-base/route/shopping.js";
+import {BgProduct, OptionsItem} from "./bg-product.js";
 
 interface MenuItem {
     link: string;
@@ -489,7 +491,7 @@ function editor(cf: { gvc: GVC; vm: any; is_page: boolean; widget: any }) {
     vm.data.content.seo = vm.data.content.seo ?? {};
     vm.data.content.for_index = cf.is_page ? 'false' : 'true';
     vm.data.content.generator = vm.data.content.generator || 'page_editor';
-    vm.data.page_type = vm.data.page_type || 'page';
+    vm.data.content.page_type = vm.data.content.page_type || 'page';
     let cVm: {
         id: string;
         type: 'detail' | 'collection';
@@ -536,7 +538,7 @@ function editor(cf: { gvc: GVC; vm: any; is_page: boolean; widget: any }) {
                             )}
                             ${BgWidget.title(cf.is_page ? '編輯頁面' : '編輯網誌')}
                             <div class="flex-fill"></div>
-                            ${BgWidget.grayButton('套用模板',gvc.event(()=>{
+                            ${BgWidget.grayButton('套用模板', gvc.event(() => {
                                 const rightMenu = (window.parent as any).glitter.share.NormalPageEditor;
                                 const gvc: GVC = (window.parent as any).glitter.pageConfig[0].gvc;
                                 rightMenu.toggle({
@@ -559,7 +561,7 @@ function editor(cf: { gvc: GVC; vm: any; is_page: boolean; widget: any }) {
                                 });
                             }))}
                             <div class="mx-1"></div>
-                            ${BgWidget.grayButton('前往設計',gvc.event(()=>{
+                            ${BgWidget.grayButton('前往設計', gvc.event(() => {
                                 (window.parent as any).glitter.innerDialog(
                                         (gvc: GVC) => {
                                             return gvc.bindView(() => {
@@ -568,15 +570,15 @@ function editor(cf: { gvc: GVC; vm: any; is_page: boolean; widget: any }) {
                                                     bind: id,
                                                     view: () => {
                                                         return html`
-                                                                                                                                                <iframe
-                                                                                                                                                        class="rounded-3"
-                                                                                                                                                        id="editor_dialog"
-                                                                                                                                                        src="${(() => {
-                                                            const url = new URL(window.parent.location.href);
-                                                            url.searchParams.set('function', 'user-editor');
-                                                            return url.href;
-                                                        })()}"
-                                                                                                                                                ></iframe>`;
+                                                            <iframe
+                                                                    class="rounded-3"
+                                                                    id="editor_dialog"
+                                                                    src="${(() => {
+                                                                        const url = new URL(window.parent.location.href);
+                                                                        url.searchParams.set('function', 'user-editor');
+                                                                        return url.href;
+                                                                    })()}"
+                                                            ></iframe>`;
                                                     },
                                                     divCreate: {
                                                         class: `vw-100 vh-100 p-2`,
@@ -619,45 +621,54 @@ function editor(cf: { gvc: GVC; vm: any; is_page: boolean; widget: any }) {
                                 html`
                                     <div class="d-flex justify-content-center p-0 ${document.body.clientWidth < 768 ? 'flex-column' : ''}"
                                          style="gap: 24px">
-                                        ${BgWidget.container(
-                                                (() => {
-                                                    if (cf.is_page) {
-                                                        return gvc.bindView(() => {
-                                                            vm.data.status=vm.data.status ?? 1
-                                                            const id = gvc.glitter.getUUID()
-                                                            return {
-                                                                bind: id,
-                                                                view: () => {
-                                                                    return [BgWidget.mainCard((() => {
-                                                                        return [
-                                                                            BgWidget.title_16('基本設定'),
-                                                                            `<div style="height:18px;"></div>`,
-                                                                            html`
-                                                                                <div style="display:flex; align-items: center; gap: 4px; margin-bottom: 8px;">
-                                                                                    <div class="tx_normal">網頁啟用
-                                                                                    </div>
-                                                                                    ${BgWidget.switchButton(gvc, vm.data.status, (bool) => {
-                                                                                        vm.data.status = bool ? 1 : 0;
-                                                                                        gvc.notifyDataChange(id);
-                                                                                    })}
-                                                                                </div>`,
-                                                                            BgWidget.editeInput({
-                                                                                gvc: gvc,
-                                                                                title: '網頁標題*',
-                                                                                default: vm.data.content.seo.title,
-                                                                                placeHolder: `請輸入網頁標題`,
-                                                                                callback: (text) => {
-                                                                                    vm.data.content.seo.title = text;
-                                                                                    gvc.notifyDataChange(id);
-                                                                                },
-                                                                            }),
-                                                                            BgWidget.editeInput({
-                                                                                gvc: gvc,
-                                                                                title: '網誌連結',
-                                                                                default: vm.data.content.tag,
-                                                                                placeHolder: `請輸入網誌連結`,
-                                                                                callback: (text) => {
-
+                                        <div class="d-flex flex-column " style="gap:10px;width: 73.5%;">
+                                            ${BgWidget.container(
+                                                    (() => {
+                                                        if (cf.is_page) {
+                                                            return gvc.bindView(() => {
+                                                                vm.data.status = vm.data.status ?? 1
+                                                                const id = gvc.glitter.getUUID()
+                                                                return {
+                                                                    bind: id,
+                                                                    view: () => {
+                                                                        return [BgWidget.mainCard((() => {
+                                                                            return [
+                                                                                BgWidget.title_16('基本設定'),
+                                                                                `<div style="height:18px;"></div>`,
+                                                                                html`
+                                                                                    <div style="display:flex; align-items: center; gap: 4px; margin-bottom: 8px;">
+                                                                                        <div class="tx_normal">網頁啟用
+                                                                                        </div>
+                                                                                        ${BgWidget.switchButton(gvc, vm.data.status, (bool) => {
+                                                                                            vm.data.status = bool ? 1 : 0;
+                                                                                            gvc.notifyDataChange(id);
+                                                                                        })}
+                                                                                    </div>`,
+                                                                                BgWidget.editeInput({
+                                                                                    gvc: gvc,
+                                                                                    title: '網頁名稱',
+                                                                                    default: vm.data.content.name || '',
+                                                                                    placeHolder: '請輸入網頁名稱',
+                                                                                    callback: (text) => {
+                                                                                        vm.data.content.name = text;
+                                                                                    },
+                                                                                }),
+                                                                                `<div class="tx_normal fw-normal mb-2">自訂網址</div>`,
+                                                                                html`
+                                                                                                <div style="  justify-content: flex-start; align-items: center; gap: 18px; display: inline-flex;border:1px solid #EAEAEA;border-radius: 10px;overflow: hidden;"
+                                                                                                     class="w-100">
+                                                                                                    <div style="padding: 9px 18px;background: #EAEAEA; justify-content: center; align-items: center; gap: 5px; display: flex">
+                                                                                                        <div style="text-align: right; color: #393939; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word">
+                                                                                                            ${(() => {
+                                                                                    return `https://${(window.parent as any).glitter.share.editorViewModel.domain}/${(cf.is_page) ? `pages` : `blogs`}/`
+                                                                                })()}
+                                                                                                        </div>
+                                                                                                    </div>
+                                                                                                    <input class=""
+                                                                                                           style="border:none;background:none;text-align: start; color: #393939; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word"
+                                                                                                           value="${vm.data.content.tag || ''}"
+                                                                                                           onchange="${gvc.event((e) => {
+                                                                                    let text = e.value
                                                                                     const regex = /^[a-zA-Z0-9-]+$/;
                                                                                     if (!regex.test(text)) {
                                                                                         alert('僅能輸入英文或數字與連接號')
@@ -666,308 +677,26 @@ function editor(cf: { gvc: GVC; vm: any; is_page: boolean; widget: any }) {
                                                                                         vm.data.content.tag = text;
                                                                                         gvc.notifyDataChange(id);
                                                                                     }
-
-
-                                                                                },
-                                                                            }),
-                                                                            BgWidget.textArea({
-                                                                                gvc: gvc,
-                                                                                title: 'SEO描述',
-                                                                                default: vm.data.content.seo.content,
-                                                                                placeHolder: `請輸入中繼描述`,
-                                                                                callback: (text) => {
-                                                                                    vm.data.content.seo.content = text;
-                                                                                    gvc.notifyDataChange(id);
-                                                                                },
-                                                                            }),
-                                                                            `<div style="height:5px;"></div>`,
-                                                                            BgWidget.textArea({
-                                                                                gvc: gvc,
-                                                                                title: 'SEO關鍵字',
-                                                                                default: vm.data.content.seo.keywords,
-                                                                                placeHolder: `請輸入SEO關鍵字`,
-                                                                                callback: (text) => {
-                                                                                    vm.data.content.seo.keywords = text;
-                                                                                    gvc.notifyDataChange(id);
-                                                                                },
-                                                                            }),
-                                                                            `<div style="height:10px;"></div>`,
-                                                                            BgWidget.sub_title(html`
-                                                                                <div class="d-flex flex-column">
-                                                                                    <div class="tx_normal">社群分享縮圖</div>
-                                                                                    <div style="height:8px;"></div>
-                                                                                    ${BgWidget.hint_title(`建議尺寸：200px*200px以上`)}
-                                                                                </div>`),
-                                                                            `<div style="height:10px;"></div>`,
-                                                                            BgWidget.imageSelector(gvc, vm.data.content.seo.image || '', (text) => {
-                                                                                vm.data.content.seo.image = text
-                                                                                gvc.notifyDataChange(id);
-                                                                            })
-                                                                        ].join('')
-                                                                    })())].join('')
-                                                                }
-                                                            }
-                                                        })
-
-                                                    } else {
-                                                        return [
-                                                            cf.is_page ? `` : BgWidget.mainCard(
-                                                                    gvc.bindView(() => {
-                                                                        const artViewID = gvc.glitter.getUUID();
-                                                                        return {
-                                                                            bind: artViewID,
-                                                                            view: () => {
-                                                                                const page_selector = EditorElem.select({
-                                                                                    title: '頁面生成類型',
-                                                                                    gvc: gvc,
-                                                                                    def: vm.data.content.generator,
-                                                                                    array: [
-                                                                                        {
-                                                                                            title: '富文本',
-                                                                                            value: 'rich_text',
-                                                                                        },
-                                                                                        {
-                                                                                            title: '內容編輯器',
-                                                                                            value: 'page_editor',
-                                                                                        },
-                                                                                    ],
-                                                                                    callback: (text) => {
-                                                                                        vm.data.content.generator = text;
-                                                                                        gvc.notifyDataChange(artViewID);
-                                                                                    },
-                                                                                });
-                                                                                return [
-                                                                                    EditorElem.editeInput({
-                                                                                        gvc: gvc,
-                                                                                        title: '網誌名稱',
-                                                                                        default: vm.data.content.name,
-                                                                                        placeHolder: '請輸入網誌名稱',
-                                                                                        callback: (text) => {
-                                                                                            vm.data.content.name = text;
-                                                                                        },
-                                                                                    }),
-                                                                                    EditorElem.editeInput({
-                                                                                        gvc: gvc,
-                                                                                        title: '網誌標題',
-                                                                                        default: vm.data.content.title,
-                                                                                        placeHolder: '請輸入網誌標題',
-                                                                                        callback: (text) => {
-                                                                                            vm.data.content.title = text;
-                                                                                        },
-                                                                                    }),
-                                                                                    EditorElem.editeText({
-                                                                                        gvc: gvc,
-                                                                                        title: '網誌摘要',
-                                                                                        default: vm.data.content.description,
-                                                                                        placeHolder: '請輸入網誌摘要',
-                                                                                        callback: (text) => {
-                                                                                            vm.data.content.description = text;
-                                                                                        },
-                                                                                    }),
-                                                                                    (() => {
-                                                                                        if (vm.data.content.generator === 'page_editor') {
-                                                                                            return html`
-                                                                                                <div
-                                                                                                        class="d-flex flex-fill ${document.body.clientWidth > 768 ? 'align-items-end' : 'flex-column'}"
-                                                                                                        style="gap: 10px;"
-                                                                                                >
-                                                                                                    <div style="width: 100%;"
-                                                                                                         class="flex-fill">
-                                                                                                        ${page_selector}
-                                                                                                    </div>
-                                                                                                    <div class="d-flex align-items-center"
-                                                                                                         style="height: 45px; gap: 10px; width: 100%;">
-                                                                                                        <div
-                                                                                                                class="cursor_pointer bt_c39 p-1"
-                                                                                                                style="height: 40px; width: 60%;"
-                                                                                                                onclick="${gvc.event(() => {
-                                                                                                                    const rightMenu = (window.parent as any).glitter.share.NormalPageEditor;
-                                                                                                                    const gvc: GVC = (window.parent as any).glitter.pageConfig[0].gvc;
-                                                                                                                    rightMenu.toggle({
-                                                                                                                        visible: true,
-                                                                                                                        title: '選擇預設模板',
-                                                                                                                        view: gvc.bindView(() => {
-                                                                                                                            const id = gvc.glitter.getUUID();
-                                                                                                                            return {
-                                                                                                                                bind: id,
-                                                                                                                                view: () => {
-                                                                                                                                    return BgBlog.template_select(gvc, (cf) => {
-                                                                                                                                        vm.data.content.config = cf;
-                                                                                                                                        rightMenu.toggle({visible: false});
-                                                                                                                                    });
-                                                                                                                                },
-                                                                                                                                divCreate: {},
-                                                                                                                            };
-                                                                                                                        }),
-                                                                                                                        right: false,
-                                                                                                                    });
-                                                                                                                })}"
-                                                                                                        >
-                                                                                                            <i class="fa-solid fa-pager me-2"></i>選擇預設模板
-                                                                                                        </div>
-                                                                                                        <div
-                                                                                                                class="cursor_pointer bt_c39 p-1 "
-                                                                                                                style="height: 40px; width: 40%;"
-                                                                                                                onclick="${gvc.event(() => {
-                                                                                                                    (window.parent as any).glitter.innerDialog(
-                                                                                                                            (gvc: GVC) => {
-                                                                                                                                return gvc.bindView(() => {
-                                                                                                                                    const id = gvc.glitter.getUUID();
-                                                                                                                                    return {
-                                                                                                                                        bind: id,
-                                                                                                                                        view: () => {
-                                                                                                                                            return html`
-                                                                                                                                                <iframe
-                                                                                                                                                        class="rounded-3"
-                                                                                                                                                        id="editor_dialog"
-                                                                                                                                                        src="${(() => {
-                                                                                                                                                            const url = new URL(window.parent.location.href);
-                                                                                                                                                            url.searchParams.set('function', 'user-editor');
-                                                                                                                                                            return url.href;
-                                                                                                                                                        })()}"
-                                                                                                                                                ></iframe>`;
-                                                                                                                                        },
-                                                                                                                                        divCreate: {
-                                                                                                                                            class: `vw-100 vh-100 p-2`,
-                                                                                                                                            style: `background: rgba(0,0,0,0.5);`,
-                                                                                                                                        },
-                                                                                                                                        onCreate: () => {
-                                                                                                                                            const interval = setInterval(() => {
-                                                                                                                                                const iframe: any = window.parent.document.querySelector('#editor_dialog')!;
-                                                                                                                                                if (iframe.contentWindow.glitter) {
-                                                                                                                                                    iframe.contentWindow.glitter.share.editor_vm = {
-                                                                                                                                                        close: () => {
-                                                                                                                                                            gvc.closeDialog();
-                                                                                                                                                        },
-                                                                                                                                                        callback: (cf: any) => {
-                                                                                                                                                            vm.data.content.config = cf.config;
-                                                                                                                                                        },
-                                                                                                                                                        page_data: {
-                                                                                                                                                            config: JSON.parse(JSON.stringify(vm.data.content.config || [])),
-                                                                                                                                                            page_config: {},
-                                                                                                                                                            name: vm.data.content.name || '尚未設定頁面標題',
-                                                                                                                                                        },
-                                                                                                                                                        title: vm.data.content.name || '尚未設定頁面標題',
-                                                                                                                                                    };
-                                                                                                                                                    clearInterval(interval);
-                                                                                                                                                }
-                                                                                                                                            }, 100);
-                                                                                                                                        },
-                                                                                                                                    };
-                                                                                                                                });
-                                                                                                                            },
-                                                                                                                            '',
-                                                                                                                            {
-                                                                                                                                dismiss: () => {
-                                                                                                                                },
-                                                                                                                            }
-                                                                                                                    );
-                                                                                                                })}"
-                                                                                                        >
-                                                                                                            <i class="fa-regular fa-pencil me-2"></i>編輯內容
-                                                                                                        </div>
-                                                                                                    </div>
-                                                                                                </div>`;
-                                                                                        }
+                                                                                })}">
+                                                                                                </div>`,
+                                                                                `<div style="height:18px;"></div>`,
+                                                                                ///是否顯示SEO列表
+                                                                                ...(() => {
+                                                                                    if (vm.data.content.page_type !== 'hidden') {
                                                                                         return [
-                                                                                            page_selector,
-                                                                                            EditorElem.richText({
+                                                                                            BgWidget.editeInput({
                                                                                                 gvc: gvc,
-                                                                                                def: vm.data.content.text ?? '',
-                                                                                                callback: (text) => {
-                                                                                                    vm.data.content.text = text;
-                                                                                                },
-                                                                                            }),
-                                                                                        ].join('<div class="my-2"></div>');
-                                                                                    })(),
-                                                                                ].join(`<div class="my-2"></div>`);
-                                                                            },
-                                                                            divCreate: {},
-                                                                        };
-                                                                    })
-                                                            ),
-                                                            cf.is_page ? `` : BgWidget.mbContainer(24),
-                                                            BgWidget.mainCard(
-                                                                    gvc.bindView(() => {
-                                                                        const id = gvc.glitter.getUUID();
-                                                                        let toggle = false;
-                                                                        return {
-                                                                            bind: id,
-                                                                            view: () => {
-                                                                                try {
-                                                                                    let view = [
-                                                                                        html`
-                                                                                            <div class="fs-sm fw-500 d-flex align-items-center justify-content-between mb-2">
-                                                                                                ${EditorElem.h3('SEO配置')}
-                                                                                                <div
-                                                                                                        class="fw-500 fs-sm "
-                                                                                                        style="cursor: pointer;color:rgba(0, 91, 211, 1);"
-                                                                                                        onclick="${gvc.event(() => {
-                                                                                                            toggle = !toggle;
-                                                                                                            gvc.notifyDataChange(id);
-                                                                                                        })}"
-                                                                                                >
-                                                                                                    ${toggle ? `確認` : `編輯`}
-                                                                                                </div>
-                                                                                            </div>`,
-                                                                                        html`
-                                                                                            <div class="fs-6 fw-500"
-                                                                                                 style="color:#1a0dab;">
-                                                                                                ${vm.data.content.seo.title || '尚未設定'}
-                                                                                            </div>`,
-                                                                                        (() => {
-                                                                                            const href = (() => {
-                                                                                                return `https://${(window.parent as any).glitter.share.editorViewModel.domain}/${(cf.is_page) ? `pages` : `blogs`}/${vm.data.content.tag}`;
-                                                                                            })();
-                                                                                            return html`<a
-                                                                                                    class="fs-sm fw-500"
-                                                                                                    style="color:#006621;cursor: pointer;"
-                                                                                                    onclick="${gvc.event(() => {
-                                                                                                        (window.parent as any).glitter.openNewTab(href);
-                                                                                                    })}"
-                                                                                            >${href}</a
-                                                                                            >`;
-                                                                                        })(),
-                                                                                        html`
-                                                                                            <div class="fs-sm fw-500"
-                                                                                                 style="color:#545454;white-space: normal;">
-                                                                                                ${vm.data.content.seo.content || '尚未設定'}
-                                                                                            </div>`,
-                                                                                    ];
-                                                                                    if (toggle) {
-                                                                                        view = view.concat([
-                                                                                            EditorElem.editeInput({
-                                                                                                gvc: gvc,
-                                                                                                title: '網誌連結',
-                                                                                                default: vm.data.content.tag,
-                                                                                                placeHolder: `請輸入網誌連結`,
-                                                                                                callback: (text) => {
-
-                                                                                                    const regex = /^[a-zA-Z0-9-]+$/;
-                                                                                                    if (!regex.test(text)) {
-                                                                                                        alert('僅能輸入英文或數字與連接號')
-                                                                                                        gvc.notifyDataChange(id);
-                                                                                                    } else {
-                                                                                                        vm.data.content.tag = text;
-                                                                                                        gvc.notifyDataChange(id);
-                                                                                                    }
-
-
-                                                                                                },
-                                                                                            }),
-                                                                                            EditorElem.editeInput({
-                                                                                                gvc: gvc,
-                                                                                                title: '頁面標題',
+                                                                                                title: 'SEO標題',
                                                                                                 default: vm.data.content.seo.title,
-                                                                                                placeHolder: `請輸入頁面標題`,
+                                                                                                placeHolder: `請輸入SEO標題`,
                                                                                                 callback: (text) => {
                                                                                                     vm.data.content.seo.title = text;
                                                                                                     gvc.notifyDataChange(id);
                                                                                                 },
                                                                                             }),
-                                                                                            EditorElem.editeText({
+                                                                                            BgWidget.textArea({
                                                                                                 gvc: gvc,
-                                                                                                title: '中繼描述',
+                                                                                                title: 'SEO描述',
                                                                                                 default: vm.data.content.seo.content,
                                                                                                 placeHolder: `請輸入中繼描述`,
                                                                                                 callback: (text) => {
@@ -975,33 +704,545 @@ function editor(cf: { gvc: GVC; vm: any; is_page: boolean; widget: any }) {
                                                                                                     gvc.notifyDataChange(id);
                                                                                                 },
                                                                                             }),
-                                                                                            EditorElem.editeText({
-                                                                                                gvc: gvc,
-                                                                                                title: 'SEO關鍵字',
-                                                                                                default: vm.data.content.seo.keywords,
-                                                                                                placeHolder: `請輸入SEO關鍵字`,
-                                                                                                callback: (text) => {
-                                                                                                    vm.data.content.seo.keywords = text;
-                                                                                                    gvc.notifyDataChange(id);
-                                                                                                },
-                                                                                            }),
-                                                                                        ]);
+                                                                                            `<div style="height:10px;"></div>`,
+                                                                                            BgWidget.sub_title(html`
+                                                                                                <div class="d-flex flex-column">
+                                                                                                    <div class="tx_normal">
+                                                                                                        社群分享縮圖
+                                                                                                    </div>
+                                                                                                    <div style="height:8px;"></div>
+                                                                                                    ${BgWidget.hint_title(`建議尺寸：200px*200px以上`)}
+                                                                                                </div>`),
+                                                                                            `<div style="height:10px;"></div>`,
+                                                                                            BgWidget.imageSelector(gvc, vm.data.content.seo.image || '', (text) => {
+                                                                                                vm.data.content.seo.image = text
+                                                                                                gvc.notifyDataChange(id);
+                                                                                            })]
+                                                                                    } else {
+                                                                                        return []
                                                                                     }
-                                                                                    return view.join('');
-                                                                                } catch (e) {
-                                                                                    console.error(e);
-                                                                                    return ``;
-                                                                                }
-                                                                            },
-                                                                        };
-                                                                    })
-                                                            ),
-                                                        ].join('')
-                                                    }
-                                                })(),
-                                                undefined,
-                                                'padding: 0 !important; margin: 0 !important; width: 73.5%;'
-                                        )}
+                                                                                })(),
+                                                                            ].join('')
+                                                                        })())].join('')
+                                                                    }
+                                                                }
+                                                            })
+                                                        } else {
+                                                            return [
+                                                                cf.is_page ? `` : BgWidget.mainCard(
+                                                                        gvc.bindView(() => {
+                                                                            const artViewID = gvc.glitter.getUUID();
+                                                                            return {
+                                                                                bind: artViewID,
+                                                                                view: () => {
+                                                                                    const page_selector = EditorElem.select({
+                                                                                        title: '頁面生成類型',
+                                                                                        gvc: gvc,
+                                                                                        def: vm.data.content.generator,
+                                                                                        array: [
+                                                                                            {
+                                                                                                title: '富文本',
+                                                                                                value: 'rich_text',
+                                                                                            },
+                                                                                            {
+                                                                                                title: '內容編輯器',
+                                                                                                value: 'page_editor',
+                                                                                            },
+                                                                                        ],
+                                                                                        callback: (text) => {
+                                                                                            vm.data.content.generator = text;
+                                                                                            gvc.notifyDataChange(artViewID);
+                                                                                        },
+                                                                                    });
+                                                                                    return [
+                                                                                        EditorElem.editeInput({
+                                                                                            gvc: gvc,
+                                                                                            title: '網誌名稱',
+                                                                                            default: vm.data.content.name,
+                                                                                            placeHolder: '請輸入網誌名稱',
+                                                                                            callback: (text) => {
+                                                                                                vm.data.content.name = text;
+                                                                                            },
+                                                                                        }),
+                                                                                        EditorElem.editeInput({
+                                                                                            gvc: gvc,
+                                                                                            title: '網誌標題',
+                                                                                            default: vm.data.content.title,
+                                                                                            placeHolder: '請輸入網誌標題',
+                                                                                            callback: (text) => {
+                                                                                                vm.data.content.title = text;
+                                                                                            },
+                                                                                        }),
+                                                                                        EditorElem.editeText({
+                                                                                            gvc: gvc,
+                                                                                            title: '網誌摘要',
+                                                                                            default: vm.data.content.description,
+                                                                                            placeHolder: '請輸入網誌摘要',
+                                                                                            callback: (text) => {
+                                                                                                vm.data.content.description = text;
+                                                                                            },
+                                                                                        }),
+                                                                                        (() => {
+                                                                                            if (vm.data.content.generator === 'page_editor') {
+                                                                                                return html`
+                                                                                                    <div
+                                                                                                            class="d-flex flex-fill ${document.body.clientWidth > 768 ? 'align-items-end' : 'flex-column'}"
+                                                                                                            style="gap: 10px;"
+                                                                                                    >
+                                                                                                        <div style="width: 100%;"
+                                                                                                             class="flex-fill">
+                                                                                                            ${page_selector}
+                                                                                                        </div>
+                                                                                                        <div class="d-flex align-items-center"
+                                                                                                             style="height: 45px; gap: 10px; width: 100%;">
+                                                                                                            <div
+                                                                                                                    class="cursor_pointer bt_c39 p-1"
+                                                                                                                    style="height: 40px; width: 60%;"
+                                                                                                                    onclick="${gvc.event(() => {
+                                                                                                                        const rightMenu = (window.parent as any).glitter.share.NormalPageEditor;
+                                                                                                                        const gvc: GVC = (window.parent as any).glitter.pageConfig[0].gvc;
+                                                                                                                        rightMenu.toggle({
+                                                                                                                            visible: true,
+                                                                                                                            title: '選擇預設模板',
+                                                                                                                            view: gvc.bindView(() => {
+                                                                                                                                const id = gvc.glitter.getUUID();
+                                                                                                                                return {
+                                                                                                                                    bind: id,
+                                                                                                                                    view: () => {
+                                                                                                                                        return BgBlog.template_select(gvc, (cf) => {
+                                                                                                                                            vm.data.content.config = cf;
+                                                                                                                                            rightMenu.toggle({visible: false});
+                                                                                                                                        });
+                                                                                                                                    },
+                                                                                                                                    divCreate: {},
+                                                                                                                                };
+                                                                                                                            }),
+                                                                                                                            right: false,
+                                                                                                                        });
+                                                                                                                    })}"
+                                                                                                            >
+                                                                                                                <i class="fa-solid fa-pager me-2"></i>選擇預設模板
+                                                                                                            </div>
+                                                                                                            <div
+                                                                                                                    class="cursor_pointer bt_c39 p-1 "
+                                                                                                                    style="height: 40px; width: 40%;"
+                                                                                                                    onclick="${gvc.event(() => {
+                                                                                                                        (window.parent as any).glitter.innerDialog(
+                                                                                                                                (gvc: GVC) => {
+                                                                                                                                    return gvc.bindView(() => {
+                                                                                                                                        const id = gvc.glitter.getUUID();
+                                                                                                                                        return {
+                                                                                                                                            bind: id,
+                                                                                                                                            view: () => {
+                                                                                                                                                return html`
+                                                                                                                                                    <iframe
+                                                                                                                                                            class="rounded-3"
+                                                                                                                                                            id="editor_dialog"
+                                                                                                                                                            src="${(() => {
+                                                                                                                                                                const url = new URL(window.parent.location.href);
+                                                                                                                                                                url.searchParams.set('function', 'user-editor');
+                                                                                                                                                                return url.href;
+                                                                                                                                                            })()}"
+                                                                                                                                                    ></iframe>`;
+                                                                                                                                            },
+                                                                                                                                            divCreate: {
+                                                                                                                                                class: `vw-100 vh-100 p-2`,
+                                                                                                                                                style: `background: rgba(0,0,0,0.5);`,
+                                                                                                                                            },
+                                                                                                                                            onCreate: () => {
+                                                                                                                                                const interval = setInterval(() => {
+                                                                                                                                                    const iframe: any = window.parent.document.querySelector('#editor_dialog')!;
+                                                                                                                                                    if (iframe.contentWindow.glitter) {
+                                                                                                                                                        iframe.contentWindow.glitter.share.editor_vm = {
+                                                                                                                                                            close: () => {
+                                                                                                                                                                gvc.closeDialog();
+                                                                                                                                                            },
+                                                                                                                                                            callback: (cf: any) => {
+                                                                                                                                                                vm.data.content.config = cf.config;
+                                                                                                                                                            },
+                                                                                                                                                            page_data: {
+                                                                                                                                                                config: JSON.parse(JSON.stringify(vm.data.content.config || [])),
+                                                                                                                                                                page_config: {},
+                                                                                                                                                                name: vm.data.content.name || '尚未設定頁面標題',
+                                                                                                                                                            },
+                                                                                                                                                            title: vm.data.content.name || '尚未設定頁面標題',
+                                                                                                                                                        };
+                                                                                                                                                        clearInterval(interval);
+                                                                                                                                                    }
+                                                                                                                                                }, 100);
+                                                                                                                                            },
+                                                                                                                                        };
+                                                                                                                                    });
+                                                                                                                                },
+                                                                                                                                '',
+                                                                                                                                {
+                                                                                                                                    dismiss: () => {
+                                                                                                                                    },
+                                                                                                                                }
+                                                                                                                        );
+                                                                                                                    })}"
+                                                                                                            >
+                                                                                                                <i class="fa-regular fa-pencil me-2"></i>編輯內容
+                                                                                                            </div>
+                                                                                                        </div>
+                                                                                                    </div>`;
+                                                                                            }
+                                                                                            return [
+                                                                                                page_selector,
+                                                                                                EditorElem.richText({
+                                                                                                    gvc: gvc,
+                                                                                                    def: vm.data.content.text ?? '',
+                                                                                                    callback: (text) => {
+                                                                                                        vm.data.content.text = text;
+                                                                                                    },
+                                                                                                }),
+                                                                                            ].join('<div class="my-2"></div>');
+                                                                                        })(),
+                                                                                    ].join(`<div class="my-2"></div>`);
+                                                                                },
+                                                                                divCreate: {},
+                                                                            };
+                                                                        })
+                                                                ),
+                                                                cf.is_page ? `` : BgWidget.mbContainer(24),
+                                                                BgWidget.mainCard(
+                                                                        gvc.bindView(() => {
+                                                                            const id = gvc.glitter.getUUID();
+                                                                            let toggle = false;
+                                                                            return {
+                                                                                bind: id,
+                                                                                view: () => {
+                                                                                    try {
+                                                                                        let view = [
+                                                                                            html`
+                                                                                                <div class="fs-sm fw-500 d-flex align-items-center justify-content-between mb-2">
+                                                                                                    ${EditorElem.h3('SEO配置')}
+                                                                                                    <div
+                                                                                                            class="fw-500 fs-sm "
+                                                                                                            style="cursor: pointer;color:rgba(0, 91, 211, 1);"
+                                                                                                            onclick="${gvc.event(() => {
+                                                                                                                toggle = !toggle;
+                                                                                                                gvc.notifyDataChange(id);
+                                                                                                            })}"
+                                                                                                    >
+                                                                                                        ${toggle ? `確認` : `編輯`}
+                                                                                                    </div>
+                                                                                                </div>`,
+                                                                                            html`
+                                                                                                <div class="fs-6 fw-500"
+                                                                                                     style="color:#1a0dab;">
+                                                                                                    ${vm.data.content.seo.title || '尚未設定'}
+                                                                                                </div>`,
+                                                                                            (() => {
+                                                                                                const href = (() => {
+                                                                                                    return `https://${(window.parent as any).glitter.share.editorViewModel.domain}/${(cf.is_page) ? `pages` : `blogs`}/${vm.data.content.tag}`;
+                                                                                                })();
+                                                                                                return html`<a
+                                                                                                        class="fs-sm fw-500"
+                                                                                                        style="color:#006621;cursor: pointer;"
+                                                                                                        onclick="${gvc.event(() => {
+                                                                                                            (window.parent as any).glitter.openNewTab(href);
+                                                                                                        })}"
+                                                                                                >${href}</a
+                                                                                                >`;
+                                                                                            })(),
+                                                                                            html`
+                                                                                                <div class="fs-sm fw-500"
+                                                                                                     style="color:#545454;white-space: normal;">
+                                                                                                    ${vm.data.content.seo.content || '尚未設定'}
+                                                                                                </div>`,
+                                                                                        ];
+                                                                                        if (toggle) {
+                                                                                            view = view.concat([
+                                                                                                EditorElem.editeInput({
+                                                                                                    gvc: gvc,
+                                                                                                    title: '網誌連結',
+                                                                                                    default: vm.data.content.tag,
+                                                                                                    placeHolder: `請輸入網誌連結`,
+                                                                                                    callback: (text) => {
+
+                                                                                                        const regex = /^[a-zA-Z0-9-]+$/;
+                                                                                                        if (!regex.test(text)) {
+                                                                                                            alert('僅能輸入英文或數字與連接號')
+                                                                                                            gvc.notifyDataChange(id);
+                                                                                                        } else {
+                                                                                                            vm.data.content.tag = text;
+                                                                                                            gvc.notifyDataChange(id);
+                                                                                                        }
+
+
+                                                                                                    },
+                                                                                                }),
+                                                                                                EditorElem.editeInput({
+                                                                                                    gvc: gvc,
+                                                                                                    title: '頁面標題',
+                                                                                                    default: vm.data.content.seo.title,
+                                                                                                    placeHolder: `請輸入頁面標題`,
+                                                                                                    callback: (text) => {
+                                                                                                        vm.data.content.seo.title = text;
+                                                                                                        gvc.notifyDataChange(id);
+                                                                                                    },
+                                                                                                }),
+                                                                                                EditorElem.editeText({
+                                                                                                    gvc: gvc,
+                                                                                                    title: '中繼描述',
+                                                                                                    default: vm.data.content.seo.content,
+                                                                                                    placeHolder: `請輸入中繼描述`,
+                                                                                                    callback: (text) => {
+                                                                                                        vm.data.content.seo.content = text;
+                                                                                                        gvc.notifyDataChange(id);
+                                                                                                    },
+                                                                                                }),
+                                                                                                EditorElem.editeText({
+                                                                                                    gvc: gvc,
+                                                                                                    title: 'SEO關鍵字',
+                                                                                                    default: vm.data.content.seo.keywords,
+                                                                                                    placeHolder: `請輸入SEO關鍵字`,
+                                                                                                    callback: (text) => {
+                                                                                                        vm.data.content.seo.keywords = text;
+                                                                                                        gvc.notifyDataChange(id);
+                                                                                                    },
+                                                                                                }),
+                                                                                            ]);
+                                                                                        }
+                                                                                        return view.join('');
+                                                                                    } catch (e) {
+                                                                                        console.error(e);
+                                                                                        return ``;
+                                                                                    }
+                                                                                },
+                                                                            };
+                                                                        })
+                                                                ),
+                                                            ].join('')
+                                                        }
+                                                    })(),
+                                                    undefined,
+                                                    'padding: 0 !important; margin: 0 !important; width: 100%;'
+                                            )}
+                                            ${
+                                                    (() => {
+                                                        vm.data.content.relative = vm.data.content.relative || "collection"
+                                                        vm.data.content.relative_data = vm.data.content.relative_data || []
+                                                        const productForList = [
+                                                            {title: '所有商品', value: 'all'},
+                                                            {title: '商品系列', value: 'collection'},
+                                                            {title: '單一商品', value: 'product'},
+                                                        ];
+                                                     
+                                                        return  gvc.bindView(()=>{
+                                                            const id=gvc.glitter.getUUID()
+                                                            return {
+                                                                bind:id,
+                                                                view:()=>{
+                                                                    ///顯示套用的賣場商品列表
+                                                                    if (vm.data.content.page_type === 'hidden' || vm.data.content.page_type === 'shopping') {
+                                                                        return [
+                                                                            BgWidget.mainCard([
+                                                                                BgWidget.title_16('賣場商品'),
+                                                                                `<div style="height: 10px;"></div>`,
+                                                                                BgWidget.alertInfo('僅有以下設定的賣場商品會套用至折扣'),
+                                                                                `<div style="height: 10px;"></div>`,
+                                                                                html`
+                                                                        ${EditorElem.radio({
+                                                                                    gvc: gvc,
+                                                                                    title: '',
+                                                                                    def: vm.data.content.relative,
+                                                                                    array: productForList,
+                                                                                    callback: (text) => {
+                                                                                        vm.data.content.relative = text as 'collection' | 'product' | 'all';
+                                                                                        gvc.notifyDataChange(id);
+                                                                                    },
+                                                                                    oneLine: true,
+                                                                                })}
+                                                                    `,
+                                                                                html`${(() => {
+                                                                                    switch (vm.data.content.relative) {
+                                                                                        case 'collection':
+                                                                                            return gvc.bindView(() => {
+                                                                                                const subVM = {
+                                                                                                    id: gvc.glitter.getUUID(),
+                                                                                                    loading: true,
+                                                                                                    dataList: [] as OptionsItem[],
+                                                                                                };
+                                                                                                return {
+                                                                                                    bind: subVM.id,
+                                                                                                    view: () => {
+                                                                                                        if (subVM.loading) {
+                                                                                                            return BgWidget.spinner();
+                                                                                                        }
+                                                                                                        return html`
+                                                                                                <div class="d-flex flex-column p-2"
+                                                                                                     style="gap: 18px;">
+                                                                                                    <div class="d-flex align-items-center gray-bottom-line-18"
+                                                                                                         style="gap: 24px; justify-content: space-between;">
+                                                                                                        <div class="form-check-label c_updown_label">
+                                                                                                            <div class="tx_normal">
+                                                                                                                系列列表
+                                                                                                            </div>
+                                                                                                        </div>
+                                                                                                        ${BgWidget.grayButton(
+                                                                                                                '選擇系列',
+                                                                                                                gvc.event(() => {
+                                                                                                                    BgProduct.collectionsDialog({
+                                                                                                                        gvc: gvc,
+                                                                                                                        default: vm.data.content.relative_data,
+                                                                                                                        callback: async (value) => {
+                                                                                                                            vm.data.content.relative_data = value;
+                                                                                                                            subVM.dataList = await BgProduct.getCollectiosOpts(value);
+                                                                                                                            subVM.loading = true;
+                                                                                                                            gvc.notifyDataChange(subVM.id);
+                                                                                                                        },
+                                                                                                                    });
+                                                                                                                }),
+                                                                                                                {textStyle: 'font-weight: 400;'}
+                                                                                                        )}
+                                                                                                    </div>
+                                                                                                    ${gvc.map(
+                                                                                                                subVM.dataList.map((opt: OptionsItem, index) => {
+                                                                                                                    return html`
+                                                                                                                    <div class="d-flex align-items-center form-check-label c_updown_label gap-3">
+                                                                                                                        <span class="tx_normal">${index + 1}
+                                                                                                                            . ${opt.value}</span>
+                                                                                                                        ${opt.note ? html`
+                                                                                                                            <span class="tx_gray_12 ms-2">${opt.note}</span> ` : ''}
+                                                                                                                    </div>`;
+                                                                                                                })
+                                                                                                        )}
+                                                                                                </div>
+                                                                                            `;
+                                                                                                    },
+                                                                                                    onCreate: () => {
+                                                                                                        if (subVM.loading) {
+                                                                                                            if (vm.data.content.relative_data.length === 0) {
+                                                                                                                setTimeout(() => {
+                                                                                                                    subVM.dataList = [];
+                                                                                                                    subVM.loading = false;
+                                                                                                                    gvc.notifyDataChange(subVM.id);
+                                                                                                                }, 300);
+                                                                                                            } else {
+                                                                                                                new Promise<OptionsItem[]>((resolve) => {
+                                                                                                                    resolve(BgProduct.getCollectiosOpts(vm.data.content.relative_data));
+                                                                                                                }).then((data) => {
+                                                                                                                    subVM.dataList = data;
+                                                                                                                    subVM.loading = false;
+                                                                                                                    gvc.notifyDataChange(subVM.id);
+                                                                                                                });
+                                                                                                            }
+                                                                                                        }
+                                                                                                    },
+                                                                                                };
+                                                                                            });
+                                                                                        case 'product':
+                                                                                            return gvc.bindView(() => {
+                                                                                                const subVM = {
+                                                                                                    id: gvc.glitter.getUUID(),
+                                                                                                    loading: true,
+                                                                                                    dataList: [] as OptionsItem[],
+                                                                                                };
+                                                                                                return {
+                                                                                                    bind: subVM.id,
+                                                                                                    view: () => {
+                                                                                                        if (subVM.loading) {
+                                                                                                            return BgWidget.spinner();
+                                                                                                        }
+                                                                                                        return html`
+                                                                                                <div class="d-flex flex-column p-2"
+                                                                                                     style="gap: 18px;">
+                                                                                                    <div class="d-flex align-items-center gray-bottom-line-18"
+                                                                                                         style="gap: 24px; justify-content: space-between;">
+                                                                                                        <div class="form-check-label c_updown_label">
+                                                                                                            <div class="tx_normal">
+                                                                                                                產品列表
+                                                                                                            </div>
+                                                                                                        </div>
+                                                                                                        ${BgWidget.grayButton(
+                                                                                                                '選擇商品',
+                                                                                                                gvc.event(() => {
+                                                                                                                    BgProduct.productsDialog({
+                                                                                                                        gvc: gvc,
+                                                                                                                        default: vm.data.content.relative_data ?? [],
+                                                                                                                        callback: async (value) => {
+                                                                                                                            vm.data.content.relative_data = value;
+                                                                                                                            subVM.dataList = await BgProduct.getProductOpts(vm.data.content.relative_data);
+                                                                                                                            subVM.loading = true;
+                                                                                                                            gvc.notifyDataChange(subVM.id);
+                                                                                                                        },
+                                                                                                                    });
+                                                                                                                }),
+                                                                                                                {textStyle: 'font-weight: 400;'}
+                                                                                                        )}
+                                                                                                    </div>
+                                                                                                    ${gvc.map(
+                                                                                                                subVM.dataList.map((opt: OptionsItem, index) => {
+                                                                                                                    return html`
+                                                                                                                    <div class="d-flex align-items-center form-check-label c_updown_label gap-3">
+                                                                                                                        <span class="tx_normal">${index + 1}
+                                                                                                                            .</span>
+                                                                                                                        <div
+                                                                                                                                style="
+                                                                                                    width: 40px;
+                                                                                                    height: 40px;
+                                                                                                    border-radius: 5px;
+                                                                                                    background-color: #fff;
+                                                                                                    background-image: url('${opt.image}');
+                                                                                                    background-position: center center;
+                                                                                                    background-size: contain;
+                                                                                                "
+                                                                                                                        ></div>
+                                                                                                                        <div class="tx_normal ${opt.note ? 'mb-1' : ''}">
+                                                                                                                            ${opt.value}
+                                                                                                                        </div>
+                                                                                                                        ${opt.note ? html`
+                                                                                                                            <div class="tx_gray_12">
+                                                                                                                                ${opt.note}
+                                                                                                                            </div> ` : ''}
+                                                                                                                    </div>`;
+                                                                                                                })
+                                                                                                        )}
+                                                                                                </div>
+                                                                                            `;
+                                                                                                    },
+                                                                                                    onCreate: () => {
+                                                                                                        if (subVM.loading) {
+                                                                                                            if (vm.data.content.relative_data.length === 0) {
+                                                                                                                setTimeout(() => {
+                                                                                                                    subVM.dataList = [];
+                                                                                                                    subVM.loading = false;
+                                                                                                                    gvc.notifyDataChange(subVM.id);
+                                                                                                                }, 300);
+                                                                                                            } else {
+                                                                                                                new Promise<OptionsItem[]>((resolve) => {
+                                                                                                                    resolve(BgProduct.getProductOpts(vm.data.content.relative_data));
+                                                                                                                }).then((data) => {
+                                                                                                                    subVM.dataList = data;
+                                                                                                                    subVM.loading = false;
+                                                                                                                    gvc.notifyDataChange(subVM.id);
+                                                                                                                });
+                                                                                                            }
+                                                                                                        }
+                                                                                                    },
+                                                                                                };
+                                                                                            });
+                                                                                        case 'all':
+                                                                                        default:
+                                                                                            return '';
+                                                                                    }
+                                                                                })()}`,
+                                                                            ].join(''))
+                                                                        ].join('')
+                                                                    } else {
+                                                                        return [].join('')
+                                                                    }
+                                                                },
+                                                                divCreate:{
+                                                                    class:`w-100 mt-2`
+                                                                }
+                                                            }
+                                                        })
+                                                    })()}
+                                        </div>
+
                                         ${BgWidget.container(
                                                 BgWidget.mainCard(
                                                         gvc.bindView(() => {
@@ -1050,7 +1291,7 @@ function editor(cf: { gvc: GVC; vm: any; is_page: boolean; widget: any }) {
                                                                                 return EditorElem.select({
                                                                                     title: '頁面類型',
                                                                                     gvc: gvc,
-                                                                                    def: `${vm.data.page_type}`,
+                                                                                    def: `${vm.data.content.page_type}`,
                                                                                     array: [
                                                                                         {
                                                                                             title: '自訂頁面',
@@ -1066,7 +1307,7 @@ function editor(cf: { gvc: GVC; vm: any; is_page: boolean; widget: any }) {
                                                                                         }
                                                                                     ],
                                                                                     callback: (text: string) => {
-                                                                                        vm.data.page_type = text;
+                                                                                        vm.data.content.page_type = text;
                                                                                         gvc.notifyDataChange(cVm.id);
                                                                                     },
                                                                                 })
@@ -1231,17 +1472,17 @@ function editor(cf: { gvc: GVC; vm: any; is_page: boolean; widget: any }) {
                                     : ''}
                             ${BgWidget.cancel(
                                     gvc.event(() => {
-                                        if(!vm.data.id){
+                                        if (!vm.data.id) {
                                             cf.widget.event('error', {
                                                 title: '請先儲存',
                                             });
-                                        }else{
+                                        } else {
                                             const href = (() => {
                                                 return `https://${(window.parent as any).glitter.share.editorViewModel.domain}/${(cf.is_page) ? `pages` : `blogs`}/${vm.data.content.tag}`;
                                             })();
                                             (window.parent as any).glitter.openNewTab(href);
                                         }
-                                       
+
                                     }),
                                     '預覽'
                             )}

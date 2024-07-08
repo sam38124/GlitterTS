@@ -63,7 +63,8 @@ export class BgProduct {
                         options: FilterOptions.productOrderBy,
                     })}
                                         </div>
-                                        ${obj.gvc.map(vm.options.map((opt) => {
+                                        ${obj.gvc.map(vm.options.map((opt, index) => {
+                        const id = gvc.glitter.getUUID();
                         function call() {
                             if (obj.default.includes(opt.key)) {
                                 obj.default = obj.default.filter((item) => item !== opt.key);
@@ -71,14 +72,17 @@ export class BgProduct {
                             else {
                                 obj.default.push(opt.key);
                             }
-                            obj.gvc.notifyDataChange(vm.id);
+                            gvc.notifyDataChange(id);
                         }
-                        return html `<div class="d-flex align-items-center" style="gap: 24px">
-                                                    <input
+                        return gvc.bindView(() => {
+                            return {
+                                bind: id,
+                                view: () => {
+                                    return html `<input
                                                         class="form-check-input mt-0 ${vm.checkClass}"
                                                         type="checkbox"
                                                         id="${opt.key}"
-                                                        name="radio_${vm.id}"
+                                                        name="radio_${vm.id}_${index}"
                                                         onclick="${obj.gvc.event(() => call())}"
                                                         ${obj.default.includes(opt.key) ? 'checked' : ''}
                                                     />
@@ -96,8 +100,13 @@ export class BgProduct {
                                                         ></div>
                                                         <div class="tx_normal ${opt.note ? 'mb-1' : ''}">${opt.value}</div>
                                                         ${opt.note ? html ` <div class="tx_gray_12">${opt.note}</div> ` : ''}
-                                                    </div>
-                                                </div>`;
+                                                    </div>`;
+                                },
+                                divCreate: {
+                                    class: `d-flex align-items-center`, style: `gap: 24px`
+                                }
+                            };
+                        });
                     }))}
                                     </div>
                                     <div class="c_dialog_bar">

@@ -2,7 +2,7 @@
 import {TriggerEvent} from "../../glitterBundle/plugins/trigger-event.js";
 import {Chat} from "../../glitter-base/route/chat.js";
 
-TriggerEvent.createSingleEvent(import.meta.url, (glitter) => {
+export const messageChange=TriggerEvent.createSingleEvent(import.meta.url, (glitter) => {
     return {
         fun: (gvc, widget, object, subData, element) => {
             object.who=object.who??{}
@@ -27,7 +27,6 @@ TriggerEvent.createSingleEvent(import.meta.url, (glitter) => {
                         const userID = await TriggerEvent.trigger({
                             gvc: gvc, widget: widget, clickEvent: object.who
                         })
-                        console.log(`linstiner_message->`,userID)
                         let socket:any=undefined
                         const url = new URL((window as any).glitterBackend)
                         let vm={
