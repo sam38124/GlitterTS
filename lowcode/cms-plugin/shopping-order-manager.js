@@ -22,7 +22,7 @@ export class ShoppingOrderManager {
         const glitter = gvc.glitter;
         const vm = {
             id: glitter.getUUID(),
-            type: 'list',
+            type: 'add',
             data: {},
             dataList: undefined,
             query: '',
@@ -49,6 +49,7 @@ export class ShoppingOrderManager {
                 bind: vm.id,
                 dataList: [{ obj: vm, key: 'type' }],
                 view: () => {
+                    var _a;
                     if (vm.type === 'list') {
                         return BgWidget.container(html `
                             <div class="d-flex w-100 align-items-center  ">
@@ -292,6 +293,181 @@ export class ShoppingOrderManager {
                         return this.replaceOrder(gvc, vm, id);
                     }
                     else if (vm.type == "add") {
+                        class OrderDetail {
+                            constructor(subtotal, shipment) {
+                                this.subtotal = subtotal;
+                                this.shipment = shipment;
+                                this.cart_token = "";
+                                this.lineItems = [];
+                            }
+                            get total() {
+                                return this.subtotal + this.shipment;
+                            }
+                        }
+                        let newVoucher;
+                        newVoucher = {
+                            id: 0,
+                            discount_total: 0,
+                            end_ISO_Date: "",
+                            for: "all",
+                            forKey: [],
+                            method: "fixed",
+                            overlay: false,
+                            reBackType: "rebate",
+                            rebate_total: 0,
+                            rule: "min_price",
+                            ruleValue: 0,
+                            startDate: "",
+                            startTime: "",
+                            start_ISO_Date: "",
+                            status: 1,
+                            target: "",
+                            targetList: [],
+                            title: "",
+                            trigger: "auto",
+                            type: "voucher",
+                            value: "",
+                        };
+                        const orderData = (_a = vm.data) !== null && _a !== void 0 ? _a : {
+                            id: 3469,
+                            cart_token: '1699540611634',
+                            status: 1,
+                            email: 'sam38124@gmail.com',
+                            orderData: {
+                                email: 'sam38124@gmail.com',
+                                total: 99000,
+                                lineItems: [
+                                    {
+                                        id: 291,
+                                        spec: ['A', '140 * 230 cm'],
+                                        count: '9',
+                                        sale_price: 11000,
+                                    },
+                                ],
+                                user_info: {
+                                    name: '王建智',
+                                    email: 'sam38124@gmail.com',
+                                    phone: '0978028730',
+                                    address: '台中市潭子區昌平路三段150巷15弄12號',
+                                },
+                                progress: 'wait',
+                                note: `用戶備註: 我的餐椅是要亞麻灰的，可是到後面頁面都會跳成米白！再麻煩幫我送亞麻灰的 麻煩12月中旬過後再幫我送貨，確切時間再提千跟我聯繫，謝謝！！ 訂單來源裝置: app 金流來源與編號: 藍新金流 / 2311110375 11/8 告知 chloe及 PM 此請技術排查，並讓 chloe 向供應商說明緣由。`,
+                            },
+                            created_time: '2023-11-09T06:36:51.000Z',
+                        };
+                        let orderDetail = new OrderDetail(0, 0);
+                        let showDiscountEdit = false;
+                        function showOrderDetail() {
+                            function showDiscount() {
+                                return html `
+                                <div style="color: #4D86DB;position: relative;">
+                                    <div style="cursor: pointer;margin-bottom: 12px;" onclick="${gvc.event(() => {
+                                    showDiscountEdit = !showDiscountEdit;
+                                    gvc.notifyDataChange('orderDetail');
+                                })}">新增折扣</div>
+                                    ${(showDiscountEdit) ? `` : gvc.bindView({
+                                    bind: `editDiscount`,
+                                    view: () => {
+                                        let tempData = {
+                                            title: "",
+                                            reBackType: "discount",
+                                            method: 'percent',
+                                            value: ""
+                                        };
+                                        let discountHTML = ``;
+                                        let checkBox = html `
+                                                <div style="margin-right:6px;display: flex;width: 16px;height: 16px;justify-content: center;align-items: center;border-radius: 20px;border: 1px solid #393939"></div>`;
+                                        let uncheckBox = html `
+                                                <div style="margin-right:6px;width: 16px;height: 16px;border-radius: 20px;border: 1px solid #DDD;"></div>`;
+                                        let showArray = [
+                                            {
+                                                value: "discount",
+                                                text: "折扣活動",
+                                            },
+                                            {
+                                                value: "rebate",
+                                                text: "購物金活動",
+                                            },
+                                            {
+                                                value: "shipment_free",
+                                                text: "免運費活動",
+                                            },
+                                        ];
+                                        showArray.map((rowData) => {
+                                            discountHTML += html `
+                                                    <div class="w-100 d-flex align-items-center" style="color:#393939">
+                                                        ${uncheckBox}
+                                                        <div>${rowData.text}</div>
+                                                    </div>
+                                                `;
+                                        });
+                                        return html `
+                                                <div class="d-flex flex-column " style="font-weight: 700;">
+                                                    折扣名稱
+                                                    <input class="w-100" style="border-radius: 10px;border: 1px solid #DDD;padding: 9px 18px;" onchange="${gvc.event((e) => {
+                                            tempData.title = e.value;
+                                        })}">
+                                                </div>
+                                                <div class="d-flex flex-column" style="font-weight: 700;gap:8px;">
+                                                    折扣方式
+                                                    ${discountHTML}
+                                                </div>
+                                                <div class="d-flex w-100 justify-content-end" style="gap:14px;">
+                                                    ${BgWidget.cancel(gvc.event(() => { }), '取消')}
+                                                    ${BgWidget.save(gvc.event(() => {
+                                            console.log(tempData);
+                                        }), '確定')}
+                                                </div>
+                                            `;
+                                        return discountHTML;
+                                    }, divCreate: {
+                                        style: `display: flex;color:#393939;text-align: left;width: 348px;padding: 24px;flex-direction: column;gap: 18px;border-radius: 10px;background: #FFF;box-shadow: 2px 2px 10px 0px rgba(0, 0, 0, 0.15);position:absolute;right:0;top:33px;gap:18px;`
+                                    }
+                                })}
+                                    <div style="">
+                                        <div></div>
+                                    </div>
+                                </div>
+                                `;
+                            }
+                            return gvc.bindView({
+                                bind: "orderDetail",
+                                view: () => {
+                                    let returnHTML = ``;
+                                    let showArray = [
+                                        {
+                                            left: "小計總額",
+                                            right: orderDetail.subtotal
+                                        },
+                                        {
+                                            left: "運費",
+                                            right: orderDetail.shipment
+                                        },
+                                        {
+                                            left: "折扣 ",
+                                            right: showDiscount(),
+                                        },
+                                        {
+                                            left: "額外運費 ",
+                                            right: orderDetail.subtotal
+                                        },
+                                        {
+                                            left: "手續費",
+                                            right: orderDetail.subtotal
+                                        },
+                                    ];
+                                    showArray.map((rowData) => {
+                                        returnHTML += html `
+                                        <div class="w-100 d-flex align-items-center justify-content-end" style="height: 21px;">
+                                            <div style="text-align: right;">${rowData.left}</div>
+                                            <div style="width:158px;text-align: right">${rowData.right}</div>
+                                        </div>
+                                        `;
+                                    });
+                                    return returnHTML;
+                                }, divCreate: { class: `d-flex flex-column w-100`, style: `gap:12px;` }
+                            });
+                        }
                         return BgWidget.container(html `
                                     <div class="d-flex align-items-center" style="margin-bottom: 24px;">
                                         ${BgWidget.goBack(gvc.event(() => {
@@ -315,7 +491,6 @@ export class ShoppingOrderManager {
                                         ${gvc.bindView({
                             bind: "listProduct",
                             view: () => {
-                                newOrder.productCheck;
                                 let returnHTML = "";
                                 if (newOrder.productCheck.length) {
                                     newOrder.productCheck.map((product) => {
@@ -349,7 +524,6 @@ export class ShoppingOrderManager {
                                         ${gvc.bindView({
                             bind: "addProduct",
                             view: () => {
-                                console.log(newOrder.productCheck);
                                 return html `
                                                     <div class="w-100 d-flex justify-content-center align-items-center"
                                                          style="color: #36B;" onclick="${gvc.event(() => {
@@ -498,8 +672,13 @@ export class ShoppingOrderManager {
                                             gvc.notifyDataChange(['listProduct', 'addProduct']);
                                         }
                                     });
-                                })}">新增一個商品<i class="fa-regular fa-plus"
-                                                                        style="margin-left: 2px;font-size: 16px;"></i></div>
+                                })}">新增一個商品
+                                                        <svg style="margin-left: 5px;" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14" fill="none">
+                                                            <path d="M1.5 7.23926H12.5" stroke="#3366BB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                            <path d="M6.76172 1.5L6.76172 12.5" stroke="#3366BB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                        </svg>
+                                                    </div>
+                                                    
                                                 `;
                             },
                             divCreate: {
@@ -507,7 +686,8 @@ export class ShoppingOrderManager {
                                 class: ``
                             }
                         })}
-
+                                        <div style="width:100%;height: 1px;background-color:#DDD;margin-bottom:24px;"></div>
+                                        ${showOrderDetail()}
                                     </div>
                             `, 1200);
                     }

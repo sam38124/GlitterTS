@@ -162,6 +162,34 @@ router.post('/checkout', async (req: express.Request, resp: express.Response) =>
         return response.fail(resp, err);
     }
 });
+
+router.post('/manager/checkout', async (req: express.Request, resp: express.Response) => {
+    try {
+        if(await UtPermission.isManager(req)){
+            return response.succ(
+                resp,
+                await new Shopping(req.get('g-app') as string, req.body.token).toCheckout({
+                    lineItems: req.body.line_items as any,
+                    email: (req.body.token && req.body.token.account) || req.body.email,
+                    return_url: req.body.return_url,
+                    user_info: req.body.user_info,
+                    use_rebate: (() => {
+                        if (req.body.use_rebate && typeof req.body.use_rebate === 'number') {
+                            return req.body.use_rebate;
+                        } else {
+                            return 0;
+                        }
+                    })(),
+                })
+            );
+        }else{
+            return response.fail(resp, exception.BadRequestError('BAD_REQUEST', 'No permission.', null));
+        }
+
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
 router.post('/checkout/preview', async (req: express.Request, resp: express.Response) => {
     try {
         return response.succ(

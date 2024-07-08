@@ -1,12 +1,16 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
 };
-Object.defineProperty(exports, "__esModule", { value: true });
-const crypto_1 = __importDefault(require("crypto"));
-const bcrypt_1 = __importDefault(require("bcrypt"));
-const moment_1 = __importDefault(require("moment"));
-class Tool {
+import crypto from 'crypto';
+import bcrypt from 'bcrypt';
+import moment from 'moment';
+export default class Tool {
     constructor() {
         this.aesDecrypt = (data, key, iv, input = 'hex', output = 'utf-8', method = 'aes-256-cbc') => {
             while (key.length % 32 !== 0) {
@@ -15,13 +19,13 @@ class Tool {
             while (iv.length % 16 !== 0) {
                 iv += '\0';
             }
-            const decipher = crypto_1.default.createDecipheriv(method, key, iv);
+            const decipher = crypto.createDecipheriv(method, key, iv);
             let decrypted = decipher.update(data, input, output);
             decrypted += decipher.final(output);
             return decrypted;
         };
-        this.compareHash = async (pwd, has) => bcrypt_1.default.compare(pwd, has);
-        this.nowTime = () => (0, moment_1.default)(new Date()).format('YYYY-MM-DD HH:mm:ss');
+        this.compareHash = (pwd, has) => __awaiter(this, void 0, void 0, function* () { return bcrypt.compare(pwd, has); });
+        this.nowTime = () => moment(new Date()).format('YYYY-MM-DD HH:mm:ss');
         this.sortObjectByKey = (unordered) => {
             const ordered = Object.keys(unordered)
                 .sort()
@@ -105,11 +109,9 @@ class Tool {
         while (iv.length % 16 !== 0) {
             iv += '\0';
         }
-        const cipher = crypto_1.default.createCipheriv(method, key, iv);
+        const cipher = crypto.createCipheriv(method, key, iv);
         let encrypted = cipher.update(data, input, output);
         encrypted += cipher.final(output);
         return encrypted;
     }
 }
-exports.default = Tool;
-//# sourceMappingURL=tool.js.map

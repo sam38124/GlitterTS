@@ -103,7 +103,7 @@ export declare class Shopping {
         code?: string;
         use_rebate?: number;
         use_wallet?: number;
-    }, type?: 'add' | 'preview'): Promise<{
+    }, type?: 'add' | 'preview' | 'manual'): Promise<{
         data: {
             lineItems: {
                 id: string;

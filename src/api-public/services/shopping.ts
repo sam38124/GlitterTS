@@ -247,7 +247,7 @@ export class Shopping {
             use_rebate?: number;
             use_wallet?: number;
         },
-        type: 'add' | 'preview' = 'add'
+        type: 'add' | 'preview' | 'manual' = 'add'
     ) {
         try {
             const userClass = new User(this.app);
@@ -483,6 +483,7 @@ export class Shopping {
             carData.total -= carData.use_rebate;
 
             carData.code = data.code;
+            carData.voucherList = []
             await this.checkVoucher(carData);
 
             // ================================ Preview UP ================================

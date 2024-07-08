@@ -1,94 +1,108 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
 };
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.ManagerNotify = void 0;
-const config_js_1 = require("../../config.js");
-const database_js_1 = __importDefault(require("../../modules/database.js"));
-const firebase_js_1 = require("../../modules/firebase.js");
-const ses_js_1 = require("../../services/ses.js");
-const process_1 = __importDefault(require("process"));
-class ManagerNotify {
+import { saasConfig } from "../../config.js";
+import db from '../../modules/database.js';
+import { Firebase } from "../../modules/firebase.js";
+import { sendmail } from "../../services/ses.js";
+import process from "process";
+export class ManagerNotify {
     constructor(app_name) {
         this.app_name = app_name;
     }
-    async getSaasAPP() {
-        const return_data = (await database_js_1.default.query(`select brand, user
-                                             from \`${config_js_1.saasConfig.SAAS_NAME}\`.app_config
+    getSaasAPP() {
+        return __awaiter(this, void 0, void 0, function* () {
+            const return_data = (yield db.query(`select brand, user
+                                             from \`${saasConfig.SAAS_NAME}\`.app_config
                                              where appName = ?`, [this.app_name]))[0];
-        const account = await database_js_1.default.query(`select account
+            const account = yield db.query(`select account
                                         from \`${return_data.brand}\`.t_user
                                         where userID = ?`, [return_data.user]);
-        return_data.account = account[0].account;
-        return return_data;
+            return_data.account = account[0].account;
+            return return_data;
+        });
     }
-    async userRegister(cf) {
-        if (this.app_name === 'shopnex') {
-            this.saasRegister({
-                user_id: cf.user_id
-            });
-        }
-        const saas = await this.getSaasAPP();
-        const user_data = (await database_js_1.default.query(`select *
+    userRegister(cf) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (this.app_name === 'shopnex') {
+                this.saasRegister({
+                    user_id: cf.user_id
+                });
+            }
+            const saas = yield this.getSaasAPP();
+            const user_data = (yield db.query(`select *
                                            from \`${this.app_name}\`.t_user
                                            where userID = ?`, [
-            cf.user_id
-        ]))[0];
-        if (await this.checkNotify('register')) {
-            const link = `./index?type=editor&appName=${this.app_name}&function=backend-manger&tab=user_list`;
-            new firebase_js_1.Firebase(saas.brand).sendMessage({
-                title: `帳號註冊通知`,
-                userID: saas.user,
-                tag: 'register',
+                cf.user_id
+            ]))[0];
+            if (yield this.checkNotify('register')) {
+                const link = `./index?type=editor&appName=${this.app_name}&function=backend-manger&tab=user_list`;
+                new Firebase(saas.brand).sendMessage({
+                    title: `帳號註冊通知`,
+                    userID: saas.user,
+                    tag: 'register',
+                    link: link,
+                    body: `新用戶『 ${user_data.userData.name} 』註冊了帳號。`
+                });
+                yield this.sendEmail(saas.account, '帳號註冊通知', `新用戶『 ${user_data.userData.name} 』註冊了帳號。`, link);
+            }
+            return true;
+        });
+    }
+    saasRegister(cf) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const link = `https://shopnex.cc/contact-us`;
+            new Firebase(this.app_name).sendMessage({
+                title: `歡迎使用SHOPNEX`,
+                userID: cf.user_id,
+                tag: 'welcome',
                 link: link,
-                body: `新用戶『 ${user_data.userData.name} 』註冊了帳號。`
+                body: `歡迎使用SHOPNEX開店平台，立即撥打諮詢電話:0978028730，提供免費諮詢服務。`
             });
-            await this.sendEmail(saas.account, '帳號註冊通知', `新用戶『 ${user_data.userData.name} 』註冊了帳號。`, link);
-        }
-        return true;
-    }
-    async saasRegister(cf) {
-        const link = `https://shopnex.cc/contact-us`;
-        new firebase_js_1.Firebase(this.app_name).sendMessage({
-            title: `歡迎使用SHOPNEX`,
-            userID: cf.user_id,
-            tag: 'welcome',
-            link: link,
-            body: `歡迎使用SHOPNEX開店平台，立即撥打諮詢電話:0978028730，提供免費諮詢服務。`
         });
     }
-    async checkout(cf) {
-        const saas = await this.getSaasAPP();
-        const link = `./index?type=editor&appName=${this.app_name}&function=backend-manger&tab=order_list`;
-        new firebase_js_1.Firebase(saas.brand).sendMessage({
-            title: `您有新訂單`,
-            userID: saas.user,
-            tag: 'checkout',
-            link: link,
-            body: `您有一筆新訂單 <br>『 ${cf.orderData.orderID} 』${(cf.status) ? `已付款` : `尚未付款`}，消費總金額 : ${cf.orderData.total} 。`
+    checkout(cf) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const saas = yield this.getSaasAPP();
+            const link = `./index?type=editor&appName=${this.app_name}&function=backend-manger&tab=order_list`;
+            new Firebase(saas.brand).sendMessage({
+                title: `您有新訂單`,
+                userID: saas.user,
+                tag: 'checkout',
+                link: link,
+                body: `您有一筆新訂單 <br>『 ${cf.orderData.orderID} 』${(cf.status) ? `已付款` : `尚未付款`}，消費總金額 : ${cf.orderData.total} 。`
+            });
         });
     }
-    async formSubmit(cf) {
-        const saas = await this.getSaasAPP();
-        const link = `./index?type=editor&appName=${this.app_name}&function=backend-manger&tab=form_receive`;
-        const user_data = (await database_js_1.default.query(`select *
+    formSubmit(cf) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const saas = yield this.getSaasAPP();
+            const link = `./index?type=editor&appName=${this.app_name}&function=backend-manger&tab=form_receive`;
+            const user_data = (yield db.query(`select *
                                            from \`${this.app_name}\`.t_user
                                            where userID = ?`, [
-            cf.user_id
-        ]))[0];
-        new firebase_js_1.Firebase(saas.brand).sendMessage({
-            title: `您有新表單`,
-            userID: saas.user,
-            tag: 'formSubmit',
-            link: link,
-            body: `收到來自『${user_data.userData.name}』提交的表單。`
+                cf.user_id
+            ]))[0];
+            new Firebase(saas.brand).sendMessage({
+                title: `您有新表單`,
+                userID: saas.user,
+                tag: 'formSubmit',
+                link: link,
+                body: `收到來自『${user_data.userData.name}』提交的表單。`
+            });
         });
     }
-    async sendEmail(email, title, content, href) {
-        try {
-            const html = String.raw;
-            const text = html `
+    sendEmail(email, title, content, href) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const html = String.raw;
+                const text = html `
                 <table width="100%" border="0" cellpadding="0" cellspacing="0"
                        style="box-sizing: border-box; caption-side: bottom; border-collapse: collapse; -webkit-font-smoothing: antialiased; border: none; empty-cells: show; max-width: 100%; color: rgb(65, 65, 65); font-family: sans-serif; font-size: 14px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: left; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: normal; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; background-color: rgb(255, 255, 255);"
                        id="isPasted">
@@ -216,14 +230,15 @@ class ManagerNotify {
                     </tbody>
                 </table>
             `;
-            (0, ses_js_1.sendmail)(`SHOPNEX <${process_1.default.env.smtp}>`, email, title, text.replace('@{{text}}', content));
-        }
-        catch (e) {
-        }
+                sendmail(`SHOPNEX <${process.env.smtp}>`, email, title, text.replace('@{{text}}', content));
+            }
+            catch (e) {
+            }
+        });
     }
-    async checkNotify(tag) {
-        return true;
+    checkNotify(tag) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return true;
+        });
     }
 }
-exports.ManagerNotify = ManagerNotify;
-//# sourceMappingURL=notify.js.map

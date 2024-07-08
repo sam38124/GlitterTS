@@ -1,16 +1,10 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.EzInvoice = void 0;
-const tool_1 = __importDefault(require("./tool"));
-const axios_1 = __importDefault(require("axios"));
-const form_data_1 = __importDefault(require("form-data"));
-class EzInvoice {
+import Tool from "./tool";
+import axios from "axios";
+import FormData from 'form-data';
+export class EzInvoice {
     static postInvoice(obj) {
         console.log(`invoice_data:${JSON.stringify(obj.invoice_data)}`);
-        const tool = new tool_1.default();
+        const tool = new Tool();
         const salesMoney = 1000;
         const timeStamp = `${new Date().valueOf()}`;
         const params = JSON.parse(JSON.stringify(obj.invoice_data));
@@ -20,7 +14,7 @@ class EzInvoice {
         console.log(qs);
         const tradeInfo = tool.aesEncrypt(qs, obj.hashKey, obj.hash_IV);
         console.log(`tradeInfo--${params.TimeStamp}`);
-        let data = new form_data_1.default();
+        let data = new FormData();
         data.append('MerchantID_', obj.merchNO);
         data.append('PostData_', tradeInfo);
         let config = {
@@ -31,7 +25,7 @@ class EzInvoice {
             data: data
         };
         return new Promise((resolve, reject) => {
-            axios_1.default.request(config)
+            axios.request(config)
                 .then((response) => {
                 console.log(JSON.stringify(response.data));
                 resolve(response.data);
@@ -43,7 +37,7 @@ class EzInvoice {
     }
     static allowance(obj) {
         console.log(`invoice_data:${JSON.stringify(obj.invoice_data)}`);
-        const tool = new tool_1.default();
+        const tool = new Tool();
         const salesMoney = 1000;
         const timeStamp = `${new Date().valueOf()}`;
         const params = obj.invoice_data;
@@ -53,7 +47,7 @@ class EzInvoice {
         console.log(qs);
         const tradeInfo = tool.aesEncrypt(qs, obj.hashKey, obj.hash_IV);
         console.log(`tradeInfo--${params.TimeStamp}`);
-        let data = new form_data_1.default();
+        let data = new FormData();
         data.append('MerchantID_', obj.merchNO);
         data.append('PostData_', tradeInfo);
         let config = {
@@ -64,7 +58,7 @@ class EzInvoice {
             data: data
         };
         return new Promise((resolve, reject) => {
-            axios_1.default.request(config)
+            axios.request(config)
                 .then((response) => {
                 console.log(JSON.stringify(response.data));
                 resolve(response.data);
@@ -76,7 +70,7 @@ class EzInvoice {
     }
     static allowanceInvalid(obj) {
         console.log(`invoice_data:${JSON.stringify(obj.invoice_data)}`);
-        const tool = new tool_1.default();
+        const tool = new Tool();
         const salesMoney = 1000;
         const timeStamp = `${new Date().valueOf()}`;
         const params = obj.invoice_data;
@@ -86,7 +80,7 @@ class EzInvoice {
         console.log(qs);
         const tradeInfo = tool.aesEncrypt(qs, obj.hashKey, obj.hash_IV);
         console.log(`tradeInfo--${params.TimeStamp}`);
-        let data = new form_data_1.default();
+        let data = new FormData();
         data.append('MerchantID_', obj.merchNO);
         data.append('PostData_', tradeInfo);
         let config = {
@@ -97,7 +91,7 @@ class EzInvoice {
             data: data
         };
         return new Promise((resolve, reject) => {
-            axios_1.default.request(config)
+            axios.request(config)
                 .then((response) => {
                 console.log(JSON.stringify(response.data));
                 resolve(response.data);
@@ -108,7 +102,7 @@ class EzInvoice {
         });
     }
     static deleteInvoice(obj) {
-        const tool = new tool_1.default();
+        const tool = new Tool();
         const salesMoney = 1000;
         const timeStamp = `${new Date().valueOf()}`;
         const params = obj.invoice_data;
@@ -118,7 +112,7 @@ class EzInvoice {
         console.log(qs);
         const tradeInfo = tool.aesEncrypt(qs, obj.hashKey, obj.hash_IV);
         console.log(`tradeInfo--${params.TimeStamp}`);
-        let data = new form_data_1.default();
+        let data = new FormData();
         data.append('MerchantID_', obj.merchNO);
         data.append('PostData_', tradeInfo);
         let config = {
@@ -129,7 +123,7 @@ class EzInvoice {
             data: data
         };
         return new Promise((resolve, reject) => {
-            axios_1.default.request(config)
+            axios.request(config)
                 .then((response) => {
                 console.log(JSON.stringify(response.data));
                 resolve(response.data);
@@ -140,7 +134,7 @@ class EzInvoice {
         });
     }
     static getInvoice(obj) {
-        const tool = new tool_1.default();
+        const tool = new Tool();
         const salesMoney = 1000;
         const timeStamp = `${new Date().valueOf()}`;
         const params = obj.invoice_data;
@@ -150,7 +144,7 @@ class EzInvoice {
         console.log(qs);
         const tradeInfo = tool.aesEncrypt(qs, obj.hashKey, obj.hash_IV);
         console.log(`tradeInfo--${params.TimeStamp}`);
-        let data = new form_data_1.default();
+        let data = new FormData();
         data.append('MerchantID_', obj.merchNO);
         data.append('PostData_', tradeInfo);
         let config = {
@@ -161,7 +155,7 @@ class EzInvoice {
             data: data
         };
         return new Promise((resolve, reject) => {
-            axios_1.default.request(config)
+            axios.request(config)
                 .then((response) => {
                 console.log(JSON.stringify(response.data));
                 resolve(response.data.Status === 'SUCCESS');
@@ -172,5 +166,3 @@ class EzInvoice {
         });
     }
 }
-exports.EzInvoice = EzInvoice;
-//# sourceMappingURL=invoice.js.map
