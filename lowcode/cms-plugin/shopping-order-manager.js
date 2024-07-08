@@ -22,7 +22,7 @@ export class ShoppingOrderManager {
         const glitter = gvc.glitter;
         const vm = {
             id: glitter.getUUID(),
-            type: 'add',
+            type: 'list',
             data: {},
             dataList: undefined,
             query: '',
@@ -1102,6 +1102,7 @@ export class ShoppingOrderManager {
                     callback: (text) => {
                         if (text && text !== `${orderData.status}`) {
                             orderData.status = parseInt(text, 10);
+                            console.log(orderData.status);
                         }
                     },
                 })}
@@ -1434,6 +1435,7 @@ export class ShoppingOrderManager {
                                         style="color: #FFF;font-size: 16px;font-weight: 700;padding: 6px 18px;align-items: center;gap: 8px;"
                                         onclick="${gvc.event(() => {
                     const now = new Date();
+                    console.log("orderData.status - ", orderData);
                     function writeEdit(origData, orderData) {
                         var _a;
                         let editArray = [];

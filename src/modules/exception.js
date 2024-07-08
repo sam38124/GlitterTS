@@ -1,5 +1,9 @@
 'use strict';
-import httpStatus from 'http-status-codes';
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const http_status_codes_1 = __importDefault(require("http-status-codes"));
 class WebBaseError extends Error {
     constructor(statusCode, code, message, data) {
         super(message);
@@ -10,35 +14,35 @@ class WebBaseError extends Error {
 }
 class SqlError extends WebBaseError {
     constructor(code, message) {
-        super(httpStatus.BAD_REQUEST, code, message, null);
+        super(http_status_codes_1.default.BAD_REQUEST, code, message, null);
     }
 }
 class BadRequestError extends WebBaseError {
     constructor(code, message, data) {
-        super(httpStatus.BAD_REQUEST, code, message, data);
+        super(http_status_codes_1.default.BAD_REQUEST, code, message, data);
     }
 }
 class AuthError extends WebBaseError {
     constructor(code, message) {
-        super(httpStatus.UNAUTHORIZED, code, message, null);
+        super(http_status_codes_1.default.UNAUTHORIZED, code, message, null);
     }
 }
 class PermissionError extends WebBaseError {
     constructor(code, message) {
-        super(httpStatus.UNAUTHORIZED, code, message, null);
+        super(http_status_codes_1.default.UNAUTHORIZED, code, message, null);
     }
 }
 class ForbiddenError extends WebBaseError {
     constructor(code, message) {
-        super(httpStatus.FORBIDDEN, code, message, null);
+        super(http_status_codes_1.default.FORBIDDEN, code, message, null);
     }
 }
 class ServerError extends WebBaseError {
     constructor(code, message) {
-        super(httpStatus.INTERNAL_SERVER_ERROR, code, message, null);
+        super(http_status_codes_1.default.INTERNAL_SERVER_ERROR, code, message, null);
     }
 }
-export default {
+exports.default = {
     isWebError: function (err) {
         if (err instanceof WebBaseError) {
             return true;
@@ -64,3 +68,4 @@ export default {
         return new ServerError(code, message);
     }
 };
+//# sourceMappingURL=exception.js.map

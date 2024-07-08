@@ -1,11 +1,17 @@
-import crypto from "crypto";
-import axios from "axios";
-import FormData from 'form-data';
-import Tool from "./ezpay/tool.js";
-export class EcInvoice {
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.EcInvoice = void 0;
+const crypto_1 = __importDefault(require("crypto"));
+const axios_1 = __importDefault(require("axios"));
+const form_data_1 = __importDefault(require("form-data"));
+const tool_js_1 = __importDefault(require("./ezpay/tool.js"));
+class EcInvoice {
     static postInvoice(obj) {
         const timeStamp = `${new Date().valueOf()}`;
-        const cipher = crypto.createCipheriv('aes-128-cbc', obj.hashKey, obj.hash_IV);
+        const cipher = crypto_1.default.createCipheriv('aes-128-cbc', obj.hashKey, obj.hash_IV);
         let encryptedData = cipher.update(encodeURIComponent(JSON.stringify(obj.invoice_data)), 'utf-8', 'base64');
         encryptedData += cipher.final('base64');
         let config = {
@@ -23,7 +29,7 @@ export class EcInvoice {
             }
         };
         return new Promise((resolve, reject) => {
-            axios.request(config)
+            axios_1.default.request(config)
                 .then((response) => {
                 console.log('invoice-->', JSON.stringify(response.data));
                 resolve(response.data);
@@ -36,7 +42,7 @@ export class EcInvoice {
     }
     static allowance(obj) {
         console.log(`invoice_data:${JSON.stringify(obj.invoice_data)}`);
-        const tool = new Tool();
+        const tool = new tool_js_1.default();
         const salesMoney = 1000;
         const timeStamp = `${new Date().valueOf()}`;
         const params = obj.invoice_data;
@@ -46,7 +52,7 @@ export class EcInvoice {
         console.log(qs);
         const tradeInfo = tool.aesEncrypt(qs, obj.hashKey, obj.hash_IV);
         console.log(`tradeInfo--${params.TimeStamp}`);
-        let data = new FormData();
+        let data = new form_data_1.default();
         data.append('MerchantID_', obj.merchNO);
         data.append('PostData_', tradeInfo);
         let config = {
@@ -57,7 +63,7 @@ export class EcInvoice {
             data: data
         };
         return new Promise((resolve, reject) => {
-            axios.request(config)
+            axios_1.default.request(config)
                 .then((response) => {
                 console.log(JSON.stringify(response.data));
                 resolve(response.data);
@@ -69,7 +75,7 @@ export class EcInvoice {
     }
     static allowanceInvalid(obj) {
         console.log(`invoice_data:${JSON.stringify(obj.invoice_data)}`);
-        const tool = new Tool();
+        const tool = new tool_js_1.default();
         const salesMoney = 1000;
         const timeStamp = `${new Date().valueOf()}`;
         const params = obj.invoice_data;
@@ -79,7 +85,7 @@ export class EcInvoice {
         console.log(qs);
         const tradeInfo = tool.aesEncrypt(qs, obj.hashKey, obj.hash_IV);
         console.log(`tradeInfo--${params.TimeStamp}`);
-        let data = new FormData();
+        let data = new form_data_1.default();
         data.append('MerchantID_', obj.merchNO);
         data.append('PostData_', tradeInfo);
         let config = {
@@ -90,7 +96,7 @@ export class EcInvoice {
             data: data
         };
         return new Promise((resolve, reject) => {
-            axios.request(config)
+            axios_1.default.request(config)
                 .then((response) => {
                 console.log(JSON.stringify(response.data));
                 resolve(response.data);
@@ -101,7 +107,7 @@ export class EcInvoice {
         });
     }
     static deleteInvoice(obj) {
-        const tool = new Tool();
+        const tool = new tool_js_1.default();
         const salesMoney = 1000;
         const timeStamp = `${new Date().valueOf()}`;
         const params = obj.invoice_data;
@@ -111,7 +117,7 @@ export class EcInvoice {
         console.log(qs);
         const tradeInfo = tool.aesEncrypt(qs, obj.hashKey, obj.hash_IV);
         console.log(`tradeInfo--${params.TimeStamp}`);
-        let data = new FormData();
+        let data = new form_data_1.default();
         data.append('MerchantID_', obj.merchNO);
         data.append('PostData_', tradeInfo);
         let config = {
@@ -122,7 +128,7 @@ export class EcInvoice {
             data: data
         };
         return new Promise((resolve, reject) => {
-            axios.request(config)
+            axios_1.default.request(config)
                 .then((response) => {
                 console.log(JSON.stringify(response.data));
                 resolve(response.data);
@@ -133,7 +139,7 @@ export class EcInvoice {
         });
     }
     static getInvoice(obj) {
-        const tool = new Tool();
+        const tool = new tool_js_1.default();
         const salesMoney = 1000;
         const timeStamp = `${new Date().valueOf()}`;
         const params = obj.invoice_data;
@@ -143,7 +149,7 @@ export class EcInvoice {
         console.log(qs);
         const tradeInfo = tool.aesEncrypt(qs, obj.hashKey, obj.hash_IV);
         console.log(`tradeInfo--${params.TimeStamp}`);
-        let data = new FormData();
+        let data = new form_data_1.default();
         data.append('MerchantID_', obj.merchNO);
         data.append('PostData_', tradeInfo);
         let config = {
@@ -154,7 +160,7 @@ export class EcInvoice {
             data: data
         };
         return new Promise((resolve, reject) => {
-            axios.request(config)
+            axios_1.default.request(config)
                 .then((response) => {
                 console.log(JSON.stringify(response.data));
                 resolve(response.data.Status === 'SUCCESS');
@@ -165,3 +171,5 @@ export class EcInvoice {
         });
     }
 }
+exports.EcInvoice = EcInvoice;
+//# sourceMappingURL=EcInvoice.js.map

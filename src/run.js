@@ -21,6 +21,7 @@ if (fs_1.default.existsSync(path_1.default.resolve(danielPath))) {
 }
 if (fs_1.default.existsSync(path_1.default.resolve(zackPath))) {
     console.log('使用 Zack 路徑環境');
+    config_1.ConfigSetting.runSchedule = false;
     config_1.ConfigSetting.setConfig(zackPath);
 }
 config_1.ConfigSetting.is_local = true;

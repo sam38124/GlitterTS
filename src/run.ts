@@ -20,6 +20,7 @@ if (fs.existsSync(path.resolve(danielPath))) {
 
 if (fs.existsSync(path.resolve(zackPath))) {
     console.log('使用 Zack 路徑環境');
+    ConfigSetting.runSchedule=false
     ConfigSetting.setConfig(zackPath);
 }
 ConfigSetting.is_local=true

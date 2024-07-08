@@ -887,11 +887,11 @@ export class Shopping {
         status: any;
     }) {
         try {
-            const update: any = {};
+            const update: any = {
+                status:data.status
+            };
             data.orderData && (update.orderData = JSON.stringify(data.orderData));
-            if (update.status) {
-                update.status = data.status ?? 0;
-            }
+            console.log(" data.orderData --- " , data.orderData)
 
             await db.query(
                 `UPDATE \`${this.app}\`.t_checkout

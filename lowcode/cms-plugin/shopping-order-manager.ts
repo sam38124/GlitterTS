@@ -73,7 +73,7 @@ export class ShoppingOrderManager {
 
         const vm: ViewModel = {
             id: glitter.getUUID(),
-            type: 'add',
+            type: 'list',
             data: {},
             dataList: undefined,
             query: '',
@@ -194,7 +194,9 @@ export class ShoppingOrderManager {
                                                     {
                                                         key: '付款狀態',
                                                         value: (() => {
+                                                           
                                                             switch (dd.status) {
+                                                                
                                                                 case 0:
                                                                     return `<div class="badge" style="border-radius: 7px;background: #FFD5D0;height: 22px;padding: 4px 6px;font-size: 14px;color:#393939;">未付款</div>`;
                                                                 case 1:
@@ -567,7 +569,6 @@ export class ShoppingOrderManager {
                                                 },
                                             ]
                                             showArray.map((rowData:any)=>{
-                                                
                                                 discountHTML += html`
                                                     <div class="w-100 d-flex align-items-center" style="color:#393939">
                                                         ${uncheckBox}
@@ -1368,8 +1369,8 @@ export class ShoppingOrderManager {
                                                                 ],
                                                                 callback: (text) => {
                                                                     if (text && text !== `${orderData.status}`) {
-
                                                                         orderData.status = parseInt(text, 10);
+                                                                        console.log(orderData.status)
                                                                     }
                                                                 },
                                                             })}
@@ -1712,7 +1713,8 @@ export class ShoppingOrderManager {
                                         style="color: #FFF;font-size: 16px;font-weight: 700;padding: 6px 18px;align-items: center;gap: 8px;"
                                         onclick="${gvc.event(() => {
                                             const now = new Date();
-
+                                            console.log("orderData.status - ", orderData)
+                                       
                                             function writeEdit(origData: any, orderData: any) {
                                                 let editArray: any = []
                                                 let temp: any = {}
