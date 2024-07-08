@@ -971,7 +971,7 @@ class Shopping {
                 }).length,
                 un_shipment: (await database_js_1.default.query(`SELECT count(1)
                                               from \`${this.app}\`.t_checkout
-                                              WHERE (orderData - > '$.progress' is null || orderData - > '$.progress' = 'wait')
+                                              WHERE (orderData ->> '$.progress' is null || orderData ->> '$.progress' = 'wait')
                                                 and status = 1`, []))[0]['count(1)'],
                 un_pay: order.filter((dd) => {
                     return dd.status === 0;
@@ -990,6 +990,7 @@ class Shopping {
             };
         }
         catch (e) {
+            console.error(e);
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
         }
     }

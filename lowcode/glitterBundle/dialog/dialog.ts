@@ -1,49 +1,49 @@
 import {ShareDialog} from './ShareDialog.js';
 import {init} from '../GVController.js';
-init(import.meta.url,(gvc, glitter, gBundle) => {
+
+init(import.meta.url, (gvc, glitter, gBundle) => {
     const dialog = new ShareDialog(glitter)
     return {
         onCreateView: () => {
+            const html = String.raw
             switch (gBundle.type) {
                 case 'dataLoading':
-                    return `<div class="vw-100 vh-100 position-fixed top-0 left-0"  style="background-color: rgba(0,0,0,0.5);z-index: 10000;">
-<div class="bg-white rounded" style="width: 100px;height: 100px;position: absolute;z-index: 999;transform: translate(-50%,-50%);left: 50%;top:50%;">
-         <img src="${new URL("../img/loading.gif",import.meta.url)}"  background="transparent"  speed="1"  style="position:relative;width: 70px; height: 70px;transform: translateX(-50%);left: 50%;"  loop  autoplay>
-         <h3 style="color: #323643;font-size: 13px;margin-top: 0px;width: 100%;text-align: center">${gBundle.obj.text ?? '請稍候...'}</h3>
-     </div>
-</div>`
+                    return html`
+                        <div class="vw-100 vh-100 d-flex align-items-center justify-content-center"
+                             style="background-color: rgba(0,0,0,0.5);z-index: 10000;">
+                            <div class=" m-auto rounded-3 shadow"
+                                 style="width: 200px;background: white;padding: 24px;display: flex;align-items: center;justify-content: center;flex-direction: column;  ">
+                                <div class=" spinner-border" style=" font-size: 50px;color: #393939;  "></div>
+                                <div class=" mt-3 fs-6 fw-500" style=" color: #393939;  ">
+                                    ${gBundle.obj.text ?? '請稍候...'}
+                                </div>
+                            </div>
+                        </div>`
+
                 case 'errorMessage':
-                    return `<div class="vw-100 vh-100 position-fixed top-0 left-0"  style="background-color: rgba(0,0,0,0.5);z-index: 10000;">
-<div class="bg-white rounded" style="width: 150px;position: absolute;z-index: 999;transform: translate(-50%,-50%);left: 50%;top:50%;">
-  <div class="w-100 d-flex align-items-center justify-content-center text-danger" style="height: 80px;"> <i class="fad fa-exclamation-circle" style="font-size: 50px;margin: auto;"></i></div>
-         <h3 id="info" style="font-size: 14px;margin-top: 0px;width: calc(100% - 10px);text-align: center;white-space: normal;word-break: break-all;" class="mx-auto">${gBundle.obj.text ?? "錯誤!"}</h3>
-         <div class="w-100 border-top d-flex align-items-center justify-content-center" style="height: 40px;font-size: 14px;margin-top: 10px;" onclick="${
-                        gvc.event(() => {
+                    return html`
+                        <div class="vw-100 vh-100 d-flex align-items-center justify-content-center" style="background-color: rgba(0,0,0,0.5);z-index: 10000;">
+                            <div class=" m-auto rounded-3 shadow"
+                                 style="     width: 200px;background: white;padding: 24px;display: flex;align-items: center;justify-content: center;flex-direction: column;position: relative;padding-bottom: 50px;  ">
+                                <i class=" fa-solid fa-triangle-exclamation" style=" font-size: 50px;color: #393939;  "
+                                   aria-hidden="true"></i>
+                                <div class=" mt-3 fs-6 fw-500" style="     color: #393939;letter-spacing: 1px;  ">
+                                    ${gBundle.obj.text ?? "錯誤!"}
+                                </div>
+                                <div class=" w-100 border-top"
+                                     style="     position: absolute;    left: 0px;    bottom: 0px;height: 40px;display: flex;align-items: center;justify-content: center;cursor: pointer;  ">
+                                    <div class=" fw-500" style="     color: #393939;font-size: 15px;  " onclick=" gvc.event(() => {
                             glitter.closeDiaLog(gvc.parameter.pageConfig?.tag)
-                        })
-                    }">
-             <h3  style="font-size: 14px;margin:auto;width: 100%;text-align: center;">確認</h3>
-         </div>
-     </div>
-</div>`
+                        })">關閉
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                     `
+
                 case 'successMessage':
-                    return `<div class="vw-100 vh-100 position-fixed top-0 left-0"  style="background-color: rgba(0,0,0,0.5);z-index: 10000;">
-<div class="bg-white rounded" style="width: 150px;position: absolute;z-index: 999;transform: translate(-50%,-50%);left: 50%;top:50%;">
-  <div class="w-100 d-flex align-items-center justify-content-center text-success" style="height: 80px;"> <i class="fad fa-badge-check" style="font-size: 50px;margin: auto;"></i></div>
-         <h3 id="info" style="font-size: 14px;margin-top: 0px;width: calc(100% - 10px);text-align: center;white-space: normal;word-break: break-all;" class="mx-auto text-success">${gBundle.obj.text ?? "成功!"}</h3>
-         <div class="w-100 border-top d-flex align-items-center justify-content-center" style="height: 40px;font-size: 14px;margin-top: 10px;" onclick="${
-                        gvc.event(() => {
-                            glitter.closeDiaLog(gvc.parameter.pageConfig?.tag)
-                        })
-                    }">
-             <h3  style="font-size: 14px;margin:auto;width: 100%;text-align: center;" class="text-success" onclick="${
-                        gvc.event(() => {
-                            glitter.closeDiaLog(gvc.parameter.pageConfig?.tag)
-                        })
-                    }">確認</h3>
-         </div>
-     </div>
-</div>`
+                    return  `<div class=" m-auto rounded-3 shadow" style="     width: 200px;background: white;padding: 24px;display: flex;align-items: center;justify-content: center;flex-direction: column;  "  ><i class=" fa-regular fa-circle-check" style="     font-size: 50px;color: #393939;  "   aria-hidden="true"></i><div class=" mt-3 fs-6 fw-500" style="     color: #393939;  "  >${gBundle.obj.text ?? "成功!"}</div></div>`
+
                 case 'checkYesOrNot':
                     return `
 <div class="vw-100 vh-100 position-fixed top-0 left-0 d-flex align-items-center justify-content-center"  style="background-color: rgba(0,0,0,0.5);z-index: 10000;">

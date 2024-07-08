@@ -1,6 +1,7 @@
 import { PageSplit } from './splitPage.js';
 import { ApiShop } from '../glitter-base/route/shopping.js';
 import { ApiPost } from '../glitter-base/route/post.js';
+import { EditorElem } from "../glitterBundle/plugins/editor-elem.js";
 const html = String.raw;
 export class BgWidget {
     static table(obj) {
@@ -302,10 +303,25 @@ ${(obj.style || []) && obj.style[index] ? obj.style[index] : ``}
     static title(title) {
         return html ` <h3 class="my-auto tx_title" style="white-space: nowrap;">${title}</h3>`;
     }
+    static title_16(title) {
+        return html ` <h3 class="my-auto tx_title" style="white-space: nowrap;font-size: 16px;">${title}</h3>`;
+    }
+    static hint_title(title) {
+        return html ` <h3 class="my-auto tx_title" style="color: #8D8D8D;
+        font-size: 14px;
+        font-style: normal;
+        font-weight: 400;
+        line-height: normal;">${title}</h3>`;
+    }
+    static sub_title(title) {
+        return html `<h3 class="my-auto tx_title " style="white-space: nowrap;font-size: 14px;font-weight: 400;">
+            ${title}</h3>`;
+    }
     static tab(data, gvc, select, callback) {
-        return html ` <div class="" style="justify-content: flex-start; align-items: flex-start; gap: 22px; display: inline-flex;cursor: pointer;margin-top: 24px;margin-bottom: 24px;">
-            ${data
-            .map((dd) => {
+        return html `
+            <div class=""
+                 style="justify-content: flex-start; align-items: flex-start; gap: 22px; display: inline-flex;cursor: pointer;margin-top: 24px;margin-bottom: 24px;">
+                ${data.map((dd) => {
             if (select === dd.key) {
                 return `<div style=" flex-direction: column; justify-content: flex-start; align-items: center; gap: 8px; display: inline-flex">
     <div style="align-self: stretch; text-align: center; color: #393939; font-size: 18px; font-family: Noto Sans; font-weight: 700; line-height: 18px; word-wrap: break-word">${dd.title}</div>
@@ -2277,6 +2293,77 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                 ${new Date(config.dead_line).getTime() < new Date().getTime() ? ` 方案已過期` : ` 方案到期日`} ：${gvc.glitter.ut.dateFormat(new Date(config.dead_line), 'yyyy-MM-dd hh:mm')}
             </div>
         </div>`;
+    }
+    static imageSelector(gvc, image, callback) {
+        return gvc.bindView(() => {
+            const id = gvc.glitter.getUUID();
+            return {
+                bind: id,
+                view: () => {
+                    if (!image) {
+                        return html `<div class="w-100 image-container" style="flex: 1 1 0; align-self: stretch; flex-direction: column; justify-content: center; align-items: flex-start; display: inline-flex;  ">
+                                <div class="parent_"
+                                     style="align-self: stretch; border-radius: 10px; overflow: hidden; border: 1px #DDDDDD solid; justify-content: flex-start; align-items: center; gap: 24px; display: inline-flex;" >
+                                    <div class="w-100"
+                                         style="height: 191px; padding-top: 59px; padding-bottom: 58px; background: white; border-top-left-radius: 10px; border-top-right-radius: 10px; overflow: hidden;  justify-content: center; align-items: center; display: flex;position: relative;">
+                                        <div class="w-100"
+                                             style=" height: 191px; padding-top: 59px; padding-bottom: 58px; background: white; border-top-left-radius: 10px; border-top-right-radius: 10px; overflow: hidden;  justify-content: center; align-items: center; display: flex;  "
+                                        >
+                                            <div  style="flex-direction: column; justify-content: center; align-items: center;">
+                                                <div  style=" padding: 10px; background: white; box-shadow: 0px 0px 7px rgba(0, 0, 0, 0.10); border-radius: 10px; justify-content: center; align-items: center; gap: 10px; display: inline-flex;cursor: pointer;cursor: pointer;  ">
+                                                    <div style=" color: #393939; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word;  "
+                                                     onclick="${gvc.event(() => {
+                            EditorElem.uploadFileFunction({
+                                gvc: gvc,
+                                callback: (text) => {
+                                    callback(text);
+                                    image = text;
+                                    gvc.notifyDataChange(id);
+                                },
+                                type: `image/*, video/*`,
+                            });
+                        })}">新增圖片
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>`;
+                    }
+                    else {
+                        return html `
+                            <div class=" " style="">
+                                <div class="w-100 image-container"
+                                     style="     flex: 1 1 0; align-self: stretch; flex-direction: column; justify-content: center; align-items: flex-start; display: inline-flex;  "
+                                >
+                                    <div class=" parent_"
+                                         style=" align-self: stretch; border-radius: 10px; overflow: hidden; border: 1px #DDDDDD solid; justify-content: flex-start; align-items: center; gap: 24px; display: inline-flex;  "
+                                    >
+                                        <div class=" w-100"
+                                             style="     height: 191px; padding-top: 59px; padding-bottom: 58px; background: white; border-top-left-radius: 10px; border-top-right-radius: 10px; overflow: hidden;  justify-content: center; align-items: center; display: flex;position: relative;  "
+                                        ><img class=""
+                                              style="     position: absolute;max-width: 100%;height: calc(100% - 10px);  "
+
+                                              src="${image}">
+                                        </div>
+                                        <div class=" child_"
+                                             style="     position: absolute;    width: 100%;    height: 100%;    background: rgba(0, 0, 0, 0.726);top: 0px;  "
+                                             onclick="${gvc.event(() => {
+                            image = '';
+                            callback('');
+                            gvc.notifyDataChange(id);
+                        })}"
+                                        ><i class=" fa-regular fa-trash mx-auto fs-1"
+                                            style="     position: absolute;    transform: translate(-50%,-50%);top: 50%;left: 50%;color: white;cursor: pointer;  "
+                                            aria-hidden="true"></i></div>
+                                    </div>
+                                </div>
+                            </div>`;
+                    }
+                }
+            };
+        });
     }
 }
 BgWidget.getContainerWidth = (obj) => {

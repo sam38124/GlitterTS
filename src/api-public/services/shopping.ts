@@ -1320,7 +1320,6 @@ export class Shopping {
             const order = await db.query(`SELECT *
                                           FROM \`${this.app}\`.t_checkout
                                           WHERE DATE (created_time) = CURDATE()`, []);
-
             return {
                 //訂單總數
                 total_count: order.filter((dd: any) => {
@@ -1329,7 +1328,7 @@ export class Shopping {
                 //未出貨訂單
                 un_shipment: (await db.query(`SELECT count(1)
                                               from \`${this.app}\`.t_checkout
-                                              WHERE (orderData - > '$.progress' is null || orderData - > '$.progress' = 'wait')
+                                              WHERE (orderData ->> '$.progress' is null || orderData ->> '$.progress' = 'wait')
                                                 and status = 1`, []))[0][
                     'count(1)'
                     ],
@@ -1351,6 +1350,7 @@ export class Shopping {
                 })(),
             };
         } catch (e) {
+            console.error(e)
             throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
         }
     }

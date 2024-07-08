@@ -1,19 +1,14 @@
 import {init} from '../glitterBundle/GVController.js'
 import {ShareDialog} from "./ShareDialog.js";
 
-init(import.meta.url,(gvc, glitter, gBundle) => {
-
+init(import.meta.url, (gvc, glitter, gBundle) => {
     const dialog = new ShareDialog(glitter)
     return {
         onCreateView: () => {
             switch (gBundle.type) {
                 case 'dataLoading':
-                    return `<div class="vw-100 vh-100 position-fixed top-0 left-0"  style="background-color: rgba(0,0,0,0.5);z-index: 10000;">
-<div class="bg-white rounded" style="width: 100px;height: 100px;position: absolute;z-index: 999;transform: translate(-50%,-50%);left: 50%;top:50%;">
-         <img src="${new URL("../img/loading.gif",import.meta.url)}"  background="transparent"  speed="1"  style="position:relative;width: 70px; height: 70px;transform: translateX(-50%);left: 50%;"  loop  autoplay>
-         <h3 class="fw-500" style="color: #323643;font-size: 13px;margin-top: 0px;width: 100%;text-align: center">${gBundle.obj.text ?? '請稍候...'}</h3>
-     </div>
-</div>`
+                    return `<div class="vw-100 vh-100 d-flex align-items-center justify-content-center" style=""  ><div class=" m-auto rounded-3 shadow" style="     width: 200px;background: white;padding: 24px;display: flex;align-items: center;justify-content: center;flex-direction: column;  "  ><div class=" spinner-border" style=" font-size: 50px;color: #393939;  "  ></div><div class=" mt-3 fs-6 fw-500" style=" color: #393939;  "  >加載中...</div></div></div>`
+
                 case 'errorMessage':
                     return `<div class="vw-100 vh-100 position-fixed top-0 left-0"  style="background-color: rgba(0,0,0,0.5);z-index: 10000;">
 <div class="bg-white rounded" style="width: 150px;position: absolute;z-index: 999;transform: translate(-50%,-50%);left: 50%;top:50%;">
@@ -23,7 +18,8 @@ init(import.meta.url,(gvc, glitter, gBundle) => {
                         gvc.event(() => {
                             try {
                                 gBundle.callback()
-                            }catch (e){}
+                            } catch (e) {
+                            }
                             glitter.closeDiaLog(gvc.parameter.pageConfig?.tag)
                         })
                     }">
@@ -40,7 +36,8 @@ init(import.meta.url,(gvc, glitter, gBundle) => {
                         gvc.event(() => {
                             try {
                                 gBundle.callback()
-                            }catch (e){}
+                            } catch (e) {
+                            }
                             glitter.closeDiaLog(gvc.parameter.pageConfig?.tag)
                         })
                     }">
@@ -48,7 +45,8 @@ init(import.meta.url,(gvc, glitter, gBundle) => {
                         gvc.event(() => {
                             try {
                                 gBundle.callback()
-                            }catch (e){}
+                            } catch (e) {
+                            }
                             glitter.closeDiaLog(gvc.parameter.pageConfig?.tag)
                         })
                     }">確認</h3>
