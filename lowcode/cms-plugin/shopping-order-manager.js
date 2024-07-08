@@ -22,7 +22,7 @@ export class ShoppingOrderManager {
         const glitter = gvc.glitter;
         const vm = {
             id: glitter.getUUID(),
-            type: 'list',
+            type: 'add',
             data: {},
             dataList: undefined,
             query: '',
@@ -357,15 +357,30 @@ export class ShoppingOrderManager {
                         };
                         let orderDetail = new OrderDetail(0, 0);
                         let showDiscountEdit = false;
+                        let showArray = [
+                            {
+                                value: "discount",
+                                text: "折扣活動",
+                            },
+                            {
+                                value: "rebate",
+                                text: "購物金活動",
+                            },
+                            {
+                                value: "shipment_free",
+                                text: "免運費活動",
+                            },
+                        ];
                         function showOrderDetail() {
                             function showDiscount() {
                                 return html `
-                                <div style="color: #4D86DB;position: relative;">
-                                    <div style="cursor: pointer;margin-bottom: 12px;" onclick="${gvc.event(() => {
+                                    <div style="color: #4D86DB;position: relative;">
+                                        <div style="cursor: pointer;margin-bottom: 12px;" onclick="${gvc.event(() => {
                                     showDiscountEdit = !showDiscountEdit;
                                     gvc.notifyDataChange('orderDetail');
-                                })}">新增折扣</div>
-                                    ${(showDiscountEdit) ? `` : gvc.bindView({
+                                })}">新增折扣
+                                        </div>
+                                        ${(showDiscountEdit) ? `` : gvc.bindView({
                                     bind: `editDiscount`,
                                     view: () => {
                                         let tempData = {
@@ -376,58 +391,144 @@ export class ShoppingOrderManager {
                                         };
                                         let discountHTML = ``;
                                         let checkBox = html `
-                                                <div style="margin-right:6px;display: flex;width: 16px;height: 16px;justify-content: center;align-items: center;border-radius: 20px;border: 1px solid #393939"></div>`;
+                                                    <div style="margin-right:6px;display: flex;width: 16px;height: 16px;justify-content: center;align-items: center;border-radius: 20px;border: 4px solid #393939"></div>`;
                                         let uncheckBox = html `
-                                                <div style="margin-right:6px;width: 16px;height: 16px;border-radius: 20px;border: 1px solid #DDD;"></div>`;
-                                        let showArray = [
-                                            {
-                                                value: "discount",
-                                                text: "折扣活動",
-                                            },
-                                            {
-                                                value: "rebate",
-                                                text: "購物金活動",
-                                            },
-                                            {
-                                                value: "shipment_free",
-                                                text: "免運費活動",
-                                            },
-                                        ];
-                                        showArray.map((rowData) => {
-                                            discountHTML += html `
-                                                    <div class="w-100 d-flex align-items-center" style="color:#393939">
-                                                        ${uncheckBox}
-                                                        <div>${rowData.text}</div>
-                                                    </div>
-                                                `;
+                                                    <div style="margin-right:6px;width: 16px;height: 16px;border-radius: 20px;border: 1px solid #DDD;"></div>`;
+                                        showArray.map((rowData, index) => {
+                                            if (rowData.select) {
+                                                function drawVoucherDetail(rowData) {
+                                                    switch (rowData.value) {
+                                                        case "discount": {
+                                                            return html `
+                                                                        <div class="w-100 d-flex"
+                                                                             style="padding-left: 8px;margin-top: 8px;">
+                                                                            <div style="height: 100%;width:1px;background-color: #E5E5E5;margin-right: 14px;"></div>
+                                                                            <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 12px;flex: 1 0 0;">
+                                                                                <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 8px;align-self: stretch;">
+                                                                                    <div style="display: flex;align-items: center;gap: 6px;" onclick="${gvc.event(() => {
+                                                                rowData.method = "percent";
+                                                                tempData.method = "percent";
+                                                                gvc.notifyDataChange('editDiscount');
+                                                            })}">
+                                                                                        ${(rowData.method == "percent") ? checkBox : uncheckBox}百分比
+                                                                                    </div>
+                                                                                    <div style="${(rowData.method == "percent") ? 'display: flex' : 'display: none'};padding-left: 8px;align-items: center;gap: 14px;align-self: stretch;position:relative;">
+                                                                                        <svg xmlns="http://www.w3.org/2000/svg"
+                                                                                             width="2" height="40"
+                                                                                             viewBox="0 0 2 40"
+                                                                                             fill="none">
+                                                                                            <path d="M1 0V40"
+                                                                                                  stroke="#E5E5E5"/>
+                                                                                        </svg>
+                                                                                        <input class="w-100"
+                                                                                               style="border-radius: 10px;border: 1px solid #DDD;padding: 9px 18px;"
+                                                                                               onchange="${gvc.event((e) => {
+                                                                rowData.discount = e.value;
+                                                            })}">
+                                                                                        <div class="h-100 d-flex align-items-center"
+                                                                                             style="color: #8D8D8D;font-size: 16px;font-style: normal;font-weight: 400;position: absolute;top:0;right:18px;">
+                                                                                            %
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                                <div style="display: flex;gap: 6px;flex-direction: column;width: 100%;">
+                                                                                    <div style="display: flex;align-items: center;gap: 6px;" onclick="${gvc.event(() => {
+                                                                rowData.method = "fixed";
+                                                                tempData.method = "fixed",
+                                                                    gvc.notifyDataChange('editDiscount');
+                                                            })}">
+                                                                                        ${(rowData.method == "fixed") ? checkBox : uncheckBox}固定金額
+                                                                                    </div>
+                                                                                    <div style="${(rowData.method == "fixed") ? 'display: flex' : 'display: none'};padding-left: 8px;align-items: center;gap: 14px;align-self: stretch;position:relative;">
+                                                                                        <svg xmlns="http://www.w3.org/2000/svg"
+                                                                                             width="2" height="40"
+                                                                                             viewBox="0 0 2 40"
+                                                                                             fill="none">
+                                                                                            <path d="M1 0V40"
+                                                                                                  stroke="#E5E5E5"/>
+                                                                                        </svg>
+                                                                                        <input class="w-100"
+                                                                                               style="border-radius: 10px;border: 1px solid #DDD;padding: 9px 18px;"
+                                                                                               onchange="${gvc.event((e) => {
+                                                                rowData.discount = e.value;
+                                                            })}">
+                                                                                        <div class="h-100 d-flex align-items-center"
+                                                                                             style="color: #8D8D8D;font-size: 16px;font-style: normal;font-weight: 400;position: absolute;top:0;right:18px;">
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>`;
+                                                        }
+                                                    }
+                                                }
+                                                tempData.reBackType = rowData.value;
+                                                discountHTML += html `
+                                                            <div class="w-100 d-flex align-items-center flex-wrap"
+                                                                 style="color:#393939">
+                                                                ${checkBox}
+                                                                <div>${rowData.text}</div>
+                                                                ${drawVoucherDetail(rowData)}
+                                                            </div>
+                                                        `;
+                                            }
+                                            else {
+                                                discountHTML += html `
+                                                            <div class="w-100 d-flex align-items-center"
+                                                                 style="color:#393939;cursor: pointer;"
+                                                                 onclick="${gvc.event(() => {
+                                                    showArray = [
+                                                        {
+                                                            value: "discount",
+                                                            text: "折扣活動",
+                                                        },
+                                                        {
+                                                            value: "rebate",
+                                                            text: "購物金活動",
+                                                        },
+                                                        {
+                                                            value: "shipment_free",
+                                                            text: "免運費活動",
+                                                        },
+                                                    ];
+                                                    showArray[index].select = true;
+                                                    gvc.notifyDataChange('editDiscount');
+                                                })}">
+                                                                ${uncheckBox}
+                                                                <div>${rowData.text}</div>
+                                                            </div>
+                                                        `;
+                                            }
                                         });
                                         return html `
-                                                <div class="d-flex flex-column " style="font-weight: 700;">
-                                                    折扣名稱
-                                                    <input class="w-100" style="border-radius: 10px;border: 1px solid #DDD;padding: 9px 18px;" onchange="${gvc.event((e) => {
+                                                    <div class="d-flex flex-column " style="font-weight: 700;">
+                                                        折扣名稱
+                                                        <input class="w-100"
+                                                               style="border-radius: 10px;border: 1px solid #DDD;padding: 9px 18px;"
+                                                               onchange="${gvc.event((e) => {
                                             tempData.title = e.value;
                                         })}">
-                                                </div>
-                                                <div class="d-flex flex-column" style="font-weight: 700;gap:8px;">
-                                                    折扣方式
-                                                    ${discountHTML}
-                                                </div>
-                                                <div class="d-flex w-100 justify-content-end" style="gap:14px;">
-                                                    ${BgWidget.cancel(gvc.event(() => { }), '取消')}
-                                                    ${BgWidget.save(gvc.event(() => {
+                                                    </div>
+                                                    <div class="d-flex flex-column" style="font-weight: 700;gap:8px;">
+                                                        折扣方式
+                                                        ${discountHTML}
+                                                    </div>
+                                                    <div class="d-flex w-100 justify-content-end" style="gap:14px;">
+                                                        ${BgWidget.cancel(gvc.event(() => {
+                                        }), '取消')}
+                                                        ${BgWidget.save(gvc.event(() => {
                                             console.log(tempData);
                                         }), '確定')}
-                                                </div>
-                                            `;
-                                        return discountHTML;
+                                                    </div>
+                                                `;
                                     }, divCreate: {
                                         style: `display: flex;color:#393939;text-align: left;width: 348px;padding: 24px;flex-direction: column;gap: 18px;border-radius: 10px;background: #FFF;box-shadow: 2px 2px 10px 0px rgba(0, 0, 0, 0.15);position:absolute;right:0;top:33px;gap:18px;`
                                     }
                                 })}
-                                    <div style="">
-                                        <div></div>
+                                        <div style="">
+                                            <div></div>
+                                        </div>
                                     </div>
-                                </div>
                                 `;
                             }
                             return gvc.bindView({
@@ -458,10 +559,11 @@ export class ShoppingOrderManager {
                                     ];
                                     showArray.map((rowData) => {
                                         returnHTML += html `
-                                        <div class="w-100 d-flex align-items-center justify-content-end" style="height: 21px;">
-                                            <div style="text-align: right;">${rowData.left}</div>
-                                            <div style="width:158px;text-align: right">${rowData.right}</div>
-                                        </div>
+                                            <div class="w-100 d-flex align-items-center justify-content-end"
+                                                 style="height: 21px;">
+                                                <div style="text-align: right;">${rowData.left}</div>
+                                                <div style="width:158px;text-align: right">${rowData.right}</div>
+                                            </div>
                                         `;
                                     });
                                     return returnHTML;
@@ -673,12 +775,16 @@ export class ShoppingOrderManager {
                                         }
                                     });
                                 })}">新增一個商品
-                                                        <svg style="margin-left: 5px;" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14" fill="none">
-                                                            <path d="M1.5 7.23926H12.5" stroke="#3366BB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                                            <path d="M6.76172 1.5L6.76172 12.5" stroke="#3366BB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                        <svg style="margin-left: 5px;" xmlns="http://www.w3.org/2000/svg"
+                                                             width="14" height="14" viewBox="0 0 14 14" fill="none">
+                                                            <path d="M1.5 7.23926H12.5" stroke="#3366BB" stroke-width="2"
+                                                                  stroke-linecap="round" stroke-linejoin="round"/>
+                                                            <path d="M6.76172 1.5L6.76172 12.5" stroke="#3366BB"
+                                                                  stroke-width="2" stroke-linecap="round"
+                                                                  stroke-linejoin="round"/>
                                                         </svg>
                                                     </div>
-                                                    
+
                                                 `;
                             },
                             divCreate: {
@@ -823,7 +929,7 @@ export class ShoppingOrderManager {
                     });
                 }
                 return BgWidget.container(html `
-                        <div class="d-flex flex-column" style="padding-bottom:48px;">
+                        <div class="d-flex flex-column" style="">
                             ${BgWidget.container(html `
                                         <div class="d-flex w-100 align-items-center mb-3 ">
                                             ${BgWidget.goBack(gvc.event(() => {
@@ -1423,6 +1529,7 @@ export class ShoppingOrderManager {
 
                                             </div>
                                         </div> `, 1200)}
+                            ${BgWidget.mbContainer(240)}
                             <div class="testLine d-flex align-items-center justify-content-end"
                                  style="gap:14px;max-height:48px; position:fixed;bottom:0;right:0;width: 100%;height:50px;background: #FFF;box-shadow: 0px 1px 10px 0px rgba(0, 0, 0, 0.15);padding: 14px 16px 14px 0;">
                                 <button style="padding: 6px 18px;border-radius: 10px;border: 1px solid #DDD;background: #FFF;font-size: 16px;font-weight: 700;color:#393939;"
@@ -1435,7 +1542,6 @@ export class ShoppingOrderManager {
                                         style="color: #FFF;font-size: 16px;font-weight: 700;padding: 6px 18px;align-items: center;gap: 8px;"
                                         onclick="${gvc.event(() => {
                     const now = new Date();
-                    console.log("orderData.status - ", orderData);
                     function writeEdit(origData, orderData) {
                         var _a;
                         let editArray = [];

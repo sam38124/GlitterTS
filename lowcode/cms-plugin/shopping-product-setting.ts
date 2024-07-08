@@ -66,7 +66,7 @@ export class ShoppingProductSetting {
                             return BgWidget.container(
                                 html`
                                     <div class="d-flex w-100 align-items-center" style="margin-bottom: 24px;">
-                                        ${BgWidget.title('商品管理')}
+                                        ${BgWidget.title('商品列表')}
                                         <div class="flex-fill"></div>
                                         ${BgWidget.darkButton(
                                             '新增商品',
@@ -549,11 +549,11 @@ export class ShoppingProductSetting {
                                                     gvc,
                                                     [
                                                         {
-                                                            key: 'weight',
+                                                            key: 'volume',
                                                             name: '依材積計算',
                                                         },
                                                         {
-                                                            key: 'volume',
+                                                            key: 'weight',
                                                             name: '依重量計算',
                                                         },
                                                         {
@@ -1139,22 +1139,7 @@ export class ShoppingProductSetting {
                                                 })}
                                             `
                                         )}
-                                        ${gvc.bindView({
-                                            bind: 'oneSpec',
-                                            view: () => {
-                                                if (postMD.specs.length < 1) {
-                                                    (postMD.variants[0] as any).editable = true;
-                                                    return this.editProductSpec({
-                                                        vm: vm,
-                                                        gvc: gvc,
-                                                        defData: postMD,
-                                                        single: true,
-                                                    });
-                                                }
-                                                return ``;
-                                            },
-                                            divCreate: {},
-                                        })}
+                                       
                                         ${BgWidget.mainCardMbp0(
                                             obj.gvc.bindView(() => {
                                                 const specid = obj.gvc.glitter.getUUID();
@@ -2122,7 +2107,7 @@ color: ${selected.length ? `#393939` : `#DDD`};font-size: 18px;
                                                                                               return postMD.specs[0].option
                                                                                                   .map((spec: any) => {
                                                                                                       const viewList = [];
-
+                                                                                                      spec.expand = spec.expand ?? true
                                                                                                       if (postMD.specs.length > 1) {
                                                                                                           let isCheck = !postMD.variants
                                                                                                               .filter((dd) => {
@@ -2192,6 +2177,24 @@ color: ${isCheck ? `#393939` : `#DDD`};font-size: 18px;
                                                                                                                       return dd.key === 'sale_price' || document.body.clientWidth > 800;
                                                                                                                   })
                                                                                                                   .map((dd) => {
+                                                                                                                      let minPrice = Infinity;
+                                                                                                                      let maxPrice = 0;
+                                                                                                                      let stock:number = 0;
+                                                                                                                      postMD.variants
+                                                                                                                              .filter((dd) => {
+                                                                                                                                  return dd.spec[0] === spec.title;
+                                                                                                                              })
+                                                                                                                              .map((d1) => {
+                                                                                                                                  minPrice = Math.min(d1.sale_price , minPrice)
+                                                                                                                                  maxPrice = Math.max(d1.sale_price , maxPrice)
+                                                                                                                                  stock = stock + parseInt(d1.stock as any,10)
+                                                                                                                                  console.log(stock)
+                                                                                                                              });
+                                                                                                                      if (dd.key == "sale_price"){
+                                                                                                                          dd.title = `${minPrice} ~ ${maxPrice}`;
+                                                                                                                      }else{
+                                                                                                                          dd.title = `${stock}`;
+                                                                                                                      }
                                                                                                                       return html`<div
                                                                                                                           style="color:#393939;font-size: 16px;font-weight: 400;width:  ${document.body
                                                                                                                               .clientWidth > 800
@@ -2316,6 +2319,7 @@ color: ${(data as any).checked ? `#393939` : `#DDD`};font-size: 18px;"
                                                                                                                                                       value="${(data as any)[dd] ?? 0}"
                                                                                                                                                       onchange="${gvc.event((e) => {
                                                                                                                                                           (data as any)[dd] = e.value;
+                                                                                                                                                          gvc.notifyDataChange(vm.id)
                                                                                                                                                       })}"
                                                                                                                                                   />
                                                                                                                                               </div>`;
@@ -2735,7 +2739,7 @@ ${postMD.seo.keywords ?? ''}</textarea
                 },
                 divCreate: {
                     class: `d-flex`,
-                    style: `font-size: 16px;color:#393939;position: relative;padding-bottom:80px;`,
+                    style: `font-size: 16px;color:#393939;position: relative;padding-bottom:240px;`,
                 },
             };
         });
