@@ -34,6 +34,7 @@ router.delete('/', async (req: express.Request, resp: express.Response) => {
 
 router.get('/', async (req: express.Request, resp: express.Response) => {
     try {
+
         const result = (await (new Template(req.body.token).getPage(req.query as any)))
         let redirect = ''
         if (result.length === 0) {

@@ -214,7 +214,7 @@ export class ShoppingShipmentSetting {
                                                                                                     })}"
                                                                                                     value="${data.key ?? ''}"
                                                                                                 />
-                                                                                                <div style="color: #8D8D8D;position: absolute;top:9px;right:18px;">公分(含)以上</div>
+                                                                                                <div style="color: #8D8D8D;position: absolute;top:9px;right:18px;">公斤(含)以上</div>
                                                                                             </div>
                                                                                             <div class="flex-fill position-relative" style="width: 35%">
                                                                                                 <input

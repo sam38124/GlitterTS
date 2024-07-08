@@ -178,12 +178,12 @@ export class HtmlGenerate {
 
     public static loadEvent = (glitter: Glitter, js: { src: string, callback?: (widget: any) => void }[]) => {
         glitter.share.componentData = glitter.share.componentData ?? {}
+        let addJsList:any=[]
         js.map((dd) => {
             let key = glitter.htmlGenerate.resourceHook(dd.src)
             if (!key.includes('http')) {
                 key = new URL(key, new URL('../../', import.meta.url).href).href
             }
-
             function checkStore() {
                 const result = glitter.share.componentData[key]
                 if (result) {
@@ -217,11 +217,11 @@ export class HtmlGenerate {
                         configurable: true
                     });
                 }
-
+                addJsList.push(dd)
             }
         })
         glitter.addMtScript(
-            js.map((dd) => {
+            addJsList.map((dd:any) => {
                 let key = glitter.htmlGenerate.configureCDN(glitter.htmlGenerate.resourceHook(dd.src))
                 if (!key.includes('http')) {
                     key = new URL(key, new URL('../../', import.meta.url).href).href
@@ -942,7 +942,7 @@ ${obj.gvc.bindView({
                             }
                         })()))
                         if (isEditMode()) {
-                            elem_.class = `${elem_.class} editor_it_${container_id} position-relative`
+                            elem_.class = `${elem_.class} editor_it_${container_id} `
                         }
 
                         return elem_
@@ -1964,7 +1964,6 @@ ${e.line}
         while (!glitter.share.editorViewModel) {
             glitter = (window.parent as any).glitter
         }
-
         function active() {
             try {
                 Storage.page_setting_item = 'layout';
@@ -1979,12 +1978,14 @@ ${e.line}
                         scrollToHover(gvc.glitter.$(`.editor_it_${widgetComponentID}`).get(0))
                     })
                 }
+                if(document.body.clientWidth<800){
+                    glitter.openDrawer()
+                }
                 event && event.stopPropagation && event.stopPropagation();
             } catch (e) {
                 console.log(e)
             }
         }
-
         if ((new Date().getTime() - HtmlGenerate.block_timer) > 500) {
             active()
         }

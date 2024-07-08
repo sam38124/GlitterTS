@@ -1,11 +1,33 @@
-import {GlobalUser} from '../global/global-user.js';
-import {BaseApi} from '../../glitterBundle/api/base.js';
-import {Glitter} from '../../glitterBundle/Glitter.js';
+import { GlobalUser } from '../global/global-user.js';
+import { BaseApi } from '../../glitterBundle/api/base.js';
+import { Glitter } from '../../glitterBundle/Glitter.js';
 
 export class ApiShop {
-    constructor() {
+    constructor() {}
+    public static postProduct(cf: { data: any; token?: string }) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/ec/product`,
+            type: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: cf.token || getConfig().config.token,
+            },
+            data: JSON.stringify(cf.data),
+        });
     }
-
+    public static putProduct(cf: { data: any; token?: string }) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/ec/product`,
+            type: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: cf.token || getConfig().config.token,
+            },
+            data: JSON.stringify(cf.data),
+        });
+    }
     static getRebate(query: { userID?: string }) {
         return BaseApi.create({
             url:
@@ -94,6 +116,7 @@ export class ApiShop {
         limit: number;
         page: number;
         search?: string;
+        searchType?: string;
         id?: string;
         collection?: string;
         maxPrice?: string;
@@ -117,6 +140,7 @@ export class ApiShop {
                     json.orderBy && par.push(`order_by=${json.orderBy}`);
                     json.id_list && par.push(`id_list=${json.id_list}`);
                     json.with_hide_index && par.push(`with_hide_index=${json.with_hide_index}`);
+                    json.searchType && par.push(`searchType=${json.searchType}`);
                     return par.join('&');
                 })()}`,
             type: 'GET',
@@ -163,7 +187,7 @@ export class ApiShop {
         order?: string;
         orderString?: string;
         filter?: any;
-        archived?: string
+        archived?: string;
     }) {
         const filterString = this.orderListFilterString(json.filter);
 
@@ -178,7 +202,7 @@ export class ApiShop {
                     json.status && par.push(`status=${json.status}`);
                     json.searchType && par.push(`searchType=${json.searchType}`);
                     json.orderString && par.push(`orderString=${json.orderString}`);
-                    json.archived && par.push(`archived=${json.archived}`)
+                    json.archived && par.push(`archived=${json.archived}`);
                     filterString.length > 0 && par.push(filterString.join('&'));
                     return par.join('&');
                 })()}`,
@@ -407,13 +431,11 @@ export class ApiShop {
     }
 
     static setVoucherCode(code: string) {
-        (window as any).glitter.setPro(ApiShop.voucherID, code, () => {
-        });
+        (window as any).glitter.setPro(ApiShop.voucherID, code, () => {});
     }
 
     static setRebateValue(value: string) {
-        (window as any).glitter.setPro(ApiShop.rebateID, value, () => {
-        });
+        (window as any).glitter.setPro(ApiShop.rebateID, value, () => {});
     }
 
     static getRebateValue() {
@@ -434,8 +456,7 @@ export class ApiShop {
             const cartData = response.data ? JSON.parse(response.data) : {};
             cartData[id] = cartData[id] ?? 0;
             cartData[id] += parseInt(count, 10);
-            (window as any).glitter.setPro(ApiShop.cartID, JSON.stringify(cartData), () => {
-            });
+            (window as any).glitter.setPro(ApiShop.cartID, JSON.stringify(cartData), () => {});
         });
     }
 
@@ -447,14 +468,12 @@ export class ApiShop {
             } else {
                 cartData[id] = parseInt(count, 10);
             }
-            (window as any).glitter.setPro(ApiShop.cartID, JSON.stringify(cartData), () => {
-            });
+            (window as any).glitter.setPro(ApiShop.cartID, JSON.stringify(cartData), () => {});
         });
     }
 
     static clearCart() {
-        (window as any).glitter.setPro(ApiShop.cartID, JSON.stringify({}), () => {
-        });
+        (window as any).glitter.setPro(ApiShop.cartID, JSON.stringify({}), () => {});
     }
 
     static getCart() {
@@ -480,17 +499,17 @@ export class ApiShop {
 
     static getShippingStatusArray() {
         return [
-            {title: '未出貨', value: 'wait'},
-            {title: '配送中', value: 'shipping'},
-            {title: '已送達', value: 'finish'},
+            { title: '未出貨', value: 'wait' },
+            { title: '配送中', value: 'shipping' },
+            { title: '已送達', value: 'finish' },
         ];
     }
 
     static getOrderStatusArray() {
         return [
-            {title: '已完成', value: '1'},
-            {title: '處理中', value: '0'},
-            {title: '已取消', value: '-1'},
+            { title: '已完成', value: '1' },
+            { title: '處理中', value: '0' },
+            { title: '已取消', value: '-1' },
         ];
     }
 }

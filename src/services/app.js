@@ -358,22 +358,24 @@ class App {
         }
     }
     static async checkBrandAndMemberType(app) {
-        let brand = (await database_1.default.query(`SELECT brand
+        let base = (await database_1.default.query(`SELECT brand,domain
                                      FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_config
-                                     where appName = ? `, [app]))[0]['brand'];
+                                     where appName = ? `, [app]))[0];
         const userID = (await database_1.default.query(`SELECT user
                                         FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_config
                                         where appName = ?`, [app]))[0]['user'];
         const userData = (await database_1.default.query(`SELECT userData
-                                          FROM \`${brand}\`.t_user
+                                          FROM \`${base.brand}\`.t_user
                                           where userID = ? `, [userID]))[0];
         return {
             memberType: userData.userData.menber_type,
-            brand: brand,
+            brand: base.brand,
             userData: userData.userData,
+            domain: base.domain
         };
     }
-    static async preloadPageData(appName, page) {
+    static async preloadPageData(appName, refer_page) {
+        const page = await template_js_1.Template.getRealPage(refer_page, appName);
         const app = new App();
         const preloadData = {
             component: [],
@@ -420,27 +422,6 @@ class App {
                         await loop((_a = pageData.config) !== null && _a !== void 0 ? _a : []);
                     }
                 }
-                else if (dd && typeof dd === 'object') {
-                    const data = dd;
-                    Object.keys(data).map((dd) => {
-                        if (dd === 'src' && data['route'] && data['src'].includes('official_event')) {
-                            if (!preloadData.event.find((dd) => {
-                                return dd === event_[data['route']];
-                            })) {
-                                preloadData.event.push(event_[data['route']]);
-                            }
-                        }
-                        if (Array.isArray(data[dd])) {
-                            loop(data[dd]);
-                        }
-                        else if (typeof data[dd] === 'object') {
-                            loop([data[dd]]);
-                        }
-                    });
-                }
-                else if (Array.isArray(dd)) {
-                    await loop(dd);
-                }
             }
         }
         await loop(pageData && pageData.config);
@@ -457,6 +438,19 @@ class App {
                 data: { response: { result: [dd] } },
             };
         });
+        const match1 = JSON.stringify(preloadData.component).match(/\{"src":"\.\/official_event\/[^"]+\.js","route":"[^"]+"}/g);
+        if (match1) {
+            match1.map((d1) => {
+                if (!preloadData.event.find((dd) => {
+                    return event_[JSON.parse(d1)['route']] === dd;
+                })) {
+                    preloadData.event.push(event_[JSON.parse(d1)['route']]);
+                }
+            });
+        }
+        else {
+            console.log('未找到匹配的字串');
+        }
         mapPush.event = preloadData.event;
         return mapPush;
     }

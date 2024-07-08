@@ -698,6 +698,14 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                 onCreate: () => {
                     const interval = setInterval(() => {
                         if (window.FroalaEditor) {
+                            obj.gvc.addStyle(`.fr-sticky-on {
+    position: relative !important;
+    z-index: 10;
+}
+.fr-sticky-dummy{
+display:none !important;
+}
+`);
                             const editor = new FroalaEditor('#' + richID, {
                                 language: 'zh_tw',
                                 heightMin: 500,
@@ -1799,7 +1807,7 @@ ${obj.gvc.bindView(() => {
                                 event.stopPropagation();
                             });
                             return html `
-                                        <li class="btn-group" style="margin-top:1px;margin-bottom:1px;">
+                                        <li class="btn-group" style="margin-top:1px;margin-bottom:1px;${obj.hr ? `border-bottom: 1px solid #f6f6f6; ` : ``};">
                                             <div
                                                 class="h-auto  align-items-center px-2 my-0 hi me-n1 ${dd.isSelect ? `bgf6 border` : ``}"
                                                 style="cursor: pointer;min-height:36px;width: calc(100% - 10px);display: flex;font-size: 14px;line-height: 20px;font-weight: 500;text-rendering: optimizelegibility;user-select: none;margin: 5px 10px;"
@@ -1966,8 +1974,7 @@ ${obj.gvc.bindView(() => {
                                             </div>
                                         </li>
                                     `;
-                        })
-                            .join(obj.hr ? `<div class="bgf6 w-100" style="height:1px;"></div>` : ``);
+                        }).join('');
                     },
                     divCreate: {
                         class: `d-flex flex-column ${child ? `` : ``} m-0 p-0 position-relative`,
@@ -1996,13 +2003,13 @@ ${obj.gvc.bindView(() => {
                                             animation: 100,
                                             handle: '.dragItem',
                                             onChange: function (evt) {
-                                                swapArr(obj.originalArray, startIndex, evt.newIndex);
-                                                startIndex = evt.newIndex;
                                             },
                                             onStart: function (evt) {
                                                 startIndex = evt.oldIndex;
                                             },
-                                            onEnd: () => {
+                                            onEnd: (evt) => {
+                                                console.log(evt.newIndex);
+                                                swapArr(obj.originalArray, startIndex, evt.newIndex);
                                                 obj.refreshComponent();
                                             },
                                         });

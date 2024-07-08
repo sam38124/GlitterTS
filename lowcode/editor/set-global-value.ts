@@ -122,7 +122,7 @@ ${(() => {
                     SetGlobalValue.toggle(false);
                 })}"
             ></div>
-            <div id="setGlobalView" class="position-fixed left-0 top-0 h-100 bg-white shadow-lg " style="width:600px;z-index: 99999;left: -100%;">${SetGlobalValue.view(gvc)}</div>`;
+            <div id="setGlobalView" class="position-fixed left-0 top-0 h-100 bg-white shadow-lg " style="width:600px;z-index: 99999;left: -200%;">${SetGlobalValue.view(gvc)}</div>`;
     }
 
     public static toggle(visible: boolean) {

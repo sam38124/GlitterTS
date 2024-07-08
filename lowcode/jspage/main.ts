@@ -19,6 +19,7 @@ import {NormalPageEditor} from "../editor/normal-page-editor.js";
 import {EditorConfig} from "../editor-config.js";
 import {HtmlGenerate} from "../glitterBundle/module/html-generate.js";
 import {all} from "underscore/index.js";
+import {BgCustomerMessage} from "../backend-manager/bg-customer-message.js";
 
 const html = String.raw
 //
@@ -38,19 +39,19 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
 
       .scroll-in {
 
-        left: -100%; /* 將元素移到畫面外 */
+        left: -120%; /* 將元素移到畫面外 */
         animation: slideInFromLeft 0.5s ease-out forwards;
       }
 
       .scroll-out {
         left: 0%; /* 將元素移到畫面外 */
-        animation: slideOutFromLeft 1s ease-out forwards;
+        animation: slideOutFromLeft 0.5s ease-out forwards;
       }
 
       /* @keyframes 定義動畫 */
       @keyframes slideInFromLeft {
         0% {
-          left: -100%; /* 起始位置在畫面外 */
+          left: -120%; /* 起始位置在畫面外 */
         }
         100% {
           left: 0; /* 結束位置在畫面內 */
@@ -62,25 +63,25 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
           left: 0; /* 起始位置在畫面外 */
         }
         100% {
-          left: -100%; /* 結束位置在畫面內 */
+          left: -120%; /* 結束位置在畫面內 */
         }
       }
     `)
     gvc.addStyle(css`
       .scroll-right-in {
-        right: -100%; /* 將元素移到畫面外 */
+        right: -120%; /* 將元素移到畫面外 */
         animation: slideInRight 0.5s ease-out forwards;
       }
 
       .scroll-right-out {
         right: 0; /* 將元素移到畫面外 */
-        animation: slideOutRight 1s ease-out forwards;
+        animation: slideOutRight 0.5s ease-out forwards;
       }
 
       /* @keyframes 定義動畫 */
       @keyframes slideInRight {
         0% {
-          right: -100%; /* 起始位置在畫面外 */
+          right: -120%; /* 起始位置在畫面外 */
         }
         100% {
           right: 0; /* 結束位置在畫面內 */
@@ -92,7 +93,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
           right: 0; /* 起始位置在畫面外 */
         }
         100% {
-          right: -100%; /* 結束位置在畫面內 */
+          right: -120%; /* 結束位置在畫面內 */
         }
       }`)
     /*
@@ -432,6 +433,8 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                         if ((gvc.glitter.getUrlParameter('function') !== 'backend-manger')) {
                             view.push(AddComponent.leftNav(gvc))
                             view.push(SetGlobalValue.leftNav(gvc))
+                        }else{
+                            view.push(BgCustomerMessage.leftNav(gvc))
                         }
                         view.push(PageSettingView.leftNav(gvc))
                         view.push(AddPage.leftNav(gvc))
@@ -474,12 +477,12 @@ ${(Storage.page_setting_item === `${da.index}`) ? `background:${EditorConfig.edi
                                             }).join('')}`
                                         },
                                         divCreate: {
-                                            style: `width:60px;gap:20px;padding-top: 15px;`,
-                                            class: `${(Storage.select_function === 'user-editor' || Storage.select_function === 'page-editor') ? `` : `d-none`} h-100 border-end d-flex flex-column align-items-center`
+                                            style: `width:50px;gap:20px;padding-top: 15px;min-width:50px;`,
+                                            class: `${(Storage.select_function === 'user-editor' || Storage.select_function === 'page-editor') ? `` : `d-none`} h-120 border-end d-flex flex-column align-items-center`
                                         }
                                     }
                                 })}
-                                            <div class="offcanvas-body swiper scrollbar-hover  w-100 ${(() => {
+                                            <div class="offcanvas-body swiper scrollbar-hover  w-120 ${(() => {
                                     switch (Storage.select_function) {
                                         case 'backend-manger':
                                         case 'server-manager':
@@ -490,7 +493,7 @@ ${(Storage.page_setting_item === `${da.index}`) ? `background:${EditorConfig.edi
                                             return `p-0`
                                     }
                                 })()}" style="overflow-y: auto;overflow-x:hidden;height:calc(100vh - 56px);">
-                                                <div class="h-100" style="">
+                                                <div class="h-120" style="">
                                                     ${gvc.bindView(() => {
                                     return {
                                         bind: 'MainEditorLeft',
@@ -521,15 +524,14 @@ ${(Storage.page_setting_item === `${da.index}`) ? `background:${EditorConfig.edi
                                                 }
                                             })()
                                             if (document.body.offsetWidth < 800) {
-                                                glitter.setDrawer(view, () => {
-                                                })
+                                                glitter.setDrawer(`<div class="bg-white vh-120 overflow-auto">${view}</div>`, () => {})
                                                 return ``
                                             } else {
                                                 return view
                                             }
                                         },
                                         divCreate: {
-                                            class: "h-100"
+                                            class: "h-120"
                                         }
                                     }
                                 })}
@@ -672,6 +674,7 @@ function initialEditor(gvc: GVC, viewModel: any) {
 
     //添加Component至當前頁面
     glitter.share.addComponent = (data: any) => {
+        AddComponent.toggle(false)
         resetId(data);
         const url = new URL(location.href)
         url.search = ''
@@ -711,6 +714,7 @@ function initialEditor(gvc: GVC, viewModel: any) {
         index: string,
         direction: number
     }) => {
+        AddComponent.toggle(false)
         resetId(cf.data);
         const arrayData = glitter.share.findWidgetIndex(cf.index);
         const url = new URL(location.href)

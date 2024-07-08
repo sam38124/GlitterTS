@@ -55,10 +55,16 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                             return_url: location.href
                         }).then((res) => __awaiter(void 0, void 0, void 0, function* () {
                             if (res.response.form) {
-                                $('body').html(res.response.form);
-                                setTimeout(() => {
-                                    console.log(document.querySelector('#submit').click());
-                                }, 1000);
+                                const id = gvc.glitter.getUUID();
+                                if (gvc.glitter.deviceType === gvc.glitter.deviceTypeEnum.Ios) {
+                                    gvc.glitter.runJsInterFace("toCheckout", {
+                                        form: res.response.form
+                                    }, () => { });
+                                }
+                                else {
+                                    $('body').append(`<div id="${id}" style="display: none;">${res.response.form}</div>`);
+                                    document.querySelector(`#${id} #submit`).click();
+                                }
                             }
                             else {
                                 yield TriggerEvent.trigger({

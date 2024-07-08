@@ -170,12 +170,33 @@ export class Template {
         }
     }
 
+    public static async getRealPage(query_page:string,appName:string){
+        query_page=query_page || ''
+        let page = query_page;
+
+        //當判斷是Blog時
+        if (query_page.split('/')[0] === 'blogs' && query_page.split('/')[1]) {
+              page = (await db.query(`SELECT *
+                                   from \`${appName}\`.t_manager_post
+                                   where content->>'$.tag'=${db.escape(query_page.split('/')[1])} and content->>'$.type'='article';`, []))[0].content.template;
+        }
+
+        //當判斷是Page時
+        if (query_page.split('/')[0] === 'pages' && query_page.split('/')[1]) {
+            page = (await db.query(`SELECT *
+                                   from \`${appName}\`.t_manager_post
+                                   where content->>'$.tag'=${db.escape(query_page.split('/')[1])} and content->>'$.type'='article';`, []))[0].content.template;
+        }
+        return page
+    }
     public async getPage(config: {
         appName?: string, tag?: string, group?: string, type?: string, page_type?: string, user_id?: string, me?: string, favorite?: string,
         preload?:boolean,
         id?:string
     }) {
-
+        if(config.tag){
+            config.tag=await Template.getRealPage(config.tag, config.appName!);
+        }
         try {
             let sql = `select ${(config.tag || config.id) ? `*` : `id,userID,tag,\`group\`,name,page_type,preview_image,appName,page_config`}
                        from \`${saasConfig.SAAS_NAME}\`.page_config

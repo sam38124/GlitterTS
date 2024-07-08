@@ -159,7 +159,25 @@ class Template {
             throw exception_1.default.BadRequestError((_b = e.code) !== null && _b !== void 0 ? _b : 'BAD_REQUEST', e, null);
         }
     }
+    static async getRealPage(query_page, appName) {
+        query_page = query_page || '';
+        let page = query_page;
+        if (query_page.split('/')[0] === 'blogs' && query_page.split('/')[1]) {
+            page = (await database_1.default.query(`SELECT *
+                                   from \`${appName}\`.t_manager_post
+                                   where content->>'$.tag'=${database_1.default.escape(query_page.split('/')[1])} and content->>'$.type'='article';`, []))[0].content.template;
+        }
+        if (query_page.split('/')[0] === 'pages' && query_page.split('/')[1]) {
+            page = (await database_1.default.query(`SELECT *
+                                   from \`${appName}\`.t_manager_post
+                                   where content->>'$.tag'=${database_1.default.escape(query_page.split('/')[1])} and content->>'$.type'='article';`, []))[0].content.template;
+        }
+        return page;
+    }
     async getPage(config) {
+        if (config.tag) {
+            config.tag = await Template.getRealPage(config.tag, config.appName);
+        }
         try {
             let sql = `select ${(config.tag || config.id) ? `*` : `id,userID,tag,\`group\`,name,page_type,preview_image,appName,page_config`}
                        from \`${config_1.saasConfig.SAAS_NAME}\`.page_config

@@ -36,6 +36,7 @@ router.get('/product', async (req: express.Request, resp: express.Response) => {
             page: (req.query.page ?? 0) as number,
             limit: (req.query.limit ?? 50) as number,
             search: req.query.search as string,
+            searchType: req.query.searchType as string,
             sku: req.query.sku as string,
             id: req.query.id as string,
             collection: req.query.collection as string,
@@ -45,10 +46,25 @@ router.get('/product', async (req: express.Request, resp: express.Response) => {
             id_list: req.query.id_list as string,
             order_by: (() => {
                 switch (req.query.order_by) {
+                    case 'title':
+                        return `order by JSON_EXTRACT(content, '$.title')`;
                     case 'max_price':
-                        return `order by (CAST(JSON_UNQUOTE(JSON_EXTRACT(content, '$.max_price')) AS SIGNED))  desc`;
+                        return `order by (CAST(JSON_UNQUOTE(JSON_EXTRACT(content, '$.max_price')) AS SIGNED)) desc`;
                     case 'min_price':
-                        return `order by (CAST(JSON_UNQUOTE(JSON_EXTRACT(content, '$.min_price')) AS SIGNED))  asc`;
+                        return `order by (CAST(JSON_UNQUOTE(JSON_EXTRACT(content, '$.min_price')) AS SIGNED)) asc`;
+                    case 'created_time_desc':
+                        return `order by created_time desc`;
+                    case 'created_time_asc':
+                        return `order by created_time`;
+                    case 'updated_time_desc':
+                        return `order by updated_time desc`;
+                    case 'updated_time_asc':
+                        return `order by updated_time`;
+                    case 'stock_desc':
+                        return ``;
+                    case 'stock_asc':
+                        return ``;
+                    case 'default':
                     default:
                         return `order by id desc`;
                 }
@@ -341,7 +357,9 @@ router.post('/redirect', async (req: express.Request, resp: express.Response) =>
                                 JSON.stringify({
                                     functionName: 'closeWebView',
                                     callBackId: 0,
-                                    data: {},
+                                    data: {
+                                        redirect: '${return_url.href}',
+                                    },
                                 })
                             );
                         } catch (e) {}
@@ -634,6 +652,30 @@ router.get('/check-login-for-order', async (req: express.Request, resp: express.
         return response.succ(resp, {
             result: keyData.login_in_to_order,
         });
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+
+router.post('/product', async (req: express.Request, resp: express.Response) => {
+    try {
+        if (!(await UtPermission.isManager(req))) {
+            return response.fail(resp, exception.BadRequestError('BAD_REQUEST', 'No permission.', null));
+        } else {
+            return response.succ(resp, { result: true, id: await new Shopping(req.get('g-app') as string, req.body.token).postProduct(req.body) });
+        }
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+
+router.put('/product', async (req: express.Request, resp: express.Response) => {
+    try {
+        if (!(await UtPermission.isManager(req))) {
+            return response.fail(resp, exception.BadRequestError('BAD_REQUEST', 'No permission.', null));
+        } else {
+            return response.succ(resp, { result: true, id: await new Shopping(req.get('g-app') as string, req.body.token).putProduct(req.body) });
+        }
     } catch (err) {
         return response.fail(resp, err);
     }

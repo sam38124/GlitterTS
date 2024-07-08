@@ -230,7 +230,8 @@ export class Editor {
                 }
                 else {
                     return html `
-                                                <div class="btn-group ms-1" style="max-width: 350px;min-width: 250px;">
+                                                <div class="btn-group " style="max-width: ${document.body.clientWidth < 800 ? 150 : 350}px;min-width: ${document.body.clientWidth < 800 ? 150 : 200}px;
+transform: translateX(-15px);">
                                                     <button
                                                             type="button"
                                                             class="btn btn-outline-secondary rounded px-2"
@@ -302,7 +303,7 @@ export class Editor {
                             },
                             divCreate: {
                                 class: 'dropdown-menu',
-                                style: 'margin-top: 50px;max-height: calc(100vh - 100px);width:300px;overflow-y: scroll;',
+                                style: `margin-top: 50px;max-height: calc(100vh - 100px);width:${document.body.clientWidth < 800 ? 200 : 250}px;overflow-y: scroll;`,
                                 option: [{ key: 'id', value: 'topd' }],
                             },
                             onCreate: () => {
@@ -440,7 +441,7 @@ ${gvc.bindView(() => {
                     ].join(`<div class="me-1"></div>`);
                 }
             })()}
-                                <div class="d-flex align-items-center justify-content-center hoverBtn ms-1 me-2 border bg-white
+                                <div class="d-none d-sm-flex align-items-center justify-content-center hoverBtn ms-1 me-2 border bg-white
 ${(glitter.share.editorViewModel.homePage === glitter.getUrlParameter('page')) ? `d-none` : ``}
 ${(glitter.share.editor_vm) ? `d-none` : ``}
 "
@@ -457,7 +458,7 @@ ${(glitter.share.editor_vm) ? `d-none` : ``}
                                 >
                                     <i class="fa-regular fa-house"></i>
                                 </div>
-                                <div class="d-flex align-items-center justify-content-center hoverBtn  me-2 border
+                                <div class="d-none d-sm-flex align-items-center justify-content-center hoverBtn  me-2 border
 ${(glitter.share.editor_vm) ? `d-none` : ``}
 "
                                      style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
@@ -530,9 +531,21 @@ ${(glitter.share.editor_vm) ? `d-none` : ``}
                         .join('')}
                                             </div>`;
                 },
-                divCreate: {},
+                divCreate: {
+                    class: `d-none d-sm-block`
+                },
             })}
-                                <button
+                                ${document.body.clientWidth < 800 ? `
+                             <button class="fw-500 btn-black btn-sm" style="width: 56px;height:100%;display: inline-flex;
+justify-content: center;
+align-items: center;
+
+border-radius: 5px;
+border:none;
+color:white;" onclick="${gvc.event(() => {
+                glitter.htmlGenerate.saveEvent();
+            })}">儲存</button>
+                             ` : ` <button
                                         class=" btn ms-2  ${glitter.getUrlParameter('editorPosition') === '2' ? `d-none` : ``}"
                                         style="height: 42px;display: inline-flex;
 padding: 10px 22px 10px 23px;
@@ -548,7 +561,8 @@ color:white;
             })}"
                                 >
                                     儲存
-                                </button>
+                                </button>`}
+                               
                             </div>
                             ${(() => {
                 if (Storage.select_function === 'backend-manger') {

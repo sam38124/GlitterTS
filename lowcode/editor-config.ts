@@ -99,7 +99,7 @@ export class EditorConfig {
         // 計算兩個日期的毫秒數之差
         let differenceInTime = new Date(plan.dead_line).getTime()  - new Date().getTime();
         // 將毫秒數轉換為天數
-        let differenceInDays = differenceInTime / (1000 * 3600 * 24);
+        let differenceInDays:any = (differenceInTime / (1000 * 3600 * 24)).toFixed(0);
         if (plan.plan === 'free' && differenceInDays>1) {
             text = `<span style="color: white; font-size: 16px; font-family: Noto Sans; font-weight: 700;" class="me-3">方案提醒：當前為免費試用方案，立即升級方案，享受全方位支援服務。</span>${paymentBtn}`
         } else if ((new Date(plan.dead_line).getTime() < new Date().getTime())) {

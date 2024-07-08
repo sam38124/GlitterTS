@@ -126,7 +126,7 @@ export class Chat {
 }
 
 function getConfig() {
-    const saasConfig: { config: any; api: any } = (window as any).saasConfig;
+    const saasConfig: { config: any; api: any } = (window as any).parent.saasConfig;
     return saasConfig
 }
 

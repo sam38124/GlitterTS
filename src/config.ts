@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 
 export class ConfigSetting {
 
+    public static is_local=false
     public static runSchedule=true
     public static config_path = '';
 

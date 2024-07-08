@@ -78,7 +78,7 @@ export class AddPage {
 
             <div id="addPageView"
                  class="position-fixed left-0 top-0 h-100 bg-white shadow-lg "
-                 style="width:350px;z-index: 99999;left: -100%;">
+                 style="width:350px;z-index: 99999;left: -120%;">
                 ${AddPage.view(gvc)}
             </div>`;
     }

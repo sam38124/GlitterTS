@@ -266,7 +266,13 @@ body {
     color: var(--ed-item-primary);
     background-color: transparent;
 }
+.hover-underline {
+    text-decoration: none;
+}
 
+.hover-underline:hover {
+    text-decoration: underline;
+}
 .bgf6 {
     background: #f6f6f6;
 }

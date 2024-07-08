@@ -273,6 +273,7 @@ export class AddComponent {
 
     public static toggle(visible: boolean) {
         if (visible) {
+            (window as any).glitter.closeDrawer()
             AddComponent.refresh();
             AddComponent.closeEvent = () => {};
             AddComponent.addWidget = (gvc: GVC, cf: any) => {
@@ -332,7 +333,7 @@ export class AddComponent {
                     AddComponent.toggle(false);
                 })}"
             ></div>
-            <div id="addComponentView" class="position-fixed left-0 top-0 h-100 bg-white shadow-lg " style="width:400px;z-index: 99999;left: -100%;">${AddComponent.view(gvc)}</div>`;
+            <div id="addComponentView" class="position-fixed left-0 top-0 h-100 bg-white shadow-lg " style="width:${document.body.clientWidth < 800 ? `100vw`:`400px`};z-index: 99999;left: -100%;">${AddComponent.view(gvc)}</div>`;
     }
 
     public static async addModuleView(

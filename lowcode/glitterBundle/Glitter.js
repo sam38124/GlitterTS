@@ -732,7 +732,12 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
     }
     setDrawer(src, callback) {
         const gliter = this;
-        $("#Navigation").hide();
+        if (window.drawer && window.drawer.opened) {
+            $("#Navigation").show();
+        }
+        else {
+            $("#Navigation").hide();
+        }
         if (window.drawer === undefined) {
             gliter.addMtScript([new URL('./plugins/NaviGation.js', import.meta.url)], () => {
                 callback();
