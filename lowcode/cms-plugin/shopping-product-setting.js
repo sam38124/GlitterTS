@@ -1191,7 +1191,7 @@ export class ShoppingProductSetting {
                                                     postMD.specs.push(temp);
                                                     createPage.page = 'add';
                                                     updateVariants();
-                                                    gvc.notifyDataChange([specid]);
+                                                    gvc.notifyDataChange([vm.id]);
                                                 },
                                             })}
                                                                         </div>

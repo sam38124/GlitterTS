@@ -44,30 +44,30 @@ export class CustomerMessageUser {
                         const chatView = () => {
                             return `<div class="${(cf.type === 'preview') ? `w-100 h-100 shadow-lg` : `position-fixed  rounded-3 shadow-lg`}" style="${gvc.glitter.ut.frSize({
                                 sm: (cf.type === 'preview') ? css `
-                              width: 100%;
-                              height: 100%;
-                              z-index: 99999;
-                              overflow: hidden;
-                              background: white;
-                                padding-bottom: 70px;
-                            ` : css `
-                              width: 376px;
-                              height: 756px;
-                              bottom: 90px;
-                              left: 20px;
-                              z-index: 99999;
-                              overflow: hidden;
-                              background: white;
-                            `,
+                                      width: 100%;
+                                      height: 100%;
+                                      z-index: 99999;
+                                      overflow: hidden;
+                                      background: white;
+                                      padding-bottom: 70px;
+                                    ` : css `
+                                      width: 376px;
+                                      height: 756px;
+                                      bottom: 90px;
+                                      left: 20px;
+                                      z-index: 99999;
+                                      overflow: hidden;
+                                      background: white;
+                                    `,
                             }, css `
-                          width: 100%;
-                          height: 100%;
-                          bottom: 0px;
-                          left: 0px;
-                          z-index: 99999;
-                          overflow-y: auto;
-                          background: white;
-                        `)}">${CustomerMessageUser.detail({
+                                  width: 100%;
+                                  height: 100%;
+                                  bottom: 0px;
+                                  left: 0px;
+                                  z-index: 99999;
+                                  overflow-y: auto;
+                                  background: white;
+                                `)}">${CustomerMessageUser.detail({
                                 gvc: gvc,
                                 chat: {
                                     chat_id: chatID,
@@ -93,30 +93,30 @@ export class CustomerMessageUser {
                         const roBotView = () => {
                             return `<div class="${(cf.type === 'preview') ? `position-relative` : `position-fixed `} rounded-3 shadow-lg " style="${gvc.glitter.ut.frSize({
                                 sm: (cf.type === 'preview') ? css `
-                              width: 100%;
-                              height: 100%;
-                              z-index: 99999;
-                              overflow: hidden;
-                              background: white;
-                            ` : css `
-                              width: 376px;
-                              height: 756px;
-                              bottom: 90px;
-                              left: 20px;
-                              z-index: 99999;
-                              overflow: hidden;
-                              background: white;
-                            `,
+                                      width: 100%;
+                                      height: 100%;
+                                      z-index: 99999;
+                                      overflow: hidden;
+                                      background: white;
+                                    ` : css `
+                                      width: 376px;
+                                      height: 756px;
+                                      bottom: 90px;
+                                      left: 20px;
+                                      z-index: 99999;
+                                      overflow: hidden;
+                                      background: white;
+                                    `,
                             }, css `
-                          width: 100%;
-                          height: ${window.innerHeight}px;
-                          top: 0px;
-                          left: 0px;
-                          z-index: 99999;
-                         overflow-y: auto;
-                          background: white;
-                            
-                        `)}">${CustomerMessageUser.robotMessage(gvc, (text) => __awaiter(this, void 0, void 0, function* () {
+                                  width: 100%;
+                                  height: ${window.innerHeight}px;
+                                  top: 0px;
+                                  left: 0px;
+                                  z-index: 99999;
+                                  overflow-y: auto;
+                                  background: white;
+
+                                `)}">${CustomerMessageUser.robotMessage(gvc, (text) => __awaiter(this, void 0, void 0, function* () {
                                 vm.viewType = 'message';
                                 if (text) {
                                     yield Chat.postMessage({
@@ -134,20 +134,20 @@ export class CustomerMessageUser {
                         const baseUrl = new URL('../', import.meta.url);
                         const chatBtID = id;
                         gvc.addStyle(css `
-                      .btn-white-primary {
-                        border: 2px solid ${CustomerMessageUser.config.color};
-                        justify-content: space-between;
-                        align-items: center;
-                        cursor: pointer;
-                        color: ${CustomerMessageUser.config.color};
-                        gap: 10px;
-                      }
+                          .btn-white-primary {
+                            border: 2px solid ${CustomerMessageUser.config.color};
+                            justify-content: space-between;
+                            align-items: center;
+                            cursor: pointer;
+                            color: ${CustomerMessageUser.config.color};
+                            gap: 10px;
+                          }
 
-                      .btn-white-primary:hover {
-                        background: ${CustomerMessageUser.config.color};
-                        color: white !important;
-                      }
-                    `);
+                          .btn-white-primary:hover {
+                            background: ${CustomerMessageUser.config.color};
+                            color: white !important;
+                          }
+                        `);
                         resolve(gvc.bindView(() => {
                             return {
                                 bind: viewId,
@@ -175,6 +175,55 @@ export class CustomerMessageUser {
                                             ${gvc.bindView(() => {
                                         const id = gvc.glitter.getUUID();
                                         let unread = 0;
+                                        function checkUnread() {
+                                            Chat.getUnRead({ user_id: cf.userID }).then((data) => {
+                                                if (unread !== data.response.length) {
+                                                    unread = data.response.length;
+                                                    gvc.notifyDataChange(id);
+                                                }
+                                            });
+                                        }
+                                        let socket = undefined;
+                                        const url = new URL(window.glitterBackend);
+                                        let vm = {
+                                            close: false
+                                        };
+                                        function connect() {
+                                            if (gvc.glitter.share.message_change_close_socket) {
+                                                gvc.glitter.share.message_change_close_socket();
+                                            }
+                                            socket = (location.href.includes('https://')) ? new WebSocket(`wss://${url.hostname}/websocket`) : new WebSocket(`ws://${url.hostname}:9003`);
+                                            gvc.glitter.share.message_change_close_socket = () => {
+                                                vm.close = true;
+                                                socket.close();
+                                                gvc.glitter.share.message_change_close_socket = undefined;
+                                            };
+                                            gvc.glitter.share.message_change_socket = socket;
+                                            socket.addEventListener('open', function (event) {
+                                                console.log('Connected to server');
+                                                socket.send(JSON.stringify({
+                                                    type: 'message-count-change',
+                                                    user_id: cf.userID
+                                                }));
+                                            });
+                                            socket.addEventListener('message', function (event) {
+                                                return __awaiter(this, void 0, void 0, function* () {
+                                                    const data = JSON.parse(event.data);
+                                                    if (data.type === 'update_message_count') {
+                                                        checkUnread();
+                                                    }
+                                                });
+                                            });
+                                            socket.addEventListener('close', function (event) {
+                                                console.log('Disconnected from server');
+                                                if (!vm.close) {
+                                                    console.log('Reconnected from server');
+                                                    connect();
+                                                }
+                                            });
+                                        }
+                                        connect();
+                                        checkUnread();
                                         return {
                                             bind: id,
                                             view: () => {
@@ -186,22 +235,6 @@ export class CustomerMessageUser {
                                                 }
                                             },
                                             onCreate: () => {
-                                                function loop() {
-                                                    setTimeout(() => {
-                                                        Chat.getUnRead({ user_id: cf.userID }).then((data) => {
-                                                            if (unread !== data.response.length) {
-                                                                unread = data.response.length;
-                                                                if (document.querySelector('#' + chatBtID)) {
-                                                                    gvc.notifyDataChange(id);
-                                                                }
-                                                            }
-                                                            else {
-                                                                loop();
-                                                            }
-                                                        });
-                                                    }, 2000);
-                                                }
-                                                loop();
                                             },
                                         };
                                     })}
@@ -256,20 +289,20 @@ export class CustomerMessageUser {
                         };
                         CustomerMessageUser.config = config;
                         gvc.addStyle(css `
-                      .btn-white-primary {
-                        border: 2px solid ${CustomerMessageUser.config.color};
-                        justify-content: space-between;
-                        align-items: center;
-                        cursor: pointer;
-                        color: ${CustomerMessageUser.config.color};
-                        gap: 10px;
-                      }
+                          .btn-white-primary {
+                            border: 2px solid ${CustomerMessageUser.config.color};
+                            justify-content: space-between;
+                            align-items: center;
+                            cursor: pointer;
+                            color: ${CustomerMessageUser.config.color};
+                            gap: 10px;
+                          }
 
-                      .btn-white-primary:hover {
-                        background: ${CustomerMessageUser.config.color};
-                        color: white !important;
-                      }
-                    `);
+                          .btn-white-primary:hover {
+                            background: ${CustomerMessageUser.config.color};
+                            color: white !important;
+                          }
+                        `);
                         resolve([
                             gvc.bindView(() => {
                                 const id = gvc.glitter.getUUID();
@@ -410,67 +443,67 @@ export class CustomerMessageUser {
                                                         }
                                                         if (cf.user_id !== dd.user_id) {
                                                             return html `
-                                                                    <div
-                                                                            class="mt-auto d-flex align-items-start ${vm.data[index + 1] && vm.data[index + 1].user_id === dd.user_id ? `mb-1` : `mb-3`}"
-                                                                    >
-                                                                        <img
-                                                                                src="${(dd.user_data && dd.user_data.head) || `https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1704269678588-43.png`}"
-                                                                                class="rounded-circle border"
-                                                                                width="40"
-                                                                                alt="Albert Flores"
-                                                                        />
-                                                                        <div class="ps-2 ms-1"
-                                                                             style="max-width: 348px;">
-                                                                            <div
-                                                                                    class="p-3 mb-1"
-                                                                                    style="background:#eeeef1;border-top-right-radius: .5rem; border-bottom-right-radius: .5rem; border-bottom-left-radius: .5rem;white-space: normal;"
-                                                                            >
-                                                                                ${dd.message.text.replace(/\n/g, '<br>')}
+                                                                        <div
+                                                                                class="mt-auto d-flex align-items-start ${vm.data[index + 1] && vm.data[index + 1].user_id === dd.user_id ? `mb-1` : `mb-3`}"
+                                                                        >
+                                                                            <img
+                                                                                    src="${(dd.user_data && dd.user_data.head) || `https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1704269678588-43.png`}"
+                                                                                    class="rounded-circle border"
+                                                                                    width="40"
+                                                                                    alt="Albert Flores"
+                                                                            />
+                                                                            <div class="ps-2 ms-1"
+                                                                                 style="max-width: 348px;">
+                                                                                <div
+                                                                                        class="p-3 mb-1"
+                                                                                        style="background:#eeeef1;border-top-right-radius: .5rem; border-bottom-right-radius: .5rem; border-bottom-left-radius: .5rem;white-space: normal;"
+                                                                                >
+                                                                                    ${dd.message.text.replace(/\n/g, '<br>')}
+                                                                                </div>
+                                                                                <div class="fs-sm text-muted ${vm.data[index + 1] && vm.data[index + 1].user_id === dd.user_id ? `d-none` : ``}">
+                                                                                    ${gvc.glitter.ut.dateFormat(new Date(dd.created_time), 'MM-dd hh:mm')}
+                                                                                </div>
                                                                             </div>
-                                                                            <div class="fs-sm text-muted ${vm.data[index + 1] && vm.data[index + 1].user_id === dd.user_id ? `d-none` : ``}">
-                                                                                ${gvc.glitter.ut.dateFormat(new Date(dd.created_time), 'MM-dd hh:mm')}
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>`;
+                                                                        </div>`;
                                                         }
                                                         else {
                                                             return html `
-                                                                    <div
-                                                                            class="d-flex align-items-start justify-content-end ${vm.data[index + 1] && vm.data[index + 1].user_id === dd.user_id
+                                                                        <div
+                                                                                class="d-flex align-items-start justify-content-end ${vm.data[index + 1] && vm.data[index + 1].user_id === dd.user_id
                                                                 ? `mb-1`
                                                                 : `mb-3`}"
-                                                                    >
-                                                                        <div class="pe-2 me-1"
-                                                                             style="max-width: 348px;">
-                                                                            <div
-                                                                                    class=" text-light p-3 mb-1"
-                                                                                    style="background:${CustomerMessageUser.config
+                                                                        >
+                                                                            <div class="pe-2 me-1"
+                                                                                 style="max-width: 348px;">
+                                                                                <div
+                                                                                        class=" text-light p-3 mb-1"
+                                                                                        style="background:${CustomerMessageUser.config
                                                                 .color};border-top-left-radius: .5rem; border-bottom-right-radius: .5rem; border-bottom-left-radius: .5rem;white-space: normal;"
-                                                                            >
-                                                                                ${dd.message.text.replace(/\n/g, '<br>')}
-                                                                            </div>
-                                                                            <div
-                                                                                    class="fw-500 d-flex justify-content-end align-items-center fs-sm text-muted ${vm.data[index + 1] &&
+                                                                                >
+                                                                                    ${dd.message.text.replace(/\n/g, '<br>')}
+                                                                                </div>
+                                                                                <div
+                                                                                        class="fw-500 d-flex justify-content-end align-items-center fs-sm text-muted ${vm.data[index + 1] &&
                                                                 vm.data[index + 1].user_id === dd.user_id
                                                                 ? `d-none`
                                                                 : ``}"
-                                                                                    style="gap:5px;"
-                                                                            >
-                                                                                <span> ${gvc.glitter.ut.dateFormat(new Date(dd.created_time), 'MM/dd hh:mm')}</span>
-                                                                                ${vm.last_read.find((d2) => {
+                                                                                        style="gap:5px;"
+                                                                                >
+                                                                                    <span> ${gvc.glitter.ut.dateFormat(new Date(dd.created_time), 'MM/dd hh:mm')}</span>
+                                                                                    ${vm.last_read.find((d2) => {
                                                                 return d2.user_id !== cf.user_id && new Date(d2.last_read).getTime() >= new Date(dd.created_time).getTime();
                                                             })
                                                                 ? `已讀`
                                                                 : ``}
+                                                                                </div>
                                                                             </div>
-                                                                        </div>
-                                                                        <img
-                                                                                src="${(dd.user_data && dd.user_data.head) || `https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1704269678588-43.png`}"
-                                                                                class="rounded-circle border"
-                                                                                width="40"
-                                                                                alt="Albert Flores"
-                                                                        />
-                                                                    </div>`;
+                                                                            <img
+                                                                                    src="${(dd.user_data && dd.user_data.head) || `https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1704269678588-43.png`}"
+                                                                                    class="rounded-circle border"
+                                                                                    width="40"
+                                                                                    alt="Albert Flores"
+                                                                            />
+                                                                        </div>`;
                                                         }
                                                     })
                                                         .join('')}
@@ -521,11 +554,11 @@ export class CustomerMessageUser {
                                                 },
                                             };
                                         })}
-                                    <div class="card-footer border-top d-flex align-items-center w-100 border-0 pt-3 pb-3 px-4 position-fixed bottom-0 position-lg-absolute"
-                                            style="background: white;"
-                                    >
-                                        <div class="position-relative w-100 me-2 ">
-                                            ${gvc.bindView(() => {
+                                        <div class="card-footer border-top d-flex align-items-center w-100 border-0 pt-3 pb-3 px-4 position-fixed bottom-0 position-lg-absolute"
+                                             style="background: white;"
+                                        >
+                                            <div class="position-relative w-100 me-2 ">
+                                                ${gvc.bindView(() => {
                                             return {
                                                 bind: textAreaId,
                                                 view: () => {
@@ -556,12 +589,12 @@ export class CustomerMessageUser {
                                                 },
                                             };
                                         })}
-                                        </div>
-                                        <button
-                                                type="button"
-                                                class="btn btn-icon btn-lg  d-sm-inline-flex ms-1"
-                                                style="height: 36px;background: ${CustomerMessageUser.config.color};"
-                                                onclick="${gvc.event(() => {
+                                            </div>
+                                            <button
+                                                    type="button"
+                                                    class="btn btn-icon btn-lg  d-sm-inline-flex ms-1"
+                                                    style="height: 36px;background: ${CustomerMessageUser.config.color};"
+                                                    onclick="${gvc.event(() => {
                                             if (vm.message) {
                                                 Chat.postMessage({
                                                     chat_id: cf.chat.chat_id,
@@ -580,10 +613,10 @@ export class CustomerMessageUser {
                                             else {
                                             }
                                         })}"
-                                        >
-                                            <i class="fa-regular fa-paper-plane-top"></i>
-                                        </button>
-                                    </div>`;
+                                            >
+                                                <i class="fa-regular fa-paper-plane-top"></i>
+                                            </button>
+                                        </div>`;
                                     },
                                     divCreate: {},
                                     onCreate: () => {

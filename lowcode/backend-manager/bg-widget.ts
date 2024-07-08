@@ -1549,7 +1549,7 @@ ${obj.default ?? ''}</textarea
         }
         return html` <div class="w-100 alert  alert-secondary p-3 mb-0" style="">
             <div class="fs-5 mb-0"><strong>${title}</strong></div>
-            <div class="mt-2">${h}</div>
+            ${(messageList && messageList.length > 0) ? `<div class="mt-2">${h}</div>`:``}
         </div>`;
     }
 

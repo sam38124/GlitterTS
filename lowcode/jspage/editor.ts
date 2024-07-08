@@ -16,6 +16,7 @@ import {SaasViewModel} from '../view-model/saas-view-model.js';
 import {ApiUser} from "../glitter-base/route/user.js";
 import {GlobalUser} from "../glitter-base/global/global-user.js";
 import {BgWidget} from "../backend-manager/bg-widget.js";
+import {TriggerEvent} from "../glitterBundle/plugins/trigger-event.js";
 
 export enum ViewType {
     mobile = 'mobile',
@@ -604,6 +605,7 @@ color:white;
                                                                 unread = (await ApiUser.getNoticeUnread((window as any).glitterBase, GlobalUser.saas_token)).response.count;
                                                                 gvc.notifyDataChange(notice_count)
                                                             }, 3000)
+                                                       
                                                             return {
                                                                 bind: id,
                                                                 view: () => {
