@@ -11,6 +11,7 @@ import {Storage} from '../glitterBundle/helper/storage.js';
 import {BaseApi} from '../glitterBundle/api/base.js';
 import {ApiShop} from "../glitter-base/route/shopping.js";
 import {BgProduct, OptionsItem} from "./bg-product.js";
+import {response} from "express";
 
 interface MenuItem {
     link: string;
@@ -655,30 +656,30 @@ function editor(cf: { gvc: GVC; vm: any; is_page: boolean; widget: any }) {
                                                                                 }),
                                                                                 `<div class="tx_normal fw-normal mb-2">自訂網址</div>`,
                                                                                 html`
-                                                                                                <div style="  justify-content: flex-start; align-items: center; gap: 18px; display: inline-flex;border:1px solid #EAEAEA;border-radius: 10px;overflow: hidden;"
-                                                                                                     class="w-100">
-                                                                                                    <div style="padding: 9px 18px;background: #EAEAEA; justify-content: center; align-items: center; gap: 5px; display: flex">
-                                                                                                        <div style="text-align: right; color: #393939; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word">
-                                                                                                            ${(() => {
-                                                                                    return `https://${(window.parent as any).glitter.share.editorViewModel.domain}/${(cf.is_page) ? `pages` : `blogs`}/`
-                                                                                })()}
-                                                                                                        </div>
-                                                                                                    </div>
-                                                                                                    <input class=""
-                                                                                                           style="border:none;background:none;text-align: start; color: #393939; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word"
-                                                                                                           value="${vm.data.content.tag || ''}"
-                                                                                                           onchange="${gvc.event((e) => {
-                                                                                    let text = e.value
-                                                                                    const regex = /^[a-zA-Z0-9-]+$/;
-                                                                                    if (!regex.test(text)) {
-                                                                                        alert('僅能輸入英文或數字與連接號')
-                                                                                        gvc.notifyDataChange(id);
-                                                                                    } else {
-                                                                                        vm.data.content.tag = text;
-                                                                                        gvc.notifyDataChange(id);
-                                                                                    }
-                                                                                })}">
-                                                                                                </div>`,
+                                                                                    <div style="  justify-content: flex-start; align-items: center; gap: 18px; display: inline-flex;border:1px solid #EAEAEA;border-radius: 10px;overflow: hidden;"
+                                                                                         class="w-100">
+                                                                                        <div style="padding: 9px 18px;background: #EAEAEA; justify-content: center; align-items: center; gap: 5px; display: flex">
+                                                                                            <div style="text-align: right; color: #393939; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word">
+                                                                                                ${(() => {
+                                                                                                    return `https://${(window.parent as any).glitter.share.editorViewModel.domain}/${(cf.is_page) ? `pages` : `blogs`}/`
+                                                                                                })()}
+                                                                                            </div>
+                                                                                        </div>
+                                                                                        <input class=""
+                                                                                               style="border:none;background:none;text-align: start; color: #393939; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word"
+                                                                                               value="${vm.data.content.tag || ''}"
+                                                                                               onchange="${gvc.event((e) => {
+                                                                                                   let text = e.value
+                                                                                                   const regex = /^[a-zA-Z0-9-]+$/;
+                                                                                                   if (!regex.test(text)) {
+                                                                                                       alert('僅能輸入英文或數字與連接號')
+                                                                                                       gvc.notifyDataChange(id);
+                                                                                                   } else {
+                                                                                                       vm.data.content.tag = text;
+                                                                                                       gvc.notifyDataChange(id);
+                                                                                                   }
+                                                                                               })}">
+                                                                                    </div>`,
                                                                                 `<div style="height:18px;"></div>`,
                                                                                 ///是否顯示SEO列表
                                                                                 ...(() => {
@@ -1024,38 +1025,36 @@ function editor(cf: { gvc: GVC; vm: any; is_page: boolean; widget: any }) {
                                                     (() => {
                                                         vm.data.content.relative = vm.data.content.relative || "collection"
                                                         vm.data.content.relative_data = vm.data.content.relative_data || []
+                                                        vm.data.content.with_discount = vm.data.content.with_discount || "false"
                                                         const productForList = [
-                                                            {title: '所有商品', value: 'all'},
                                                             {title: '商品系列', value: 'collection'},
                                                             {title: '單一商品', value: 'product'},
                                                         ];
-                                                     
-                                                        return  gvc.bindView(()=>{
-                                                            const id=gvc.glitter.getUUID()
+
+                                                        return gvc.bindView(() => {
+                                                            const id = gvc.glitter.getUUID()
                                                             return {
-                                                                bind:id,
-                                                                view:()=>{
+                                                                bind: id,
+                                                                view: () => {
                                                                     ///顯示套用的賣場商品列表
                                                                     if (vm.data.content.page_type === 'hidden' || vm.data.content.page_type === 'shopping') {
                                                                         return [
                                                                             BgWidget.mainCard([
                                                                                 BgWidget.title_16('賣場商品'),
                                                                                 `<div style="height: 10px;"></div>`,
-                                                                                BgWidget.alertInfo('僅有以下設定的賣場商品會套用至折扣'),
-                                                                                `<div style="height: 10px;"></div>`,
                                                                                 html`
-                                                                        ${EditorElem.radio({
-                                                                                    gvc: gvc,
-                                                                                    title: '',
-                                                                                    def: vm.data.content.relative,
-                                                                                    array: productForList,
-                                                                                    callback: (text) => {
-                                                                                        vm.data.content.relative = text as 'collection' | 'product' | 'all';
-                                                                                        gvc.notifyDataChange(id);
-                                                                                    },
-                                                                                    oneLine: true,
-                                                                                })}
-                                                                    `,
+                                                                                    ${EditorElem.radio({
+                                                                                        gvc: gvc,
+                                                                                        title: '',
+                                                                                        def: vm.data.content.relative,
+                                                                                        array: productForList,
+                                                                                        callback: (text) => {
+                                                                                            vm.data.content.relative = text as 'collection' | 'product' | 'all';
+                                                                                            gvc.notifyDataChange(id);
+                                                                                        },
+                                                                                        oneLine: true,
+                                                                                    })}
+                                                                                `,
                                                                                 html`${(() => {
                                                                                     switch (vm.data.content.relative) {
                                                                                         case 'collection':
@@ -1072,45 +1071,45 @@ function editor(cf: { gvc: GVC; vm: any; is_page: boolean; widget: any }) {
                                                                                                             return BgWidget.spinner();
                                                                                                         }
                                                                                                         return html`
-                                                                                                <div class="d-flex flex-column p-2"
-                                                                                                     style="gap: 18px;">
-                                                                                                    <div class="d-flex align-items-center gray-bottom-line-18"
-                                                                                                         style="gap: 24px; justify-content: space-between;">
-                                                                                                        <div class="form-check-label c_updown_label">
-                                                                                                            <div class="tx_normal">
-                                                                                                                系列列表
-                                                                                                            </div>
-                                                                                                        </div>
-                                                                                                        ${BgWidget.grayButton(
-                                                                                                                '選擇系列',
-                                                                                                                gvc.event(() => {
-                                                                                                                    BgProduct.collectionsDialog({
-                                                                                                                        gvc: gvc,
-                                                                                                                        default: vm.data.content.relative_data,
-                                                                                                                        callback: async (value) => {
-                                                                                                                            vm.data.content.relative_data = value;
-                                                                                                                            subVM.dataList = await BgProduct.getCollectiosOpts(value);
-                                                                                                                            subVM.loading = true;
-                                                                                                                            gvc.notifyDataChange(subVM.id);
-                                                                                                                        },
-                                                                                                                    });
-                                                                                                                }),
-                                                                                                                {textStyle: 'font-weight: 400;'}
-                                                                                                        )}
-                                                                                                    </div>
-                                                                                                    ${gvc.map(
-                                                                                                                subVM.dataList.map((opt: OptionsItem, index) => {
-                                                                                                                    return html`
-                                                                                                                    <div class="d-flex align-items-center form-check-label c_updown_label gap-3">
+                                                                                                            <div class="d-flex flex-column p-2"
+                                                                                                                 style="gap: 18px;">
+                                                                                                                <div class="d-flex align-items-center gray-bottom-line-18"
+                                                                                                                     style="gap: 24px; justify-content: space-between;">
+                                                                                                                    <div class="form-check-label c_updown_label">
+                                                                                                                        <div class="tx_normal">
+                                                                                                                            系列列表
+                                                                                                                        </div>
+                                                                                                                    </div>
+                                                                                                                    ${BgWidget.grayButton(
+                                                                                                                            '選擇系列',
+                                                                                                                            gvc.event(() => {
+                                                                                                                                BgProduct.collectionsDialog({
+                                                                                                                                    gvc: gvc,
+                                                                                                                                    default: vm.data.content.relative_data,
+                                                                                                                                    callback: async (value) => {
+                                                                                                                                        vm.data.content.relative_data = value;
+                                                                                                                                        subVM.dataList = await BgProduct.getCollectiosOpts(value);
+                                                                                                                                        subVM.loading = true;
+                                                                                                                                        gvc.notifyDataChange(subVM.id);
+                                                                                                                                    },
+                                                                                                                                });
+                                                                                                                            }),
+                                                                                                                            {textStyle: 'font-weight: 400;'}
+                                                                                                                    )}
+                                                                                                                </div>
+                                                                                                                ${gvc.map(
+                                                                                                                        subVM.dataList.map((opt: OptionsItem, index) => {
+                                                                                                                            return html`
+                                                                                                                                <div class="d-flex align-items-center form-check-label c_updown_label gap-3">
                                                                                                                         <span class="tx_normal">${index + 1}
                                                                                                                             . ${opt.value}</span>
-                                                                                                                        ${opt.note ? html`
-                                                                                                                            <span class="tx_gray_12 ms-2">${opt.note}</span> ` : ''}
-                                                                                                                    </div>`;
-                                                                                                                })
-                                                                                                        )}
-                                                                                                </div>
-                                                                                            `;
+                                                                                                                                    ${opt.note ? html`
+                                                                                                                                        <span class="tx_gray_12 ms-2">${opt.note}</span> ` : ''}
+                                                                                                                                </div>`;
+                                                                                                                        })
+                                                                                                                )}
+                                                                                                            </div>
+                                                                                                        `;
                                                                                                     },
                                                                                                     onCreate: () => {
                                                                                                         if (subVM.loading) {
@@ -1147,40 +1146,40 @@ function editor(cf: { gvc: GVC; vm: any; is_page: boolean; widget: any }) {
                                                                                                             return BgWidget.spinner();
                                                                                                         }
                                                                                                         return html`
-                                                                                                <div class="d-flex flex-column p-2"
-                                                                                                     style="gap: 18px;">
-                                                                                                    <div class="d-flex align-items-center gray-bottom-line-18"
-                                                                                                         style="gap: 24px; justify-content: space-between;">
-                                                                                                        <div class="form-check-label c_updown_label">
-                                                                                                            <div class="tx_normal">
-                                                                                                                產品列表
-                                                                                                            </div>
-                                                                                                        </div>
-                                                                                                        ${BgWidget.grayButton(
-                                                                                                                '選擇商品',
-                                                                                                                gvc.event(() => {
-                                                                                                                    BgProduct.productsDialog({
-                                                                                                                        gvc: gvc,
-                                                                                                                        default: vm.data.content.relative_data ?? [],
-                                                                                                                        callback: async (value) => {
-                                                                                                                            vm.data.content.relative_data = value;
-                                                                                                                            subVM.dataList = await BgProduct.getProductOpts(vm.data.content.relative_data);
-                                                                                                                            subVM.loading = true;
-                                                                                                                            gvc.notifyDataChange(subVM.id);
-                                                                                                                        },
-                                                                                                                    });
-                                                                                                                }),
-                                                                                                                {textStyle: 'font-weight: 400;'}
-                                                                                                        )}
-                                                                                                    </div>
-                                                                                                    ${gvc.map(
-                                                                                                                subVM.dataList.map((opt: OptionsItem, index) => {
-                                                                                                                    return html`
-                                                                                                                    <div class="d-flex align-items-center form-check-label c_updown_label gap-3">
+                                                                                                            <div class="d-flex flex-column p-2"
+                                                                                                                 style="gap: 18px;">
+                                                                                                                <div class="d-flex align-items-center gray-bottom-line-18"
+                                                                                                                     style="gap: 24px; justify-content: space-between;">
+                                                                                                                    <div class="form-check-label c_updown_label">
+                                                                                                                        <div class="tx_normal">
+                                                                                                                            產品列表
+                                                                                                                        </div>
+                                                                                                                    </div>
+                                                                                                                    ${BgWidget.grayButton(
+                                                                                                                            '選擇商品',
+                                                                                                                            gvc.event(() => {
+                                                                                                                                BgProduct.productsDialog({
+                                                                                                                                    gvc: gvc,
+                                                                                                                                    default: vm.data.content.relative_data ?? [],
+                                                                                                                                    callback: async (value) => {
+                                                                                                                                        vm.data.content.relative_data = value;
+                                                                                                                                        subVM.dataList = await BgProduct.getProductOpts(vm.data.content.relative_data);
+                                                                                                                                        subVM.loading = true;
+                                                                                                                                        gvc.notifyDataChange(subVM.id);
+                                                                                                                                    },
+                                                                                                                                });
+                                                                                                                            }),
+                                                                                                                            {textStyle: 'font-weight: 400;'}
+                                                                                                                    )}
+                                                                                                                </div>
+                                                                                                                ${gvc.map(
+                                                                                                                        subVM.dataList.map((opt: OptionsItem, index) => {
+                                                                                                                            return html`
+                                                                                                                                <div class="d-flex align-items-center form-check-label c_updown_label gap-3">
                                                                                                                         <span class="tx_normal">${index + 1}
                                                                                                                             .</span>
-                                                                                                                        <div
-                                                                                                                                style="
+                                                                                                                                    <div
+                                                                                                                                            style="
                                                                                                     width: 40px;
                                                                                                     height: 40px;
                                                                                                     border-radius: 5px;
@@ -1189,19 +1188,19 @@ function editor(cf: { gvc: GVC; vm: any; is_page: boolean; widget: any }) {
                                                                                                     background-position: center center;
                                                                                                     background-size: contain;
                                                                                                 "
-                                                                                                                        ></div>
-                                                                                                                        <div class="tx_normal ${opt.note ? 'mb-1' : ''}">
-                                                                                                                            ${opt.value}
-                                                                                                                        </div>
-                                                                                                                        ${opt.note ? html`
-                                                                                                                            <div class="tx_gray_12">
-                                                                                                                                ${opt.note}
-                                                                                                                            </div> ` : ''}
-                                                                                                                    </div>`;
-                                                                                                                })
-                                                                                                        )}
-                                                                                                </div>
-                                                                                            `;
+                                                                                                                                    ></div>
+                                                                                                                                    <div class="tx_normal ${opt.note ? 'mb-1' : ''}">
+                                                                                                                                        ${opt.value}
+                                                                                                                                    </div>
+                                                                                                                                    ${opt.note ? html`
+                                                                                                                                        <div class="tx_gray_12">
+                                                                                                                                            ${opt.note}
+                                                                                                                                        </div> ` : ''}
+                                                                                                                                </div>`;
+                                                                                                                        })
+                                                                                                                )}
+                                                                                                            </div>
+                                                                                                        `;
                                                                                                     },
                                                                                                     onCreate: () => {
                                                                                                         if (subVM.loading) {
@@ -1229,18 +1228,84 @@ function editor(cf: { gvc: GVC; vm: any; is_page: boolean; widget: any }) {
                                                                                             return '';
                                                                                     }
                                                                                 })()}`,
+                                                                            ].join('')),
+                                                                                `<div style="height: 15px;"></div>`,
+                                                                            BgWidget.mainCard([
+                                                                                BgWidget.title_16('優惠折扣'),
+                                                                                `<div style="height: 18px;"></div>`,
+                                                                                html`
+                                                                                    ${BgWidget.columnCheckBox({
+                                                                                        gvc: gvc,
+                                                                                        def: vm.data.content.with_discount,
+                                                                                        array: [
+                                                                                            {
+                                                                                                title: '不套用折扣',
+                                                                                                value: 'false',
+                                                                                                innerHtml: ``
+                                                                                            },
+                                                                                            {
+                                                                                                title: `套用折扣`,
+                                                                                                value: 'true',
+                                                                                                innerHtml: gvc.bindView(()=>{
+                                                                                                    const id=gvc.glitter.getUUID()
+                                                                                                   
+                                                                                                    return {
+                                                                                                        bind:id,
+                                                                                                        view:()=>{
+                                                                                                            return new Promise(async (resolve, reject)=>{
+                                                                                                                resolve([
+                                                                                                                    BgWidget.hint_title(`請至「優惠促銷」新增折扣，折扣方式必須勾選「供分銷連結使用」`),
+                                                                                                                    BgWidget.select({
+                                                                                                                        gvc:gvc,
+                                                                                                                        callback:(value)=>{
+                                                                                                                            if(value!=='unselect'){
+                                                                                                                                vm.data.content.voucher_code=value
+                                                                                                                            }
+                                                                                                                            gvc.notifyDataChange(id)
+                                                                                                                        },
+                                                                                                                        default:vm.data.content.voucher_code,
+                                                                                                                        options:  [{
+                                                                                                                            key:'unselect',
+                                                                                                                            value:'請選擇優惠券'
+                                                                                                                        }].concat(( await ApiShop.getVoucher({
+                                                                                                                            page: 0,
+                                                                                                                            limit: 20000,
+                                                                                                                            search: vm.query || undefined,
+                                                                                                                        })).response.data.filter((dd:any)=>{
+                                                                                                                            return dd.content.trigger==='distribution'
+                                                                                                                        }).map((dd:any)=>{
+                                                                                                                            return {
+                                                                                                                                value:dd.content.title,
+                                                                                                                                 key:`${dd.id}`
+                                                                                                                            }
+                                                                                                                        }))
+                                                                                                                    })
+                                                                                                                ].join('<div class="my-2"></div>'))
+                                                                                                            })
+                                                                                                        }
+                                                                                                    }
+                                                                                                })
+                                                                                            }
+                                                                                        ],
+                                                                                        callback: (text) => {
+                                                                                            vm.data.content.with_discount=text
+                                                                                        }
+                                                                                    })}
+                                                                                `,
+
                                                                             ].join(''))
                                                                         ].join('')
                                                                     } else {
                                                                         return [].join('')
                                                                     }
                                                                 },
-                                                                divCreate:{
-                                                                    class:`w-100 mt-2`
+                                                                divCreate: {
+                                                                    class: `w-100 mt-2`
                                                                 }
                                                             }
                                                         })
-                                                    })()}
+                                                    })()
+                                            }
                                         </div>
 
                                         ${BgWidget.container(
