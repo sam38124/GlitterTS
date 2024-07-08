@@ -73,7 +73,7 @@ export class ShoppingOrderManager {
 
         const vm: ViewModel = {
             id: glitter.getUUID(),
-            type: 'add',
+            type: 'list',
             data: {},
             dataList: undefined,
             query: '',

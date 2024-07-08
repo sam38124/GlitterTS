@@ -22,7 +22,7 @@ export class ShoppingOrderManager {
         const glitter = gvc.glitter;
         const vm = {
             id: glitter.getUUID(),
-            type: 'add',
+            type: 'list',
             data: {},
             dataList: undefined,
             query: '',
