@@ -125,6 +125,7 @@ export declare class Shopping {
             use_rebate: number;
             orderID: string;
             shipment_support: string[];
+            shipment_info: any;
             use_wallet: number;
             user_email: string;
             method: string;
@@ -134,6 +135,8 @@ export declare class Shopping {
                 condition?: number | undefined;
             } | undefined;
             voucherList?: VoucherData[] | undefined;
+            shipment_form_data: any;
+            shipment_form_format: any;
         };
         is_free?: undefined;
         off_line?: undefined;
@@ -309,6 +312,7 @@ export declare class Shopping {
         result: boolean;
         message?: undefined;
     }>;
+    checkVariantDataType(variants: any[]): void;
     postProduct(content: any): Promise<any>;
     putProduct(content: any): Promise<any>;
     deleteCollection(id_array: any): Promise<{

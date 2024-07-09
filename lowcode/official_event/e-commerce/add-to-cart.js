@@ -46,7 +46,8 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                             element: element
                         })) || 1;
                         ApiShop.addToCart(pdid, count);
-                        ApiShop.getCart().then((resolve) => { });
+                        ApiShop.getCart().then((resolve) => {
+                        });
                         resolve(pdid);
                     }));
                 },

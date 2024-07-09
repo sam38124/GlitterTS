@@ -73,6 +73,8 @@ export class ShoppingProductSetting {
                             return ShoppingProductSetting.editProduct({ vm: vm, gvc: gvc, type: 'add' });
                         case 'list':
                             const filterID = gvc.glitter.getUUID();
+                            vm.tableId=gvc.glitter.getUUID()
+                            vm.dataList=[]
                             return BgWidget.container(
                                 html`
                                     <div class="d-flex w-100 align-items-center" style="margin-bottom: 24px;">
@@ -399,6 +401,7 @@ export class ShoppingProductSetting {
     public static editProductSpec(obj: { vm: any; gvc: GVC; defData: any; single?: boolean }) {
         const html = String.raw;
         let postMD: any = obj.defData;
+
         let variant: any = {};
         let orignData: any = {};
         let index: number = 0;
@@ -914,27 +917,7 @@ export class ShoppingProductSetting {
             shipment_config = {};
         }
 
-        //當規格為空時，需補一個進去
-        if (postMD.variants.length === 0) {
-            postMD.variants.push({
-                show_understocking: 'true',
-                type: 'variants',
-                sale_price: 0,
-                compare_price: 0,
-                cost: 0,
-                spec: [],
-                profit: 0,
-                v_length: 0,
-                v_width: 0,
-                v_height: 0,
-                weight: 0,
-                shipment_type: shipment_config.selectCalc || 'weight',
-                sku: '',
-                barcode: '',
-                stock: 0,
-                preview_image: '',
-            });
-        }
+
 
         function updateVariants() {
             const remove_indexs: number[] = [];
@@ -1045,7 +1028,27 @@ export class ShoppingProductSetting {
                 }
                 return pass && variant.spec.length === postMD.specs.length;
             });
-
+            //當規格為空時，需補一個進去
+            if (postMD.variants.length === 0) {
+                postMD.variants.push({
+                    show_understocking: 'true',
+                    type: 'variants',
+                    sale_price: 0,
+                    compare_price: 0,
+                    cost: 0,
+                    spec: [],
+                    profit: 0,
+                    v_length: 0,
+                    v_width: 0,
+                    v_height: 0,
+                    weight: 0,
+                    shipment_type: shipment_config.selectCalc || 'weight',
+                    sku: '',
+                    barcode: '',
+                    stock: 0,
+                    preview_image: '',
+                });
+            }
             obj.gvc.notifyDataChange(variantsViewID);
         }
 
@@ -1057,6 +1060,7 @@ export class ShoppingProductSetting {
         const vm = {
             id: gvc.glitter.getUUID(),
         };
+        updateVariants()
         return gvc.bindView(() => {
             return {
                 bind: vm.id,
@@ -1161,9 +1165,22 @@ export class ShoppingProductSetting {
                                                 })}
                                             `
                                         )}
-                                       
+                                       ${(postMD.variants.length===1) ? (()=>{
+                                           try{
+                                               (postMD.variants[0] as any).editable=true
+                                               return ShoppingProductSetting.editProductSpec({
+                                                   vm:obj.vm,
+                                                   defData:postMD,
+                                                   gvc:gvc,
+                                                   single:true,
+                                               })
+                                           }catch (e) {
+                                               console.log(e)
+                                           }
+                                       })():``}
                                         ${BgWidget.mainCardMbp0(
                                             obj.gvc.bindView(() => {
+                                                
                                                 const specid = obj.gvc.glitter.getUUID();
                                                 return {
                                                     bind: specid,

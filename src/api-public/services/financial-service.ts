@@ -38,7 +38,7 @@ export default class FinancialService {
         user_email:string,
         method:string
     }) {
-
+        orderData.method=orderData.method||'ALL'
         if (this.keyData.TYPE === 'newWebPay') {
             return await (new EzPay(this.appName, this.keyData).createOrderPage(orderData))
         } else if (this.keyData.TYPE === 'ecPay') {
@@ -348,7 +348,7 @@ export class EcPay {
         use_wallet:number,
         method:string
     }) {
-        console.log(`orderData.orderID->`,orderData.orderID)
+
         const params = {
             MerchantTradeNo: orderData.orderID,
             MerchantTradeDate: moment().tz('Asia/Taipei').format('YYYY/MM/DD HH:mm:ss'),
@@ -358,8 +358,8 @@ export class EcPay {
                 return dd.title + (dd.spec.join('-') && ('-' + dd.spec.join('-')))
             }).join('#'),
             ReturnURL: this.keyData.NotifyURL,
-            ChoosePayment: orderData.method ? (()=>{
-                return [{
+            ChoosePayment: (orderData.method && orderData.method !== "ALL") ? (()=>{
+                const find=[{
                     value:'credit',
                     title:'信用卡',
                     realKey:'Credit'
@@ -381,7 +381,8 @@ export class EcPay {
                     realKey:'BARCODE'
                 }].find((dd)=>{
                     return dd.value===orderData.method
-                })!.realKey
+                })
+                return find && find!.realKey
             })() : 'ALL',
             PlatformID: '',
             MerchantID: this.keyData.MERCHANT_ID,
@@ -392,9 +393,7 @@ export class EcPay {
             PaymentType: 'aio',
             OrderResultURL: this.keyData.ReturnURL
         }
-        console.log(`ItemsName-->`,orderData.lineItems.map((dd) => {
-            return dd.title + (dd.spec.join('-') && ('-' + dd.spec.join('-')))
-        }).join('#'))
+
         const appName = this.appName;
         let od: any = (Object.keys(params).sort(function (a, b) {
             return a.toLowerCase().localeCompare(b.toLowerCase());
@@ -456,8 +455,8 @@ export class EcPay {
             TradeDesc: '商品資訊',
             ItemName: '加值服務',
             ReturnURL: this.keyData.NotifyURL,
-            ChoosePayment:orderData.method ? (()=>{
-                return [{
+            ChoosePayment:(orderData.method && orderData.method !== "ALL") ? (()=>{
+                const find=[{
                     value:'credit',
                     title:'信用卡',
                     realKey:'Credit'
@@ -479,7 +478,8 @@ export class EcPay {
                     realKey:'BARCODE'
                 }].find((dd)=>{
                     return dd.value===orderData.method
-                })!.realKey
+                })
+                return find && find!.realKey
             })() : 'ALL',
             PlatformID: '',
             MerchantID: this.keyData.MERCHANT_ID,
@@ -490,6 +490,7 @@ export class EcPay {
             PaymentType: 'aio',
             OrderResultURL: this.keyData.ReturnURL
         }
+
         const appName = this.appName;
         let od: any = (Object.keys(params).sort(function (a, b) {
             return a.toLowerCase().localeCompare(b.toLowerCase());

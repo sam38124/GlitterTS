@@ -339,7 +339,7 @@ export class Shopping {
             ])[0].value;
 
             // 物流設定
-            const shipment_setting: string[] = await new Promise(async (resolve, reject) => {
+            const shipment_setting:any = await new Promise(async (resolve, reject) => {
                 try {
                     resolve(
                         ((await Private_config.getConfig({
@@ -351,7 +351,7 @@ export class Shopping {
                                     support: [],
                                 },
                             },
-                        ])[0].value.support
+                        ])[0].value
                     );
                 } catch (e) {
                     resolve([]);
@@ -379,11 +379,14 @@ export class Shopping {
                 use_rebate: number;
                 orderID: string;
                 shipment_support: string[];
+                shipment_info:any,
                 use_wallet: number;
                 user_email: string;
                 method: string;
                 useRebateInfo?: { point: number; limit?: number; condition?: number };
                 voucherList?: VoucherData[];
+                shipment_form_data:any,
+                shipment_form_format:any
             } = {
                 lineItems: [],
                 total: 0,
@@ -393,7 +396,10 @@ export class Shopping {
                 rebate: 0,
                 use_rebate: data.use_rebate || 0,
                 orderID: `${new Date().getTime()}`,
-                shipment_support: shipment_setting as any,
+                shipment_support: shipment_setting.support as any,
+                shipment_form_format:shipment_setting.form as any,
+                shipment_form_data:{} ,
+                shipment_info:shipment_setting.info as any,
                 use_wallet: 0,
                 method: data.user_info && data.user_info.method,
                 user_email: (userData && userData.account) || (data.email ?? ((data.user_info && data.user_info.email) || '')),
@@ -563,6 +569,7 @@ export class Shopping {
                         }),
                     ]
                 );
+                carData.method='off_line'
                 await db.execute(
                     `INSERT INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
                      values (?, ?, ?, ?)`,
@@ -583,28 +590,36 @@ export class Shopping {
                         key: 'glitter_finance',
                     })
                 )[0].value;
-                const subMitData = await new FinancialService(this.app, {
-                    HASH_IV: keyData.HASH_IV,
-                    HASH_KEY: keyData.HASH_KEY,
-                    ActionURL: keyData.ActionURL,
-                    NotifyURL: `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}`,
-                    ReturnURL: `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`,
-                    MERCHANT_ID: keyData.MERCHANT_ID,
-                    TYPE: keyData.TYPE,
-                }).createOrderPage(carData);
                 // 線下付款
                 if (keyData.TYPE === 'off_line') {
                     new ManagerNotify(this.app).checkout({
                         orderData: carData,
                         status: 0,
                     });
+                    carData.method='off_line'
+                    await db.execute(
+                        `INSERT INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
+                     values (?, ?, ?, ?)`,
+                        [carData.orderID, 0, carData.email, carData]
+                    );
                     return {
                         off_line: true,
                     };
+                }else{
+                    const subMitData = await new FinancialService(this.app, {
+                        HASH_IV: keyData.HASH_IV,
+                        HASH_KEY: keyData.HASH_KEY,
+                        ActionURL: keyData.ActionURL,
+                        NotifyURL: `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}`,
+                        ReturnURL: `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`,
+                        MERCHANT_ID: keyData.MERCHANT_ID,
+                        TYPE: keyData.TYPE,
+                    }).createOrderPage(carData);
+                    return {
+                        form: subMitData,
+                    };
                 }
-                return {
-                    form: subMitData,
-                };
+
             }
         } catch (e) {
             console.error(e);
@@ -891,7 +906,7 @@ export class Shopping {
                 status:data.status
             };
             data.orderData && (update.orderData = JSON.stringify(data.orderData));
-        
+
 
             await db.query(
                 `UPDATE \`${this.app}\`.t_checkout
@@ -1741,9 +1756,19 @@ export class Shopping {
         }
     }
 
+     checkVariantDataType(variants:any[]){
+        variants.map((dd)=>{
+            (dd.stock) && (dd.stock=parseInt(dd.stock,10));
+            (dd.product_id) && (dd.product_id=parseInt(dd.product_id,10));
+            (dd.sale_price) && (dd.sale_price=parseInt(dd.sale_price,10));
+            (dd.compare_price) && (dd.compare_price=parseInt(dd.compare_price,10));
+            (dd.shipment_weight) && (dd.shipment_weight=parseInt(dd.shipment_weight,10));
+        })
+    }
     async postProduct(content: any) {
         try {
             content.type='product'
+            this.checkVariantDataType(content.variants);
             const data = await db.query(
                 `INSERT INTO \`${this.app}\`.\`t_manager_post\`
                  SET ?`,
@@ -1764,6 +1789,7 @@ export class Shopping {
     async putProduct(content: any) {
         try {
             content.type='product'
+            this.checkVariantDataType(content.variants);
             const data = await db.query(
                 `update \`${this.app}\`.\`t_manager_post\`
                  SET ? where id=?`,

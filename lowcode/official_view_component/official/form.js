@@ -117,7 +117,7 @@ export class FormWidget {
                                                                 </div>`, html `
                                                                 <div class="alert alert-info fs-6 fw-500"
                                                                      style="white-space: normal;">
-                                                                    一列有12格，可自訂義手機版與電腦版每列的顯示格數
+                                                                    一列有12格，可自定義手機版與電腦版每列的顯示格數
                                                                 </div>
                                                                 <div class="d-flex align-items-center"
                                                                      style="gap:10px;">
@@ -205,17 +205,22 @@ export class FormWidget {
                                                                             })}</div>`);
                                                                         }
                                                                         else {
-                                                                            resolve(EditorElem.customCodeEditor({
-                                                                                gvc: gvc,
-                                                                                height: 400,
-                                                                                initial: dd.formFormat,
-                                                                                title: 'Config配置檔',
-                                                                                callback: (data) => {
-                                                                                    dd.form_config = undefined;
-                                                                                    dd.formFormat = data;
-                                                                                },
-                                                                                language: 'json'
-                                                                            }));
+                                                                            if (obj.user_mode) {
+                                                                                resolve('');
+                                                                            }
+                                                                            else {
+                                                                                resolve(EditorElem.customCodeEditor({
+                                                                                    gvc: gvc,
+                                                                                    height: 400,
+                                                                                    initial: dd.formFormat,
+                                                                                    title: 'Config配置檔',
+                                                                                    callback: (data) => {
+                                                                                        dd.form_config = undefined;
+                                                                                        dd.formFormat = data;
+                                                                                    },
+                                                                                    language: 'json'
+                                                                                }));
+                                                                            }
                                                                         }
                                                                     }));
                                                                 }
@@ -242,6 +247,7 @@ export class FormWidget {
                     };
                 });
             },
+            copyable: false,
             originalArray: array,
             expand: {},
             plus: {
@@ -729,26 +735,30 @@ Plugin.createComponent(import.meta.url, (glitter, editMode) => {
                         }
                         const id = glitter.getUUID();
                         let formID = config.formID;
-                        TriggerEvent.trigger({
-                            gvc: gvc,
-                            widget: widget,
-                            clickEvent: config.getFormData,
-                            subData: subData,
-                            element: element
-                        }).then((data) => __awaiter(void 0, void 0, void 0, function* () {
-                            gvc.share[`formComponentData-${config.formID}`] = data || formData;
-                            formData = gvc.share[`formComponentData-${config.formID}`];
-                            if (config.form_id_from === 'code') {
-                                formID = yield TriggerEvent.trigger({
+                        function getFormData() {
+                            return __awaiter(this, void 0, void 0, function* () {
+                                const data = yield TriggerEvent.trigger({
                                     gvc: gvc,
                                     widget: widget,
-                                    clickEvent: config.getFormID,
+                                    clickEvent: config.getFormData,
                                     subData: subData,
                                     element: element
                                 });
-                            }
-                            gvc.notifyDataChange(id);
-                        }));
+                                gvc.share[`formComponentData-${config.formID}`] = data || formData;
+                                formData = gvc.share[`formComponentData-${config.formID}`];
+                                if (config.form_id_from === 'code') {
+                                    formID = yield TriggerEvent.trigger({
+                                        gvc: gvc,
+                                        widget: widget,
+                                        clickEvent: config.getFormID,
+                                        subData: subData,
+                                        element: element
+                                    });
+                                }
+                                gvc.notifyDataChange(id);
+                                return formData;
+                            });
+                        }
                         let dyView = '';
                         let defineHeight = 0;
                         function getCodeView() {
@@ -776,7 +786,7 @@ Plugin.createComponent(import.meta.url, (glitter, editMode) => {
                                     },
                                     widget: widget,
                                     subData: subData,
-                                    formData: formData
+                                    formData: yield getFormData()
                                 }));
                             })).then((dd) => {
                                 dyView = dd;
@@ -785,6 +795,9 @@ Plugin.createComponent(import.meta.url, (glitter, editMode) => {
                         }
                         if (config.form_config_from === 'code') {
                             getCodeView();
+                        }
+                        else {
+                            getFormData();
                         }
                         return {
                             bind: id,

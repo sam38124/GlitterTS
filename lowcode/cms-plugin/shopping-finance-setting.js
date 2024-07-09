@@ -8,6 +8,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { BgWidget } from '../backend-manager/bg-widget.js';
+import { EditorElem } from "../glitterBundle/plugins/editor-elem.js";
+import { FormWidget } from "../official_view_component/official/form.js";
 const html = String.raw;
 export class ShoppingFinanceSetting {
     static main(gvc) {
@@ -64,38 +66,47 @@ export class ShoppingFinanceSetting {
                                         bind: id,
                                         view: () => {
                                             return html `
-                                                            <div class="c_card d-flex flex-column" style="gap:18px;">
-                                                                <div class="tx_normal fw-bold">金流選擇</div>
-                                                                ${[
+                                                                <div class="c_card d-flex flex-column"
+                                                                     style="gap:18px;">
+                                                                    <div class="tx_normal fw-bold">金流選擇</div>
+                                                                    ${[
                                                 {
-                                                    title: html `<div class="d-flex flex-column">
-                                                                            藍新金流
-                                                                            <span class="" style="color:#8D8D8D;font-size: 12px;">透過藍新服務商串接線上付款功能</span>
-                                                                        </div>`,
+                                                    title: html `
+                                                                                <div class="d-flex flex-column">
+                                                                                    藍新金流
+                                                                                    <span class=""
+                                                                                          style="color:#8D8D8D;font-size: 12px;">透過藍新服務商串接線上付款功能</span>
+                                                                                </div>`,
                                                     value: 'newWebPay',
                                                 },
                                                 {
-                                                    title: html `<div class="d-flex flex-column">
-                                                                            綠界金流
-                                                                            <span class="" style="color:#8D8D8D;font-size: 12px;">透過綠界服務商串接線上付款功能</span>
-                                                                        </div>`,
+                                                    title: html `
+                                                                                <div class="d-flex flex-column">
+                                                                                    綠界金流
+                                                                                    <span class=""
+                                                                                          style="color:#8D8D8D;font-size: 12px;">透過綠界服務商串接線上付款功能</span>
+                                                                                </div>`,
                                                     value: 'ecPay',
                                                 },
                                                 {
-                                                    title: html `<div class="d-flex flex-column">
-                                                                            線下付款
-                                                                            <span class="" style="color:#8D8D8D;font-size: 12px;">不執行線上付款，由店家自行與消費者商議付款方式</span>
-                                                                        </div>`,
+                                                    title: html `
+                                                                                <div class="d-flex flex-column">
+                                                                                    線下付款
+                                                                                    <span class=""
+                                                                                          style="color:#8D8D8D;font-size: 12px;">不執行線上付款，由店家自行與消費者商議付款方式</span>
+                                                                                </div>`,
                                                     value: 'off_line',
                                                 },
                                             ]
                                                 .map((dd) => {
-                                                return html `<div>
-                                                                            ${[
-                                                    html ` <div
-                                                                                    class="d-flex align-items-center cursor_pointer"
-                                                                                    style="gap:8px;"
-                                                                                    onclick="${gvc.event(() => {
+                                                return html `
+                                                                                    <div>
+                                                                                        ${[
+                                                    html `
+                                                                                                <div
+                                                                                                        class="d-flex align-items-center cursor_pointer"
+                                                                                                        style="gap:8px;"
+                                                                                                        onclick="${gvc.event(() => {
                                                         if (keyData.TYPE !== dd.value) {
                                                             keyData.TYPE = dd.value;
                                                             if (keyData.TYPE === 'newWebPay') {
@@ -107,16 +118,22 @@ export class ShoppingFinanceSetting {
                                                             gvc.notifyDataChange(id);
                                                         }
                                                     })}"
-                                                                                >
-                                                                                    ${keyData.TYPE === dd.value
+                                                                                                >
+                                                                                                    ${keyData.TYPE === dd.value
                                                         ? `<i class="fa-sharp fa-solid fa-circle-dot cl_39"></i>`
                                                         : ` <div class="c_39_checkbox"></div>`}
-                                                                                    <div class="tx_normal fw-normal">${dd.title}</div>
-                                                                                </div>`,
-                                                    html ` <div class="d-flex position-relative mt-2" style="">
-                                                                                    <div class="ms-2 border-end position-absolute h-100" style="left: 0px;"></div>
-                                                                                    <div class="flex-fill " style="margin-left:30px;max-width: 600px;">
-                                                                                        ${(() => {
+                                                                                                    <div class="tx_normal fw-normal">
+                                                                                                        ${dd.title}
+                                                                                                    </div>
+                                                                                                </div>`,
+                                                    html `
+                                                                                                <div class="d-flex position-relative mt-2"
+                                                                                                     style="">
+                                                                                                    <div class="ms-2 border-end position-absolute h-100"
+                                                                                                         style="left: 0px;"></div>
+                                                                                                    <div class="flex-fill "
+                                                                                                         style="margin-left:30px;max-width: 600px;">
+                                                                                                        ${(() => {
                                                         if (keyData.TYPE === 'off_line' || keyData.TYPE !== dd.value) {
                                                             return [].join('');
                                                         }
@@ -223,14 +240,14 @@ export class ShoppingFinanceSetting {
                                                             ].join('<div class="" style="height: 12px;"></div>');
                                                         }
                                                     })()}
-                                                                                    </div>
-                                                                                </div>`,
+                                                                                                    </div>
+                                                                                                </div>`,
                                                 ].join('')}
-                                                                        </div>`;
+                                                                                    </div>`;
                                             })
                                                 .join('')}
-                                                            </div>
-                                                        `;
+                                                                </div>
+                                                            `;
                                         },
                                         divCreate: {
                                             style: `padding-bottom:100px;`,
@@ -240,7 +257,10 @@ export class ShoppingFinanceSetting {
                                 }));
                             }));
                         },
-                        divCreate: { class: `d-flex flex-column flex-column-reverse flex-md-row`, style: `gap: 10px; margin-top: 24px;` },
+                        divCreate: {
+                            class: `d-flex flex-column flex-column-reverse flex-md-row`,
+                            style: `gap: 10px; margin-top: 24px;`
+                        },
                     };
                 })}
                         ${BgWidget.mb240()}
@@ -269,20 +289,70 @@ export class ShoppingFinanceSetting {
             vm.loading = false;
             gvc.notifyDataChange(vm.id);
         });
+        function save() {
+            saasConfig.api.setPrivateConfig(saasConfig.config.appName, 'logistics_setting', vm.data);
+        }
         return gvc.bindView(() => {
             return {
                 bind: vm.id,
                 view: () => {
                     if (vm.loading) {
-                        return html ` <div class="w-100 d-flex align-items-center justify-content-center">
-                            <div class="spinner-border"></div>
-                        </div>`;
+                        return html `
+                            <div class="w-100 d-flex align-items-center justify-content-center">
+                                <div class="spinner-border"></div>
+                            </div>`;
                     }
                     vm.data.support = vm.data.support || [];
+                    vm.data.info = vm.data.info || '';
+                    vm.data.form = vm.data.form || [];
                     return BgWidget.container(html `
                             <div class="d-flex w-100 align-items-center">
                                 ${BgWidget.title('配送設定')}
                                 <div class="flex-fill"></div>
+                                ${BgWidget.grayButton('<i class="fa-solid fa-megaphone me-2"></i> 配送通知', gvc.event(() => {
+                        EditorElem.openEditorDialog(gvc, () => {
+                            return html `
+                                                   
+                                                    <div class="p-3" style="overflow: hidden;">
+                                                        <div class=" alert  alert-secondary p-2 mb-2 " style="">
+                                                            <div class="fs-6 mb-0 fw-500">於前台顯示的配送通知，告知客戶配送所需要注意的事項。</div>
+                                                        </div>
+                                                        ${EditorElem.richText({
+                                gvc: gvc,
+                                def: vm.data.info,
+                                callback: (text) => {
+                                    vm.data.info = text;
+                                    save();
+                                },
+                            })}
+                                                    </div>`;
+                        }, () => {
+                        }, 800, `<span class="fs-6">配送通知</span>`);
+                    }))}
+                                <div style="width:10px;"></div>
+                                ${BgWidget.grayButton('<i class="fa-solid fa-square-list me-2"></i> 配送表單', gvc.event(() => {
+                        EditorElem.openEditorDialog(gvc, (gvc) => {
+                            return html `
+                                                 
+                                                    <div class="px-2 py-2" style="overflow: hidden;">
+                                                        <div class=" alert  alert-secondary p-2 mb-0 mx-2" style="">
+                                                            <div class="fs-6 mb-0 fw-500">於前台顯示額外的配送表單填寫項目，供用戶進行填寫。</div>
+                                                           
+                                                        </div>
+                                                        ${FormWidget.settingView({
+                                gvc: gvc,
+                                array: vm.data.form,
+                                refresh: () => {
+                                    gvc.recreateView();
+                                },
+                                title: '',
+                                user_mode: true
+                            })}
+                                                    </div>`;
+                        }, () => {
+                            save();
+                        }, 400, `<span class="fs-6">配送表單</span>`);
+                    }))}
                             </div>
                             ${gvc.bindView(() => {
                         const id = gvc.glitter.getUUID();
@@ -318,30 +388,32 @@ export class ShoppingFinanceSetting {
                                 ]
                                     .map((dd) => {
                                     return html `
-                                                    <div class="col-12 col-md-4 mb-3 p-0 p-md-2">
-                                                        <div
-                                                            class="w-100"
-                                                            style=" padding: 24px; background: white; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.08); border-radius: 10px; overflow: hidden; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 18px; display: inline-flex"
-                                                        >
-                                                            <div style="align-self: stretch; justify-content: flex-start; align-items: center; gap: 28px; display: inline-flex">
-                                                                <img style="width: 46px;" src="${dd.src}" />
-                                                                <div style="flex-direction: column; justify-content: center; align-items: flex-start; gap: 4px; display: inline-flex">
-                                                                    <div class="tx_normal">${dd.title}</div>
-                                                                    <div class="d-flex align-items-center" style="gap:4px;">
-                                                                        <div class="tx_normal">
-                                                                            ${vm.data.support.find((d1) => {
+                                                        <div class="col-12 col-md-4 mb-3 p-0 p-md-2">
+                                                            <div
+                                                                    class="w-100"
+                                                                    style=" padding: 24px; background: white; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.08); border-radius: 10px; overflow: hidden; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 18px; display: inline-flex"
+                                                            >
+                                                                <div style="align-self: stretch; justify-content: flex-start; align-items: center; gap: 28px; display: inline-flex">
+                                                                    <img style="width: 46px;" src="${dd.src}"/>
+                                                                    <div style="flex-direction: column; justify-content: center; align-items: flex-start; gap: 4px; display: inline-flex">
+                                                                        <div class="tx_normal">${dd.title}</div>
+                                                                        <div class="d-flex align-items-center"
+                                                                             style="gap:4px;">
+                                                                            <div class="tx_normal">
+                                                                                ${vm.data.support.find((d1) => {
                                         return dd.value === d1;
                                     })
                                         ? `開啟`
                                         : `關閉`}
-                                                                        </div>
-                                                                        <div class="cursor_pointer form-check form-switch" style="margin-top: 10px;">
-                                                                            <input
-                                                                                class=" form-check-input"
-                                                                                style=" "
-                                                                                type="checkbox"
-                                                                                value=""
-                                                                                onchange="${gvc.event((e, event) => {
+                                                                            </div>
+                                                                            <div class="cursor_pointer form-check form-switch"
+                                                                                 style="margin-top: 10px;">
+                                                                                <input
+                                                                                        class=" form-check-input"
+                                                                                        style=" "
+                                                                                        type="checkbox"
+                                                                                        value=""
+                                                                                        onchange="${gvc.event((e, event) => {
                                         if (vm.data.support.find((d1) => {
                                             return dd.value === d1;
                                         })) {
@@ -352,22 +424,21 @@ export class ShoppingFinanceSetting {
                                         else {
                                             vm.data.support.push(dd.value);
                                         }
-                                        saasConfig.api.setPrivateConfig(saasConfig.config.appName, 'logistics_setting', vm.data);
                                         gvc.notifyDataChange(id);
                                     })}"
-                                                                                ${vm.data.support.find((d1) => {
+                                                                                        ${vm.data.support.find((d1) => {
                                         return dd.value === d1;
                                     })
                                         ? `checked`
                                         : ``}
-                                                                            />
+                                                                                />
+                                                                            </div>
                                                                         </div>
                                                                     </div>
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                    </div>
-                                                `;
+                                                    `;
                                 })
                                     .join('');
                             },
@@ -441,58 +512,77 @@ export class ShoppingFinanceSetting {
                                             bind: id,
                                             view: () => {
                                                 return html `
-                                                                    <div class="c_card d-flex flex-column" style="gap:18px;">
-                                                                        <div class="tx_normal fw-bold">服務商選擇</div>
-                                                                        ${[
+                                                                            <div class="c_card d-flex flex-column"
+                                                                                 style="gap:18px;">
+                                                                                <div class="tx_normal fw-bold">
+                                                                                    服務商選擇
+                                                                                </div>
+                                                                                ${[
                                                     {
-                                                        title: html `<div class="d-flex flex-column">
-                                                                                    藍新發票
-                                                                                    <span class="" style="color:#8D8D8D;font-size: 12px;">透過藍新服務商串接，於商品購買時，自動開立電子發票</span>
-                                                                                </div>`,
+                                                        title: html `
+                                                                                            <div class="d-flex flex-column">
+                                                                                                藍新發票
+                                                                                                <span class=""
+                                                                                                      style="color:#8D8D8D;font-size: 12px;">透過藍新服務商串接，於商品購買時，自動開立電子發票</span>
+                                                                                            </div>`,
                                                         value: 'ezpay',
                                                     },
                                                     {
-                                                        title: html `<div class="d-flex flex-column">
-                                                                                    綠界發票
-                                                                                    <span class="" style="color:#8D8D8D;font-size: 12px;">透過綠界服務商串接，於商品購買時，自動開立電子發票</span>
-                                                                                </div>`,
+                                                        title: html `
+                                                                                            <div class="d-flex flex-column">
+                                                                                                綠界發票
+                                                                                                <span class=""
+                                                                                                      style="color:#8D8D8D;font-size: 12px;">透過綠界服務商串接，於商品購買時，自動開立電子發票</span>
+                                                                                            </div>`,
                                                         value: 'ecpay',
                                                     },
                                                     {
-                                                        title: html `<div class="d-flex flex-column">
-                                                                                    線下開立
-                                                                                    <span class="" style="color:#8D8D8D;font-size: 12px;">顧客需填寫發票資訊，由店家自行開立發票</span>
-                                                                                </div>`,
+                                                        title: html `
+                                                                                            <div class="d-flex flex-column">
+                                                                                                線下開立
+                                                                                                <span class=""
+                                                                                                      style="color:#8D8D8D;font-size: 12px;">顧客需填寫發票資訊，由店家自行開立發票</span>
+                                                                                            </div>`,
                                                         value: 'off_line',
                                                     },
                                                     {
-                                                        title: html `<div class="d-flex flex-column">
-                                                                                    不開立電子發票
-                                                                                    <span class="" style="color:#8D8D8D;font-size: 12px;">顧客不需填寫發票資訊，不需開立電子發票</span>
-                                                                                </div>`,
+                                                        title: html `
+                                                                                            <div class="d-flex flex-column">
+                                                                                                不開立電子發票
+                                                                                                <span class=""
+                                                                                                      style="color:#8D8D8D;font-size: 12px;">顧客不需填寫發票資訊，不需開立電子發票</span>
+                                                                                            </div>`,
                                                         value: 'nouse',
                                                     },
                                                 ]
                                                     .map((dd) => {
-                                                    return html `<div>
-                                                                                    ${[
-                                                        html ` <div
-                                                                                            class="d-flex align-items-center cursor_pointer"
-                                                                                            style="gap:8px;"
-                                                                                            onclick="${gvc.event(() => {
+                                                    return html `
+                                                                                                <div>
+                                                                                                    ${[
+                                                        html `
+                                                                                                            <div
+                                                                                                                    class="d-flex align-items-center cursor_pointer"
+                                                                                                                    style="gap:8px;"
+                                                                                                                    onclick="${gvc.event(() => {
                                                             vm.data.fincial = dd.value;
                                                             gvc.notifyDataChange(id);
                                                         })}"
-                                                                                        >
-                                                                                            ${vm.data.fincial === dd.value
+                                                                                                            >
+                                                                                                                ${vm.data.fincial === dd.value
                                                             ? `<i class="fa-sharp fa-solid fa-circle-dot cl_39"></i>`
                                                             : ` <div class="c_39_checkbox"></div>`}
-                                                                                            <div class="tx_normal fw-normal">${dd.title}</div>
-                                                                                        </div>`,
-                                                        html ` <div class="d-flex position-relative mt-2" style="">
-                                                                                            <div class="ms-2 border-end position-absolute h-100" style="left: 0px;"></div>
-                                                                                            <div class="flex-fill " style="margin-left:30px;max-width: 518px;">
-                                                                                                ${(() => {
+                                                                                                                <div class="tx_normal fw-normal">
+                                                                                                                    ${dd.title}
+                                                                                                                </div>
+                                                                                                            </div>`,
+                                                        html `
+                                                                                                            <div class="d-flex position-relative mt-2"
+                                                                                                                 style="">
+                                                                                                                <div class="ms-2 border-end position-absolute h-100"
+                                                                                                                     style="left: 0px;"></div>
+                                                                                                                <div class="flex-fill "
+                                                                                                                     style="margin-left:30px;max-width: 518px;">
+                                                                                                                    ${(() => {
                                                             var _a, _b, _c;
                                                             if (vm.data.fincial === 'nouse' || vm.data.fincial === 'off_line' || vm.data.fincial !== dd.value) {
                                                                 return [].join('');
@@ -568,17 +658,19 @@ export class ShoppingFinanceSetting {
                                                                             }
                                                                         },
                                                                     }),
-                                                                ].join(html `<div class="" style="height: 12px;"></div>`);
+                                                                ].join(html `
+                                                                                                                                <div class=""
+                                                                                                                                     style="height: 12px;"></div>`);
                                                             }
                                                         })()}
-                                                                                            </div>
-                                                                                        </div>`,
+                                                                                                                </div>
+                                                                                                            </div>`,
                                                     ].join('')}
-                                                                                </div>`;
+                                                                                                </div>`;
                                                 })
                                                     .join('')}
-                                                                    </div>
-                                                                `;
+                                                                            </div>
+                                                                        `;
                                             },
                                             divCreate: {
                                                 style: ``,
@@ -588,17 +680,21 @@ export class ShoppingFinanceSetting {
                                     }));
                                 }));
                             },
-                            divCreate: { class: 'd-flex flex-column flex-column-reverse flex-md-row px-0', style: 'gap:10px;' },
+                            divCreate: {
+                                class: 'd-flex flex-column flex-column-reverse flex-md-row px-0',
+                                style: 'gap:10px;'
+                            },
                         };
                     }),
                     BgWidget.mb240(),
-                    html `<div class="update-bar-container">
-                                    ${BgWidget.save(gvc.event(() => {
+                    html `
+                                        <div class="update-bar-container">
+                                            ${BgWidget.save(gvc.event(() => {
                         save(() => {
                             widget.event('success', { title: '設定成功' });
                         });
                     }))}
-                                </div>`,
+                                        </div>`,
                 ].join(''))}
                     `, BgWidget.getContainerWidth());
             },

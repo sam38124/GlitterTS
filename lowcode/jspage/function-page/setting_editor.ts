@@ -98,15 +98,6 @@ export class Setting_editor {
                                                 },
                                                 {
                                                     icon: '',
-                                                    page: 'web_config',
-                                                    group: '商店設定',
-                                                    title: '網站配置檔',
-                                                    appName: 'cms_system',
-                                                    groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716566571091-Property 1=gear-regular.svg',
-                                                    moduleName: '網域設定',
-                                                },
-                                                {
-                                                    icon: '',
                                                     page: 'product-manager',
                                                     group: '商品管理',
                                                     title: '商品列表',
@@ -434,7 +425,7 @@ export class Setting_editor {
                                                                 if ((window as any).memberType === 'noLimit') {
                                                                     return true;
                                                                 } else {
-                                                                    return ['web_config', 'code_info', 'web_hook_checkout', 'template_upload'].indexOf(dd.page) === -1;
+                                                                    return [ 'code_info', 'web_hook_checkout', 'template_upload'].indexOf(dd.page) === -1;
                                                                 }
                                                             })
                                                             .map((dd: any, index: number) => {

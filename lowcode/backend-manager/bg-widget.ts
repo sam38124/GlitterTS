@@ -1721,7 +1721,7 @@ ${obj.default ?? ''}</textarea
             <div style="margin-bottom: 240px"></div>`;
     }
 
-    static alertInfo(title: string, messageList?: string[]) {
+    static alertInfo(title: string, messageList?: string[],css:{class:string,style:string}={class:'',style:''}) {
         let h = '';
         if (messageList && messageList.length > 0) {
             messageList.map((str) => {
@@ -1729,7 +1729,7 @@ ${obj.default ?? ''}</textarea
             });
         }
         return html`
-            <div class="w-100 alert  alert-secondary p-3 mb-0" style="">
+            <div class="w-100 alert  alert-secondary p-3 mb-0 ${css.class}" style="${css.style}">
                 <div class="fs-5 mb-0"><strong>${title}</strong></div>
                 ${(messageList && messageList.length > 0) ? `<div class="mt-2">${h}</div>` : ``}
             </div>`;

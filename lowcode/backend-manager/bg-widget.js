@@ -1499,7 +1499,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         return html `
             <div style="margin-bottom: 240px"></div>`;
     }
-    static alertInfo(title, messageList) {
+    static alertInfo(title, messageList, css = { class: '', style: '' }) {
         let h = '';
         if (messageList && messageList.length > 0) {
             messageList.map((str) => {
@@ -1507,7 +1507,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             });
         }
         return html `
-            <div class="w-100 alert  alert-secondary p-3 mb-0" style="">
+            <div class="w-100 alert  alert-secondary p-3 mb-0 ${css.class}" style="${css.style}">
                 <div class="fs-5 mb-0"><strong>${title}</strong></div>
                 ${(messageList && messageList.length > 0) ? `<div class="mt-2">${h}</div>` : ``}
             </div>`;
