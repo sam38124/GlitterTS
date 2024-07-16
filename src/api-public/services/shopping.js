@@ -17,6 +17,8 @@ const rebate_js_1 = require("./rebate.js");
 const custom_code_js_1 = require("../services/custom-code.js");
 const moment_1 = __importDefault(require("moment"));
 const notify_js_1 = require("./notify.js");
+const auto_send_email_js_1 = require("./auto-send-email.js");
+const ses_js_1 = require("../../services/ses.js");
 class Shopping {
     constructor(app, token) {
         this.app = app;
@@ -289,24 +291,22 @@ class Shopping {
                                 b.sale_price = variant.sale_price;
                                 b.collection = pd['collection'];
                                 b.sku = variant.sku;
-                                b.shipment_fee =
-                                    b.count *
-                                        (() => {
-                                            if (!variant.shipment_type || variant.shipment_type === 'none') {
-                                                return 0;
-                                            }
-                                            if (variant.shipment_type === 'volume') {
-                                                return calculateShipment(shipment.volume, variant.v_length * variant.v_width * variant.v_height);
-                                            }
-                                            if (variant.shipment_type === 'weight') {
-                                                return calculateShipment(shipment.weight, variant.weight);
-                                            }
-                                            return 0;
-                                        })();
+                                b.shipment_fee = (() => {
+                                    if (!variant.shipment_type || variant.shipment_type === 'none') {
+                                        return 0;
+                                    }
+                                    if (variant.shipment_type === 'volume') {
+                                        return calculateShipment(shipment.volume, b.count * variant.v_length * variant.v_width * variant.v_height);
+                                    }
+                                    if (variant.shipment_type === 'weight') {
+                                        return calculateShipment(shipment.weight, b.count * variant.weight);
+                                    }
+                                    return 0;
+                                })();
                                 variant.shipment_weight = parseInt(variant.shipment_weight || 0);
                                 carData.shipment_fee += b.shipment_fee;
                                 carData.lineItems.push(b);
-                                if (type !== "manual") {
+                                if (type !== 'manual') {
                                     carData.total += variant.sale_price * b.count;
                                 }
                             }
@@ -333,8 +333,7 @@ class Shopping {
                         }
                     }
                 }
-                catch (e) {
-                }
+                catch (e) { }
             }
             carData.total += carData.shipment_fee;
             const f_rebate = await this.formatUseRebate(carData.total, carData.use_rebate);
@@ -368,7 +367,7 @@ class Shopping {
             else {
                 let tempVoucher = {
                     discount_total: data.voucher.discount_total,
-                    end_ISO_Date: "",
+                    end_ISO_Date: '',
                     for: 'all',
                     forKey: [],
                     method: data.voucher.method,
@@ -377,36 +376,35 @@ class Shopping {
                     rebate_total: data.voucher.rebate_total,
                     rule: 'min_price',
                     ruleValue: 0,
-                    startDate: "",
-                    startTime: "",
-                    start_ISO_Date: "",
+                    startDate: '',
+                    startTime: '',
+                    start_ISO_Date: '',
                     status: 1,
-                    target: "",
+                    target: '',
                     targetList: [],
                     title: data.voucher.title,
                     trigger: 'auto',
-                    type: "voucher",
+                    type: 'voucher',
                     value: data.voucher.value,
-                    id: data.voucher.id
+                    id: data.voucher.id,
                 };
                 carData.discount = data.discount;
                 carData.voucherList = [tempVoucher];
                 carData.customer_info = data.customer_info;
                 carData.total = (_d = data.total) !== null && _d !== void 0 ? _d : 0;
                 carData.rebate = tempVoucher.rebate_total;
-                if (tempVoucher.reBackType == "shipment_free") {
+                if (tempVoucher.reBackType == 'shipment_free') {
                     carData.shipment_fee = 0;
                 }
-                if (tempVoucher.reBackType == "rebate") {
+                if (tempVoucher.reBackType == 'rebate') {
                     let customerData = await userClass.getUserData(data.email || data.user_info.email, 'account');
                     if (!customerData) {
-                        await (new user_js_1.User(this.app)).createUser(data.email, tool_js_1.default.randomString(8), {
+                        await new user_js_1.User(this.app).createUser(data.email, tool_js_1.default.randomString(8), {
                             email: data.email,
                             name: data.customer_info.name,
-                            phone: data.customer_info.phone
+                            phone: data.customer_info.phone,
                         }, {}, true);
                         customerData = await userClass.getUserData(data.email || data.user_info.email, 'account');
-                        ;
                     }
                     await rebateClass.insertRebate(customerData.userID, carData.rebate, `手動新增訂單 - 優惠券購物金：${tempVoucher.title}`);
                 }
@@ -445,6 +443,15 @@ class Shopping {
                     appName: this.app,
                     key: 'glitter_finance',
                 }))[0].value;
+                const subMitData = await new financial_service_js_1.default(this.app, {
+                    HASH_IV: keyData.HASH_IV,
+                    HASH_KEY: keyData.HASH_KEY,
+                    ActionURL: keyData.ActionURL,
+                    NotifyURL: `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}`,
+                    ReturnURL: `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`,
+                    MERCHANT_ID: keyData.MERCHANT_ID,
+                    TYPE: keyData.TYPE,
+                }).createOrderPage(carData);
                 if (keyData.TYPE === 'off_line') {
                     new notify_js_1.ManagerNotify(this.app).checkout({
                         orderData: carData,
@@ -538,9 +545,11 @@ class Shopping {
             limit: 10000,
         })).data;
         const pass_id = [];
-        for (const voucher of allVoucher) {
-            if (await this.checkVoucherLimited(userData.userID, voucher.id)) {
-                pass_id.push(voucher.id);
+        if (userData) {
+            for (const voucher of allVoucher) {
+                if (await this.checkVoucherLimited(userData.userID, voucher.id)) {
+                    pass_id.push(voucher.id);
+                }
             }
         }
         const voucherList = allVoucher
@@ -682,7 +691,7 @@ class Shopping {
     async putOrder(data) {
         try {
             const update = {
-                status: data.status
+                status: data.status,
             };
             data.orderData && (update.orderData = JSON.stringify(data.orderData));
             await database_js_1.default.query(`UPDATE \`${this.app}\`.t_checkout
@@ -841,6 +850,16 @@ class Shopping {
                     status: status,
                 });
                 const userData = await new user_js_1.User(this.app).getUserData(cartData.email, 'account');
+                const customerMail = await auto_send_email_js_1.AutoSendEmail.getDefCompare(this.app, 'auto-email-payment-successful');
+                if (customerMail.toggle) {
+                    console.log({
+                        event: '訂單付款成功',
+                        name: userData.userData.name,
+                        email: cartData.email,
+                        subject: customerMail.title,
+                    });
+                    (0, ses_js_1.sendmail)(`${userData.userData.name} <${process.env.smtp}>`, cartData.email, customerMail.title, customerMail.content.replace(/@\{\{訂單號碼\}\}/g, order_id));
+                }
                 if (userData && cartData.orderData.rebate > 0) {
                     const rebateClass = new rebate_js_1.Rebate(this.app);
                     for (let i = 0; i < cartData.orderData.voucherList.length; i++) {
@@ -1294,7 +1313,7 @@ class Shopping {
                 if (data.parent_id !== undefined && config.value[data.parent_id].array.find((item) => item.title === data.name)) {
                     return {
                         result: false,
-                        message: `上層分類「${config.value[data.parent_id].title}」已存在「${data.name}」類別名稱`
+                        message: `上層分類「${config.value[data.parent_id].title}」已存在「${data.name}」類別名稱`,
                     };
                 }
             }
@@ -1425,11 +1444,11 @@ class Shopping {
     }
     checkVariantDataType(variants) {
         variants.map((dd) => {
-            (dd.stock) && (dd.stock = parseInt(dd.stock, 10));
-            (dd.product_id) && (dd.product_id = parseInt(dd.product_id, 10));
-            (dd.sale_price) && (dd.sale_price = parseInt(dd.sale_price, 10));
-            (dd.compare_price) && (dd.compare_price = parseInt(dd.compare_price, 10));
-            (dd.shipment_weight) && (dd.shipment_weight = parseInt(dd.shipment_weight, 10));
+            dd.stock && (dd.stock = parseInt(dd.stock, 10));
+            dd.product_id && (dd.product_id = parseInt(dd.product_id, 10));
+            dd.sale_price && (dd.sale_price = parseInt(dd.sale_price, 10));
+            dd.compare_price && (dd.compare_price = parseInt(dd.compare_price, 10));
+            dd.shipment_weight && (dd.shipment_weight = parseInt(dd.shipment_weight, 10));
         });
     }
     async postProduct(content) {
@@ -1438,10 +1457,12 @@ class Shopping {
             content.type = 'product';
             this.checkVariantDataType(content.variants);
             const data = await database_js_1.default.query(`INSERT INTO \`${this.app}\`.\`t_manager_post\`
-                 SET ?`, [{
+                 SET ?`, [
+                {
                     userID: (_a = this.token) === null || _a === void 0 ? void 0 : _a.userID,
-                    content: JSON.stringify(content)
-                }]);
+                    content: JSON.stringify(content),
+                },
+            ]);
             content.id = data.insertId;
             await new Shopping(this.app, this.token).postVariantsAndPriceValue(content);
             return data.insertId;
@@ -1456,10 +1477,12 @@ class Shopping {
             content.type = 'product';
             this.checkVariantDataType(content.variants);
             const data = await database_js_1.default.query(`update \`${this.app}\`.\`t_manager_post\`
-                 SET ? where id=?`, [{
-                    content: JSON.stringify(content)
+                 SET ? where id=?`, [
+                {
+                    content: JSON.stringify(content),
                 },
-                content.id]);
+                content.id,
+            ]);
             await new Shopping(this.app, this.token).postVariantsAndPriceValue(content);
             return content.insertId;
         }

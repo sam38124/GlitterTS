@@ -577,6 +577,7 @@ export class ShoppingProductSetting {
                                             class="col-6"
                                             style="display: flex;height: 40px;padding: 10px 18px;align-items: center;gap: 10px;border-radius: 10px;border: 1px solid #DDD;"
                                             placeholder="請輸入商品重量"
+                                            value="${variant.weight || 0}"
                                             onchange="${gvc.event((e) => {
             variant.weight = e.value;
         })}"
@@ -745,7 +746,10 @@ export class ShoppingProductSetting {
         }), '取消')}
                 ${BgWidget.save(obj.gvc.event(() => {
             postMD.variants.map((data, index) => {
+                console.log(data.editable);
                 if (data.editable) {
+                    console.log(index);
+                    console.log(variant);
                     postMD.variants[index] = variant;
                 }
             });
@@ -1018,20 +1022,22 @@ export class ShoppingProductSetting {
                                 };
                             })}
                                             `)}
-                                       ${(postMD.variants.length === 1) ? (() => {
-                                try {
-                                    postMD.variants[0].editable = true;
-                                    return ShoppingProductSetting.editProductSpec({
-                                        vm: obj.vm,
-                                        defData: postMD,
-                                        gvc: gvc,
-                                        single: true,
-                                    });
-                                }
-                                catch (e) {
-                                    console.log(e);
-                                }
-                            })() : ``}
+                                        ${postMD.variants.length === 1
+                                ? (() => {
+                                    try {
+                                        postMD.variants[0].editable = true;
+                                        return ShoppingProductSetting.editProductSpec({
+                                            vm: obj.vm,
+                                            defData: postMD,
+                                            gvc: gvc,
+                                            single: true,
+                                        });
+                                    }
+                                    catch (e) {
+                                        console.log(e);
+                                    }
+                                })()
+                                : ``}
                                         ${BgWidget.mainCardMbp0(obj.gvc.bindView(() => {
                                 const specid = obj.gvc.glitter.getUUID();
                                 return {
@@ -1223,7 +1229,7 @@ export class ShoppingProductSetting {
                             }))}
                                         ${postMD.specs.length == 0
                                 ? ``
-                                : BgWidget.mainCardMbp0(`<div style="font-size: 16px;font-weight: 700;color:#393939;margin-bottom: 18px;">規格設定</div>` +
+                                : BgWidget.mainCardMbp0(html `<div style="font-size: 16px;font-weight: 700;color:#393939;margin-bottom: 18px;">規格設定</div>` +
                                     obj.gvc.bindView(() => {
                                         var _a;
                                         function getPreviewImage(img) {
@@ -1957,14 +1963,12 @@ color: ${selected.length ? `#393939` : `#DDD`};font-size: 18px;
                                                                                                   ></i>
                                                                                                   <div style="flex:1 0 0;font-size: 16px;font-weight: 400;">規格</div>
                                                                                                   ${document.body.clientWidth < 800
-                                                                            ? `<div  style="color:#393939;font-size: 16px;font-weight: 400;" class="me-3">
-                                                                                                   販售價格*
-                                                                                                </div>`
+                                                                            ? html `<div style="color:#393939;font-size: 16px;font-weight: 400;" class="me-3">販售價格*</div>`
                                                                             : `${['販售價格*', '存貨數量*', '運費計算方式']
                                                                                 .map((dd) => {
-                                                                                return `<div  style="color:#393939;font-size: 16px;font-weight: 400;width: 20%; ">
-                                                                                                    ${dd}
-                                                                                                </div>`;
+                                                                                return html `<div style="color:#393939;font-size: 16px;font-weight: 400;width: 20%; ">
+                                                                                                                    ${dd}
+                                                                                                                </div>`;
                                                                             })
                                                                                 .join('')}`}
                                                                                               </div>
@@ -2064,7 +2068,7 @@ color: ${isCheck ? `#393939` : `#DDD`};font-size: 18px;
                                                                                             stock = stock + parseInt(d1.stock, 10);
                                                                                             console.log(stock);
                                                                                         });
-                                                                                        if (dd.key == "sale_price") {
+                                                                                        if (dd.key == 'sale_price') {
                                                                                             dd.title = `${minPrice} ~ ${maxPrice}`;
                                                                                         }
                                                                                         else {

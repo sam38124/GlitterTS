@@ -105,7 +105,7 @@ export declare class Shopping {
         code?: string;
         use_rebate?: number;
         use_wallet?: number;
-        checkOutType?: "manual" | "auto";
+        checkOutType?: 'manual' | 'auto';
         voucher?: any;
         discount?: number;
         total?: number;

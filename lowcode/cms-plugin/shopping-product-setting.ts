@@ -67,14 +67,14 @@ export class ShoppingProductSetting {
                         input[type="number"] {
                             -moz-appearance: textfield;
                         }
-                    `)
+                    `);
                     switch (vm.status) {
                         case 'add':
                             return ShoppingProductSetting.editProduct({ vm: vm, gvc: gvc, type: 'add' });
                         case 'list':
                             const filterID = gvc.glitter.getUUID();
-                            vm.tableId=gvc.glitter.getUUID()
-                            vm.dataList=[]
+                            vm.tableId = gvc.glitter.getUUID();
+                            vm.dataList = [];
                             return BgWidget.container(
                                 html`
                                     <div class="d-flex w-100 align-items-center" style="margin-bottom: 24px;">
@@ -654,6 +654,7 @@ export class ShoppingProductSetting {
                                             class="col-6"
                                             style="display: flex;height: 40px;padding: 10px 18px;align-items: center;gap: 10px;border-radius: 10px;border: 1px solid #DDD;"
                                             placeholder="請輸入商品重量"
+                                            value="${variant.weight || 0}"
                                             onchange="${gvc.event((e) => {
                                                 variant.weight = e.value;
                                             })}"
@@ -836,7 +837,10 @@ export class ShoppingProductSetting {
                 ${BgWidget.save(
                     obj.gvc.event(() => {
                         postMD.variants.map((data: any, index: number) => {
+                            console.log(data.editable);
                             if (data.editable) {
+                                console.log(index);
+                                console.log(variant);
                                 postMD.variants[index] = variant;
                             }
                         });
@@ -916,8 +920,6 @@ export class ShoppingProductSetting {
         } else {
             shipment_config = {};
         }
-
-
 
         function updateVariants() {
             const remove_indexs: number[] = [];
@@ -1060,7 +1062,7 @@ export class ShoppingProductSetting {
         const vm = {
             id: gvc.glitter.getUUID(),
         };
-        updateVariants()
+        updateVariants();
         return gvc.bindView(() => {
             return {
                 bind: vm.id,
@@ -1165,22 +1167,23 @@ export class ShoppingProductSetting {
                                                 })}
                                             `
                                         )}
-                                       ${(postMD.variants.length===1) ? (()=>{
-                                           try{
-                                               (postMD.variants[0] as any).editable=true
-                                               return ShoppingProductSetting.editProductSpec({
-                                                   vm:obj.vm,
-                                                   defData:postMD,
-                                                   gvc:gvc,
-                                                   single:true,
-                                               })
-                                           }catch (e) {
-                                               console.log(e)
-                                           }
-                                       })():``}
+                                        ${postMD.variants.length === 1
+                                            ? (() => {
+                                                  try {
+                                                      (postMD.variants[0] as any).editable = true;
+                                                      return ShoppingProductSetting.editProductSpec({
+                                                          vm: obj.vm,
+                                                          defData: postMD,
+                                                          gvc: gvc,
+                                                          single: true,
+                                                      });
+                                                  } catch (e) {
+                                                      console.log(e);
+                                                  }
+                                              })()
+                                            : ``}
                                         ${BgWidget.mainCardMbp0(
                                             obj.gvc.bindView(() => {
-                                                
                                                 const specid = obj.gvc.glitter.getUUID();
                                                 return {
                                                     bind: specid,
@@ -1374,7 +1377,7 @@ export class ShoppingProductSetting {
                                         ${postMD.specs.length == 0
                                             ? ``
                                             : BgWidget.mainCardMbp0(
-                                                  `<div style="font-size: 16px;font-weight: 700;color:#393939;margin-bottom: 18px;">規格設定</div>` +
+                                                  html`<div style="font-size: 16px;font-weight: 700;color:#393939;margin-bottom: 18px;">規格設定</div>` +
                                                       obj.gvc.bindView(() => {
                                                           function getPreviewImage(img?: string) {
                                                               return img || 'https://nationalityforall.org/wp-content/themes/nfa/dist/images/default_image.jpg';
@@ -2115,14 +2118,12 @@ color: ${selected.length ? `#393939` : `#DDD`};font-size: 18px;
                                                                                                   ></i>
                                                                                                   <div style="flex:1 0 0;font-size: 16px;font-weight: 400;">規格</div>
                                                                                                   ${document.body.clientWidth < 800
-                                                                                                      ? `<div  style="color:#393939;font-size: 16px;font-weight: 400;" class="me-3">
-                                                                                                   販售價格*
-                                                                                                </div>`
+                                                                                                      ? html`<div style="color:#393939;font-size: 16px;font-weight: 400;" class="me-3">販售價格*</div>`
                                                                                                       : `${['販售價格*', '存貨數量*', '運費計算方式']
                                                                                                             .map((dd) => {
-                                                                                                                return `<div  style="color:#393939;font-size: 16px;font-weight: 400;width: 20%; ">
-                                                                                                    ${dd}
-                                                                                                </div>`;
+                                                                                                                return html`<div style="color:#393939;font-size: 16px;font-weight: 400;width: 20%; ">
+                                                                                                                    ${dd}
+                                                                                                                </div>`;
                                                                                                             })
                                                                                                             .join('')}`}
                                                                                               </div>
@@ -2140,7 +2141,7 @@ color: ${selected.length ? `#393939` : `#DDD`};font-size: 18px;
                                                                                               return postMD.specs[0].option
                                                                                                   .map((spec: any) => {
                                                                                                       const viewList = [];
-                                                                                                      spec.expand = spec.expand ?? true
+                                                                                                      spec.expand = spec.expand ?? true;
                                                                                                       if (postMD.specs.length > 1) {
                                                                                                           let isCheck = !postMD.variants
                                                                                                               .filter((dd) => {
@@ -2212,20 +2213,20 @@ color: ${isCheck ? `#393939` : `#DDD`};font-size: 18px;
                                                                                                                   .map((dd) => {
                                                                                                                       let minPrice = Infinity;
                                                                                                                       let maxPrice = 0;
-                                                                                                                      let stock:number = 0;
+                                                                                                                      let stock: number = 0;
                                                                                                                       postMD.variants
-                                                                                                                              .filter((dd) => {
-                                                                                                                                  return dd.spec[0] === spec.title;
-                                                                                                                              })
-                                                                                                                              .map((d1) => {
-                                                                                                                                  minPrice = Math.min(d1.sale_price , minPrice)
-                                                                                                                                  maxPrice = Math.max(d1.sale_price , maxPrice)
-                                                                                                                                  stock = stock + parseInt(d1.stock as any,10)
-                                                                                                                                  console.log(stock)
-                                                                                                                              });
-                                                                                                                      if (dd.key == "sale_price"){
+                                                                                                                          .filter((dd) => {
+                                                                                                                              return dd.spec[0] === spec.title;
+                                                                                                                          })
+                                                                                                                          .map((d1) => {
+                                                                                                                              minPrice = Math.min(d1.sale_price, minPrice);
+                                                                                                                              maxPrice = Math.max(d1.sale_price, maxPrice);
+                                                                                                                              stock = stock + parseInt(d1.stock as any, 10);
+                                                                                                                              console.log(stock);
+                                                                                                                          });
+                                                                                                                      if (dd.key == 'sale_price') {
                                                                                                                           dd.title = `${minPrice} ~ ${maxPrice}`;
-                                                                                                                      }else{
+                                                                                                                      } else {
                                                                                                                           dd.title = `${stock}`;
                                                                                                                       }
                                                                                                                       return html`<div
@@ -2354,7 +2355,7 @@ color: ${(data as any).checked ? `#393939` : `#DDD`};font-size: 18px;"
                                                                                                                                                       min="0"
                                                                                                                                                       onchange="${gvc.event((e) => {
                                                                                                                                                           (data as any)[dd] = e.value;
-                                                                                                                                                          gvc.notifyDataChange(vm.id)
+                                                                                                                                                          gvc.notifyDataChange(vm.id);
                                                                                                                                                       })}"
                                                                                                                                                   />
                                                                                                                                               </div>`;

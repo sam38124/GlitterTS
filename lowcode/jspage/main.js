@@ -141,7 +141,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
     };
     function lod() {
         return __awaiter(this, void 0, void 0, function* () {
-            yield swal.loading('加載中...');
+            yield swal.loading('載入中...');
             const waitGetData = [
                 () => __awaiter(this, void 0, void 0, function* () {
                     return yield new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {

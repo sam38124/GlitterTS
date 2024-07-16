@@ -166,9 +166,9 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
         gvc.notifyDataChange('MainEditorRight');
     };
 
-    //加載頁面資料
+    //載入頁面資料
     async function lod() {
-        await swal.loading('加載中...');
+        await swal.loading('載入中...');
         const waitGetData = [
             async () => {
                 return await new Promise(async (resolve, reject) => {
@@ -609,7 +609,7 @@ function initialEditor(gvc: GVC, viewModel: any) {
     glitter.share.editorViewModel = viewModel;
     //預設為用戶編輯模式
     localStorage.setItem('editor_mode', localStorage.getItem('editor_mode') || 'user');
-    //Swal加載動畫
+    //Swal載入動畫
     const swal = new Swal(gvc);
     //貼上事件
     glitter.share.pastEvent = () => {
