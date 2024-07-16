@@ -98,14 +98,20 @@ export declare class Shopping {
             sku: string;
             shipment_fee: number;
         }[];
+        customer_info?: any;
         email?: string;
         return_url: string;
         user_info: any;
         code?: string;
         use_rebate?: number;
         use_wallet?: number;
-    }, type?: 'add' | 'preview' | 'manual'): Promise<{
+        checkOutType?: "manual" | "auto";
+        voucher?: any;
+        discount?: number;
+        total?: number;
+    }, type?: 'add' | 'preview' | 'manual' | 'manual-preview'): Promise<{
         data: {
+            customer_info: {};
             lineItems: {
                 id: string;
                 spec: string[];
@@ -116,6 +122,7 @@ export declare class Shopping {
                 preview_image: string;
                 shipment_fee: number;
             }[];
+            discount?: number | undefined;
             total: number;
             email: string;
             user_info: any;

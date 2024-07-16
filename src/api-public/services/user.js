@@ -48,31 +48,33 @@ const rebate_js_1 = require("./rebate.js");
 const moment_1 = __importDefault(require("moment"));
 const notify_js_1 = require("./notify.js");
 class User {
-    async createUser(account, pwd, userData, req) {
+    async createUser(account, pwd, userData, req, pass_verify) {
         try {
             const login_config = await this.getConfigV2({
                 key: 'login_config',
                 user_id: 'manager',
             });
             const userID = generateUserID();
-            if (userData.verify_code) {
-                if (userData.verify_code !== (await redis_js_1.default.getValue(`verify-${account}`))) {
-                    throw exception_1.default.BadRequestError('BAD_REQUEST', 'Verify code error.', null);
+            if (!pass_verify) {
+                if (userData.verify_code) {
+                    if (userData.verify_code !== (await redis_js_1.default.getValue(`verify-${account}`))) {
+                        throw exception_1.default.BadRequestError('BAD_REQUEST', 'Verify code error.', null);
+                    }
                 }
-            }
-            else if (login_config.email_verify) {
-                await database_1.default.execute(`delete
+                else if (login_config.email_verify) {
+                    await database_1.default.execute(`delete
                      from \`${this.app}\`.\`t_user\`
                      where account = ${database_1.default.escape(account)}
                        and status = 0`, []);
-                const data = await auto_send_email_js_1.AutoSendEmail.getDefCompare(this.app, 'auto-email-verify');
-                const code = tool_js_1.default.randomNumber(6);
-                await redis_js_1.default.setValue(`verify-${account}`, code);
-                data.content = data.content.replace(`@{{code}}`, code);
-                (0, ses_js_1.sendmail)(`${data.name} <${process_1.default.env.smtp}>`, account, data.title, data.content);
-                return {
-                    verify: 'mail',
-                };
+                    const data = await auto_send_email_js_1.AutoSendEmail.getDefCompare(this.app, 'auto-email-verify');
+                    const code = tool_js_1.default.randomNumber(6);
+                    await redis_js_1.default.setValue(`verify-${account}`, code);
+                    data.content = data.content.replace(`@{{code}}`, code);
+                    (0, ses_js_1.sendmail)(`${data.name} <${process_1.default.env.smtp}>`, account, data.title, data.content);
+                    return {
+                        verify: 'mail',
+                    };
+                }
             }
             await database_1.default.execute(`INSERT INTO \`${this.app}\`.\`t_user\` (\`userID\`, \`account\`, \`pwd\`, \`userData\`, \`status\`)
                  VALUES (?, ?, ?, ?, ?);`, [userID, account, await tool_1.default.hashPwd(pwd), userData !== null && userData !== void 0 ? userData : {}, 1]);
@@ -581,7 +583,7 @@ class User {
             }
             if (query.search) {
                 querySql.push([
-                    `(UPPER(JSON_UNQUOTE(JSON_EXTRACT(u.userData, '$.name')) LIKE UPPER('%${query.search}%')))`,
+                    `(UPPER(JSON_UNQUOTE(JSON_EXTRACT(u.userData, '$.name'))) LIKE UPPER('%${query.search}%'))`,
                     `(JSON_UNQUOTE(JSON_EXTRACT(u.userData, '$.email')) LIKE '%${query.search}%')`,
                     `(UPPER(JSON_UNQUOTE(JSON_EXTRACT(u.userData, '$.phone')) LIKE UPPER('%${query.search}%')))`,
                 ]

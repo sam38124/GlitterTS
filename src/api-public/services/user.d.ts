@@ -15,7 +15,7 @@ interface UserQuery {
 export declare class User {
     app: string;
     token?: IToken;
-    createUser(account: string, pwd: string, userData: any, req: any): Promise<any>;
+    createUser(account: string, pwd: string, userData: any, req: any, pass_verify?: boolean): Promise<any>;
     createUserHook(userID: string): Promise<void>;
     updateAccount(account: string, userID: string): Promise<any>;
     login(account: string, pwd: string): Promise<any>;

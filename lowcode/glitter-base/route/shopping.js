@@ -342,6 +342,30 @@ export class ApiShop {
             data: JSON.stringify(json),
         });
     }
+    static getManualCheckout(json) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/ec/manager/checkout/preview`,
+            type: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: getConfig().config.token,
+            },
+            data: JSON.stringify(json),
+        });
+    }
+    static toManualCheckout(passData) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/ec/manager/checkout/`,
+            type: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: getConfig().config.token,
+            },
+            data: JSON.stringify(passData),
+        });
+    }
     static getVoucherCode() {
         const glitter = window.glitter;
         return new Promise((resolve, reject) => {

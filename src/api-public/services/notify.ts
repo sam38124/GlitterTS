@@ -72,8 +72,11 @@ export class ManagerNotify {
         orderData:any,
         status:number,
     }){
+
         const saas = await this.getSaasAPP();
         const link = `./index?type=editor&appName=${this.app_name}&function=backend-manger&tab=order_list`
+
+
         new Firebase(saas.brand).sendMessage({
             title: `您有新訂單`,
             userID: saas.user,

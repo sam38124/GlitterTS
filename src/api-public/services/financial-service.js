@@ -28,7 +28,6 @@ class FinancialService {
                 orderData
             ]);
         }
-        return ``;
     }
     async saveMoney(orderData) {
         if (this.keyData.TYPE === 'newWebPay') {

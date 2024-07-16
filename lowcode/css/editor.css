@@ -16,6 +16,7 @@ body {
     --text-unselect: #616161;
 }
 
+
 .text_primary {
     color: var(--ed-item-primary) !important;
 }

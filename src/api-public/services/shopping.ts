@@ -15,6 +15,7 @@ import {ManagerNotify} from './notify.js';
 import {Post} from "./post.js";
 import {UtPermission} from "../utils/ut-permission.js";
 import response from "../../modules/response.js";
+import {manual} from "openai/_shims/manual-types";
 
 interface VoucherData {
     id: number;
@@ -269,14 +270,19 @@ export class Shopping {
                 sku: string;
                 shipment_fee: number;
             }[];
+            customer_info?:any,//顧客資訊 訂單人
             email?: string;
             return_url: string;
-            user_info: any;
+            user_info: any; //取貨人資訊
             code?: string;
             use_rebate?: number;
             use_wallet?: number;
+            checkOutType?:"manual" | "auto"
+            voucher?:any; //自定義的voucher
+            discount?:number //自定義金額
+            total?: number;//自定義總額
         },
-        type: 'add' | 'preview' | 'manual' = 'add'
+        type: 'add' | 'preview' | 'manual' | 'manual-preview' = 'add'
     ) {
         try {
             const userClass = new User(this.app);
@@ -338,6 +344,7 @@ export class Shopping {
                 },
             ])[0].value;
 
+
             // 物流設定
             const shipment_setting: string[] = await new Promise(async (resolve, reject) => {
                 try {
@@ -360,6 +367,7 @@ export class Shopping {
 
             // 購物車資料
             const carData: {
+                customer_info: {};//這張訂單的收件人
                 lineItems: {
                     id: string;
                     spec: string[];
@@ -370,6 +378,7 @@ export class Shopping {
                     preview_image: string;
                     shipment_fee: number;
                 }[];
+                discount?: number;
                 total: number;
                 email: string;
                 user_info: any;
@@ -385,6 +394,7 @@ export class Shopping {
                 useRebateInfo?: { point: number; limit?: number; condition?: number };
                 voucherList?: VoucherData[];
             } = {
+                customer_info: {},
                 lineItems: [],
                 total: 0,
                 email: data.email ?? ((data.user_info && data.user_info.email) || ''),
@@ -399,7 +409,6 @@ export class Shopping {
                 user_email: (userData && userData.account) || (data.email ?? ((data.user_info && data.user_info.email) || '')),
                 useRebateInfo: {point: 0},
             };
-
             function calculateShipment(dataList: { key: string; value: string }[], value: number | string) {
                 const productValue = parseInt(`${value}`, 10);
                 if (isNaN(productValue) || dataList.length === 0) {
@@ -438,7 +447,7 @@ export class Shopping {
                         });
                         if ((Number.isInteger(variant.stock) || variant.show_understocking === 'false') && Number.isInteger(b.count)) {
                             // 當超過庫存數量則調整為庫存上限
-                            if (variant.stock < b.count && variant.show_understocking !== 'false') {
+                            if (variant.stock < b.count && variant.show_understocking !== 'false' && type !== 'manual' && type !== 'manual-preview') {
                                 b.count = variant.stock;
                             }
 
@@ -473,10 +482,13 @@ export class Shopping {
                                 variant.shipment_weight = parseInt(variant.shipment_weight || 0);
                                 carData.shipment_fee! += b.shipment_fee;
                                 carData.lineItems.push(b as any);
-                                carData.total += variant.sale_price * b.count;
+                                if (type !== "manual"){
+                                    carData.total += variant.sale_price * b.count;
+                                }
+
                             }
                             // 當為結帳時則更改商品庫存數量
-                            if (type !== 'preview') {
+                            if (type !== 'preview' && type !== 'manual' && type !== 'manual-preview') {
                                 const countless = variant.stock - b.count;
                                 variant.stock = countless > 0 ? countless : 0;
                                 await db.query(
@@ -508,44 +520,109 @@ export class Shopping {
                 }
             }
             carData.total += carData.shipment_fee!;
-
             const f_rebate = await this.formatUseRebate(carData.total, carData.use_rebate);
             carData.useRebateInfo = f_rebate;
             carData.use_rebate = f_rebate.point;
             carData.total -= carData.use_rebate;
-
             carData.code = data.code;
             carData.voucherList = []
-            await this.checkVoucher(carData);
-
-            // ================================ Preview UP ================================
-            if (type === 'preview') return {data: carData};
-            // ================================ Add DOWN ================================
-
-            await rebateClass.insertRebate(userData.userID, carData.use_rebate * -1, '使用折抵', {
-                order_id: carData.orderID,
-            });
-
-            if (carData.voucherList && carData.voucherList.length > 0) {
-                for (const voucher of carData.voucherList) {
-                    await this.insertVoucherHistory(userData.userID, carData.orderID, voucher.id);
-                }
+            // 手動新增訂單的優惠卷設定
+            if (type !== 'manual' && type !== 'manual-preview') {
+                await this.checkVoucher(carData);
             }
 
-            if (userData && userData.userID) {
-                // 判斷錢包是否有餘額
-                const sum =
-                    (
-                        await db.query(
-                            `SELECT sum(money)
+
+            //
+            // ================================ Preview UP ================================
+            if (type === 'preview' || type === 'manual-preview') return {data: carData};
+            // ================================ Add DOWN ================================
+
+            if (type !== 'manual'){
+                await rebateClass.insertRebate(userData.userID, carData.use_rebate * -1, '使用折抵', {
+                    order_id: carData.orderID,
+                });
+
+                if (carData.voucherList && carData.voucherList.length > 0) {
+                    for (const voucher of carData.voucherList) {
+                        await this.insertVoucherHistory(userData.userID, carData.orderID, voucher.id);
+                    }
+                }
+
+                if (userData && userData.userID) {
+                    // 判斷錢包是否有餘額
+                    const sum =
+                        (
+                            await db.query(
+                                `SELECT sum(money)
                              FROM \`${this.app}\`.t_wallet
                              WHERE status in (1, 2)
                                and userID = ?`,
-                            [userData.userID]
-                        )
-                    )[0]['sum(money)'] || 0;
-                carData.use_wallet = sum < carData.total ? sum : carData.total;
+                                [userData.userID]
+                            )
+                        )[0]['sum(money)'] || 0;
+                    carData.use_wallet = sum < carData.total ? sum : carData.total;
+                }
+            }else {
+                // 手動結帳地方
+                let tempVoucher:VoucherData = {
+                    discount_total: data.voucher.discount_total,
+                    end_ISO_Date: "",
+                    for: 'all',
+                    forKey: [],
+                    method: data.voucher.method,
+                    overlay: false,
+                    reBackType: data.voucher.reBackType,
+                    rebate_total: data.voucher.rebate_total,
+                    rule: 'min_price',
+                    ruleValue: 0,
+                    startDate: "",
+                    startTime: "",
+                    start_ISO_Date: "",
+                    status: 1,
+                    target: "",
+                    targetList: [],
+                    title: data.voucher.title,
+                    trigger: 'auto',
+                    type: "voucher",
+                    value: data.voucher.value,
+                    id:data.voucher.id
+
+                };
+                carData.discount = data.discount;
+                carData.voucherList= [tempVoucher];
+                carData.customer_info = data.customer_info;
+                carData.total = data.total??0;
+                carData.rebate = tempVoucher.rebate_total
+                if (tempVoucher.reBackType == "shipment_free"){
+                    carData.shipment_fee = 0;
+                }
+
+                if (tempVoucher.reBackType =="rebate"){
+                    let customerData = await userClass.getUserData(data.email! || data.user_info.email, 'account');
+                    if(!customerData){
+                        // 找不到data時 新建user
+                        await (new User(this.app)).createUser(data.email!,Tool.randomString(8),{
+                            email:data.email,
+                            name:data.customer_info.name,
+                            phone:data.customer_info.phone
+                        },{},true)
+
+                        customerData = await userClass.getUserData(data.email! || data.user_info.email, 'account');;
+                    }
+                    await rebateClass.insertRebate(customerData.userID, carData.rebate, `手動新增訂單 - 優惠券購物金：${tempVoucher.title}`)
+                }
+                // 手動訂單新增
+                await db.execute(
+                    `INSERT INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
+                     values (?, ?, ?, ?)`,
+                    [carData.orderID, 1, carData.email, carData]
+                );
+                return {
+                    data: carData,
+                }
+
             }
+
 
             // 當不需付款時直接寫入，並開發票
             if (carData.use_wallet === carData.total) {
@@ -577,12 +654,14 @@ export class Shopping {
             } else {
                 const id = 'redirect_' + Tool.randomString(6);
                 await redis.setValue(id, data.return_url);
+
                 const keyData = (
                     await Private_config.getConfig({
                         appName: this.app,
                         key: 'glitter_finance',
                     })
                 )[0].value;
+
                 const subMitData = await new FinancialService(this.app, {
                     HASH_IV: keyData.HASH_IV,
                     HASH_KEY: keyData.HASH_KEY,
@@ -592,8 +671,10 @@ export class Shopping {
                     MERCHANT_ID: keyData.MERCHANT_ID,
                     TYPE: keyData.TYPE,
                 }).createOrderPage(carData);
+
                 // 線下付款
                 if (keyData.TYPE === 'off_line') {
+
                     new ManagerNotify(this.app).checkout({
                         orderData: carData,
                         status: 0,
@@ -891,7 +972,7 @@ export class Shopping {
                 status:data.status
             };
             data.orderData && (update.orderData = JSON.stringify(data.orderData));
-        
+
 
             await db.query(
                 `UPDATE \`${this.app}\`.t_checkout

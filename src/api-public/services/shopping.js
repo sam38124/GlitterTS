@@ -157,7 +157,7 @@ class Shopping {
         }
     }
     async toCheckout(data, type = 'add') {
-        var _a, _b, _c;
+        var _a, _b, _c, _d;
         try {
             const userClass = new user_js_1.User(this.app);
             const rebateClass = new rebate_js_1.Rebate(this.app);
@@ -231,6 +231,7 @@ class Shopping {
                 }
             });
             const carData = {
+                customer_info: {},
                 lineItems: [],
                 total: 0,
                 email: (_b = data.email) !== null && _b !== void 0 ? _b : ((data.user_info && data.user_info.email) || ''),
@@ -276,7 +277,7 @@ class Shopping {
                             return dd.spec.join('-') === b.spec.join('-');
                         });
                         if ((Number.isInteger(variant.stock) || variant.show_understocking === 'false') && Number.isInteger(b.count)) {
-                            if (variant.stock < b.count && variant.show_understocking !== 'false') {
+                            if (variant.stock < b.count && variant.show_understocking !== 'false' && type !== 'manual' && type !== 'manual-preview') {
                                 b.count = variant.stock;
                             }
                             if (variant && b.count > 0) {
@@ -302,9 +303,11 @@ class Shopping {
                                 variant.shipment_weight = parseInt(variant.shipment_weight || 0);
                                 carData.shipment_fee += b.shipment_fee;
                                 carData.lineItems.push(b);
-                                carData.total += variant.sale_price * b.count;
+                                if (type !== "manual") {
+                                    carData.total += variant.sale_price * b.count;
+                                }
                             }
-                            if (type !== 'preview') {
+                            if (type !== 'preview' && type !== 'manual' && type !== 'manual-preview') {
                                 const countless = variant.stock - b.count;
                                 variant.stock = countless > 0 ? countless : 0;
                                 await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_manager_post\`
@@ -337,23 +340,78 @@ class Shopping {
             carData.total -= carData.use_rebate;
             carData.code = data.code;
             carData.voucherList = [];
-            await this.checkVoucher(carData);
-            if (type === 'preview')
-                return { data: carData };
-            await rebateClass.insertRebate(userData.userID, carData.use_rebate * -1, '使用折抵', {
-                order_id: carData.orderID,
-            });
-            if (carData.voucherList && carData.voucherList.length > 0) {
-                for (const voucher of carData.voucherList) {
-                    await this.insertVoucherHistory(userData.userID, carData.orderID, voucher.id);
-                }
+            if (type !== 'manual' && type !== 'manual-preview') {
+                await this.checkVoucher(carData);
             }
-            if (userData && userData.userID) {
-                const sum = (await database_js_1.default.query(`SELECT sum(money)
+            if (type === 'preview' || type === 'manual-preview')
+                return { data: carData };
+            if (type !== 'manual') {
+                await rebateClass.insertRebate(userData.userID, carData.use_rebate * -1, '使用折抵', {
+                    order_id: carData.orderID,
+                });
+                if (carData.voucherList && carData.voucherList.length > 0) {
+                    for (const voucher of carData.voucherList) {
+                        await this.insertVoucherHistory(userData.userID, carData.orderID, voucher.id);
+                    }
+                }
+                if (userData && userData.userID) {
+                    const sum = (await database_js_1.default.query(`SELECT sum(money)
                              FROM \`${this.app}\`.t_wallet
                              WHERE status in (1, 2)
                                and userID = ?`, [userData.userID]))[0]['sum(money)'] || 0;
-                carData.use_wallet = sum < carData.total ? sum : carData.total;
+                    carData.use_wallet = sum < carData.total ? sum : carData.total;
+                }
+            }
+            else {
+                let tempVoucher = {
+                    discount_total: data.voucher.discount_total,
+                    end_ISO_Date: "",
+                    for: 'all',
+                    forKey: [],
+                    method: data.voucher.method,
+                    overlay: false,
+                    reBackType: data.voucher.reBackType,
+                    rebate_total: data.voucher.rebate_total,
+                    rule: 'min_price',
+                    ruleValue: 0,
+                    startDate: "",
+                    startTime: "",
+                    start_ISO_Date: "",
+                    status: 1,
+                    target: "",
+                    targetList: [],
+                    title: data.voucher.title,
+                    trigger: 'auto',
+                    type: "voucher",
+                    value: data.voucher.value,
+                    id: data.voucher.id
+                };
+                carData.discount = data.discount;
+                carData.voucherList = [tempVoucher];
+                carData.customer_info = data.customer_info;
+                carData.total = (_d = data.total) !== null && _d !== void 0 ? _d : 0;
+                carData.rebate = tempVoucher.rebate_total;
+                if (tempVoucher.reBackType == "shipment_free") {
+                    carData.shipment_fee = 0;
+                }
+                if (tempVoucher.reBackType == "rebate") {
+                    let customerData = await userClass.getUserData(data.email || data.user_info.email, 'account');
+                    if (!customerData) {
+                        await (new user_js_1.User(this.app)).createUser(data.email, tool_js_1.default.randomString(8), {
+                            email: data.email,
+                            name: data.customer_info.name,
+                            phone: data.customer_info.phone
+                        }, {}, true);
+                        customerData = await userClass.getUserData(data.email || data.user_info.email, 'account');
+                        ;
+                    }
+                    await rebateClass.insertRebate(customerData.userID, carData.rebate, `手動新增訂單 - 優惠券購物金：${tempVoucher.title}`);
+                }
+                await database_js_1.default.execute(`INSERT INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
+                     values (?, ?, ?, ?)`, [carData.orderID, 1, carData.email, carData]);
+                return {
+                    data: carData,
+                };
             }
             if (carData.use_wallet === carData.total) {
                 await database_js_1.default.query(`INSERT INTO \`${this.app}\`.t_wallet (orderID, userID, money, status, note)
@@ -618,7 +676,6 @@ class Shopping {
                 status: data.status
             };
             data.orderData && (update.orderData = JSON.stringify(data.orderData));
-            console.log(" data.orderData --- ", data.orderData);
             await database_js_1.default.query(`UPDATE \`${this.app}\`.t_checkout
                  set ?
                  WHERE id = ?`, [update, data.id]);

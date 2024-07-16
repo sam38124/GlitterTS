@@ -52,7 +52,7 @@ export default class FinancialService {
                 orderData
             ]);
         }
-        return ``
+
     }
 
     async saveMoney(orderData: {

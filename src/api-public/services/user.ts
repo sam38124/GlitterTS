@@ -39,33 +39,35 @@ export class User {
 
     public token?: IToken;
 
-    public async createUser(account: string, pwd: string, userData: any, req: any) {
+    public async createUser(account: string, pwd: string, userData: any, req: any,pass_verify?:boolean) {
         try {
             const login_config = await this.getConfigV2({
                 key: 'login_config',
                 user_id: 'manager',
             });
             const userID = generateUserID();
-            if (userData.verify_code) {
-                if (userData.verify_code !== (await redis.getValue(`verify-${account}`))) {
-                    throw exception.BadRequestError('BAD_REQUEST', 'Verify code error.', null);
-                }
-            } else if (login_config.email_verify) {
-                await db.execute(
-                    `delete
+            if(!pass_verify){
+                if (userData.verify_code) {
+                    if (userData.verify_code !== (await redis.getValue(`verify-${account}`))) {
+                        throw exception.BadRequestError('BAD_REQUEST', 'Verify code error.', null);
+                    }
+                } else if (login_config.email_verify) {
+                    await db.execute(
+                        `delete
                      from \`${this.app}\`.\`t_user\`
                      where account = ${db.escape(account)}
                        and status = 0`,
-                    []
-                );
-                const data = await AutoSendEmail.getDefCompare(this.app, 'auto-email-verify');
-                const code = Tool.randomNumber(6);
-                await redis.setValue(`verify-${account}`, code);
-                data.content = data.content.replace(`@{{code}}`, code);
-                sendmail(`${data.name} <${process.env.smtp}>`, account, data.title, data.content);
-                return {
-                    verify: 'mail',
-                };
+                        []
+                    );
+                    const data = await AutoSendEmail.getDefCompare(this.app, 'auto-email-verify');
+                    const code = Tool.randomNumber(6);
+                    await redis.setValue(`verify-${account}`, code);
+                    data.content = data.content.replace(`@{{code}}`, code);
+                    sendmail(`${data.name} <${process.env.smtp}>`, account, data.title, data.content);
+                    return {
+                        verify: 'mail',
+                    };
+                }
             }
             await db.execute(
                 `INSERT INTO \`${this.app}\`.\`t_user\` (\`userID\`, \`account\`, \`pwd\`, \`userData\`, \`status\`)
@@ -642,6 +644,7 @@ export class User {
                 }
             })()} ${obj.page !== undefined && obj.limit !== undefined ? `LIMIT ${obj.page * obj.limit}, ${obj.limit}` : ''};
         `;
+
         return sql;
     }
 
@@ -694,7 +697,7 @@ export class User {
             if (query.search) {
                 querySql.push(
                     [
-                        `(UPPER(JSON_UNQUOTE(JSON_EXTRACT(u.userData, '$.name')) LIKE UPPER('%${query.search}%')))`,
+                        `(UPPER(JSON_UNQUOTE(JSON_EXTRACT(u.userData, '$.name'))) LIKE UPPER('%${query.search}%'))`,
                         `(JSON_UNQUOTE(JSON_EXTRACT(u.userData, '$.email')) LIKE '%${query.search}%')`,
                         `(UPPER(JSON_UNQUOTE(JSON_EXTRACT(u.userData, '$.phone')) LIKE UPPER('%${query.search}%')))`,
                     ]

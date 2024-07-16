@@ -421,6 +421,40 @@ export class ApiShop {
         });
     }
 
+    static getManualCheckout(json: {
+        line_items: {
+            id: number;
+            spec: string[];
+            count: number;
+        }[];
+        code?: string;
+        use_rebate?: number;
+    }) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/ec/manager/checkout/preview`,
+            type: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: getConfig().config.token,
+            },
+            data: JSON.stringify(json),
+        });
+    }
+    static toManualCheckout(passData:any) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/ec/manager/checkout/`,
+            type: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: getConfig().config.token,
+            },
+            data: JSON.stringify(passData),
+        });
+    }
+
+
     static getVoucherCode() {
         const glitter = (window as any).glitter;
         return new Promise((resolve, reject) => {
