@@ -75,6 +75,7 @@ export class Shopping {
         search?: string;
         searchType?: string;
         collection?: string;
+        accurate_search_collection?: boolean;
         min_price?: string;
         max_price?: string;
         status?: string;
@@ -105,7 +106,7 @@ export class Shopping {
                     `(${query.collection
                         .split(',')
                         .map((dd) => {
-                            return `(JSON_EXTRACT(content, '$.collection') LIKE '%${dd}%')`;
+                            return query.accurate_search_collection ? `(JSON_CONTAINS(content->'$.collection', '"${dd}"'))` : `(JSON_EXTRACT(content, '$.collection') LIKE '%${dd}%')`;
                         })
                         .join(' or ')})`
                 );

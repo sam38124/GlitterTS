@@ -40,6 +40,7 @@ router.get('/product', async (req: express.Request, resp: express.Response) => {
             sku: req.query.sku as string,
             id: req.query.id as string,
             collection: req.query.collection as string,
+            accurate_search_collection: req.query.accurate_search_collection === 'true',
             min_price: req.query.min_price as string,
             max_price: req.query.max_price as string,
             status: req.query.status as string,
@@ -181,25 +182,27 @@ router.post('/checkout', async (req: express.Request, resp: express.Response) =>
 
 router.post('/manager/checkout', async (req: express.Request, resp: express.Response) => {
     try {
-        if(await UtPermission.isManager(req)){
+        if (await UtPermission.isManager(req)) {
             return response.succ(
                 resp,
-                await new Shopping(req.get('g-app') as string, req.body.token).toCheckout({
-                    lineItems: req.body.lineItems as any,
-                    email: req.body.customer_info.email,
-                    return_url: req.body.return_url,
-                    user_info: req.body.user_info,
-                    checkOutType:"manual",
-                    voucher : req.body.voucher,
-                    customer_info:req.body.customer_info,
-                    discount:req.body.discount,
-                    total:req.body.total,
-                },"manual")
+                await new Shopping(req.get('g-app') as string, req.body.token).toCheckout(
+                    {
+                        lineItems: req.body.lineItems as any,
+                        email: req.body.customer_info.email,
+                        return_url: req.body.return_url,
+                        user_info: req.body.user_info,
+                        checkOutType: 'manual',
+                        voucher: req.body.voucher,
+                        customer_info: req.body.customer_info,
+                        discount: req.body.discount,
+                        total: req.body.total,
+                    },
+                    'manual'
+                )
             );
-        }else{
+        } else {
             return response.fail(resp, exception.BadRequestError('BAD_REQUEST', 'No permission.', null));
         }
-
     } catch (err) {
         return response.fail(resp, err);
     }
@@ -232,27 +235,29 @@ router.post('/checkout/preview', async (req: express.Request, resp: express.Resp
 });
 router.post('/manager/checkout/preview', async (req: express.Request, resp: express.Response) => {
     try {
-        if(await UtPermission.isManager(req)){
+        if (await UtPermission.isManager(req)) {
             return response.succ(
                 resp,
-                await new Shopping(req.get('g-app') as string, req.body.token).toCheckout({
-                    lineItems: req.body.line_items as any,
-                    email: (req.body.token && req.body.token.account) || req.body.email,
-                    return_url: req.body.return_url,
-                    user_info: req.body.user_info,
-                    use_rebate: (() => {
-                        if (req.body.use_rebate && typeof req.body.use_rebate === 'number') {
-                            return req.body.use_rebate;
-                        } else {
-                            return 0;
-                        }
-                    })(),
-                },"manual-preview")
+                await new Shopping(req.get('g-app') as string, req.body.token).toCheckout(
+                    {
+                        lineItems: req.body.line_items as any,
+                        email: (req.body.token && req.body.token.account) || req.body.email,
+                        return_url: req.body.return_url,
+                        user_info: req.body.user_info,
+                        use_rebate: (() => {
+                            if (req.body.use_rebate && typeof req.body.use_rebate === 'number') {
+                                return req.body.use_rebate;
+                            } else {
+                                return 0;
+                            }
+                        })(),
+                    },
+                    'manual-preview'
+                )
             );
-        }else{
+        } else {
             return response.fail(resp, exception.BadRequestError('BAD_REQUEST', 'No permission.', null));
         }
-
     } catch (err) {
         return response.fail(resp, err);
     }

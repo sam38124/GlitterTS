@@ -41,6 +41,7 @@ router.get('/product', async (req, resp) => {
             sku: req.query.sku,
             id: req.query.id,
             collection: req.query.collection,
+            accurate_search_collection: req.query.accurate_search_collection === 'true',
             min_price: req.query.min_price,
             max_price: req.query.max_price,
             status: req.query.status,
@@ -192,12 +193,12 @@ router.post('/manager/checkout', async (req, resp) => {
                 email: req.body.customer_info.email,
                 return_url: req.body.return_url,
                 user_info: req.body.user_info,
-                checkOutType: "manual",
+                checkOutType: 'manual',
                 voucher: req.body.voucher,
                 customer_info: req.body.customer_info,
                 discount: req.body.discount,
                 total: req.body.total,
-            }, "manual"));
+            }, 'manual'));
         }
         else {
             return response_1.default.fail(resp, exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null));
@@ -245,7 +246,7 @@ router.post('/manager/checkout/preview', async (req, resp) => {
                         return 0;
                     }
                 })(),
-            }, "manual-preview"));
+            }, 'manual-preview'));
         }
         else {
             return response_1.default.fail(resp, exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null));

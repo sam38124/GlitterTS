@@ -47,6 +47,7 @@ export declare class Shopping {
         search?: string;
         searchType?: string;
         collection?: string;
+        accurate_search_collection?: boolean;
         min_price?: string;
         max_price?: string;
         status?: string;

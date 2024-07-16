@@ -166,6 +166,23 @@ export class FilterOptions {
         { key: 'invoice_number', value: '發票號碼' },
     ];
 
+    static productFilterFrame = {
+        status: [],
+        collection: [],
+    };
+
+    static productFunnel = [
+        {
+            key: 'status',
+            type: 'multi_checkbox',
+            name: '商品狀態',
+            data: [
+                { key: 'active', name: '已上架' },
+                { key: 'draft', name: '已下架' },
+            ],
+        },
+    ];
+
     static productOrderBy = [
         { key: 'default', value: '預設' },
         { key: 'max_price', value: '價格高 > 低' },

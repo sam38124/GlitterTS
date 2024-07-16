@@ -119,6 +119,7 @@ export class ApiShop {
         searchType?: string;
         id?: string;
         collection?: string;
+        accurate_search_collection?: boolean;
         maxPrice?: string;
         minPrice?: string;
         status?: string;
@@ -132,6 +133,7 @@ export class ApiShop {
                 `/api-public/v1/ec/product?${(() => {
                     let par = [`limit=${json.limit}`, `page=${json.page}`];
                     json.collection && par.push(`collection=${encodeURI(json.collection)}`);
+                    json.accurate_search_collection && par.push(`accurate_search_collection=true`);
                     json.search && par.push(`search=${json.search}`);
                     json.id && par.push(`id=${json.id}`);
                     json.maxPrice && par.push(`max_price=${json.maxPrice}`);
@@ -441,7 +443,7 @@ export class ApiShop {
             data: JSON.stringify(json),
         });
     }
-    static toManualCheckout(passData:any) {
+    static toManualCheckout(passData: any) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/manager/checkout/`,
             type: 'POST',
@@ -453,7 +455,6 @@ export class ApiShop {
             data: JSON.stringify(passData),
         });
     }
-
 
     static getVoucherCode() {
         const glitter = (window as any).glitter;

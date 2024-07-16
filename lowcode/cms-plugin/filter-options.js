@@ -144,6 +144,21 @@ FilterOptions.orderSelect = [
     { key: 'sku', value: '商品編號' },
     { key: 'invoice_number', value: '發票號碼' },
 ];
+FilterOptions.productFilterFrame = {
+    status: [],
+    collection: [],
+};
+FilterOptions.productFunnel = [
+    {
+        key: 'status',
+        type: 'multi_checkbox',
+        name: '商品狀態',
+        data: [
+            { key: 'active', name: '已上架' },
+            { key: 'draft', name: '已下架' },
+        ],
+    },
+];
 FilterOptions.productOrderBy = [
     { key: 'default', value: '預設' },
     { key: 'max_price', value: '價格高 > 低' },

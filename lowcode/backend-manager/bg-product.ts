@@ -84,8 +84,8 @@ export class BgProduct {
                                             })}
                                         </div>
                                         ${obj.gvc.map(
-                                            vm.options.map((opt,index) => {
-                                                const id=gvc.glitter.getUUID()
+                                            vm.options.map((opt, index) => {
+                                                const id = gvc.glitter.getUUID();
                                                 function call() {
                                                     if (obj.default.includes(opt.key)) {
                                                         obj.default = obj.default.filter((item) => item !== opt.key);
@@ -93,23 +93,22 @@ export class BgProduct {
                                                         obj.default.push(opt.key);
                                                     }
                                                     gvc.notifyDataChange(id);
-                                                 
                                                 }
-                                                return  gvc.bindView(()=>{
+                                                return gvc.bindView(() => {
                                                     return {
-                                                        bind:id,
-                                                        view:()=>{
+                                                        bind: id,
+                                                        view: () => {
                                                             return html`<input
-                                                        class="form-check-input mt-0 ${vm.checkClass}"
-                                                        type="checkbox"
-                                                        id="${opt.key}"
-                                                        name="radio_${vm.id}_${index}"
-                                                        onclick="${obj.gvc.event(() => call())}"
-                                                        ${obj.default.includes(opt.key) ? 'checked' : ''}
-                                                    />
-                                                    <div class="d-flex align-items-center form-check-label c_updown_label cursor_pointer gap-3" onclick="${obj.gvc.event(() => call())}">
-                                                        <div
-                                                            style="
+                                                                    class="form-check-input mt-0 ${vm.checkClass}"
+                                                                    type="checkbox"
+                                                                    id="${opt.key}"
+                                                                    name="radio_${vm.id}_${index}"
+                                                                    onclick="${obj.gvc.event(() => call())}"
+                                                                    ${obj.default.includes(opt.key) ? 'checked' : ''}
+                                                                />
+                                                                <div class="d-flex align-items-center form-check-label c_updown_label cursor_pointer gap-3" onclick="${obj.gvc.event(() => call())}">
+                                                                    <div
+                                                                        style="
                                                                 width: 40px;
                                                                 height: 40px;
                                                                 border-radius: 5px;
@@ -118,17 +117,17 @@ export class BgProduct {
                                                                 background-position: center center;
                                                                 background-size: contain;
                                                             "
-                                                        ></div>
-                                                        <div class="tx_normal ${opt.note ? 'mb-1' : ''}">${opt.value}</div>
-                                                        ${opt.note ? html` <div class="tx_gray_12">${opt.note}</div> ` : ''}
-                                                    </div>`;
+                                                                    ></div>
+                                                                    <div class="tx_normal ${opt.note ? 'mb-1' : ''}">${opt.value}</div>
+                                                                    ${opt.note ? html` <div class="tx_gray_12">${opt.note}</div> ` : ''}
+                                                                </div>`;
                                                         },
-                                                        divCreate:{
-                                                            class:`d-flex align-items-center`,style:`gap: 24px`
-                                                        }
-                                                    }
-                                                })
-                                              
+                                                        divCreate: {
+                                                            class: `d-flex align-items-center`,
+                                                            style: `gap: 24px`,
+                                                        },
+                                                    };
+                                                });
                                             })
                                         )}
                                     </div>
@@ -328,18 +327,7 @@ export class BgProduct {
                     },
                     onCreate: () => {
                         if (vm.loading) {
-                            function cc(cols: CollectionItem, pre: string) {
-                                const str = pre.length > 0 ? pre + ' / ' + cols.title : cols.title;
-                                vm.options.push({ key: str, value: str, image: noImageURL });
-                                for (const col of cols.array ?? []) {
-                                    cc(col, str);
-                                }
-                            }
-
-                            ApiShop.getCollection().then((data) => {
-                                for (const value of data.response.value) {
-                                    cc(value, '');
-                                }
+                            this.getCollectionAllOpts(vm.options, () => {
                                 vm.loading = false;
                                 obj.gvc.notifyDataChange(vm.id);
                             });
@@ -350,11 +338,28 @@ export class BgProduct {
         }, 'collectionsDialog');
     }
 
+    static getCollectionAllOpts = (options: OptionsItem[], callback: () => void) => {
+        function cc(cols: CollectionItem, pre: string) {
+            const str = pre.length > 0 ? pre + ' / ' + cols.title : cols.title;
+            options.push({ key: str, value: BgProduct.replaceAngle(str), image: noImageURL });
+            for (const col of cols.array ?? []) {
+                cc(col, str);
+            }
+        }
+
+        ApiShop.getCollection().then((data) => {
+            for (const value of data.response.value) {
+                cc(value, '');
+            }
+            callback();
+        });
+    };
+
     static getCollectiosOpts = (def: (number | string)[]) => {
         const opts: OptionsItem[] = [];
         function cc(cols: CollectionItem, pre: string) {
             const str = pre.length > 0 ? pre + ' / ' + cols.title : cols.title;
-            def.includes(str) && opts.push({ key: str, value: str, image: noImageURL });
+            def.includes(str) && opts.push({ key: str, value: BgProduct.replaceAngle(str), image: noImageURL });
             for (const col of cols.array ?? []) {
                 cc(col, str);
             }
@@ -369,4 +374,8 @@ export class BgProduct {
             });
         });
     };
+
+    static replaceAngle(text: string) {
+        return text.replace(/\//g, html`<i class="fa-solid fa-angle-right mx-1"></i>`);
+    }
 }
