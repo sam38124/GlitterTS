@@ -250,7 +250,7 @@ TriggerEvent.create(import.meta.url, {
         fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/all-product.js'),
     },
     getCollection: {
-        title: '電子商務 / 取得商品系列',
+        title: '電子商務 / 取得商品分類',
         fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/all-collection.js'),
     },
     productShowList: {
@@ -429,7 +429,7 @@ TriggerEvent.create(import.meta.url, {
         title: '用戶相關 / 忘記密碼 / 進行重設',
         fun: TriggerEvent.setEventRouter(import.meta.url, './user/forget_reset_pwd.js'),
     },
-    reset_v2:{
+    reset_v2: {
         title: '用戶相關 / 忘記密碼 / 重設密碼V2',
         fun: TriggerEvent.setEventRouter(import.meta.url, './user/reset-pwd-v2.js'),
     },

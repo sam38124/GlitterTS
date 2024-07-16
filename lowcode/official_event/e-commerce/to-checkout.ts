@@ -135,8 +135,9 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                     resolve(true)
                                     location.href = href.href
                                 }else{
-                                    $('body').html(res.response.form);
-                                    (document.querySelector('#submit') as any).click();
+                                    const id=gvc.glitter.getUUID()
+                                    $('body').append(`<div id="${id}" style="display: none;">${res.response.form}</div>`);
+                                    (document.querySelector(`#${id} #submit`) as any).click()
                                     ApiShop.clearCart()
                                 }
 

@@ -182,7 +182,7 @@ export class ShoppingOrderManager {
                                                     },
                                                     {
                                                         key: '訂單金額',
-                                                        value: dd.orderData.total,
+                                                        value: dd.orderData.total.toLocaleString(),
                                                     },
                                                     {
                                                         key: '付款狀態',
@@ -393,7 +393,9 @@ export class ShoppingOrderManager {
                     MerchantTradeNo: string;
                     CVSAddress: string;
                     note?: string;
+                    code_note?:string
                 };
+                shipment_form_format?: any,
                 progress: string;
                 // progress: 'finish' | 'wait' | 'shipping' | "returns";
                 order_note: string;
@@ -490,6 +492,8 @@ export class ShoppingOrderManager {
                     return `<div class="badge fs-6" style="border-radius: 7px;background: #FFD5D0;color: #393939;max-height:34px;">${text}</div>`
                 case 'yellow':
                     return `<div class="badge fs-6" style="max-height:34px;border-radius: 7px;color: #393939;background: #FFE9B2;">${text}</div>`
+                default:
+                    return `<div class="badge fs-6" style="max-height:34px;border-radius: 7px;color: #393939;background: ${color};">${text}</div>`
             }
         }
 
@@ -506,12 +510,17 @@ export class ShoppingOrderManager {
                 }
             },
             outShipBadge: () => {
-                if (orderData.orderData.progress === 'finish') {
-                    return drawBadge('green', "已出貨");
-                } else if (orderData.orderData.progress === 'shipping') {
-                    return drawBadge('yellow', "配送中");
-                } else {
-                    return drawBadge('red', "未出貨");
+                switch (orderData.orderData.progress ?? 'wait') {
+                    case 'wait':
+                        return drawBadge('#FFD5D0', '未出貨')
+                    case 'shipping':
+                        return drawBadge('#FFE9B2', '已出貨')
+                    case 'finish':
+                        return drawBadge('#D8ECDA', '已取貨')
+                    case 'arrived':
+                        return drawBadge('#FFE9B2', '已送達')
+                    case 'returns':
+                        return drawBadge('#FFD5D0', '已退貨')
                 }
             },
             orderStatusBadge: () => {
@@ -851,12 +860,7 @@ export class ShoppingOrderManager {
                                                             付款方式
                                                         </div>
                                                         <div style="color: #393939;font-size: 16px;font-weight: 400; line-height: 140%;">
-                                                            ${(() => {
-                                                                let payMethod: any = {
-                                                                    credit: "信用卡付款"
-                                                                }
-                                                                return payMethod[orderData.orderData.method] ?? "線下付款";
-                                                            })()}
+                                                            ${ShoppingOrderManager.getPaymentMethodText(orderData.orderData.method)}
                                                         </div>
                                                     </div>
                                                 `)}
@@ -872,13 +876,14 @@ export class ShoppingOrderManager {
                                                                 def: `${orderData.orderData.progress}`,
                                                                 array: [
                                                                     {title: '配送狀態', value: ''},
-                                                                    {title: '配送中', value: 'shipping'},
+                                                                    {title: '已出貨', value: 'shipping'},
                                                                     {title: '未出貨', value: 'wait'},
                                                                     {title: '已取貨', value: 'finish'},
                                                                     {title: '已退貨', value: 'returns'},
                                                                     {title: '已到貨', value: 'arrived'},
                                                                 ],
                                                                 callback: (text) => {
+                                                                   
                                                                     if (text && text !== `${orderData.orderData.progress}`) {
                                                                         orderData.orderData.progress = text
                                                                     }
@@ -915,13 +920,18 @@ export class ShoppingOrderManager {
                                                                     return orderData.orderData.user_info.address;
                                                                 } else {
                                                                     return html`
-                                                                        <div class="d-flex">門市名稱:
-                                                                            ${orderData.orderData.user_info.CVSStoreName}
+                                                                        <div class="d-flex flex-wrap">
+                                                                            <span class="me-2">門市名稱:</span>
+                                                                            <div style="white-space: normal;word-break: break-all;">
+                                                                                ${orderData.orderData.user_info.CVSStoreName}
+                                                                            </div>
                                                                         </div>
                                                                         <div class="d-flex">門市店號:
                                                                             ${orderData.orderData.user_info.CVSStoreID}
                                                                         </div>
-                                                                        <div class="d-flex">地址:
+                                                                        <div class="d-flex"
+                                                                             style="white-space: normal;word-break: break-all;">
+                                                                            地址:
                                                                             ${orderData.orderData.user_info.CVSAddress}
                                                                         </div>
                                                                     `
@@ -1027,12 +1037,7 @@ export class ShoppingOrderManager {
 <!--                                            <div class="fw-normal fs-6">Email:${orderData.orderData.user_info.email}</div>-->
                                         </div>`,
                                                                 `<div class="" style="font-size: 16px;font-weight: 700;">付款方式</div>`,
-                                                                `<div style="">${(() => {
-                                                                    let payMethod: any = {
-                                                                        credit: "信用卡付款"
-                                                                    }
-                                                                    return payMethod[orderData.orderData.method];
-                                                                })()}</div>`,
+                                                                `<div style=""> ${ShoppingOrderManager.getPaymentMethodText(orderData.orderData.method)}</div>`,
                                                                 `<div class="" style="font-size: 16px;font-weight: 700;">配送方式</div>`,
                                                                 `<div class="" style="color: #393939;line-height: 140%; ">${(() => {
                                                                     switch (orderData.orderData.user_info.shipment) {
@@ -1057,10 +1062,14 @@ export class ShoppingOrderManager {
                                                                         case 'HILIFEC2C':
                                                                         case 'OKMARTC2C':
                                                                         case 'UNIMARTC2C':
+
                                                                             return [
-                                                                                `<div class="fw-normal fs-6">名稱:${orderData.orderData.user_info.CVSStoreName}</div>`,
-                                                                                `<div class="fw-normal fs-6">代號:${orderData.orderData.user_info.CVSStoreID}</div>`,
-                                                                                `<div class="fw-normal fs-6">地址:${orderData.orderData.user_info.CVSAddress}</div>`,
+                                                                                `    <div class="d-flex flex-wrap w-100">
+                                                                            <span class="me-2 fw-normal fs-6">門市名稱:</span>
+                                                                            <div class="fw-normal fs-6" style="white-space: normal;word-break: break-all;"> ${decodeURI(orderData.orderData.user_info.CVSStoreName)}</div>
+                                                                        </div>`,
+                                                                                `<div class="fw-normal fs-6">代號: ${orderData.orderData.user_info.CVSStoreID}</div>`,
+                                                                                `<div class="fw-normal fs-6 w-100" style="white-space: normal;word-break: break-all;">地址: ${orderData.orderData.user_info.CVSAddress}</div>`,
                                                                                 `<div class="my-2 bgf6" style="height: 1px;"></div>`,
                                                                             ].join('');
                                                                         case 'normal':
@@ -1103,7 +1112,7 @@ export class ShoppingOrderManager {
                                                                             `;
                                                                         },
                                                                         divCreate: {
-                                                                            class: `p-2 fw-normal`,
+                                                                            class: ` fw-normal`,
                                                                         },
                                                                     };
                                                                 })
@@ -1111,7 +1120,29 @@ export class ShoppingOrderManager {
                                                         </div>
                                                     </div>
                                                 `)}
+                                                ${(() => {
+                                                    if (orderData.orderData.shipment_form_format && orderData.orderData.shipment_form_format.length > 0) {
+                                                        return `    <div class="mt-2"></div>` + BgWidget.card(html`
 
+                                                            <div class="p-2" style="color: #393939;font-size: 16px;">
+                                                                ${orderData.orderData.shipment_form_format.filter((dd: any) => {
+                                                                    return (orderData.orderData.user_info as any)[dd.key];
+                                                                }).map((dd: any) => {
+                                                                    return ` <div class="d-flex align-items-center">
+                                                            <div class="" style="font-size: 16px;font-weight: 700;">
+                                                                ${dd.title}
+                                                            </div>
+                                                            <div class="flex-fill"></div>
+                                                        </div>
+                                                        <div class="" style="color: #393939;font-weight: 400;">${(orderData.orderData.user_info as any)[dd.key]}</div>`
+                                                                }).join('')}
+
+                                                            </div>
+                                                        `)
+                                                    } else {
+                                                        return ``
+                                                    }
+                                                })()}
                                                 <div class="mt-2"></div>
                                                 ${BgWidget.card(
                                                         gvc.bindView(() => {
@@ -1126,12 +1157,14 @@ export class ShoppingOrderManager {
                                                                 view: () => {
                                                                     return html`
                                                                         <div class="d-flex align-items-center ">
-                                                                            <div class="fw-bold fs-6">訂單備註</div>
+                                                                            <div class="fw-bold fs-6"
+                                                                                 style="color:#393939;">訂單備註
+                                                                            </div>
                                                                             <div class="flex-fill"></div>
 
                                                                         </div>
                                                                         <div class="fs-6 w-100 mt-2  lh-lg fw-normal"
-                                                                             style="word-break: break-all;white-space:normal;">
+                                                                             style="word-break: break-all;white-space:normal;color:#393939;">
                                                                             ${(orderData.orderData.order_note ?? '尚未填寫').replace(/\n/g, `<br>`)}
                                                                         </div>
                                                                     `;
@@ -1142,11 +1175,44 @@ export class ShoppingOrderManager {
                                                             };
                                                         })
                                                 )}
+                                                ${(orderData.orderData.user_info.code_note) ? ` <div class="mt-2"></div>`+BgWidget.card(
+                                                        gvc.bindView(() => {
+                                                            const id = glitter.getUUID();
+                                                            const vm: {
+                                                                mode: 'edit' | 'read';
+                                                            } = {
+                                                                mode: 'read',
+                                                            };
+                                                            return {
+                                                                bind: id,
+                                                                view: () => {
+                                                                    return html`
+                                                                        <div class="d-flex align-items-center ">
+                                                                            <div class="fw-bold fs-6"
+                                                                                 style="color:#393939;">額外資訊
+                                                                            </div>
+                                                                            <div class="flex-fill"></div>
+
+                                                                        </div>
+                                                                        <div class="fs-6 w-100 mt-2  lh-lg fw-normal"
+                                                                             style="word-break: break-all;white-space:normal;color:#393939;">
+                                                                            ${(orderData.orderData.user_info.code_note ?? '尚未填寫').replace(/\n/g, `<br>`)}
+                                                                        </div>
+                                                                    `;
+                                                                },
+                                                                divCreate: {
+                                                                    class: `p-2 fw-normal`,
+                                                                },
+                                                            };
+                                                        })
+                                                ):``}
                                                 <div class="mt-2"></div>
                                                 ${BgWidget.card(html`
                                                     <div class="p-2">
                                                         <div class="d-flex align-items-center">
-                                                            <div class="fw-bold fs-6">預計送達日期</div>
+                                                            <div class="fw-bold fs-6" style="color:#393939;">
+                                                                預計送達日期
+                                                            </div>
                                                             <div class="flex-fill"></div>
                                                         </div>
                                                         <div class="w-100 d-flex flex-column mt-2" style="gap:5px;">
@@ -2655,6 +2721,18 @@ export class ShoppingOrderManager {
                     </div>
             `
             , 1200);
+    }
+    public static getPaymentMethodText(key: string) {
+        switch (key) {
+            case 'off_line':
+                return `線下付款`
+            case 'newWebPay':
+                return `藍新金流`
+            case 'ecPay':
+                return `綠界金流`
+            default:
+                return `線下付款`
+        }
     }
 }
 

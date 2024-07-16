@@ -1,4 +1,4 @@
-import { ShareDialog } from '../dialog/ShareDialog.js';
+import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
 import { BgWidget, OptionsItem } from '../backend-manager/bg-widget.js';
 import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
 import { GVC } from '../glitterBundle/GVController.js';
@@ -47,7 +47,7 @@ export class ShoppingRebateSetting {
                 main: true,
                 register: {
                     switch: true,
-                    value: 300,
+                    value: 100,
                     date: 7,
                     unlimited: false,
                 },
@@ -592,7 +592,7 @@ export class ShoppingRebateSetting {
                                                             })
                                                         );
                                                     },
-                                                    divCreate: { class: 'p-0' },
+                                                    divCreate: { class: 'summary-card p-0' },
                                                 };
                                             }),
                                             undefined,

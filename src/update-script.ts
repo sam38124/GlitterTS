@@ -4,12 +4,13 @@ export class UpdateScript {
     public static async run() {
         const migrate_template=(await db.query('SELECT appName FROM glitter.app_config where template_type!=0;',[])).map((dd:any)=>{
             return dd.appName
-        }).concat('shop_template_black_style','3131_shop')
+        }).concat('shop_template_black_style','3131_shop','shop-template-clothing-v3')
 
         // UpdateScript.migrateTermsOfService(['3131_shop', 't_1717152410650', 't_1717141688550', 't_1717129048727', 't_1719819344426'])
         // UpdateScript.migrateHeaderAndFooter(['3131_shop','t_1719819344426','t_1717129048727','t_1717141688550','t_1717152410650','t_1717407696327','t_1717385441550','t_1717386839537','t_1717397588096'])
         // UpdateScript.migrateAccount('shop_template_black_style')
-       await UpdateScript.migrateLink(migrate_template)
+       // await UpdateScript.migrateLink(migrate_template)
+        await UpdateScript.migrateDialog(migrate_template)
     }
 
     public static async migrateLink(appList: string[]){
@@ -168,6 +169,7 @@ for (const p of page_list){
                                              FROM glitter.page_config
                                              where appName = 'cms_system'
                                                and tag in ('loading_dialog','toast','false_dialog')`, []));
+        const global_event=(await db.query(`SELECT * FROM cms_system.t_global_event;`,[]));
         page_list.map((d: any) => {
             Object.keys(d).map((dd) => {
                 if (typeof d[dd] === 'object') {
@@ -189,6 +191,20 @@ for (const p of page_list){
                             set ?`, [
                     b
                 ])
+                await db.query(`replace into \`${appName}\`.t_global_event
+                            (tag,name,json) values ?`, [
+                    global_event.map((dd:any)=>{
+                        dd.id=undefined
+                        return [
+                            dd.tag,
+                            dd.name,
+                            JSON.stringify(dd.json)
+                        ]
+                    })
+                ])
+                for (const b of global_event){
+
+                }
             }
         }
     }

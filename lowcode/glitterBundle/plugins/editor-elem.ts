@@ -2416,7 +2416,7 @@ ${obj.gvc.bindView(() => {
                     };
                 }) +
                 (obj.plus
-                    ? html` <div class="btn-group mt-2 ps-1 pe-2 w-100 border-bottom pb-2">
+                    ? html` <div class="btn-group mt-2 ps-1 pe-2 w-100 border-bottom pb-2 align-items-center">
                           <div class="btn-outline-secondary-c btn ms-2 " style="height:30px;flex:1;" onclick="${obj.plus!.event}"><i class="fa-regular fa-circle-plus me-2"></i>${obj.plus!.title}</div>
                           ${(() => {
                               if (obj.copyable === false) {
@@ -2522,7 +2522,7 @@ ${obj.gvc.bindView(() => {
         return gvc.glitter.innerDialog((gvc: GVC) => {
             return html` <div
                 class="dropdown-menu mx-0 position-fixed pb-0 border p-0 show "
-                style="z-index:999999;"
+                style="z-index:999999;max-height: calc(100vh - 20px);"
                 onclick="${gvc.event((e: any, event: any) => {
                     event.preventDefault();
                     event.stopPropagation();

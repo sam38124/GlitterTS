@@ -9,8 +9,8 @@ class UpdateScript {
     static async run() {
         const migrate_template = (await database_1.default.query('SELECT appName FROM glitter.app_config where template_type!=0;', [])).map((dd) => {
             return dd.appName;
-        }).concat('shop_template_black_style', '3131_shop');
-        await UpdateScript.migrateLink(migrate_template);
+        }).concat('shop_template_black_style', '3131_shop', 'shop-template-clothing-v3');
+        await UpdateScript.migrateDialog(migrate_template);
     }
     static async migrateLink(appList) {
         for (const appName of appList) {
@@ -159,6 +159,7 @@ class UpdateScript {
                                              FROM glitter.page_config
                                              where appName = 'cms_system'
                                                and tag in ('loading_dialog','toast','false_dialog')`, []));
+        const global_event = (await database_1.default.query(`SELECT * FROM cms_system.t_global_event;`, []));
         page_list.map((d) => {
             Object.keys(d).map((dd) => {
                 if (typeof d[dd] === 'object') {
@@ -180,6 +181,19 @@ class UpdateScript {
                             set ?`, [
                     b
                 ]);
+                await database_1.default.query(`replace into \`${appName}\`.t_global_event
+                            (tag,name,json) values ?`, [
+                    global_event.map((dd) => {
+                        dd.id = undefined;
+                        return [
+                            dd.tag,
+                            dd.name,
+                            JSON.stringify(dd.json)
+                        ];
+                    })
+                ]);
+                for (const b of global_event) {
+                }
             }
         }
     }

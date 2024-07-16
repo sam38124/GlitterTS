@@ -70,7 +70,7 @@ export class MemberTypeList {
                     },
                     {
                         key: '等級順序',
-                        value: `<span class="fs-7">等級${index + 1}</span>`,
+                        value: `<span class="fs-7">等級${vm.dataList.length - index}</span>`,
                     },
                     {
                         key: '有效期限',
@@ -127,16 +127,16 @@ export class MemberTypeList {
                                             gvc: gvc,
                                             getData: async (vd) => {
                                                 vmi = vd;
-                                                const member_levels_count_list:any=(await ApiUser.getPublicConfig('member_levels_count_list','manager')).response.value || {};
+                                                const member_levels_count_list: any = (await ApiUser.getPublicConfig('member_levels_count_list', 'manager')).response.value || {};
                                                 ApiUser.getPublicConfig('member_level_config', 'manager').then((dd: any) => {
                                                     const data = dd.response.value || {};
                                                     vmi.pageSize = 1;
-                                                    data.levels = (data.levels || []).filter((dd: any) => {
+                                                    data.levels = (data.levels || []).reverse().filter((dd: any) => {
                                                         return dd;
                                                     });
-                                                    vm.dataList = data.levels.map((data:any)=>{
-                                                        data.counts=member_levels_count_list[data.id] || 0
-                                                        return data
+                                                    vm.dataList = data.levels.map((data: any) => {
+                                                        data.counts = member_levels_count_list[data.id] || 0;
+                                                        return data;
                                                     });
                                                     vmi.data = getDatalist();
                                                     vmi.loading = false;
@@ -577,7 +577,7 @@ export class MemberTypeList {
                                                     </div>
                                                 `);
                                             },
-                                            divCreate: { class: 'p-0' },
+                                            divCreate: { class: 'summary-card p-0' },
                                         };
                                     }),
                                     undefined,

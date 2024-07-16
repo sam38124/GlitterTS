@@ -101,7 +101,7 @@ export async function createAPP(dd: any) {
     const html = String.raw;
     Live_source.liveAPP.push(dd.appName);
     //正式區在跑排程
-    if(ConfigSetting.runSchedule){
+    if (ConfigSetting.runSchedule) {
         new Schedule(dd.appName).main();
     }
 
@@ -175,12 +175,12 @@ export async function createAPP(dd: any) {
                             });
                         }
                         let link_prefix = req.originalUrl.split('/')[1]
-                        if(ConfigSetting.is_local){
+                        if (ConfigSetting.is_local) {
                             if ((link_prefix !== 'shopnex') && (link_prefix !== 'codenex_v2')) {
                                 link_prefix = ''
                             }
-                        }else{
-                            link_prefix=''
+                        } else {
+                            link_prefix = ''
                         }
 
                         return `${(() => {
@@ -339,7 +339,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                                     return ``;
                                 }
                                 return `<url>
-<loc>${`https://${domain}/${(d2.content.for_index==='false') ? `pages`:`blogs`}/${d2.content.tag}`.replace(/ /g, '+')}</loc>
+<loc>${`https://${domain}/${(d2.content.for_index === 'false') ? `pages` : `blogs`}/${d2.content.tag}`.replace(/ /g, '+')}</loc>
 <lastmod>${moment(new Date(d2.updated_time)).format('YYYY-MM-DD')}</lastmod>
 </url>
 `;
@@ -394,7 +394,8 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                         [appName]
                     )
                 )[0]['domain'];
-                return html`# we use SHOPNEX as our ecommerce platform User-agent: * Sitemap: https://${domain}/sitemap.xml `;
+                return html`# we use SHOPNEX as our ecommerce platform
+User-agent: * Sitemap: https://${domain}/sitemap.xml `;
             },
             sitemap_test: async (req, resp) => {
                 let appName = dd.appName;

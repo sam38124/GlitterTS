@@ -11,97 +11,97 @@ import { init } from '../glitterBundle/GVController.js';
 import { Editor } from './editor.js';
 import { ApiPageConfig } from '../api/pageConfig.js';
 import { Swal } from '../modules/sweetAlert.js';
-import { Main_editor } from "./function-page/main_editor.js";
-import { Page_editor } from "./function-page/page_editor.js";
-import { Setting_editor } from "./function-page/setting_editor.js";
-import * as triggerBridge from "../editor-bridge/trigger-event.js";
-import { TriggerEvent } from "../glitterBundle/plugins/trigger-event.js";
-import { StoreHelper } from "../helper/store-helper.js";
-import { Storage } from "../glitterBundle/helper/storage.js";
-import { ServerEditor } from "./function-page/server-editor/server-editor.js";
-import { AddComponent } from "../editor/add-component.js";
-import { PageSettingView } from "../editor/page-setting-view.js";
-import { AddPage } from "../editor/add-page.js";
-import { SetGlobalValue } from "../editor/set-global-value.js";
-import { PageCodeSetting } from "../editor/page-code-setting.js";
-import { NormalPageEditor } from "../editor/normal-page-editor.js";
-import { EditorConfig } from "../editor-config.js";
-import { HtmlGenerate } from "../glitterBundle/module/html-generate.js";
-import { BgCustomerMessage } from "../backend-manager/bg-customer-message.js";
+import { Main_editor } from './function-page/main_editor.js';
+import { Page_editor } from './function-page/page_editor.js';
+import { Setting_editor } from './function-page/setting_editor.js';
+import * as triggerBridge from '../editor-bridge/trigger-event.js';
+import { TriggerEvent } from '../glitterBundle/plugins/trigger-event.js';
+import { StoreHelper } from '../helper/store-helper.js';
+import { Storage } from '../glitterBundle/helper/storage.js';
+import { ServerEditor } from './function-page/server-editor/server-editor.js';
+import { AddComponent } from '../editor/add-component.js';
+import { PageSettingView } from '../editor/page-setting-view.js';
+import { AddPage } from '../editor/add-page.js';
+import { SetGlobalValue } from '../editor/set-global-value.js';
+import { PageCodeSetting } from '../editor/page-code-setting.js';
+import { NormalPageEditor } from '../editor/normal-page-editor.js';
+import { EditorConfig } from '../editor-config.js';
+import { HtmlGenerate } from '../glitterBundle/module/html-generate.js';
+import { BgCustomerMessage } from '../backend-manager/bg-customer-message.js';
 const html = String.raw;
 const editorContainerID = `HtmlEditorContainer`;
 init(import.meta.url, (gvc, glitter, gBundle) => {
     const css = String.raw;
     gvc.addStyle(css `
-      .hoverHidden div{
-        display:none;
-      }
-      .hoverHidden:hover div{
-        display:flex;
-      }
-      .tooltip {
-      z-index: 99999 !important;
-    }
-
-      .scroll-in {
-
-        left: -120%; /* 將元素移到畫面外 */
-        animation: slideInFromLeft 0.5s ease-out forwards;
-      }
-
-      .scroll-out {
-        left: 0%; /* 將元素移到畫面外 */
-        animation: slideOutFromLeft 0.5s ease-out forwards;
-      }
-
-      /* @keyframes 定義動畫 */
-      @keyframes slideInFromLeft {
-        0% {
-          left: -120%; /* 起始位置在畫面外 */
+        .hoverHidden div {
+            display: none;
         }
-        100% {
-          left: 0; /* 結束位置在畫面內 */
+        .hoverHidden:hover div {
+            display: flex;
         }
-      }
-      /* @keyframes 定義動畫 */
-      @keyframes slideOutFromLeft {
-        0% {
-          left: 0; /* 起始位置在畫面外 */
+        .tooltip {
+            z-index: 99999 !important;
         }
-        100% {
-          left: -120%; /* 結束位置在畫面內 */
+
+        .scroll-in {
+            left: -120%; /* 將元素移到畫面外 */
+            animation: slideInFromLeft 0.5s ease-out forwards;
         }
-      }
+
+        .scroll-out {
+            left: 0%; /* 將元素移到畫面外 */
+            animation: slideOutFromLeft 0.5s ease-out forwards;
+        }
+
+        /* @keyframes 定義動畫 */
+        @keyframes slideInFromLeft {
+            0% {
+                left: -120%; /* 起始位置在畫面外 */
+            }
+            100% {
+                left: 0; /* 結束位置在畫面內 */
+            }
+        }
+        /* @keyframes 定義動畫 */
+        @keyframes slideOutFromLeft {
+            0% {
+                left: 0; /* 起始位置在畫面外 */
+            }
+            100% {
+                left: -120%; /* 結束位置在畫面內 */
+            }
+        }
     `);
     gvc.addStyle(css `
-      .scroll-right-in {
-        right: -120%; /* 將元素移到畫面外 */
-        animation: slideInRight 0.5s ease-out forwards;
-      }
+        .scroll-right-in {
+            right: -120%; /* 將元素移到畫面外 */
+            animation: slideInRight 0.5s ease-out forwards;
+        }
 
-      .scroll-right-out {
-        right: 0; /* 將元素移到畫面外 */
-        animation: slideOutRight 0.5s ease-out forwards;
-      }
+        .scroll-right-out {
+            right: 0; /* 將元素移到畫面外 */
+            animation: slideOutRight 0.5s ease-out forwards;
+        }
 
-      /* @keyframes 定義動畫 */
-      @keyframes slideInRight {
-        0% {
-          right: -120%; /* 起始位置在畫面外 */
+        /* @keyframes 定義動畫 */
+        @keyframes slideInRight {
+            0% {
+                right: -120%; /* 起始位置在畫面外 */
+            }
+            100% {
+                right: 0; /* 結束位置在畫面內 */
+            }
         }
-        100% {
-          right: 0; /* 結束位置在畫面內 */
+        /* @keyframes 定義動畫 */
+        @keyframes slideOutRight {
+            0% {
+                right: 0; /* 起始位置在畫面外 */
+            }
+            100% {
+                right: -120%; /* 結束位置在畫面內 */
+            }
         }
-      }
-      /* @keyframes 定義動畫 */
-      @keyframes slideOutRight {
-        0% {
-          right: 0; /* 起始位置在畫面外 */
-        }
-        100% {
-          right: -120%; /* 結束位置在畫面內 */
-        }
-      }`);
+    `);
     const swal = new Swal(gvc);
     const viewModel = {
         saveArray: {},
@@ -130,7 +130,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
         globalStyle: undefined,
         domain: '',
         originalDomain: '',
-        app_config_original: {}
+        app_config_original: {},
     };
     initialEditor(gvc, viewModel);
     window.parent.glitter.share.refreshMainLeftEditor = () => {
@@ -143,7 +143,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
         return __awaiter(this, void 0, void 0, function* () {
             yield swal.loading('加載中...');
             const waitGetData = [
-                (() => __awaiter(this, void 0, void 0, function* () {
+                () => __awaiter(this, void 0, void 0, function* () {
                     return yield new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
                         const clock = gvc.glitter.ut.clock();
                         ApiPageConfig.getAppConfig().then((res) => {
@@ -153,17 +153,17 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                             resolve(true);
                         });
                     }));
-                })),
-                (() => __awaiter(this, void 0, void 0, function* () {
+                }),
+                () => __awaiter(this, void 0, void 0, function* () {
                     return yield new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
                         if (!glitter.share.editor_vm) {
                             const data = yield ApiPageConfig.getPage({
                                 appName: gBundle.appName,
-                                type: 'template'
+                                type: 'template',
                             });
                             viewModel.data = (yield ApiPageConfig.getPage({
                                 appName: gBundle.appName,
-                                tag: glitter.getUrlParameter('page')
+                                tag: glitter.getUrlParameter('page'),
                             })).response.result[0];
                             Storage.select_page_type = viewModel.data.page_type;
                             if (data.result) {
@@ -195,8 +195,8 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                             resolve(true);
                         }
                     }));
-                })),
-                (() => __awaiter(this, void 0, void 0, function* () {
+                }),
+                () => __awaiter(this, void 0, void 0, function* () {
                     return yield new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
                         var _a, _b, _c, _d, _e, _f, _g;
                         const data = glitter.share.appConfigresponse;
@@ -211,24 +211,28 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                             viewModel.pluginList = data.response.data.pagePlugin;
                             viewModel.initialStyleSheet = data.response.data.initialStyleSheet;
                             viewModel.initialStyle = data.response.data.initialStyle;
-                            viewModel.initialCode = (_d = data.response.data.initialCode) !== null && _d !== void 0 ? _d : "";
-                            viewModel.homePage = (_e = data.response.data.homePage) !== null && _e !== void 0 ? _e : "";
+                            viewModel.initialCode = (_d = data.response.data.initialCode) !== null && _d !== void 0 ? _d : '';
+                            viewModel.homePage = (_e = data.response.data.homePage) !== null && _e !== void 0 ? _e : '';
                             viewModel.backendPlugins = (_f = data.response.data.backendPlugins) !== null && _f !== void 0 ? _f : [];
                             viewModel.globalValue = (_g = data.response.data.globalValue) !== null && _g !== void 0 ? _g : [];
                             resolve(true);
                             function load() {
                                 return __awaiter(this, void 0, void 0, function* () {
-                                    glitter.share.globalJsList = [{
+                                    glitter.share.globalJsList = [
+                                        {
                                             src: {
-                                                official: "./official_event/event.js"
-                                            }
-                                        }].concat(viewModel.initialJS);
+                                                official: './official_event/event.js',
+                                            },
+                                        },
+                                    ].concat(viewModel.initialJS);
                                     for (const a of glitter.share.globalJsList) {
                                         yield new Promise((resolve) => {
-                                            glitter.addMtScript([{
+                                            glitter.addMtScript([
+                                                {
                                                     src: TriggerEvent.getLink(a.src.official),
-                                                    type: 'module'
-                                                }], () => {
+                                                    type: 'module',
+                                                },
+                                            ], () => {
                                                 resolve(true);
                                             }, () => {
                                                 resolve(true);
@@ -246,7 +250,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                     })).then((data) => {
                         return data;
                     });
-                }))
+                }),
             ];
             let count = 0;
             let result = yield new Promise((resolve, reject) => {
@@ -276,7 +280,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
     lod().then(() => {
         glitter.htmlGenerate.saveEvent = (refresh = true, callback) => {
             glitter.closeDiaLog();
-            glitter.setCookie("jumpToNavScroll", $(`#jumpToNav`).scrollTop());
+            glitter.setCookie('jumpToNavScroll', $(`#jumpToNav`).scrollTop());
             swal.loading('更新中...');
             function saveEvent() {
                 return __awaiter(this, void 0, void 0, function* () {
@@ -285,12 +289,12 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                     }
                     glitter.share.editorViewModel.saveArray = {};
                     const waitSave = [
-                        (() => __awaiter(this, void 0, void 0, function* () {
+                        () => __awaiter(this, void 0, void 0, function* () {
                             let haveID = [];
                             function getID(set) {
                                 set.map((dd) => {
                                     var _a;
-                                    dd.js = (dd.js).replace(`${location.origin}/${window.appName}/`, './');
+                                    dd.js = dd.js.replace(`${location.origin}/${window.appName}/`, './');
                                     dd.formData = undefined;
                                     dd.pageConfig = undefined;
                                     dd.subData = undefined;
@@ -334,8 +338,8 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                     });
                                 }));
                             }
-                        })),
-                        (() => __awaiter(this, void 0, void 0, function* () {
+                        }),
+                        () => __awaiter(this, void 0, void 0, function* () {
                             return new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
                                 viewModel.appConfig.homePage = viewModel.homePage;
                                 viewModel.appConfig.globalStyle = viewModel.globalStyle;
@@ -344,12 +348,11 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                 viewModel.appConfig.globalStyleTag = viewModel.globalStyleTag;
                                 resolve(yield StoreHelper.setPlugin(viewModel.originalConfig, viewModel.appConfig));
                             }));
-                        }))
+                        }),
                     ];
                     for (const a of waitSave) {
                         if (!(yield a())) {
-                            swal.nextStep(`伺服器錯誤`, () => {
-                            }, 'error');
+                            swal.nextStep(`伺服器錯誤`, () => { }, 'error');
                             return;
                         }
                     }
@@ -365,7 +368,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                         swal.close();
                         swal.toast({
                             icon: 'success',
-                            title: '儲存成功'
+                            title: '儲存成功',
                         });
                     }
                     else if (refresh) {
@@ -375,7 +378,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                     }
                 });
             }
-            saveEvent().then(r => {
+            saveEvent().then((r) => {
                 callback && callback();
             });
         };
@@ -402,7 +405,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                     }
                     else {
                         let view = [];
-                        if ((gvc.glitter.getUrlParameter('function') !== 'backend-manger')) {
+                        if (gvc.glitter.getUrlParameter('function') !== 'backend-manger') {
                             view.push(AddComponent.leftNav(gvc));
                             view.push(SetGlobalValue.leftNav(gvc));
                         }
@@ -415,9 +418,8 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                         view.push(NormalPageEditor.leftNav(gvc));
                         try {
                             const doc = new Editor(gvc, viewModel);
-                            view.push(doc.create(html `
-                                        <div class="d-flex overflow-hidden border-end" style="height:100vh;background:white;">
-                                            ${gvc.bindView(() => {
+                            view.push(doc.create(html ` <div class="d-flex overflow-hidden border-end" style="height:100vh;background:white;">
+                                        ${gvc.bindView(() => {
                                 return {
                                     bind: 'left_sm_bar',
                                     view: () => {
@@ -426,36 +428,41 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                                 src: `fa-duotone fa-window`,
                                                 index: 'layout',
                                                 hint: '頁面編輯',
-                                            }, {
+                                            },
+                                            {
                                                 src: `fa-sharp fa-regular fa-palette`,
                                                 index: 'color',
-                                                hint: '配色設定'
-                                            }
-                                        ].map((da) => {
+                                                hint: '配色設定',
+                                            },
+                                        ]
+                                            .map((da) => {
                                             return html `<i
-                                                                    class=" ${da.src} fs-5 fw-bold   p-2 rounded"
-                                                                    data-bs-toggle="tooltip"
-                                                                    data-bs-placement="top"
-                                                                    data-bs-custom-class="custom-tooltip"
-                                                                    data-bs-title="${da.hint}"
-                                                                    style="cursor:pointer;
-${(Storage.page_setting_item === `${da.index}`) ? `background:${EditorConfig.editor_layout.btn_background};color:white;` : ``}
+                                                                class=" ${da.src} fs-5 fw-bold   p-2 rounded"
+                                                                data-bs-toggle="tooltip"
+                                                                data-bs-placement="top"
+                                                                data-bs-custom-class="custom-tooltip"
+                                                                data-bs-title="${da.hint}"
+                                                                style="cursor:pointer;
+${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.editor_layout.btn_background};color:white;` : ``}
 "
-                                                                    onclick="${gvc.event(() => {
+                                                                onclick="${gvc.event(() => {
                                                 viewModel.waitCopy = undefined;
                                                 viewModel.selectItem = undefined;
                                                 Storage.page_setting_item = da.index;
                                                 gvc.notifyDataChange(editorContainerID);
-                                            })}"></i>`;
-                                        }).join('')}`;
+                                            })}"
+                                                            ></i>`;
+                                        })
+                                            .join('')}`;
                                     },
                                     divCreate: {
                                         style: `width:50px;gap:20px;padding-top: 15px;min-width:50px;`,
-                                        class: `${(Storage.select_function === 'user-editor' || Storage.select_function === 'page-editor') ? `` : `d-none`} h-120 border-end d-flex flex-column align-items-center`
-                                    }
+                                        class: `${Storage.select_function === 'user-editor' || Storage.select_function === 'page-editor' ? `` : `d-none`} h-120 border-end d-flex flex-column align-items-center`,
+                                    },
                                 };
                             })}
-                                            <div class="offcanvas-body swiper scrollbar-hover  w-120 ${(() => {
+                                        <div
+                                            class="offcanvas-body swiper scrollbar-hover  w-120 ${(() => {
                                 switch (Storage.select_function) {
                                     case 'backend-manger':
                                     case 'server-manager':
@@ -465,9 +472,11 @@ ${(Storage.page_setting_item === `${da.index}`) ? `background:${EditorConfig.edi
                                     default:
                                         return `p-0`;
                                 }
-                            })()}" style="overflow-y: auto;overflow-x:hidden;height:calc(100vh - 56px);">
-                                                <div class="h-120" style="">
-                                                    ${gvc.bindView(() => {
+                            })()}"
+                                            style="overflow-y: auto;overflow-x:hidden;height:calc(100vh - 56px);"
+                                        >
+                                            <div class="h-120" style="">
+                                                ${gvc.bindView(() => {
                                 return {
                                     bind: 'MainEditorLeft',
                                     view: () => {
@@ -504,32 +513,32 @@ ${(Storage.page_setting_item === `${da.index}`) ? `background:${EditorConfig.edi
                                         }
                                     },
                                     divCreate: {
-                                        class: "h-120"
-                                    }
+                                        class: 'h-120',
+                                    },
                                 };
                             })}
-                                                </div>
-                                                <div class="swiper-scrollbar end-0"></div>
                                             </div>
-                                        </div>`, gvc.bindView({
+                                            <div class="swiper-scrollbar end-0"></div>
+                                        </div>
+                                    </div>`, gvc.bindView({
                                 bind: 'MainEditorRight',
                                 view: () => {
                                     return ``;
                                 },
-                                divCreate: {}
+                                divCreate: {},
                             })));
                             return view.join('');
                         }
                         catch (e) {
-                            console.log(e);
+                            console.error(e);
                             return ``;
                         }
                     }
                 },
                 divCreate: {},
                 onCreate: () => {
-                    $("#jumpToNav").scroll(function () {
-                        glitter.setCookie("jumpToNavScroll", $(`#jumpToNav`).scrollTop());
+                    $('#jumpToNav').scroll(function () {
+                        glitter.setCookie('jumpToNavScroll', $(`#jumpToNav`).scrollTop());
                     });
                     function scrollToItem(element) {
                         if (element) {
@@ -541,18 +550,17 @@ ${(Storage.page_setting_item === `${da.index}`) ? `background:${EditorConfig.edi
                             document.querySelector('.scrollbar-hover').scrollTo({
                                 top: scrollTo,
                                 left: 0,
-                                behavior: 'auto'
+                                behavior: 'auto',
                             });
                         }
                     }
                     setTimeout(() => {
                         scrollToItem(document.querySelector(`.editor_item.active`));
                     }, 200);
-                }
+                },
             });
         },
-        onCreate: () => {
-        },
+        onCreate: () => { },
     };
 });
 function initialEditor(gvc, viewModel) {
@@ -563,8 +571,7 @@ function initialEditor(gvc, viewModel) {
     const swal = new Swal(gvc);
     glitter.share.pastEvent = () => {
         if (!glitter.share.copycomponent) {
-            swal.nextStep(`請先複製元件`, () => {
-            }, 'error');
+            swal.nextStep(`請先複製元件`, () => { }, 'error');
             return;
         }
         let copy = JSON.parse(glitter.share.copycomponent);
@@ -591,7 +598,8 @@ function initialEditor(gvc, viewModel) {
     glitter.share.findWidgetIndex = (id) => {
         let find = {
             widget: undefined,
-            container: undefined, index: 0
+            container: undefined,
+            index: 0,
         };
         function loop(array) {
             array.map((dd, index) => {
@@ -637,7 +645,7 @@ function initialEditor(gvc, viewModel) {
                 container_id: viewModel.selectContainer.container_config.container_id,
                 child_container: viewModel.selectContainer.container_config.child_container,
                 sub_data: viewModel.selectContainer.container_config.sub_data,
-                root: viewModel.selectContainer.container_config.root
+                root: viewModel.selectContainer.container_config.root,
             }));
         }
         setTimeout(() => {
@@ -646,7 +654,7 @@ function initialEditor(gvc, viewModel) {
                 widgetComponentID: data.id,
                 gvc: viewModel.selectContainer.container_config.gvc,
                 scroll_to_hover: true,
-                glitter: glitter
+                glitter: glitter,
             });
         }, 50);
         AddComponent.toggle(false);
@@ -675,7 +683,7 @@ function initialEditor(gvc, viewModel) {
             container_id: arrayData.container.container_config.container_id,
             child_container: arrayData.container.container_config.child_container,
             sub_data: arrayData.container.container_config.sub_data,
-            root: arrayData.container.container_config.root
+            root: arrayData.container.container_config.root,
         }))[cf.direction === 1 ? 'insertAfter' : 'insertBefore']($(`.editor_it_${cf.index}`).parent());
         setTimeout(() => {
             HtmlGenerate.selectWidget({
@@ -683,7 +691,7 @@ function initialEditor(gvc, viewModel) {
                 widgetComponentID: cf.data.id,
                 gvc: arrayData.container.container_config.gvc,
                 scroll_to_hover: true,
-                glitter: glitter
+                glitter: glitter,
             });
         }, 50);
     };
@@ -696,7 +704,7 @@ function initialEditor(gvc, viewModel) {
 function shortCutKey(gvc) {
     document.addEventListener('keydown', function (event) {
         let keyCode = event.keyCode || event.which;
-        if ((event.ctrlKey) && keyCode === 71) {
+        if (event.ctrlKey && keyCode === 71) {
             SetGlobalValue.toggle(true);
         }
     });

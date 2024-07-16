@@ -60,7 +60,9 @@ const execute = async (sql: string, params: any[]): Promise<any> => {
         );
     }
     try {
-        const [results] = await pool.execute(sql, params);
+        const connection=await pool.getConnection()
+        const [results] = await (connection).execute(sql, params);
+        connection.release()
         return results;
     } catch (err) {
         logger.error(TAG, 'Failed to exect statement ' + sql + ' because ' + err);
@@ -78,7 +80,9 @@ const query = async (sql: string, params: unknown[]): Promise<any> => {
     const logger = new Logger();
     const TAG = '[Database][Query]';
     try {
-        const [results] = await pool.query(sql, params);
+        const connection=await pool.getConnection()
+        const [results] = await (connection).query(sql, params);
+        connection.release()
         return results;
     } catch (err) {
         logger.error(TAG, 'Failed to query statement ' + sql + ' because ' + err);

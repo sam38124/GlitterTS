@@ -1,10 +1,10 @@
 export class EditorConfig {
     static get editor_layout() {
-        switch ((window.glitterBase)) {
+        switch (window.glitterBase) {
             case 'shopnex':
                 return {
                     main_color: '#FFB400',
-                    btn_background: 'linear-gradient(143deg, #FFB400 -22.7%, #FF6C02 114.57%);'
+                    btn_background: 'linear-gradient(143deg, #FFB400 -22.7%, #FF6C02 114.57%);',
                 };
             default:
                 return {
@@ -28,7 +28,7 @@ export class EditorConfig {
         if (plan.plan === 'free' && differenceInDays > 1) {
             text = `<span style="color: white; font-size: 16px; font-family: Noto Sans; font-weight: 700;" class="me-3">方案提醒：當前為免費試用方案，立即升級方案，享受全方位支援服務。</span>${paymentBtn}`;
         }
-        else if ((new Date(plan.dead_line).getTime() < new Date().getTime())) {
+        else if (new Date(plan.dead_line).getTime() < new Date().getTime()) {
             text = `<span style="color: white; font-size: 16px; font-family: Noto Sans; font-weight: 700; ">方案到期提醒：您的方案已過期，為維護您的權益，請儘速${paymentBtn}。</span>`;
         }
         else if (differenceInDays < 30) {
@@ -45,9 +45,11 @@ export class EditorConfig {
 </div>`;
     }
     static getPaddingTop(gvc) {
-        return EditorConfig.paymentInfo(gvc) ? gvc.glitter.ut.frSize({
-            sm: 40
-        }, 67) : 0;
+        return EditorConfig.paymentInfo(gvc)
+            ? gvc.glitter.ut.frSize({
+                sm: 40,
+            }, 67)
+            : 0;
     }
     static getPaymentStatus() {
         const config = window.parent.glitter.share.editorViewModel.app_config_original;
@@ -60,32 +62,35 @@ export class EditorConfig {
         }
         return {
             plan: planText,
-            dead_line: config.dead_line
+            dead_line: config.dead_line,
         };
     }
 }
 EditorConfig.page_type_list = [
     {
         title: '網站頁面',
-        value: 'page'
-    }, {
+        value: 'page',
+    },
+    {
         title: '嵌入模塊',
-        value: 'module'
+        value: 'module',
     },
     {
         title: '頁面模板',
-        value: 'article'
+        value: 'article',
     },
     {
         title: '商品頁樣板',
-        value: 'product'
-    }, {
+        value: 'product',
+    },
+    {
         title: '後台插件',
-        value: 'backend'
-    }, {
+        value: 'backend',
+    },
+    {
         title: '表單插件',
-        value: 'form_plugin'
-    }
+        value: 'form_plugin',
+    },
 ];
 EditorConfig.color_setting_config = [
     {

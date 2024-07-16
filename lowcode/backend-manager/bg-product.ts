@@ -245,7 +245,7 @@ export class BgProduct {
                         }
                         return html`<div class="bg-white shadow rounded-3" style="width: 100%; overflow-y: auto;">
                             <div class="w-100 d-flex align-items-center p-3 border-bottom">
-                                <div class="tx_700">${obj.title ?? '產品列表'}</div>
+                                <div class="tx_700">${obj.title ?? '商品分類'}</div>
                                 <div class="flex-fill"></div>
                                 <i
                                     class="fa-regular fa-circle-xmark fs-5 text-dark cursor_pointer"

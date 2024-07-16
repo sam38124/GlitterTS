@@ -129,8 +129,9 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                     location.href = href.href;
                                 }
                                 else {
-                                    $('body').html(res.response.form);
-                                    document.querySelector('#submit').click();
+                                    const id = gvc.glitter.getUUID();
+                                    $('body').append(`<div id="${id}" style="display: none;">${res.response.form}</div>`);
+                                    document.querySelector(`#${id} #submit`).click();
                                     ApiShop.clearCart();
                                 }
                             });

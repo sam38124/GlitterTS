@@ -393,7 +393,8 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                 const domain = (await database_2.default.query(`select \`domain\`
                          from \`${config_1.saasConfig.SAAS_NAME}\`.app_config
                          where appName = ?`, [appName]))[0]['domain'];
-                return html `# we use SHOPNEX as our ecommerce platform User-agent: * Sitemap: https://${domain}/sitemap.xml `;
+                return html `# we use SHOPNEX as our ecommerce platform
+User-agent: * Sitemap: https://${domain}/sitemap.xml `;
             },
             sitemap_test: async (req, resp) => {
                 let appName = dd.appName;

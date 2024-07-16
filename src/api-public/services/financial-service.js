@@ -13,6 +13,7 @@ class FinancialService {
         this.appName = appName;
     }
     async createOrderPage(orderData) {
+        orderData.method = orderData.method || 'ALL';
         if (this.keyData.TYPE === 'newWebPay') {
             return await (new EzPay(this.appName, this.keyData).createOrderPage(orderData));
         }
@@ -227,7 +228,6 @@ class EcPay {
         this.appName = appName;
     }
     async createOrderPage(orderData) {
-        console.log(`orderData.orderID->`, orderData.orderID);
         const params = {
             MerchantTradeNo: orderData.orderID,
             MerchantTradeDate: (0, moment_timezone_1.default)().tz('Asia/Taipei').format('YYYY/MM/DD HH:mm:ss'),
@@ -237,8 +237,8 @@ class EcPay {
                 return dd.title + (dd.spec.join('-') && ('-' + dd.spec.join('-')));
             }).join('#'),
             ReturnURL: this.keyData.NotifyURL,
-            ChoosePayment: orderData.method ? (() => {
-                return [{
+            ChoosePayment: (orderData.method && orderData.method !== "ALL") ? (() => {
+                const find = [{
                         value: 'credit',
                         title: '信用卡',
                         realKey: 'Credit'
@@ -260,7 +260,8 @@ class EcPay {
                         realKey: 'BARCODE'
                     }].find((dd) => {
                     return dd.value === orderData.method;
-                }).realKey;
+                });
+                return find && find.realKey;
             })() : 'ALL',
             PlatformID: '',
             MerchantID: this.keyData.MERCHANT_ID,
@@ -271,9 +272,6 @@ class EcPay {
             PaymentType: 'aio',
             OrderResultURL: this.keyData.ReturnURL
         };
-        console.log(`ItemsName-->`, orderData.lineItems.map((dd) => {
-            return dd.title + (dd.spec.join('-') && ('-' + dd.spec.join('-')));
-        }).join('#'));
         const appName = this.appName;
         let od = (Object.keys(params).sort(function (a, b) {
             return a.toLowerCase().localeCompare(b.toLowerCase());
@@ -327,8 +325,8 @@ class EcPay {
             TradeDesc: '商品資訊',
             ItemName: '加值服務',
             ReturnURL: this.keyData.NotifyURL,
-            ChoosePayment: orderData.method ? (() => {
-                return [{
+            ChoosePayment: (orderData.method && orderData.method !== "ALL") ? (() => {
+                const find = [{
                         value: 'credit',
                         title: '信用卡',
                         realKey: 'Credit'
@@ -350,7 +348,8 @@ class EcPay {
                         realKey: 'BARCODE'
                     }].find((dd) => {
                     return dd.value === orderData.method;
-                }).realKey;
+                });
+                return find && find.realKey;
             })() : 'ALL',
             PlatformID: '',
             MerchantID: this.keyData.MERCHANT_ID,

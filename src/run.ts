@@ -9,21 +9,23 @@ const zackPath = `/Users/wangjianzhi/Desktop/CODENEX/staging.env`;
 
 if (fs.existsSync(path.resolve(wangPath))) {
     console.log('使用 Wang 路徑環境');
-    ConfigSetting.runSchedule=false
+    ConfigSetting.runSchedule = false;
     ConfigSetting.setConfig(wangPath);
 }
 
 if (fs.existsSync(path.resolve(danielPath))) {
     console.log('使用 Daniel 路徑環境');
+    ConfigSetting.runSchedule = false;
     ConfigSetting.setConfig(danielPath);
 }
 
 if (fs.existsSync(path.resolve(zackPath))) {
     console.log('使用 Zack 路徑環境');
-    ConfigSetting.runSchedule=false
+    ConfigSetting.runSchedule = false;
     ConfigSetting.setConfig(zackPath);
 }
-ConfigSetting.is_local=true
+
+ConfigSetting.is_local = true;
 initial(4000).then(async () => {
     // ReleaseIos.release()
     // createEC2Instance('')

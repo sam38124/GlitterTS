@@ -123,7 +123,7 @@ export class FormWidget {
                                                                 </div>`, html`
                                                                 <div class="alert alert-info fs-6 fw-500"
                                                                      style="white-space: normal;">
-                                                                    一列有12格，可自訂義手機版與電腦版每列的顯示格數
+                                                                    一列有12格，可自定義手機版與電腦版每列的顯示格數
                                                                 </div>
                                                                 <div class="d-flex align-items-center"
                                                                      style="gap:10px;">
@@ -211,17 +211,21 @@ export class FormWidget {
                                                                                 formData: dd.form_config
                                                                             })}</div>`)
                                                                         } else {
-                                                                            resolve(EditorElem.customCodeEditor({
-                                                                                gvc: gvc,
-                                                                                height: 400,
-                                                                                initial: dd.formFormat,
-                                                                                title: 'Config配置檔',
-                                                                                callback: (data) => {
-                                                                                    dd.form_config = undefined;
-                                                                                    dd.formFormat = data;
-                                                                                },
-                                                                                language: 'json'
-                                                                            }))
+                                                                            if(obj.user_mode){
+                                                                                resolve('')
+                                                                            }else{
+                                                                                resolve(EditorElem.customCodeEditor({
+                                                                                    gvc: gvc,
+                                                                                    height: 400,
+                                                                                    initial: dd.formFormat,
+                                                                                    title: 'Config配置檔',
+                                                                                    callback: (data) => {
+                                                                                        dd.form_config = undefined;
+                                                                                        dd.formFormat = data;
+                                                                                    },
+                                                                                    language: 'json'
+                                                                                }))   
+                                                                            }
                                                                         }
                                                                     })
                                                                 }
@@ -248,6 +252,7 @@ export class FormWidget {
                     }
                 })
             },
+            copyable:false,
             originalArray: array,
             expand: {},
             plus: {
@@ -808,16 +813,16 @@ Plugin.createComponent(import.meta.url, (glitter: Glitter, editMode: boolean) =>
 
                         const id = glitter.getUUID();
                         let formID:any=config.formID;
-                        TriggerEvent.trigger({
-                            gvc: gvc,
-                            widget: widget,
-                            clickEvent: config.getFormData,
-                            subData: subData,
-                            element: element
-                        }).then(async (data) => {
+                        async function getFormData(){
+                            const data=await  TriggerEvent.trigger({
+                                gvc: gvc,
+                                widget: widget,
+                                clickEvent: config.getFormData,
+                                subData: subData,
+                                element: element
+                            })
                             gvc.share[`formComponentData-${config.formID}`] = data || formData;
                             formData = gvc.share[`formComponentData-${config.formID}`]
-
                             if(config.form_id_from==='code'){
                                 formID=await TriggerEvent.trigger({
                                     gvc: gvc,
@@ -828,7 +833,8 @@ Plugin.createComponent(import.meta.url, (glitter: Glitter, editMode: boolean) =>
                                 })
                             }
                             gvc.notifyDataChange(id)
-                        })
+                            return formData
+                        }
                         let dyView = '';
                         let defineHeight = 0
 
@@ -853,15 +859,11 @@ Plugin.createComponent(import.meta.url, (glitter: Glitter, editMode: boolean) =>
                                             subData: subData,
                                             element: element
                                         });
-                                        // defineHeight=(document.querySelector(`.${config.formID}`)! as any).offsetHeight;
-                                        // setTimeout(()=>{
-                                        //     (document.querySelector(`.${config.formID}`)! as any).height = "auto"
-                                        // },100)
                                         getCodeView()
                                     },
                                     widget: widget,
                                     subData: subData,
-                                    formData: formData
+                                    formData: await getFormData()
                                 }))
                             }).then((dd: any) => {
                                 dyView = dd
@@ -871,6 +873,8 @@ Plugin.createComponent(import.meta.url, (glitter: Glitter, editMode: boolean) =>
 
                         if (config.form_config_from === 'code') {
                             getCodeView()
+                        }else{
+                            getFormData()
                         }
 
                         return {

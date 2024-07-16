@@ -224,7 +224,7 @@ class Shopping {
                                 support: [],
                             },
                         },
-                    ])[0].value.support);
+                    ])[0].value);
                 }
                 catch (e) {
                     resolve([]);
@@ -240,7 +240,10 @@ class Shopping {
                 rebate: 0,
                 use_rebate: data.use_rebate || 0,
                 orderID: `${new Date().getTime()}`,
-                shipment_support: shipment_setting,
+                shipment_support: shipment_setting.support,
+                shipment_form_format: shipment_setting.form,
+                shipment_form_data: {},
+                shipment_info: shipment_setting.info,
                 use_wallet: 0,
                 method: data.user_info && data.user_info.method,
                 user_email: (userData && userData.account) || ((_c = data.email) !== null && _c !== void 0 ? _c : ((data.user_info && data.user_info.email) || '')),
@@ -425,6 +428,7 @@ class Shopping {
                         orderData: carData,
                     }),
                 ]);
+                carData.method = 'off_line';
                 await database_js_1.default.execute(`INSERT INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
                      values (?, ?, ?, ?)`, [carData.orderID, 1, carData.email, carData]);
                 if (carData.use_wallet > 0) {
@@ -441,27 +445,32 @@ class Shopping {
                     appName: this.app,
                     key: 'glitter_finance',
                 }))[0].value;
-                const subMitData = await new financial_service_js_1.default(this.app, {
-                    HASH_IV: keyData.HASH_IV,
-                    HASH_KEY: keyData.HASH_KEY,
-                    ActionURL: keyData.ActionURL,
-                    NotifyURL: `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}`,
-                    ReturnURL: `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`,
-                    MERCHANT_ID: keyData.MERCHANT_ID,
-                    TYPE: keyData.TYPE,
-                }).createOrderPage(carData);
                 if (keyData.TYPE === 'off_line') {
                     new notify_js_1.ManagerNotify(this.app).checkout({
                         orderData: carData,
                         status: 0,
                     });
+                    carData.method = 'off_line';
+                    await database_js_1.default.execute(`INSERT INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
+                     values (?, ?, ?, ?)`, [carData.orderID, 0, carData.email, carData]);
                     return {
                         off_line: true,
                     };
                 }
-                return {
-                    form: subMitData,
-                };
+                else {
+                    const subMitData = await new financial_service_js_1.default(this.app, {
+                        HASH_IV: keyData.HASH_IV,
+                        HASH_KEY: keyData.HASH_KEY,
+                        ActionURL: keyData.ActionURL,
+                        NotifyURL: `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}`,
+                        ReturnURL: `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`,
+                        MERCHANT_ID: keyData.MERCHANT_ID,
+                        TYPE: keyData.TYPE,
+                    }).createOrderPage(carData);
+                    return {
+                        form: subMitData,
+                    };
+                }
             }
         }
         catch (e) {
@@ -1414,10 +1423,20 @@ class Shopping {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getCollectionProducts Error:' + e, null);
         }
     }
+    checkVariantDataType(variants) {
+        variants.map((dd) => {
+            (dd.stock) && (dd.stock = parseInt(dd.stock, 10));
+            (dd.product_id) && (dd.product_id = parseInt(dd.product_id, 10));
+            (dd.sale_price) && (dd.sale_price = parseInt(dd.sale_price, 10));
+            (dd.compare_price) && (dd.compare_price = parseInt(dd.compare_price, 10));
+            (dd.shipment_weight) && (dd.shipment_weight = parseInt(dd.shipment_weight, 10));
+        });
+    }
     async postProduct(content) {
         var _a;
         try {
             content.type = 'product';
+            this.checkVariantDataType(content.variants);
             const data = await database_js_1.default.query(`INSERT INTO \`${this.app}\`.\`t_manager_post\`
                  SET ?`, [{
                     userID: (_a = this.token) === null || _a === void 0 ? void 0 : _a.userID,
@@ -1435,6 +1454,7 @@ class Shopping {
     async putProduct(content) {
         try {
             content.type = 'product';
+            this.checkVariantDataType(content.variants);
             const data = await database_js_1.default.query(`update \`${this.app}\`.\`t_manager_post\`
                  SET ? where id=?`, [{
                     content: JSON.stringify(content)

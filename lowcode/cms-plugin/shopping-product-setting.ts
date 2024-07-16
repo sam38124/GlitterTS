@@ -73,6 +73,8 @@ export class ShoppingProductSetting {
                             return ShoppingProductSetting.editProduct({ vm: vm, gvc: gvc, type: 'add' });
                         case 'list':
                             const filterID = gvc.glitter.getUUID();
+                            vm.tableId=gvc.glitter.getUUID()
+                            vm.dataList=[]
                             return BgWidget.container(
                                 html`
                                     <div class="d-flex w-100 align-items-center" style="margin-bottom: 24px;">
@@ -205,29 +207,45 @@ export class ShoppingProductSetting {
                                                                             },
                                                                             {
                                                                                 key: '售價',
-                                                                                value:
-                                                                                    '$ ' +
-                                                                                    Math.min(
-                                                                                        ...dd.content.variants.map((dd: any) => {
-                                                                                            return parseInt(dd.sale_price, 10);
-                                                                                        })
-                                                                                    ).toLocaleString(),
+                                                                                value: (() => {
+                                                                                    if (!dd.content.variants || dd.content.variants.length === 0) {
+                                                                                        return '尚未設定';
+                                                                                    }
+                                                                                    return (
+                                                                                        '$ ' +
+                                                                                        Math.min(
+                                                                                            ...dd.content.variants.map((dd: any) => {
+                                                                                                return parseInt(dd.sale_price, 10);
+                                                                                            })
+                                                                                        ).toLocaleString()
+                                                                                    );
+                                                                                })(),
                                                                             },
                                                                             {
                                                                                 key: '庫存',
-                                                                                value: Math.min(
-                                                                                    ...dd.content.variants.map((dd: any) => {
-                                                                                        return dd.stock;
-                                                                                    })
-                                                                                ),
+                                                                                value: (() => {
+                                                                                    if (!dd.content.variants || dd.content.variants.length === 0) {
+                                                                                        return 0;
+                                                                                    }
+                                                                                    return Math.min(
+                                                                                        ...dd.content.variants.map((dd: any) => {
+                                                                                            return dd.stock;
+                                                                                        })
+                                                                                    );
+                                                                                })(),
                                                                             },
                                                                             {
                                                                                 key: '已售出',
-                                                                                value: Math.min(
-                                                                                    ...dd.content.variants.map((dd: any) => {
-                                                                                        return dd.stock;
-                                                                                    })
-                                                                                ),
+                                                                                value: (() => {
+                                                                                    if (!dd.content.variants || dd.content.variants.length === 0) {
+                                                                                        return 0;
+                                                                                    }
+                                                                                    return Math.min(
+                                                                                        ...dd.content.variants.map((dd: any) => {
+                                                                                            return dd.stock;
+                                                                                        })
+                                                                                    );
+                                                                                })(),
                                                                             },
                                                                             {
                                                                                 key: '狀態',
@@ -383,6 +401,7 @@ export class ShoppingProductSetting {
     public static editProductSpec(obj: { vm: any; gvc: GVC; defData: any; single?: boolean }) {
         const html = String.raw;
         let postMD: any = obj.defData;
+
         let variant: any = {};
         let orignData: any = {};
         let index: number = 0;
@@ -898,27 +917,7 @@ export class ShoppingProductSetting {
             shipment_config = {};
         }
 
-        //當規格為空時，需補一個進去
-        if (postMD.variants.length === 0) {
-            postMD.variants.push({
-                show_understocking: 'true',
-                type: 'variants',
-                sale_price: 0,
-                compare_price: 0,
-                cost: 0,
-                spec: [],
-                profit: 0,
-                v_length: 0,
-                v_width: 0,
-                v_height: 0,
-                weight: 0,
-                shipment_type: shipment_config.selectCalc || 'weight',
-                sku: '',
-                barcode: '',
-                stock: 0,
-                preview_image: '',
-            });
-        }
+
 
         function updateVariants() {
             const remove_indexs: number[] = [];
@@ -1029,7 +1028,27 @@ export class ShoppingProductSetting {
                 }
                 return pass && variant.spec.length === postMD.specs.length;
             });
-
+            //當規格為空時，需補一個進去
+            if (postMD.variants.length === 0) {
+                postMD.variants.push({
+                    show_understocking: 'true',
+                    type: 'variants',
+                    sale_price: 0,
+                    compare_price: 0,
+                    cost: 0,
+                    spec: [],
+                    profit: 0,
+                    v_length: 0,
+                    v_width: 0,
+                    v_height: 0,
+                    weight: 0,
+                    shipment_type: shipment_config.selectCalc || 'weight',
+                    sku: '',
+                    barcode: '',
+                    stock: 0,
+                    preview_image: '',
+                });
+            }
             obj.gvc.notifyDataChange(variantsViewID);
         }
 
@@ -1041,6 +1060,7 @@ export class ShoppingProductSetting {
         const vm = {
             id: gvc.glitter.getUUID(),
         };
+        updateVariants()
         return gvc.bindView(() => {
             return {
                 bind: vm.id,
@@ -1056,21 +1076,13 @@ export class ShoppingProductSetting {
                                     )}
                                     ${BgWidget.title(obj.type === 'replace' ? postMD.title || '編輯商品' : `新增商品`)}
                                     <div class="flex-fill"></div>
-                                    <button
-                                        class="btn btn-primary-c d-none"
-                                        style="height:38px;font-size: 14px;"
-                                        onclick="${obj.gvc.event(() => {
-                                            setTimeout(() => {
-                                                if (obj.type === 'replace') {
-                                                    ShoppingProductSetting.putEvent(postMD, obj.gvc, obj.vm);
-                                                } else {
-                                                    ShoppingProductSetting.postEvent(postMD, obj.gvc, obj.vm);
-                                                }
-                                            }, 500);
-                                        })}"
-                                    >
-                                        ${obj.type === 'replace' ? `儲存並更改` : `儲存並新增`}
-                                    </button>
+                                    ${BgWidget.grayButton(
+                                        '預覽商品',
+                                        gvc.event(() => {
+                                            window.open(`https://${(window.parent as any).glitter.share.editorViewModel.domain}/products?product_id=${postMD.id}`, '_blank');
+                                        }),
+                                        { icon: 'fa-regular fa-eye' }
+                                    )}
                                 </div>
                                 <div class="d-flex flex-column flex-column-reverse flex-md-row w-100 p-0" style="gap:10px;">
                                     <div class="d-flex flex-column" style="gap: 24px;">
@@ -1153,9 +1165,22 @@ export class ShoppingProductSetting {
                                                 })}
                                             `
                                         )}
-                                       
+                                       ${(postMD.variants.length===1) ? (()=>{
+                                           try{
+                                               (postMD.variants[0] as any).editable=true
+                                               return ShoppingProductSetting.editProductSpec({
+                                                   vm:obj.vm,
+                                                   defData:postMD,
+                                                   gvc:gvc,
+                                                   single:true,
+                                               })
+                                           }catch (e) {
+                                               console.log(e)
+                                           }
+                                       })():``}
                                         ${BgWidget.mainCardMbp0(
                                             obj.gvc.bindView(() => {
+                                                
                                                 const specid = obj.gvc.glitter.getUUID();
                                                 return {
                                                     bind: specid,
@@ -2662,7 +2687,7 @@ ${postMD.seo.keywords ?? ''}</textarea
                                                     bind: id,
                                                     view: () => {
                                                         return [
-                                                            EditorElem.h3('商品系列'),
+                                                            EditorElem.h3('商品分類'),
                                                             postMD.collection
                                                                 .map((dd, index) => {
                                                                     return `<span style="font-size: 14px;">${dd}</span>`;
@@ -2670,7 +2695,7 @@ ${postMD.seo.keywords ?? ''}</textarea
                                                                 .join(`<div class="my-1"></div>`),
                                                             html` <div class="w-100 mt-3">
                                                                 ${BgWidget.darkButton(
-                                                                    `設定商品系列`,
+                                                                    `設定商品分類`,
                                                                     gvc.event(() => {
                                                                         BgProduct.collectionsDialog({
                                                                             gvc: gvc,
@@ -2741,6 +2766,7 @@ ${postMD.seo.keywords ?? ''}</textarea
                                         } else {
                                             ShoppingProductSetting.postEvent(postMD, obj.gvc, obj.vm);
                                         }
+                                        obj.vm.status = 'list';
                                     }, 500);
                                 }),
                                 '儲存'
