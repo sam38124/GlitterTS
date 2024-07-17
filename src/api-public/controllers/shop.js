@@ -675,5 +675,40 @@ router.put('/product', async (req, resp) => {
         return response_1.default.fail(resp, err);
     }
 });
+router.get('/product/variants', async (req, resp) => {
+    var _a, _b;
+    try {
+        const shopping = await new shopping_1.Shopping(req.get('g-app'), req.body.token).getVariants({
+            page: ((_a = req.query.page) !== null && _a !== void 0 ? _a : 0),
+            limit: ((_b = req.query.limit) !== null && _b !== void 0 ? _b : 50),
+            search: req.query.search,
+            searchType: req.query.searchType,
+            id: req.query.id,
+            collection: req.query.collection,
+            accurate_search_collection: req.query.accurate_search_collection === 'true',
+            status: req.query.status,
+            id_list: req.query.id_list,
+            order_by: req.query.order_by,
+            stockCount: req.query.stockCount,
+        });
+        return response_1.default.succ(resp, shopping);
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.put('/product/variants', async (req, resp) => {
+    try {
+        if (await ut_permission_1.UtPermission.isManager(req)) {
+            return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).putVariants(req.body));
+        }
+        else {
+            throw exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null);
+        }
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
 module.exports = router;
 //# sourceMappingURL=shop.js.map

@@ -547,6 +547,58 @@ export class ApiShop {
             { title: '已取消', value: '-1' },
         ];
     }
+
+    static getVariants(json: {
+        limit: number;
+        page: number;
+        search?: string;
+        searchType?: string;
+        id?: string;
+        id_list?: string;
+        collection?: string;
+        accurate_search_collection?: boolean;
+        orderBy?: string;
+        status?: string;
+        stockCount?: { key: string; value: string };
+    }) {
+        return BaseApi.create({
+            url:
+                getBaseUrl() +
+                `/api-public/v1/ec/product/variants?${(() => {
+                    let par = [`limit=${json.limit}`, `page=${json.page}`];
+                    json.collection && par.push(`collection=${encodeURI(json.collection)}`);
+                    json.accurate_search_collection && par.push(`accurate_search_collection=true`);
+                    json.search && par.push(`search=${json.search}`);
+                    json.id && par.push(`id=${json.id}`);
+                    json.status && par.push(`status=${json.status}`);
+                    json.orderBy && par.push(`order_by=${json.orderBy}`);
+                    json.id_list && par.push(`id_list=${json.id_list}`);
+                    json.searchType && par.push(`searchType=${json.searchType}`);
+                    if (json.stockCount && json.stockCount.key !== '') {
+                        par.push(`stockCount=${json.stockCount.key},${json.stockCount.value}`);
+                    }
+                    return par.join('&');
+                })()}`,
+            type: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': encodeURIComponent(getConfig().config.appName),
+            },
+        });
+    }
+
+    public static putVariants(cf: { data: any; token?: string }) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/ec/product/variants`,
+            type: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: cf.token || getConfig().config.token,
+            },
+            data: JSON.stringify(cf.data),
+        });
+    }
 }
 
 function getConfig() {

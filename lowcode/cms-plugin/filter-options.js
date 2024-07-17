@@ -177,3 +177,40 @@ FilterOptions.productSelect = [
     { key: 'sku', value: '庫存單位(SKU)' },
     { key: 'barcode', value: '商品條碼' },
 ];
+FilterOptions.stockFilterFrame = {
+    status: [],
+    collection: [],
+    count: { key: '', value: '' },
+};
+FilterOptions.stockSelect = [
+    { key: 'title', value: '商品名稱' },
+    { key: 'sku', value: '商品貨號' },
+];
+FilterOptions.stockFunnel = [
+    {
+        key: 'status',
+        type: 'multi_checkbox',
+        name: '商品狀態',
+        data: [
+            { key: 'active', name: '已上架' },
+            { key: 'draft', name: '已下架' },
+        ],
+    },
+    {
+        key: 'count',
+        type: 'radio_and_input',
+        name: '庫存量',
+        data: [
+            { key: 'lessThan', name: '少於多少', type: 'number', placeHolder: '請輸入數值', unit: '個' },
+            { key: 'moreThan', name: '大於多少', type: 'number', placeHolder: '請輸入數值', unit: '個' },
+            { key: 'lessSafe', name: '與安全庫存差距小於多少', type: 'number', placeHolder: '請輸入數值', unit: '個' },
+        ],
+    },
+];
+FilterOptions.stockOrderBy = [
+    { key: 'default', value: '預設' },
+    { key: 'max_price', value: '價格高 > 低' },
+    { key: 'min_price', value: '價格低 > 高' },
+    { key: 'stock_desc', value: '庫存數量多 > 少' },
+    { key: 'stock_asc', value: '庫存數量少 > 多' },
+];

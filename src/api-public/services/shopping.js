@@ -46,7 +46,6 @@ class Shopping {
                 querySql.push(`(${query.collection
                     .split(',')
                     .map((dd) => {
-                    console.log(`JSON_CONTAINS(content->'$.collection', '"${dd}"');`);
                     return query.accurate_search_collection ? `(JSON_CONTAINS(content->'$.collection', '"${dd}"'))` : `(JSON_EXTRACT(content, '$.collection') LIKE '%${dd}%')`;
                 })
                     .join(' or ')})`);
@@ -58,7 +57,6 @@ class Shopping {
             query.status && querySql.push(`(JSON_EXTRACT(content, '$.status') = '${query.status}')`);
             query.min_price && querySql.push(`(id in (select product_id from \`${this.app}\`.t_variants where content->>'$.sale_price'>=${query.min_price})) `);
             query.max_price && querySql.push(`(id in (select product_id from \`${this.app}\`.t_variants where content->>'$.sale_price'<=${query.max_price})) `);
-            console.log(querySql);
             const data = await this.querySql(querySql, query);
             const productList = Array.isArray(data.data) ? data.data : [data.data];
             if (this.token && this.token.userID) {
@@ -114,6 +112,37 @@ class Shopping {
     async querySql(querySql, query) {
         let sql = `SELECT *
                    FROM \`${this.app}\`.t_manager_post
+                   WHERE ${querySql.join(' and ')} ${query.order_by || `order by id desc`}
+        `;
+        if (query.id) {
+            const data = (await database_js_1.default.query(`SELECT *
+                     FROM (${sql}) as subqyery
+                         limit ${query.page * query.limit}
+                        , ${query.limit}`, []))[0];
+            return { data: data, result: !!data };
+        }
+        else {
+            return {
+                data: await database_js_1.default.query(`SELECT *
+                     FROM (${sql}) as subqyery
+                         limit ${query.page * query.limit}
+                        , ${query.limit}`, []),
+                total: (await database_js_1.default.query(`SELECT count(1)
+                                        FROM (${sql}) as subqyery`, []))[0]['count(1)'],
+            };
+        }
+    }
+    async querySqlByVariants(querySql, query) {
+        let sql = `SELECT 
+                        v.id,
+                        v.product_id,
+                        v.content as variant_content,
+                        p.content as product_content,
+                        CAST(JSON_EXTRACT(v.content, '$.stock') AS UNSIGNED) as stock
+                    FROM
+                        \`${this.app}\`.t_variants AS v
+                    JOIN
+                        \`${this.app}\`.t_manager_post AS p ON v.product_id = p.id
                    WHERE ${querySql.join(' and ')} ${query.order_by || `order by id desc`}
         `;
         if (query.id) {
@@ -1590,6 +1619,99 @@ class Shopping {
         }
         catch (error) {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'updateProductCollection Error:' + express_1.default, null);
+        }
+    }
+    async getVariants(query) {
+        var _a;
+        try {
+            let querySql = ['1=1'];
+            if (query.search) {
+                switch (query.searchType) {
+                    case 'title':
+                        querySql.push(`(UPPER(JSON_UNQUOTE(JSON_EXTRACT(p.content, '$.title'))) LIKE UPPER('%${query.search}%'))`);
+                        break;
+                    case 'sku':
+                        querySql.push(`(UPPER(JSON_EXTRACT(v.content, '$.sku')) LIKE UPPER('%${query.search}%'))`);
+                        break;
+                }
+            }
+            query.id && querySql.push(`(v.id = ${query.id})`);
+            query.id_list && querySql.push(`(v.id in (${query.id_list}))`);
+            query.collection &&
+                querySql.push(`(${query.collection
+                    .split(',')
+                    .map((dd) => {
+                    return query.accurate_search_collection ? `(JSON_CONTAINS(p.content->'$.collection', '"${dd}"'))` : `(JSON_EXTRACT(p.content, '$.collection') LIKE '%${dd}%')`;
+                })
+                    .join(' or ')})`);
+            query.status && querySql.push(`(JSON_EXTRACT(p.content, '$.status') = '${query.status}')`);
+            query.min_price && querySql.push(`(v.content->>'$.sale_price' >= ${query.min_price})`);
+            query.max_price && querySql.push(`(v.content->>'$.sale_price' <= ${query.min_price})`);
+            console.log(querySql);
+            if (query.stockCount) {
+                const stockCount = (_a = query.stockCount) === null || _a === void 0 ? void 0 : _a.split(',');
+                switch (stockCount[0]) {
+                    case 'lessThan':
+                        querySql.push(`(cast(JSON_EXTRACT(v.content, '$.stock') AS UNSIGNED) < ${stockCount[1]})`);
+                        break;
+                    case 'moreThan':
+                        querySql.push(`(cast(JSON_EXTRACT(v.content, '$.stock') AS UNSIGNED) > ${stockCount[1]})`);
+                        break;
+                    case 'lessSafe':
+                        querySql.push(`(
+                            JSON_EXTRACT(v.content, '$.save_stock') is not null AND
+                            (cast(JSON_EXTRACT(v.content, '$.stock') AS SIGNED) - cast(JSON_EXTRACT(v.content, '$.save_stock') AS SIGNED) < ${stockCount[1]})
+                        )`);
+                        break;
+                }
+            }
+            query.order_by = (() => {
+                switch (query.order_by) {
+                    case 'title':
+                        return `order by JSON_EXTRACT(p.content, '$.title')`;
+                    case 'max_price':
+                        return `order by (CAST(JSON_UNQUOTE(JSON_EXTRACT(p.content, '$.max_price')) AS SIGNED)) desc`;
+                    case 'min_price':
+                        return `order by (CAST(JSON_UNQUOTE(JSON_EXTRACT(p.content, '$.min_price')) AS SIGNED)) asc`;
+                    case 'created_time_desc':
+                        return `order by p.created_time desc`;
+                    case 'created_time_asc':
+                        return `order by p.created_time`;
+                    case 'updated_time_desc':
+                        return `order by p.updated_time desc`;
+                    case 'updated_time_asc':
+                        return `order by p.updated_time`;
+                    case 'stock_desc':
+                        return `order by stock desc`;
+                    case 'stock_asc':
+                        return `order by stock`;
+                    case 'default':
+                    default:
+                        return `order by id desc`;
+                }
+            })();
+            const data = await this.querySqlByVariants(querySql, query);
+            return data;
+        }
+        catch (e) {
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getVariants Error:' + e, null);
+        }
+    }
+    async putVariants(query) {
+        try {
+            for (const data of query) {
+                await database_js_1.default.query(`UPDATE \`${this.app}\`.t_variants SET ?
+                    WHERE id = ?`, [{ content: JSON.stringify(data.variant_content) }, data.id]);
+                await database_js_1.default.query(`UPDATE \`${this.app}\`.t_manager_post SET ?
+                    WHERE id = ?`, [{ content: JSON.stringify(data.product_content) }, data.product_id]);
+            }
+            return {
+                result: 'success',
+                orderData: query,
+            };
+        }
+        catch (error) {
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'putVariants Error:' + express_1.default, null);
         }
     }
 }

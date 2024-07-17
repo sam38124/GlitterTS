@@ -1,0 +1,321 @@
+import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
+import { BgWidget } from '../backend-manager/bg-widget.js';
+import { noImageURL } from '../backend-manager/bg-product.js';
+import { BgListComponent } from '../backend-manager/bg-list-component.js';
+import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
+import { ApiShop } from '../glitter-base/route/shopping.js';
+import { FilterOptions } from './filter-options.js';
+import { BgProduct } from '../backend-manager/bg-product.js';
+const html = String.raw;
+export class UserList {
+    static main(gvc) {
+        const glitter = gvc.glitter;
+        const vm = {
+            id: glitter.getUUID(),
+            type: 'list',
+            data: {},
+            dataList: undefined,
+            query: '',
+            queryType: '',
+            orderString: '',
+            filter: {},
+            filterId: glitter.getUUID(),
+            tableId: glitter.getUUID(),
+            updateId: glitter.getUUID(),
+            stockList: [],
+            stockOriginList: [],
+        };
+        const ListComp = new BgListComponent(gvc, vm, FilterOptions.stockFilterFrame);
+        vm.filter = ListComp.getFilterObject();
+        let vmi = undefined;
+        function getDatalist() {
+            return vm.dataList.map((dd, index) => {
+                var _a, _b, _c;
+                vm.stockList[index] = dd.variant_content.stock;
+                return [
+                    {
+                        key: EditorElem.checkBoxOnly({
+                            gvc: gvc,
+                            def: !vm.dataList.find((dd) => {
+                                return !dd.checked;
+                            }),
+                            callback: (result) => {
+                                vm.dataList.map((dd) => {
+                                    dd.checked = result;
+                                });
+                                vmi.data = getDatalist();
+                                vmi.callback();
+                                gvc.notifyDataChange(vm.filterId);
+                            },
+                        }),
+                        value: EditorElem.checkBoxOnly({
+                            gvc: gvc,
+                            def: dd.checked,
+                            callback: (result) => {
+                                dd.checked = result;
+                                vmi.data = getDatalist();
+                                vmi.callback();
+                                gvc.notifyDataChange(vm.filterId);
+                            },
+                            style: 'height:25px;',
+                        }),
+                    },
+                    {
+                        key: '商品名稱',
+                        value: html `<div class="d-flex align-items-center gap-3">
+                            <div
+                                style="
+                                    width: 45px; height: 45px;
+                                    border-radius: 5px;
+                                    background-image: url('${(_a = dd.product_content.preview_image[0]) !== null && _a !== void 0 ? _a : noImageURL}');
+                                    background-position: center;
+                                    background-size: cover;
+                                    background-repeat: no-repeat;
+                                "
+                            ></div>
+                            <div class="d-flex flex-column">
+                                <span class="tx_normal">${dd.product_content.title}</span>
+                                ${BgWidget.grayNote(dd.variant_content.spec.length > 0 ? dd.variant_content.spec.join(' / ') : '單一規格')}
+                            </div>
+                        </div>`,
+                    },
+                    {
+                        key: '庫存單位（SKU）',
+                        value: `<span class="fs-7">${dd.variant_content.sku && dd.variant_content.sku.length > 0 ? dd.variant_content.sku : '沒有庫存單位'}</span>`,
+                    },
+                    {
+                        key: '安全庫存',
+                        value: `<span class="fs-7">${(_b = dd.variant_content.save_stock) !== null && _b !== void 0 ? _b : '-'}</span>`,
+                    },
+                    {
+                        key: '庫存數量',
+                        value: html ` <div style="width: 95px">
+                            <input
+                                class="form-control"
+                                type="number"
+                                style="border-radius: 10px; border: 1px solid #DDD; padding-left: 18px;"
+                                placeholder="請輸入數值"
+                                onchange="${gvc.event((e) => {
+                            dd.variant_content.stock = parseInt(e.value, 10);
+                            dd.product_content.variants.map((variant) => {
+                                const isEqual = JSON.stringify(variant.spec) === JSON.stringify(dd.variant_content.spec);
+                                if (isEqual) {
+                                    variant.stock = parseInt(e.value, 10);
+                                }
+                            });
+                            vm.dataList.map((item) => {
+                                if (item.product_id === dd.product_id) {
+                                    item.product_content = dd.product_content;
+                                }
+                            });
+                            vm.stockList[index] = parseInt(e.value, 10);
+                            gvc.notifyDataChange(vm.updateId);
+                        })}"
+                                value="${(_c = dd.variant_content.stock) !== null && _c !== void 0 ? _c : 0}"
+                            />
+                        </div>`,
+                    },
+                ];
+            });
+        }
+        return gvc.bindView({
+            bind: vm.id,
+            dataList: [{ obj: vm, key: 'type' }],
+            view: () => {
+                if (vm.type === 'list') {
+                    return BgWidget.container(html `
+                            <div class="d-flex w-100 align-items-center">
+                                ${BgWidget.title('庫存列表')}
+                                <div class="flex-fill"></div>
+                                <div style="display: none; gap: 14px;">
+                                    ${BgWidget.grayButton('匯入', gvc.event(() => {
+                        console.log('匯入');
+                    }))}${BgWidget.grayButton('匯出', gvc.event(() => {
+                        console.log('匯出');
+                    }))}
+                                </div>
+                            </div>
+                            ${BgWidget.container([
+                        BgWidget.mainCard([
+                            (() => {
+                                const vmlist = {
+                                    id: glitter.getUUID(),
+                                    loading: true,
+                                    collections: [],
+                                };
+                                return gvc.bindView({
+                                    bind: vmlist.id,
+                                    view: () => {
+                                        if (vmlist.loading) {
+                                            return '';
+                                        }
+                                        if (FilterOptions.stockFunnel.findIndex((item) => item.key === 'collection') === -1) {
+                                            FilterOptions.stockFunnel.splice(1, 0, {
+                                                key: 'collection',
+                                                type: 'multi_checkbox',
+                                                name: '商品分類',
+                                                data: vmlist.collections.map((item) => {
+                                                    return { key: `${item.key}`, name: item.value };
+                                                }),
+                                            });
+                                        }
+                                        const filterList = [
+                                            BgWidget.selectFilter({
+                                                gvc,
+                                                callback: (value) => {
+                                                    vm.queryType = value;
+                                                    gvc.notifyDataChange(vm.tableId);
+                                                    gvc.notifyDataChange(vmlist.id);
+                                                },
+                                                default: vm.queryType || 'name',
+                                                options: FilterOptions.stockSelect,
+                                            }),
+                                            BgWidget.searchFilter(gvc.event((e) => {
+                                                vm.query = e.value;
+                                                gvc.notifyDataChange(vm.tableId);
+                                                gvc.notifyDataChange(vmlist.id);
+                                            }), vm.query || '', '搜尋商品'),
+                                            BgWidget.funnelFilter({
+                                                gvc,
+                                                callback: () => ListComp.showRightMenu(FilterOptions.stockFunnel),
+                                            }),
+                                            BgWidget.updownFilter({
+                                                gvc,
+                                                callback: (value) => {
+                                                    vm.orderString = value;
+                                                    gvc.notifyDataChange(vm.tableId);
+                                                    gvc.notifyDataChange(vmlist.id);
+                                                },
+                                                default: vm.orderString || 'default',
+                                                options: FilterOptions.stockOrderBy,
+                                            }),
+                                        ];
+                                        const filterTags = ListComp.getFilterTags(FilterOptions.stockFunnel).replace(/多少/g, '');
+                                        if (document.body.clientWidth < 768) {
+                                            return html `<div style="display: flex; align-items: center; gap: 10px; width: 100%; justify-content: space-between">
+                                                                    <div>${filterList[0]}</div>
+                                                                    <div style="display: flex;">
+                                                                        <div class="me-2">${filterList[2]}</div>
+                                                                        ${filterList[3]}
+                                                                    </div>
+                                                                </div>
+                                                                <div style="display: flex; margin-top: 8px;">${filterList[1]}</div>
+                                                                <div>${filterTags}</div>`;
+                                        }
+                                        else {
+                                            return html `<div style="display: flex; align-items: center; gap: 10px;">${filterList.join('')}</div>
+                                                                <div>${filterTags}</div>`;
+                                        }
+                                    },
+                                    onCreate: () => {
+                                        if (vmlist.loading) {
+                                            BgProduct.getCollectionAllOpts(vmlist.collections, () => {
+                                                vmlist.loading = false;
+                                                gvc.notifyDataChange(vmlist.id);
+                                            });
+                                        }
+                                    },
+                                });
+                            })(),
+                            gvc.bindView({
+                                bind: vm.tableId,
+                                view: () => {
+                                    return BgWidget.tableV2({
+                                        gvc: gvc,
+                                        getData: (vd) => {
+                                            vmi = vd;
+                                            const limit = 15;
+                                            ApiShop.getVariants({
+                                                page: vmi.page - 1,
+                                                limit: limit,
+                                                search: vm.query || undefined,
+                                                searchType: vm.queryType || 'title',
+                                                orderBy: vm.orderString || undefined,
+                                                status: (() => {
+                                                    if (vm.filter.status && vm.filter.status.length === 1) {
+                                                        switch (vm.filter.status[0]) {
+                                                            case 'active':
+                                                                return 'active';
+                                                            case 'draft':
+                                                                return 'draft';
+                                                        }
+                                                    }
+                                                    return undefined;
+                                                })(),
+                                                collection: vm.filter.collection,
+                                                stockCount: vm.filter.count,
+                                                accurate_search_collection: true,
+                                            }).then((data) => {
+                                                vmi.pageSize = Math.ceil(data.response.total / limit);
+                                                vm.dataList = data.response.data;
+                                                vmi.data = getDatalist();
+                                                vm.stockOriginList = vm.stockList.concat();
+                                                gvc.notifyDataChange(vm.updateId);
+                                                vmi.callback();
+                                            });
+                                        },
+                                        rowClick: () => { },
+                                        filter: gvc.bindView(() => {
+                                            return {
+                                                bind: vm.filterId,
+                                                view: () => {
+                                                    return html `<span class="fs-7 fw-bold">操作選項</span>`;
+                                                },
+                                                divCreate: () => {
+                                                    const display = !vm.dataList || !vm.dataList.find((dd) => dd.checked) ? 'd-none' : '';
+                                                    return {
+                                                        class: `d-flex align-items-center p-2 ${display}`,
+                                                        style: `height: 40px; gap: 10px; margin-top: 10px;`,
+                                                    };
+                                                },
+                                            };
+                                        }),
+                                    });
+                                },
+                            }),
+                        ].join('')),
+                        BgWidget.mb240(),
+                        gvc.bindView({
+                            bind: vm.updateId,
+                            view: () => {
+                                for (let i = 0; i < vm.stockList.length; i++) {
+                                    const element = vm.stockList[i];
+                                    if (element !== vm.stockOriginList[i]) {
+                                        return html ` <div class="update-bar-container">
+                                                        ${BgWidget.cancel(gvc.event(() => {
+                                            gvc.notifyDataChange(vm.tableId);
+                                        }))}
+                                                        ${BgWidget.save(gvc.event(() => {
+                                            const dialog = new ShareDialog(gvc.glitter);
+                                            dialog.dataLoading({ text: '更新庫存中', visible: true });
+                                            ApiShop.putVariants({
+                                                data: vm.dataList,
+                                                token: window.parent.config.token,
+                                            }).then((re) => {
+                                                dialog.dataLoading({ visible: false });
+                                                if (re.result) {
+                                                    dialog.successMessage({ text: `上傳成功` });
+                                                    gvc.notifyDataChange(vm.tableId);
+                                                }
+                                                else {
+                                                    dialog.errorMessage({ text: `上傳失敗` });
+                                                }
+                                            });
+                                        }))}
+                                                    </div>`;
+                                    }
+                                }
+                                return '';
+                            },
+                        }),
+                    ].join())}
+                        `, BgWidget.getContainerWidth());
+                }
+                else {
+                    return ``;
+                }
+            },
+        });
+    }
+}
+window.glitter.setModule(import.meta.url, UserList);
