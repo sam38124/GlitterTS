@@ -36,6 +36,29 @@ export class ShoppingProductSetting {
         }, () => {
         });
         vm.filter = ListComp.getFilterObject();
+        function importDataTo(event) {
+            const input = event.target;
+            const XLSX = window.XLSX;
+            if (!input.files || input.files.length === 0) {
+                console.log("No file selected");
+                return;
+            }
+            const file = input.files[0];
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                if (!e.target) {
+                    console.log("Failed to read file");
+                    return;
+                }
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                const json = XLSX.utils.sheet_to_json(worksheet);
+                console.log(json);
+            };
+            reader.readAsArrayBuffer(file);
+        }
         function exportDataTo(firstRow, data) {
             if (window.XLSX) {
                 let XLSX = window.XLSX;
@@ -113,11 +136,13 @@ export class ShoppingProductSetting {
                                                     ${BgWidget.title('商品列表')}
                                                     <div class="flex-fill"></div>
                                                     <div style="display: flex; gap: 14px;">
-                                                        ${BgWidget.grayButton('匯入', gvc.event(() => {
-                                            console.log('匯入');
+                                                        
+                                                        <input class="d-none" type="file" id="upload-excel" onchange="${gvc.event((e, event) => {
+                                            importDataTo(event);
+                                        })}"/>
+                                                        ${BgWidget.grayButton('匯入', gvc.event((e) => {
+                                            document.querySelector("#upload-excel").click();
                                         }))}${BgWidget.grayButton('匯出', gvc.event(() => {
-                                            console.log('匯出');
-                                            console.log("data.response.data -- ", vm.dataList);
                                             let dialog = new ShareDialog(glitter);
                                             dialog.dataLoading({ visible: true });
                                             ApiShop.getProduct({
@@ -145,6 +170,7 @@ export class ShoppingProductSetting {
                                                 let firstRow = ["產品名稱", "產品狀態", "產品類別", "產品規格", "skuid", "成本", "sale_price", "compare_price", "商品庫存"];
                                                 let exportData = [];
                                                 response.response.data.map((productData) => {
+                                                    var _a, _b;
                                                     let rowData = {
                                                         name: '',
                                                         status: '',
@@ -156,17 +182,17 @@ export class ShoppingProductSetting {
                                                         compare_price: 0,
                                                         stocks: 0
                                                     };
-                                                    rowData.name = productData.title;
-                                                    rowData.status = (productData.status == "active") ? "上架" : "下架";
-                                                    rowData.category = productData.collection.join(" / ");
+                                                    rowData.name = (_a = productData.content.title) !== null && _a !== void 0 ? _a : "未命名商品";
+                                                    rowData.status = (productData.status) ? "上架" : "下架";
+                                                    rowData.category = (_b = productData.content.collection.join(" / ")) !== null && _b !== void 0 ? _b : "";
                                                     productData.content.variants.map((variant) => {
-                                                        rowData.specs = variant.spec.join(" / ");
-                                                        rowData.skuid = variant.sku;
-                                                        rowData.cost = variant.cost;
-                                                        rowData.skuid = variant.sku;
-                                                        rowData.sale_price = variant.sale_price;
-                                                        rowData.compare_price = variant.compare_price;
-                                                        rowData.stocks = variant.stocks;
+                                                        var _a, _b, _c, _d, _e, _f;
+                                                        rowData.specs = (_a = variant.spec.join(" / ")) !== null && _a !== void 0 ? _a : "";
+                                                        rowData.skuid = (_b = variant.sku) !== null && _b !== void 0 ? _b : "未設定sku";
+                                                        rowData.cost = (_c = variant.cost) !== null && _c !== void 0 ? _c : 0;
+                                                        rowData.sale_price = (_d = variant.sale_price) !== null && _d !== void 0 ? _d : 0;
+                                                        rowData.compare_price = (_e = variant.compare_price) !== null && _e !== void 0 ? _e : 0;
+                                                        rowData.stocks = (_f = variant.stocks) !== null && _f !== void 0 ? _f : 0;
                                                         exportData.push(JSON.parse(JSON.stringify(rowData)));
                                                     });
                                                 });

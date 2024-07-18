@@ -60,11 +60,39 @@ export class ShoppingProductSetting {
 
         })
         vm.filter = ListComp.getFilterObject();
+        function importDataTo(event:Event){
+            const input = event.target as HTMLInputElement;
+            const XLSX = (window as any).XLSX;
+            if (!input.files || input.files.length === 0) {
+                console.log("No file selected");
+                return;
+            }
 
+            const file = input.files[0];
+            const reader = new FileReader();
+
+            reader.onload = (e: ProgressEvent<FileReader>) => {
+                if (!e.target) {
+                    console.log("Failed to read file");
+                    return;
+                }
+                const data = new Uint8Array(e.target.result as ArrayBuffer);
+                const workbook = XLSX.read(data, { type: 'array' });
+
+                // 假設我們只讀取第一個工作表
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+
+                // 將工作表轉換為 JSON
+                const json = XLSX.utils.sheet_to_json(worksheet);
+
+                console.log(json)
+            };
+
+            reader.readAsArrayBuffer(file);
+        }
         function exportDataTo(firstRow:string[] , data:any) {
             if ((window as any).XLSX) {
-
-
                 // 將資料轉換成工作表
                 let XLSX = (window as any).XLSX;
 
@@ -153,18 +181,19 @@ export class ShoppingProductSetting {
                                                     ${BgWidget.title('商品列表')}
                                                     <div class="flex-fill"></div>
                                                     <div style="display: flex; gap: 14px;">
+                                                        
+                                                        <input class="d-none" type="file" id="upload-excel" onchange="${gvc.event((e , event)=>{
+                                                            importDataTo(event)
+                                                        })}"/>
                                                         ${BgWidget.grayButton(
                                                                 '匯入',
-                                                                gvc.event(() => {
-
-                                                                    console.log('匯入');
+                                                                gvc.event((e) => {
+                                                                    (document.querySelector("#upload-excel") as HTMLInputElement)!.click();
 
                                                                 })
                                                         )}${BgWidget.grayButton(
                                                                 '匯出',
                                                                 gvc.event(() => {
-                                                                    console.log('匯出');
-                                                                    console.log("data.response.data -- ", vm.dataList)
                                                                     let dialog = new ShareDialog(glitter);
                                                                     dialog.dataLoading({visible: true})
                                                                     ApiShop.getProduct({
@@ -213,18 +242,17 @@ export class ShoppingProductSetting {
                                                                                 compare_price: 0,
                                                                                 stocks: 0
                                                                             };
-                                                                            rowData.name = productData.title;
-                                                                            rowData.status = (productData.status == "active")?"上架":"下架";
-                                                                            rowData.category = productData.collection.join(" / ");
+                                                                            rowData.name = productData.content.title??"未命名商品";
+                                                                            rowData.status = (productData.status )?"上架":"下架";
+                                                                            rowData.category = productData.content.collection.join(" / ")??"";
                                                                             
                                                                             productData.content.variants.map((variant:any) => {
-                                                                                rowData.specs = variant.spec.join(" / ");
-                                                                                rowData.skuid = variant.sku;
-                                                                                rowData.cost = variant.cost;
-                                                                                rowData.skuid = variant.sku;
-                                                                                rowData.sale_price = variant.sale_price;
-                                                                                rowData.compare_price = variant.compare_price;
-                                                                                rowData.stocks = variant.stocks;
+                                                                                rowData.specs = variant.spec.join(" / ")??"";
+                                                                                rowData.skuid = variant.sku??"未設定sku";
+                                                                                rowData.cost = variant.cost??0;
+                                                                                rowData.sale_price = variant.sale_price??0;
+                                                                                rowData.compare_price = variant.compare_price??0;
+                                                                                rowData.stocks = variant.stocks??0;
                                                                                 exportData.push(JSON.parse(JSON.stringify(rowData)));
                                                                             })
                                                                         })

@@ -385,6 +385,7 @@ export class ShoppingOrderManager {
                 }
             },
             orderStatusBadge: () => {
+                console.log(orderData.orderData);
                 if (orderData.orderData.orderStatus === '1') {
                     return drawBadge('green', "已完成");
                 }
@@ -413,7 +414,7 @@ export class ShoppingOrderManager {
                 }
             ],
             view: () => {
-                var _a, _b, _c, _d, _e, _f, _g, _h;
+                var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
                 if (child_vm.type === 'user') {
                     return UserList.userInformationDetail({
                         userID: child_vm.userID,
@@ -847,7 +848,7 @@ export class ShoppingOrderManager {
                                                         </div>
                                                         <div class="w-100 d-flex flex-column mt-2" style="gap:12px;">
                                                             ${[
-                    `<div class="d-flex flex-column" style="gap:8px;">
+                    html `<div class="d-flex flex-column" style="gap:8px;">
                                             <div class="d-flex align-items-center" style="color: #4D86DB;font-weight: 400; gap:8px;cursor:pointer;" onclick="${gvc.event(() => {
                         child_vm.userID = userData.userID;
                         child_vm.type = 'user';
@@ -870,10 +871,10 @@ export class ShoppingOrderManager {
                     `<div class="bgf6" style="height: 1px;margin: 8px 0"></div>`,
                     `<div class="" style="font-size: 16px;font-weight: 700;">收件人資料</div>`,
                     `<div class="d-flex flex-column" style="gap:8px;">
-                                            <div class="" style="color: #4D86DB;font-weight: 400;">${(_h = orderData.orderData.customer_info.name) !== null && _h !== void 0 ? _h : orderData.orderData.user_info.name}</div>
-                                            <div class="" style="color: #393939;font-weight: 400;">${orderData.orderData.user_info.phone || "電話未填"}</div>
-<!--                                            <div class="fw-normal fs-6">Email:${orderData.orderData.user_info.email}</div>-->
-                                        </div>`,
+                                                                    <div class="" style="color: #4D86DB;font-weight: 400;">${(_k = (_j = (_h = orderData.orderData) === null || _h === void 0 ? void 0 : _h.customer_info) === null || _j === void 0 ? void 0 : _j.name) !== null && _k !== void 0 ? _k : orderData.orderData.user_info.name}</div>
+                                                                    <div class="" style="color: #393939;font-weight: 400;">${orderData.orderData.user_info.phone || "電話未填"}</div>
+                        <!--                                            <div class="fw-normal fs-6">Email:${orderData.orderData.user_info.email}</div>-->
+                                                                 </div>`,
                     `<div class="" style="font-size: 16px;font-weight: 700;">付款方式</div>`,
                     `<div style=""> ${ShoppingOrderManager.getPaymentMethodText(orderData.orderData.method)}</div>`,
                     `<div class="" style="font-size: 16px;font-weight: 700;">配送方式</div>`,
@@ -980,89 +981,7 @@ export class ShoppingOrderManager {
                         return ``;
                     }
                 })()}
-                                                <div class="mt-2"></div>
-                                                ${BgWidget.card(gvc.bindView(() => {
-                    const id = glitter.getUUID();
-                    const vm = {
-                        mode: 'read',
-                    };
-                    return {
-                        bind: id,
-                        view: () => {
-                            var _a;
-                            return html `
-                                                                        <div class="d-flex align-items-center ">
-                                                                            <div class="fw-bold fs-6"
-                                                                                 style="color:#393939;">訂單備註
-                                                                            </div>
-                                                                            <div class="flex-fill"></div>
 
-                                                                        </div>
-                                                                        <div class="fs-6 w-100 mt-2  lh-lg fw-normal"
-                                                                             style="word-break: break-all;white-space:normal;color:#393939;">
-                                                                            ${((_a = orderData.orderData.order_note) !== null && _a !== void 0 ? _a : '尚未填寫').replace(/\n/g, `<br>`)}
-                                                                        </div>
-                                                                    `;
-                        },
-                        divCreate: {
-                            class: `p-2 fw-normal`,
-                        },
-                    };
-                }))}
-                                                ${(orderData.orderData.user_info.code_note) ? ` <div class="mt-2"></div>` + BgWidget.card(gvc.bindView(() => {
-                    const id = glitter.getUUID();
-                    const vm = {
-                        mode: 'read',
-                    };
-                    return {
-                        bind: id,
-                        view: () => {
-                            var _a;
-                            return html `
-                                                                        <div class="d-flex align-items-center ">
-                                                                            <div class="fw-bold fs-6"
-                                                                                 style="color:#393939;">額外資訊
-                                                                            </div>
-                                                                            <div class="flex-fill"></div>
-
-                                                                        </div>
-                                                                        <div class="fs-6 w-100 mt-2  lh-lg fw-normal"
-                                                                             style="word-break: break-all;white-space:normal;color:#393939;">
-                                                                            ${((_a = orderData.orderData.user_info.code_note) !== null && _a !== void 0 ? _a : '尚未填寫').replace(/\n/g, `<br>`)}
-                                                                        </div>
-                                                                    `;
-                        },
-                        divCreate: {
-                            class: `p-2 fw-normal`,
-                        },
-                    };
-                })) : ``}
-                                                <div class="mt-2"></div>
-                                                ${BgWidget.card(html `
-                                                    <div class="p-2">
-                                                        <div class="d-flex align-items-center">
-                                                            <div class="fw-bold fs-6" style="color:#393939;">
-                                                                預計送達日期
-                                                            </div>
-                                                            <div class="flex-fill"></div>
-                                                        </div>
-                                                        <div class="w-100 d-flex flex-column mt-2" style="gap:5px;">
-                                                            ${[
-                    EditorElem.editeInput({
-                        gvc: gvc,
-                        title: '',
-                        default: orderData.orderData.expectDate,
-                        placeHolder: '',
-                        callback: (text) => {
-                            orderData.orderData.expectDate = text;
-                        },
-                        type: 'date',
-                    }),
-                ].join('')}
-                                                        </div>
-                                                    </div>
-                                                `)}
-                                                <div class="mt-2"></div>
 
                                             </div>
                                         </div> `, 1200)}
@@ -2053,7 +1972,7 @@ export class ShoppingOrderManager {
                                                                             </div>
                                                                             <div>電話</div>
                                                                             <div class="w-100"
-                                                                                 style="border-radius: 10px;border: 1px solid #DDD;background: #F7F7F7;padding: 9px 18px;">
+                                                                                 style="min-height:25px;border-radius: 10px;border: 1px solid #DDD;background: #F7F7F7;padding: 9px 18px;">
                                                                                 ${(_c = tempUserData[customerData.type].phone) !== null && _c !== void 0 ? _c : ""}
                                                                             </div>
                                                                         `;
@@ -2363,15 +2282,19 @@ export class ShoppingOrderManager {
             console.log(passData);
             console.log(newVoucher);
             passData.total = orderDetail.total;
+            passData.order;
             delete passData.tag;
+            const dialog = new ShareDialog(glitter);
+            dialog.dataLoading({ visible: true });
             if (checkOrderEmpty(passData)) {
                 ApiShop.toManualCheckout(passData).then(r => {
+                    dialog.dataLoading({ visible: false });
                     gvc.glitter.innerDialog((gvc) => {
                         return html `
                                             <div style="position: relative;width: 492px;height: 223px;border-radius: 10px;background: #FFF;display: flex;flex-direction: column;align-items: center;justify-content: center;">
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14"
                                                      viewBox="0 0 14 14" fill="none"
-                                                     style="position: absolute;top: 12px;right: 12px;"
+                                                     style="position: absolute;top: 12px;right: 12px;cursor: pointer;"
                                                      onclick="${gvc.event(() => {
                             gvc.glitter.closeDiaLog();
                         })}">
