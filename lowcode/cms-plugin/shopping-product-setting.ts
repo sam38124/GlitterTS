@@ -709,7 +709,16 @@ export class ShoppingProductSetting {
         });
     }
 
-    public static editProductSpec(obj: { vm: any; gvc: GVC; defData: any; single?: boolean }) {
+    public static editProductSpec(obj: {
+        vm: any;
+        gvc: GVC;
+        defData: any;
+        single?: boolean;
+        goBackEvent?: {
+            save: (data: any) => void;
+            cancel: () => void;
+        };
+    }) {
         const html = String.raw;
         let postMD: any = obj.defData;
 
@@ -734,11 +743,11 @@ export class ShoppingProductSetting {
                         if (response) {
                             (postMD.variants as any)[index] = variant;
                         }
-                        next();
+                        obj && obj.goBackEvent ? obj.goBackEvent.save(postMD) : next();
                     },
                 });
             } else {
-                next();
+                obj && obj.goBackEvent ? obj.goBackEvent.cancel() : next();
             }
         }
 
@@ -1152,7 +1161,11 @@ export class ShoppingProductSetting {
                                 postMD.variants[index] = variant;
                             }
                         });
-                        obj.vm.type = 'replace';
+                        if (obj && obj.goBackEvent) {
+                            obj.goBackEvent.save(postMD);
+                        } else {
+                            obj.vm.type = 'replace';
+                        }
                     }),
                     '儲存'
                 )}
@@ -3070,14 +3083,18 @@ ${postMD.seo.keywords ?? ''}</textarea
                             )}
                             ${BgWidget.save(
                                 obj.gvc.event(() => {
+                                    const dialog = new ShareDialog(gvc.glitter);
                                     setTimeout(() => {
                                         if (obj.type === 'replace') {
-                                            ShoppingProductSetting.putEvent(postMD, obj.gvc, obj.vm);
+                                            ShoppingProductSetting.putEvent(postMD, dialog, () => {
+                                                obj.vm.type = 'list';
+                                            });
                                         } else {
-                                            ShoppingProductSetting.postEvent(postMD, obj.gvc, obj.vm);
+                                            ShoppingProductSetting.postEvent(postMD, dialog, () => {
+                                                obj.vm.type = 'list';
+                                            });
                                         }
-                                        obj.vm.type = 'list';
-                                    }, 500);
+                                    }, 100);
                                 }),
                                 '儲存'
                             )}
@@ -3207,8 +3224,7 @@ ${postMD.seo.keywords ?? ''}</textarea
         </div>`;
     }
 
-    public static putEvent(postMD: any, gvc: GVC, vm: any) {
-        const dialog = new ShareDialog(gvc.glitter);
+    public static putEvent(postMD: any, dialog: ShareDialog, calback: () => void) {
         dialog.dataLoading({ text: '商品上傳中...', visible: true });
         postMD.type = 'product';
         ApiShop.putProduct({
@@ -3218,14 +3234,14 @@ ${postMD.seo.keywords ?? ''}</textarea
             dialog.dataLoading({ visible: false });
             if (re.result) {
                 dialog.successMessage({ text: `更改成功` });
+                calback();
             } else {
                 dialog.errorMessage({ text: `上傳失敗` });
             }
         });
     }
 
-    public static postEvent(postMD: any, gvc: GVC, vm: any) {
-        const dialog = new ShareDialog(gvc.glitter);
+    public static postEvent(postMD: any, dialog: ShareDialog, calback: () => void) {
         dialog.dataLoading({ text: '商品上傳中...', visible: true });
         postMD.type = 'product';
         ApiShop.postProduct({
@@ -3234,8 +3250,8 @@ ${postMD.seo.keywords ?? ''}</textarea
         }).then((re) => {
             dialog.dataLoading({ visible: false });
             if (re.result) {
-                vm.type = 'list';
                 dialog.successMessage({ text: `上傳成功` });
+                calback();
             } else {
                 dialog.errorMessage({ text: `上傳失敗` });
             }

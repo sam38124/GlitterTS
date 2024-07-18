@@ -1523,6 +1523,12 @@ class Shopping {
         try {
             content.type = 'product';
             this.checkVariantDataType(content.variants);
+            console.log([
+                {
+                    content: JSON.stringify(content),
+                },
+                content.id,
+            ]);
             const data = await database_js_1.default.query(`update \`${this.app}\`.\`t_manager_post\`
                  SET ? where id=?`, [
                 {

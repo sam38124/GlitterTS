@@ -6,6 +6,7 @@ import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
 import { ApiShop } from '../glitter-base/route/shopping.js';
 import { FilterOptions } from './filter-options.js';
 import { BgProduct } from '../backend-manager/bg-product.js';
+import { ShoppingProductSetting } from './shopping-product-setting.js';
 const html = String.raw;
 export class UserList {
     static main(gvc) {
@@ -24,6 +25,7 @@ export class UserList {
             updateId: glitter.getUUID(),
             stockList: [],
             stockOriginList: [],
+            replaceData: {},
         };
         const ListComp = new BgListComponent(gvc, vm, FilterOptions.stockFilterFrame);
         vm.filter = ListComp.getFilterObject();
@@ -259,7 +261,15 @@ export class UserList {
                                                 vmi.callback();
                                             });
                                         },
-                                        rowClick: () => { },
+                                        rowClick: (data, index) => {
+                                            const product = vm.dataList[index].product_content;
+                                            const variant = vm.dataList[index].variant_content;
+                                            product.variants.map((dd) => {
+                                                dd.editable = JSON.stringify(variant.spec) === JSON.stringify(dd.spec);
+                                            });
+                                            vm.replaceData = product;
+                                            vm.type = 'editSpec';
+                                        },
                                         filter: gvc.bindView(() => {
                                             return {
                                                 bind: vm.filterId,
@@ -315,6 +325,34 @@ export class UserList {
                         }),
                     ].join())}
                         `, BgWidget.getContainerWidth());
+                }
+                else if (vm.type === 'editSpec') {
+                    return ShoppingProductSetting.editProductSpec({
+                        vm: vm,
+                        gvc: gvc,
+                        defData: vm.replaceData,
+                        goBackEvent: {
+                            save: (postMD) => {
+                                const dialog = new ShareDialog(gvc.glitter);
+                                ApiShop.putProduct({
+                                    data: postMD,
+                                    token: window.parent.config.token,
+                                }).then((re) => {
+                                    dialog.dataLoading({ visible: false });
+                                    if (re.result) {
+                                        dialog.successMessage({ text: `更改成功` });
+                                        vm.type = 'list';
+                                    }
+                                    else {
+                                        dialog.errorMessage({ text: `上傳失敗` });
+                                    }
+                                });
+                            },
+                            cancel: () => {
+                                vm.type = 'list';
+                            },
+                        },
+                    });
                 }
                 else {
                     return ``;
