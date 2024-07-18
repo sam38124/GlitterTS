@@ -2,15 +2,17 @@ import db from './modules/database';
 
 export class UpdateScript {
     public static async run() {
-        const migrate_template=(await db.query('SELECT appName FROM glitter.app_config where template_type!=0;',[])).map((dd:any)=>{
-            return dd.appName
-        }).concat('shop_template_black_style','3131_shop','shop-template-clothing-v3')
+        // const migrate_template=(await db.query('SELECT appName FROM glitter.app_config where template_type!=0;',[])).map((dd:any)=>{
+        //     return dd.appName
+        // }).concat('shop_template_black_style','3131_shop','shop-template-clothing-v3','shop-template-clothing-v3')
 
         // UpdateScript.migrateTermsOfService(['3131_shop', 't_1717152410650', 't_1717141688550', 't_1717129048727', 't_1719819344426'])
-        // UpdateScript.migrateHeaderAndFooter(['3131_shop','t_1719819344426','t_1717129048727','t_1717141688550','t_1717152410650','t_1717407696327','t_1717385441550','t_1717386839537','t_1717397588096'])
+        // UpdateScript.migrateHeaderAndFooter(migrate_template)
         // UpdateScript.migrateAccount('shop_template_black_style')
        // await UpdateScript.migrateLink(migrate_template)
-        await UpdateScript.migrateDialog(migrate_template)
+       //  await UpdateScript.migrateHeader(migrate_template)
+       await UpdateScript.migrateDialog(['shopnex'])
+        // t_1719819344426
     }
 
     public static async migrateLink(appList: string[]){
@@ -208,4 +210,55 @@ for (const p of page_list){
             }
         }
     }
+
+    public static async hiddenEditorAble(){
+        const hidden_page=await db.query(`SELECT * FROM glitter.page_config where  tag!='index' and page_config->>'$.support_editor'="true";`,[])
+        for (const b of hidden_page) {
+            b.page_config.support_editor='false'
+            b['id']=undefined
+            Object.keys(b).map((dd) => {
+                if (typeof b[dd] === 'object') {
+                    b[dd] = JSON.stringify(b[dd])
+                }
+            })
+            b['created_time'] = new Date()
+            b['updated_time'] = new Date()
+            await db.query(`replace into glitter.page_config
+                            set ?`, [
+                b
+            ])
+        }
+    }
+    public static async migrateHeader(appList: string[]) {
+        const page_list = (await db.query(`SELECT *
+                                             FROM glitter.page_config
+                                             where appName = 't_1719819344426'
+                                               and tag in ('c_header')`, []));
+        page_list.map((d: any) => {
+            Object.keys(d).map((dd) => {
+                if (typeof d[dd] === 'object') {
+                    d[dd] = JSON.stringify(d[dd])
+                }
+            })
+        })
+        for (const appName of appList){
+            for (const b of page_list) {
+                await db.query(`delete
+                            from glitter.page_config
+                            where appName = ${db.escape(appName)}
+                              and tag = ?`, [b.tag]);
+                b['appName']=appName
+                b['id']=undefined
+                b['created_time'] = new Date()
+                b['updated_time'] = new Date()
+                await db.query(`insert into glitter.page_config
+                            set ?`, [
+                    b
+                ])
+            }
+        }
+    }
+
+    //熱門商品列表-Style1
+
 }

@@ -981,7 +981,7 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
             return "s" + (c === 'x' ? r : r & 0x3 | 0x8).toString(16);
         });
     }
-    addStyle(style) {
+    addStyle(style, id) {
         var _a, _b;
         const glitter = window.glitter;
         glitter.share.style_memory = (_a = glitter.share.style_memory) !== null && _a !== void 0 ? _a : {};
@@ -993,6 +993,7 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
         glitter.share.wait_add_style_string = (_b = glitter.share.wait_add_style_string) !== null && _b !== void 0 ? _b : style;
         glitter.share.wait_add_style_string += style;
         const css = document.createElement('style');
+        css.id = id || glitter.getUUID();
         css.type = 'text/css';
         if (css.styleSheet)
             css.styleSheet.cssText = glitter.share.wait_add_style_string;

@@ -15,6 +15,7 @@ import {AddComponent} from '../../editor/add-component.js';
 import {NormalPageEditor} from '../../editor/normal-page-editor.js';
 import {ColorThemeSelector} from "../../form-view/editor/color-theme-selector.js";
 import {EditorConfig} from "../../editor-config.js";
+import {ToolSetting} from "./tool-setting.js";
 
 enum ViewType {
     mobile = 'mobile',
@@ -53,6 +54,9 @@ export class Main_editor {
                     }
                     if (Storage.page_setting_item === 'color') {
                         return Main_editor.colorSetting(gvc);
+                    }
+                    if (Storage.page_setting_item === 'widget') {
+                        return ToolSetting.main(gvc);
                     }
                     if (
                         viewModel.selectItem &&
@@ -557,13 +561,22 @@ export class Main_editor {
                                 title: dd.title,
                                 callback: (text) => {
                                     vm.data[dd.key] = text;
+                                    
                                     gvc.glitter.share.globalValue[`theme_color.${vm.index}.${dd.key}`] = text;
-                                    const lastScrollY = (document.querySelector('iframe') as any).contentWindow.scrollY;
-                                    (document.querySelector('iframe') as any).contentWindow.glitter.share.globalValue = gvc.glitter.share.globalValue;
-                                    const element = (document.querySelector('iframe') as any).contentWindow.glitter.elementCallback;
+                                    const lastScrollY = (document.querySelector('#editerCenter iframe') as any).contentWindow.scrollY;
+                                    (document.querySelector('#editerCenter  iframe') as any).contentWindow.glitter.share.globalValue = gvc.glitter.share.globalValue;
+                                    const element = (document.querySelector('#editerCenter iframe') as any).contentWindow.glitter.elementCallback;
                                     Object.keys(element).map((dd) => {
-                                        element[dd].updateAttribute()
+                                        try {
+                                            element[dd].updateAttribute()
+                                        }catch (e) {
+                                            
+                                        }
+                                       
                                     });
+                                    if(`${vm.index}`==='0'){
+                                        (document.querySelector('#editerCenter iframe') as any).contentWindow.document.querySelector('body')!.style.background=gvc.glitter.share.globalValue[`theme_color.0.background`];
+                                    }
                                     gvc.notifyDataChange(vId)
                                 },
                                 gvc: gvc,

@@ -418,6 +418,9 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                                                     },
                                                                     onDestroy: () => {
                                                                         refresh();
+                                                                    },
+                                                                    divCreate: {
+                                                                        class: ``
                                                                     }
                                                                 };
                                                             });

@@ -19,6 +19,7 @@ function isNull(...args: any[]) {
     }
     return false;
 }
+
 export function getUUID(): string {
     let d = Date.now();
 
@@ -32,6 +33,7 @@ export function getUUID(): string {
         return "s" + (c === 'x' ? r : r & 0x3 | 0x8).toString(16);
     });
 }
+
 function replaceDatetime(datetime: any) {
     if (datetime) return datetime.replace('T', ' ').replace('.000Z', '').replace('+00:00', '');
 
@@ -183,7 +185,6 @@ async function hashPwd(pwd: string): Promise<string> {
     const TAG = '[HashPwd]';
     const logger = new Logger();
     try {
-        bcrypt.compare;
         const saltRounds = config.PWD_SALT_ROUND;
         const hashPwd = await bcrypt.hash(pwd, saltRounds);
         return hashPwd;
@@ -205,6 +206,16 @@ const randomString = (max: number) => {
     return text;
 };
 
+const checksum = (message: string) => {
+    // 创建哈希对象
+    const hash = crypto.createHash('sha256');
+    // 更新哈希对象内容
+    hash.update(message);
+    // 计算校验和，输出为十六进制字符串
+    const checksum = hash.digest('hex');
+    // 计算 SHA-256 校验和
+    return (checksum)
+}
 const compareHash = async (pwd: string, has: string) => bcrypt.compare(pwd, has);
 
 export default {
@@ -216,4 +227,5 @@ export default {
     createOrderId,
     randomString,
     compareHash,
+    checksum
 };

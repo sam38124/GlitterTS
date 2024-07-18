@@ -77,6 +77,20 @@ export declare class Shopping {
         total: any;
         result?: undefined;
     }>;
+    querySqlByVariants(querySql: string[], query: {
+        page: number;
+        limit: number;
+        id?: string;
+        order_by?: string;
+    }): Promise<{
+        data: any;
+        result: boolean;
+        total?: undefined;
+    } | {
+        data: any;
+        total: any;
+        result?: undefined;
+    }>;
     deleteProduct(query: {
         id: string;
     }): Promise<{
@@ -331,5 +345,42 @@ export declare class Shopping {
     }>;
     containsTagSQL(name: string): string;
     updateProductCollection(content: string[], id: number): Promise<void>;
+    getVariants(query: {
+        page: number;
+        limit: number;
+        search?: string;
+        searchType?: string;
+        id?: string;
+        collection?: string;
+        accurate_search_collection?: boolean;
+        status?: string;
+        id_list?: string;
+        order_by?: string;
+        min_price?: string;
+        max_price?: string;
+        stockCount?: string;
+    }): Promise<{
+        data: any;
+        result: boolean;
+        total?: undefined;
+    } | {
+        data: any;
+        total: any;
+        result?: undefined;
+    }>;
+    putVariants(query: {
+        id: number;
+        product_id: number;
+        product_content: any;
+        variant_content: any;
+    }[]): Promise<{
+        result: string;
+        orderData: {
+            id: number;
+            product_id: number;
+            product_content: any;
+            variant_content: any;
+        }[];
+    }>;
 }
 export {};

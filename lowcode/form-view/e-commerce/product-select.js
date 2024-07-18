@@ -1,5 +1,16 @@
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 import { EditorElem } from "../../glitterBundle/plugins/editor-elem.js";
 import { ApiShop } from "../../glitter-base/route/shopping.js";
+import { BgWidget } from "../../backend-manager/bg-widget.js";
+import { BgProduct } from "../../backend-manager/bg-product.js";
 export class ProductSelect {
     static getData(bundle) {
         var _a;
@@ -66,6 +77,66 @@ export class ProductSelect {
                 },
                 divCreate: {
                     style: ''
+                }
+            };
+        });
+    }
+    static getProducts(bundle) {
+        const html = String.raw;
+        const gvc = bundle.gvc;
+        if (!Array.isArray(bundle.formData[bundle.key])) {
+            bundle.formData[bundle.key] = [];
+        }
+        const subVM = {
+            dataList: [],
+            id: gvc.glitter.getUUID()
+        };
+        return gvc.bindView(() => {
+            return {
+                bind: subVM.id,
+                view: () => {
+                    return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+                        subVM.dataList = yield BgProduct.getProductOpts(bundle.formData[bundle.key]);
+                        resolve(`<div class="d-flex flex-column py-2 my-2 border-top" style="gap: 18px;">
+                <div class="d-flex align-items-center gray-bottom-line-18 pb-2"
+                     style="gap: 24px; justify-content: space-between;">
+                    <div class="form-check-label c_updown_label">
+                        <div class="tx_normal">${bundle.title}</div>
+                    </div>
+                    ${BgWidget.grayButton('選擇商品', gvc.event(() => {
+                            BgProduct.productsDialog({
+                                gvc: gvc,
+                                default: bundle.formData[bundle.key],
+                                callback: (value) => __awaiter(this, void 0, void 0, function* () {
+                                    bundle.formData[bundle.key] = value;
+                                    bundle.callback(bundle.formData[bundle.key]);
+                                    gvc.notifyDataChange(subVM.id);
+                                }),
+                            });
+                        }), { textStyle: 'font-weight: 400;' })}
+                </div>
+                ${gvc.map(subVM.dataList.map((opt, index) => {
+                            return html `
+                                <div class="d-flex align-items-center form-check-label c_updown_label gap-3">
+                                    <span class="tx_normal">${index + 1}.</span>
+                                    <div
+                                            style="
+                                                                                                    width: 40px;
+                                                                                                    height: 40px;
+                                                                                                    border-radius: 5px;
+                                                                                                    background-color: #fff;
+                                                                                                    background-image: url('${opt.image}');
+                                                                                                    background-position: center center;
+                                                                                                    background-size: contain;
+                                                                                                "
+                                    ></div>
+                                    <div class="tx_normal ${opt.note ? 'mb-1' : ''}">${opt.value}</div>
+                                    ${opt.note ? html `
+                                        <div class="tx_gray_12">${opt.note}</div> ` : ''}
+                                </div>`;
+                        }))}
+            </div>`);
+                    }));
                 }
             };
         });

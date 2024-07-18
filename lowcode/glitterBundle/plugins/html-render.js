@@ -87,6 +87,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
     return {
         onCreateView: () => {
             var _a, _b;
+            document.querySelector('body').style.background = glitter.share.globalValue[`theme_color.0.background`];
             console.log(`onCreateView-time:`, window.renderClock.stop());
             const mainId = glitter.getUUID();
             let map = [];

@@ -114,12 +114,26 @@ export const widgetComponent = {
                     let style_user = '';
                     if (widget.type === 'container') {
                         ['top', 'bottom', 'left', 'right'].map((dd) => {
-                            widget.data._padding[dd] && (style_user += `padding-${dd}:${widget.data._padding[dd]}px;`);
+                            if (widget.data._padding[dd]) {
+                                if (!isNaN(widget.data._padding[dd])) {
+                                    (style_user += `padding-${dd}:${widget.data._padding[dd]}px;`);
+                                }
+                                else {
+                                    (style_user += `padding-${dd}:${widget.data._padding[dd]};`);
+                                }
+                            }
                         });
                         ['top', 'bottom', 'left', 'right'].map((dd) => {
-                            widget.data._margin[dd] && (style_user += `margin-${dd}:${widget.data._margin[dd]}px;`);
+                            if (widget.data._margin[dd]) {
+                                if (!isNaN(widget.data._margin[dd])) {
+                                    (style_user += `margin-${dd}:${widget.data._margin[dd]}px;`);
+                                }
+                                else {
+                                    (style_user += `margin-${dd}:${widget.data._margin[dd]};`);
+                                }
+                            }
                         });
-                        widget.data._max_width && (style_user += `width:${widget.data._max_width}px;max-width:100%;margin:auto;`);
+                        widget.data._max_width && (style_user += `width:${(isNaN(widget.data._max_width)) ? widget.data._max_width : `${widget.data._max_width}px`};max-width:100%;margin:auto;`);
                     }
                     return {
                         elem: widget.data.elem,
@@ -230,10 +244,10 @@ export const widgetComponent = {
                     return {
                         bind: id,
                         view: () => {
-                            return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
-                                const html = String.raw;
-                                let view = [
-                                    yield new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
+                            let view = [];
+                            switch (widget.data.elem) {
+                                case 'select':
+                                    return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
                                         const vm = {
                                             callback: () => {
                                             },
@@ -252,79 +266,74 @@ export const widgetComponent = {
                                                     clickEvent: widget.data.selectAPI,
                                                     subData: vm
                                                 });
+                                                resolve(true);
                                             }
                                             else {
                                                 resolve(true);
                                             }
                                         });
-                                        switch (widget.data.elem) {
-                                            case 'select':
-                                                formData[widget.data.key] = innerText;
-                                                if (widget.data.selectType === 'api') {
-                                                    resolve(vm.data.map((dd) => {
-                                                        var _a;
-                                                        formData[widget.data.key] = (_a = formData[widget.data.key]) !== null && _a !== void 0 ? _a : dd.value;
-                                                        if (dd.visible === 'invisible' && (dd.value !== formData[widget.data.key])) {
-                                                            return ``;
-                                                        }
-                                                        return glitter.html `<option class="" value="${dd.value}" ${`${dd.value}` === `${formData[widget.data.key]}` ? `selected` : ``}>
+                                        formData[widget.data.key] = innerText;
+                                        if (widget.data.selectType === 'api') {
+                                            resolve(vm.data.map((dd) => {
+                                                var _a;
+                                                formData[widget.data.key] = (_a = formData[widget.data.key]) !== null && _a !== void 0 ? _a : dd.value;
+                                                if (dd.visible === 'invisible' && (dd.value !== formData[widget.data.key])) {
+                                                    return ``;
+                                                }
+                                                return glitter.html `<option class="" value="${dd.value}" ${`${dd.value}` === `${formData[widget.data.key]}` ? `selected` : ``}>
                                 ${dd.key}
                             </option>`;
-                                                    }).join('') + `<option value="" ${formData[widget.data.key] === '' ? `selected` : ``}>
+                                            }).join('') + `<option value="" ${formData[widget.data.key] === '' ? `selected` : ``}>
                                 選擇${widget.data.label}
                             </option>`);
-                                                }
-                                                else if (widget.data.selectType === 'trigger') {
-                                                    const data = yield TriggerEvent.trigger({
-                                                        gvc: gvc,
-                                                        widget: widget,
-                                                        clickEvent: widget.data.selectTrigger,
-                                                        subData: subData
-                                                    });
-                                                    const selectItem = yield TriggerEvent.trigger({
-                                                        gvc: gvc,
-                                                        widget: widget,
-                                                        clickEvent: widget.data.selectItem,
-                                                        subData: subData
-                                                    });
-                                                    resolve(data.map((dd) => {
-                                                        return `<option value="${dd.value}" ${`${dd.value}` === `${selectItem}` ? `selected` : ``}>
-                                ${dd.name}
-                            </option>`;
-                                                    }).join(''));
-                                                }
-                                                else {
-                                                    resolve(widget.data.selectList.map((dd) => {
-                                                        var _a;
-                                                        if (dd.visible === 'invisible' && (dd.value !== formData[widget.data.key])) {
-                                                            return ``;
-                                                        }
-                                                        formData[widget.data.key] = (_a = formData[widget.data.key]) !== null && _a !== void 0 ? _a : dd.value;
-                                                        return `<option value="${dd.value}" ${dd.value === formData[widget.data.key] ? `selected` : ``}>
-                                ${dd.name}
-                            </option>`;
-                                                    }).join(''));
-                                                }
-                                                break;
-                                            case 'img':
-                                            case 'input':
-                                                resolve(``);
-                                                break;
-                                            default:
-                                                resolve(innerText);
-                                                break;
                                         }
-                                    }))
-                                ];
-                                if (window.parent.editerData !== undefined && htmlGenerate.root && widget.data.elem !== 'textArea') {
-                                    view.push(glitter.htmlGenerate.getEditorSelectSection({
-                                        id: widget.id,
-                                        gvc: gvc,
-                                        label: widget.label
+                                        else if (widget.data.selectType === 'trigger') {
+                                            const data = yield TriggerEvent.trigger({
+                                                gvc: gvc,
+                                                widget: widget,
+                                                clickEvent: widget.data.selectTrigger,
+                                                subData: subData
+                                            });
+                                            const selectItem = yield TriggerEvent.trigger({
+                                                gvc: gvc,
+                                                widget: widget,
+                                                clickEvent: widget.data.selectItem,
+                                                subData: subData
+                                            });
+                                            resolve(data.map((dd) => {
+                                                return `<option value="${dd.value}" ${`${dd.value}` === `${selectItem}` ? `selected` : ``}>
+                                ${dd.name}
+                            </option>`;
+                                            }).join(''));
+                                        }
+                                        else {
+                                            resolve(widget.data.selectList.map((dd) => {
+                                                var _a;
+                                                if (dd.visible === 'invisible' && (dd.value !== formData[widget.data.key])) {
+                                                    return ``;
+                                                }
+                                                formData[widget.data.key] = (_a = formData[widget.data.key]) !== null && _a !== void 0 ? _a : dd.value;
+                                                return `<option value="${dd.value}" ${dd.value === formData[widget.data.key] ? `selected` : ``}>
+                                ${dd.name}
+                            </option>`;
+                                            }).join(''));
+                                        }
                                     }));
-                                }
-                                resolve(view.join(''));
-                            }));
+                                case 'img':
+                                case 'input':
+                                    break;
+                                default:
+                                    view.push(innerText);
+                                    break;
+                            }
+                            if (window.parent.editerData !== undefined && htmlGenerate.root && widget.data.elem !== 'textArea') {
+                                view.push(glitter.htmlGenerate.getEditorSelectSection({
+                                    id: widget.id,
+                                    gvc: gvc,
+                                    label: widget.label
+                                }));
+                            }
+                            return view.join('');
                         },
                         divCreate: getCreateOption,
                         onCreate: () => {
@@ -371,11 +380,16 @@ export const widgetComponent = {
                 var _a, _b, _c;
                 if (widget.type === 'container' && Storage.select_function === 'user-editor') {
                     return [
+                        `<div class="alert alert-secondary p-2 fw-500 mt-2 " style="word-break: break-all;white-space: normal;letter-spacing: 0.5px;">
+                            可輸入純數值 (px) 或附加單位(%,rem,vw,vh,calc,px)。
+</div>`,
                         EditorElem.editeInput({
                             gvc: gvc,
-                            title: '容器最大寬度(為空則自適應寬度)',
+                            title: `容器最大寬度 << 不輸入則自適應寬度 >>
+                           
+                            `,
                             default: widget.data._max_width,
-                            placeHolder: '單位PX',
+                            placeHolder: '',
                             callback: (text) => {
                                 widget.data._max_width = text;
                                 widget.refreshComponent();
@@ -384,7 +398,7 @@ export const widgetComponent = {
                         `<div class="my-2"></div>`,
                         EditorElem.toggleExpand({
                             gvc: gvc,
-                            title: '內距',
+                            title: `內距`,
                             data: widget.data._padding,
                             innerText: () => {
                                 return [{
@@ -418,7 +432,7 @@ export const widgetComponent = {
                         }),
                         EditorElem.toggleExpand({
                             gvc: gvc,
-                            title: '外距',
+                            title: `外距`,
                             data: widget.data._margin,
                             innerText: () => {
                                 return [{

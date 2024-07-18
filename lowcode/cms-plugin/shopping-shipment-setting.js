@@ -392,7 +392,7 @@ export class ShoppingShipmentSetting {
                 divCreate: { class: `d-flex flex-column flex-column-reverse flex-md-row`, style: `gap:10px; padding: 0;` },
             };
         })}
-            `, 900);
+            `, 900) + BgWidget.mb240();
     }
 }
 window.glitter.setModule(import.meta.url, ShoppingShipmentSetting);

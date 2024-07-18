@@ -464,6 +464,11 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                                             index: 'color',
                                                             hint: '配色設定',
                                                         },
+                                                        // {
+                                                        //     src: `fa-regular fa-wrench`,
+                                                        //     index: 'widget',
+                                                        //     hint: '元件設定'
+                                                        // },
                                                     ]
                                                         .map((da: any) => {
                                                             return html`<i
@@ -664,6 +669,34 @@ function initialEditor(gvc: GVC, viewModel: any) {
         function loop(array: any) {
             array.map((dd: any, index: number) => {
                 if (dd.id === id) {
+                    find.widget = dd;
+                    find.container = array;
+                    find.index = index;
+                } else if (dd.type === 'container') {
+                    loop(dd.data.setting);
+                }
+            });
+        }
+
+        loop(glitter.share.editorViewModel.data.config);
+        return find;
+    };
+
+    //找到ID索引位置
+    glitter.share.findWidget = (where: (data:any)=>boolean) => {
+        let find: {
+            widget: any;
+            container: any;
+            index: number;
+        } = {
+            widget: undefined,
+            container: undefined,
+            index: 0,
+        };
+
+        function loop(array: any) {
+            array.map((dd: any, index: number) => {
+                if (where(dd)) {
                     find.widget = dd;
                     find.container = array;
                     find.index = index;

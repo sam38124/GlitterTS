@@ -26,7 +26,7 @@ export const Storage:{
     //後台點擊選項
     select_item:any,
     //頁面編輯選項
-    page_setting_item:'layout' | 'color'
+    page_setting_item:'layout' | 'color' | 'widget'
 }={
     get editor_mode(){
         return 'dev' as any

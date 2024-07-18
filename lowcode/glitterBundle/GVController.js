@@ -42,6 +42,7 @@ export class GVC {
             jsList: [],
             styleLinks: [],
         };
+        this.style_list = {};
         this.share = {};
         this.recreateView = () => {
         };

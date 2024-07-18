@@ -616,6 +616,27 @@ function initialEditor(gvc, viewModel) {
         loop(glitter.share.editorViewModel.data.config);
         return find;
     };
+    glitter.share.findWidget = (where) => {
+        let find = {
+            widget: undefined,
+            container: undefined,
+            index: 0,
+        };
+        function loop(array) {
+            array.map((dd, index) => {
+                if (where(dd)) {
+                    find.widget = dd;
+                    find.container = array;
+                    find.index = index;
+                }
+                else if (dd.type === 'container') {
+                    loop(dd.data.setting);
+                }
+            });
+        }
+        loop(glitter.share.editorViewModel.data.config);
+        return find;
+    };
     function resetId(widget) {
         widget.id = glitter.getUUID();
         if (widget.type === 'container') {

@@ -210,7 +210,9 @@ ${(obj.style || []) && obj.style[index] ? obj.style[index] : ``}
                                     return html ` <td
                                                                           class="${(_a = d3.position) !== null && _a !== void 0 ? _a : 'text-start'} tx_normal"
                                                                           ${d3.key === '●' || d3.stopDialog ? '' : html ` onclick="${gvc.event(() => { })}"`}
-                                                                          style="color:#393939 !important;border:none;${(obj.style || []) && obj.style[index] ? obj.style[index] : ``}"
+                                                                          style="color:#393939 !important;border:none;vertical-align: middle;${(obj.style || []) && obj.style[index]
+                                        ? obj.style[index]
+                                        : ``}"
                                                                       >
                                                                           <div class="my-1 text-nowrap" style="${(obj.style || []) && obj.style[index] ? obj.style[index] : ``}">${d3.value}</div>
                                                                           ${index === dd.length - 1 && obj.editable

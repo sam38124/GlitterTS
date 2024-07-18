@@ -66,6 +66,7 @@ export class GVC {
         return this.parameter.pageConfig?.obj
     }
 
+    public style_list={}
     public share: any = {}
 
     public notifyDataChange(id: any) {

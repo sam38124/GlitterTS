@@ -81,6 +81,7 @@ const whiteList: {}[] = [
     { url: config.getRoute(config.public_route.lambda, 'public'), method: 'DELETE' },
     { url: config.getRoute(config.public_route.lambda, 'public'), method: 'PUT' },
     { url: config.getRoute(config.public_route.ec + '/product', 'public'), method: 'GET' },
+    { url: config.getRoute(config.public_route.ec + '/product/variants', 'public'), method: 'GET' },
     { url: config.getRoute(config.public_route.ec + '/checkout', 'public'), method: 'POST' },
     { url: config.getRoute(config.public_route.ec + '/checkout/preview', 'public'), method: 'POST' },
     { url: config.getRoute(config.public_route.ec + '/redirect', 'public'), method: 'POST' },

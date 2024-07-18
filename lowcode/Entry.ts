@@ -11,7 +11,28 @@ import {EditorConfig} from "./editor-config.js";
 
 export class Entry {
     public static onCreate(glitter: Glitter) {
-
+        glitter.share.reload_code_hash=function (){
+            const hashCode=(window as any).preloadData.eval_code_hash || {}
+            Object.keys(hashCode).map((dd,index)=>{
+                if(typeof hashCode[dd]==='string'){
+                    try {
+                        hashCode[dd]=(new Function(`return {
+                        execute:(gvc,widget,object,subData,element,window,document,glitter,$)=>{
+                         return (() => { ${hashCode[dd]} })()
+                        }
+                        }`))().execute
+                    }catch (e){
+                        console.log(`error->`,`return {
+                        execute:(gvc,widget,object,subData,element,window,document,glitter,$)=>{
+                         return (() => { ${hashCode[dd]} })()
+                        }
+                        }`)
+                    }
+                }
+            })
+        }
+        glitter.share.reload_code_hash()
+        // console.log(`hashCode->`,hashCode)
         glitter.share.editor_util={
             baseApi:BaseApi
         }
@@ -24,14 +45,13 @@ export class Entry {
             scroll-behavior: auto !important;
           }
         }`);
-
         if (glitter.getUrlParameter('appName')) {
             (window as any).appName = glitter.getUrlParameter('appName');
             config.appName = glitter.getUrlParameter('appName');
         }
         (window as any).renderClock = (window as any).renderClock ?? clockF();
         console.log(`Entry-time:`, (window as any).renderClock.stop());
-        glitter.share.editerVersion = "V_9.2.6";
+        glitter.share.editerVersion = "V_9.3.6";
         glitter.share.start = (new Date());
         const vm: {
             appConfig: any;
@@ -258,6 +278,8 @@ export class Entry {
 
     //跳轉至頁面編輯器Iframe顯示
     public static toHtmlEditor(glitter: Glitter, vm: any, callback: () => void) {
+        (window as any).preloadData.eval_code_hash=(window.parent as any).preloadData.eval_code_hash;
+        glitter.share.reload_code_hash()
         glitter.addMtScript([{
             src:'https://kit.fontawesome.com/cccedec0f8.js'
         }],()=>{},()=>{})
@@ -429,6 +451,7 @@ export class Entry {
                     glitter.share.globalValue[`theme_color.${index}.${d2.key}`] = dd[d2.key];
                 });
             });
+
             function loopCheckGlobalValue(array: any, tag: string) {
                 try {
                     array.map((dd: any) => {

@@ -7,6 +7,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+import { DynamicCode } from "../../official_event/glitter-util/eval-code-event.js";
 export class TriggerEvent {
     static getUrlParameter(url, sParam) {
         try {
@@ -29,16 +30,33 @@ export class TriggerEvent {
         return (gvc, widget, obj, subData, element) => {
             return {
                 event: () => {
-                    return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
-                        glitter.htmlGenerate.loadEvent(glitter, [
-                            {
-                                src: url,
-                                callback: (data) => __awaiter(this, void 0, void 0, function* () {
-                                    resolve((yield data.fun(gvc, widget, obj, subData, element).event()));
-                                })
-                            }
-                        ]);
-                    }));
+                    const event_stack = glitter.htmlGenerate.checkEventStore(glitter, url);
+                    if (event_stack) {
+                        const data = event_stack.fun(gvc, widget, obj, subData, element).event();
+                        return data;
+                    }
+                    else {
+                        return new Promise((resolve, reject) => {
+                            glitter.htmlGenerate.loadEvent(glitter, [
+                                {
+                                    src: url,
+                                    callback: (data) => {
+                                        const response = data.fun(gvc, widget, obj, subData, element).event();
+                                        if (response instanceof Promise) {
+                                            response.then((data2) => {
+                                                console.log(`setEventRouter-end-then-${new Date().getTime()}`, data2);
+                                                resolve(data2);
+                                            });
+                                        }
+                                        else {
+                                            console.log(`setEventRouter-end-now-${new Date().getTime()}`, response);
+                                            resolve(response);
+                                        }
+                                    }
+                                }
+                            ]);
+                        });
+                    }
                 },
                 editor: () => {
                     return gvc.bindView(() => {
@@ -96,68 +114,54 @@ export class TriggerEvent {
     static trigger(oj) {
         const glitter = window.glitter;
         let arrayEvent = [];
-        let returnData = '';
+        let returnData = false;
         function run(event) {
             return __awaiter(this, void 0, void 0, function* () {
-                return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
-                    function pass(inter) {
-                        var _a;
-                        return __awaiter(this, void 0, void 0, function* () {
-                            try {
-                                const time = new Date();
-                                const gvc = oj.gvc;
-                                const subData = oj.subData;
-                                const widget = oj.widget;
-                                let passCommand = false;
-                                returnData = yield inter[event.clickEvent.route].fun(oj.gvc, oj.widget, event, oj.subData, oj.element).event();
-                                let response = returnData;
-                                if (event.dataPlace) {
-                                    (() => {
-                                        eval(event.dataPlace);
-                                    })();
-                                }
-                                oj.subData = response;
-                                if (event.blockCommand) {
-                                    try {
-                                        if (event.blockCommandV2) {
-                                            passCommand = eval(`(() => {
-                                        ${event.blockCommand}
-                                    })()`);
-                                        }
-                                        else {
-                                            passCommand = eval(event.blockCommand);
-                                        }
+                if (!event || !event.clickEvent || !event.clickEvent.src) {
+                    return false;
+                }
+                const event_router = oj.gvc.glitter.htmlGenerate.checkJsEventStore(glitter, TriggerEvent.getLink(event.clickEvent.src), 'clickEvent');
+                if (event_router) {
+                    let response = event_router[event.clickEvent.route].fun(oj.gvc, oj.widget, event, oj.subData, oj.element).event();
+                    if (response instanceof Promise) {
+                        response = yield response;
+                    }
+                    oj.subData = response;
+                    returnData = response;
+                    return true;
+                }
+                else {
+                    return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+                        function pass(inter) {
+                            return __awaiter(this, void 0, void 0, function* () {
+                                try {
+                                    let response = inter[event.clickEvent.route].fun(oj.gvc, oj.widget, event, oj.subData, oj.element).event();
+                                    if (response instanceof Promise) {
+                                        response = yield response;
                                     }
-                                    catch (e) {
-                                        alert(event.blockCommandV2);
-                                        console.log(e);
-                                    }
-                                }
-                                if (passCommand) {
-                                    resolve("blockCommand");
-                                }
-                                else {
+                                    console.log(`returnData-end-${new Date().getTime()}-`, response);
+                                    oj.subData = response;
+                                    returnData = response;
                                     resolve(true);
                                 }
-                            }
-                            catch (e) {
-                                returnData = (_a = event.errorCode) !== null && _a !== void 0 ? _a : "";
-                                resolve(true);
-                            }
-                        });
-                    }
-                    try {
-                        oj.gvc.glitter.htmlGenerate.loadScript(oj.gvc.glitter, [{
-                                src: TriggerEvent.getLink(event.clickEvent.src),
-                                callback: (data) => {
-                                    pass(data);
+                                catch (e) {
+                                    resolve(true);
                                 }
-                            }], 'clickEvent');
-                    }
-                    catch (e) {
-                        resolve(false);
-                    }
-                }));
+                            });
+                        }
+                        try {
+                            oj.gvc.glitter.htmlGenerate.loadScript(oj.gvc.glitter, [{
+                                    src: TriggerEvent.getLink(event.clickEvent.src),
+                                    callback: (data) => {
+                                        pass(data);
+                                    }
+                                }], 'clickEvent');
+                        }
+                        catch (e) {
+                            resolve(false);
+                        }
+                    }));
+                }
             });
         }
         if (oj.clickEvent !== undefined && Array.isArray(oj.clickEvent.clickEvent)) {
@@ -171,25 +175,22 @@ export class TriggerEvent {
         return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
             let result = true;
             for (const a of arrayEvent) {
-                let blockCommand = false;
-                result = yield new Promise((resolve, reject) => {
-                    function check() {
-                        run(a).then((res) => {
-                            if (res === 'blockCommand') {
-                                blockCommand = true;
-                                resolve(true);
-                            }
-                            else {
-                                resolve(res);
-                            }
-                        });
+                if (a && a.clickEvent && a.clickEvent.route === 'code') {
+                    let response = DynamicCode.fun(oj.gvc, oj.widget, a, oj.subData, oj.element);
+                    if (response instanceof Promise) {
+                        response = yield response;
                     }
-                    check();
-                });
-                if (!result || blockCommand) {
-                    break;
+                    oj.subData = response;
+                    returnData = response;
+                }
+                else {
+                    result = yield run(a);
+                    if (!result) {
+                        break;
+                    }
                 }
             }
+            oj.callback && oj.callback(returnData);
             resolve(returnData);
         }));
     }

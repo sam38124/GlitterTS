@@ -7,10 +7,7 @@ exports.UpdateScript = void 0;
 const database_1 = __importDefault(require("./modules/database"));
 class UpdateScript {
     static async run() {
-        const migrate_template = (await database_1.default.query('SELECT appName FROM glitter.app_config where template_type!=0;', [])).map((dd) => {
-            return dd.appName;
-        }).concat('shop_template_black_style', '3131_shop', 'shop-template-clothing-v3');
-        await UpdateScript.migrateDialog(migrate_template);
+        await UpdateScript.migrateDialog(['shopnex']);
     }
     static async migrateLink(appList) {
         for (const appName of appList) {
@@ -194,6 +191,53 @@ class UpdateScript {
                 ]);
                 for (const b of global_event) {
                 }
+            }
+        }
+    }
+    static async hiddenEditorAble() {
+        const hidden_page = await database_1.default.query(`SELECT * FROM glitter.page_config where  tag!='index' and page_config->>'$.support_editor'="true";`, []);
+        for (const b of hidden_page) {
+            b.page_config.support_editor = 'false';
+            b['id'] = undefined;
+            Object.keys(b).map((dd) => {
+                if (typeof b[dd] === 'object') {
+                    b[dd] = JSON.stringify(b[dd]);
+                }
+            });
+            b['created_time'] = new Date();
+            b['updated_time'] = new Date();
+            await database_1.default.query(`replace into glitter.page_config
+                            set ?`, [
+                b
+            ]);
+        }
+    }
+    static async migrateHeader(appList) {
+        const page_list = (await database_1.default.query(`SELECT *
+                                             FROM glitter.page_config
+                                             where appName = 't_1719819344426'
+                                               and tag in ('c_header')`, []));
+        page_list.map((d) => {
+            Object.keys(d).map((dd) => {
+                if (typeof d[dd] === 'object') {
+                    d[dd] = JSON.stringify(d[dd]);
+                }
+            });
+        });
+        for (const appName of appList) {
+            for (const b of page_list) {
+                await database_1.default.query(`delete
+                            from glitter.page_config
+                            where appName = ${database_1.default.escape(appName)}
+                              and tag = ?`, [b.tag]);
+                b['appName'] = appName;
+                b['id'] = undefined;
+                b['created_time'] = new Date();
+                b['updated_time'] = new Date();
+                await database_1.default.query(`insert into glitter.page_config
+                            set ?`, [
+                    b
+                ]);
             }
         }
     }

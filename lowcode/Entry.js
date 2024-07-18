@@ -17,6 +17,28 @@ import { EditorConfig } from "./editor-config.js";
 export class Entry {
     static onCreate(glitter) {
         var _a;
+        glitter.share.reload_code_hash = function () {
+            const hashCode = window.preloadData.eval_code_hash || {};
+            Object.keys(hashCode).map((dd, index) => {
+                if (typeof hashCode[dd] === 'string') {
+                    try {
+                        hashCode[dd] = (new Function(`return {
+                        execute:(gvc,widget,object,subData,element,window,document,glitter,$)=>{
+                         return (() => { ${hashCode[dd]} })()
+                        }
+                        }`))().execute;
+                    }
+                    catch (e) {
+                        console.log(`error->`, `return {
+                        execute:(gvc,widget,object,subData,element,window,document,glitter,$)=>{
+                         return (() => { ${hashCode[dd]} })()
+                        }
+                        }`);
+                    }
+                }
+            });
+        };
+        glitter.share.reload_code_hash();
         glitter.share.editor_util = {
             baseApi: BaseApi
         };
@@ -35,7 +57,7 @@ export class Entry {
         }
         window.renderClock = (_a = window.renderClock) !== null && _a !== void 0 ? _a : clockF();
         console.log(`Entry-time:`, window.renderClock.stop());
-        glitter.share.editerVersion = "V_9.2.6";
+        glitter.share.editerVersion = "V_9.3.6";
         glitter.share.start = (new Date());
         const vm = {
             appConfig: [],
@@ -243,6 +265,8 @@ export class Entry {
     }
     static toHtmlEditor(glitter, vm, callback) {
         var _a;
+        window.preloadData.eval_code_hash = window.parent.preloadData.eval_code_hash;
+        glitter.share.reload_code_hash();
         glitter.addMtScript([{
                 src: 'https://kit.fontawesome.com/cccedec0f8.js'
             }], () => { }, () => { });

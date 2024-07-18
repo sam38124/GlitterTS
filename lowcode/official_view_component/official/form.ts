@@ -252,7 +252,7 @@ export class FormWidget {
                     }
                 })
             },
-            copyable:false,
+            copyable:true,
             originalArray: array,
             expand: {},
             plus: {

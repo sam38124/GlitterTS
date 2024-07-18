@@ -241,7 +241,13 @@ color: transparent;"
                     return html ` <div
                                                 class="btn-group "
                                                 style="max-width: ${document.body.clientWidth < 800 ? 150 : 350}px; 
+<<<<<<< HEAD
                                                 min-width: ${document.body.clientWidth < 800 ? 150 : 260}px;"
+=======
+                                                min-width: ${document.body.clientWidth < 800 ? 150 : 200}px; 
+                                                ${(gvc.glitter.getUrlParameter('function') === 'page-editor') ? `` : `transform: translateX(-15px);`}
+                                               "
+>>>>>>> 30a3d9fa (update glitter version.)
                                             >
                                                 <button
                                                     type="button"
@@ -385,9 +391,7 @@ color: transparent;"
                             setTimeout(() => {
                                 dialog.dataLoading({ text: '', visible: false });
                                 if (it.result) {
-                                    const li = new URL(location.href);
-                                    li.searchParams.set('page', tdata.tag);
-                                    location.href = li.href;
+                                    location.href = `${glitter.root_path}/${tdata.tag}?type=editor&appName=${window.appName}&function=${glitter.getUrlParameter('function')}`;
                                 }
                                 else {
                                     dialog.errorMessage({
