@@ -18,7 +18,7 @@ export class ApiUser {
     }
 
     public static getNotice(cf: { page: number; limit: number }) {
-        if((window as any).glitter.getUrlParameter('cms')==='true'){
+        if ((window as any).glitter.getUrlParameter('cms') === 'true') {
             return BaseApi.create({
                 url: getBaseUrl() + `/api-public/v1/user/notice?page=${cf.page}&limit=${cf.limit}`,
                 type: 'GET',
@@ -28,7 +28,7 @@ export class ApiUser {
                     Authorization: (window.parent as any).saasConfig.config.token,
                 },
             });
-        }else{
+        } else {
             return BaseApi.create({
                 url: getBaseUrl() + `/api-public/v1/user/notice?page=${cf.page}&limit=${cf.limit}`,
                 type: 'GET',
@@ -39,16 +39,15 @@ export class ApiUser {
                 },
             });
         }
-
     }
-    public static getNoticeUnread(appName?:string,token?:string) {
+    public static getNoticeUnread(appName?: string, token?: string) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user/notice/unread/count`,
             type: 'GET',
             headers: {
                 'g-app': appName || getConfig().config.appName,
                 'Content-Type': 'application/json',
-                Authorization:token || GlobalUser.userToken,
+                Authorization: token || GlobalUser.userToken,
             },
         });
     }
@@ -250,7 +249,7 @@ export class ApiUser {
         return list;
     }
 
-    public static getUserListOrders(json: { limit: number; page: number; search?: string; id?: string; searchType?: string; orderString?: string; filter?: any; status?: number }) {
+    public static getUserListOrders(json: { limit: number; page: number; search?: string; id?: string; searchType?: string; orderString?: string; filter?: any; status?: number; group?: string }) {
         const filterString = this.userListFilterString(json.filter);
         const userData = BaseApi.create({
             url:
@@ -261,6 +260,7 @@ export class ApiUser {
                     json.id && par.push(`id=${json.id}`);
                     json.searchType && par.push(`searchType=${json.searchType}`);
                     json.orderString && par.push(`order_string=${json.orderString}`);
+                    json.group && par.push(`group=${json.group}`);
                     filterString.length > 0 && par.push(filterString.join('&'));
                     return par.join('&');
                 })()}`,
@@ -382,7 +382,7 @@ export class ApiUser {
             }),
         });
     }
-    public static forgetPwdCheckCode(email: string,code:string) {
+    public static forgetPwdCheckCode(email: string, code: string) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user/forget/check-code`,
             type: 'POST',
@@ -396,7 +396,7 @@ export class ApiUser {
             }),
         });
     }
-    public static   resetPwdV2(email: string,code:string,pwd:string) {
+    public static resetPwdV2(email: string, code: string, pwd: string) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user/reset/pwd`,
             type: 'PUT',
@@ -407,7 +407,7 @@ export class ApiUser {
             data: JSON.stringify({
                 email: email,
                 code: code,
-                pwd:pwd
+                pwd: pwd,
             }),
         });
     }
@@ -509,6 +509,18 @@ export class ApiUser {
             headers: {
                 'Content-Type': 'application/json',
                 'g-app': getConfig().config.appName,
+            },
+        });
+    }
+
+    public static getUserGroupList() {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/user/group`,
+            type: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: getConfig().config.token,
             },
         });
     }

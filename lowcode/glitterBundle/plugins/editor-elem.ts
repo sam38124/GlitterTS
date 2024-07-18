@@ -926,7 +926,7 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
 .fr-sticky-dummy{
 display:none !important;
 }
-`)
+`);
                             //@ts-ignore
                             const editor = new FroalaEditor('#' + richID, {
                                 language: 'zh_tw',
@@ -1873,7 +1873,7 @@ ${obj.gvc.bindView(() => {
             return {
                 bind: id,
                 view: () => {
-                    return `<i class="${obj.def ? `fa-solid fa-square-check` : `fa-regular fa-square`} " style="${obj.def ? `color:#295ed1;` : `color:black;`}"></i>`;
+                    return html`<i class="${obj.def ? `fa-solid fa-square-check` : `fa-regular fa-square`} " style="color: #393939;"></i>`;
                 },
                 divCreate: {
                     option: [
@@ -2171,7 +2171,7 @@ ${obj.gvc.bindView(() => {
                         () => {},
                         () => {}
                     );
-                    if (obj.hoverGray){
+                    if (obj.hoverGray) {
                         gvc.addStyle(`
                             #${parId} :hover{
                                 background-color:#F7F7F7;
@@ -2183,7 +2183,7 @@ ${obj.gvc.bindView(() => {
                                 display:block;
                             }
                             
-                        `)
+                        `);
                     }
                     return {
                         bind: parId,
@@ -2197,7 +2197,7 @@ ${obj.gvc.bindView(() => {
                                         event.stopPropagation();
                                     });
                                     return html`
-                                        <li class="btn-group" style="margin-top:1px;margin-bottom:1px;${obj.hr ? `border-bottom: 1px solid #f6f6f6; `:``};">
+                                        <li class="btn-group" style="margin-top:1px;margin-bottom:1px;${obj.hr ? `border-bottom: 1px solid #f6f6f6; ` : ``};">
                                             <div
                                                 class="h-auto  align-items-center px-2 my-0 hi me-n1 ${dd.isSelect ? `bgf6 border` : ``}"
                                                 style="cursor: pointer;min-height:36px;width: calc(100% - 10px);display: flex;font-size: 14px;line-height: 20px;font-weight: 500;text-rendering: optimizelegibility;user-select: none;margin: 5px 10px;"
@@ -2363,7 +2363,8 @@ ${obj.gvc.bindView(() => {
                                             </div>
                                         </li>
                                     `;
-                                }).join('')
+                                })
+                                .join('');
                         },
                         divCreate: {
                             class: `d-flex flex-column ${child ? `` : ``} m-0 p-0 position-relative`,
@@ -2372,7 +2373,6 @@ ${obj.gvc.bindView(() => {
                         },
                         onCreate: () => {
                             if (obj.draggable !== false) {
-
                                 const interval = setInterval(() => {
                                     if ((window as any).Sortable) {
                                         try {
@@ -2396,13 +2396,12 @@ ${obj.gvc.bindView(() => {
                                                 animation: 100,
                                                 handle: '.dragItem',
                                                 // Called when dragging element changes position
-                                                onChange: function (evt: any) {
-                                                },
+                                                onChange: function (evt: any) {},
                                                 onStart: function (evt: any) {
                                                     startIndex = evt.oldIndex;
                                                 },
-                                                onEnd: (evt:any) => {
-                                                    console.log(evt.newIndex)
+                                                onEnd: (evt: any) => {
+                                                    console.log(evt.newIndex);
                                                     swapArr(obj.originalArray, startIndex, evt.newIndex);
                                                     obj.refreshComponent();
                                                 },

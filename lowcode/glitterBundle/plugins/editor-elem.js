@@ -1546,7 +1546,7 @@ ${obj.gvc.bindView(() => {
             return {
                 bind: id,
                 view: () => {
-                    return `<i class="${obj.def ? `fa-solid fa-square-check` : `fa-regular fa-square`} " style="${obj.def ? `color:#295ed1;` : `color:black;`}"></i>`;
+                    return html `<i class="${obj.def ? `fa-solid fa-square-check` : `fa-regular fa-square`} " style="color: #393939;"></i>`;
                 },
                 divCreate: {
                     option: [
@@ -1974,7 +1974,8 @@ ${obj.gvc.bindView(() => {
                                             </div>
                                         </li>
                                     `;
-                        }).join('');
+                        })
+                            .join('');
                     },
                     divCreate: {
                         class: `d-flex flex-column ${child ? `` : ``} m-0 p-0 position-relative`,
@@ -2002,8 +2003,7 @@ ${obj.gvc.bindView(() => {
                                             group: obj.gvc.glitter.getUUID(),
                                             animation: 100,
                                             handle: '.dragItem',
-                                            onChange: function (evt) {
-                                            },
+                                            onChange: function (evt) { },
                                             onStart: function (evt) {
                                                 startIndex = evt.oldIndex;
                                             },

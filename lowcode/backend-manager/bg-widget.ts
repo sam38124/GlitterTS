@@ -24,6 +24,11 @@ export interface OptionsItem {
     note?: string;
 }
 
+export interface SelEventItem {
+    name: string;
+    event: string;
+}
+
 export class BgWidget {
     static getContainerWidth = (obj?: { rate?: { web?: number; pad?: number; phone?: number } }) => {
         const width = document.body.clientWidth;
@@ -193,7 +198,6 @@ ${(obj.style || []) && obj.style![index] ? obj.style![index] : ``}
         });
     }
 
-    static fakeSelect(obj: { title: string }) {}
     static tableV2(obj: {
         gvc: GVC;
         getData: (vm: { page: number; loading: boolean; callback: () => void; pageSize: number; data: any }) => void;
@@ -242,7 +246,7 @@ ${(obj.style || []) && obj.style![index] ? obj.style![index] : ``}
                         return html` <div class="fs-2 text-center" style="padding: 32px;">${vm.stateText}</div>`;
                     } else {
                         return html` <div class="m-0 p-0" style="${obj.table_style ?? ''}">
-                            ${obj.filter ? html` <div style="padding: 12px;">${obj.filter}</div>` : ''}
+                            ${obj.filter ? html` <div style="margin: 12px 0;">${obj.filter}</div>` : ''}
                             <div style="overflow-x:scroll; z-index: 1;">
                                 <table class="table table-centered table-nowrap text-center table-hover fw-400 fs-7" style="overflow-x:scroll; ">
                                     <thead>
@@ -1706,6 +1710,77 @@ ${obj.default ?? ''}</textarea
                 },
             };
         });
+    }
+
+    static selNavbar(data: { count: number; buttonList: string[] }): string {
+        return html`
+            <div
+                style="display: flex; width: 100%; border-radius: 10px; padding: 0 18px;
+                background: linear-gradient(0deg, #F7F7F7 0%, #F7F7F7 100%), #FFF;
+                ${document.body.clientWidth > 1000 ? 'justify-content: space-between; align-items: center; height: 40px;' : 'justify-content: center; gap: 8px; flex-direction: column; height: 80px;'}"
+            >
+                <div style="font-size: 14px; color: #393939; font-weight: 700;">已選取${data.count}項</div>
+                <div style="display: flex; gap: 12px;">${data.buttonList.join('')}</div>
+            </div>
+        `;
+    }
+
+    static selEventButton(text: string, event: string) {
+        return html`
+            <button class="btn sel_normal" type="button" onclick="${event}">
+                <span style="font-size: 14px; color: #393939; font-weight: 400;">${text}</span>
+            </button>
+        `;
+    }
+
+    static selEventDropmenu(obj: { gvc: GVC; options: SelEventItem[]; text: string }) {
+        const vm = {
+            id: obj.gvc.glitter.getUUID(),
+            checkClass: this.randomString(5),
+            show: false,
+            top: 0,
+            right: 0,
+        };
+
+        return html`<div>
+            <div
+                class="sel_normal"
+                onclick="${obj.gvc.event(() => {
+                    vm.show = !vm.show;
+
+                    const element = document.querySelector('.sel_normal');
+                    const rect = element?.getBoundingClientRect();
+                    if (rect) {
+                        vm.top = rect.top + 30;
+                        vm.right = document.body.clientWidth > 1000 ? rect.right : 300;
+                    }
+
+                    obj.gvc.notifyDataChange(vm.id);
+                })}"
+            >
+                <span style="font-size: 14px; color: #393939; font-weight: 400;">${obj.text}</span><i class="fa-regular fa-angle-down ms-1"></i>
+            </div>
+            ${obj.gvc.bindView({
+                bind: vm.id,
+                view: () => {
+                    if (vm.show) {
+                        return html` <div class="c_fixed" style="top: ${vm.top}px; right: calc(100vw - ${vm.right}px)">
+                            <div class="form-check d-flex flex-column ps-0" style="gap: 16px">
+                                ${obj.gvc.map(
+                                    obj.options.map((opt) => {
+                                        return html` <div class="cursor_pointer" onclick="${opt.event}">${opt.name}</div>`;
+                                    })
+                                )}
+                            </div>
+                        </div>`;
+                    }
+                    return '';
+                },
+                divCreate: {
+                    style: vm.show ? '' : 'd-none',
+                },
+            })}
+        </div>`;
     }
 }
 

@@ -356,11 +356,11 @@ class User {
     async refreshMember(userData) {
         const member_update = await this.getConfigV2({
             key: 'member_update',
-            user_id: userData.userID
+            user_id: userData.userID,
         });
         member_update.time = member_update.time || new Date('1997-01-29').toISOString();
         const update_time = new Date(member_update.time);
-        if (update_time.getTime() < (new Date().getTime() - 1000 * 600)) {
+        if (update_time.getTime() < new Date().getTime() - 1000 * 600) {
             const member_list = (await this.getConfigV2({
                 key: 'member_level_config',
                 user_id: 'manager',
@@ -472,7 +472,7 @@ class User {
             await this.setConfig({
                 key: 'member_update',
                 user_id: userData.userID,
-                value: member_update
+                value: member_update,
             });
             return member.reverse();
         }
@@ -551,7 +551,21 @@ class User {
             const querySql = ['1=1'];
             query.page = (_a = query.page) !== null && _a !== void 0 ? _a : 0;
             query.limit = (_b = query.limit) !== null && _b !== void 0 ? _b : 50;
-            if (query.id) {
+            if (query.group) {
+                const getGroup = await this.getUserGroups(query.group.split(','));
+                if (getGroup.result && getGroup.data[0]) {
+                    const users = getGroup.data[0].users;
+                    const ids = query.id
+                        ? query.id.split(',').filter((id) => {
+                            return users.find((item) => {
+                                return item.userID === parseInt(`${id}`, 10);
+                            });
+                        })
+                        : users.map((item) => item.userID);
+                    query.id = ids.join(',');
+                }
+            }
+            if (query.id && query.id.length > 1) {
                 querySql.push(`(u.userID in (${query.id}))`);
             }
             if (query.created_time) {
@@ -617,7 +631,54 @@ class User {
             };
         }
         catch (e) {
-            throw exception_1.default.BadRequestError('BAD_REQUEST', 'Login Error:' + e, null);
+            throw exception_1.default.BadRequestError('BAD_REQUEST', 'getUserList Error:' + e, null);
+        }
+    }
+    async getUserGroups(type) {
+        try {
+            const subscriberList = await database_1.default.query(`SELECT DISTINCT u.userID, s.email
+                    FROM
+                        \`${this.app}\`.t_subscribe AS s JOIN
+                        \`${this.app}\`.t_user AS u ON s.email = JSON_EXTRACT(u.userData, '$.email');`, []);
+            const buyingList = [];
+            const buyingData = await database_1.default.query(`SELECT u.userID, c.email, JSON_UNQUOTE(JSON_EXTRACT(c.orderData, '$.email')) AS order_email
+                FROM
+                    \`${this.app}\`.t_checkout AS c JOIN
+                    \`${this.app}\`.t_user AS u ON c.email = JSON_EXTRACT(u.userData, '$.email')
+                WHERE c.status = 1;`, []);
+            buyingData.map((item1) => {
+                const index = buyingList.findIndex((item2) => item2.userID === item1.userID);
+                if (index === -1) {
+                    buyingList.push({ userID: item1.userID, email: item1.email, count: 1 });
+                }
+                else {
+                    buyingList[index].count++;
+                }
+            });
+            const usuallyBuyingStandard = 4.5;
+            const usuallyBuyingList = buyingList.filter((item) => item.count > usuallyBuyingStandard);
+            const neverBuyingData = await database_1.default.query(`SELECT userID, JSON_UNQUOTE(JSON_EXTRACT(userData, '$.email')) AS email
+                FROM \`${this.app}\`.t_user
+                WHERE userID not in (${buyingList.map((item) => item.userID).join(',')})`, []);
+            const dataList = [
+                { type: 'neverBuying', title: '尚未購買過的顧客', count: neverBuyingData.length, users: neverBuyingData },
+                { type: 'subscriber', title: '電子郵件訂閱者', count: subscriberList.length, users: subscriberList },
+                { type: 'usuallyBuying', title: '已購買多次的顧客', count: usuallyBuyingList.length, users: usuallyBuyingList },
+            ];
+            if (type === undefined) {
+                return {
+                    result: true,
+                    data: dataList,
+                };
+            }
+            const selectType = dataList.filter((item) => type.includes(item.type));
+            return {
+                result: selectType.length > 0,
+                data: selectType,
+            };
+        }
+        catch (e) {
+            throw exception_1.default.BadRequestError('BAD_REQUEST', 'getUserGroups Error:' + e, null);
         }
     }
     async subscribe(email, tag) {
@@ -797,7 +858,7 @@ class User {
                 {
                     pwd: await tool_1.default.hashPwd(newPwd),
                 },
-                user_id_and_account
+                user_id_and_account,
             ]));
             return {
                 result: true,

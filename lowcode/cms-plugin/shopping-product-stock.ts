@@ -114,15 +114,20 @@ export class UserList {
                             <input
                                 class="form-control"
                                 type="number"
+                                min="0"
                                 style="border-radius: 10px; border: 1px solid #DDD; padding-left: 18px;"
                                 placeholder="請輸入數值"
                                 onchange="${gvc.event((e) => {
-                                    dd.variant_content.stock = parseInt(e.value, 10);
+                                    let n = parseInt(e.value, 10);
+                                    if (n < 0) {
+                                        e.value = 0;
+                                        n = 0;
+                                    }
+                                    dd.variant_content.stock = n;
 
                                     dd.product_content.variants.map((variant: { spec: string[]; stock: number }) => {
-                                        const isEqual = JSON.stringify(variant.spec) === JSON.stringify(dd.variant_content.spec);
-                                        if (isEqual) {
-                                            variant.stock = parseInt(e.value, 10);
+                                        if (JSON.stringify(variant.spec) === JSON.stringify(dd.variant_content.spec)) {
+                                            variant.stock = n;
                                         }
                                     });
 
@@ -132,7 +137,7 @@ export class UserList {
                                         }
                                     });
 
-                                    vm.stockList[index] = parseInt(e.value, 10);
+                                    vm.stockList[index] = n;
                                     gvc.notifyDataChange(vm.updateId);
                                 })}"
                                 value="${dd.variant_content.stock ?? 0}"

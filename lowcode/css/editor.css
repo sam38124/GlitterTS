@@ -4,7 +4,7 @@
 
 body {
     font-family: 'Noto Sans', sans-serif !important;
-    color:#393939;
+    color: #393939;
 }
 
 :root {
@@ -16,7 +16,6 @@ body {
     --text-color: #151515;
     --text-unselect: #616161;
 }
-
 
 .text_primary {
     color: var(--ed-item-primary) !important;
@@ -816,4 +815,13 @@ ul {
     position: -webkit-sticky;
     position: sticky;
     top: 24px;
+}
+
+.sel_normal {
+    cursor: pointer;
+    border-radius: 7px;
+    border: 1px solid #ddd;
+    padding: 2px 14px;
+    background: #fff;
+    box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.1);
 }

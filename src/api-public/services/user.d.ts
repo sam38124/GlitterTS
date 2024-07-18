@@ -11,6 +11,12 @@ interface UserQuery {
     rank?: string;
     rebate?: string;
     total_amount?: string;
+    group?: string;
+}
+interface GroupUserItem {
+    userID: number;
+    email: string;
+    count: number;
 }
 export declare class User {
     app: string;
@@ -41,6 +47,17 @@ export declare class User {
     getUserList(query: UserQuery): Promise<{
         data: any;
         total: any;
+    }>;
+    getUserGroups(type?: string[]): Promise<{
+        result: false;
+    } | {
+        result: true;
+        data: {
+            type: string;
+            title: string;
+            count: number;
+            users: GroupUserItem[];
+        }[];
     }>;
     subscribe(email: string, tag: string): Promise<void>;
     registerFcm(userID: string, deviceToken: string): Promise<void>;
