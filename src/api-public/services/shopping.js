@@ -46,7 +46,6 @@ class Shopping {
                 querySql.push(`(${query.collection
                     .split(',')
                     .map((dd) => {
-                    console.log(`JSON_CONTAINS(content->'$.collection', '"${dd}"');`);
                     return query.accurate_search_collection ? `(JSON_CONTAINS(content->'$.collection', '"${dd}"'))` : `(JSON_EXTRACT(content, '$.collection') LIKE '%${dd}%')`;
                 })
                     .join(' or ')})`);
@@ -58,7 +57,6 @@ class Shopping {
             query.status && querySql.push(`(JSON_EXTRACT(content, '$.status') = '${query.status}')`);
             query.min_price && querySql.push(`(id in (select product_id from \`${this.app}\`.t_variants where content->>'$.sale_price'>=${query.min_price})) `);
             query.max_price && querySql.push(`(id in (select product_id from \`${this.app}\`.t_variants where content->>'$.sale_price'<=${query.max_price})) `);
-            console.log(querySql);
             const data = await this.querySql(querySql, query);
             const productList = Array.isArray(data.data) ? data.data : [data.data];
             if (this.token && this.token.userID) {
