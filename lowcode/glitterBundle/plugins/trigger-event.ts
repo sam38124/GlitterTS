@@ -1,6 +1,8 @@
 import {HtmlJson} from "./plugin-creater.js"
 import {GVC} from "../GVController.js";
 import {Glitter} from "../Glitter.js";
+import {DynamicCode} from "../../official_event/glitter-util/eval-code-event.js";
+
 
 export class TriggerEvent {
     public static getUrlParameter(url: string, sParam: string) {
@@ -28,16 +30,33 @@ export class TriggerEvent {
         return (gvc: GVC, widget: HtmlJson, obj: any, subData?: any, element?: { e: any, event: any }) => {
             return {
                 event: () => {
-                    return new Promise(async (resolve, reject) => {
-                        glitter.htmlGenerate.loadEvent(glitter, [
-                            {
-                                src: url,
-                                callback: async (data: any) => {
-                                    resolve((await data.fun(gvc, widget, obj, subData, element).event()))
+                    const event_stack = glitter.htmlGenerate.checkEventStore(glitter, url)
+                    if (event_stack) {
+                        const data = event_stack.fun(gvc, widget, obj, subData, element).event()
+                        return data
+                    } else {
+                        return new Promise((resolve, reject) => {
+                            glitter.htmlGenerate.loadEvent(glitter, [
+                                {
+                                    src: url,
+                                    callback: (data: any) => {
+                                        const response = data.fun(gvc, widget, obj, subData, element).event()
+                                        if (response instanceof Promise) {
+                                            response.then((data2: any) => {
+                                                console.log(`setEventRouter-end-then-${new Date().getTime()}`, data2)
+                                                resolve(data2)
+                                            })
+                                        } else {
+                                            console.log(`setEventRouter-end-now-${new Date().getTime()}`, response)
+                                            resolve(response)
+                                        }
+
+                                    }
                                 }
-                            }
-                        ])
-                    })
+                            ])
+                        })
+                    }
+
                 },
                 editor: () => {
                     return gvc.bindView(() => {
@@ -63,7 +82,7 @@ export class TriggerEvent {
                         }
                     })
                 },
-                preload:()=>{
+                preload: () => {
                     return new Promise(async (resolve, reject) => {
                         glitter.htmlGenerate.loadEvent(glitter, [
                             {
@@ -88,7 +107,7 @@ export class TriggerEvent {
         }
     }) {
         const glitter = (window as any).glitter;
-        glitter.share.componentData=glitter.share.componentData??{};
+        glitter.share.componentData = glitter.share.componentData ?? {};
         const val = fun(glitter);
         glitter.share.componentData[url] = val
         return val;
@@ -111,68 +130,57 @@ export class TriggerEvent {
 
 
     public static trigger(oj: {
-        gvc: GVC, widget: HtmlJson, clickEvent: any, subData?: any, element?: { e: any, event: any }
+        gvc: GVC, widget: HtmlJson, clickEvent: any, subData?: any, element?: { e: any, event: any },callback?:(data:any)=>void
     }) {
 
         const glitter = (window as any).glitter
         let arrayEvent: any = []
-        let returnData = ''
+        let returnData = false
 
         async function run(event: any) {
-            return new Promise<any>(async (resolve, reject) => {
-                async function pass(inter: any) {
-                    try {
-                        const time = new Date()
-                        const gvc = oj.gvc
-                        const subData = oj.subData
-                        const widget = oj.widget
-                        let passCommand = false
-                        returnData = await inter[event.clickEvent.route].fun(oj.gvc, oj.widget, event, oj.subData, oj.element).event()
-                        let response = returnData
-                        if (event.dataPlace) {
-                            (()=>{
-                                eval(event.dataPlace)
-                            })()
-                        }
-                        oj.subData = response
-                        if (event.blockCommand) {
-                            try {
-                                if (event.blockCommandV2) {
-                                    passCommand = eval(`(() => {
-                                        ${event.blockCommand}
-                                    })()`)
-                                } else {
-                                    passCommand = eval(event.blockCommand)
-                                }
-
-                            } catch (e) {
-                                alert(event.blockCommandV2)
-                                console.log(e)
+            if(!event || !event.clickEvent || !event.clickEvent.src){
+                return  false
+            }
+            const event_router=oj.gvc.glitter.htmlGenerate.checkJsEventStore(glitter,TriggerEvent.getLink(event.clickEvent.src),'clickEvent')
+            if(event_router){
+                let response = event_router[event.clickEvent.route].fun(oj.gvc, oj.widget, event, oj.subData, oj.element).event()
+                if ((response as any) instanceof Promise) {
+                    response = await (response as any)
+                }
+                oj.subData = response
+                returnData=response
+                return  true
+            }else{
+                return new Promise<any>(async (resolve, reject) => {
+                    async function pass(inter: any) {
+                        try {
+                            let response = inter[event.clickEvent.route].fun(oj.gvc, oj.widget, event, oj.subData, oj.element).event()
+                            if ((response as any) instanceof Promise) {
+                                response = await (response as any)
                             }
-                        }
-                        if (passCommand) {
-                            resolve("blockCommand")
-                        } else {
+                            console.log(`returnData-end-${new Date().getTime()}-`, response)
+                            oj.subData = response
+                            returnData=response
+                            resolve(true)
+                        } catch (e) {
                             resolve(true)
                         }
-                    } catch (e) {
-                        returnData = event.errorCode ?? ""
-                        resolve(true)
                     }
-                }
 
-                try {
-                    oj.gvc.glitter.htmlGenerate.loadScript(oj.gvc.glitter, [{
-                        src: TriggerEvent.getLink(event.clickEvent.src),
-                        callback: (data: any) => {
-                            pass(data)
-                        }
-                    }],'clickEvent')
-                } catch (e) {
-                    resolve(false)
-                }
+                    try {
+                        oj.gvc.glitter.htmlGenerate.loadScript(oj.gvc.glitter, [{
+                            src: TriggerEvent.getLink(event.clickEvent.src),
+                            callback: (data: any) => {
+                                pass(data)
+                            }
+                        }], 'clickEvent')
+                    } catch (e) {
+                        resolve(false)
+                    }
 
-            })
+                })
+            }
+
         }
 
         if (oj.clickEvent !== undefined && Array.isArray(oj.clickEvent.clickEvent)) {
@@ -182,30 +190,26 @@ export class TriggerEvent {
 
             arrayEvent = [JSON.parse(JSON.stringify(oj.clickEvent))]
         }
-        let eventText=JSON.stringify(arrayEvent).replace(/location.href=/g,`(window.glitter).href=`).replace(/`console.log`/g,`glitter.deBugMessage`);
-        arrayEvent=JSON.parse(eventText)
+        let eventText = JSON.stringify(arrayEvent).replace(/location.href=/g, `(window.glitter).href=`).replace(/`console.log`/g, `glitter.deBugMessage`);
+        arrayEvent = JSON.parse(eventText)
         return new Promise(async (resolve, reject) => {
             let result = true
             for (const a of arrayEvent) {
-                let blockCommand = false
-                result = await new Promise<boolean>((resolve, reject) => {
-                    function check() {
-                        run(a).then((res) => {
-                            if (res === 'blockCommand') {
-                                blockCommand = true
-                                resolve(true)
-                            } else {
-                                resolve(res)
-                            }
-
-                        })
+                if(a && a.clickEvent && a.clickEvent.route==='code'){
+                    let response=(DynamicCode.fun(oj.gvc, oj.widget, a, oj.subData, oj.element) as any)
+                    if ((response as any) instanceof Promise) {
+                        response = await (response as any)
                     }
-                    check()
-                })
-                if (!result || blockCommand) {
-                    break
+                    oj.subData = response
+                    returnData=response
+                }else{
+                    result = await run(a);
+                    if (!result) {
+                        break
+                    }
                 }
             }
+            oj.callback && oj.callback(returnData)
             resolve(returnData)
         })
     }
@@ -215,13 +219,13 @@ export class TriggerEvent {
         option?: string[],
         title?: string
     } = {hover: false, option: []}) {
-        option.hover=option.hover ?? false
-        option.option=option.option ?? []
+        option.hover = option.hover ?? false
+        option.option = option.option ?? []
         const glitter = (window as any).glitter
         if (TriggerEvent.isEditMode()) {
-            if(!glitter.share.editorBridge){
+            if (!glitter.share.editorBridge) {
                 return (window.parent as any).glitter.share.editorBridge['TriggerEventBridge'].editer(gvc, widget, obj, option)
-            }else {
+            } else {
                 return glitter.share.editorBridge['TriggerEventBridge'].editer(gvc, widget, obj, option)
             }
 
@@ -257,9 +261,9 @@ export class TriggerEvent {
     }
 }
 
-const interval=setInterval(()=>{
-    if( (window as any).glitter){
-        (window as any).glitter.setModule(import.meta.url,TriggerEvent)
+const interval = setInterval(() => {
+    if ((window as any).glitter) {
+        (window as any).glitter.setModule(import.meta.url, TriggerEvent)
         clearInterval(interval)
     }
-},100)
+}, 100)

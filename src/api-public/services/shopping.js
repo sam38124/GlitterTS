@@ -1647,7 +1647,6 @@ class Shopping {
             query.status && querySql.push(`(JSON_EXTRACT(p.content, '$.status') = '${query.status}')`);
             query.min_price && querySql.push(`(v.content->>'$.sale_price' >= ${query.min_price})`);
             query.max_price && querySql.push(`(v.content->>'$.sale_price' <= ${query.min_price})`);
-            console.log(querySql);
             if (query.stockCount) {
                 const stockCount = (_a = query.stockCount) === null || _a === void 0 ? void 0 : _a.split(',');
                 switch (stockCount[0]) {

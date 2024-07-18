@@ -5,6 +5,7 @@ import { ShareDialog } from '../../dialog/ShareDialog.js';
 import { Storage } from '../../glitterBundle/helper/storage.js';
 import { AddComponent } from '../../editor/add-component.js';
 import { EditorConfig } from "../../editor-config.js";
+import { ToolSetting } from "./tool-setting.js";
 var ViewType;
 (function (ViewType) {
     ViewType["mobile"] = "mobile";
@@ -40,6 +41,9 @@ export class Main_editor {
                     }
                     if (Storage.page_setting_item === 'color') {
                         return Main_editor.colorSetting(gvc);
+                    }
+                    if (Storage.page_setting_item === 'widget') {
+                        return ToolSetting.main(gvc);
                     }
                     if (viewModel.selectItem &&
                         viewModel.selectItem.type &&
@@ -509,12 +513,19 @@ export class Main_editor {
                                 callback: (text) => {
                                     vm.data[dd.key] = text;
                                     gvc.glitter.share.globalValue[`theme_color.${vm.index}.${dd.key}`] = text;
-                                    const lastScrollY = document.querySelector('iframe').contentWindow.scrollY;
-                                    document.querySelector('iframe').contentWindow.glitter.share.globalValue = gvc.glitter.share.globalValue;
-                                    const element = document.querySelector('iframe').contentWindow.glitter.elementCallback;
+                                    const lastScrollY = document.querySelector('#editerCenter iframe').contentWindow.scrollY;
+                                    document.querySelector('#editerCenter  iframe').contentWindow.glitter.share.globalValue = gvc.glitter.share.globalValue;
+                                    const element = document.querySelector('#editerCenter iframe').contentWindow.glitter.elementCallback;
                                     Object.keys(element).map((dd) => {
-                                        element[dd].updateAttribute();
+                                        try {
+                                            element[dd].updateAttribute();
+                                        }
+                                        catch (e) {
+                                        }
                                     });
+                                    if (`${vm.index}` === '0') {
+                                        document.querySelector('#editerCenter iframe').contentWindow.document.querySelector('body').style.background = gvc.glitter.share.globalValue[`theme_color.0.background`];
+                                    }
                                     gvc.notifyDataChange(vId);
                                 },
                                 gvc: gvc,

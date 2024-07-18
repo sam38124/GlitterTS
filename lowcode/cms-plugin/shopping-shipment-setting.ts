@@ -414,7 +414,7 @@ export class ShoppingShipmentSetting {
                 })}
             `,
             900
-        );
+        )+BgWidget.mb240();
     }
 }
 

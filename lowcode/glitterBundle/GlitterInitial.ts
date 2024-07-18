@@ -40,15 +40,11 @@ function listenElementChange(query: string) {
 let scrollInterval: any = undefined
 
 function traverseHTML(element: any, document: any) {
-
     try {
         if ((element.classList.contains('page-box'))) {
             const pageConfig = glitter.pageConfig.find((dd) => {
                 return `page${dd.id}` === element.getAttribute('id')
             });
-            console.log(`show_page->`, glitter.pageConfig.filter((dd) => {
-                return dd.type === GVCType.Page
-            }))
             if (((window as any).glitter.share.to_menu) && glitter.pageConfig.filter((dd) => {
                 return dd.type === GVCType.Page
             }).length > 1) {
@@ -95,7 +91,6 @@ function traverseHTML(element: any, document: any) {
     } catch (e) {
 
     }
-
     // 取得元素的子元素
     let children = element.children;
     if (children && children.length > 0) {
@@ -107,8 +102,7 @@ function traverseHTML(element: any, document: any) {
     if (element && element.getAttribute && (element.getAttribute('glem') === 'bindView')) {
         const id = element.getAttribute('gvc-id') as string
         glitter.elementCallback[id].element = element;
-        (glitter.elementCallback[id] as any).first_paint = (glitter.elementCallback[id] as any).first_paint ?? true
-
+        (glitter.elementCallback[id] as any).first_paint = (glitter.elementCallback[id] as any).first_paint ?? true;
         function renderBindView() {
             glitter.consoleLog(`renderBindView`)
 
@@ -117,6 +111,7 @@ function traverseHTML(element: any, document: any) {
                     setTimeout(() => {
                         glitter.elementCallback[element.getAttribute('gvc-id') as string].updateAttribute()
                     })
+
                 } catch (e) {
                     glitter.deBugMessage(e)
                 }
@@ -136,9 +131,6 @@ function traverseHTML(element: any, document: any) {
                 if ((document.querySelector(`[gvc-id="${id}"]`) as any)) {
                     glitter.elementCallback[id].doc = document;
                     glitter.elementCallback[id].rendered = true;
-                    if (element.tagName.toLowerCase() === 'header') {
-                        console.log(`Header-start-time:`, (window as any).renderClock.stop());
-                    }
                     if (!(document.querySelector(`[gvc-id="${id}"]`) as any).wasRender) {
                         let view = glitter.elementCallback[id].getView()
                         if (typeof view === 'string') {
@@ -148,7 +140,6 @@ function traverseHTML(element: any, document: any) {
                             } catch (e: any) {
                                 $(document.querySelector(`[gvc-id="${id}"]`)).html(e);
                             }
-
                             notifyLifeCycle()
                         } else {
                             view.then((data) => {
@@ -165,21 +156,26 @@ function traverseHTML(element: any, document: any) {
                         setTimeout(() => {
                             (document.querySelector(`[gvc-id="${id}"]`) as any).onResumeEvent()
                         })
-
                     }
                     if ((document.querySelector(`[gvc-id="${id}"]`) as any)) {
                         (document.querySelector(`[gvc-id="${id}"]`) as any).recreateView = (() => {
                             (document.querySelector(`[gvc-id="${id}"]`) as any).wasRecreate = true;
                             (document.querySelector(`[gvc-id="${id}"]`) as any).wasRender = false;
                             const height = (document.querySelector(`[gvc-id="${id}"]`) as any).offsetHeight;
-                            glitter.addStyle(`.hc_${height}{
-                                height:${height}px !important;
-                                }`);
-                            (document.querySelector(`[gvc-id="${id}"]`) as any).classList.add(`hc_${height}`);
-                            renderBindView();
+                            if(height){
+                                document.querySelector(`[gvc-id="${id}"]`).style.height=height+'px'
+                            }
+
+                            // glitter.addStyle(`.hc_${height}{
+                            //     height:${height}px !important;
+                            //     }`);
+                            // (document.querySelector(`[gvc-id="${id}"]`) as any).classList.add(`hc_${height}`);
+                            renderBindView()
                             setTimeout(() => {
-                                const elem=(document.querySelector(`[gvc-id="${id}"]`) as any);
-                                elem && elem.classList.remove(`hc_${height}`);
+                                if( document.querySelector(`[gvc-id="${id}"]`).style.height===(height+'px')){
+                                    document.querySelector(`[gvc-id="${id}"]`).style.height='auto'
+                                }
+
                             }, 10)
                         });
                         (document.querySelector(`[gvc-id="${id}"]`) as any).wasRender = true
@@ -189,7 +185,6 @@ function traverseHTML(element: any, document: any) {
                 glitter.deBugMessage(e)
             }
         }
-
         let wasRecreate = false
         for (const b of $(element).parents()) {
             if (b.getAttribute('glem') === 'bindView') {
@@ -197,12 +192,10 @@ function traverseHTML(element: any, document: any) {
                 break
             }
         }
-        if (!wasRecreate) {
-            renderBindView()
-        } else {
+        if (wasRecreate) {
             element.wasRecreate = true;
-            renderBindView()
         }
+        renderBindView()
     } else {
         for (const b of (element.attributes ?? [])) {
             glitter.renderView.replaceAttributeValue({
@@ -211,7 +204,6 @@ function traverseHTML(element: any, document: any) {
             }, element)
         }
     }
-
     if (!(glitter.share.EditorMode === true)) {
         const inputString = element.innerHTML || element.innerText || element.textContent
         // 正则表达式模式

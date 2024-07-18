@@ -69,7 +69,6 @@ async function hashPwd(pwd) {
     const TAG = '[HashPwd]';
     const logger = new logger_1.default();
     try {
-        bcrypt_1.default.compare;
         const saltRounds = config_1.default.PWD_SALT_ROUND;
         const hashPwd = await bcrypt_1.default.hash(pwd, saltRounds);
         return hashPwd;
@@ -90,6 +89,12 @@ const randomString = (max) => {
         text += possible.charAt(Math.floor(Math.random() * possible.length));
     return text;
 };
+const checksum = (message) => {
+    const hash = crypto_1.default.createHash('sha256');
+    hash.update(message);
+    const checksum = hash.digest('hex');
+    return (checksum);
+};
 const compareHash = async (pwd, has) => bcrypt_1.default.compare(pwd, has);
 exports.default = {
     isNull,
@@ -100,5 +105,6 @@ exports.default = {
     createOrderId,
     randomString,
     compareHash,
+    checksum
 };
 //# sourceMappingURL=tool.js.map

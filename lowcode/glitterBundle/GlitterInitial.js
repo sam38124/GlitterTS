@@ -32,9 +32,6 @@ function traverseHTML(element, document) {
             const pageConfig = glitter.pageConfig.find((dd) => {
                 return `page${dd.id}` === element.getAttribute('id');
             });
-            console.log(`show_page->`, glitter.pageConfig.filter((dd) => {
-                return dd.type === GVCType.Page;
-            }));
             if ((window.glitter.share.to_menu) && glitter.pageConfig.filter((dd) => {
                 return dd.type === GVCType.Page;
             }).length > 1) {
@@ -115,9 +112,6 @@ function traverseHTML(element, document) {
                 if (document.querySelector(`[gvc-id="${id}"]`)) {
                     glitter.elementCallback[id].doc = document;
                     glitter.elementCallback[id].rendered = true;
-                    if (element.tagName.toLowerCase() === 'header') {
-                        console.log(`Header-start-time:`, window.renderClock.stop());
-                    }
                     if (!document.querySelector(`[gvc-id="${id}"]`).wasRender) {
                         let view = glitter.elementCallback[id].getView();
                         if (typeof view === 'string') {
@@ -153,14 +147,14 @@ function traverseHTML(element, document) {
                             document.querySelector(`[gvc-id="${id}"]`).wasRecreate = true;
                             document.querySelector(`[gvc-id="${id}"]`).wasRender = false;
                             const height = document.querySelector(`[gvc-id="${id}"]`).offsetHeight;
-                            glitter.addStyle(`.hc_${height}{
-                                height:${height}px !important;
-                                }`);
-                            document.querySelector(`[gvc-id="${id}"]`).classList.add(`hc_${height}`);
+                            if (height) {
+                                document.querySelector(`[gvc-id="${id}"]`).style.height = height + 'px';
+                            }
                             renderBindView();
                             setTimeout(() => {
-                                const elem = document.querySelector(`[gvc-id="${id}"]`);
-                                elem && elem.classList.remove(`hc_${height}`);
+                                if (document.querySelector(`[gvc-id="${id}"]`).style.height === (height + 'px')) {
+                                    document.querySelector(`[gvc-id="${id}"]`).style.height = 'auto';
+                                }
                             }, 10);
                         });
                         document.querySelector(`[gvc-id="${id}"]`).wasRender = true;
@@ -178,13 +172,10 @@ function traverseHTML(element, document) {
                 break;
             }
         }
-        if (!wasRecreate) {
-            renderBindView();
-        }
-        else {
+        if (wasRecreate) {
             element.wasRecreate = true;
-            renderBindView();
         }
+        renderBindView();
     }
     else {
         for (const b of ((_b = element.attributes) !== null && _b !== void 0 ? _b : [])) {

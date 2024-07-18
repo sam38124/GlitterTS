@@ -251,7 +251,7 @@ export class Setting_editor {
                                                     icon: '',
                                                     page: 'page_manager',
                                                     group: '品牌官網',
-                                                    title: '自訂頁面',
+                                                    title: '分頁列表',
                                                     appName: 'cms_system',
                                                     groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716654741305-Component 56 (5).svg',
                                                     moduleName: '網誌管理',

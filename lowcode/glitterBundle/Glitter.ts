@@ -564,7 +564,7 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
         });
     }
 
-    public addStyle(style: string) {
+    public addStyle(style: string,id?:string) {
         const glitter = (window as any).glitter;
         glitter.share.style_memory = glitter.share.style_memory ?? {};
         const checkSum = glitter.generateCheckSum(style)
@@ -576,6 +576,7 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
         glitter.share.wait_add_style_string += style
         // clearInterval(glitter.share.wait_add_style)
         const css = document.createElement('style');
+        css.id=id || glitter.getUUID()
         css.type = 'text/css';
         if ((css as any).styleSheet)
             (css as any).styleSheet.cssText = glitter.share.wait_add_style_string;

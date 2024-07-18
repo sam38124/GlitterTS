@@ -461,12 +461,12 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                                 }
                                                                 widget.storage && widget.storage.updatePageConfig && widget.storage.updatePageConfig(refer_form);
                                                             }
+
                                                             html += gvc.bindView(()=>{
                                                                 const id=gvc.glitter.getUUID()
                                                                 return {
                                                                     bind:id,
                                                                     view:()=>{
-
                                                                         return FormWidget.editorView({
                                                                             gvc: gvc,
                                                                             array: page_config.formFormat,
@@ -476,6 +476,9 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                                     },
                                                                     onDestroy:()=>{
                                                                         refresh()
+                                                                    },
+                                                                    divCreate:{
+                                                                        class:``
                                                                     }
                                                                 }
                                                             })
@@ -751,7 +754,6 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                     class: ``
                                 },
                                 onInitial: async () => {
-
                                     const target = document.querySelector(`[gvc-id="${gvc.id(tempView)}"]`)
                                     target!.outerHTML = (await getData(gvc.glitter.document) as any)
                                 },

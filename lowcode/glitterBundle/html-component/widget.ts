@@ -20,9 +20,9 @@ export const widgetComponent = {
         widget.data.elem = widget.data.elem ?? "div"
         widget.data.inner = widget.data.inner ?? ""
         widget.data.attr = widget.data.attr ?? []
-        widget.data._padding=widget.data._padding ?? {}
-        widget.data._margin=widget.data._margin ?? {}
-        widget.data._max_width=widget.data._max_width ?? 0
+        widget.data._padding = widget.data._padding ?? {}
+        widget.data._margin = widget.data._margin ?? {}
+        widget.data._max_width = widget.data._max_width ?? 0
         const id = htmlGenerate.widgetComponentID
         const subData = sub ?? {};
         let formData = subData;
@@ -102,16 +102,30 @@ export const widgetComponent = {
                     }
                     classList.push(glitter.htmlGenerate.styleEditor(widget.data, gvc, widget as any, subData).class())
                     widget.hashTag && classList.push(`glitterTag${widget.hashTag}`);
-                    let style_user=''
-                    if(widget.type === 'container'){
-                        ['top','bottom','left','right'].map((dd)=>{
-                            widget.data._padding[dd] && (style_user+=`padding-${dd}:${widget.data._padding[dd]}px;`)
+                    let style_user = ''
+                    if (widget.type === 'container') {
+                        ['top', 'bottom', 'left', 'right'].map((dd) => {
+                            if(widget.data._padding[dd]){
+                                if(!isNaN(widget.data._padding[dd])){
+                                    (style_user += `padding-${dd}:${widget.data._padding[dd]}px;`)
+                                }else{
+                                    (style_user += `padding-${dd}:${widget.data._padding[dd]};`)
+                                }
+
+                            }
                         });
 
-                        ['top','bottom','left','right'].map((dd)=>{
-                            widget.data._margin[dd] && (style_user+=`margin-${dd}:${widget.data._margin[dd]}px;`)
+                        ['top', 'bottom', 'left', 'right'].map((dd) => {
+                            if(widget.data._margin[dd]){
+                                if(!isNaN(widget.data._margin[dd])){
+                                    (style_user += `margin-${dd}:${widget.data._margin[dd]}px;`)
+                                }else{
+                                    (style_user += `margin-${dd}:${widget.data._margin[dd]};`)
+                                }
+
+                            }
                         })
-                        widget.data._max_width && (style_user+=`width:${widget.data._max_width}px;max-width:100%;margin:auto;`)
+                        widget.data._max_width && (style_user += `width:${(isNaN(widget.data._max_width)) ? widget.data._max_width:`${widget.data._max_width}px`};max-width:100%;margin:auto;`)
                     }
                     return {
                         elem: widget.data.elem,
@@ -226,10 +240,10 @@ export const widgetComponent = {
                     return {
                         bind: id,
                         view: () => {
-                            return new Promise(async (resolve, reject) => {
-                                const html = String.raw;
-                                let view = [
-                                    await new Promise(async (resolve, reject) => {
+                            let view: any = []
+                            switch (widget.data.elem) {
+                                case 'select':
+                                    return new Promise(async (resolve, reject) => {
                                         const vm: {
                                             callback: () => void,
                                             data: any
@@ -251,76 +265,72 @@ export const widgetComponent = {
                                                     clickEvent: widget.data.selectAPI,
                                                     subData: vm
                                                 })
+                                                resolve(true)
                                             } else {
                                                 resolve(true)
                                             }
                                         })
-                                        switch (widget.data.elem) {
-                                            case 'select':
-                                                formData[widget.data.key] = innerText
-                                                if (widget.data.selectType === 'api') {
-                                                    resolve(vm.data.map((dd: any) => {
-                                                        formData[widget.data.key] = formData[widget.data.key] ?? dd.value
-                                                        if (dd.visible === 'invisible' && (dd.value !== formData[widget.data.key])) {
-                                                            return ``
-                                                        }
-                                                        return glitter.html`<option class="" value="${dd.value}" ${`${dd.value}` === `${formData[widget.data.key]}` ? `selected` : ``}>
+                                        formData[widget.data.key] = innerText
+                                        if (widget.data.selectType === 'api') {
+                                            resolve(vm.data.map((dd: any) => {
+                                                formData[widget.data.key] = formData[widget.data.key] ?? dd.value
+                                                if (dd.visible === 'invisible' && (dd.value !== formData[widget.data.key])) {
+                                                    return ``
+                                                }
+                                                return glitter.html`<option class="" value="${dd.value}" ${`${dd.value}` === `${formData[widget.data.key]}` ? `selected` : ``}>
                                 ${dd.key}
                             </option>`;
-                                                    }).join('') + `<option value="" ${formData[widget.data.key] === '' ? `selected` : ``}>
+                                            }).join('') + `<option value="" ${formData[widget.data.key] === '' ? `selected` : ``}>
                                 選擇${widget.data.label}
                             </option>`)
-                                                } else if (widget.data.selectType === 'trigger') {
-                                                    const data = await TriggerEvent.trigger({
-                                                        gvc: gvc,
-                                                        widget: widget,
-                                                        clickEvent: widget.data.selectTrigger,
-                                                        subData: subData
-                                                    })
-                                                    const selectItem = await TriggerEvent.trigger({
-                                                        gvc: gvc,
-                                                        widget: widget,
-                                                        clickEvent: widget.data.selectItem,
-                                                        subData: subData
-                                                    })
+                                        } else if (widget.data.selectType === 'trigger') {
+                                            const data = await TriggerEvent.trigger({
+                                                gvc: gvc,
+                                                widget: widget,
+                                                clickEvent: widget.data.selectTrigger,
+                                                subData: subData
+                                            })
+                                            const selectItem = await TriggerEvent.trigger({
+                                                gvc: gvc,
+                                                widget: widget,
+                                                clickEvent: widget.data.selectItem,
+                                                subData: subData
+                                            })
 
-                                                    resolve((data as any).map((dd: any) => {
-                                                        return /*html*/ `<option value="${dd.value}" ${`${dd.value}` === `${selectItem}` ? `selected` : ``}>
+                                            resolve((data as any).map((dd: any) => {
+                                                return /*html*/ `<option value="${dd.value}" ${`${dd.value}` === `${selectItem}` ? `selected` : ``}>
                                 ${dd.name}
                             </option>`;
-                                                    }).join(''))
-                                                } else {
-                                                    resolve(widget.data.selectList.map((dd: any) => {
-                                                        if (dd.visible === 'invisible' && (dd.value !== formData[widget.data.key])) {
-                                                            return ``
-                                                        }
-                                                        formData[widget.data.key] = formData[widget.data.key] ?? dd.value
-                                                        return /*html*/ `<option value="${dd.value}" ${dd.value === formData[widget.data.key] ? `selected` : ``}>
-                                ${dd.name}
-                            </option>`;
-                                                    }).join(''))
+                                            }).join(''))
+                                        } else {
+                                            resolve(widget.data.selectList.map((dd: any) => {
+                                                if (dd.visible === 'invisible' && (dd.value !== formData[widget.data.key])) {
+                                                    return ``
                                                 }
-                                                break
-                                            case 'img':
-                                            case 'input':
-                                                resolve(``)
-                                                break
-                                            default:
-                                                resolve(innerText)
-                                                break
+                                                formData[widget.data.key] = formData[widget.data.key] ?? dd.value
+                                                return /*html*/ `<option value="${dd.value}" ${dd.value === formData[widget.data.key] ? `selected` : ``}>
+                                ${dd.name}
+                            </option>`;
+                                            }).join(''))
                                         }
                                     })
-                                ];
-                                if ((window.parent as any).editerData !== undefined && htmlGenerate.root && widget.data.elem !== 'textArea') {
-                                    view.push(glitter.htmlGenerate.getEditorSelectSection({
-                                        id: widget.id,
-                                        gvc: gvc,
-                                        label: widget.label
-                                    }));
-                                }
+                                case 'img':
+                                case 'input':
+                                    break
+                                default:
+                                    view.push(innerText)
+                                    break
 
-                                resolve(view.join(''))
-                            })
+                            }
+                            if ((window.parent as any).editerData !== undefined && htmlGenerate.root && widget.data.elem !== 'textArea') {
+                                view.push(glitter.htmlGenerate.getEditorSelectSection({
+                                    id: widget.id,
+                                    gvc: gvc,
+                                    label: widget.label
+                                }));
+                            }
+
+                            return view.join('')
                         },
                         divCreate: getCreateOption,
                         onCreate: () => {
@@ -366,20 +376,25 @@ export const widgetComponent = {
             editor: () => {
                 if (widget.type === 'container' && Storage.select_function === 'user-editor') {
                     return [
+                        `<div class="alert alert-secondary p-2 fw-500 mt-2 " style="word-break: break-all;white-space: normal;letter-spacing: 0.5px;">
+                            可輸入純數值 (px) 或附加單位(%,rem,vw,vh,calc,px)。
+</div>`,
                         EditorElem.editeInput({
-                            gvc:gvc,
-                            title:'容器最大寬度(為空則自適應寬度)',
-                            default:widget.data._max_width,
-                            placeHolder:'單位PX',
-                            callback:(text)=>{
-                                widget.data._max_width=text
+                            gvc: gvc,
+                            title: `容器最大寬度 << 不輸入則自適應寬度 >>
+                           
+                            `,
+                            default: widget.data._max_width,
+                            placeHolder: '',
+                            callback: (text) => {
+                                widget.data._max_width = text
                                 widget.refreshComponent()
                             }
                         }),
                         `<div class="my-2"></div>`,
                         EditorElem.toggleExpand({
                             gvc: gvc,
-                            title: '內距',
+                            title: `內距`,
                             data: widget.data._padding,
                             innerText: () => {
                                 return [{
@@ -397,23 +412,23 @@ export const widgetComponent = {
                                     {
                                         title: '右',
                                         key: 'right'
-                                    }].map((dd)=>{
-                                        return EditorElem.editeInput({
-                                            gvc:gvc,
-                                            title:dd.title,
-                                            default:widget.data._padding[dd.key] || '0',
-                                            placeHolder:'單位px',
-                                            callback:(text)=>{
-                                                widget.data._padding[dd.key]=text
-                                                widget.refreshComponent()
-                                            }
-                                        })
+                                    }].map((dd) => {
+                                    return EditorElem.editeInput({
+                                        gvc: gvc,
+                                        title: dd.title,
+                                        default: widget.data._padding[dd.key] || '0',
+                                        placeHolder: '單位px',
+                                        callback: (text) => {
+                                            widget.data._padding[dd.key] = text
+                                            widget.refreshComponent()
+                                        }
+                                    })
                                 }).join('')
                             }
                         }),
                         EditorElem.toggleExpand({
                             gvc: gvc,
-                            title: '外距',
+                            title: `外距`,
                             data: widget.data._margin,
                             innerText: () => {
                                 return [{
@@ -431,14 +446,14 @@ export const widgetComponent = {
                                     {
                                         title: '右',
                                         key: 'right'
-                                    }].map((dd)=>{
+                                    }].map((dd) => {
                                     return EditorElem.editeInput({
-                                        gvc:gvc,
-                                        title:dd.title,
-                                        default:widget.data._margin[dd.key] || '0',
-                                        placeHolder:'單位px',
-                                        callback:(text)=>{
-                                            widget.data._margin[dd.key]=text
+                                        gvc: gvc,
+                                        title: dd.title,
+                                        default: widget.data._margin[dd.key] || '0',
+                                        placeHolder: '單位px',
+                                        callback: (text) => {
+                                            widget.data._margin[dd.key] = text
                                             widget.refreshComponent()
                                         }
                                     })
