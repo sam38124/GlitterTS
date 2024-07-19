@@ -26,7 +26,7 @@ interface ViewModel {
 }
 
 export class UserList {
-    public static main(gvc: GVC) {
+    public static main(gvc: GVC, obj?: { group: { type: string; title: string; count: number }; backButtonEvent: string }) {
         const glitter = gvc.glitter;
 
         const vm: ViewModel = {
@@ -123,7 +123,12 @@ export class UserList {
                     return BgWidget.container(
                         html`
                             <div class="d-flex w-100 align-items-center">
-                                ${BgWidget.title('顧客列表')}
+                                ${(() => {
+                                    if (obj && obj.group) {
+                                        return BgWidget.goBack(obj.backButtonEvent) + BgWidget.title(obj.group.title);
+                                    }
+                                    return BgWidget.title('顧客列表');
+                                })()}
                                 <div class="flex-fill"></div>
                                 <button
                                     class="btn hoverBtn me-2 px-3 d-none"
@@ -218,6 +223,7 @@ export class UserList {
                                                             searchType: vm.queryType || 'name',
                                                             orderString: vm.orderString || '',
                                                             filter: vm.filter,
+                                                            group: obj && obj.group ? obj.group.type : undefined,
                                                         }).then((data) => {
                                                             vmi.pageSize = Math.ceil(data.response.total / limit);
                                                             vm.dataList = data.response.data;

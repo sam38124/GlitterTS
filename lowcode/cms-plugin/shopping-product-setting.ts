@@ -60,20 +60,6 @@ export class ShoppingProductSetting {
 
         })
         vm.filter = ListComp.getFilterObject();
-        function convertToString(obj:any) {
-            // 如果 obj 是对象或数组，则递归遍历其属性
-            if (typeof obj === 'object' && obj !== null) {
-                for (let key in obj) {
-                    if (obj.hasOwnProperty(key)) {
-                        obj[key] = convertToString(obj[key]);
-                    }
-                }
-            } else {
-                // 将非对象、非数组的属性转换为字符串
-                return String(obj);
-            }
-            return obj;
-        }
         function importDataTo(event:Event){
             const input = event.target as HTMLInputElement;
             const XLSX = (window as any).XLSX;
@@ -110,46 +96,16 @@ export class ShoppingProductSetting {
                 // 將資料轉換成工作表
                 let XLSX = (window as any).XLSX;
 
-                data = convertToString(data);
                 const worksheet = XLSX.utils.json_to_sheet(data , { skipHeader: true });
                 XLSX.utils.sheet_add_aoa(worksheet, [firstRow], { origin: "A1" });
 
-                // 自動調整所有列的寬度
-                const maxLengths = firstRow.map(header => header.length + 3);
-                data.forEach((row:any) => {
-                    Object.values(row).forEach((value, index) => {
-                        const valueLength = String(value).length;
-                        if (valueLength > maxLengths[index]) {
-                            maxLengths[index] = valueLength;
-                        }
-                    });
-                });
-                worksheet['!cols'] = maxLengths.map(length => ({ wch: length + 3 }));
-
-                // 整體置右
-                const range = XLSX.utils.decode_range(worksheet['!ref']);
-                for (let R = range.s.r; R <= range.e.r; ++R) {
-                    for (let C = range.s.c; C <= range.e.c; ++C) {
-                        const cell_address = { c: C, r: R };
-                        const cell_ref = XLSX.utils.encode_cell(cell_address);
-                        if (!worksheet[cell_ref]) continue;
-
-                        if (!worksheet[cell_ref].s) {
-                            worksheet[cell_ref].s = {};
-                        }
-
-                        worksheet[cell_ref].s.alignment = {
-                            horizontal: "right"
-                        };
-                    }
-                }
-
-                // 將工作簿轉換成二進制數據
-
+                // 創建一個新的工作簿
                 const workbook = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
 
-                const wbout = XLSX.write(workbook, { bookType: 'xlsx', type: 'binary' });
+                // 將工作簿轉換成二進制數據
+                const wbout = XLSX.write(workbook, {bookType: 'xlsx', type: 'binary'});
+
                 // 將二進制數據轉換成 Blob 物件
                 function s2ab(s:any) {
                     const buf = new ArrayBuffer(s.length);
@@ -162,7 +118,7 @@ export class ShoppingProductSetting {
 
                 // 建立 Blob 物件
                 const blob = new Blob([s2ab(wbout)], {type: "application/octet-stream"});
-                console.log("data == " , data)
+
                 // 建立下載連結
                 const link = document.createElement("a");
                 const url = URL.createObjectURL(blob);
@@ -233,6 +189,7 @@ export class ShoppingProductSetting {
                                                                 '匯入',
                                                                 gvc.event((e) => {
                                                                     (document.querySelector("#upload-excel") as HTMLInputElement)!.click();
+
                                                                 })
                                                         )}${BgWidget.grayButton(
                                                                 '匯出',
@@ -260,6 +217,7 @@ export class ShoppingProductSetting {
                                                                         accurate_search_collection: true,
                                                                     }).then(response => {
                                                                         dialog.dataLoading({visible: false})
+                                                                        console.log(response)
                                                                         let firstRow = ["產品名稱" , "產品狀態", "產品類別" , "產品規格" , "skuid" , "成本" , "sale_price" , "compare_price" , "商品庫存"];
                                                                         let exportData:any = []
                                                                         response.response.data.map((productData:any)=>{
@@ -300,6 +258,47 @@ export class ShoppingProductSetting {
                                                                         })
                                                                         exportDataTo(firstRow , exportData);
                                                                     })
+
+
+                                                                    //
+                                                                    // const data = vm.dataList;
+                                                                    //
+                                                                    // // 將資料轉換成 CSV 格式
+                                                                    // const convertToCSV = (objArray:any) => {
+                                                                    //     let firstRow = [
+                                                                    //         "商品id" , "商品名稱" , "商品建立時間" , "商品更新時間" , "商品啟用狀態" , "商品最低售價" , "商品最高售價"
+                                                                    //     ]
+                                                                    //     const array = [firstRow].concat(objArray);
+                                                                    //   
+                                                                    //     return array.map((it:any) => {
+                                                                    //       
+                                                                    //         if (!it["content"]) {
+                                                                    //             return it.toString();
+                                                                    //         }
+                                                                    //         let temp = [it["id"] , it["content"]["title"] , it["created_time"] , it["updated_time"] , it["content"]["status"] , it["content"]["min_price"] , it["content"]["max_price"]];
+                                                                    //        
+                                                                    //         return temp.toString();
+                                                                    //     }).join('\n');
+                                                                    // };
+                                                                    //
+                                                                    // // 產生 CSV 字串
+                                                                    // const csvContent = convertToCSV(data);
+                                                                    // // console.log(csvContent)
+                                                                    //
+                                                                    // // 建立 Blob 物件
+                                                                    // const blob = new Blob([csvContent], {type: 'text/csv;charset=utf-8;'});
+                                                                    //
+                                                                    // // 建立下載連結
+                                                                    // const link = document.createElement("a");
+                                                                    // if (link.download !== undefined) {
+                                                                    //     const url = URL.createObjectURL(blob);
+                                                                    //     link.setAttribute("href", url);
+                                                                    //     link.setAttribute("download", "data.csv");
+                                                                    //     link.style.visibility = 'hidden';
+                                                                    //     document.body.appendChild(link);
+                                                                    //     link.click();
+                                                                    //     document.body.removeChild(link);
+                                                                    // }
                                                                 })
                                                         )}
                                                         ${BgWidget.darkButton(

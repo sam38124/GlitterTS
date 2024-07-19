@@ -818,46 +818,49 @@ export class Shopping {
         voucherList?: VoucherData[];
         code?: string;
     }) {
+        const userClass = new User(this.app);
         cart.discount = 0;
         cart.lineItems.map((dd) => {
             dd.discount_price = 0;
             dd.rebate = 0;
         });
-        let overlay = false;
-        // 用戶輸入的代碼
-        const code = cart.code;
-        // 用戶資訊
-        const userData = await new User(this.app).getUserData(cart.email, 'account');
+
+        // 確認用戶資訊
+        const userData = await userClass.getUserData(cart.email, 'account');
+        if (!userData || !userData.userID) {
+            return;
+        }
 
         const allVoucher = (
             await this.querySql([`(content->>'$.type'='voucher')`], {
                 page: 0,
                 limit: 10000,
             })
-        ).data;
-
-        const pass_id: number[] = [];
-        if (userData) {
-            for (const voucher of allVoucher) {
-                if (await this.checkVoucherLimited(userData.userID, voucher.id)) {
-                    pass_id.push(voucher.id);
-                }
-            }
-        }
-
-
-        // 過濾可使用優惠券
-        const voucherList = allVoucher
+        ).data
             .map((dd: any) => {
                 return dd.content;
             })
             .filter((dd: VoucherData) => {
-                // 判斷歷史紀錄
-                return pass_id.includes(dd.id);
-            })
-            .filter((dd: VoucherData) => {
                 // 判斷有效期限
                 return new Date(dd.start_ISO_Date).getTime() < new Date().getTime() && (!dd.end_ISO_Date || new Date(dd.end_ISO_Date).getTime() > new Date().getTime());
+            });
+
+        // 需 async and await 的驗證
+        const pass_voucher_id: number[] = [];
+        for (const voucher of allVoucher) {
+            const checkLimited = await this.checkVoucherLimited(userData.userID, voucher.id);
+            if (!checkLimited) {
+                continue;
+            }
+            pass_voucher_id.push(voucher.id);
+        }
+
+        // 過濾可使用優惠券
+        let overlay = false;
+        const groupList = await userClass.getUserGroups();
+        const voucherList = allVoucher
+            .filter((dd: VoucherData) => {
+                return pass_voucher_id.includes(dd.id);
             })
             .filter((dd: VoucherData) => {
                 // 綁定商品
@@ -896,7 +899,7 @@ export class Shopping {
             })
             .filter((dd: VoucherData) => {
                 // 判斷是自動發放還是優惠碼
-                return dd.trigger === 'auto' || dd.code === `${code}`;
+                return dd.trigger === 'auto' || dd.code === `${cart.code}`;
             })
             .filter((dd: VoucherData) => {
                 // 判斷最低消費金額或數量
@@ -910,6 +913,18 @@ export class Shopping {
                 if (dd.target === 'levels') {
                     const level = userData.member.find((dd: any) => dd.trigger);
                     return level && dd.targetList.includes(level.id);
+                }
+                if (dd.target === 'group') {
+                    if (!groupList.result) {
+                        return false;
+                    }
+                    let pass = false;
+                    for (const group of groupList.data.filter((item) => dd.targetList.includes(item.type))) {
+                        if (!pass && group.users.some((item) => item.userID === userData.userID)) {
+                            pass = true;
+                        }
+                    }
+                    return pass;
                 }
                 return true; // 所有顧客皆可使用
             })

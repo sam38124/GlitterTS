@@ -1,24 +1,24 @@
 import db from '../../modules/database';
 import exception from '../../modules/exception';
-import tool, {getUUID} from '../../services/tool';
+import tool, { getUUID } from '../../services/tool';
 import UserUtil from '../../utils/UserUtil';
 import config from '../../config.js';
-import {sendmail} from '../../services/ses.js';
+import { sendmail } from '../../services/ses.js';
 import App from '../../app.js';
 import redis from '../../modules/redis.js';
 import Tool from '../../modules/tool.js';
 import process from 'process';
-import {UtDatabase} from '../utils/ut-database.js';
-import {CustomCode} from './custom-code.js';
-import {IToken} from '../models/Auth.js';
+import { UtDatabase } from '../utils/ut-database.js';
+import { CustomCode } from './custom-code.js';
+import { IToken } from '../models/Auth.js';
 import axios from 'axios';
-import {AutoSendEmail} from './auto-send-email.js';
+import { AutoSendEmail } from './auto-send-email.js';
 import qs from 'qs';
 import jwt from 'jsonwebtoken';
-import {OAuth2Client} from 'google-auth-library';
-import {Rebate} from './rebate.js';
+import { OAuth2Client } from 'google-auth-library';
+import { Rebate } from './rebate.js';
 import moment from 'moment';
-import {ManagerNotify} from "./notify.js";
+import { ManagerNotify } from './notify.js';
 
 interface UserQuery {
     page?: number;
@@ -32,6 +32,13 @@ interface UserQuery {
     rank?: string;
     rebate?: string;
     total_amount?: string;
+    group?: string;
+}
+
+interface GroupUserItem {
+    userID: number;
+    email: string;
+    count: number;
 }
 
 export class User {
@@ -39,14 +46,14 @@ export class User {
 
     public token?: IToken;
 
-    public async createUser(account: string, pwd: string, userData: any, req: any,pass_verify?:boolean) {
+    public async createUser(account: string, pwd: string, userData: any, req: any, pass_verify?: boolean) {
         try {
             const login_config = await this.getConfigV2({
                 key: 'login_config',
                 user_id: 'manager',
             });
             const userID = generateUserID();
-            if(!pass_verify){
+            if (!pass_verify) {
                 if (userData.verify_code) {
                     if (userData.verify_code !== (await redis.getValue(`verify-${account}`))) {
                         throw exception.BadRequestError('BAD_REQUEST', 'Verify code error.', null);
@@ -91,9 +98,8 @@ export class User {
         }
     }
 
-
-    //用戶初次建立的initial函式。
-    public async createUserHook(userID:string){
+    // 用戶初次建立的initial函式
+    public async createUserHook(userID: string) {
         //發送歡迎信件
         const usData: any = await this.getUserData(userID, 'userID');
         const data = await AutoSendEmail.getDefCompare(this.app, 'auto-email-welcome');
@@ -102,7 +108,7 @@ export class User {
         }
 
         //發送回饋金
-        const getRS = await this.getConfig({key: 'rebate_setting', user_id: 'manager'});
+        const getRS = await this.getConfig({ key: 'rebate_setting', user_id: 'manager' });
         const rgs = getRS[0] && getRS[0].value.register ? getRS[0].value.register : {};
         if (rgs && rgs.switch) {
             await new Rebate(this.app).insertRebate(userID, rgs.value ?? 0, '新加入會員', {
@@ -112,9 +118,10 @@ export class User {
         }
 
         //發送用戶註冊通知
-        const manager=new ManagerNotify(this.app);
-        manager.userRegister({user_id:userID})
+        const manager = new ManagerNotify(this.app);
+        manager.userRegister({ user_id: userID });
     }
+
     public async updateAccount(account: string, userID: string): Promise<any> {
         try {
             const configAd = await App.getAdConfig(this.app, 'glitter_loginConfig');
@@ -213,7 +220,7 @@ export class User {
                     1,
                 ]
             );
-            await this.createUserHook(userID)
+            await this.createUserHook(userID);
         }
         const data: any = (
             (await db.execute(
@@ -293,7 +300,7 @@ export class User {
                         1,
                     ]
                 );
-                await this.createUserHook(userID)
+                await this.createUserHook(userID);
             }
             const data: any = (
                 (await db.execute(
@@ -324,7 +331,7 @@ export class User {
             });
             const oauth2Client = new OAuth2Client(config.id, config.secret, redirect);
             // 使用授权码交换令牌
-            const {tokens} = await oauth2Client.getToken(code);
+            const { tokens } = await oauth2Client.getToken(code);
             oauth2Client.setCredentials(tokens);
 
             // 验证 ID 令牌
@@ -359,7 +366,7 @@ export class User {
                         1,
                     ]
                 );
-               await this.createUserHook(userID);
+                await this.createUserHook(userID);
             }
             const data: any = (
                 (await db.execute(
@@ -415,12 +422,12 @@ export class User {
     public async refreshMember(userData: any) {
         const member_update = await this.getConfigV2({
             key: 'member_update',
-            user_id: userData.userID
+            user_id: userData.userID,
         });
-        member_update.time = member_update.time || new Date('1997-01-29').toISOString()
+        member_update.time = member_update.time || new Date('1997-01-29').toISOString();
         //上次更新時間(每10分鐘更新一次會級資料)
-        const update_time=new Date(member_update.time)
-        if(update_time.getTime()<(new Date().getTime() - 1000 * 600)){
+        const update_time = new Date(member_update.time);
+        if (update_time.getTime() < new Date().getTime() - 1000 * 600) {
             //分級配置檔案
             const member_list =
                 (
@@ -440,7 +447,7 @@ export class User {
                     []
                 )
             ).map((dd: any) => {
-                return {total_amount: parseInt(`${dd.total}`, 10), date: dd.created_time};
+                return { total_amount: parseInt(`${dd.total}`, 10), date: dd.created_time };
             });
             // 判斷是否符合上個等級
             let pass_level = true;
@@ -551,18 +558,17 @@ export class User {
                     }
                 }
             );
-            member_update.value=member.reverse()
-            member_update.time=new Date()
+            member_update.value = member.reverse();
+            member_update.time = new Date();
             await this.setConfig({
                 key: 'member_update',
                 user_id: userData.userID,
-                value:member_update
-            })
+                value: member_update,
+            });
             return member.reverse();
-        }else{
-            return member_update.value
+        } else {
+            return member_update.value;
         }
-
     }
 
     public find30DayPeriodWith3000Spent(
@@ -654,7 +660,22 @@ export class User {
             query.page = query.page ?? 0;
             query.limit = query.limit ?? 50;
 
-            if (query.id) {
+            if (query.group) {
+                const getGroup = await this.getUserGroups(query.group.split(','));
+                if (getGroup.result && getGroup.data[0]) {
+                    const users = getGroup.data[0].users;
+                    const ids = query.id
+                        ? query.id.split(',').filter((id) => {
+                              return users.find((item) => {
+                                  return item.userID === parseInt(`${id}`, 10);
+                              });
+                          })
+                        : users.map((item: { userID: number }) => item.userID);
+                    query.id = ids.join(',');
+                }
+            }
+
+            if (query.id && query.id.length > 1) {
                 querySql.push(`(u.userID in (${query.id}))`);
             }
 
@@ -717,11 +738,13 @@ export class User {
                 page: query.page,
                 limit: query.limit,
             });
+
             const countSQL = this.getUserAndOrderSQL({
                 select: 'count(1)',
                 where: querySql,
                 orderBy: query.order_string ?? '',
             });
+
             return {
                 data: (await db.query(dataSQL, [])).map((dd: any) => {
                     dd.pwd = undefined;
@@ -730,7 +753,72 @@ export class User {
                 total: (await db.query(countSQL, []))[0]['count(1)'],
             };
         } catch (e) {
-            throw exception.BadRequestError('BAD_REQUEST', 'Login Error:' + e, null);
+            throw exception.BadRequestError('BAD_REQUEST', 'getUserList Error:' + e, null);
+        }
+    }
+
+    public async getUserGroups(type?: string[]): Promise<{ result: false } | { result: true; data: { type: string; title: string; count: number; users: GroupUserItem[] }[] }> {
+        try {
+            // 訂閱者清單
+            const subscriberList = await db.query(
+                `SELECT DISTINCT u.userID, s.email
+                    FROM
+                        \`${this.app}\`.t_subscribe AS s JOIN
+                        \`${this.app}\`.t_user AS u ON s.email = JSON_EXTRACT(u.userData, '$.email');`,
+                []
+            );
+
+            // 購買者清單
+            const buyingList = [] as GroupUserItem[];
+            const buyingData = await db.query(
+                `SELECT u.userID, c.email, JSON_UNQUOTE(JSON_EXTRACT(c.orderData, '$.email')) AS order_email
+                FROM
+                    \`${this.app}\`.t_checkout AS c JOIN
+                    \`${this.app}\`.t_user AS u ON c.email = JSON_EXTRACT(u.userData, '$.email')
+                WHERE c.status = 1;`,
+                []
+            );
+            buyingData.map((item1: { userID: number; email: string }) => {
+                const index = buyingList.findIndex((item2) => item2.userID === item1.userID);
+                if (index === -1) {
+                    buyingList.push({ userID: item1.userID, email: item1.email, count: 1 });
+                } else {
+                    buyingList[index].count++;
+                }
+            });
+
+            // 經常購買者清單
+            const usuallyBuyingStandard = 4.5;
+            const usuallyBuyingList = buyingList.filter((item) => item.count > usuallyBuyingStandard);
+
+            // 從未購買者清單
+            const neverBuyingData = await db.query(
+                `SELECT userID, JSON_UNQUOTE(JSON_EXTRACT(userData, '$.email')) AS email
+                FROM \`${this.app}\`.t_user
+                WHERE userID not in (${buyingList.map((item) => item.userID).join(',')})`,
+                []
+            );
+
+            const dataList = [
+                { type: 'neverBuying', title: '尚未購買過的顧客', count: neverBuyingData.length, users: neverBuyingData },
+                { type: 'subscriber', title: '電子郵件訂閱者', count: subscriberList.length, users: subscriberList },
+                { type: 'usuallyBuying', title: '已購買多次的顧客', count: usuallyBuyingList.length, users: usuallyBuyingList },
+            ];
+
+            if (type === undefined) {
+                return {
+                    result: true,
+                    data: dataList,
+                };
+            }
+
+            const selectType = dataList.filter((item) => type.includes(item.type));
+            return {
+                result: selectType.length > 0,
+                data: selectType,
+            };
+        } catch (e) {
+            throw exception.BadRequestError('BAD_REQUEST', 'getUserGroups Error:' + e, null);
         }
     }
 
@@ -811,7 +899,7 @@ export class User {
             const querySql: any = [];
             //'%${query.search}%'
             query.search &&
-            querySql.push([`(userID in (select userID from \`${this.app}\`.t_user where (UPPER(JSON_UNQUOTE(JSON_EXTRACT(userData, '$.name')) LIKE UPPER('%${query.search}%')))))`].join(` || `));
+                querySql.push([`(userID in (select userID from \`${this.app}\`.t_user where (UPPER(JSON_UNQUOTE(JSON_EXTRACT(userData, '$.name')) LIKE UPPER('%${query.search}%')))))`].join(` || `));
             const data = await new UtDatabase(this.app, `t_fcm`).querySql(querySql, query as any);
             for (const b of data.data) {
                 let userData = (
@@ -959,7 +1047,7 @@ export class User {
                     {
                         pwd: await tool.hashPwd(newPwd),
                     },
-                    user_id_and_account
+                    user_id_and_account,
                 ]
             )) as any;
             return {
@@ -1059,9 +1147,14 @@ export class User {
 
     public async checkUserIdExists(id: number) {
         try {
-            const count = (await db.query(`select count(1)
+            const count = (
+                await db.query(
+                    `select count(1)
                                            from \`${this.app}\`.t_user
-                                           where userID = ?`, [id]))[0]['count(1)'];
+                                           where userID = ?`,
+                    [id]
+                )
+            )[0]['count(1)'];
             return count;
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'CheckUserExists Error:' + e, null);
@@ -1089,7 +1182,7 @@ export class User {
                      set value=? , updated_at=?
                      where \`key\` = ?
                        and user_id = ?`,
-                    [config.value, new Date(),config.key, config.user_id ?? this.token!.userID]
+                    [config.value, new Date(), config.key, config.user_id ?? this.token!.userID]
                 );
             } else {
                 await db.query(
@@ -1141,9 +1234,14 @@ export class User {
 
     public async checkEmailExists(email: string) {
         try {
-            const count = (await db.query(`select count(1)
+            const count = (
+                await db.query(
+                    `select count(1)
                                            from \`${this.app}\`.t_user
-                                           where account = ?`, [email]))[0]['count(1)'];
+                                           where account = ?`,
+                    [email]
+                )
+            )[0]['count(1)'];
             return count;
         } catch (e) {
             throw exception.BadRequestError('ERROR', 'ERROR.' + e, null);
@@ -1192,7 +1290,7 @@ export class User {
                 await db.query(
                     `insert into \`${this.app}\`.t_user_public_config (user_id, \`key\`, value, updated_at)
                      values (?, ?, ?, ?)`,
-                    [this.token?.userID, 'notice_last_read', JSON.stringify({time: new Date()}), new Date()]
+                    [this.token?.userID, 'notice_last_read', JSON.stringify({ time: new Date() }), new Date()]
                 );
             } else {
                 last_time_read = new Date(last_read_time[0].value.time).getTime();
@@ -1201,7 +1299,7 @@ export class User {
                      set \`value\`=?
                      where user_id = ?
                        and \`key\` = ?`,
-                    [JSON.stringify({time: new Date()}), `${this.token?.userID}`, 'notice_last_read']
+                    [JSON.stringify({ time: new Date() }), `${this.token?.userID}`, 'notice_last_read']
                 );
             }
             const response: any = await new UtDatabase(this.app, `t_notice`).querySql(query, cf.query);
@@ -1213,12 +1311,12 @@ export class User {
         }
     }
 
-    public  async forgetPassword(email:string){
+    public async forgetPassword(email: string) {
         const data = await AutoSendEmail.getDefCompare(this.app, 'auto-email-forget');
         const code = Tool.randomNumber(6);
         await redis.setValue(`forget-${email}`, code);
         await redis.setValue(`forget-count-${email}`, '0');
-        sendmail(`${data.name} <${process.env.smtp}>`, email, data.title, data.content.replace('@{{code}}',code));
+        sendmail(`${data.name} <${process.env.smtp}>`, email, data.title, data.content.replace('@{{code}}', code));
     }
 
     constructor(app: string, token?: IToken) {

@@ -563,35 +563,39 @@ class Shopping {
         }
     }
     async checkVoucher(cart) {
+        const userClass = new user_js_1.User(this.app);
         cart.discount = 0;
         cart.lineItems.map((dd) => {
             dd.discount_price = 0;
             dd.rebate = 0;
         });
-        let overlay = false;
-        const code = cart.code;
-        const userData = await new user_js_1.User(this.app).getUserData(cart.email, 'account');
+        const userData = await userClass.getUserData(cart.email, 'account');
+        if (!userData || !userData.userID) {
+            return;
+        }
         const allVoucher = (await this.querySql([`(content->>'$.type'='voucher')`], {
             page: 0,
             limit: 10000,
-        })).data;
-        const pass_id = [];
-        if (userData) {
-            for (const voucher of allVoucher) {
-                if (await this.checkVoucherLimited(userData.userID, voucher.id)) {
-                    pass_id.push(voucher.id);
-                }
-            }
-        }
-        const voucherList = allVoucher
+        })).data
             .map((dd) => {
             return dd.content;
         })
             .filter((dd) => {
-            return pass_id.includes(dd.id);
-        })
-            .filter((dd) => {
             return new Date(dd.start_ISO_Date).getTime() < new Date().getTime() && (!dd.end_ISO_Date || new Date(dd.end_ISO_Date).getTime() > new Date().getTime());
+        });
+        const pass_voucher_id = [];
+        for (const voucher of allVoucher) {
+            const checkLimited = await this.checkVoucherLimited(userData.userID, voucher.id);
+            if (!checkLimited) {
+                continue;
+            }
+            pass_voucher_id.push(voucher.id);
+        }
+        let overlay = false;
+        const groupList = await userClass.getUserGroups();
+        const voucherList = allVoucher
+            .filter((dd) => {
+            return pass_voucher_id.includes(dd.id);
         })
             .filter((dd) => {
             let item = [];
@@ -623,7 +627,7 @@ class Shopping {
             }
         })
             .filter((dd) => {
-            return dd.trigger === 'auto' || dd.code === `${code}`;
+            return dd.trigger === 'auto' || dd.code === `${cart.code}`;
         })
             .filter((dd) => {
             return dd.rule === 'min_count' ? cart.lineItems.length >= parseInt(`${dd.ruleValue}`, 10) : cart.total >= parseInt(`${dd.ruleValue}`, 10);
@@ -635,6 +639,18 @@ class Shopping {
             if (dd.target === 'levels') {
                 const level = userData.member.find((dd) => dd.trigger);
                 return level && dd.targetList.includes(level.id);
+            }
+            if (dd.target === 'group') {
+                if (!groupList.result) {
+                    return false;
+                }
+                let pass = false;
+                for (const group of groupList.data.filter((item) => dd.targetList.includes(item.type))) {
+                    if (!pass && group.users.some((item) => item.userID === userData.userID)) {
+                        pass = true;
+                    }
+                }
+                return pass;
             }
             return true;
         })
@@ -1507,6 +1523,12 @@ class Shopping {
         try {
             content.type = 'product';
             this.checkVariantDataType(content.variants);
+            console.log([
+                {
+                    content: JSON.stringify(content),
+                },
+                content.id,
+            ]);
             const data = await database_js_1.default.query(`update \`${this.app}\`.\`t_manager_post\`
                  SET ? where id=?`, [
                 {

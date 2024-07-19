@@ -252,6 +252,7 @@ export class ApiUser {
                     json.id && par.push(`id=${json.id}`);
                     json.searchType && par.push(`searchType=${json.searchType}`);
                     json.orderString && par.push(`order_string=${json.orderString}`);
+                    json.group && par.push(`group=${json.group}`);
                     filterString.length > 0 && par.push(filterString.join('&'));
                     return par.join('&');
                 })()}`,
@@ -392,7 +393,7 @@ export class ApiUser {
             data: JSON.stringify({
                 email: email,
                 code: code,
-                pwd: pwd
+                pwd: pwd,
             }),
         });
     }
@@ -487,6 +488,17 @@ export class ApiUser {
             headers: {
                 'Content-Type': 'application/json',
                 'g-app': getConfig().config.appName,
+            },
+        });
+    }
+    static getUserGroupList() {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/user/group`,
+            type: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: getConfig().config.token,
             },
         });
     }
