@@ -36,6 +36,19 @@ export class ShoppingProductSetting {
         }, () => {
         });
         vm.filter = ListComp.getFilterObject();
+        function convertToString(obj) {
+            if (typeof obj === 'object' && obj !== null) {
+                for (let key in obj) {
+                    if (obj.hasOwnProperty(key)) {
+                        obj[key] = convertToString(obj[key]);
+                    }
+                }
+            }
+            else {
+                return String(obj);
+            }
+            return obj;
+        }
         function importDataTo(event) {
             const input = event.target;
             const XLSX = window.XLSX;
@@ -62,8 +75,34 @@ export class ShoppingProductSetting {
         function exportDataTo(firstRow, data) {
             if (window.XLSX) {
                 let XLSX = window.XLSX;
+                data = convertToString(data);
                 const worksheet = XLSX.utils.json_to_sheet(data, { skipHeader: true });
                 XLSX.utils.sheet_add_aoa(worksheet, [firstRow], { origin: "A1" });
+                const maxLengths = firstRow.map(header => header.length + 3);
+                data.forEach((row) => {
+                    Object.values(row).forEach((value, index) => {
+                        const valueLength = String(value).length;
+                        if (valueLength > maxLengths[index]) {
+                            maxLengths[index] = valueLength;
+                        }
+                    });
+                });
+                worksheet['!cols'] = maxLengths.map(length => ({ wch: length + 3 }));
+                const range = XLSX.utils.decode_range(worksheet['!ref']);
+                for (let R = range.s.r; R <= range.e.r; ++R) {
+                    for (let C = range.s.c; C <= range.e.c; ++C) {
+                        const cell_address = { c: C, r: R };
+                        const cell_ref = XLSX.utils.encode_cell(cell_address);
+                        if (!worksheet[cell_ref])
+                            continue;
+                        if (!worksheet[cell_ref].s) {
+                            worksheet[cell_ref].s = {};
+                        }
+                        worksheet[cell_ref].s.alignment = {
+                            horizontal: "right"
+                        };
+                    }
+                }
                 const workbook = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
                 const wbout = XLSX.write(workbook, { bookType: 'xlsx', type: 'binary' });
@@ -76,6 +115,7 @@ export class ShoppingProductSetting {
                     return buf;
                 }
                 const blob = new Blob([s2ab(wbout)], { type: "application/octet-stream" });
+                console.log("data == ", data);
                 const link = document.createElement("a");
                 const url = URL.createObjectURL(blob);
                 link.href = url;
@@ -166,7 +206,6 @@ export class ShoppingProductSetting {
                                                 accurate_search_collection: true,
                                             }).then(response => {
                                                 dialog.dataLoading({ visible: false });
-                                                console.log(response);
                                                 let firstRow = ["產品名稱", "產品狀態", "產品類別", "產品規格", "skuid", "成本", "sale_price", "compare_price", "商品庫存"];
                                                 let exportData = [];
                                                 response.response.data.map((productData) => {

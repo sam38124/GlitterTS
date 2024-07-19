@@ -124,6 +124,7 @@ export declare class Shopping {
         voucher?: any;
         discount?: number;
         total?: number;
+        pay_status?: number;
     }, type?: 'add' | 'preview' | 'manual' | 'manual-preview'): Promise<{
         data: {
             customer_info: {};

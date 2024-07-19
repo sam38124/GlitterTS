@@ -198,6 +198,7 @@ router.post('/manager/checkout', async (req, resp) => {
                 customer_info: req.body.customer_info,
                 discount: req.body.discount,
                 total: req.body.total,
+                pay_status: req.body.pay_status,
             }, 'manual'));
         }
         else {

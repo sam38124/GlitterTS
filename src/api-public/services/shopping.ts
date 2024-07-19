@@ -329,6 +329,7 @@ export class Shopping {
             voucher?: any; //自定義的voucher
             discount?: number; //自定義金額
             total?: number; //自定義總額
+            pay_status?:number//自定義訂單狀態
         },
         type: 'add' | 'preview' | 'manual' | 'manual-preview' = 'add'
     ) {
@@ -578,7 +579,7 @@ export class Shopping {
             // ================================ Preview UP ================================
             if (type === 'preview' || type === 'manual-preview') return { data: carData };
             // ================================ Add DOWN ================================
-
+            // 手動結帳地方判定
             if (type !== 'manual') {
                 await rebateClass.insertRebate(userData.userID, carData.use_rebate * -1, '使用折抵', {
                     order_id: carData.orderID,
@@ -605,7 +606,7 @@ export class Shopping {
                     carData.use_wallet = sum < carData.total ? sum : carData.total;
                 }
             } else {
-                // 手動結帳地方
+
                 let tempVoucher: VoucherData = {
                     discount_total: data.voucher.discount_total,
                     end_ISO_Date: '',
@@ -662,7 +663,7 @@ export class Shopping {
                 await db.execute(
                     `INSERT INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
                      values (?, ?, ?, ?)`,
-                    [carData.orderID, 1, carData.email, carData]
+                    [carData.orderID, data.pay_status, carData.email, carData]
                 );
                 return {
                     data: carData,

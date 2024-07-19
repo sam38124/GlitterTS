@@ -34,6 +34,59 @@ export class ShoppingOrderManager {
         };
         const ListComp = new BgListComponent(gvc, vm, FilterOptions.orderFilterFrame);
         vm.filter = ListComp.getFilterObject();
+        gvc.addMtScript([{ src: "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js" }], () => {
+        }, () => {
+        });
+        function importDataTo(event) {
+            const input = event.target;
+            const XLSX = window.XLSX;
+            if (!input.files || input.files.length === 0) {
+                console.log("No file selected");
+                return;
+            }
+            const file = input.files[0];
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                if (!e.target) {
+                    console.log("Failed to read file");
+                    return;
+                }
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                const json = XLSX.utils.sheet_to_json(worksheet);
+                console.log(json);
+            };
+            reader.readAsArrayBuffer(file);
+        }
+        function exportDataTo(firstRow, data) {
+            if (window.XLSX) {
+                let XLSX = window.XLSX;
+                const worksheet = XLSX.utils.json_to_sheet(data, { skipHeader: true });
+                XLSX.utils.sheet_add_aoa(worksheet, [firstRow], { origin: "A1" });
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
+                const wbout = XLSX.write(workbook, { bookType: 'xlsx', type: 'binary' });
+                function s2ab(s) {
+                    const buf = new ArrayBuffer(s.length);
+                    const view = new Uint8Array(buf);
+                    for (let i = 0; i < s.length; i++) {
+                        view[i] = s.charCodeAt(i) & 0xFF;
+                    }
+                    return buf;
+                }
+                const blob = new Blob([s2ab(wbout)], { type: "application/octet-stream" });
+                const link = document.createElement("a");
+                const url = URL.createObjectURL(blob);
+                link.href = url;
+                link.download = "data.xlsx";
+                link.click();
+                setTimeout(() => {
+                    URL.revokeObjectURL(url);
+                }, 100);
+            }
+        }
         return gvc.bindView(() => {
             const id = glitter.getUUID();
             return {
@@ -45,18 +98,88 @@ export class ShoppingOrderManager {
                             <div class="d-flex w-100 align-items-center  ">
                                 ${BgWidget.title('訂單列表')}
                                 <div class="flex-fill"></div>
-                                <button
-                                        class="btn "
-                                        style="display: flex;
-    padding: 6px 18px;
-    align-items: center;
-    gap: 8px;border-radius: 10px;color: #FFF;
-    background: #393939;font-size: 16px;font-weight: 700;"
-                                        onclick="${gvc.event(() => {
+                                <div style="display: flex; gap: 14px;">
+
+                                    <input class="d-none" type="file" id="upload-excel" onchange="${gvc.event((e, event) => {
+                            importDataTo(event);
+                        })}"/>
+                                    ${BgWidget.grayButton('匯入', gvc.event((e) => {
+                            document.querySelector("#upload-excel").click();
+                        }))}${BgWidget.grayButton('匯出', gvc.event(() => {
+                            let dialog = new ShareDialog(glitter);
+                            dialog.dataLoading({ visible: true });
+                            ApiShop.getOrder({
+                                page: 0,
+                                limit: 100,
+                                search: undefined,
+                                searchType: 'name',
+                                orderString: '',
+                                filter: '',
+                                archived: (vm.filter_type === 'normal') ? `false` : `true`
+                            }).then(response => {
+                                dialog.dataLoading({ visible: false });
+                                let firstRow = ["訂單編號", "訂購人", "訂購人email", "訂單金額", "付款狀態", "出貨狀態", "訂單狀態"];
+                                let exportData = [];
+                                console.log(response.response.data);
+                                response.response.data.map((orderData) => {
+                                    var _a, _b;
+                                    let rowData = {
+                                        orderID: orderData.cart_token,
+                                        order_name: (_b = (_a = orderData === null || orderData === void 0 ? void 0 : orderData.customer_info) === null || _a === void 0 ? void 0 : _a.name) !== null && _b !== void 0 ? _b : orderData.orderData.user_info.name,
+                                        order_email: orderData.orderData.user_email,
+                                        total: orderData.orderData.total,
+                                        pay_status: (() => {
+                                            switch (orderData.status) {
+                                                case 0:
+                                                    return `未付款`;
+                                                case 1:
+                                                    return `已付款`;
+                                                case -1:
+                                                    return `付款失敗`;
+                                                case -2:
+                                                    return `已退款`;
+                                            }
+                                            return ``;
+                                        })(),
+                                        progress: (() => {
+                                            var _a;
+                                            switch ((_a = orderData.orderData.progress) !== null && _a !== void 0 ? _a : 'wait') {
+                                                case 'wait':
+                                                    return `未出貨`;
+                                                case 'shipping':
+                                                    return `已出貨`;
+                                                case 'finish':
+                                                    return `已取貨`;
+                                                case 'arrived':
+                                                    return `已送達`;
+                                                case 'returns':
+                                                    return `已退貨`;
+                                            }
+                                            return ``;
+                                        })(),
+                                        order_status: (() => {
+                                            var _a;
+                                            switch ((_a = orderData.orderData.orderStatus) !== null && _a !== void 0 ? _a : '0') {
+                                                case '-1':
+                                                    return `已取消`;
+                                                case '0':
+                                                    return `處理中`;
+                                                case '1':
+                                                    return `已完成`;
+                                            }
+                                            return ``;
+                                        })(),
+                                    };
+                                    exportData.push(rowData);
+                                });
+                                console.log(exportData);
+                                exportDataTo(firstRow, exportData);
+                            });
+                        }))}
+                                    ${BgWidget.darkButton('新增', gvc.event(() => {
                             vm.type = 'add';
-                        })}">
-                                    新增
-                                </button>
+                        }))}
+                                </div>
                             </div>
                             ${BgWidget.tab([{
                                 title: '一般列表',
@@ -1101,6 +1224,7 @@ export class ShoppingOrderManager {
                     phone: "",
                     email: ""
                 };
+                this.pay_status = 1;
             }
             get total() {
                 return this.subtotal + this.shipment - this.discount;
@@ -1176,7 +1300,7 @@ export class ShoppingOrderManager {
             "manual": {}
         };
         let orderDetailRefresh = false;
-        function selectCVS() {
+        function selectCVS(cvsCode) {
             let fakeData = {
                 "CVSAddress": "桃園市八德區中山一路116號",
                 "CVSStoreID": "256933",
@@ -1505,7 +1629,7 @@ export class ShoppingOrderManager {
                     <!--                                訂單內容 --- 商品資訊-->
                     <div style="color: #393939;width: 100%;display: flex;padding: 20px;flex-direction: column;align-items: flex-start;gap: 18px;align-self: stretch;border-radius: 10px;background: #FFF;box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.08);">
                         <div style="font-size: 16px;font-weight: 700;">訂單內容</div>
-                        <div style="width: 100%;display: flex;align-items: center">
+                        <div style="width: 100%;display: flex;align-items: center;padding-right: 20px;">
                             <div class="flex-fill d-flex align-items-center col-5"
                                  style="font-size: 16px;font-weight: 700;">商品
                             </div>
@@ -1514,7 +1638,7 @@ export class ShoppingOrderManager {
                                 單價
                             </div>
                             <div class="col-2" style="font-size: 16px;font-weight: 700;">數量</div>
-                            <div class="" style="font-size: 16px;font-weight: 700;">小計</div>
+                            <div class="" style="font-size: 16px;font-weight: 700;width: 50px;text-align: right;">小計</div>
                         </div>
                         ${gvc.bindView({
             bind: "listProduct",
@@ -1528,7 +1652,7 @@ export class ShoppingOrderManager {
                         let productIMG = (typeof selectVariant.preview_image == "string") ? selectVariant.preview_image : selectVariant.preview_image[0];
                         selectVariant.qty = selectVariant.qty || 1;
                         returnHTML += html `
-                                            <div style="width: 100%;display: flex;align-items: center;position: relative">
+                                            <div style="width: 100%;display: flex;align-items: center;position: relative;padding-right: 20px;">
                                                 <div class="flex-fill d-flex align-items-center col-5"
                                                      style="font-size: 16px;font-weight: 700;gap: 12px;">
                                                     <div style="width: 54px;height: 54px; background: url('${productIMG}') lightgray 50% / cover no-repeat;"></div>
@@ -1569,7 +1693,7 @@ export class ShoppingOrderManager {
                                                 </div>
                                                 <div class="col-2 " style="font-size: 16px;font-weight: 700;">
                                                     <input class="" type="number" value="${selectVariant.qty}"
-                                                           style="transform: translateX(-50%);text-align: center;display: flex;width: 60%;padding: 9px 18px;align-items: center;gap: 32px;border-radius: 10px;border: 1px solid #DDD;"
+                                                           style="width: 70px;transform: translateX(-16px);text-align: center;display: flex;padding: 9px 18px;align-items: center;gap: 32px;border-radius: 10px;border: 1px solid #DDD;"
                                                            min="0" onchange="${gvc.event((e) => {
                             if (e.value < 1) {
                                 gvc.glitter.innerDialog((gvc) => {
@@ -1601,6 +1725,7 @@ export class ShoppingOrderManager {
                                                                         </div>
                                                                         <div style="display: flex;width: 360px;align-items: center;gap: 10px;justify-content: center;">
                                                                             ${BgWidget.cancel(gvc.event(() => {
+                                        e.value = 1;
                                         gvc.closeDialog();
                                     }))}
                                                                             ${BgWidget.save(gvc.event(() => {
@@ -1618,7 +1743,7 @@ export class ShoppingOrderManager {
                             }
                         })}">
                                                 </div>
-                                                <div class="" style="font-size: 16px;font-weight: 400;">
+                                                <div class="" style="font-size: 16px;font-weight: 400;width: 50px;text-align: right;">
                                                     ${selectVariant.sale_price * selectVariant.qty}
                                                 </div>
                                                 <div class="d-flex align-items-center"
@@ -1972,7 +2097,7 @@ export class ShoppingOrderManager {
                                                                             </div>
                                                                             <div>電話</div>
                                                                             <div class="w-100"
-                                                                                 style="min-height:25px;border-radius: 10px;border: 1px solid #DDD;background: #F7F7F7;padding: 9px 18px;">
+                                                                                 style="min-height:45px;border-radius: 10px;border: 1px solid #DDD;background: #F7F7F7;padding: 9px 18px;">
                                                                                 ${(_c = tempUserData[customerData.type].phone) !== null && _c !== void 0 ? _c : ""}
                                                                             </div>
                                                                         `;
@@ -2105,25 +2230,27 @@ export class ShoppingOrderManager {
                                 <div class="d-flex flex-column" style="gap: 18px">
                                     <div class="d-flex align-items-center w-100" style="gap:18px;">
                                         <div class="d-flex flex-column flex-fill" style="gap: 8px;">
-                                            <div>付款方式</div>
+                                            <div>付款方式和付款狀態</div>
                                             <select class="form-select"
-                                                    style="border-radius: 10px;border: 1px solid #DDD;padding: 9px 18px;"
-                                                    disabled>
-                                                <option>線下付款</option>
+                                                style="border-radius: 10px;border: 1px solid #DDD;padding: 9px 18px;" onchange="${gvc.event((e) => {
+                    orderDetail.pay_status = e.value;
+                })}">
+                                                <option value="1" ${(orderDetail.pay_status == 1) ? 'selected' : ''}>線下付款-已付款</option>
+                                                <option value="0" ${(orderDetail.pay_status == 0) ? 'selected' : ''}>線下付款-未付款</option>
                                             </select>
                                         </div>
                                         <div class="d-flex flex-column flex-fill" style="gap: 8px;">
-                                            <div>付款方式</div>
+                                            <div>運送方法</div>
                                             <select class="form-select"
                                                     style="border-radius: 10px;border: 1px solid #DDD;padding: 9px 18px;"
                                                     onchange="${gvc.event((e) => {
                     orderDetail.user_info.shipment = e.value;
                 })}">
-                                                <option value="normal" selected>宅配</option>
-                                                <option value="UNIMARTC2C">7-11店到店</option>
-                                                <option value="FAMIC2C">全家店到店</option>
-                                                <option value="OKMARTC2C">OK店到店</option>
-                                                <option value="HILIFEC2C">萊爾富店到店</option>
+                                                <option value="normal" ${(orderDetail.user_info.shipment == 'normal') ? 'selected' : ''}>宅配</option>
+                                                <option value="UNIMARTC2C" ${(orderDetail.user_info.shipment == 'UNIMARTC2C') ? 'selected' : ''}>7-11店到店</option>
+                                                <option value="FAMIC2C" ${(orderDetail.user_info.shipment == 'FAMIC2C') ? 'selected' : ''}>全家店到店</option>
+                                                <option value="OKMARTC2C" ${(orderDetail.user_info.shipment == 'OKMARTC2C') ? 'selected' : ''}>OK店到店</option>
+                                                <option value="HILIFEC2C" ${(orderDetail.user_info.shipment == 'HILIFEC2C') ? 'selected' : ''}>萊爾富店到店</option>
                                             </select>
                                         </div>
                                     </div>
@@ -2182,7 +2309,6 @@ export class ShoppingOrderManager {
                 })}" ${customerData.sameCustomer ? 'disabled' : ''}>
                                     </div>
                                     <div class="d-flex flex-column" style="gap: 8px">
-
                                         ${gvc.bindView({
                     bind: "CVSStore",
                     dataList: [{ obj: orderDetail.user_info, key: "shipment" }],
@@ -2215,7 +2341,9 @@ export class ShoppingOrderManager {
                                                                         <img style="width: 32px;height: 32px;margin-right: 8px;"
                                                                              src="${icon[orderDetail.user_info.shipment]}"
                                                                              alt="icon">
-                                                                        <div style="color:#4D86DB">
+                                                                        <div style="color:#4D86DB" onclick="${gvc.event(() => {
+                                        selectCVS(orderDetail.user_info.shipment);
+                                    })}">
                                                                             點擊更換門市
                                                                         </div>
                                                                     </div>
@@ -2243,7 +2371,7 @@ export class ShoppingOrderManager {
                                                                 <div>取貨門市</div>
                                                                 <div style="color: #4D86DB;cursor: pointer;margin-top:8px;cursor: pointer"
                                                                      onclick="${gvc.event(() => {
-                                        selectCVS();
+                                        selectCVS(orderDetail.user_info.shipment);
                                     })}">請選擇取貨門市
                                                                 </div>
                                                             `;
@@ -2279,10 +2407,8 @@ export class ShoppingOrderManager {
         }))}
                         ${BgWidget.save(gvc.event(() => {
             let passData = JSON.parse(JSON.stringify(orderDetail));
-            console.log(passData);
-            console.log(newVoucher);
             passData.total = orderDetail.total;
-            passData.order;
+            passData.orderStatus = 1;
             delete passData.tag;
             const dialog = new ShareDialog(glitter);
             dialog.dataLoading({ visible: true });

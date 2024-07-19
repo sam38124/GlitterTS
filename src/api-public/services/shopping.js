@@ -440,7 +440,7 @@ class Shopping {
                     await rebateClass.insertRebate(customerData.userID, carData.rebate, `手動新增訂單 - 優惠券購物金：${tempVoucher.title}`);
                 }
                 await database_js_1.default.execute(`INSERT INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
-                     values (?, ?, ?, ?)`, [carData.orderID, 1, carData.email, carData]);
+                     values (?, ?, ?, ?)`, [carData.orderID, data.pay_status, carData.email, carData]);
                 return {
                     data: carData,
                 };
