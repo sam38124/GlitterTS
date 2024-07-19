@@ -19,17 +19,18 @@ class Release {
             await firebase_js_1.Firebase.appRegister({
                 appName: cf.appDomain,
                 appID: cf.bundleID,
-                type: 'ios'
+                type: 'ios',
             });
             let data = fs_1.default.readFileSync(cf.project_router, 'utf8');
-            data = data.replace(/PRODUCT_BUNDLE_IDENTIFIER([\s\S]*?);/g, `PRODUCT_BUNDLE_IDENTIFIER = ${cf.bundleID};`)
+            data = data
+                .replace(/PRODUCT_BUNDLE_IDENTIFIER([\s\S]*?);/g, `PRODUCT_BUNDLE_IDENTIFIER = ${cf.bundleID};`)
                 .replace(/INFOPLIST_KEY_CFBundleDisplayName([\s\S]*?);/g, `INFOPLIST_KEY_CFBundleDisplayName = "${cf.appName}";`);
             fs_1.default.writeFileSync(path_1.default.resolve(cf.project_router, '../../proshake/Info.plist'), data);
             fs_1.default.writeFileSync(path_1.default.resolve(cf.project_router, '../../proshake/ViewController.swift'), ios_project_js_1.IosProject.getViewController(cf.domain_url));
             fs_1.default.writeFileSync(path_1.default.resolve(cf.project_router, '../../proshake/GoogleService-Info.plist'), (await firebase_js_1.Firebase.getConfig({
                 appID: cf.bundleID,
                 type: 'ios',
-                appDomain: cf.appDomain
+                appDomain: cf.appDomain,
             })));
         }
         catch (e) {
@@ -41,18 +42,18 @@ class Release {
             await firebase_js_1.Firebase.appRegister({
                 appName: cf.appDomain,
                 appID: cf.bundleID,
-                type: 'android'
+                type: 'android',
             });
             fs_1.default.writeFileSync(path_1.default.resolve(cf.project_router, './app/src/main/java/com/ncdesign/kenda/MyAPP.kt'), android_project_js_1.AndroidProject.appKt(cf.domain_url));
             fs_1.default.writeFileSync(path_1.default.resolve(cf.project_router, './app/google-services.json'), (await firebase_js_1.Firebase.getConfig({
                 appID: cf.bundleID,
                 type: 'android',
-                appDomain: cf.appDomain
+                appDomain: cf.appDomain,
             })));
             await this.resetProjectRouter({
                 project_router: cf.project_router,
                 targetString: 'com.ncdesign.kenda',
-                replacementString: cf.bundleID
+                replacementString: cf.bundleID,
             });
             fs_1.default.renameSync(path_1.default.resolve(cf.project_router, './app/src/main/java/com/ncdesign/kenda'), path_1.default.resolve(cf.project_router, 'temp_file'));
             Release.deleteFolder(path_1.default.resolve(cf.project_router, './app/src/main/java/com'));
@@ -253,161 +254,161 @@ class Release {
     (window).appName=\`${cf.appDomain}\`;
     (window).glitterBackend=\`${cf.glitter_domain}\`;
 </script>
-${"<script>\n" +
-            "    function preload(data){\n" +
+${'<script>\n' +
+            '    function preload(data){\n' +
             "        let joinArray=['__']\n" +
-            "        function loop(array) {\n" +
-            "            array.map((dd) => {\n" +
+            '        function loop(array) {\n' +
+            '            array.map((dd) => {\n' +
             "                if (dd.type === 'container') {\n" +
-            "                    loop(dd.data.setting)\n" +
+            '                    loop(dd.data.setting)\n' +
             "                } else if (dd.type === 'component') {\n" +
-            "                    joinArray.push(dd.data.tag)\n" +
-            "                }\n" +
-            "            })\n" +
-            "        }\n" +
-            "        data.response.result.map((d2) => {\n" +
-            "            loop(d2.config)\n" +
-            "        })\n" +
-            "        joinArray=joinArray.filter((value, index, self)=>{\n" +
-            "            return value\n" +
-            "        })\n" +
-            "        joinArray.map((tag)=>{\n" +
-            "            window.glitterInitialHelper.setQueue(`getPageData-${tag}`, (callback) => {\n" +
+            '                    joinArray.push(dd.data.tag)\n' +
+            '                }\n' +
+            '            })\n' +
+            '        }\n' +
+            '        data.response.result.map((d2) => {\n' +
+            '            loop(d2.config)\n' +
+            '        })\n' +
+            '        joinArray=joinArray.filter((value, index, self)=>{\n' +
+            '            return value\n' +
+            '        })\n' +
+            '        joinArray.map((tag)=>{\n' +
+            '            window.glitterInitialHelper.setQueue(`getPageData-${tag}`, (callback) => {\n' +
             "                glitterInitialHelper.getPageData(joinArray.join(','),(dd)=>{\n" +
-            "                    const data=JSON.parse(JSON.stringify(dd))\n" +
-            "                    data.response.result=data.response.result.filter((d2)=>{\n" +
-            "                        return d2.tag===tag\n" +
-            "                    })\n" +
-            "                    callback({\n" +
-            "                        response: data.response, result: true\n" +
-            "                    })\n" +
-            "                    preload(data)\n" +
-            "                })\n" +
-            "            })\n" +
-            "        })\n" +
-            "    }\n" +
-            "    window.glitterInitialHelper = {\n" +
-            "        share: {},\n" +
-            "        setQueue: (tag, fun, callback) => {\n" +
-            "\n" +
-            "            window.glitterInitialHelper.share[tag] = window.glitterInitialHelper.share[tag] ?? {\n" +
-            "                callback: [],\n" +
-            "                data: undefined,\n" +
-            "                isRunning: false\n" +
-            "            }\n" +
-            "            if (window.glitterInitialHelper.share[tag].data) {\n" +
-            "                callback && callback((()=>{\n" +
-            "                    try {\n" +
-            "                        return JSON.parse(JSON.stringify(window.glitterInitialHelper.share[tag].data))\n" +
-            "                    }catch (e) {\n" +
-            "                        console.log(`parseError`,window.glitterInitialHelper.share[tag].data)\n" +
-            "                    }\n" +
-            "                })())\n" +
-            "            } else {\n" +
-            "                window.glitterInitialHelper.share[tag].callback.push(callback)\n" +
-            "\n" +
-            "                if (!window.glitterInitialHelper.share[tag].isRunning) {\n" +
-            "                    window.glitterInitialHelper.share[tag].isRunning = true\n" +
-            "                    fun((response) => {\n" +
-            "                        window.glitterInitialHelper.share[tag].callback.map((callback) => {\n" +
-            "                            callback && callback((()=>{\n" +
-            "                                try {\n" +
-            "                                    return JSON.parse(JSON.stringify(response))\n" +
-            "                                }catch (e) {\n" +
-            "                                    console.log(`parseError`,window.glitterInitialHelper.share[tag].data)\n" +
-            "                                }\n" +
-            "                            })())\n" +
-            "                        })\n" +
-            "                        window.glitterInitialHelper.share[tag].data = response\n" +
-            "                        window.glitterInitialHelper.share[tag].callback = []\n" +
-            "                    })\n" +
-            "                }\n" +
-            "            }\n" +
-            "\n" +
-            "        },\n" +
-            "        getPlugin: (callback) => {\n" +
+            '                    const data=JSON.parse(JSON.stringify(dd))\n' +
+            '                    data.response.result=data.response.result.filter((d2)=>{\n' +
+            '                        return d2.tag===tag\n' +
+            '                    })\n' +
+            '                    callback({\n' +
+            '                        response: data.response, result: true\n' +
+            '                    })\n' +
+            '                    preload(data)\n' +
+            '                })\n' +
+            '            })\n' +
+            '        })\n' +
+            '    }\n' +
+            '    window.glitterInitialHelper = {\n' +
+            '        share: {},\n' +
+            '        setQueue: (tag, fun, callback) => {\n' +
+            '\n' +
+            '            window.glitterInitialHelper.share[tag] = window.glitterInitialHelper.share[tag] ?? {\n' +
+            '                callback: [],\n' +
+            '                data: undefined,\n' +
+            '                isRunning: false\n' +
+            '            }\n' +
+            '            if (window.glitterInitialHelper.share[tag].data) {\n' +
+            '                callback && callback((()=>{\n' +
+            '                    try {\n' +
+            '                        return JSON.parse(JSON.stringify(window.glitterInitialHelper.share[tag].data))\n' +
+            '                    }catch (e) {\n' +
+            '                        console.log(`parseError`,window.glitterInitialHelper.share[tag].data)\n' +
+            '                    }\n' +
+            '                })())\n' +
+            '            } else {\n' +
+            '                window.glitterInitialHelper.share[tag].callback.push(callback)\n' +
+            '\n' +
+            '                if (!window.glitterInitialHelper.share[tag].isRunning) {\n' +
+            '                    window.glitterInitialHelper.share[tag].isRunning = true\n' +
+            '                    fun((response) => {\n' +
+            '                        window.glitterInitialHelper.share[tag].callback.map((callback) => {\n' +
+            '                            callback && callback((()=>{\n' +
+            '                                try {\n' +
+            '                                    return JSON.parse(JSON.stringify(response))\n' +
+            '                                }catch (e) {\n' +
+            '                                    console.log(`parseError`,window.glitterInitialHelper.share[tag].data)\n' +
+            '                                }\n' +
+            '                            })())\n' +
+            '                        })\n' +
+            '                        window.glitterInitialHelper.share[tag].data = response\n' +
+            '                        window.glitterInitialHelper.share[tag].callback = []\n' +
+            '                    })\n' +
+            '                }\n' +
+            '            }\n' +
+            '\n' +
+            '        },\n' +
+            '        getPlugin: (callback) => {\n' +
             "            window.glitterInitialHelper.setQueue('getPlugin', (callback) => {\n" +
-            "                const myHeaders = new Headers();\n" +
-            "                const requestOptions = {\n" +
+            '                const myHeaders = new Headers();\n' +
+            '                const requestOptions = {\n' +
             "                    method: 'GET',\n" +
-            "                    headers: myHeaders\n" +
-            "                };\n" +
-            "\n" +
-            "                function execute() {\n" +
-            "                    fetch(`${window.glitterBackend}/api/v1/app/plugin?appName=${window.appName}`, requestOptions)\n" +
-            "                        .then(response => response.json())\n" +
-            "                        .then(result => {\n" +
-            "                            callback({\n" +
-            "                                response: result, result: true\n" +
-            "                            })\n" +
-            "                        })\n" +
-            "                        .catch(error => {\n" +
-            "                            console.log(error)\n" +
-            "                            setTimeout(() => {\n" +
-            "                                execute()\n" +
-            "                            }, 100)\n" +
-            "                        });\n" +
-            "                }\n" +
-            "\n" +
-            "                execute()\n" +
-            "            }, callback)\n" +
-            "        },\n" +
-            "        preloadComponent: {\n" +
-            "            data: {}\n" +
-            "        },\n" +
-            "        getPageData: (tag, callback) => {\n" +
-            "\n" +
-            "            window.glitterInitialHelper.setQueue(`getPageData-${tag}`, (callback) => {\n" +
-            "                const myHeaders = new Headers();\n" +
-            "                const requestOptions = {\n" +
+            '                    headers: myHeaders\n' +
+            '                };\n' +
+            '\n' +
+            '                function execute() {\n' +
+            '                    fetch(`${window.glitterBackend}/api/v1/app/plugin?appName=${window.appName}`, requestOptions)\n' +
+            '                        .then(response => response.json())\n' +
+            '                        .then(result => {\n' +
+            '                            callback({\n' +
+            '                                response: result, result: true\n' +
+            '                            })\n' +
+            '                        })\n' +
+            '                        .catch(error => {\n' +
+            '                            console.log(error)\n' +
+            '                            setTimeout(() => {\n' +
+            '                                execute()\n' +
+            '                            }, 100)\n' +
+            '                        });\n' +
+            '                }\n' +
+            '\n' +
+            '                execute()\n' +
+            '            }, callback)\n' +
+            '        },\n' +
+            '        preloadComponent: {\n' +
+            '            data: {}\n' +
+            '        },\n' +
+            '        getPageData: (tag, callback) => {\n' +
+            '\n' +
+            '            window.glitterInitialHelper.setQueue(`getPageData-${tag}`, (callback) => {\n' +
+            '                const myHeaders = new Headers();\n' +
+            '                const requestOptions = {\n' +
             "                    method: 'GET',\n" +
-            "                    headers: myHeaders\n" +
-            "                };\n" +
-            "\n" +
-            "                function execute() {\n" +
-            "                    fetch(window.glitterBackend + `/api/v1/template?appName=${window.appName}&tag=${encodeURIComponent(tag)}`, requestOptions)\n" +
-            "                        .then(response => response.json())\n" +
-            "                        .then(response => {\n" +
-            "                            for(const b of response.result){\n" +
+            '                    headers: myHeaders\n' +
+            '                };\n' +
+            '\n' +
+            '                function execute() {\n' +
+            '                    fetch(window.glitterBackend + `/api/v1/template?appName=${window.appName}&tag=${encodeURIComponent(tag)}`, requestOptions)\n' +
+            '                        .then(response => response.json())\n' +
+            '                        .then(response => {\n' +
+            '                            for(const b of response.result){\n' +
             "                                if(b.group==='glitter-article'){\n" +
-            "                                    glitterInitialHelper.getPageData(b.page_config.template, (data) => { preload(data) })\n" +
-            "                                }\n" +
-            "                            }\n" +
-            "                            callback({\n" +
-            "                                response: response, result: true\n" +
-            "                            })\n" +
-            "                        }).catch(error => {\n" +
-            "                        console.log(error)\n" +
-            "                        setTimeout(() => {\n" +
-            "                            execute()\n" +
-            "                        }, 100)\n" +
-            "                    });\n" +
-            "                }\n" +
-            "\n" +
-            "                execute()\n" +
-            "            }, callback)\n" +
-            "        }\n" +
-            "    }\n" +
-            "    let clockF = () => {\n" +
-            "        return {\n" +
-            "            start: new Date(),\n" +
-            "            stop: function () {\n" +
-            "                return ((new Date()).getTime() - (this.start).getTime())\n" +
-            "            },\n" +
-            "            zeroing: function () {\n" +
-            "                this.start = new Date()\n" +
-            "            }\n" +
-            "        }\n" +
-            "    }\n" +
-            "    let renderClock = clockF();\n" +
-            "    (window.renderClock) = renderClock;\n" +
-            "    if (location.pathname.slice(-1) !== '/' && !location.pathname.endsWith(\"html\")) {\n" +
-            "        location.pathname = location.pathname + \"/\"\n" +
-            "    }\n" +
-            "    glitterInitialHelper.getPlugin()\n" +
-            "    const url = new URL(location.href)\n" +
+            '                                    glitterInitialHelper.getPageData(b.page_config.template, (data) => { preload(data) })\n' +
+            '                                }\n' +
+            '                            }\n' +
+            '                            callback({\n' +
+            '                                response: response, result: true\n' +
+            '                            })\n' +
+            '                        }).catch(error => {\n' +
+            '                        console.log(error)\n' +
+            '                        setTimeout(() => {\n' +
+            '                            execute()\n' +
+            '                        }, 100)\n' +
+            '                    });\n' +
+            '                }\n' +
+            '\n' +
+            '                execute()\n' +
+            '            }, callback)\n' +
+            '        }\n' +
+            '    }\n' +
+            '    let clockF = () => {\n' +
+            '        return {\n' +
+            '            start: new Date(),\n' +
+            '            stop: function () {\n' +
+            '                return ((new Date()).getTime() - (this.start).getTime())\n' +
+            '            },\n' +
+            '            zeroing: function () {\n' +
+            '                this.start = new Date()\n' +
+            '            }\n' +
+            '        }\n' +
+            '    }\n' +
+            '    let renderClock = clockF();\n' +
+            '    (window.renderClock) = renderClock;\n' +
+            '    if (location.pathname.slice(-1) !== \'/\' && !location.pathname.endsWith("html")) {\n' +
+            '        location.pathname = location.pathname + "/"\n' +
+            '    }\n' +
+            '    glitterInitialHelper.getPlugin()\n' +
+            '    const url = new URL(location.href)\n' +
             "    glitterInitialHelper.getPageData(url.searchParams.get('page'), (data) => { preload(data) })\n" +
-            "</script>"}
+            '</script>'}
 <script src="${cf.glitter_domain}/${cf.appDomain}/glitterBundle/jquery.js"></script>
 <script src="${cf.glitter_domain}/${cf.appDomain}/glitterBundle/GlitterInitial.js" type="module"></script>
 <link href="${cf.glitter_domain}/${cf.appDomain}/glitterBundle/Glitter.css" rel="stylesheet">
@@ -477,7 +478,7 @@ ${"<script>\n" +
             const params = {
                 Bucket: bucketName,
                 Key: fileName,
-                Body: fs_1.default.createReadStream(filePath)
+                Body: fs_1.default.createReadStream(filePath),
             };
             s3.upload(params, (err, data) => {
                 if (err) {

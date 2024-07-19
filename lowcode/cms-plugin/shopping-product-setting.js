@@ -451,19 +451,12 @@ export class ShoppingProductSetting {
                                                                                 }
                                                                                 return Math.min(...dd.content.variants.map((dd) => {
                                                                                     return dd.stock;
-                                                                                }));
+                                                                                })).toLocaleString();
                                                                             })(),
                                                                         },
                                                                         {
                                                                             key: '已售出',
-                                                                            value: (() => {
-                                                                                if (!dd.content.variants || dd.content.variants.length === 0) {
-                                                                                    return 0;
-                                                                                }
-                                                                                return Math.min(...dd.content.variants.map((dd) => {
-                                                                                    return dd.stock;
-                                                                                }));
-                                                                            })(),
+                                                                            value: dd.total_sales.toLocaleString(),
                                                                         },
                                                                         {
                                                                             key: '狀態',
@@ -471,12 +464,14 @@ export class ShoppingProductSetting {
                                                                                 const id = gvc.glitter.getUUID();
                                                                                 return {
                                                                                     bind: id,
-                                                                                    view: () => BgWidget.switchTextButton(gvc, dd.content.status === 'active', { left: '上架' }, (bool) => {
+                                                                                    view: () => BgWidget.switchTextButton(gvc, dd.content.status === 'active', { left: dd.content.status === 'active' ? '上架' : '下架' }, (bool) => {
                                                                                         dd.content.status = bool ? 'active' : 'draft';
                                                                                         ApiPost.put({
                                                                                             postData: dd.content,
                                                                                             token: window.parent.config.token,
                                                                                             type: 'manager',
+                                                                                        }).then((res) => {
+                                                                                            res.result && gvc.notifyDataChange(id);
                                                                                         });
                                                                                     }),
                                                                                     divCreate: {

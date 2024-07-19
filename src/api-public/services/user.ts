@@ -32,13 +32,22 @@ interface UserQuery {
     rank?: string;
     rebate?: string;
     total_amount?: string;
-    group?: string;
+    groupType?: string;
+    groupTag?: string;
 }
 
 interface GroupUserItem {
     userID: number;
     email: string;
     count: number;
+}
+
+interface GroupsItem {
+    type: string;
+    title: string;
+    count?: number;
+    tag?: string;
+    users: GroupUserItem[];
 }
 
 export class User {
@@ -660,8 +669,8 @@ export class User {
             query.page = query.page ?? 0;
             query.limit = query.limit ?? 50;
 
-            if (query.group) {
-                const getGroup = await this.getUserGroups(query.group.split(','));
+            if (query.groupType) {
+                const getGroup = await this.getUserGroups(query.groupType.split(','), query.groupTag);
                 if (getGroup.result && getGroup.data[0]) {
                     const users = getGroup.data[0].users;
                     const ids = query.id
@@ -757,65 +766,106 @@ export class User {
         }
     }
 
-    public async getUserGroups(type?: string[]): Promise<{ result: false } | { result: true; data: { type: string; title: string; count: number; users: GroupUserItem[] }[] }> {
+    public async getUserGroups(type?: string[], tag?: string): Promise<{ result: false } | { result: true; data: GroupsItem[] }> {
         try {
+            const pass = (text: string) => type === undefined || type.includes(text);
+            let dataList: GroupsItem[] = [];
+
             // 訂閱者清單
-            const subscriberList = await db.query(
-                `SELECT DISTINCT u.userID, s.email
+            if (pass('subscriber')) {
+                const subscriberList = await db.query(
+                    `SELECT DISTINCT u.userID, s.email
                     FROM
                         \`${this.app}\`.t_subscribe AS s JOIN
                         \`${this.app}\`.t_user AS u ON s.email = JSON_EXTRACT(u.userData, '$.email');`,
-                []
-            );
-
-            // 購買者清單
-            const buyingList = [] as GroupUserItem[];
-            const buyingData = await db.query(
-                `SELECT u.userID, c.email, JSON_UNQUOTE(JSON_EXTRACT(c.orderData, '$.email')) AS order_email
-                FROM
-                    \`${this.app}\`.t_checkout AS c JOIN
-                    \`${this.app}\`.t_user AS u ON c.email = JSON_EXTRACT(u.userData, '$.email')
-                WHERE c.status = 1;`,
-                []
-            );
-            buyingData.map((item1: { userID: number; email: string }) => {
-                const index = buyingList.findIndex((item2) => item2.userID === item1.userID);
-                if (index === -1) {
-                    buyingList.push({ userID: item1.userID, email: item1.email, count: 1 });
-                } else {
-                    buyingList[index].count++;
-                }
-            });
-
-            // 經常購買者清單
-            const usuallyBuyingStandard = 4.5;
-            const usuallyBuyingList = buyingList.filter((item) => item.count > usuallyBuyingStandard);
-
-            // 從未購買者清單
-            const neverBuyingData = await db.query(
-                `SELECT userID, JSON_UNQUOTE(JSON_EXTRACT(userData, '$.email')) AS email
-                FROM \`${this.app}\`.t_user
-                WHERE userID not in (${buyingList.map((item) => item.userID).join(',')})`,
-                []
-            );
-
-            const dataList = [
-                { type: 'neverBuying', title: '尚未購買過的顧客', count: neverBuyingData.length, users: neverBuyingData },
-                { type: 'subscriber', title: '電子郵件訂閱者', count: subscriberList.length, users: subscriberList },
-                { type: 'usuallyBuying', title: '已購買多次的顧客', count: usuallyBuyingList.length, users: usuallyBuyingList },
-            ];
-
-            if (type === undefined) {
-                return {
-                    result: true,
-                    data: dataList,
-                };
+                    []
+                );
+                dataList.push({ type: 'subscriber', title: '電子郵件訂閱者', users: subscriberList });
             }
 
-            const selectType = dataList.filter((item) => type.includes(item.type));
+            // 購買者清單
+            if (pass('neverBuying') || pass('usuallyBuying')) {
+                const buyingList = [] as GroupUserItem[];
+                const buyingData = await db.query(
+                    `SELECT u.userID, c.email, JSON_UNQUOTE(JSON_EXTRACT(c.orderData, '$.email')) AS order_email
+                    FROM
+                        \`${this.app}\`.t_checkout AS c JOIN
+                        \`${this.app}\`.t_user AS u ON c.email = JSON_EXTRACT(u.userData, '$.email')
+                    WHERE c.status = 1;`,
+                    []
+                );
+                buyingData.map((item1: { userID: number; email: string }) => {
+                    const index = buyingList.findIndex((item2) => item2.userID === item1.userID);
+                    if (index === -1) {
+                        buyingList.push({ userID: item1.userID, email: item1.email, count: 1 });
+                    } else {
+                        buyingList[index].count++;
+                    }
+                });
+
+                // 經常購買者清單
+                const usuallyBuyingStandard = 4.5;
+                const usuallyBuyingList = buyingList.filter((item) => item.count > usuallyBuyingStandard);
+
+                // 從未購買者清單
+                const neverBuyingData = await db.query(
+                    `SELECT userID, JSON_UNQUOTE(JSON_EXTRACT(userData, '$.email')) AS email
+                    FROM \`${this.app}\`.t_user
+                    WHERE userID not in (${buyingList.map((item) => item.userID).join(',')})`,
+                    []
+                );
+
+                dataList = dataList.concat([
+                    { type: 'neverBuying', title: '尚未購買過的顧客', users: neverBuyingData },
+                    { type: 'usuallyBuying', title: '已購買多次的顧客', users: usuallyBuyingList },
+                ]);
+            }
+
+            // 會員等級
+            if (pass('level')) {
+                const levelData = await this.getConfigV2({ key: 'member_level_config', user_id: 'manager' });
+                const levels = levelData.levels
+                    .map((item: any) => {
+                        return { id: item.id, name: item.tag_name };
+                    })
+                    .filter((item: any) => {
+                        return tag ? item.id === tag : true;
+                    });
+                const memberUpdates = await db.query(
+                    `SELECT * FROM \`${this.app}\`.t_user_public_config 
+                        WHERE \`key\` = 'member_update';`,
+                    []
+                );
+                for (const level of levels) {
+                    const ids = [];
+                    for (const member of memberUpdates) {
+                        const member_level = member.value.value.find((v: { trigger: boolean }) => v.trigger);
+                        if (member_level && member_level.id === level.id) {
+                            ids.push(member.user_id);
+                        }
+                    }
+                    if (ids.length > 0) {
+                        const levelList = await db.query(
+                            `SELECT userID, JSON_UNQUOTE(JSON_EXTRACT(userData, '$.email')) AS email
+                            FROM \`${this.app}\`.t_user
+                            WHERE userID in (${ids.join(',')})`,
+                            []
+                        );
+                        dataList.push({ type: 'level', title: `會員等級 - ${level.name}`, tag: level.id, users: levelList });
+                    }
+                }
+            }
+
+            if (type) {
+                dataList = dataList.filter((item) => type.includes(item.type));
+            }
+
             return {
-                result: selectType.length > 0,
-                data: selectType,
+                result: dataList.length > 0,
+                data: dataList.map((data) => {
+                    data.count = data.users.length;
+                    return data;
+                }),
             };
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'getUserGroups Error:' + e, null);

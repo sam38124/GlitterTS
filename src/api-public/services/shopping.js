@@ -57,8 +57,8 @@ class Shopping {
             query.status && querySql.push(`(JSON_EXTRACT(content, '$.status') = '${query.status}')`);
             query.min_price && querySql.push(`(id in (select product_id from \`${this.app}\`.t_variants where content->>'$.sale_price'>=${query.min_price})) `);
             query.max_price && querySql.push(`(id in (select product_id from \`${this.app}\`.t_variants where content->>'$.sale_price'<=${query.max_price})) `);
-            const data = await this.querySql(querySql, query);
-            const productList = Array.isArray(data.data) ? data.data : [data.data];
+            const products = await this.querySql(querySql, query);
+            const productList = Array.isArray(products.data) ? products.data : [products.data];
             if (this.token && this.token.userID) {
                 for (const b of productList) {
                     b.content.in_wish_list =
@@ -67,6 +67,24 @@ class Shopping {
                                  WHERE (content ->>'$.type'='wishlist')
                                    and userID = ${this.token.userID}
                                    and (content ->>'$.product_id'=${b.id})`, []))[0]['count(1)'] == '1';
+                }
+            }
+            const checkoutSQL = `
+                SELECT JSON_EXTRACT(orderData, '$.lineItems') as lineItems
+                FROM \`${this.app}\`.t_checkout
+                WHERE status = 1;
+            `;
+            const checkouts = await database_js_1.default.query(checkoutSQL, []);
+            const itemRecord = [];
+            for (const checkout of checkouts) {
+                for (const item1 of checkout.lineItems) {
+                    const index = itemRecord.findIndex((item2) => item1.id === item2.id);
+                    if (index === -1) {
+                        itemRecord.push({ id: parseInt(`${item1.id}`, 10), count: item1.count });
+                    }
+                    else {
+                        itemRecord[index].count += item1.count;
+                    }
                 }
             }
             if (productList.length > 0) {
@@ -103,7 +121,12 @@ class Shopping {
                 }
                 await trans.commit();
             }
-            return data;
+            products.data.map((product) => {
+                const record = itemRecord.find((item) => item.id === product.id);
+                product.total_sales = record ? record.count : 0;
+                return product;
+            });
+            return products;
         }
         catch (e) {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'GetProduct Error:' + e, null);
@@ -1015,12 +1038,13 @@ class Shopping {
     }
     async resetVoucherHistory() {
         try {
+            const resetMins = 10;
             const now = (0, moment_1.default)().tz('Asia/Taipei').format('YYYY-MM-DD HH:mm:ss');
             await database_js_1.default.query(`
                     UPDATE \`${this.app}\`.t_voucher_history
                     SET status = 0
                     WHERE status = 2
-                      AND updated_at < DATE_SUB('${now}', INTERVAL 2 MINUTE);`, []);
+                      AND updated_at < DATE_SUB('${now}', INTERVAL ${resetMins} MINUTE);`, []);
         }
         catch (error) {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'insertVoucherHistory Error:' + express_1.default, null);
@@ -1188,7 +1212,7 @@ class Shopping {
             const checkoutSQL = `
                 SELECT JSON_EXTRACT(orderData, '$.lineItems') as lineItems
                 FROM \`${this.app}\`.t_checkout
-                WHERE created_time BETWEEN DATE_SUB(NOW(), INTERVAL 1 MONTH) AND NOW();
+                WHERE status = 1 AND (created_time BETWEEN DATE_SUB(NOW(), INTERVAL 1 MONTH) AND NOW());
             `;
             const checkouts = await database_js_1.default.query(checkoutSQL, []);
             const series = [];
@@ -1523,12 +1547,6 @@ class Shopping {
         try {
             content.type = 'product';
             this.checkVariantDataType(content.variants);
-            console.log([
-                {
-                    content: JSON.stringify(content),
-                },
-                content.id,
-            ]);
             const data = await database_js_1.default.query(`update \`${this.app}\`.\`t_manager_post\`
                  SET ? where id=?`, [
                 {

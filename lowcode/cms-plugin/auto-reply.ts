@@ -116,7 +116,6 @@ export class AutoReply {
                                 BgWidget.mainCard(
                                     BgWidget.tableV2({
                                         gvc: gvc,
-                                        editable: true,
                                         getData: async (vmk) => {
                                             const appData = await ApiUser.getPublicConfig('store-information', 'manager');
                                             vmi = vmk;
@@ -132,7 +131,7 @@ export class AutoReply {
                                                 'auto-email-welcome',
                                                 'auto-email-verify',
                                                 'auto-email-forget',
-                                                  'get-customer-message'
+                                                'get-customer-message',
                                             ];
                                             let index = 0;
                                             for (const b of vm.dataList) {
@@ -337,7 +336,8 @@ export class AutoReply {
                 title: '[@{{app_name}}] 重設密碼',
                 name: '@{{app_name}}',
                 toggle: true,
-            },{
+            },
+            {
                 tag: 'get-customer-message',
                 tag_name: '客服訊息',
                 content: ` <table width="100%" border="0" cellpadding="0" cellspacing="0"
@@ -469,7 +469,7 @@ export class AutoReply {
                 title: '[@{{app_name}}] 收到客服訊息',
                 name: '@{{app_name}}',
                 toggle: true,
-            }
+            },
         ];
         const keyData = await ApiUser.getPublicConfig(tag, 'manager');
         const b = dataList.find((dd: any) => {

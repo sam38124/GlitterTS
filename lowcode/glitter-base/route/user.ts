@@ -249,8 +249,21 @@ export class ApiUser {
         return list;
     }
 
-    public static getUserListOrders(json: { limit: number; page: number; search?: string; id?: string; searchType?: string; orderString?: string; filter?: any; status?: number; group?: string }) {
+    public static userListGroupString(obj: any): string[] {
+        if (!obj) return [];
+        let list = [] as string[];
+        if (obj.type && obj.type.length > 0) {
+            list.push(`groupType=${obj.type}`);
+        }
+        if (obj.tag && obj.tag.length > 0) {
+            list.push(`groupTag=${obj.tag}`);
+        }
+        return list;
+    }
+
+    public static getUserListOrders(json: { limit: number; page: number; search?: string; id?: string; searchType?: string; orderString?: string; filter?: any; status?: number; group?: any }) {
         const filterString = this.userListFilterString(json.filter);
+        const groupString = this.userListGroupString(json.group);
         const userData = BaseApi.create({
             url:
                 getBaseUrl() +
@@ -260,8 +273,8 @@ export class ApiUser {
                     json.id && par.push(`id=${json.id}`);
                     json.searchType && par.push(`searchType=${json.searchType}`);
                     json.orderString && par.push(`order_string=${json.orderString}`);
-                    json.group && par.push(`group=${json.group}`);
                     filterString.length > 0 && par.push(filterString.join('&'));
+                    groupString.length > 0 && par.push(groupString.join('&'));
                     return par.join('&');
                 })()}`,
             type: 'GET',

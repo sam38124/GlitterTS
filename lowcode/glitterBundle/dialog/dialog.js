@@ -4,74 +4,115 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
         onCreateView: () => {
             var _a, _b, _c;
             const html = String.raw;
+            gvc.addStyle(`
+                .dialog-box {
+                    width: 100vw;
+                    height: 100vh;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    background-color: rgba(0, 0, 0, 0.5);
+                    z-index: 10000;
+                }
+
+                .dialog-content {
+                    width: 200px;
+                    background: white;
+                    padding: 24px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    flex-direction: column;
+                    border-radius: 0.5rem;
+                    margin: auto;
+                    box-shadow: 0 0.275rem 1.25rem rgba(19, 16, 34, 0.05), 0 0.25rem 0.5625rem rgba(19, 16, 34, 0.03);
+                    color: #393939;
+                    letter-spacing: 1px;
+                }
+
+                .dialog-absolute {
+                    width: 100%;
+                    border-top: 1px solid #e2e5f1;
+                    position: absolute;
+                    left: 0px;
+                    bottom: 0px;
+                    height: 40px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    cursor: pointer;
+                }
+
+                .hover-cancel:hover {
+                    background-color: #fff;
+                    border-radius: 0 0 0 cssㄏ0.5rem;
+                }
+
+                .hover-cancel:hover {
+                    background-color: #e6e6e6;
+                }
+
+                .hover-save {
+                    background-color: #393939;
+                    border-radius: 0 0 0.5rem;
+                }
+
+                .hover-save:hover {
+                    background-color: #646464;
+                }
+            `);
             switch (gBundle.type) {
                 case 'dataLoading':
-                    return html ` <div class="vw-100 vh-100 d-flex align-items-center justify-content-center" style="background-color: rgba(0,0,0,0.5);z-index: 10000;">
-                        <div class="m-auto rounded-3 shadow" style="width: 200px;background: white;padding: 24px;display: flex;align-items: center;justify-content: center;flex-direction: column;">
-                            <div class="spinner-border" style="font-size: 50px;color: #393939;"></div>
-                            <div class="mt-3 fs-6 fw-500" style="color: #393939;">${(_a = gBundle.obj.text) !== null && _a !== void 0 ? _a : '請稍候...'}</div>
+                    return html ` <div class="dialog-box">
+                        <div class="dialog-content">
+                            <div class="spinner-border fs-1"></div>
+                            <div class="mt-3 fs-6 fw-500">${(_a = gBundle.obj.text) !== null && _a !== void 0 ? _a : '請稍候...'}</div>
                         </div>
                     </div>`;
                 case 'errorMessage':
                     return html `
-                        <div class="vw-100 vh-100 d-flex align-items-center justify-content-center" style="background-color: rgba(0,0,0,0.5);z-index: 10000;">
-                            <div
-                                class="m-auto rounded-3 shadow"
-                                style="width: 200px;background: white;padding: 24px;display: flex;align-items: center;justify-content: center;flex-direction: column;position: relative;padding-bottom: 50px;"
-                            >
-                                <i class="fa-solid fa-triangle-exclamation" style="font-size: 50px;color: #393939;" aria-hidden="true"></i>
-                                <div class="mt-3 fs-6 fw-500" style="color: #393939;letter-spacing: 1px;">${(_b = gBundle.obj.text) !== null && _b !== void 0 ? _b : '錯誤!'}</div>
-                                <div
-                                    class="w-100 border-top"
-                                    style="position: absolute;left: 0px;bottom: 0px;height: 40px;display: flex;align-items: center;justify-content: center;cursor: pointer;"
-                                    onclick="${gvc.event(() => gvc.closeDialog())}"
-                                >
-                                    <div class="fw-500" style="color: #393939;font-size: 15px;">關閉</div>
+                        <div class="dialog-box">
+                            <div class="dialog-content position-relative pb-5">
+                                <i class="fa-solid fa-triangle-exclamation fs-1"></i>
+                                <div class="my-3 fs-6 fw-500">${(_b = gBundle.obj.text) !== null && _b !== void 0 ? _b : '發生錯誤'}</div>
+                                <div class="dialog-absolute" onclick="${gvc.event(() => gvc.closeDialog())}">
+                                    <div class="fs-6 fw-500">關閉</div>
                                 </div>
                             </div>
                         </div>
                     `;
                 case 'successMessage':
-                    setTimeout(() => {
-                        gvc.closeDialog();
-                    }, 1000);
+                    setTimeout(() => gvc.closeDialog(), 1200);
                     return html `
-                        <div class="vw-100 vh-100 position-fixed top-0 left-0 d-flex align-items-center justify-content-center" style="background-color: rgba(0,0,0,0.5);z-index: 10000;">
-                            <div
-                                class="m-auto rounded-3 shadow"
-                                style="width: 200px;background: white;padding: 24px;display: flex;align-items: center;justify-content: center;flex-direction: column;  "
-                            >
-                                <i class="fa-regular fa-circle-check" style="font-size: 50px;color: #393939;  " aria-hidden="true"></i>
-                                <div class="mt-3 fs-6 fw-500" style="color: #393939;  ">${(_c = gBundle.obj.text) !== null && _c !== void 0 ? _c : '成功!'}</div>
+                        <div class="dialog-box">
+                            <div class="dialog-content">
+                                <i class="fa-regular fa-circle-check fs-1"></i>
+                                <div class="mt-3 fs-6 fw-500">${(_c = gBundle.obj.text) !== null && _c !== void 0 ? _c : '成功'}</div>
                             </div>
                         </div>
                     `;
                 case 'checkYesOrNot':
                     return html `
-                        <div class="vw-100 vh-100 position-fixed top-0 left-0 d-flex align-items-center justify-content-center" style="background-color: rgba(0,0,0,0.5);z-index: 10000;">
-                            <div style="width: 250px;background-color: white;border-radius: 5px;display: flex;flex-direction: column;align-items: center;">
-                                <h3
-                                    style="height:40px;font-size:20px;color: black;margin-top: 5px;margin-bottom: 5px;border-bottom: whitesmoke solid 1px;width: 100%;display: flex;align-items: center;justify-content: center;flex-direction: column;"
-                                >
-                                    再次確認
-                                </h3>
-                                <h3 class="text-danger fw-bold my-2 mx-2" style="font-size: 16px;">${gBundle.title}</h3>
-                                <div class="mb-2 border-top pt-2 mt-2" style="display: flex;width: 100%;justify-content: space-around;">
+                        <div class="dialog-box">
+                            <div class="dialog-content position-relative pb-5" style="width: 270px;">
+                                <i class="fa-regular fa-circle-question fs-1"></i>
+                                <div class="my-3 fs-6 fw-500">${gBundle.title}</div>
+                                <div class="dialog-absolute">
                                     <div
-                                        style="height:35px;border-radius: 5px;border:1px solid gray;color: black;width: calc(50% - 15px);display: flex;align-items: center;justify-content: center;cursor: pointer;"
+                                        class="w-100 h-100 text-center pt-2 hover-cancel"
                                         onclick="${gvc.event(() => {
                         gBundle.callback(false);
                     })}"
                                     >
-                                        取消
+                                        <span class="fw-500 fs-6">取消</span>
                                     </div>
                                     <div
-                                        style="height:35px;border-radius: 5px;background-color: dodgerblue;color: white;width: calc(50% - 15px);display: flex;align-items: center;justify-content: center;cursor: pointer;"
+                                        class="w-100 h-100 text-center pt-2 hover-save"
                                         onclick="${gvc.event(() => {
                         gBundle.callback(true);
                     })}"
                                     >
-                                        確定
+                                        <span class="fw-500 fs-6 text-white">確認</span>
                                     </div>
                                 </div>
                             </div>

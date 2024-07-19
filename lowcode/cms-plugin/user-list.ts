@@ -26,7 +26,7 @@ interface ViewModel {
 }
 
 export class UserList {
-    public static main(gvc: GVC, obj?: { group: { type: string; title: string; count: number }; backButtonEvent: string }) {
+    public static main(gvc: GVC, obj?: { group?: { type: string; title: string }; backButtonEvent?: string }) {
         const glitter = gvc.glitter;
 
         const vm: ViewModel = {
@@ -124,7 +124,7 @@ export class UserList {
                         html`
                             <div class="d-flex w-100 align-items-center">
                                 ${(() => {
-                                    if (obj && obj.group) {
+                                    if (obj && obj.group && obj.backButtonEvent) {
                                         return BgWidget.goBack(obj.backButtonEvent) + BgWidget.title(obj.group.title);
                                     }
                                     return BgWidget.title('顧客列表');
@@ -223,7 +223,7 @@ export class UserList {
                                                             searchType: vm.queryType || 'name',
                                                             orderString: vm.orderString || '',
                                                             filter: vm.filter,
-                                                            group: obj && obj.group ? obj.group.type : undefined,
+                                                            group: obj && obj.group ? obj.group : {},
                                                         }).then((data) => {
                                                             vmi.pageSize = Math.ceil(data.response.total / limit);
                                                             vm.dataList = data.response.data;
@@ -239,13 +239,14 @@ export class UserList {
                                                         return {
                                                             bind: vm.filterId,
                                                             view: () => {
-                                                                return [
-                                                                    html`<span class="fs-7 fw-bold">操作選項</span
-                                                                        ><button
-                                                                            class="btn btn-danger fs-7 px-2"
-                                                                            style="height: 30px; border: none;"
-                                                                            onclick="${gvc.event(() => {
-                                                                                const dialog = new ShareDialog(gvc.glitter);
+                                                                const dialog = new ShareDialog(gvc.glitter);
+                                                                const selCount = vm.dataList.filter((dd: any) => dd.checked).length;
+                                                                return BgWidget.selNavbar({
+                                                                    count: selCount,
+                                                                    buttonList: [
+                                                                        BgWidget.selEventButton(
+                                                                            '批量移除',
+                                                                            gvc.event(() => {
                                                                                 dialog.checkYesOrNot({
                                                                                     text: '是否確認移除所選項目?',
                                                                                     callback: (response) => {
@@ -272,17 +273,16 @@ export class UserList {
                                                                                         }
                                                                                     },
                                                                                 });
-                                                                            })}"
-                                                                        >
-                                                                            批量移除
-                                                                        </button>`,
-                                                                ].join(``);
+                                                                            })
+                                                                        ),
+                                                                    ],
+                                                                });
                                                             },
                                                             divCreate: () => {
                                                                 const display = !vm.dataList || !vm.dataList.find((dd: any) => dd.checked) ? 'd-none' : '';
                                                                 return {
                                                                     class: `d-flex align-items-center p-2 ${display}`,
-                                                                    style: `height: 40px; gap: 10px; margin-top: 10px;`,
+                                                                    style: ``,
                                                                 };
                                                             },
                                                         };
@@ -1086,44 +1086,44 @@ export class UserList {
                                                     ) {
                                                         return ``;
                                                     } else {
-                                                        return [
-                                                            html`<span class="fs-7 fw-bold">操作選項</span>`,
-                                                            html`<button
-                                                                class="btn btn-danger fs-7 px-2"
-                                                                style="height:30px;border:none;"
-                                                                onclick="${gvc.event(() => {
-                                                                    const dialog = new ShareDialog(gvc.glitter);
-                                                                    dialog.checkYesOrNot({
-                                                                        text: '是否確認移除所選項目?',
-                                                                        callback: (response) => {
-                                                                            if (response) {
-                                                                                dialog.dataLoading({ visible: true });
-                                                                                ApiUser.deleteUser({
-                                                                                    id: vm.dataList
-                                                                                        .filter((dd: any) => {
-                                                                                            return dd.checked;
-                                                                                        })
-                                                                                        .map((dd: any) => {
-                                                                                            return dd.id;
-                                                                                        })
-                                                                                        .join(`,`),
-                                                                                }).then((res) => {
-                                                                                    dialog.dataLoading({ visible: false });
-                                                                                    if (res.result) {
-                                                                                        vm.dataList = undefined;
-                                                                                        gvc.notifyDataChange(id);
-                                                                                    } else {
-                                                                                        dialog.errorMessage({ text: '刪除失敗' });
-                                                                                    }
-                                                                                });
-                                                                            }
-                                                                        },
-                                                                    });
-                                                                })}"
-                                                            >
-                                                                批量移除
-                                                            </button>`,
-                                                        ].join(``);
+                                                        const dialog = new ShareDialog(gvc.glitter);
+                                                        const selCount = vm.dataList.filter((dd: any) => dd.checked).length;
+                                                        return BgWidget.selNavbar({
+                                                            count: selCount,
+                                                            buttonList: [
+                                                                BgWidget.selEventButton(
+                                                                    '批量移除',
+                                                                    gvc.event(() => {
+                                                                        dialog.checkYesOrNot({
+                                                                            text: '是否確認移除所選項目?',
+                                                                            callback: (response) => {
+                                                                                if (response) {
+                                                                                    dialog.dataLoading({ visible: true });
+                                                                                    ApiUser.deleteUser({
+                                                                                        id: vm.dataList
+                                                                                            .filter((dd: any) => {
+                                                                                                return dd.checked;
+                                                                                            })
+                                                                                            .map((dd: any) => {
+                                                                                                return dd.id;
+                                                                                            })
+                                                                                            .join(`,`),
+                                                                                    }).then((res) => {
+                                                                                        dialog.dataLoading({ visible: false });
+                                                                                        if (res.result) {
+                                                                                            vm.dataList = undefined;
+                                                                                            gvc.notifyDataChange(id);
+                                                                                        } else {
+                                                                                            dialog.errorMessage({ text: '刪除失敗' });
+                                                                                        }
+                                                                                    });
+                                                                                }
+                                                                            },
+                                                                        });
+                                                                    })
+                                                                ),
+                                                            ],
+                                                        });
                                                     }
                                                 },
                                                 divCreate: () => {
@@ -1137,7 +1137,7 @@ export class UserList {
                                                                 ? `d-none`
                                                                 : ``
                                                         }`,
-                                                        style: `height:40px;gap:10px;margin-top:10px;`,
+                                                        style: ``,
                                                     };
                                                 },
                                             };

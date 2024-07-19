@@ -369,9 +369,14 @@ export class ShoppingRebate {
                                                                     return dd.checked;
                                                                 })
                                                             ) {
-                                                                return ``;
+                                                                return '';
                                                             } else {
-                                                                return html`<span class="fs-7 fw-bold">操作選項</span>`;
+                                                                const dialog = new ShareDialog(gvc.glitter);
+                                                                const selCount = vm.dataList.filter((dd: any) => dd.checked).length;
+                                                                return BgWidget.selNavbar({
+                                                                    count: selCount,
+                                                                    buttonList: [],
+                                                                });
                                                             }
                                                         },
                                                         divCreate: () => {
@@ -384,7 +389,7 @@ export class ShoppingRebate {
                                                                         ? `d-none`
                                                                         : ``
                                                                 }`,
-                                                                style: `height:40px; gap:10px; margin-top:10px;`,
+                                                                style: ``,
                                                             };
                                                         },
                                                     };

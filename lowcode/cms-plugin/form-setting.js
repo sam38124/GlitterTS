@@ -118,39 +118,42 @@ export class FormSetting {
                                 return {
                                     bind: filterID,
                                     view: () => {
-                                        return [
-                                            `<span class="fs-7 fw-bold">操作選項</span>`,
-                                            `<button class="btn btn-danger fs-7 px-2" style="height:30px;border:none;" onclick="${gvc.event(() => {
-                                                const dialog = new ShareDialog(gvc.glitter);
-                                                dialog.checkYesOrNot({
-                                                    text: '是否確認移除所選項目?',
-                                                    callback: (response) => {
-                                                        if (response) {
-                                                            dialog.dataLoading({ visible: true });
-                                                            ApiPost.delete({
-                                                                id: vm.dataList
-                                                                    .filter((dd) => {
-                                                                    return dd.checked;
-                                                                })
-                                                                    .map((dd) => {
-                                                                    return dd.id;
-                                                                })
-                                                                    .join(`,`),
-                                                            }).then((res) => {
-                                                                dialog.dataLoading({ visible: false });
-                                                                if (res.result) {
-                                                                    vm.dataList = undefined;
-                                                                    gvc.notifyDataChange(id);
-                                                                }
-                                                                else {
-                                                                    dialog.errorMessage({ text: '刪除失敗' });
-                                                                }
-                                                            });
-                                                        }
-                                                    },
-                                                });
-                                            })}">批量移除</button>`,
-                                        ].join(``);
+                                        const dialog = new ShareDialog(gvc.glitter);
+                                        const selCount = vm.dataList.filter((dd) => dd.checked).length;
+                                        return BgWidget.selNavbar({
+                                            count: selCount,
+                                            buttonList: [
+                                                BgWidget.selEventButton('批量移除', gvc.event(() => {
+                                                    dialog.checkYesOrNot({
+                                                        text: '是否確認移除所選項目?',
+                                                        callback: (response) => {
+                                                            if (response) {
+                                                                dialog.dataLoading({ visible: true });
+                                                                ApiPost.delete({
+                                                                    id: vm.dataList
+                                                                        .filter((dd) => {
+                                                                        return dd.checked;
+                                                                    })
+                                                                        .map((dd) => {
+                                                                        return dd.id;
+                                                                    })
+                                                                        .join(`,`),
+                                                                }).then((res) => {
+                                                                    dialog.dataLoading({ visible: false });
+                                                                    if (res.result) {
+                                                                        vm.dataList = undefined;
+                                                                        gvc.notifyDataChange(id);
+                                                                    }
+                                                                    else {
+                                                                        dialog.errorMessage({ text: '刪除失敗' });
+                                                                    }
+                                                                });
+                                                            }
+                                                        },
+                                                    });
+                                                })),
+                                            ],
+                                        });
                                     },
                                     divCreate: () => {
                                         return {
@@ -160,7 +163,7 @@ export class FormSetting {
                                                 })
                                                 ? `d-none`
                                                 : ``}`,
-                                            style: `height:40px;gap:10px;margin-top:10px;`,
+                                            style: ``,
                                         };
                                     },
                                 };
@@ -283,45 +286,42 @@ export class FormSetting {
                                 return {
                                     bind: filterID,
                                     view: () => {
-                                        return [
-                                            html `<span class="fs-7 fw-bold">操作選項</span>`,
-                                            html `<button
-                                                                    class="btn btn-danger fs-7 px-2"
-                                                                    style="height:30px;border:none;"
-                                                                    onclick="${gvc.event(() => {
-                                                const dialog = new ShareDialog(gvc.glitter);
-                                                dialog.checkYesOrNot({
-                                                    text: '是否確認移除所選項目?',
-                                                    callback: (response) => {
-                                                        if (response) {
-                                                            dialog.dataLoading({ visible: true });
-                                                            ApiPost.deleteUserPost({
-                                                                id: vm.dataList
-                                                                    .filter((dd) => {
-                                                                    return dd.checked;
-                                                                })
-                                                                    .map((dd) => {
-                                                                    return dd.id;
-                                                                })
-                                                                    .join(`,`),
-                                                            }).then((res) => {
-                                                                dialog.dataLoading({ visible: false });
-                                                                if (res.result) {
-                                                                    vm.dataList = undefined;
-                                                                    gvc.notifyDataChange(id);
-                                                                }
-                                                                else {
-                                                                    dialog.errorMessage({ text: '刪除失敗' });
-                                                                }
-                                                            });
-                                                        }
-                                                    },
-                                                });
-                                            })}"
-                                                                >
-                                                                    批量移除
-                                                                </button>`,
-                                        ].join(``);
+                                        const dialog = new ShareDialog(gvc.glitter);
+                                        const selCount = vm.dataList.filter((dd) => dd.checked).length;
+                                        return BgWidget.selNavbar({
+                                            count: selCount,
+                                            buttonList: [
+                                                BgWidget.selEventButton('批量移除', gvc.event(() => {
+                                                    dialog.checkYesOrNot({
+                                                        text: '是否確認移除所選項目?',
+                                                        callback: (response) => {
+                                                            if (response) {
+                                                                dialog.dataLoading({ visible: true });
+                                                                ApiPost.deleteUserPost({
+                                                                    id: vm.dataList
+                                                                        .filter((dd) => {
+                                                                        return dd.checked;
+                                                                    })
+                                                                        .map((dd) => {
+                                                                        return dd.id;
+                                                                    })
+                                                                        .join(`,`),
+                                                                }).then((res) => {
+                                                                    dialog.dataLoading({ visible: false });
+                                                                    if (res.result) {
+                                                                        vm.dataList = undefined;
+                                                                        gvc.notifyDataChange(id);
+                                                                    }
+                                                                    else {
+                                                                        dialog.errorMessage({ text: '刪除失敗' });
+                                                                    }
+                                                                });
+                                                            }
+                                                        },
+                                                    });
+                                                })),
+                                            ],
+                                        });
                                     },
                                     divCreate: () => {
                                         return {
@@ -331,7 +331,7 @@ export class FormSetting {
                                                 })
                                                 ? `d-none`
                                                 : ``}`,
-                                            style: `height:40px;gap:10px;margin-top:10px;`,
+                                            style: ``,
                                         };
                                     },
                                 };

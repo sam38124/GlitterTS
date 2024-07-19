@@ -36,7 +36,7 @@ exports.createEC2Instance = createEC2Instance;
 async function terminateInstances(instanceId) {
     const ec2 = new aws_sdk_1.default.EC2();
     const params = {
-        InstanceIds: [instanceId]
+        InstanceIds: [instanceId],
     };
     try {
         const data = await ec2.terminateInstances(params).promise();
@@ -52,7 +52,7 @@ exports.terminateInstances = terminateInstances;
 function getEC2INFO(instanceId) {
     const ec2 = new aws_sdk_1.default.EC2();
     const params = {
-        InstanceIds: [instanceId]
+        InstanceIds: [instanceId],
     };
     return new Promise((resolve, reject) => {
         ec2.describeInstances(params, (err, data) => {

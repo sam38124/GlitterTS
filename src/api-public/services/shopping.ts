@@ -58,6 +58,16 @@ interface ShipmentConfig {
     selectCalc: 'volume' | 'weight';
 }
 
+interface ProductItem {
+    id: number;
+    userID: number;
+    content: any;
+    created_time: Date | string;
+    updated_time: Date | string;
+    status: number;
+    total_sales?: number;
+}
+
 export class Shopping {
     public app: string;
     public token?: IToken;
@@ -118,10 +128,10 @@ export class Shopping {
             query.status && querySql.push(`(JSON_EXTRACT(content, '$.status') = '${query.status}')`);
             query.min_price && querySql.push(`(id in (select product_id from \`${this.app}\`.t_variants where content->>'$.sale_price'>=${query.min_price})) `);
             query.max_price && querySql.push(`(id in (select product_id from \`${this.app}\`.t_variants where content->>'$.sale_price'<=${query.max_price})) `);
-            const data = await this.querySql(querySql, query);
+            const products = await this.querySql(querySql, query);
 
             // 產品清單
-            const productList = Array.isArray(data.data) ? data.data : [data.data];
+            const productList = Array.isArray(products.data) ? products.data : [products.data];
 
             // 許願清單判斷
             if (this.token && this.token.userID) {
@@ -137,6 +147,26 @@ export class Shopping {
                                 []
                             )
                         )[0]['count(1)'] == '1';
+                }
+            }
+
+            // 售出數量計算
+            const checkoutSQL = `
+                SELECT JSON_EXTRACT(orderData, '$.lineItems') as lineItems
+                FROM \`${this.app}\`.t_checkout
+                WHERE status = 1;
+            `;
+            const checkouts = await db.query(checkoutSQL, []);
+            const itemRecord: { id: number; count: number }[] = [];
+
+            for (const checkout of checkouts) {
+                for (const item1 of checkout.lineItems) {
+                    const index = itemRecord.findIndex((item2) => item1.id === item2.id);
+                    if (index === -1) {
+                        itemRecord.push({ id: parseInt(`${item1.id}`, 10), count: item1.count });
+                    } else {
+                        itemRecord[index].count += item1.count;
+                    }
                 }
             }
 
@@ -187,7 +217,13 @@ export class Shopping {
                 await trans.commit();
             }
 
-            return data;
+            products.data.map((product: ProductItem) => {
+                const record = itemRecord.find((item) => item.id === product.id);
+                product.total_sales = record ? record.count : 0;
+                return product;
+            });
+
+            return products;
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'GetProduct Error:' + e, null);
         }
@@ -1405,13 +1441,14 @@ export class Shopping {
 
     public async resetVoucherHistory() {
         try {
+            const resetMins = 10;
             const now = moment().tz('Asia/Taipei').format('YYYY-MM-DD HH:mm:ss');
             await db.query(
                 `
                     UPDATE \`${this.app}\`.t_voucher_history
                     SET status = 0
                     WHERE status = 2
-                      AND updated_at < DATE_SUB('${now}', INTERVAL 2 MINUTE);`,
+                      AND updated_at < DATE_SUB('${now}', INTERVAL ${resetMins} MINUTE);`,
                 []
             );
         } catch (error) {
@@ -1602,7 +1639,7 @@ export class Shopping {
             const checkoutSQL = `
                 SELECT JSON_EXTRACT(orderData, '$.lineItems') as lineItems
                 FROM \`${this.app}\`.t_checkout
-                WHERE created_time BETWEEN DATE_SUB(NOW(), INTERVAL 1 MONTH) AND NOW();
+                WHERE status = 1 AND (created_time BETWEEN DATE_SUB(NOW(), INTERVAL 1 MONTH) AND NOW());
             `;
             const checkouts = await db.query(checkoutSQL, []);
             const series = [];

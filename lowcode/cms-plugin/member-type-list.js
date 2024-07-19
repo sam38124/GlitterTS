@@ -11,16 +11,19 @@ import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
 import { BgWidget } from '../backend-manager/bg-widget.js';
 import { ApiUser } from '../glitter-base/route/user.js';
 import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
+import { UserList } from './user-list.js';
 export class MemberTypeList {
     static main(gvc, widget) {
         const html = String.raw;
         const glitter = gvc.glitter;
         let callback = (data) => { };
         const vm = {
+            id: gvc.glitter.getUUID(),
             type: 'list',
             index: 0,
             dataList: undefined,
             query: '',
+            group: { type: 'level', title: '', tag: '' },
         };
         const filterID = gvc.glitter.getUUID();
         let vmi = undefined;
@@ -66,7 +69,8 @@ export class MemberTypeList {
                     },
                     {
                         key: '有效期限',
-                        value: `<span class="fs-7">${(() => {
+                        value: html `<span class="fs-7"
+                            >${(() => {
                             const index = [30, 90, 180, 365].findIndex((d1) => {
                                 return parseInt(dd.dead_line.value, 10) === d1;
                             });
@@ -81,7 +85,8 @@ export class MemberTypeList {
                             else {
                                 return `永久`;
                             }
-                        })()}</span>`,
+                        })()}</span
+                        >`,
                     },
                     {
                         key: '會員名稱',
@@ -91,13 +96,23 @@ export class MemberTypeList {
                         key: '會員數',
                         value: `<span class="fs-7">${dd.counts}</span>`,
                     },
+                    {
+                        key: '',
+                        value: dd.counts > 0
+                            ? BgWidget.grayButton('查閱名單', gvc.event((e, event) => {
+                                event.stopPropagation();
+                                vm.type = 'userList';
+                                vm.group = { type: 'level', title: dd.tag_name, tag: dd.id };
+                                gvc.notifyDataChange(vm.id);
+                            }), { textStyle: 'font-weight: normal; font-size: 14px;' })
+                            : '',
+                    },
                 ];
             });
         }
         return gvc.bindView(() => {
-            const id = glitter.getUUID();
             return {
-                bind: id,
+                bind: vm.id,
                 dataList: [{ obj: vm, key: 'type' }],
                 view: () => {
                     if (vm.type === 'list') {
@@ -107,7 +122,7 @@ export class MemberTypeList {
                                     <div class="flex-fill"></div>
                                     ${BgWidget.darkButton('新增', gvc.event(() => {
                             vm.type = 'add';
-                            gvc.notifyDataChange(id);
+                            gvc.notifyDataChange(vm.id);
                         }))}
                                 </div>
                                 ${BgWidget.container(BgWidget.mainCard(BgWidget.tableV2({
@@ -139,41 +154,44 @@ export class MemberTypeList {
                                 return {
                                     bind: filterID,
                                     view: () => {
-                                        return [
-                                            `<span class="fs-7 fw-bold">操作選項</span>`,
-                                            `<button class="btn btn-danger fs-7 px-2" style="height:30px;border:none;" onclick="${gvc.event(() => {
-                                                const dialog = new ShareDialog(gvc.glitter);
-                                                dialog.checkYesOrNot({
-                                                    text: '是否確認移除所選項目?',
-                                                    callback: (response) => {
-                                                        if (response) {
-                                                            widget.event('loading', {
-                                                                title: '設定中...',
-                                                            });
-                                                            ApiUser.setPublicConfig({
-                                                                key: 'member_level_config',
-                                                                user_id: 'manager',
-                                                                value: {
-                                                                    levels: vm.dataList.filter((dd) => {
-                                                                        return !dd.checked;
-                                                                    }),
-                                                                },
-                                                            }).then(() => {
-                                                                setTimeout(() => {
-                                                                    widget.event('loading', {
-                                                                        visible: false,
-                                                                    });
-                                                                    widget.event('success', {
-                                                                        title: '設定成功',
-                                                                    });
-                                                                    gvc.notifyDataChange(id);
-                                                                }, 500);
-                                                            });
-                                                        }
-                                                    },
-                                                });
-                                            })}">批量移除</button>`,
-                                        ].join(``);
+                                        const dialog = new ShareDialog(gvc.glitter);
+                                        const selCount = vm.dataList.filter((dd) => dd.checked).length;
+                                        return BgWidget.selNavbar({
+                                            count: selCount,
+                                            buttonList: [
+                                                BgWidget.selEventButton('批量移除', gvc.event(() => {
+                                                    dialog.checkYesOrNot({
+                                                        text: '是否確認移除所選項目?',
+                                                        callback: (response) => {
+                                                            if (response) {
+                                                                widget.event('loading', {
+                                                                    title: '設定中...',
+                                                                });
+                                                                ApiUser.setPublicConfig({
+                                                                    key: 'member_level_config',
+                                                                    user_id: 'manager',
+                                                                    value: {
+                                                                        levels: vm.dataList.filter((dd) => {
+                                                                            return !dd.checked;
+                                                                        }),
+                                                                    },
+                                                                }).then(() => {
+                                                                    setTimeout(() => {
+                                                                        widget.event('loading', {
+                                                                            visible: false,
+                                                                        });
+                                                                        widget.event('success', {
+                                                                            title: '設定成功',
+                                                                        });
+                                                                        gvc.notifyDataChange(vm.id);
+                                                                    }, 500);
+                                                                });
+                                                            }
+                                                        },
+                                                    });
+                                                })),
+                                            ],
+                                        });
                                     },
                                     divCreate: () => {
                                         return {
@@ -183,7 +201,7 @@ export class MemberTypeList {
                                                 })
                                                 ? `d-none`
                                                 : ``}`,
-                                            style: `height:40px;gap:10px;margin-top:10px;`,
+                                            style: ``,
                                         };
                                     },
                                 };
@@ -200,6 +218,14 @@ export class MemberTypeList {
                             },
                             gvc: gvc,
                             index: vm.dataList.length,
+                        });
+                    }
+                    else if (vm.type == 'userList') {
+                        return UserList.main(gvc, {
+                            group: vm.group,
+                            backButtonEvent: gvc.event(() => {
+                                vm.type = 'list';
+                            }),
                         });
                     }
                     else {
