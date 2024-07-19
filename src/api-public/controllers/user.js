@@ -330,7 +330,6 @@ router.put('/public/config', async (req, resp) => {
     try {
         const post = new user_1.User(req.get('g-app'), req.body.token);
         if (await ut_permission_js_1.UtPermission.isManager(req)) {
-            console.log(`public/config->manager`);
             await post.setConfig({
                 key: req.body.key,
                 value: req.body.value,
@@ -338,7 +337,6 @@ router.put('/public/config', async (req, resp) => {
             });
         }
         else {
-            console.log(`public/config->user`);
             await post.setConfig({
                 key: req.body.key,
                 value: req.body.value,

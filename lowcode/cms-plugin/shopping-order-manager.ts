@@ -123,7 +123,7 @@ export class ShoppingOrderManager {
                 const worksheet = XLSX.utils.json_to_sheet(data, { skipHeader: true });
                 XLSX.utils.sheet_add_aoa(worksheet, [firstRow], { origin: 'A1' });
 
-                // 創建一個新的工作簿
+                // 建立一個新的工作簿
                 const workbook = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
 
@@ -448,13 +448,14 @@ export class ShoppingOrderManager {
                                             return {
                                                 bind: vm.filterId,
                                                 view: () => {
-                                                    return [
-                                                        html`<span class="fs-7 fw-bold">操作選項</span>
-                                                            <button
-                                                                class="btn btn-danger fs-7 px-2"
-                                                                style="height: 30px; border: none;"
-                                                                onclick="${gvc.event(() => {
-                                                                    const dialog = new ShareDialog(gvc.glitter);
+                                                    const dialog = new ShareDialog(gvc.glitter);
+                                                    const selCount = vm.dataList.filter((dd: any) => dd.checked).length;
+                                                    return BgWidget.selNavbar({
+                                                        count: selCount,
+                                                        buttonList: [
+                                                            BgWidget.selEventButton(
+                                                                vm.filter_type === 'normal' ? ` 批量封存` : `解除封存`,
+                                                                gvc.event(() => {
                                                                     dialog.checkYesOrNot({
                                                                         text: `是否確認${vm.filter_type === 'normal' ? `封存` : `解除封存`}所選項目?`,
                                                                         callback: async (response) => {
@@ -477,11 +478,10 @@ export class ShoppingOrderManager {
                                                                             }
                                                                         },
                                                                     });
-                                                                })}"
-                                                            >
-                                                                ${vm.filter_type === 'normal' ? ` 批量封存` : `解除封存`}
-                                                            </button>`,
-                                                    ].join(``);
+                                                                })
+                                                            ),
+                                                        ],
+                                                    });
                                                 },
                                                 divCreate: () => {
                                                     return {
@@ -493,7 +493,6 @@ export class ShoppingOrderManager {
                                                                 ? `d-none`
                                                                 : ``
                                                         }`,
-                                                        style: `height: 40px; gap: 10px; margin-top: 10px;`,
                                                     };
                                                 },
                                             };
@@ -630,7 +629,7 @@ export class ShoppingOrderManager {
         `);
 
         function formatDateString(isoDate?: string): string {
-            // 使用給定的 ISO 8601 日期字符串，或創建一個當前時間的 Date 對象
+            // 使用給定的 ISO 8601 日期字符串，或建立一個當前時間的 Date 對象
             const date = isoDate ? new Date(isoDate) : new Date();
 
             // 提取年、月、日、時、分

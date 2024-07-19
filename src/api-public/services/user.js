@@ -673,6 +673,7 @@ class User {
             }
             if (pass('level')) {
                 const levelData = await this.getConfigV2({ key: 'member_level_config', user_id: 'manager' });
+                console.log(JSON.stringify(levelData));
                 const levels = levelData.levels
                     .map((item) => {
                     return { id: item.id, name: item.tag_name };
@@ -683,9 +684,13 @@ class User {
                 const memberUpdates = await database_1.default.query(`SELECT * FROM \`${this.app}\`.t_user_public_config 
                         WHERE \`key\` = 'member_update';`, []);
                 for (const level of levels) {
+                    console.log('level');
+                    console.log(level);
                     const ids = [];
                     for (const member of memberUpdates) {
                         const member_level = member.value.value.find((v) => v.trigger);
+                        console.log('member_level');
+                        console.log(member_level);
                         if (member_level && member_level.id === level.id) {
                             ids.push(member.user_id);
                         }

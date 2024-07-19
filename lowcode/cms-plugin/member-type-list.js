@@ -28,7 +28,7 @@ export class MemberTypeList {
         const filterID = gvc.glitter.getUUID();
         let vmi = undefined;
         function getDatalist() {
-            return vm.dataList.map((dd, index) => {
+            return vm.dataList.reverse().map((dd, index) => {
                 return [
                     {
                         key: EditorElem.checkBoxOnly({
@@ -101,8 +101,8 @@ export class MemberTypeList {
                         value: dd.counts > 0
                             ? BgWidget.grayButton('查閱名單', gvc.event((e, event) => {
                                 event.stopPropagation();
-                                vm.type = 'userList';
                                 vm.group = { type: 'level', title: dd.tag_name, tag: dd.id };
+                                vm.type = 'userList';
                                 gvc.notifyDataChange(vm.id);
                             }), { textStyle: 'font-weight: normal; font-size: 14px;' })
                             : '',
@@ -130,23 +130,24 @@ export class MemberTypeList {
                             getData: (vd) => __awaiter(this, void 0, void 0, function* () {
                                 vmi = vd;
                                 const member_levels_count_list = (yield ApiUser.getPublicConfig('member_levels_count_list', 'manager')).response.value || {};
-                                ApiUser.getPublicConfig('member_level_config', 'manager').then((dd) => {
-                                    const data = dd.response.value || {};
+                                ApiUser.getPublicConfig('member_level_config', 'manager').then((res) => {
                                     vmi.pageSize = 1;
-                                    data.levels = (data.levels || []).reverse().filter((dd) => {
-                                        return dd;
-                                    });
-                                    vm.dataList = data.levels.map((data) => {
-                                        data.counts = member_levels_count_list[data.id] || 0;
-                                        return data;
-                                    });
+                                    vm.dataList = (() => {
+                                        if (res.result && res.response.value && res.response.value.levels.length > 0) {
+                                            return res.response.value.levels.map((data) => {
+                                                data.counts = member_levels_count_list[data.id] || 0;
+                                                return data;
+                                            });
+                                        }
+                                        return [];
+                                    })();
                                     vmi.data = getDatalist();
                                     vmi.loading = false;
                                     vmi.callback();
                                 });
                             }),
                             rowClick: (data, index) => {
-                                vm.index = index;
+                                vm.index = vm.dataList.length - 1 - index;
                                 vm.type = 'replace';
                             },
                             filter: html `
@@ -298,7 +299,7 @@ export class MemberTypeList {
                                 ${BgWidget.goBack(gvc.event(() => {
                             cf.callback();
                         }))}
-                                ${BgWidget.title(vm.data.tag_name || '新增會員')}
+                                ${BgWidget.title(vm.data.tag_name || '新增會員等級')}
                                 <div class="flex-fill"></div>
                             </div>`,
                         html `<div class="d-flex justify-content-center ${document.body.clientWidth < 768 ? 'flex-column' : ''}" style="gap: 24px">
