@@ -27,6 +27,123 @@ interface variant {
     type: string;
 }
 
+class Excel{
+    private workbook: any;
+    private worksheet: any;
+    private XLSX:any
+    private gvc:GVC;
+    public headers:string[];
+
+
+    constructor(gvc:GVC , headers:string[]) {
+        this.gvc=gvc;
+        this.headers=headers;
+    }
+
+     loadScript(){
+        return new Promise( (resolve, reject)=>{
+            if((window as any).XLSX){
+                resolve(true)
+            }else{
+                this.gvc.addMtScript([{src: "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"}], () => {
+                    if ((window as any).XLSX){
+                        this.XLSX = (window as any).XLSX;
+                        this.workbook = this.XLSX.utils.book_new();
+                        this.worksheet = this.XLSX.utils.aoa_to_sheet([[]]); // 初始化一个空的工作表
+                        resolve(true)
+                    }
+                }, () => {
+
+                })
+            }
+        })
+    }
+    // 匯入excel
+    async importExcel(event:Event){
+        await this.loadScript()
+        const input = event.target as HTMLInputElement;
+        if (!input.files || input.files.length === 0) {
+            console.log("No file selected");
+            return;
+        }
+
+        const file = input.files[0];
+        const reader = new FileReader();
+
+        reader.onload = (e: ProgressEvent<FileReader>) => {
+            if (!e.target) {
+                console.log("Failed to read file");
+                return;
+            }
+            const data = new Uint8Array(e.target.result as ArrayBuffer);
+            const workbook = this.XLSX.read(data, { type: 'array' });
+
+            // 假設我們只讀取第一個工作表
+            const firstSheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[firstSheetName];
+
+            // 將工作表轉換為 JSON
+            const json = this.XLSX.utils.sheet_to_json(worksheet);
+            //  還沒檢查檔案是否符合格式和新增
+        };
+
+        reader.readAsArrayBuffer(file);
+    }
+    async exportData(data:any ){
+        await this.loadScript()
+        const stringData = this.convertToString(data);
+        this.worksheet = this.XLSX.utils.json_to_sheet(data, { skipHeader: true });
+        this.XLSX.utils.sheet_add_aoa(this.worksheet, [this.headers], { origin: 'A1' });
+
+        // 統一列寬
+        const maxLengths = this.headers.map(header => header.length);
+        stringData.forEach(row => {
+            Object.values(row).forEach((value, index) => {
+                const valueLength = String(value).length;
+                if (valueLength > maxLengths[index]) {
+                    maxLengths[index] = valueLength;
+                }
+            });
+        });
+
+        this.worksheet['!cols'] = maxLengths.map(length => ({ wch: length }));
+
+        // 統一置右
+        const range = this.XLSX.utils.decode_range(this.worksheet['!ref']);
+        for (let R = range.s.r; R <= range.e.r; ++R) {
+            for (let C = range.s.c; C <= range.e.c; ++C) {
+                const cell_address = { c: C, r: R };
+                const cell_ref = this.XLSX.utils.encode_cell(cell_address);
+                if (!this.worksheet[cell_ref]) continue;
+
+                if (!this.worksheet[cell_ref].s) {
+                    this.worksheet[cell_ref].s = {};
+                }
+
+                this.worksheet[cell_ref].s.alignment = {
+                    horizontal: "right"
+                };
+            }
+        }
+        this.XLSX.utils.book_append_sheet(this.workbook, this.worksheet, 'Sheet1');
+
+
+    }
+    // 將所有cell轉成string
+    private convertToString(data: any[]): any[] {
+        return data.map(item => {
+            const newItem: any = {};
+            for (const key in item) {
+                if (item.hasOwnProperty(key)) {
+                    newItem[key] = String(item[key]);
+                }
+            }
+            return newItem;
+        });
+    }
+}
+
+
 export class ShoppingProductSetting {
     public static main(gvc: GVC) {
         const html = String.raw;
@@ -52,6 +169,12 @@ export class ShoppingProductSetting {
             orderString: '',
             filter: {},
         };
+
+        const excel = new Excel(gvc , ["商品名稱" , "啟用狀態", "商品類別", "商品類型" , "商品圖片" ,
+            "規格1" , "規格詳細" , "規格2" , "規格詳細" , "規格3" , "規格詳細" , "sku" , "成本" , "售價" , "比較價格" , "利潤" ,
+            "運費計算方式" , "長度" , "寬度" , "高度" , "商品重量" , "重量單位" , "庫存政策" , "庫存" , "安全庫存" , "商品條碼"]);
+
+
         let replaceData: any = '';
         const ListComp = new BgListComponent(gvc, vm, FilterOptions.productFilterFrame);
         gvc.addMtScript([{src: "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"}], () => {
@@ -86,11 +209,11 @@ export class ShoppingProductSetting {
                 // 將工作表轉換為 JSON
                 const json = XLSX.utils.sheet_to_json(worksheet);
 
-                console.log(json)
             };
 
             reader.readAsArrayBuffer(file);
         }
+
         function exportDataTo(firstRow:string[] , data:any) {
             if ((window as any).XLSX) {
                 // 將資料轉換成工作表
@@ -220,43 +343,73 @@ export class ShoppingProductSetting {
                                                                         console.log(response)
                                                                         let firstRow = ["產品名稱" , "產品狀態", "產品類別" , "產品規格" , "skuid" , "成本" , "sale_price" , "compare_price" , "商品庫存"];
                                                                         let exportData:any = []
-                                                                        response.response.data.map((productData:any)=>{
-                                                                            let rowData :{
-                                                                                name:string,
-                                                                                status:string,
-                                                                                category:string,
-                                                                                specs:string,
-                                                                                skuid:string,
-                                                                                cost:number,
-                                                                                sale_price:number,
-                                                                                compare_price:number,
-                                                                                stocks:number
-                                                                            }= {
-                                                                                name: '',
-                                                                                status: '',
-                                                                                category: '',
-                                                                                specs: '',
-                                                                                skuid: '',
-                                                                                cost: 0,
-                                                                                sale_price: 0,
-                                                                                compare_price: 0,
-                                                                                stocks: 0
-                                                                            };
-                                                                            rowData.name = productData.content.title??"未命名商品";
-                                                                            rowData.status = (productData.status )?"上架":"下架";
-                                                                            rowData.category = productData.content.collection.join(" / ")??"";
-                                                                            
-                                                                            productData.content.variants.map((variant:any) => {
-                                                                                rowData.specs = variant.spec.join(" / ")??"";
-                                                                                rowData.skuid = variant.sku??"未設定sku";
-                                                                                rowData.cost = variant.cost??0;
-                                                                                rowData.sale_price = variant.sale_price??0;
-                                                                                rowData.compare_price = variant.compare_price??0;
-                                                                                rowData.stocks = variant.stocks??0;
-                                                                                exportData.push(JSON.parse(JSON.stringify(rowData)));
-                                                                            })
+                                                                        // response.response.data.map((productData:any)=>{
+                                                                        //     let rowData :{
+                                                                        //         name:string,
+                                                                        //         status:string,
+                                                                        //         category:string,
+                                                                        //         specs:string,
+                                                                        //         skuid:string,
+                                                                        //         cost:number,
+                                                                        //         sale_price:number,
+                                                                        //         compare_price:number,
+                                                                        //         stocks:number
+                                                                        //     }= {
+                                                                        //         name: '',
+                                                                        //         status: '',
+                                                                        //         category: '',
+                                                                        //         specs: '',
+                                                                        //         skuid: '',
+                                                                        //         cost: 0,
+                                                                        //         sale_price: 0,
+                                                                        //         compare_price: 0,
+                                                                        //         stocks: 0
+                                                                        //     };
+                                                                        //     rowData.name = productData.content.title??"未命名商品";
+                                                                        //     rowData.status = (productData.status )?"上架":"下架";
+                                                                        //     rowData.category = productData.content.collection.join(" / ")??"";
+                                                                        //    
+                                                                        //     productData.content.variants.map((variant:any) => {
+                                                                        //         rowData.specs = variant.spec.join(" / ")??"";
+                                                                        //         rowData.skuid = variant.sku??"未設定sku";
+                                                                        //         rowData.cost = variant.cost??0;
+                                                                        //         rowData.sale_price = variant.sale_price??0;
+                                                                        //         rowData.compare_price = variant.compare_price??0;
+                                                                        //         rowData.stocks = variant.stocks??0;
+                                                                        //         exportData.push(JSON.parse(JSON.stringify(rowData)));
+                                                                        //     })
+                                                                        // })
+                                                                        let sample= [
+                                                                            ["產品1" , "啟用" , "商品" , "精品/手套" , "image1" , 
+                                                                                "大小" , "S" , "形狀" , "長方形" , "顏色" , 
+                                                                                "白色" , "product-1-variant-1" , "5000" , "13000" , "12000" , 
+                                                                                "7000" , "依重量計算" , "10" , "15" , "10" , 
+                                                                                "7" , "KG" , "追蹤商品庫存" , "13" , "35" , "001001001"],
+                                                                            ["產品1" , "" , "" , "" , "image2" ,
+                                                                                "" , "S" , "" , "長方形" , "" ,
+                                                                                "黑色" , "product-1-variant-2" , "5000" , "13000" , "12000" ,
+                                                                                "7000" , "依重量計算" , "10" , "15" , "10" ,
+                                                                                "7" , "KG" , "追蹤商品庫存" , "13" , "35" , "001001002"],
+                                                                            ["產品1" , "" , "" , "精品/" , "image3" ,
+                                                                                "" , "L" , "形狀" , "正方形" , "" ,
+                                                                                "黑色" , "product-1-variant-3" , "4300" , "12000" , "11000" ,
+                                                                                "7000" , "依重量計算" , "10" , "10" , "10" ,
+                                                                                "6" , "KG" , "追蹤商品庫存" , "13" , "35" , "001001003"],
+                                                                            ["產品2" , "啟用" , "商品" , "工具/餐具" , "image1-1" ,
+                                                                                "材質" , "木頭" , "形狀" , "長方形" , "" ,
+                                                                                "" , "product-2-variant-1" , "700" , "1300" , "1200" ,
+                                                                                "700" , "依體積計算" , "5" , "5" , "6" ,
+                                                                                "2" , "KG" , "不追蹤" , "5" , "35" , "001002001"],
+                                                                            ["產品2" , "" , "" , "工具/" , "image1-2" ,
+                                                                                "" , "金屬" , "" , "長方形" , "" ,
+                                                                                "" , "product-2-variant-2" , "700" , "1300" , "1200" ,
+                                                                                "700" , "依體積計算" , "5" , "5" , "6" ,
+                                                                                "3" , "KG" , "不追蹤" , "5" , "35" , "001002002"],
+                                                                          
+                                                                        ]
+                                                                        excel.exportData(sample).then(r => {
+                                                                            alert("匯出成功")
                                                                         })
-                                                                        exportDataTo(firstRow , exportData);
                                                                     })
 
 
