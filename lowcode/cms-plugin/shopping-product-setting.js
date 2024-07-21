@@ -527,6 +527,7 @@ export class ShoppingProductSetting {
                                                             vm.dataList = data.response.data;
                                                             function getDatalist() {
                                                                 return data.response.data.map((dd) => {
+                                                                    var _a;
                                                                     return [
                                                                         {
                                                                             key: EditorElem.checkBoxOnly({
@@ -588,7 +589,7 @@ export class ShoppingProductSetting {
                                                                         },
                                                                         {
                                                                             key: '已售出',
-                                                                            value: dd.total_sales.toLocaleString(),
+                                                                            value: ((_a = dd.total_sales) !== null && _a !== void 0 ? _a : '0').toLocaleString(),
                                                                         },
                                                                         {
                                                                             key: '狀態',

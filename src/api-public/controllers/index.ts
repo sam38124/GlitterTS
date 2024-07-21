@@ -5,7 +5,6 @@ import redis from '../../modules/redis';
 import db from '../../modules/database';
 import path from 'path';
 import { config, saasConfig } from '../../config';
-
 const router: express.Router = express.Router();
 import Logger from '../../modules/logger';
 import _ from 'underscore';
@@ -85,6 +84,10 @@ const whiteList: {}[] = [
     { url: config.getRoute(config.public_route.ec + '/checkout', 'public'), method: 'POST' },
     { url: config.getRoute(config.public_route.ec + '/checkout/preview', 'public'), method: 'POST' },
     { url: config.getRoute(config.public_route.ec + '/redirect', 'public'), method: 'POST' },
+    { url: config.getRoute(config.public_route.ec + '/order', 'public'), method: 'GET' },
+    { url: config.getRoute(config.public_route.ec + '/order/proof-purchase', 'public'), method: 'PUT' },
+    { url: config.getRoute(config.public_route.ec + '/order/payment-method', 'public'), method: 'GET' },
+    { url: config.getRoute(config.public_route.ec + '/redirect', 'public'), method: 'GET' },
     { url: config.getRoute(config.public_route.ec + '/notify', 'public'), method: 'POST' },
     { url: config.getRoute(config.public_route.ec + '/payment/method', 'public'), method: 'GET' },
     { url: config.getRoute(config.public_route.ec + '/check-login-for-order', 'public'), method: 'GET' },

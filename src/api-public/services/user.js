@@ -665,7 +665,7 @@ class User {
                 const usuallyBuyingList = buyingList.filter((item) => item.count > usuallyBuyingStandard);
                 const neverBuyingData = await database_1.default.query(`SELECT userID, JSON_UNQUOTE(JSON_EXTRACT(userData, '$.email')) AS email
                     FROM \`${this.app}\`.t_user
-                    WHERE userID not in (${buyingList.map((item) => item.userID).join(',')})`, []);
+                    WHERE userID not in (${buyingList.map((item) => item.userID).concat([-1312]).join(',')})`, []);
                 dataList = dataList.concat([
                     { type: 'neverBuying', title: '尚未購買過的顧客', users: neverBuyingData },
                     { type: 'usuallyBuying', title: '已購買多次的顧客', users: usuallyBuyingList },
@@ -710,6 +710,7 @@ class User {
             };
         }
         catch (e) {
+            console.error(e);
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'getUserGroups Error:' + e, null);
         }
     }

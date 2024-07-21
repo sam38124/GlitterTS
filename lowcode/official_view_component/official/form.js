@@ -311,7 +311,7 @@ export class FormWidget {
                 const inputCSS = glitter.htmlGenerate.editor_component(dd.style_data.input, gvc, obj.widget, obj.subData);
                 const containerCss = glitter.htmlGenerate.editor_component(dd.style_data.container, gvc, obj.widget, obj.subData);
                 const label = `<label class="${labelCSS.class()}" style="${labelCSS.style()}"><span class="text-danger  ${dd.require === "true" ? `` : 'd-none'}"> * </span>${dd.title}</label>`;
-                const containerClass = `${dd.col ? `col-${dd.col}` : 'col-sm-12'} ${dd.col_sm ? `col-${dd.col_sm}` : 'col-12'}  ${(_a = containerCss.class()) !== null && _a !== void 0 ? _a : ``}`;
+                const containerClass = `${dd.col ? `col-sm-${dd.col}` : 'col-sm-12'} ${dd.col_sm ? `col-${dd.col_sm}` : 'col-12'}  ${(_a = containerCss.class()) !== null && _a !== void 0 ? _a : ``}`;
                 const containerStyle = (_b = containerCss.style()) !== null && _b !== void 0 ? _b : ``;
                 const inputClass = inputCSS.class() || "form-control";
                 const inputStyle = inputCSS.style() || "";

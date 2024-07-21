@@ -592,7 +592,7 @@ ${CustomerMessageUser.detail({
 position: absolute;right: -15px;top:-5px;font-size:11px;">${unReadCount}
                                                                     </div>
                                                                     <img src="${(dd.userData && dd.userData.head) || `https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1704269678588-43.png`}"
-                                                                         class="rounded-circle border" width="40"
+                                                                         class="rounded-circle border" style="border-radius: 50%;" width="40"
                                                                          alt="Devon Lane">
                                                                 </div>
 

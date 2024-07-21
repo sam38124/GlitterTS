@@ -367,6 +367,32 @@ export class ApiShop {
             data: JSON.stringify(passData),
         });
     }
+    static getOrderPaymentMethod() {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/ec/order/payment-method`,
+            type: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: getConfig().config.token,
+            }
+        });
+    }
+    static proofPurchase(order_id, text) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/ec/order/proof-purchase`,
+            type: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: getConfig().config.token,
+            },
+            data: JSON.stringify({
+                "order_id": order_id,
+                "text": text
+            })
+        });
+    }
     static getVoucherCode() {
         const glitter = window.glitter;
         return new Promise((resolve, reject) => {

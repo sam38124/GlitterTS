@@ -121,7 +121,7 @@ class Shopping {
                 }
                 await trans.commit();
             }
-            products.data.map((product) => {
+            (productList).map((product) => {
                 const record = itemRecord.find((item) => item.id === product.id);
                 product.total_sales = record ? record.count : 0;
                 return product;
@@ -129,6 +129,7 @@ class Shopping {
             return products;
         }
         catch (e) {
+            console.error(e);
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'GetProduct Error:' + e, null);
         }
     }
@@ -230,7 +231,7 @@ class Shopping {
                     return {};
                 }
             })();
-            if (!data.email && userData && userData.account) {
+            if (userData && userData.account) {
                 data.email = userData.account;
             }
             if (!data.email && type !== 'preview') {
@@ -287,7 +288,7 @@ class Shopping {
                 }
             });
             const carData = {
-                customer_info: {},
+                customer_info: data.customer_info || {},
                 lineItems: [],
                 total: 0,
                 email: (_b = data.email) !== null && _b !== void 0 ? _b : ((data.user_info && data.user_info.email) || ''),
@@ -402,15 +403,15 @@ class Shopping {
             if (type === 'preview' || type === 'manual-preview')
                 return { data: carData };
             if (type !== 'manual') {
-                await rebateClass.insertRebate(userData.userID, carData.use_rebate * -1, '使用折抵', {
-                    order_id: carData.orderID,
-                });
-                if (carData.voucherList && carData.voucherList.length > 0) {
-                    for (const voucher of carData.voucherList) {
-                        await this.insertVoucherHistory(userData.userID, carData.orderID, voucher.id);
-                    }
-                }
                 if (userData && userData.userID) {
+                    await rebateClass.insertRebate(userData.userID, carData.use_rebate * -1, '使用折抵', {
+                        order_id: carData.orderID,
+                    });
+                    if (carData.voucherList && carData.voucherList.length > 0) {
+                        for (const voucher of carData.voucherList) {
+                            await this.insertVoucherHistory(userData.userID, carData.orderID, voucher.id);
+                        }
+                    }
                     const sum = (await database_js_1.default.query(`SELECT sum(money)
                              FROM \`${this.app}\`.t_wallet
                              WHERE status in (1, 2)
@@ -468,6 +469,10 @@ class Shopping {
                     data: carData,
                 };
             }
+            const id = 'redirect_' + tool_js_1.default.randomString(6);
+            const return_url = new URL(data.return_url);
+            return_url.searchParams.set('cart_token', carData.orderID);
+            await redis_js_1.default.setValue(id, return_url.href);
             if (carData.use_wallet === carData.total) {
                 await database_js_1.default.query(`INSERT INTO \`${this.app}\`.t_wallet (orderID, userID, money, status, note)
                      values (?, ?, ?, ?, ?);`, [
@@ -488,24 +493,14 @@ class Shopping {
                 }
                 return {
                     is_free: true,
+                    return_url: `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`,
                 };
             }
             else {
-                const id = 'redirect_' + tool_js_1.default.randomString(6);
-                await redis_js_1.default.setValue(id, data.return_url);
                 const keyData = (await private_config_js_1.Private_config.getConfig({
                     appName: this.app,
                     key: 'glitter_finance',
                 }))[0].value;
-                const subMitData = await new financial_service_js_1.default(this.app, {
-                    HASH_IV: keyData.HASH_IV,
-                    HASH_KEY: keyData.HASH_KEY,
-                    ActionURL: keyData.ActionURL,
-                    NotifyURL: `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}`,
-                    ReturnURL: `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`,
-                    MERCHANT_ID: keyData.MERCHANT_ID,
-                    TYPE: keyData.TYPE,
-                }).createOrderPage(carData);
                 if (keyData.TYPE === 'off_line') {
                     new notify_js_1.ManagerNotify(this.app).checkout({
                         orderData: carData,
@@ -516,6 +511,7 @@ class Shopping {
                      values (?, ?, ?, ?)`, [carData.orderID, 0, carData.email, carData]);
                     return {
                         off_line: true,
+                        return_url: `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`,
                     };
                 }
                 else {
@@ -760,9 +756,10 @@ class Shopping {
     }
     async putOrder(data) {
         try {
-            const update = {
-                status: data.status,
-            };
+            const update = {};
+            if (data.status !== undefined) {
+                (update.status = data.status);
+            }
             data.orderData && (update.orderData = JSON.stringify(data.orderData));
             await database_js_1.default.query(`UPDATE \`${this.app}\`.t_checkout
                  set ?
@@ -787,6 +784,20 @@ class Shopping {
         }
         catch (e) {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'deleteOrder Error:' + e, null);
+        }
+    }
+    async proofPurchase(order_id, text) {
+        try {
+            const orderData = (await database_js_1.default.query(`select orderData from \`${this.app}\`.t_checkout where cart_token=?`, [order_id]))[0]['orderData'];
+            orderData.proof_purchase = text;
+            new notify_js_1.ManagerNotify(this.app).uploadProof({ orderData: orderData });
+            await database_js_1.default.query(`update \`${this.app}\`.t_checkout set orderData=? where cart_token=?`, [JSON.stringify(orderData), order_id]);
+            return {
+                result: true
+            };
+        }
+        catch (e) {
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ProofPurchase Error:' + e, null);
         }
     }
     async getCheckOut(query) {

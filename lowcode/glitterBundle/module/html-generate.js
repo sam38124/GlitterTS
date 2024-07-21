@@ -1624,8 +1624,6 @@ ${obj.gvc.bindView({
                                             })
                                                 .join('');
                                             target.outerHTML = view;
-                                            console.log(`callback-end-code`, new Date().getTime());
-                                            console.log(`callback-end-code-view-${widget.label}`, view);
                                         },
                                     });
                                 }

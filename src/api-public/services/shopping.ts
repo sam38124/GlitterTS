@@ -217,7 +217,7 @@ export class Shopping {
                 await trans.commit();
             }
 
-            products.data.map((product: ProductItem) => {
+            (productList).map((product: ProductItem) => {
                 const record = itemRecord.find((item) => item.id === product.id);
                 product.total_sales = record ? record.count : 0;
                 return product;
@@ -225,6 +225,7 @@ export class Shopping {
 
             return products;
         } catch (e) {
+            console.error(e)
             throw exception.BadRequestError('BAD_REQUEST', 'GetProduct Error:' + e, null);
         }
     }
@@ -385,8 +386,7 @@ export class Shopping {
                     return {};
                 }
             })();
-
-            if (!data.email && userData && userData.account) {
+            if (userData && userData.account) {
                 data.email = userData.account;
             }
 
@@ -451,7 +451,7 @@ export class Shopping {
 
             // 購物車資料
             const carData: {
-                customer_info: {}; //這張訂單的收件人
+                customer_info: any; //這張訂單的收件人
                 lineItems: {
                     id: string;
                     spec: string[];
@@ -481,7 +481,7 @@ export class Shopping {
                 shipment_form_data: any;
                 shipment_form_format: any;
             } = {
-                customer_info: {},
+                customer_info: data.customer_info || {},
                 lineItems: [],
                 total: 0,
                 email: data.email ?? ((data.user_info && data.user_info.email) || ''),
@@ -617,17 +617,17 @@ export class Shopping {
             // ================================ Add DOWN ================================
             // 手動結帳地方判定
             if (type !== 'manual') {
-                await rebateClass.insertRebate(userData.userID, carData.use_rebate * -1, '使用折抵', {
-                    order_id: carData.orderID,
-                });
-
-                if (carData.voucherList && carData.voucherList.length > 0) {
-                    for (const voucher of carData.voucherList) {
-                        await this.insertVoucherHistory(userData.userID, carData.orderID, voucher.id);
-                    }
-                }
-
+                //有userID在執行。
                 if (userData && userData.userID) {
+                    await rebateClass.insertRebate(userData.userID, carData.use_rebate * -1, '使用折抵', {
+                        order_id: carData.orderID,
+                    });
+
+                    if (carData.voucherList && carData.voucherList.length > 0) {
+                        for (const voucher of carData.voucherList) {
+                            await this.insertVoucherHistory(userData.userID, carData.orderID, voucher.id);
+                        }
+                    }
                     // 判斷錢包是否有餘額
                     const sum =
                         (
@@ -705,7 +705,10 @@ export class Shopping {
                     data: carData,
                 };
             }
-
+            const id = 'redirect_' + Tool.randomString(6);
+            const return_url=new URL(data.return_url);
+            return_url.searchParams.set('cart_token',carData.orderID)
+            await redis.setValue(id, return_url.href);
             // 當不需付款時直接寫入，並開發票
             if (carData.use_wallet === carData.total) {
                 await db.query(
@@ -733,10 +736,9 @@ export class Shopping {
                 }
                 return {
                     is_free: true,
+                    return_url: `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`,
                 };
             } else {
-                const id = 'redirect_' + Tool.randomString(6);
-                await redis.setValue(id, data.return_url);
 
                 const keyData = (
                     await Private_config.getConfig({
@@ -744,15 +746,6 @@ export class Shopping {
                         key: 'glitter_finance',
                     })
                 )[0].value;
-                const subMitData = await new FinancialService(this.app, {
-                    HASH_IV: keyData.HASH_IV,
-                    HASH_KEY: keyData.HASH_KEY,
-                    ActionURL: keyData.ActionURL,
-                    NotifyURL: `${process.env.DOMAIN}/api-public/v1/ec/notify?g-app=${this.app}`,
-                    ReturnURL: `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`,
-                    MERCHANT_ID: keyData.MERCHANT_ID,
-                    TYPE: keyData.TYPE,
-                }).createOrderPage(carData);
                 // 線下付款
                 if (keyData.TYPE === 'off_line') {
                     new ManagerNotify(this.app).checkout({
@@ -767,6 +760,7 @@ export class Shopping {
                     );
                     return {
                         off_line: true,
+                        return_url: `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`,
                     };
                 } else {
                     const subMitData = await new FinancialService(this.app, {
@@ -1082,9 +1076,10 @@ export class Shopping {
         status: any;
     }) {
         try {
-            const update: any = {
-                status: data.status,
-            };
+            const update: any = {};
+            if(data.status!==undefined){
+                (update.status=data.status)
+            }
             data.orderData && (update.orderData = JSON.stringify(data.orderData));
 
             await db.query(
@@ -1118,6 +1113,19 @@ export class Shopping {
         }
     }
 
+    public async proofPurchase(order_id:string,text:string){
+        try {
+            const orderData=(await db.query(`select orderData from \`${this.app}\`.t_checkout where cart_token=?`,[order_id]))[0]['orderData'];
+            orderData.proof_purchase=text;
+            new ManagerNotify(this.app).uploadProof({orderData:orderData})
+            await db.query(`update \`${this.app}\`.t_checkout set orderData=? where cart_token=?`,[JSON.stringify(orderData),order_id]);
+            return {
+                result:true
+            }
+        }catch (e) {
+            throw exception.BadRequestError('BAD_REQUEST', 'ProofPurchase Error:' + e, null);
+        }
+    }
     public async getCheckOut(query: {
         page: number;
         limit: number;

@@ -86,6 +86,19 @@ export class ManagerNotify {
         });
     }
 
+    //上傳付款證明.
+    public async uploadProof(cf: { orderData: any; }) {
+        const saas = await this.getSaasAPP();
+        const link = `./index?type=editor&appName=${this.app_name}&function=backend-manger&tab=order_list`;
+        new Firebase(saas.brand).sendMessage({
+            title: `待核款訂單`,
+            userID: saas.user,
+            tag: 'checkout-upload-proof',
+            link: link,
+            body: `顧客已上傳付款證明，您有一筆新增的待核款訂單 『 ${cf.orderData.orderID} 』。`,
+        });
+    }
+
     //表單提交
     public async formSubmit(cf: { user_id: string }) {
         const saas = await this.getSaasAPP();

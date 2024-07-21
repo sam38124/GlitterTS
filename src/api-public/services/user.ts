@@ -806,12 +806,11 @@ export class User {
                 // 經常購買者清單
                 const usuallyBuyingStandard = 4.5;
                 const usuallyBuyingList = buyingList.filter((item) => item.count > usuallyBuyingStandard);
-
-                // 從未購買者清單
+                // 從未購買者清單(Join時要確保至少包含一個值，不然sql會報錯。)
                 const neverBuyingData = await db.query(
                     `SELECT userID, JSON_UNQUOTE(JSON_EXTRACT(userData, '$.email')) AS email
                     FROM \`${this.app}\`.t_user
-                    WHERE userID not in (${buyingList.map((item) => item.userID).join(',')})`,
+                    WHERE userID not in (${buyingList.map((item) => item.userID).concat([-1312]).join(',')})`,
                     []
                 );
 
@@ -868,6 +867,7 @@ export class User {
                 }),
             };
         } catch (e) {
+            console.error(e)
             throw exception.BadRequestError('BAD_REQUEST', 'getUserGroups Error:' + e, null);
         }
     }

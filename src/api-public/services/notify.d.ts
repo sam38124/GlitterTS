@@ -12,6 +12,9 @@ export declare class ManagerNotify {
         orderData: any;
         status: number;
     }): Promise<void>;
+    uploadProof(cf: {
+        orderData: any;
+    }): Promise<void>;
     formSubmit(cf: {
         user_id: string;
     }): Promise<void>;

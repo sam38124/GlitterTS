@@ -762,7 +762,7 @@ export class ShoppingProductSetting {
                                                                                         },
                                                                                         {
                                                                                             key: '已售出',
-                                                                                            value: dd.total_sales.toLocaleString(),
+                                                                                            value: (dd.total_sales ?? '0').toLocaleString(),
                                                                                         },
                                                                                         {
                                                                                             key: '狀態',

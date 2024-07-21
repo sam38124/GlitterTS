@@ -480,7 +480,7 @@ export class UserList {
                             if (dd.origin < 0) {
                                 return html`<span class="tx_700">-</span>`;
                             }
-                            if (dd.deadline.includes('2999-')) {
+                            if (dd.deadline && dd.deadline.includes('2999-')) {
                                 return '無期限';
                             }
                             return gvc.glitter.ut.dateFormat(new Date(dd.deadline), 'yyyy-MM-dd hh:mm');
