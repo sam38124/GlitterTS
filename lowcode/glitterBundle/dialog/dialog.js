@@ -43,9 +43,9 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                     cursor: pointer;
                 }
 
-                .hover-cancel:hover {
+                .hover-cancel {
                     background-color: #fff;
-                    border-radius: 0 0 0 cssㄏ0.5rem;
+                    border-radius: 0 0 0 0.5rem;
                 }
 
                 .hover-cancel:hover {

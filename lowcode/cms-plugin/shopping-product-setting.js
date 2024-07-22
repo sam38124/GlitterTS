@@ -686,9 +686,77 @@ export class ShoppingProductSetting {
                                                                                             });
                                                                                         }),
                                                                                     },
+                                                                                    {
+                                                                                        name: '下架',
+                                                                                        event: gvc.event(() => {
+                                                                                            dialog.dataLoading({ visible: true });
+                                                                                            new Promise((resolve) => {
+                                                                                                let n = 0;
+                                                                                                vm.dataList
+                                                                                                    .filter((dd) => {
+                                                                                                    return dd.checked;
+                                                                                                })
+                                                                                                    .map((dd) => {
+                                                                                                    dd.content.status = 'draft';
+                                                                                                    function run() {
+                                                                                                        return __awaiter(this, void 0, void 0, function* () {
+                                                                                                            return ApiPost.put({
+                                                                                                                postData: dd.content,
+                                                                                                                token: window.parent.config.token,
+                                                                                                                type: 'manager',
+                                                                                                            }).then((res) => {
+                                                                                                                res.result ? n++ : run();
+                                                                                                            });
+                                                                                                        });
+                                                                                                    }
+                                                                                                    run();
+                                                                                                });
+                                                                                                setInterval(() => {
+                                                                                                    n === selCount && setTimeout(() => resolve(), 200);
+                                                                                                }, 500);
+                                                                                            }).then(() => {
+                                                                                                dialog.dataLoading({ visible: false });
+                                                                                                gvc.notifyDataChange(vm.id);
+                                                                                            });
+                                                                                        }),
+                                                                                    },
                                                                                 ],
                                                                                 text: '更多操作',
                                                                             }),
+                                                                            BgWidget.selEventButton('批量編輯', gvc.event(() => {
+                                                                                console.log('批量編輯');
+                                                                            })),
+                                                                            BgWidget.selEventButton('刪除', gvc.event(() => {
+                                                                                dialog.checkYesOrNot({
+                                                                                    text: '是否確認刪除所選項目？',
+                                                                                    callback: (response) => {
+                                                                                        if (response) {
+                                                                                            dialog.dataLoading({ visible: true });
+                                                                                            ApiShop.delete({
+                                                                                                id: vm.dataList
+                                                                                                    .filter((dd) => {
+                                                                                                    return dd.checked;
+                                                                                                })
+                                                                                                    .map((dd) => {
+                                                                                                    return dd.id;
+                                                                                                })
+                                                                                                    .join(`,`),
+                                                                                            }).then((res) => {
+                                                                                                dialog.dataLoading({ visible: false });
+                                                                                                if (res.result) {
+                                                                                                    vm.dataList = undefined;
+                                                                                                    gvc.notifyDataChange(vm.id);
+                                                                                                }
+                                                                                                else {
+                                                                                                    dialog.errorMessage({
+                                                                                                        text: '刪除失敗',
+                                                                                                    });
+                                                                                                }
+                                                                                            });
+                                                                                        }
+                                                                                    },
+                                                                                });
+                                                                            })),
                                                                         ],
                                                                     });
                                                                 }
