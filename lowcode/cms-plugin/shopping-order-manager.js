@@ -103,7 +103,9 @@ export class ShoppingOrderManager {
                                     <input class="d-none" type="file" id="upload-excel" onchange="${gvc.event((e, event) => {
                             importDataTo(event);
                         })}"/>
-                                    ${BgWidget.grayButton('匯出', gvc.event(() => {
+                                    ${BgWidget.grayButton('匯入', gvc.event((e) => {
+                            document.querySelector("#upload-excel").click();
+                        }))}${BgWidget.grayButton('匯出', gvc.event(() => {
                             let dialog = new ShareDialog(glitter);
                             dialog.dataLoading({ visible: true });
                             ApiShop.getOrder({
@@ -1483,9 +1485,6 @@ export class ShoppingOrderManager {
                                         },
                                     ];
                                     showArray[index].select = true;
-                                    if (index == 1 || index == 0) {
-                                        showArray[index].method = "percent";
-                                    }
                                     gvc.notifyDataChange('editDiscount');
                                 })}">
                                                 ${uncheckBox}
@@ -1810,18 +1809,18 @@ export class ShoppingOrderManager {
                                                                  style="display: flex;flex-direction: column;align-items: flex-start;gap: 42px;">
                                                                 <div class="w-100"
                                                                      style="display: flex;padding: 0px 20px;flex-direction: column;align-items: center;gap: 18px;">
-                                                                    <div class="searchBar" style="display: flex;justify-content: center;align-items: flex-start;gap: 12px;align-self: stretch;">
-                                                                        ${BgWidget.searchFilterOninput(gvc.event((e, event) => {
-                                    if (newOrder.query != e.value) {
-                                        newOrder.query = e.value;
-                                        newOrder.productArray = [];
-                                    }
+                                                                    <div style="display: flex;justify-content: center;align-items: flex-start;gap: 12px;align-self: stretch;">
+                                                                        ${BgWidget.searchFilter(gvc.event((e, event) => {
+                                    newOrder.query = e.value;
+                                    newOrder.productArray = [];
+                                    gvc.notifyDataChange("addOrder");
                                 }), newOrder.query || '', '輸入商品名稱或商品貨號')}
                                                                         ${BgWidget.updownFilter({
                                     gvc,
                                     callback: (value) => {
                                         newOrder.orderString = value;
                                         newOrder.productArray = [];
+                                        gvc.notifyDataChange("addOrder");
                                     },
                                     default: newOrder.orderString || 'default',
                                     options: FilterOptions.productOrderBy,
@@ -1915,17 +1914,12 @@ export class ShoppingOrderManager {
                                             divCreate: { style: `display: flex;padding: 0px 12px;align-items: center;gap: 18px;align-self: stretch;` }
                                         });
                                     });
-                                    return gvc.bindView({
-                                        bind: "",
-                                        view: () => {
-                                            return html `
-                                                                                        <div class="d-flex flex-column"
-                                                                                             style="gap: 18px;width:100%;">
-                                                                                            ${returnHTML}
-                                                                                        </div>
-                                                                                    `;
-                                        }, divCreate: {}
-                                    });
+                                    return html `
+                                                                                <div class="d-flex flex-column"
+                                                                                     style="gap: 18px;width:100%;">
+                                                                                    ${returnHTML}
+                                                                                </div>
+                                                                            `;
                                 })()}
                                                                     </div>
                                                                 </div>

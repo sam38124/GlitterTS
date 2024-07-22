@@ -231,8 +231,9 @@ router.get('/group', async (req: express.Request, resp: express.Response) => {
     try {
         const user = new User(req.get('g-app') as string);
         const type = req.query.type ? `${req.query.type}`.split(',') : undefined;
+        const tag = req.query.tag ? `${req.query.tag}` : undefined;
         if (await UtPermission.isManager(req)) {
-            return response.succ(resp, await user.getUserGroups(type));
+            return response.succ(resp, await user.getUserGroups(type, tag));
         } else {
             return response.fail(resp, exception.BadRequestError('BAD_REQUEST', 'No permission.', null));
         }
@@ -313,14 +314,12 @@ router.put('/public/config', async (req: express.Request, resp: express.Response
     try {
         const post = new User(req.get('g-app') as string, req.body.token);
         if (await UtPermission.isManager(req)) {
-            console.log(`public/config->manager`);
             await post.setConfig({
                 key: req.body.key,
                 value: req.body.value,
                 user_id: req.body.user_id ?? undefined,
             });
         } else {
-            console.log(`public/config->user`);
             await post.setConfig({
                 key: req.body.key,
                 value: req.body.value,

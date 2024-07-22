@@ -1,59 +1,57 @@
 import { GVC } from '../glitterBundle/GVController.js';
-import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
 import { BgWidget } from '../backend-manager/bg-widget.js';
 import { ApiUser } from '../glitter-base/route/user.js';
-import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
-import { FormWidget } from '../official_view_component/official/form.js';
-import { ApiWallet } from '../glitter-base/route/wallet.js';
-import { SeoSetting } from './seo-setting.js';
 import { UserList } from './user-list.js';
 
 export class MemberTypeList {
     public static main(gvc: GVC, widget: any) {
         const html = String.raw;
         const glitter = gvc.glitter;
-        let callback = (data: any) => {};
 
         const vm: {
             id: string;
             type: 'groupList' | 'list' | 'replace';
             index: number;
-            group: { type: string; title: string; count: number };
+            group: { type: string; title: string };
             dataList: any;
         } = {
             id: glitter.getUUID(),
             type: 'groupList',
-            group: { type: '', title: '', count: 0 },
+            group: { type: '', title: '' },
             index: 0,
             dataList: [],
         };
         let vmi: any = undefined;
 
         function getDatalist() {
-            return vm.dataList.map((dd: any) => {
-                return [
-                    {
-                        key: '分群名稱',
-                        value: `<span class="fs-7">${dd.title}</span>`,
-                    },
-                    {
-                        key: '顧客數',
-                        value: `<span class="fs-7">${dd.count}</span>`,
-                    },
-                    {
-                        key: '',
-                        value: BgWidget.grayButton(
-                            '查閱名單',
-                            gvc.event(() => {
-                                vm.type = 'list';
-                                vm.group = dd;
-                                gvc.notifyDataChange(vm.id);
-                            }),
-                            { textStyle: 'font-weight: normal; font-size: 14px;' }
-                        ),
-                    },
-                ];
-            });
+            return vm.dataList
+                .filter((dd: any) => {
+                    return dd.type !== 'level';
+                })
+                .map((dd: any) => {
+                    return [
+                        {
+                            key: '分群名稱',
+                            value: `<span class="fs-7">${dd.title}</span>`,
+                        },
+                        {
+                            key: '顧客數',
+                            value: `<span class="fs-7">${dd.count}</span>`,
+                        },
+                        {
+                            key: '',
+                            value: BgWidget.grayButton(
+                                '查閱名單',
+                                gvc.event(() => {
+                                    vm.type = 'list';
+                                    vm.group = dd;
+                                    gvc.notifyDataChange(vm.id);
+                                }),
+                                { textStyle: 'font-weight: normal; font-size: 14px;' }
+                            ),
+                        },
+                    ];
+                });
         }
 
         return gvc.bindView(() => {

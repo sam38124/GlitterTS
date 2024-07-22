@@ -11,12 +11,20 @@ interface UserQuery {
     rank?: string;
     rebate?: string;
     total_amount?: string;
-    group?: string;
+    groupType?: string;
+    groupTag?: string;
 }
 interface GroupUserItem {
     userID: number;
     email: string;
     count: number;
+}
+interface GroupsItem {
+    type: string;
+    title: string;
+    count?: number;
+    tag?: string;
+    users: GroupUserItem[];
 }
 export declare class User {
     app: string;
@@ -48,16 +56,11 @@ export declare class User {
         data: any;
         total: any;
     }>;
-    getUserGroups(type?: string[]): Promise<{
+    getUserGroups(type?: string[], tag?: string): Promise<{
         result: false;
     } | {
         result: true;
-        data: {
-            type: string;
-            title: string;
-            count: number;
-            users: GroupUserItem[];
-        }[];
+        data: GroupsItem[];
     }>;
     subscribe(email: string, tag: string): Promise<void>;
     registerFcm(userID: string, deviceToken: string): Promise<void>;

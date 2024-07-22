@@ -7,11 +7,11 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { BgWidget } from "../../../../backend-manager/bg-widget.js";
-import { ApiUser } from "../../../../glitter-base/route/user.js";
-import { EditorElem } from "../../../../glitterBundle/plugins/editor-elem.js";
-import { BackendServer } from "../../../../api/backend-server.js";
-import { ShareDialog } from "../../../../glitterBundle/dialog/ShareDialog.js";
+import { BgWidget } from '../../../../backend-manager/bg-widget.js';
+import { ApiUser } from '../../../../glitter-base/route/user.js';
+import { EditorElem } from '../../../../glitterBundle/plugins/editor-elem.js';
+import { BackendServer } from '../../../../api/backend-server.js';
+import { ShareDialog } from '../../../../glitterBundle/dialog/ShareDialog.js';
 window.glitter.setModule(import.meta.url, (gvc) => {
     return gvc.bindView(() => {
         const html = String.raw;
@@ -20,14 +20,14 @@ window.glitter.setModule(import.meta.url, (gvc) => {
             type: 'list',
             data: {},
             query: '',
-            dataList: []
+            dataList: [],
         };
         let postVm = {
             name: '',
             domain: '',
             version: '',
             port: '',
-            file: ''
+            file: '',
         };
         const filterID = gvc.glitter.getUUID();
         return {
@@ -35,16 +35,17 @@ window.glitter.setModule(import.meta.url, (gvc) => {
             view: () => {
                 if (vm.type === 'post') {
                     return BgWidget.container([
-                        html `
-                                <div class="d-flex">
-                                    ${BgWidget.goBack(gvc.event(() => {
+                        html ` <div class="d-flex">
+                                ${BgWidget.goBack(gvc.event(() => {
                             vm.type = 'list';
                             gvc.notifyDataChange(id);
                         }))}
-                                    ${BgWidget.title('發佈後端專案')}
-                                    <div class="flex-fill"></div>
-                                    <button class="btn btn-outline-secondary-c me-2" style="height:35px;font-size: 14px;"
-                                            onclick="${gvc.event(() => __awaiter(void 0, void 0, void 0, function* () {
+                                ${BgWidget.title('發佈後端專案')}
+                                <div class="flex-fill"></div>
+                                <button
+                                    class="btn btn-outline-secondary-c me-2"
+                                    style="height:35px;font-size: 14px;"
+                                    onclick="${gvc.event(() => __awaiter(void 0, void 0, void 0, function* () {
                             const dialog = new ShareDialog(gvc.glitter);
                             dialog.dataLoading({ visible: true });
                             const resp = yield BackendServer.sampleProject();
@@ -54,75 +55,81 @@ window.glitter.setModule(import.meta.url, (gvc) => {
                             }
                             else {
                                 dialog.errorMessage({
-                                    text: '下載範例失敗!'
+                                    text: '下載範例失敗!',
                                 });
                             }
-                        }))}"><i class="fa-regular fa-download me-2"></i>下載範例專案
-                                    </button>
-                                    <button class="btn btn-primary-c" style="height:35px;font-size: 14px;"
-                                            onclick="${gvc.event(() => __awaiter(void 0, void 0, void 0, function* () {
+                        }))}"
+                                >
+                                    <i class="fa-regular fa-download me-2"></i>下載範例專案
+                                </button>
+                                <button
+                                    class="btn btn-primary-c"
+                                    style="height:35px;font-size: 14px;"
+                                    onclick="${gvc.event(() => __awaiter(void 0, void 0, void 0, function* () {
                             const dialog = new ShareDialog(gvc.glitter);
                             if (Object.keys(postVm).find((dd) => {
                                 return !postVm[dd] && dd !== 'domain';
                             })) {
-                                dialog.errorMessage({ text: "請確實填寫必帶資料。" });
+                                dialog.errorMessage({ text: '請確實填寫必帶資料。' });
                                 return;
                             }
-                            dialog.dataLoading({ text: "上傳中", visible: true });
+                            dialog.dataLoading({ text: '上傳中', visible: true });
                             const resp = yield BackendServer.postAPI(postVm);
                             dialog.dataLoading({ visible: false });
                             if (resp.result) {
                                 dialog.successMessage({
-                                    text: '發佈成功'
+                                    text: '發佈成功',
                                 });
                                 vm.type = 'list';
                             }
                             else {
                                 dialog.errorMessage({
-                                    text: '發佈失敗'
+                                    text: '發佈失敗',
                                 });
                             }
                             gvc.notifyDataChange(id);
-                        }))}">確認發佈
-                                    </button>
-                                </div>`,
+                        }))}"
+                                >
+                                    確認發佈
+                                </button>
+                            </div>`,
                         BgWidget.card([
                             EditorElem.editeInput({
                                 gvc: gvc,
                                 title: '專案名稱-必須與專案資料夾名稱一致',
                                 default: postVm.name,
-                                placeHolder: "[僅限英數字與減號和下滑線且必須與專案資料夾名稱一致]",
+                                placeHolder: '[僅限英數字與減號和下滑線且必須與專案資料夾名稱一致]',
                                 callback: (text) => {
                                     postVm.name = text.replace(/[^a-zA-Z0-9-_]/g, '');
                                     gvc.notifyDataChange(id);
-                                }
+                                },
                             }),
                             EditorElem.editeInput({
                                 gvc: gvc,
                                 title: '應用踔號[Listen Port]',
                                 default: postVm.port,
-                                placeHolder: "踔號範圍[8000-8100]",
+                                placeHolder: '踔號範圍[8000-8100]',
                                 callback: (text) => {
                                     if (parseInt(text) < 8000) {
-                                        text = "8000";
+                                        text = '8000';
                                     }
                                     else if (parseInt(text) > 8100) {
-                                        text = "8100";
+                                        text = '8100';
                                     }
                                     postVm.port = text;
                                     gvc.notifyDataChange(id);
                                 },
-                                type: 'number'
+                                type: 'number',
                             }),
                             EditorElem.editeInput({
                                 gvc: gvc,
                                 title: '版本號碼',
                                 default: postVm.version,
-                                placeHolder: "請輸入版本號碼例如：1.0.1",
+                                placeHolder: '請輸入版本號碼例如：1.0.1',
                                 callback: (text) => {
                                     postVm.version = text;
                                     gvc.notifyDataChange(id);
-                                }
+                                },
                             }),
                             EditorElem.h3('上傳專案壓縮檔案，副檔名需為zip'),
                             gvc.bindView(() => {
@@ -133,7 +140,7 @@ window.glitter.setModule(import.meta.url, (gvc) => {
                                         callback: (text) => {
                                             postVm.file = text;
                                             gvc.notifyDataChange(id);
-                                        }
+                                        },
                                     });
                                 }
                                 return {
@@ -149,10 +156,10 @@ window.glitter.setModule(import.meta.url, (gvc) => {
                                                 uploadEvent();
                                             })}">上傳檔案</button>`;
                                         }
-                                    }
+                                    },
                                 };
-                            })
-                        ].join(''))
+                            }),
+                        ].join('')),
                     ].join(`<div class="my-3"></div>`), 600);
                 }
                 else if (vm.type === 'replace') {
@@ -163,21 +170,21 @@ window.glitter.setModule(import.meta.url, (gvc) => {
                                 postVm[dd] = vm.data[dd];
                                 return !postVm[dd] && dd !== 'domain';
                             })) {
-                                dialog.errorMessage({ text: "請確實填寫必帶資料。" });
+                                dialog.errorMessage({ text: '請確實填寫必帶資料。' });
                                 return;
                             }
-                            dialog.dataLoading({ text: "上傳中", visible: true });
+                            dialog.dataLoading({ text: '上傳中', visible: true });
                             const resp = yield BackendServer.postAPI(postVm);
                             dialog.dataLoading({ visible: false });
                             if (resp.result) {
                                 dialog.successMessage({
-                                    text: '發佈成功'
+                                    text: '發佈成功',
                                 });
                                 vm.type = 'list';
                             }
                             else {
                                 dialog.errorMessage({
-                                    text: '發佈失敗'
+                                    text: '發佈失敗',
                                 });
                             }
                             gvc.notifyDataChange(id);
@@ -190,20 +197,20 @@ window.glitter.setModule(import.meta.url, (gvc) => {
                             view: () => {
                                 return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
                                     const address = yield BackendServer.getApiPath({
-                                        port: vm.data.port
+                                        port: vm.data.port,
                                     });
                                     resolve(BgWidget.container([
-                                        html `
-                                                <div class="d-flex">
+                                        html ` <div class="d-flex">
                                                     ${BgWidget.goBack(gvc.event(() => {
                                             vm.type = 'list';
                                             gvc.notifyDataChange(id);
                                         }))}
                                                     ${BgWidget.title(vm.data.name)}
                                                     <div class="flex-fill"></div>
-                                                    <button class="btn btn-outline-secondary-c me-2"
-                                                            style="height:35px;font-size: 14px;"
-                                                            onclick="${gvc.event(() => __awaiter(void 0, void 0, void 0, function* () {
+                                                    <button
+                                                        class="btn btn-outline-secondary-c me-2"
+                                                        style="height:35px;font-size: 14px;"
+                                                        onclick="${gvc.event(() => __awaiter(void 0, void 0, void 0, function* () {
                                             const dialog = new ShareDialog(gvc.glitter);
                                             dialog.dataLoading({ visible: true });
                                             const resp = yield BackendServer.sampleProject();
@@ -213,15 +220,21 @@ window.glitter.setModule(import.meta.url, (gvc) => {
                                             }
                                             else {
                                                 dialog.errorMessage({
-                                                    text: '下載範例失敗!'
+                                                    text: '下載範例失敗!',
                                                 });
                                             }
-                                        }))}"><i class="fa-regular fa-download me-2"></i>下載範例專案
+                                        }))}"
+                                                    >
+                                                        <i class="fa-regular fa-download me-2"></i>下載範例專案
                                                     </button>
-                                                    <button class="btn btn-primary-c" style="height:35px;font-size: 14px;"
-                                                            onclick="${gvc.event(() => __awaiter(void 0, void 0, void 0, function* () {
+                                                    <button
+                                                        class="btn btn-primary-c"
+                                                        style="height:35px;font-size: 14px;"
+                                                        onclick="${gvc.event(() => __awaiter(void 0, void 0, void 0, function* () {
                                             updateEvent();
-                                        }))}">發佈更新
+                                        }))}"
+                                                    >
+                                                        發佈更新
                                                     </button>
                                                 </div>`,
                                         BgWidget.card([
@@ -254,67 +267,65 @@ style="border:1px solid black;font-size:14px; width:30px;height: 30px;" onclick=
                                                     },
                                                     divCreate: {
                                                         class: `d-flex align-items-center border-bottom pb-2 mb-2`,
-                                                        style: 'gap:10px;'
+                                                        style: 'gap:10px;',
                                                     },
                                                     onCreate: () => {
                                                         $('.tooltip').remove();
                                                         $('[data-bs-toggle="tooltip"]').tooltip();
-                                                    }
+                                                    },
                                                 };
                                             }),
                                             EditorElem.editeInput({
                                                 gvc: gvc,
                                                 title: '專案名稱-必須與專案資料夾名稱一致',
                                                 default: vm.data.name,
-                                                placeHolder: "[僅限英數字與減號和下滑線且必須與專案資料夾名稱一致]",
-                                                callback: (text) => {
-                                                },
-                                                readonly: true
+                                                placeHolder: '[僅限英數字與減號和下滑線且必須與專案資料夾名稱一致]',
+                                                callback: (text) => { },
+                                                readonly: true,
                                             }),
                                             EditorElem.editeInput({
                                                 gvc: gvc,
-                                                title: html `
-                                                        <div class="d-flex align-items-center" style="gap:2px;">
-                                                            專案路徑
-                                                            <div class="hoverBtn ms-2 d-flex align-items-center justify-content-center   border"
-                                                                 style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
-                                                                 data-bs-toggle="tooltip" data-bs-placement="top"
-                                                                 data-bs-custom-class="custom-tooltip"
-                                                                 data-bs-title="網域設置"
-                                                                 onclick="${gvc.event(() => {
+                                                title: html ` <div class="d-flex align-items-center" style="gap:2px;">
+                                                                專案路徑
+                                                                <div
+                                                                    class="hoverBtn ms-2 d-flex align-items-center justify-content-center   border"
+                                                                    style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
+                                                                    data-bs-toggle="tooltip"
+                                                                    data-bs-placement="top"
+                                                                    data-bs-custom-class="custom-tooltip"
+                                                                    data-bs-title="網域設置"
+                                                                    onclick="${gvc.event(() => {
                                                     const href = new URL(location.href);
                                                     href.searchParams.set('router', '伺服器內容/網域部署');
                                                     location.href = href.href;
-                                                })}">
-                                                                <i class="fa-sharp fa-regular fa-globe-pointer"
-                                                                   aria-hidden="true"></i>
-                                                            </div>
-                                                        </div>`,
+                                                })}"
+                                                                >
+                                                                    <i class="fa-sharp fa-regular fa-globe-pointer" aria-hidden="true"></i>
+                                                                </div>
+                                                            </div>`,
                                                 default: address.response.url,
-                                                placeHolder: "專案路徑",
-                                                callback: (text) => {
-                                                },
-                                                readonly: true
+                                                placeHolder: '專案路徑',
+                                                callback: (text) => { },
+                                                readonly: true,
                                             }),
                                             EditorElem.editeInput({
                                                 gvc: gvc,
                                                 title: '應用踔號[Listen Port]',
                                                 default: vm.data.port,
-                                                placeHolder: "踔號範圍[8000-8100]",
-                                                callback: (text) => {
-                                                },
+                                                placeHolder: '踔號範圍[8000-8100]',
+                                                callback: (text) => { },
                                                 readonly: true,
-                                                type: 'number'
+                                                type: 'number',
                                             }),
                                             EditorElem.editeInput({
                                                 gvc: gvc,
                                                 title: '版本號碼',
                                                 default: vm.data.version,
-                                                placeHolder: "請輸入版本號碼例如：1.0.1",
+                                                placeHolder: '請輸入版本號碼例如：1.0.1',
                                                 callback: (text) => {
                                                     vm.data.version = text;
                                                     gvc.notifyDataChange(id);
-                                                }
+                                                },
                                             }),
                                             EditorElem.h3('上傳專案壓縮檔案，副檔名需為zip'),
                                             gvc.bindView(() => {
@@ -325,7 +336,7 @@ style="border:1px solid black;font-size:14px; width:30px;height: 30px;" onclick=
                                                         callback: (text) => {
                                                             vm.data.file = text;
                                                             gvc.notifyDataChange(id);
-                                                        }
+                                                        },
                                                     });
                                                 }
                                                 return {
@@ -351,12 +362,12 @@ data-bs-title="下載專案壓縮檔"
                                                         }
                                                     },
                                                     divCreate: {
-                                                        class: `d-flex align-items-center`
+                                                        class: `d-flex align-items-center`,
                                                     },
                                                     onCreate: () => {
                                                         $('.tooltip').remove();
                                                         $('[data-bs-toggle="tooltip"]').tooltip();
-                                                    }
+                                                    },
                                                 };
                                             }),
                                         ].join('')),
@@ -369,12 +380,12 @@ data-bs-title="下載專案壓縮檔"
                                                     if (response) {
                                                         dialog.dataLoading({ visible: true });
                                                         yield BackendServer.shutDown({
-                                                            port: vm.data.port
+                                                            port: vm.data.port,
                                                         });
                                                         location.reload();
                                                     }
                                                 }),
-                                                text: `是否確認停止專案?`
+                                                text: `是否確認停止專案?`,
                                             });
                                         })}">暫停應用</button>
 <button class="bg-danger btn btn-sm" onclick="${gvc.event(() => {
@@ -384,18 +395,18 @@ data-bs-title="下載專案壓縮檔"
                                                     if (response) {
                                                         dialog.dataLoading({ visible: true });
                                                         yield BackendServer.deleteAPI({
-                                                            port: vm.data.port
+                                                            port: vm.data.port,
                                                         });
                                                         location.reload();
                                                     }
                                                 }),
-                                                text: `是否確認刪除專案?`
+                                                text: `是否確認刪除專案?`,
                                             });
                                         })}">刪除專案</button>
-</div>`
+</div>`,
                                     ].join(`<div class="my-3"></div>`), 600));
                                 }));
-                            }
+                            },
                         };
                     });
                 }
@@ -404,8 +415,10 @@ data-bs-title="下載專案壓縮檔"
                         <div class="d-flex w-100 align-items-center mb-3 ">
                             ${BgWidget.title('專案部署')}
                             <div class="flex-fill"></div>
-                            <button class="btn btn-outline-secondary-c me-2" style="height:35px;font-size: 14px;"
-                                    onclick="${gvc.event(() => __awaiter(void 0, void 0, void 0, function* () {
+                            <button
+                                class="btn btn-outline-secondary-c me-2"
+                                style="height:35px;font-size: 14px;"
+                                onclick="${gvc.event(() => __awaiter(void 0, void 0, void 0, function* () {
                         const dialog = new ShareDialog(gvc.glitter);
                         dialog.dataLoading({ visible: true });
                         const resp = yield BackendServer.sampleProject();
@@ -415,17 +428,21 @@ data-bs-title="下載專案壓縮檔"
                         }
                         else {
                             dialog.errorMessage({
-                                text: '下載範例失敗!'
+                                text: '下載範例失敗!',
                             });
                         }
-                    }))}"><i class="fa-regular fa-download me-2"></i>下載範例專案
+                    }))}"
+                            >
+                                <i class="fa-regular fa-download me-2"></i>下載範例專案
                             </button>
-                            <button class="btn btn-primary-c me-2 px-3"
-                                    style="height:35px !important;font-size: 14px;border:1px solid black;"
-                                    onclick="${gvc.event(() => {
+                            <button
+                                class="btn btn-primary-c me-2 px-3"
+                                style="height:35px !important;font-size: 14px;border:1px solid black;"
+                                onclick="${gvc.event(() => {
                         vm.type = 'post';
                         gvc.notifyDataChange(id);
-                    })}">
+                    })}"
+                            >
                                 新增專案
                             </button>
                         </div>
@@ -435,7 +452,7 @@ data-bs-title="下載專案壓縮檔"
                             BackendServer.getApi({
                                 page: vmi.page - 1,
                                 limit: 20,
-                                search: vm.query || undefined
+                                search: vm.query || undefined,
                             }).then((data) => {
                                 vmi.pageSize = Math.ceil(data.response.total / 20);
                                 vm.dataList = data.response.data;
@@ -443,7 +460,7 @@ data-bs-title="下載專案壓縮檔"
                                     return [
                                         {
                                             key: '專案名稱',
-                                            value: dd.name
+                                            value: dd.name,
                                         },
                                         {
                                             key: '運行狀態',
@@ -460,9 +477,9 @@ data-bs-title="下載專案壓縮檔"
                                                                 resolve(`<span class="badge bg-danger " style="font-size:14px;">已停止</span>`);
                                                             }
                                                         });
-                                                    }
+                                                    },
                                                 };
-                                            })
+                                            }),
                                         },
                                         {
                                             key: '專案路徑',
@@ -472,26 +489,26 @@ data-bs-title="下載專案壓縮檔"
                                                     view: () => {
                                                         return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
                                                             const address = yield BackendServer.getApiPath({
-                                                                port: dd.port
+                                                                port: dd.port,
                                                             });
                                                             resolve(address.response.url);
                                                         }));
-                                                    }
+                                                    },
                                                 };
-                                            })
+                                            }),
                                         },
                                         {
                                             key: '踔號',
-                                            value: dd.port
+                                            value: dd.port,
                                         },
                                         {
                                             key: '版本號碼',
-                                            value: dd.version
+                                            value: dd.version,
                                         },
                                         {
                                             key: '發佈時間',
-                                            value: gvc.glitter.ut.dateFormat(new Date(dd.created_time), 'yyyy-MM-dd hh:mm:ss')
-                                        }
+                                            value: gvc.glitter.ut.dateFormat(new Date(dd.created_time), 'yyyy-MM-dd hh:mm:ss'),
+                                        },
                                     ];
                                 });
                                 vmi.loading = false;
@@ -500,7 +517,7 @@ data-bs-title="下載專案壓縮檔"
                         },
                         rowClick: (data, index) => {
                             vm.data = vm.dataList[index];
-                            vm.type = "replace";
+                            vm.type = 'replace';
                             gvc.notifyDataChange(id);
                         },
                         filter: html `
@@ -512,60 +529,70 @@ data-bs-title="下載專案壓縮檔"
                             return {
                                 bind: filterID,
                                 view: () => {
-                                    if (!vm.dataList || !vm.dataList.find((dd) => {
-                                        return dd.checked;
-                                    })) {
+                                    if (!vm.dataList ||
+                                        !vm.dataList.find((dd) => {
+                                            return dd.checked;
+                                        })) {
                                         return ``;
                                     }
                                     else {
-                                        return [
-                                            `<span class="fs-7 fw-bold">操作選項</span>`,
-                                            `<button class="btn btn-danger fs-7 px-2" style="height:30px;border:none;" onclick="${gvc.event(() => {
-                                                const dialog = new ShareDialog(gvc.glitter);
-                                                dialog.checkYesOrNot({
-                                                    text: '是否確認移除所選項目?',
-                                                    callback: (response) => {
-                                                        if (response) {
-                                                            dialog.dataLoading({ visible: true });
-                                                            ApiUser.deleteUser({
-                                                                id: vm.dataList.filter((dd) => {
-                                                                    return dd.checked;
-                                                                }).map((dd) => {
-                                                                    return dd.id;
-                                                                }).join(`,`)
-                                                            }).then((res) => {
-                                                                dialog.dataLoading({ visible: false });
-                                                                if (res.result) {
-                                                                    vm.dataList = undefined;
-                                                                    gvc.notifyDataChange(id);
-                                                                }
-                                                                else {
-                                                                    dialog.errorMessage({ text: "刪除失敗" });
-                                                                }
-                                                            });
-                                                        }
-                                                    }
-                                                });
-                                            })}">批量移除</button>`
-                                        ].join(``);
+                                        const dialog = new ShareDialog(gvc.glitter);
+                                        const selCount = vm.dataList.filter((dd) => dd.checked).length;
+                                        return BgWidget.selNavbar({
+                                            count: selCount,
+                                            buttonList: [
+                                                BgWidget.selEventButton('批量移除', gvc.event(() => {
+                                                    dialog.checkYesOrNot({
+                                                        text: '是否確認移除所選項目?',
+                                                        callback: (response) => {
+                                                            if (response) {
+                                                                dialog.dataLoading({ visible: true });
+                                                                ApiUser.deleteUser({
+                                                                    id: vm.dataList
+                                                                        .filter((dd) => {
+                                                                        return dd.checked;
+                                                                    })
+                                                                        .map((dd) => {
+                                                                        return dd.id;
+                                                                    })
+                                                                        .join(`,`),
+                                                                }).then((res) => {
+                                                                    dialog.dataLoading({ visible: false });
+                                                                    if (res.result) {
+                                                                        vm.dataList = undefined;
+                                                                        gvc.notifyDataChange(id);
+                                                                    }
+                                                                    else {
+                                                                        dialog.errorMessage({ text: '刪除失敗' });
+                                                                    }
+                                                                });
+                                                            }
+                                                        },
+                                                    });
+                                                })),
+                                            ],
+                                        });
                                     }
                                 },
                                 divCreate: () => {
                                     return {
-                                        class: `d-flex align-items-center p-2 py-3 ${(!vm.dataList || !vm.dataList.find((dd) => {
-                                            return dd.checked;
-                                        })) ? `d-none` : ``}`,
-                                        style: `height:40px;gap:10px;margin-top:10px;`
+                                        class: `d-flex align-items-center p-2 py-3 ${!vm.dataList ||
+                                            !vm.dataList.find((dd) => {
+                                                return dd.checked;
+                                            })
+                                            ? `d-none`
+                                            : ``}`,
+                                        style: ``,
                                     };
-                                }
+                                },
                             };
                         })}
-                            `
+                            `,
                     })}
                     `);
                 }
             },
-            divCreate: {}
+            divCreate: {},
         };
     });
 });

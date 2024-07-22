@@ -10,8 +10,8 @@ import { ApiApp } from '../glitter-base/route/app.js';
 import { FormWidget } from '../official_view_component/official/form.js';
 import { ApiWallet } from '../glitter-base/route/wallet.js';
 import { ApiPageConfig } from '../api/pageConfig.js';
-import {Storage} from "../glitterBundle/helper/storage.js";
-import {EditorConfig} from "../editor-config.js";
+import { Storage } from '../glitterBundle/helper/storage.js';
+import { EditorConfig } from '../editor-config.js';
 
 const html = String.raw;
 
@@ -702,44 +702,44 @@ export class BgProject {
                                                 ) {
                                                     return ``;
                                                 } else {
-                                                    return [
-                                                        html`<span class="fs-7 fw-bold">操作選項</span>`,
-                                                        html`<button
-                                                            class="btn btn-danger fs-7 px-2"
-                                                            style="height:30px;border:none;"
-                                                            onclick="${gvc.event(() => {
-                                                                const dialog = new ShareDialog(gvc.glitter);
-                                                                dialog.checkYesOrNot({
-                                                                    text: '是否確認移除所選項目?',
-                                                                    callback: (response) => {
-                                                                        if (response) {
-                                                                            dialog.dataLoading({ visible: true });
-                                                                            ApiUser.deleteUser({
-                                                                                id: vm.dataList
-                                                                                    .filter((dd: any) => {
-                                                                                        return dd.checked;
-                                                                                    })
-                                                                                    .map((dd: any) => {
-                                                                                        return dd.id;
-                                                                                    })
-                                                                                    .join(`,`),
-                                                                            }).then((res) => {
-                                                                                dialog.dataLoading({ visible: false });
-                                                                                if (res.result) {
-                                                                                    vm.dataList = undefined;
-                                                                                    gvc.notifyDataChange(id);
-                                                                                } else {
-                                                                                    dialog.errorMessage({ text: '刪除失敗' });
-                                                                                }
-                                                                            });
-                                                                        }
-                                                                    },
-                                                                });
-                                                            })}"
-                                                        >
-                                                            批量移除
-                                                        </button>`,
-                                                    ].join(``);
+                                                    const dialog = new ShareDialog(gvc.glitter);
+                                                    const selCount = vm.dataList.filter((dd: any) => dd.checked).length;
+                                                    return BgWidget.selNavbar({
+                                                        count: selCount,
+                                                        buttonList: [
+                                                            BgWidget.selEventButton(
+                                                                '批量移除',
+                                                                gvc.event(() => {
+                                                                    dialog.checkYesOrNot({
+                                                                        text: '是否確認移除所選項目?',
+                                                                        callback: (response) => {
+                                                                            if (response) {
+                                                                                dialog.dataLoading({ visible: true });
+                                                                                ApiUser.deleteUser({
+                                                                                    id: vm.dataList
+                                                                                        .filter((dd: any) => {
+                                                                                            return dd.checked;
+                                                                                        })
+                                                                                        .map((dd: any) => {
+                                                                                            return dd.id;
+                                                                                        })
+                                                                                        .join(`,`),
+                                                                                }).then((res) => {
+                                                                                    dialog.dataLoading({ visible: false });
+                                                                                    if (res.result) {
+                                                                                        vm.dataList = undefined;
+                                                                                        gvc.notifyDataChange(id);
+                                                                                    } else {
+                                                                                        dialog.errorMessage({ text: '刪除失敗' });
+                                                                                    }
+                                                                                });
+                                                                            }
+                                                                        },
+                                                                    });
+                                                                })
+                                                            ),
+                                                        ],
+                                                    });
                                                 }
                                             },
                                             divCreate: () => {
@@ -1087,30 +1087,30 @@ export class BgProject {
                                 html`
                                     <div class="d-flex w-100 align-items-sm-center flex-column flex-sm-row" style="gap:20px;">
                                         ${BgWidget.title('應用上架審核')}
-                                       <div class="d-flex  w-100 justify-content-between">
-                                           <div class="ms-sm-3" style="max-width: 200px;">
-                                               ${EditorElem.select({
-                                                   title: '',
-                                                   gvc: gvc,
-                                                   def: type,
-                                                   array: [
-                                                       {title:'IOS應用商城',value:'apple_release'},
-                                                       {title:'Android應用商城',value:'android_release'}
-                                                   ],
-                                                   callback: (text: string) => {
-                                                       type=text
-                                                       gvc.notifyDataChange(id);
-                                                   },
-                                               })}
-                                           </div>
-                                           <div class="flex-fill"></div>
-                                           ${BgWidget.darkButton(
-                                                   '新增送審項目',
-                                                   gvc.event(() => {
-                                                       vm.status = 'add';
-                                                   })
-                                           )}
-                                       </div>
+                                        <div class="d-flex  w-100 justify-content-between">
+                                            <div class="ms-sm-3" style="max-width: 200px;">
+                                                ${EditorElem.select({
+                                                    title: '',
+                                                    gvc: gvc,
+                                                    def: type,
+                                                    array: [
+                                                        { title: 'IOS應用商城', value: 'apple_release' },
+                                                        { title: 'Android應用商城', value: 'android_release' },
+                                                    ],
+                                                    callback: (text: string) => {
+                                                        type = text;
+                                                        gvc.notifyDataChange(id);
+                                                    },
+                                                })}
+                                            </div>
+                                            <div class="flex-fill"></div>
+                                            ${BgWidget.darkButton(
+                                                '新增送審項目',
+                                                gvc.event(() => {
+                                                    vm.status = 'add';
+                                                })
+                                            )}
+                                        </div>
                                     </div>
                                     <div class="my-3"></div>
                                     ${BgWidget.alertInfo('請注意!!', [
@@ -1191,7 +1191,12 @@ export class BgProject {
                                                                         {
                                                                             key: 'APP資訊',
                                                                             value: html`<div style="min-width: 150px;">
-                                                                                <img class="rounded border me-4 ${dd.content.logo || 'd-none'}" alt="" src="${dd.content.logo}" style="width:40px;height:40px;" />
+                                                                                <img
+                                                                                    class="rounded border me-4 ${dd.content.logo || 'd-none'}"
+                                                                                    alt=""
+                                                                                    src="${dd.content.logo}"
+                                                                                    style="width:40px;height:40px;"
+                                                                                />
                                                                                 <span>${dd.content.name}</span>
                                                                             </div>`,
                                                                         },
@@ -1269,44 +1274,44 @@ export class BgProject {
                                                                 ) {
                                                                     return ``;
                                                                 } else {
-                                                                    return [
-                                                                        html`<span class="fs-7 fw-bold">操作選項</span>`,
-                                                                        html`<button
-                                                                            class="btn btn-danger fs-7 px-2"
-                                                                            style="height:30px;border:none;"
-                                                                            onclick="${gvc.event(() => {
-                                                                                const dialog = new ShareDialog(gvc.glitter);
-                                                                                dialog.checkYesOrNot({
-                                                                                    text: '是否確認移除所選項目?',
-                                                                                    callback: (response) => {
-                                                                                        if (response) {
-                                                                                            dialog.dataLoading({ visible: true });
-                                                                                            ApiShop.delete({
-                                                                                                id: vm.dataList
-                                                                                                    .filter((dd: any) => {
-                                                                                                        return dd.checked;
-                                                                                                    })
-                                                                                                    .map((dd: any) => {
-                                                                                                        return dd.id;
-                                                                                                    })
-                                                                                                    .join(`,`),
-                                                                                            }).then((res) => {
-                                                                                                dialog.dataLoading({ visible: false });
-                                                                                                if (res.result) {
-                                                                                                    vm.dataList = undefined;
-                                                                                                    gvc.notifyDataChange(id);
-                                                                                                } else {
-                                                                                                    dialog.errorMessage({ text: '刪除失敗' });
-                                                                                                }
-                                                                                            });
-                                                                                        }
-                                                                                    },
-                                                                                });
-                                                                            })}"
-                                                                        >
-                                                                            批量移除
-                                                                        </button>`,
-                                                                    ].join(``);
+                                                                    const dialog = new ShareDialog(gvc.glitter);
+                                                                    const selCount = vm.dataList.filter((dd: any) => dd.checked).length;
+                                                                    return BgWidget.selNavbar({
+                                                                        count: selCount,
+                                                                        buttonList: [
+                                                                            BgWidget.selEventButton(
+                                                                                '批量移除',
+                                                                                gvc.event(() => {
+                                                                                    dialog.checkYesOrNot({
+                                                                                        text: '是否確認移除所選項目?',
+                                                                                        callback: (response) => {
+                                                                                            if (response) {
+                                                                                                dialog.dataLoading({ visible: true });
+                                                                                                ApiShop.delete({
+                                                                                                    id: vm.dataList
+                                                                                                        .filter((dd: any) => {
+                                                                                                            return dd.checked;
+                                                                                                        })
+                                                                                                        .map((dd: any) => {
+                                                                                                            return dd.id;
+                                                                                                        })
+                                                                                                        .join(`,`),
+                                                                                                }).then((res) => {
+                                                                                                    dialog.dataLoading({ visible: false });
+                                                                                                    if (res.result) {
+                                                                                                        vm.dataList = undefined;
+                                                                                                        gvc.notifyDataChange(id);
+                                                                                                    } else {
+                                                                                                        dialog.errorMessage({ text: '刪除失敗' });
+                                                                                                    }
+                                                                                                });
+                                                                                            }
+                                                                                        },
+                                                                                    });
+                                                                                })
+                                                                            ),
+                                                                        ],
+                                                                    });
                                                                 }
                                                             },
                                                             divCreate: () => {
@@ -1645,7 +1650,6 @@ export class BgProject {
         type: string,
         editorData?: any
     ) {
-
         const saasConfig: {
             config: any;
             api: any;

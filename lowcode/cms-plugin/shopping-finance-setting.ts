@@ -21,6 +21,7 @@ export class ShoppingFinanceSetting {
             atm?: boolean;
             web_atm?: boolean;
             c_code?: boolean;
+            payment_info_text?:string
             c_bar_code?: boolean;
             TYPE?: 'newWebPay' | 'ecPay';
         } = {
@@ -29,6 +30,7 @@ export class ShoppingFinanceSetting {
             HASH_IV: 'C4AlT6GjEEr1Z9VP',
             ActionURL: 'https://core.newebpay.com/MPG/mpg_gateway',
             TYPE: 'newWebPay',
+            payment_info_text:''
         };
         const vm = {
             id: gvc.glitter.getUUID(),
@@ -140,11 +142,26 @@ export class ShoppingFinanceSetting {
                                                                                                     <div class="ms-2 border-end position-absolute h-100"
                                                                                                          style="left: 0px;"></div>
                                                                                                     <div class="flex-fill "
-                                                                                                         style="margin-left:30px;max-width: 600px;">
-                                                                                                        ${(() => {
-                                                                                                            if ((keyData.TYPE as any) === 'off_line' || keyData.TYPE !== dd.value) {
-                                                                                                                return [].join('');
-                                                                                                            } else {
+                                                                                                         style="margin-left:30px;max-width: 100%;">
+                                                                                                        ${(() => { if(keyData.TYPE !== dd.value){
+                                                                                                                return  ``
+                                                                                                            } else  if ((keyData.TYPE as any) === 'off_line') {
+                                                                                                            //於訂單確認頁面及通知郵件中顯示，告知顧客付款的銀行帳戶或其他付款說明
+                                                                                                            return [
+                                                                                                                `  <div class="tx_normal fw-normal">
+                                                                                                       付款資訊
+                                                                                                    </div>`,
+                                                                                                                BgWidget.hint_title('於訂單確認頁面及通知郵件中顯示，告知顧客付款的銀行帳戶或其他付款說明'),
+                                                                                                                    `<div class="my-3"></div>`,
+                                                                                                                    EditorElem.richText({
+                                                                                                                        gvc:gvc,
+                                                                                                                        def:keyData.payment_info_text ?? '',
+                                                                                                                        callback:(text)=>{
+                                                                                                                            keyData.payment_info_text=text
+                                                                                                                        }
+                                                                                                                    })
+                                                                                                            ].join('')
+                                                                                                        } else {
                                                                                                                 return [
                                                                                                                     BgWidget.inlineCheckBox({
                                                                                                                         title: '金流站點',
@@ -332,63 +349,6 @@ export class ShoppingFinanceSetting {
                             <div class="d-flex w-100 align-items-center">
                                 ${BgWidget.title('配送設定')}
                                 <div class="flex-fill"></div>
-                                ${BgWidget.grayButton('<i class="fa-solid fa-megaphone me-2"></i> 配送通知', gvc.event(() => {
-                                    EditorElem.openEditorDialog(
-                                            gvc,
-                                            () => {
-                                                return html`
-                                                   
-                                                    <div class="p-3" style="overflow: hidden;">
-                                                        <div class=" alert  alert-secondary p-2 mb-2 " style="">
-                                                            <div class="fs-6 mb-0 fw-500">於前台顯示的配送通知，告知客戶配送所需要注意的事項。</div>
-                                                        </div>
-                                                        ${EditorElem.richText({
-                                                            gvc: gvc,
-                                                            def: vm.data.info,
-                                                            callback: (text) => {
-                                                                vm.data.info = text;
-                                                                save()
-                                                            },
-                                                        })}
-                                                    </div>`;
-                                            },
-                                            () => {
-                                            },
-                                            800,
-                                            `<span class="fs-6">配送通知</span>`
-                                    )
-                                }))}
-                                <div style="width:10px;"></div>
-                                ${BgWidget.grayButton('<i class="fa-solid fa-square-list me-2"></i> 配送表單', gvc.event(() => {
-                                    EditorElem.openEditorDialog(
-                                            gvc,
-                                            (gvc) => {
-                                                return html`
-                                                 
-                                                    <div class="px-2 py-2" style="overflow: hidden;">
-                                                        <div class=" alert  alert-secondary p-2 mb-0 mx-2" style="">
-                                                            <div class="fs-6 mb-0 fw-500">於前台顯示額外的配送表單填寫項目，供用戶進行填寫。</div>
-                                                           
-                                                        </div>
-                                                        ${  FormWidget.settingView({
-                                                            gvc: gvc,
-                                                            array: vm.data.form,
-                                                            refresh: () => {
-                                                                gvc.recreateView()
-                                                            },
-                                                            title: '',
-                                                            user_mode:true
-                                                        })
-                                                       }
-                                                    </div>`;
-                                            },
-                                            () => {
-                                                save()
-                                            },
-                                            400,
-                                            `<span class="fs-6">配送表單</span>`
-                                    )
-                                }))}
                             </div>
                             ${gvc.bindView(() => {
                                 const id = gvc.glitter.getUUID();
@@ -483,10 +443,36 @@ export class ShoppingFinanceSetting {
                                     },
                                     divCreate: {
                                         class: 'row',
-                                        style: 'margin: 24px auto;',
+                                        style: 'margin-top:24px;',
                                     },
                                 };
                             })}
+                            ${BgWidget.card([
+                                BgWidget.title_16('配送說明'),
+                                BgWidget.hint_title('於結帳頁面中顯示，告知顧客配送所需要注意的事項。'),
+                                EditorElem.richText({
+                                    gvc: gvc,
+                                    def: vm.data.info,
+                                    callback: (text) => {
+                                        vm.data.info = text;
+                                        save()
+                                    },
+                                })
+                            ].join(`<div class="my-2"></div>`))}
+                            <div
+                                    style="width: 100%;padding: 14px 16px;background: #FFF;box-shadow: 0px 1px 10px 0px rgba(0, 0, 0, 0.15);display: flex;justify-content: end;position: fixed;bottom: 0;right: 0;z-index:1;gap:14px;"
+                            >
+                                
+                                ${BgWidget.save(
+                                        gvc.event(async () => {
+                                            await widget.event('loading',{visible:true})
+                                            save()
+                                            await widget.event('loading',{visible:false})
+                                            await widget.event('success',{title:'儲存成功'})
+                                        }),
+                                        '儲存'
+                                )}
+                            </div>
                             ${BgWidget.mb240()}
                         `,
                         BgWidget.getContainerWidth()

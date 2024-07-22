@@ -85,16 +85,9 @@ export class BgWidget {
                                     return html ` <td
                                                                           class="${(_a = d3.position) !== null && _a !== void 0 ? _a : 'text-start'}  tx_normal"
                                                                           ${d3.key === '●' || d3.stopDialog ? '' : html ` onclick="${gvc.event(() => { })}"`}
-                                                                          style="color:#393939 !important;border:none;
-${(obj.style || []) && obj.style[index] ? obj.style[index] : ``}
-"
+                                                                          style="color:#393939 !important;border:none; ${(obj.style || []) && obj.style[index] ? obj.style[index] : ``}"
                                                                       >
                                                                           <div class="my-auto" style="${(obj.style || []) && obj.style[index] ? obj.style[index] : ``}">${d3.value}</div>
-                                                                          ${index === dd.length - 1 && obj.editable
-                                        ? `
-                                                                                                      <i id="${pencilId}" class="fa-regular fa-pencil position-absolute d-none me-2" style="right: 5px;transform: translateY(-50%);top:50%;"></i>
-                                                                                                    `
-                                        : ``}
                                                                       </td>`;
                                 })
                                     .join('')}
@@ -165,8 +158,8 @@ ${(obj.style || []) && obj.style[index] ? obj.style[index] : ``}
                     }
                     else {
                         return html ` <div class="m-0 p-0" style="${(_a = obj.table_style) !== null && _a !== void 0 ? _a : ''}">
-                            ${obj.filter ? html ` <div style="margin: 12px 0;">${obj.filter}</div>` : ''}
-                            <div style="overflow-x:scroll; z-index: 1;">
+                            ${obj.filter ? html `<div class="m-0">${obj.filter}</div>` : ''}
+                            <div style="margin-top: 4px; overflow-x: scroll; z-index: 1;">
                                 <table class="table table-centered table-nowrap text-center table-hover fw-400 fs-7" style="overflow-x:scroll; ">
                                     <thead>
                                         ${vm.data.length === 0
@@ -214,15 +207,6 @@ ${(obj.style || []) && obj.style[index] ? obj.style[index] : ``}
                                         : ``}"
                                                                       >
                                                                           <div class="my-1 text-nowrap" style="${(obj.style || []) && obj.style[index] ? obj.style[index] : ``}">${d3.value}</div>
-                                                                          ${index === dd.length - 1 && obj.editable
-                                        ? html `
-                                                                                    <i
-                                                                                        id="${pencilId}"
-                                                                                        class="fa-regular fa-pencil position-absolute d-none me-2"
-                                                                                        style="right: 5px;transform: translateY(-50%);top:50%;"
-                                                                                    ></i>
-                                                                                `
-                                        : ``}
                                                                       </td>`;
                                 })
                                     .join('')}

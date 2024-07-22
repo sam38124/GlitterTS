@@ -305,6 +305,14 @@ TriggerEvent.create(import.meta.url, {
         title: '電子商務 / 前往結帳',
         fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/to-checkout.js'),
     },
+    getOrderPaymentMethod: {
+        title: '電子商務 / 取得付款說明',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/payment-method.js'),
+    },
+    putProofPurchase: {
+        title: '電子商務 / 上傳付款證明',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/proof-purchase.js'),
+    },
     setVoucher: {
         title: '電子商務 / 設定優惠券',
         fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/set-voucher.js'),

@@ -5,8 +5,8 @@
     "main": "index.js",
     "scripts": {
         "create": "node node_modules/ts-glitter/create.js",
-        "build:tscAuto": "tsc --project tsconfig.json  && tsc -w",
-        "release": "node node_modules/ts-glitter/release.js  path=test"
+        "build:tscAuto": "tsc --project tsconfig.json && tsc -w",
+        "release": "node node_modules/ts-glitter/release.js path=test"
     },
     "author": "",
     "license": "ISC",

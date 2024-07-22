@@ -127,7 +127,7 @@ export declare class Shopping {
         pay_status?: number;
     }, type?: 'add' | 'preview' | 'manual' | 'manual-preview'): Promise<{
         data: {
-            customer_info: {};
+            customer_info: any;
             lineItems: {
                 id: string;
                 spec: string[];
@@ -162,15 +162,18 @@ export declare class Shopping {
             shipment_form_format: any;
         };
         is_free?: undefined;
+        return_url?: undefined;
         off_line?: undefined;
         form?: undefined;
     } | {
         is_free: boolean;
+        return_url: string;
         data?: undefined;
         off_line?: undefined;
         form?: undefined;
     } | {
         off_line: boolean;
+        return_url: string;
         data?: undefined;
         is_free?: undefined;
         form?: undefined;
@@ -178,6 +181,7 @@ export declare class Shopping {
         form: any;
         data?: undefined;
         is_free?: undefined;
+        return_url?: undefined;
         off_line?: undefined;
     }>;
     formatUseRebate(total: number, useRebate: number): Promise<{
@@ -262,6 +266,9 @@ export declare class Shopping {
     deleteOrder(req: {
         id: string;
     }): Promise<{
+        result: boolean;
+    }>;
+    proofPurchase(order_id: string, text: string): Promise<{
         result: boolean;
     }>;
     getCheckOut(query: {

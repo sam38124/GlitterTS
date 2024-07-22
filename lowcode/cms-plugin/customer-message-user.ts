@@ -367,7 +367,7 @@ export class CustomerMessageUser {
                                                 chatRoom.type === 'user'
                                                     ? (chatRoom.user_data && chatRoom.user_data.head) || chatRoom.user_data.head_img || 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1704269678588-43.png'
                                                     : `https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1704269678588-43.png`
-                                            }" class="rounded-circle border" style="background: white;" width="40" alt="Albert Flores">
+                                            }" class="rounded-circle border" style="background: white;border-radius: 50%;width: 40px;height: 40px;" width="40" alt="Albert Flores">
                         <h6 class="mb-0 px-1 text-white">${chatRoom.type === 'user' ? (chatRoom.user_data && chatRoom.user_data.name) || '訪客' : `群組`}</h6>
                         <div class="flex-fill" style="flex: 1;"></div>
                       <i class="fa-regular fa-circle-xmark text-white fs-3 ${cf.close ? `` : `d-none`}" onclick="${gvc.event(() => {
@@ -506,6 +506,7 @@ export class CustomerMessageUser {
                                                                                     src="${(dd.user_data && dd.user_data.head) || `https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1704269678588-43.png`}"
                                                                                     class="rounded-circle border"
                                                                                     width="40"
+                                                                                    style="background: white;border-radius: 50%;width: 40px;height: 40px;"
                                                                                     alt="Albert Flores"
                                                                             />
                                                                             <div class="ps-2 ms-1"
@@ -555,6 +556,7 @@ export class CustomerMessageUser {
                                                                             <img
                                                                                     src="${(dd.user_data && dd.user_data.head) || `https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1704269678588-43.png`}"
                                                                                     class="rounded-circle border"
+                                                                                    style="background: white;border-radius: 50%;width: 40px;height: 40px;"
                                                                                     width="40"
                                                                                     alt="Albert Flores"
                                                                             />

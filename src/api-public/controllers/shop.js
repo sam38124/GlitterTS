@@ -171,6 +171,7 @@ router.post('/checkout', async (req, resp) => {
             return_url: req.body.return_url,
             user_info: req.body.user_info,
             code: req.body.code,
+            customer_info: req.body.customer_info,
             use_rebate: (() => {
                 if (req.body.use_rebate && typeof req.body.use_rebate === 'number') {
                     return req.body.use_rebate;
@@ -257,8 +258,30 @@ router.post('/manager/checkout/preview', async (req, resp) => {
         return response_1.default.fail(resp, err);
     }
 });
+router.get('/order/payment-method', async (req, resp) => {
+    try {
+        const keyData = (await private_config_js_1.Private_config.getConfig({
+            appName: req.get('g-app'),
+            key: 'glitter_finance',
+        }))[0].value;
+        ['MERCHANT_ID', 'HASH_KEY', 'HASH_IV'].map((dd) => {
+            delete keyData[dd];
+        });
+        return response_1.default.succ(resp, keyData);
+    }
+    catch (e) {
+    }
+});
+router.put('/order/proof-purchase', async (req, resp) => {
+    try {
+        return response_1.default.succ(resp, await (new shopping_1.Shopping(req.get('g-app'), req.body.token)).proofPurchase(req.body.order_id, req.body.text));
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
 router.get('/order', async (req, resp) => {
-    var _a, _b, _c, _d;
+    var _a, _b, _c, _d, _e, _f;
     try {
         if (await ut_permission_1.UtPermission.isManager(req)) {
             return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).getCheckOut({
@@ -285,6 +308,16 @@ router.get('/order', async (req, resp) => {
                 search: req.query.search,
                 id: req.query.id,
                 email: user_data.account,
+                status: req.query.status,
+                searchType: req.query.searchType,
+            }));
+        }
+        else if (req.query.search) {
+            return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).getCheckOut({
+                page: ((_e = req.query.page) !== null && _e !== void 0 ? _e : 0),
+                limit: ((_f = req.query.limit) !== null && _f !== void 0 ? _f : 50),
+                search: req.query.search,
+                id: req.query.id,
                 status: req.query.status,
                 searchType: req.query.searchType,
             }));
@@ -360,38 +393,41 @@ router.delete('/voucher', async (req, resp) => {
         return response_1.default.fail(resp, err);
     }
 });
-router.post('/redirect', async (req, resp) => {
+async function redirect_link(req, resp) {
     try {
         let return_url = new URL((await redis_js_1.default.getValue(req.query.return)));
         const html = String.raw;
         return resp.send(html `<!DOCTYPE html>
-            <html lang="en">
-                <head>
-                    <meta charset="UTF-8" />
-                    <title>Title</title>
-                </head>
-                <body>
-                    <script>
-                        try {
-                            window.webkit.messageHandlers.addJsInterFace.postMessage(
-                                JSON.stringify({
-                                    functionName: 'closeWebView',
-                                    callBackId: 0,
-                                    data: {
-                                        redirect: '${return_url.href}',
-                                    },
-                                })
-                            );
-                        } catch (e) {}
-                        location.href = '${return_url.href}';
-                    </script>
-                </body>
-            </html> `);
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8"/>
+            <title>Title</title>
+        </head>
+        <body>
+        <script>
+            try {
+                window.webkit.messageHandlers.addJsInterFace.postMessage(
+                        JSON.stringify({
+                            functionName: 'closeWebView',
+                            callBackId: 0,
+                            data: {
+                                redirect: '${return_url.href}',
+                            },
+                        })
+                );
+            } catch (e) {
+            }
+            location.href = '${return_url.href}';
+        </script>
+        </body>
+        </html> `);
     }
     catch (err) {
         return response_1.default.fail(resp, err);
     }
-});
+}
+router.post('/redirect', redirect_link);
+router.get('/redirect', redirect_link);
 const storage = multer_1.default.memoryStorage();
 const upload = (0, multer_1.default)({ storage });
 router.post('/notify', upload.single('file'), async (req, resp) => {
@@ -656,7 +692,10 @@ router.post('/product', async (req, resp) => {
             return response_1.default.fail(resp, exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null));
         }
         else {
-            return response_1.default.succ(resp, { result: true, id: await new shopping_1.Shopping(req.get('g-app'), req.body.token).postProduct(req.body) });
+            return response_1.default.succ(resp, {
+                result: true,
+                id: await new shopping_1.Shopping(req.get('g-app'), req.body.token).postProduct(req.body)
+            });
         }
     }
     catch (err) {
@@ -669,7 +708,10 @@ router.put('/product', async (req, resp) => {
             return response_1.default.fail(resp, exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null));
         }
         else {
-            return response_1.default.succ(resp, { result: true, id: await new shopping_1.Shopping(req.get('g-app'), req.body.token).putProduct(req.body) });
+            return response_1.default.succ(resp, {
+                result: true,
+                id: await new shopping_1.Shopping(req.get('g-app'), req.body.token).putProduct(req.body)
+            });
         }
     }
     catch (err) {

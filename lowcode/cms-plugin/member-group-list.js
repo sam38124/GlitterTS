@@ -14,17 +14,20 @@ export class MemberTypeList {
     static main(gvc, widget) {
         const html = String.raw;
         const glitter = gvc.glitter;
-        let callback = (data) => { };
         const vm = {
             id: glitter.getUUID(),
             type: 'groupList',
-            group: { type: '', title: '', count: 0 },
+            group: { type: '', title: '' },
             index: 0,
             dataList: [],
         };
         let vmi = undefined;
         function getDatalist() {
-            return vm.dataList.map((dd) => {
+            return vm.dataList
+                .filter((dd) => {
+                return dd.type !== 'level';
+            })
+                .map((dd) => {
                 return [
                     {
                         key: '分群名稱',

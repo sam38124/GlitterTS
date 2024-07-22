@@ -154,7 +154,7 @@ export class SaasViewModel {
                                                                                                     <a
                                                                                                         class="dropdown-item"
                                                                                                         onclick="${gvc.event(() => {
-                                                                                                            gvc.glitter.setUrlParameter('appName',dd.appName)
+                                                                                                            gvc.glitter.setUrlParameter('appName', dd.appName);
                                                                                                             SaasViewModel.renew(gvc);
                                                                                                         })}"
                                                                                                         >續費</a
@@ -401,9 +401,8 @@ background-size: cover;
 
     public static renew(gvc: GVC) {
         gvc.closeDialog();
-        (window.parent as any).glitter.setUrlParameter('tab','member_plan');
+        (window.parent as any).glitter.setUrlParameter('tab', 'member_plan');
         (window.parent as any).glitter.pageConfig[0].gvc!.recreateView();
-
     }
 
     public static createApp(gvc: GVC, app_name: string, pick_name: string, refer_app: string, sub_domain: string, register: boolean) {
@@ -463,11 +462,11 @@ background-size: cover;
                         resolve(true);
                     } else {
                         if (d2.response.code === 'HAVE_APP') {
-                            shareDialog.errorMessage({ text: '創建失敗，此英文名稱已被使用!' });
+                            shareDialog.errorMessage({ text: '建立失敗，此英文名稱已被使用!' });
                         } else if (d2.response.code === 'HAVE_DOMAIN') {
-                            shareDialog.errorMessage({ text: '創建失敗，此網域名稱已被使用!' });
+                            shareDialog.errorMessage({ text: '建立失敗，此網域名稱已被使用!' });
                         } else {
-                            shareDialog.errorMessage({ text: '創建失敗，此英文名稱已被使用!' });
+                            shareDialog.errorMessage({ text: '建立失敗，此英文名稱已被使用!' });
                         }
                         resolve(false);
                     }

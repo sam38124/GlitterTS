@@ -387,6 +387,11 @@ export class ApiShop {
             address?: string;
             email?: string;
         };
+        customer_info?:{
+            name?: string;
+            phone?: string;
+            email?: string;
+        },
         code?: string;
         use_rebate?: number;
     }) {
@@ -453,6 +458,33 @@ export class ApiShop {
                 Authorization: getConfig().config.token,
             },
             data: JSON.stringify(passData),
+        });
+    }
+
+    static getOrderPaymentMethod() {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/ec/order/payment-method`,
+            type: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: getConfig().config.token,
+            }
+        });
+    }
+    static proofPurchase(order_id:string,text:string) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/ec/order/proof-purchase`,
+            type: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: getConfig().config.token,
+            },
+            data:JSON.stringify({
+                "order_id":order_id,
+                "text":text
+            })
         });
     }
 

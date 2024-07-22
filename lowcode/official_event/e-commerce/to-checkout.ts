@@ -12,6 +12,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
             object.payType = object.payType ?? 'online'
             object.codeData=object.codeData ?? {}
             object.redirect=object.redirect ?? {}
+            object.customer_info=object.customer_info ?? {}
             return {
                 editor: () => {
                     return gvc.bindView(() => {
@@ -46,10 +47,15 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                             gvc.notifyDataChange(id)
                                         }
                                     }),
-                                    TriggerEvent.editer(gvc, widget, object.userInfo, {
+                                    TriggerEvent.editer(gvc, widget, object.customer_info, {
                                         hover: false,
                                         option: [],
                                         title: '取得客戶資料'
+                                    }),
+                                    TriggerEvent.editer(gvc, widget, object.userInfo, {
+                                        hover: false,
+                                        option: [],
+                                        title: '取得配送資料'
                                     })
                                 ]
                                 if (object.dataFrom === 'code') {
@@ -95,6 +101,11 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                             widget: widget,
                             clickEvent: object.redirect
                         })
+                        const customer_info=(await TriggerEvent.trigger({
+                            gvc: gvc,
+                            widget: widget,
+                            clickEvent: object.customer_info
+                        })) || {};
                         const cartData: {
                             line_items: {
                                 "sku": string,
@@ -125,6 +136,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                         count: dd.count
                                     }
                                 }),
+                                customer_info:customer_info as any,
                                 return_url: href.href,
                                 user_info: userInfo as any,
                                 code: voucher as string,
@@ -133,7 +145,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                 if (object.payType === 'offline' || res.response.off_line || res.response.is_free) {
                                     ApiShop.clearCart()
                                     resolve(true)
-                                    location.href = href.href
+                                    location.href = res.response.return_url
                                 }else{
                                     const id=gvc.glitter.getUUID()
                                     $('body').append(`<div id="${id}" style="display: none;">${res.response.form}</div>`);

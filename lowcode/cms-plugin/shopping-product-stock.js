@@ -59,7 +59,7 @@ export class UserList {
                                 vmi.callback();
                                 gvc.notifyDataChange(vm.filterId);
                             },
-                            style: 'height:25px;',
+                            style: 'height:40px;',
                         }),
                     },
                     {
@@ -91,7 +91,12 @@ export class UserList {
                     },
                     {
                         key: '庫存數量',
-                        value: html ` <div style="width: 95px">
+                        value: html ` <div
+                            style="width: 95px"
+                            onclick="${gvc.event((e, event) => {
+                            event.stopPropagation();
+                        })}"
+                        >
                             <input
                                 class="form-control"
                                 type="number"
@@ -132,7 +137,7 @@ export class UserList {
                 if (vm.type === 'list') {
                     return BgWidget.container(html `
                             <div class="d-flex w-100 align-items-center">
-                                ${BgWidget.title('庫存列表')}
+                                ${BgWidget.title('庫存管理')}
                                 <div class="flex-fill"></div>
                                 <div style="display: none; gap: 14px;">
                                     ${BgWidget.grayButton('匯入', gvc.event(() => {
@@ -274,13 +279,18 @@ export class UserList {
                                             return {
                                                 bind: vm.filterId,
                                                 view: () => {
-                                                    return html `<span class="fs-7 fw-bold">操作選項</span>`;
+                                                    const dialog = new ShareDialog(gvc.glitter);
+                                                    const selCount = vm.dataList.filter((dd) => dd.checked).length;
+                                                    return BgWidget.selNavbar({
+                                                        count: selCount,
+                                                        buttonList: [],
+                                                    });
                                                 },
                                                 divCreate: () => {
                                                     const display = !vm.dataList || !vm.dataList.find((dd) => dd.checked) ? 'd-none' : '';
                                                     return {
                                                         class: `d-flex align-items-center p-2 ${display}`,
-                                                        style: `height: 40px; gap: 10px; margin-top: 10px;`,
+                                                        style: ``,
                                                     };
                                                 },
                                             };

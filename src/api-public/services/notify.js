@@ -67,6 +67,17 @@ class ManagerNotify {
             body: `您有一筆新訂單 <br>『 ${cf.orderData.orderID} 』${cf.status ? `已付款` : `尚未付款`}，消費總金額 : ${cf.orderData.total} 。`,
         });
     }
+    async uploadProof(cf) {
+        const saas = await this.getSaasAPP();
+        const link = `./index?type=editor&appName=${this.app_name}&function=backend-manger&tab=order_list`;
+        new firebase_js_1.Firebase(saas.brand).sendMessage({
+            title: `待核款訂單`,
+            userID: saas.user,
+            tag: 'checkout-upload-proof',
+            link: link,
+            body: `顧客已上傳付款證明，您有一筆新增的待核款訂單 『 ${cf.orderData.orderID} 』。`,
+        });
+    }
     async formSubmit(cf) {
         const saas = await this.getSaasAPP();
         const link = `./index?type=editor&appName=${this.app_name}&function=backend-manger&tab=form_receive`;

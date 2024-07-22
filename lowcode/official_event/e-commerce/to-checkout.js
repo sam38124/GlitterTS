@@ -13,13 +13,14 @@ import { EditorElem } from "../../glitterBundle/plugins/editor-elem.js";
 TriggerEvent.createSingleEvent(import.meta.url, () => {
     return {
         fun: (gvc, widget, object, subData) => {
-            var _a, _b, _c, _d, _e, _f;
+            var _a, _b, _c, _d, _e, _f, _g;
             object.userInfo = (_a = object.userInfo) !== null && _a !== void 0 ? _a : {};
             object.idData = (_b = object.idData) !== null && _b !== void 0 ? _b : {};
             object.cartCount = (_c = object.cartCount) !== null && _c !== void 0 ? _c : {};
             object.payType = (_d = object.payType) !== null && _d !== void 0 ? _d : 'online';
             object.codeData = (_e = object.codeData) !== null && _e !== void 0 ? _e : {};
             object.redirect = (_f = object.redirect) !== null && _f !== void 0 ? _f : {};
+            object.customer_info = (_g = object.customer_info) !== null && _g !== void 0 ? _g : {};
             return {
                 editor: () => {
                     return gvc.bindView(() => {
@@ -55,10 +56,15 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                             gvc.notifyDataChange(id);
                                         }
                                     }),
-                                    TriggerEvent.editer(gvc, widget, object.userInfo, {
+                                    TriggerEvent.editer(gvc, widget, object.customer_info, {
                                         hover: false,
                                         option: [],
                                         title: '取得客戶資料'
+                                    }),
+                                    TriggerEvent.editer(gvc, widget, object.userInfo, {
+                                        hover: false,
+                                        option: [],
+                                        title: '取得配送資料'
                                     })
                                 ];
                                 if (object.dataFrom === 'code') {
@@ -102,6 +108,11 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                             widget: widget,
                             clickEvent: object.redirect
                         });
+                        const customer_info = (yield TriggerEvent.trigger({
+                            gvc: gvc,
+                            widget: widget,
+                            clickEvent: object.customer_info
+                        })) || {};
                         const cartData = {
                             line_items: [],
                             total: 0
@@ -118,6 +129,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                         count: dd.count
                                     };
                                 }),
+                                customer_info: customer_info,
                                 return_url: href.href,
                                 user_info: userInfo,
                                 code: voucher,
@@ -126,7 +138,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                 if (object.payType === 'offline' || res.response.off_line || res.response.is_free) {
                                     ApiShop.clearCart();
                                     resolve(true);
-                                    location.href = href.href;
+                                    location.href = res.response.return_url;
                                 }
                                 else {
                                     const id = gvc.glitter.getUUID();

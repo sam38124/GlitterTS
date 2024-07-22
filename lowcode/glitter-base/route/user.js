@@ -242,8 +242,21 @@ export class ApiUser {
         }
         return list;
     }
+    static userListGroupString(obj) {
+        if (!obj)
+            return [];
+        let list = [];
+        if (obj.type && obj.type.length > 0) {
+            list.push(`groupType=${obj.type}`);
+        }
+        if (obj.tag && obj.tag.length > 0) {
+            list.push(`groupTag=${obj.tag}`);
+        }
+        return list;
+    }
     static getUserListOrders(json) {
         const filterString = this.userListFilterString(json.filter);
+        const groupString = this.userListGroupString(json.group);
         const userData = BaseApi.create({
             url: getBaseUrl() +
                 `/api-public/v1/user?${(() => {
@@ -252,8 +265,8 @@ export class ApiUser {
                     json.id && par.push(`id=${json.id}`);
                     json.searchType && par.push(`searchType=${json.searchType}`);
                     json.orderString && par.push(`order_string=${json.orderString}`);
-                    json.group && par.push(`group=${json.group}`);
                     filterString.length > 0 && par.push(filterString.join('&'));
+                    groupString.length > 0 && par.push(groupString.join('&'));
                     return par.join('&');
                 })()}`,
             type: 'GET',

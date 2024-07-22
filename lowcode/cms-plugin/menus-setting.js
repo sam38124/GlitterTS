@@ -70,47 +70,44 @@ export class MenusSetting {
                                 return {
                                     bind: filterID,
                                     view: () => {
-                                        return [
-                                            html `<span class="fs-7 fw-bold">操作選項</span>`,
-                                            html `<button
-                                                                class="btn btn-danger fs-7 px-2"
-                                                                style="height:30px;border:none;"
-                                                                onclick="${gvc.event(() => {
-                                                const dialog = new ShareDialog(gvc.glitter);
-                                                dialog.checkYesOrNot({
-                                                    text: '是否確認移除所選項目?',
-                                                    callback: (response) => {
-                                                        if (response) {
-                                                            widget.event('loading', {
-                                                                title: '設定中...',
-                                                            });
-                                                            ApiUser.setPublicConfig({
-                                                                key: 'member_level_config',
-                                                                user_id: 'manager',
-                                                                value: {
-                                                                    levels: vm.dataList.filter((dd) => {
-                                                                        return !dd.checked;
-                                                                    }),
-                                                                },
-                                                            }).then(() => {
-                                                                setTimeout(() => {
-                                                                    widget.event('loading', {
-                                                                        visible: false,
-                                                                    });
-                                                                    widget.event('success', {
-                                                                        title: '設定成功',
-                                                                    });
-                                                                    gvc.notifyDataChange(id);
-                                                                }, 500);
-                                                            });
-                                                        }
-                                                    },
-                                                });
-                                            })}"
-                                                            >
-                                                                批量移除
-                                                            </button>`,
-                                        ].join(``);
+                                        const dialog = new ShareDialog(gvc.glitter);
+                                        const selCount = vm.dataList.filter((dd) => dd.checked).length;
+                                        return BgWidget.selNavbar({
+                                            count: selCount,
+                                            buttonList: [
+                                                BgWidget.selEventButton('批量移除', gvc.event(() => {
+                                                    dialog.checkYesOrNot({
+                                                        text: '是否確認移除所選項目?',
+                                                        callback: (response) => {
+                                                            if (response) {
+                                                                widget.event('loading', {
+                                                                    title: '設定中...',
+                                                                });
+                                                                ApiUser.setPublicConfig({
+                                                                    key: 'member_level_config',
+                                                                    user_id: 'manager',
+                                                                    value: {
+                                                                        levels: vm.dataList.filter((dd) => {
+                                                                            return !dd.checked;
+                                                                        }),
+                                                                    },
+                                                                }).then(() => {
+                                                                    setTimeout(() => {
+                                                                        widget.event('loading', {
+                                                                            visible: false,
+                                                                        });
+                                                                        widget.event('success', {
+                                                                            title: '設定成功',
+                                                                        });
+                                                                        gvc.notifyDataChange(id);
+                                                                    }, 500);
+                                                                });
+                                                            }
+                                                        },
+                                                    });
+                                                })),
+                                            ],
+                                        });
                                     },
                                     divCreate: () => {
                                         return {
@@ -120,7 +117,7 @@ export class MenusSetting {
                                                 })
                                                 ? `d-none`
                                                 : ``}`,
-                                            style: `height:40px;gap:10px;margin-top:10px;`,
+                                            style: ``,
                                         };
                                     },
                                 };
