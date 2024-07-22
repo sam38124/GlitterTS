@@ -899,6 +899,12 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             <input class="form-control h-100" style="border-radius: 10px; border: 1px solid #DDD; padding-left: 50px;" placeholder="${placeholder}" onchange="${event}" value="${vale}" />
         </div>`;
     }
+    static searchFilterOninput(event, vale, placeholder, margin) {
+        return html ` <div class="w-100 position-relative" style="margin: ${margin !== null && margin !== void 0 ? margin : 0};">
+            <i class="fa-regular fa-magnifying-glass" style="font-size: 18px; color: #A0A0A0; position: absolute; left: 18px; top: 50%; transform: translateY(-50%);" aria-hidden="true"></i>
+            <input class="form-control h-100" style="border-radius: 10px; border: 1px solid #DDD; padding-left: 50px;" placeholder="${placeholder}" oninput="${event}" value="${vale}" />
+        </div>`;
+    }
     static select(obj) {
         var _a;
         return html `<select

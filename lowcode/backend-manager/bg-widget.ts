@@ -1056,6 +1056,13 @@ ${obj.default ?? ''}</textarea
         </div>`;
     }
 
+    static searchFilterOninput(event: string, vale: string, placeholder: string, margin?: string) {
+        return html` <div class="w-100 position-relative" style="margin: ${margin ?? 0};">
+            <i class="fa-regular fa-magnifying-glass" style="font-size: 18px; color: #A0A0A0; position: absolute; left: 18px; top: 50%; transform: translateY(-50%);" aria-hidden="true"></i>
+            <input class="form-control h-100" style="border-radius: 10px; border: 1px solid #DDD; padding-left: 50px;" placeholder="${placeholder}" oninput="${event}" value="${vale}" />
+        </div>`;
+    }
+
     static select(obj: { gvc: GVC; callback: (value: any) => void; default: string; options: OptionsItem[]; style?: string; readonly?: boolean }) {
         return html`<select
             class="c_select c_select_w_100"

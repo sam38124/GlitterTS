@@ -179,11 +179,6 @@ export class ShoppingOrderManager {
                                         importDataTo(event)
                                     })}"/>
                                     ${BgWidget.grayButton(
-                                            '匯入',
-                                            gvc.event((e) => {
-                                                (document.querySelector("#upload-excel") as HTMLInputElement)!.click();
-                                            })
-                                    )}${BgWidget.grayButton(
                                             '匯出',
                                             gvc.event(() => {
                                                 let dialog = new ShareDialog(glitter);
@@ -1655,14 +1650,12 @@ export class ShoppingOrderManager {
                         ${(showDiscountEdit) ? `` : gvc.bindView({
                             bind: `editDiscount`,
                             view: () => {
-
                                 let discountHTML = ``;
                                 let checkBox = html`
                                     <div style="margin-right:6px;display: flex;width: 16px;height: 16px;justify-content: center;align-items: center;border-radius: 20px;border: 4px solid #393939"></div>`
                                 let uncheckBox = html`
                                     <div style="margin-right:6px;width: 16px;height: 16px;border-radius: 20px;border: 1px solid #DDD;"></div>`
                                 showArray.map((rowData: any, index: number) => {
-
                                     if (rowData.select) {
                                         function drawVoucherDetail(rowData: any) {
                                             switch (rowData.value) {
@@ -1676,7 +1669,6 @@ export class ShoppingOrderManager {
                                                                 <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 8px;align-self: stretch;">
                                                                     <div style="display: flex;align-items: center;gap: 6px;"
                                                                          onclick="${gvc.event(() => {
-
                                                                              rowData.method = "percent";
                                                                              tempData.method = "percent";
                                                                              gvc.notifyDataChange('editDiscount');
@@ -1733,7 +1725,6 @@ export class ShoppingOrderManager {
                                                                                value="${rowData.discount}"
                                                                                min="1"
                                                                                onchange="${gvc.event((e) => {
-
                                                                                    rowData.discount = e.value;
                                                                                    tempData.discount = e.value;
                                                                                })}">
@@ -1788,6 +1779,9 @@ export class ShoppingOrderManager {
                                                          },
                                                      ]
                                                      showArray[index].select = true;
+                                                     if (index == 1 || index == 0){
+                                                         showArray[index].method = "percent"
+                                                     }
                                                      gvc.notifyDataChange('editDiscount');
                                                  })}">
                                                 ${uncheckBox}
@@ -2127,7 +2121,9 @@ export class ShoppingOrderManager {
                                                             gvc.notifyDataChange('addDialog')
                                                         });
                                                     }
-
+                                                   
+                                                   
+                                                   
                                                     return html`
                                                         <div style="display: flex;width: ${width}px;padding-bottom: 24px;flex-direction: column;align-items: flex-start;gap: 24px;border-radius: 10px;background: #FFF;">
                                                             <div class="w-100"
@@ -2138,13 +2134,14 @@ export class ShoppingOrderManager {
                                                                  style="display: flex;flex-direction: column;align-items: flex-start;gap: 42px;">
                                                                 <div class="w-100"
                                                                      style="display: flex;padding: 0px 20px;flex-direction: column;align-items: center;gap: 18px;">
-                                                                    <div style="display: flex;justify-content: center;align-items: flex-start;gap: 12px;align-self: stretch;">
-                                                                        ${BgWidget.searchFilter(
+                                                                    <div class="searchBar" style="display: flex;justify-content: center;align-items: flex-start;gap: 12px;align-self: stretch;">
+                                                                        ${BgWidget.searchFilterOninput(
                                                                                 gvc.event((e, event) => {
-                                                                                    newOrder.query = e.value;
-                                                                                    newOrder.productArray = [];
-
-                                                                                    gvc.notifyDataChange("addOrder");
+                                                                                    if (newOrder.query != e.value){
+                                                                                        newOrder.query = e.value;
+                                                                                        newOrder.productArray = [];
+                                                                                    }
+                                                                                    
                                                                                 }),
                                                                                 newOrder.query || '',
                                                                                 '輸入商品名稱或商品貨號'
@@ -2154,8 +2151,6 @@ export class ShoppingOrderManager {
                                                                             callback: (value: any) => {
                                                                                 newOrder.orderString = value;
                                                                                 newOrder.productArray = [];
-
-                                                                                gvc.notifyDataChange("addOrder");
                                                                             },
                                                                             default: newOrder.orderString || 'default',
                                                                             options: FilterOptions.productOrderBy,
@@ -2244,12 +2239,18 @@ export class ShoppingOrderManager {
                                                                                     divCreate: {style: `display: flex;padding: 0px 12px;align-items: center;gap: 18px;align-self: stretch;`}
                                                                                 })
                                                                             })
-                                                                            return html`
-                                                                                <div class="d-flex flex-column"
-                                                                                     style="gap: 18px;width:100%;">
-                                                                                    ${returnHTML}
-                                                                                </div>
-                                                                            `
+                                                                            return gvc.bindView({
+                                                                                bind:"",
+                                                                                view:()=>{
+                                                                                    return html`
+                                                                                        <div class="d-flex flex-column"
+                                                                                             style="gap: 18px;width:100%;">
+                                                                                            ${returnHTML}
+                                                                                        </div>
+                                                                                    `
+                                                                                },divCreate:{}
+                                                                            })
+                                                                            
                                                                         })()}
                                                                     </div>
                                                                 </div>
@@ -2266,7 +2267,6 @@ export class ShoppingOrderManager {
                                                                                 newOrder.productTemp.push(product);
                                                                             }
                                                                         })
-
                                                                         gvc.closeDialog()
 
                                                                     }))}
