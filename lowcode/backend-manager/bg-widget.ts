@@ -265,7 +265,7 @@ export class BgWidget {
                                                       const pencilId = gvc.glitter.getUUID();
                                                       return html` <tr
                                                           style="${obj.rowClick ? `cursor:pointer;` : ``};color:#303030;position: relative;"
-                                                          onclick="${gvc.event((e, ev) => {
+                                                          onclick="${gvc.event(() => {
                                                               obj.rowClick && obj.rowClick(dd, index);
                                                           })}"
                                                           onmouseover="${gvc.event(() => {
@@ -589,7 +589,7 @@ export class BgWidget {
         return html`
             <div style="${obj.divStyle ?? ''}">
                 ${obj.title ? html` <div class="tx_normal fw-normal" style="${obj.titleStyle ?? ''}">${obj.title}</div>` : ``}
-                <div class="d-flex align-items-center border rounded-3 ${obj.readonly ? `bgw-input-readonly` : ``}" style="margin: 8px 0;">
+                <div class="d-flex w-100 align-items-center border rounded-3 ${obj.readonly ? `bgw-input-readonly` : ``}" style="margin: 8px 0;">
                     ${obj.startText ? html` <div class="py-2 ps-3">${obj.startText}</div>` : ''}
                     <input
                         class="bgw-input ${obj.readonly ? `bgw-input-readonly` : ``}"
@@ -601,8 +601,8 @@ export class BgWidget {
                         })}"
                         oninput="${obj.gvc.event((e) => {
                             if (obj.pattern) {
-                                const value = e.value;
                                 // 只允許英文字符、數字和連字符
+                                const value = e.value;
                                 const regex = new RegExp(`[^${obj.pattern}]`, 'g');
                                 const validValue = value.replace(regex, '');
                                 if (value !== validValue) {
@@ -1017,7 +1017,7 @@ ${obj.default ?? ''}</textarea
     static switchTextButton(gvc: GVC, def: boolean, text: { left?: string; right?: string }, callback: (value: boolean) => void) {
         return html` <div style="display: flex; align-items: center;">
             <div class="tx_normal me-2">${text.left ?? ''}</div>
-            <div class="form-check form-switch m-0 mt-1" style="margin-top: 10px; cursor: pointer;">
+            <div class="form-check form-switch m-0" style="margin-top: 10px; cursor: pointer; display: flex; align-items: center;">
                 <input
                     class="form-check-input"
                     type="checkbox"
@@ -1070,7 +1070,7 @@ ${obj.default ?? ''}</textarea
         </select>`;
     }
 
-    static selectDropList(obj: { gvc: GVC; callback: (value: any) => void; default: string[]; options: OptionsItem[]; style?: string }) {
+    static selectDropList(obj: { gvc: GVC; callback: (value: any) => void; default: string[]; options: OptionsItem[]; style?: string; placeholder?: string }) {
         const vm = {
             id: obj.gvc.glitter.getUUID(),
             checkClass: this.randomString(5),
@@ -1116,7 +1116,7 @@ ${obj.default ?? ''}</textarea
                                           return item.value;
                                       })
                                       .join(' / ')
-                                : BgWidget.grayNote('（點擊選擇項目）')}
+                                : BgWidget.grayNote(obj.placeholder ?? '（點擊選擇項目）')}
                         </div>
                     </div>
                     ${vm.show
@@ -1185,10 +1185,11 @@ ${obj.default ?? ''}</textarea
         title: string;
         tag: string;
         default: string[];
-        updownOptions: OptionsItem[];
+        updownOptions?: OptionsItem[];
         api: (obj: { query: string; orderString: string }) => Promise<OptionsItem[]>;
         callback: (value: any) => void;
         style?: string;
+        readonly?: boolean;
     }) {
         return obj.gvc.glitter.innerDialog((gvc: GVC) => {
             const vm = {
@@ -1199,6 +1200,7 @@ ${obj.default ?? ''}</textarea
                 options: [] as OptionsItem[],
                 query: '',
                 orderString: '',
+                selectKey: '',
             };
 
             obj.gvc.addStyle(`
@@ -1232,30 +1234,35 @@ ${obj.default ?? ''}</textarea
                             <div class="c_dialog">
                                 <div class="c_dialog_body">
                                     <div class="c_dialog_main">
-                                        <div class="d-flex" style="gap: 12px;">
-                                            ${this.searchFilter(
-                                                gvc.event((e, event) => {
-                                                    vm.query = e.value;
-                                                    vm.loading = true;
-                                                    obj.gvc.notifyDataChange(vm.id);
-                                                }),
-                                                vm.query || '',
-                                                '搜尋'
-                                            )}
-                                            ${this.updownFilter({
-                                                gvc,
-                                                callback: (value: any) => {
-                                                    vm.orderString = value;
-                                                    vm.loading = true;
-                                                    obj.gvc.notifyDataChange(vm.id);
-                                                },
-                                                default: vm.orderString || 'default',
-                                                options: obj.updownOptions || [],
-                                            })}
-                                        </div>
+                                        ${obj.readonly
+                                            ? ''
+                                            : html`<div class="d-flex" style="gap: 12px;">
+                                                  ${this.searchFilter(
+                                                      gvc.event((e, event) => {
+                                                          vm.query = e.value;
+                                                          vm.loading = true;
+                                                          obj.gvc.notifyDataChange(vm.id);
+                                                      }),
+                                                      vm.query || '',
+                                                      '搜尋'
+                                                  )}
+                                                  ${obj.updownOptions
+                                                      ? this.updownFilter({
+                                                            gvc,
+                                                            callback: (value: any) => {
+                                                                vm.orderString = value;
+                                                                vm.loading = true;
+                                                                obj.gvc.notifyDataChange(vm.id);
+                                                            },
+                                                            default: vm.orderString || 'default',
+                                                            options: obj.updownOptions || [],
+                                                        })
+                                                      : ''}
+                                              </div>`}
                                         ${obj.gvc.map(
                                             vm.options.map((opt: OptionsItem) => {
                                                 function call() {
+                                                    vm.selectKey = opt.key;
                                                     if (obj.default.includes(opt.key)) {
                                                         obj.default = obj.default.filter((item) => item !== opt.key);
                                                     } else {
@@ -1265,15 +1272,17 @@ ${obj.default ?? ''}</textarea
                                                 }
 
                                                 return html` <div class="d-flex align-items-center" style="gap: 24px">
-                                                    <input
-                                                        class="form-check-input mt-0 ${vm.checkClass}"
-                                                        type="checkbox"
-                                                        id="${opt.key}"
-                                                        name="radio_${vm.id}"
-                                                        onclick="${obj.gvc.event(() => call())}"
-                                                        ${obj.default.includes(opt.key) ? 'checked' : ''}
-                                                    />
-                                                    <div class="form-check-label c_updown_label cursor_pointer" onclick="${obj.gvc.event(() => call())}">
+                                                    ${obj.readonly
+                                                        ? ''
+                                                        : html`<input
+                                                              class="form-check-input mt-0 ${vm.checkClass}"
+                                                              type="checkbox"
+                                                              id="${opt.key}"
+                                                              name="radio_${vm.id}"
+                                                              onclick="${obj.gvc.event(() => call())}"
+                                                              ${obj.default.includes(opt.key) ? 'checked' : ''}
+                                                          />`}
+                                                    <div class="form-check-label c_updown_label ${obj.readonly ? '' : 'cursor_pointer'}" onclick="${obj.gvc.event(() => call())}">
                                                         <div class="tx_normal ${opt.note ? 'mb-1' : ''}">${opt.value}</div>
                                                         ${opt.note ? html` <div class="tx_gray_12">${opt.note}</div> ` : ''}
                                                     </div>
@@ -1281,32 +1290,34 @@ ${obj.default ?? ''}</textarea
                                             })
                                         )}
                                     </div>
-                                    <div class="c_dialog_bar">
-                                        ${BgWidget.cancel(
-                                            obj.gvc.event(() => {
-                                                obj.callback([]);
-                                                gvc.closeDialog();
-                                            }),
-                                            '清除全部'
-                                        )}
-                                        ${BgWidget.cancel(
-                                            obj.gvc.event(() => {
-                                                obj.callback(vm.def);
-                                                gvc.closeDialog();
-                                            })
-                                        )}
-                                        ${BgWidget.save(
-                                            obj.gvc.event(() => {
-                                                obj.callback(
-                                                    obj.default.filter((item) => {
-                                                        return vm.options.find((opt: OptionsItem) => opt.key === item);
-                                                    })
-                                                );
-                                                gvc.closeDialog();
-                                            }),
-                                            '確認'
-                                        )}
-                                    </div>
+                                    ${obj.readonly
+                                        ? ''
+                                        : html`<div class="c_dialog_bar">
+                                              ${BgWidget.cancel(
+                                                  obj.gvc.event(() => {
+                                                      obj.callback([]);
+                                                      gvc.closeDialog();
+                                                  }),
+                                                  '清除全部'
+                                              )}
+                                              ${BgWidget.cancel(
+                                                  obj.gvc.event(() => {
+                                                      obj.callback(vm.def);
+                                                      gvc.closeDialog();
+                                                  })
+                                              )}
+                                              ${BgWidget.save(
+                                                  obj.gvc.event(() => {
+                                                      obj.callback(
+                                                          obj.default.filter((item) => {
+                                                              return vm.options.find((opt: OptionsItem) => opt.key === item);
+                                                          })
+                                                      );
+                                                      gvc.closeDialog();
+                                                  }),
+                                                  '確認'
+                                              )}
+                                          </div>`}
                                 </div>
                             </div>
                         </div>`;
@@ -1321,6 +1332,18 @@ ${obj.default ?? ''}</textarea
                                 vm.loading = false;
                                 obj.gvc.notifyDataChange(vm.id);
                             });
+                        } else {
+                            const si = setInterval(() => {
+                                const element = document.getElementById(vm.selectKey);
+                                if (element) {
+                                    element.scrollIntoView();
+                                    const element2 = document.querySelector('.c_dialog_main');
+                                    if (element2) {
+                                        element2.scrollTop -= element2.clientHeight / 2;
+                                    }
+                                    clearInterval(si);
+                                }
+                            }, 100);
                         }
                     },
                 })}

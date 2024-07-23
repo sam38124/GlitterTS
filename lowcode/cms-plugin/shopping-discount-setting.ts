@@ -150,7 +150,7 @@ export class ShoppingDiscountSetting {
                                                                         '批量移除',
                                                                         gvc.event(() => {
                                                                             dialog.checkYesOrNot({
-                                                                                text: '是否確認移除所選項目?',
+                                                                                text: '是否確認刪除所選項目？',
                                                                                 callback: (response) => {
                                                                                     if (response) {
                                                                                         dialog.dataLoading({ visible: true });
@@ -221,22 +221,23 @@ export class ShoppingDiscountSetting {
         });
     }
 
+    public static getDateTime = (n = 0) => {
+        const now = new Date();
+        now.setDate(now.getDate() + n);
+        const year = now.getFullYear();
+        const month = (now.getMonth() + 1).toString().padStart(2, '0');
+        const day = now.getDate().toString().padStart(2, '0');
+        const hours = now.getHours().toString().padStart(2, '0');
+        const dateStr = `${year}-${month}-${day}`;
+        const timeStr = `${hours}:00`;
+        return { date: dateStr, time: timeStr };
+    };
+
     public static voucherEditor(obj: { vm: any; gvc: GVC; type?: 'add' | 'replace'; defData?: any }) {
         const gvc = obj.gvc;
         const glitter = gvc.glitter;
         const vm = obj.vm;
         const html = String.raw;
-        const getDateTime = (n = 0) => {
-            const now = new Date();
-            now.setDate(now.getDate() + n);
-            const year = now.getFullYear();
-            const month = (now.getMonth() + 1).toString().padStart(2, '0');
-            const day = now.getDate().toString().padStart(2, '0');
-            const hours = now.getHours().toString().padStart(2, '0');
-            const dateStr = `${year}-${month}-${day}`;
-            const timeStr = `${hours}:00`;
-            return { date: dateStr, time: timeStr };
-        };
         const voucherData: {
             id: string;
             title: string;
@@ -273,10 +274,10 @@ export class ShoppingDiscountSetting {
             forKey: [],
             rule: 'min_price',
             ruleValue: 0,
-            startDate: getDateTime().date,
-            startTime: getDateTime().time,
-            endDate: getDateTime(7).date,
-            endTime: getDateTime(7).time,
+            startDate: this.getDateTime().date,
+            startTime: this.getDateTime().time,
+            endDate: this.getDateTime(7).date,
+            endTime: this.getDateTime(7).time,
             status: 1,
             type: 'voucher',
             overlay: false,

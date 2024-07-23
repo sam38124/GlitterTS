@@ -138,7 +138,7 @@ export class ShoppingDiscountSetting {
                                                 buttonList: [
                                                     BgWidget.selEventButton('批量移除', gvc.event(() => {
                                                         dialog.checkYesOrNot({
-                                                            text: '是否確認移除所選項目?',
+                                                            text: '是否確認刪除所選項目？',
                                                             callback: (response) => {
                                                                 if (response) {
                                                                     dialog.dataLoading({ visible: true });
@@ -210,17 +210,6 @@ export class ShoppingDiscountSetting {
         const glitter = gvc.glitter;
         const vm = obj.vm;
         const html = String.raw;
-        const getDateTime = (n = 0) => {
-            const now = new Date();
-            now.setDate(now.getDate() + n);
-            const year = now.getFullYear();
-            const month = (now.getMonth() + 1).toString().padStart(2, '0');
-            const day = now.getDate().toString().padStart(2, '0');
-            const hours = now.getHours().toString().padStart(2, '0');
-            const dateStr = `${year}-${month}-${day}`;
-            const timeStr = `${hours}:00`;
-            return { date: dateStr, time: timeStr };
-        };
         const voucherData = (_a = vm.data) !== null && _a !== void 0 ? _a : {
             title: '',
             code: '',
@@ -231,10 +220,10 @@ export class ShoppingDiscountSetting {
             forKey: [],
             rule: 'min_price',
             ruleValue: 0,
-            startDate: getDateTime().date,
-            startTime: getDateTime().time,
-            endDate: getDateTime(7).date,
-            endTime: getDateTime(7).time,
+            startDate: this.getDateTime().date,
+            startTime: this.getDateTime().time,
+            endDate: this.getDateTime(7).date,
+            endTime: this.getDateTime(7).time,
             status: 1,
             type: 'voucher',
             overlay: false,
@@ -1308,4 +1297,15 @@ export class ShoppingDiscountSetting {
         });
     }
 }
+ShoppingDiscountSetting.getDateTime = (n = 0) => {
+    const now = new Date();
+    now.setDate(now.getDate() + n);
+    const year = now.getFullYear();
+    const month = (now.getMonth() + 1).toString().padStart(2, '0');
+    const day = now.getDate().toString().padStart(2, '0');
+    const hours = now.getHours().toString().padStart(2, '0');
+    const dateStr = `${year}-${month}-${day}`;
+    const timeStr = `${hours}:00`;
+    return { date: dateStr, time: timeStr };
+};
 window.glitter.setModule(import.meta.url, ShoppingDiscountSetting);

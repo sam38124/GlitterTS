@@ -248,7 +248,7 @@ export class UserList {
                                                                             '批量移除',
                                                                             gvc.event(() => {
                                                                                 dialog.checkYesOrNot({
-                                                                                    text: '是否確認移除所選項目?',
+                                                                                    text: '是否確認刪除所選項目？',
                                                                                     callback: (response) => {
                                                                                         if (response) {
                                                                                             dialog.dataLoading({ visible: true });
@@ -580,7 +580,7 @@ export class UserList {
                                                                         return {
                                                                             bind: id,
                                                                             view: () => {
-                                                                                return new Promise(async (resolve, reject) => {
+                                                                                return new Promise(async (resolve) => {
                                                                                     let data = (
                                                                                         (await saasConfig.api.getPrivateConfig(saasConfig.config.appName, `glitterUserForm`)).response.result[0] ?? {}
                                                                                     ).value;
@@ -595,7 +595,7 @@ export class UserList {
                                                                                             item.group = '';
                                                                                         }
                                                                                         if (item.group === '個人履歷') {
-                                                                                            return ``;
+                                                                                            return '';
                                                                                         }
                                                                                         switch (item.page) {
                                                                                             case 'input':
@@ -1095,7 +1095,7 @@ export class UserList {
                                                                     '批量移除',
                                                                     gvc.event(() => {
                                                                         dialog.checkYesOrNot({
-                                                                            text: '是否確認移除所選項目?',
+                                                                            text: '是否確認刪除所選項目？',
                                                                             callback: (response) => {
                                                                                 if (response) {
                                                                                     dialog.dataLoading({ visible: true });

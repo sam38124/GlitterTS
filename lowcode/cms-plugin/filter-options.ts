@@ -45,15 +45,15 @@ export class FilterOptions {
         //     name: '會員等級',
         //     data: [],
         // },
-        // {
-        //     key: 'rebate',
-        //     type: 'radio_and_input',
-        //     name: '持有回饋金',
-        //     data: [
-        //         { key: 'lessThan', name: '小於', type: 'number', placeHolder: '請輸入數值', unit: '元' },
-        //         { key: 'moreThan', name: '大於', type: 'number', placeHolder: '請輸入數值', unit: '元' },
-        //     ],
-        // },
+        {
+            key: 'rebate',
+            type: 'radio_and_input',
+            name: '持有回饋金',
+            data: [
+                { key: 'lessThan', name: '小於', type: 'number', placeHolder: '請輸入數值', unit: '元' },
+                { key: 'moreThan', name: '大於', type: 'number', placeHolder: '請輸入數值', unit: '元' },
+            ],
+        },
         {
             key: 'total_amount',
             type: 'radio_and_input',
@@ -251,5 +251,16 @@ export class FilterOptions {
         // { key: 'sale_volume_asc', value: '銷售數量少 > 多' },
         { key: 'stock_desc', value: '庫存數量多 > 少' },
         { key: 'stock_asc', value: '庫存數量少 > 多' },
+    ];
+
+    static emailOptions = [
+        { key: 'def', value: '請選擇根據的條件' },
+        { key: 'allCustomer', value: '指定顧客' },
+        { key: 'level', value: '會員等級' },
+        { key: 'group', value: '顧客分群' },
+        { key: 'birth', value: '顧客生日月份' },
+        // { key: 'expiry', value: '購物金到期日' },
+        { key: 'remain', value: '購物金剩餘點數' },
+        // { key: 'uncheckout', value: '購物車裡的商品未結帳' },
     ];
 }

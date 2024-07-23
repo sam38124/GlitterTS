@@ -51,19 +51,6 @@ export class BgListComponent {
     }
 
     tagBadge(key: string, name: string, value: string) {
-        this.gvc.addStyle(`
-            .c_filter_tag {
-                display: flex;
-                padding: 4px 10px;
-                justify-content: center;
-                align-items: center;
-                gap: 4px;
-                border-radius: 7px;
-                background: #f7f7f7;
-                color: #8d8d8d;
-                font-size: 16px;
-            }
-        `);
         return html`<div class="c_filter_tag">
             ${name}：${value}
             <i
@@ -115,7 +102,7 @@ export class BgListComponent {
                 }
             }
         });
-        return html`<div style="display: flex; gap: 12px; margin-top: 8px">${h}</div>`;
+        return html`<div style="display: flex; flex-wrap: wrap; gap: 12px; margin-top: 8px">${h}</div>`;
     }
 
     showRightMenu(items: FilterItem[]) {

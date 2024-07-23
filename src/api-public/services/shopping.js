@@ -121,7 +121,7 @@ class Shopping {
                 }
                 await trans.commit();
             }
-            (productList).map((product) => {
+            productList.map((product) => {
                 const record = itemRecord.find((item) => item.id === product.id);
                 product.total_sales = record ? record.count : 0;
                 return product;
@@ -485,7 +485,9 @@ class Shopping {
                         }, {}, true);
                         customerData = await userClass.getUserData(data.email || data.user_info.email, 'account');
                     }
-                    await rebateClass.insertRebate(customerData.userID, carData.rebate, `手動新增訂單 - 優惠券購物金：${tempVoucher.title}`);
+                    if (carData.rebate !== 0) {
+                        await rebateClass.insertRebate(customerData.userID, carData.rebate, `手動新增訂單 - 優惠券購物金：${tempVoucher.title}`);
+                    }
                 }
                 await database_js_1.default.execute(`INSERT INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
                      values (?, ?, ?, ?)`, [carData.orderID, data.pay_status, carData.email, carData]);
@@ -782,7 +784,7 @@ class Shopping {
         try {
             const update = {};
             if (data.status !== undefined) {
-                (update.status = data.status);
+                update.status = data.status;
             }
             data.orderData && (update.orderData = JSON.stringify(data.orderData));
             await database_js_1.default.query(`UPDATE \`${this.app}\`.t_checkout
@@ -821,7 +823,7 @@ class Shopping {
                             set orderData=?
                             where cart_token = ?`, [JSON.stringify(orderData), order_id]);
             return {
-                result: true
+                result: true,
             };
         }
         catch (e) {
@@ -987,13 +989,15 @@ class Shopping {
                                 });
                                 if (item.rebate > 0 && (useCheck === null || useCheck === void 0 ? void 0 : useCheck.result)) {
                                     const content = voucherRow[0].content;
-                                    await rebateClass.insertRebate(userData.userID, item.rebate * item.count, `優惠券購物金：${content.title}`, {
-                                        voucher_id: orderVoucher.id,
-                                        order_id: order_id,
-                                        sku: item.sku,
-                                        quantity: item.count,
-                                        deadTime: content.rebateEndDay ? (0, moment_1.default)().add(content.rebateEndDay, 'd').format('YYYY-MM-DD HH:mm:ss') : undefined,
-                                    });
+                                    if (item.rebate * item.count !== 0) {
+                                        await rebateClass.insertRebate(userData.userID, item.rebate * item.count, `優惠券購物金：${content.title}`, {
+                                            voucher_id: orderVoucher.id,
+                                            order_id: order_id,
+                                            sku: item.sku,
+                                            quantity: item.count,
+                                            deadTime: content.rebateEndDay ? (0, moment_1.default)().add(content.rebateEndDay, 'd').format('YYYY-MM-DD HH:mm:ss') : undefined,
+                                        });
+                                    }
                                 }
                             }
                         }

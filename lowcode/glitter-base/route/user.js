@@ -225,19 +225,19 @@ export class ApiUser {
         if (!obj)
             return [];
         let list = [];
-        if (obj.created_time.length > 1 && obj.created_time[0].length > 0 && obj.created_time[1].length > 0) {
+        if (obj.created_time && obj.created_time.length > 1 && obj.created_time[0].length > 0 && obj.created_time[1].length > 0) {
             list.push(`created_time=${obj.created_time[0]},${obj.created_time[1]}`);
         }
-        if (obj.birth.length > 0) {
+        if (obj.birth && obj.birth.length > 0) {
             list.push(`birth=${obj.birth.join(',')}`);
         }
-        if (obj.rank.length > 0) {
+        if (obj.rank && obj.rank.length > 0) {
             list.push(`rank=${obj.rank.join(',')}`);
         }
-        if (obj.rebate.key && obj.rebate.value) {
+        if (obj.rebate && obj.rebate.key && obj.rebate.value) {
             list.push(`rebate=${obj.rebate.key},${obj.rebate.value}`);
         }
-        if (obj.total_amount.key && obj.total_amount.value) {
+        if (obj.total_amount && obj.total_amount.key && obj.total_amount.value) {
             list.push(`total_amount=${obj.total_amount.key},${obj.total_amount.value}`);
         }
         return list;

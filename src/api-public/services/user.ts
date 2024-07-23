@@ -119,8 +119,8 @@ export class User {
         //發送回饋金
         const getRS = await this.getConfig({ key: 'rebate_setting', user_id: 'manager' });
         const rgs = getRS[0] && getRS[0].value.register ? getRS[0].value.register : {};
-        if (rgs && rgs.switch) {
-            await new Rebate(this.app).insertRebate(userID, rgs.value ?? 0, '新加入會員', {
+        if (rgs && rgs.switch && rgs.value) {
+            await new Rebate(this.app).insertRebate(userID, rgs.value, '新加入會員', {
                 type: 'first_regiser',
                 deadTime: rgs.unlimited ? undefined : moment().add(rgs.date, 'd').format('YYYY-MM-DD HH:mm:ss'),
             });
@@ -681,6 +681,32 @@ export class User {
                           })
                         : users.map((item: { userID: number }) => item.userID);
                     query.id = ids.join(',');
+                } else {
+                    query.id = '0,0';
+                }
+            }
+
+            if (query.rebate && query.rebate.length > 0) {
+                const r = query.rebate.split(',');
+                const rebateData = await new Rebate(this.app).getRebateList({
+                    page: 0,
+                    limit: 0,
+                    search: '',
+                    type: 'download',
+                    low: r[0] === 'moreThan' ? parseInt(r[1], 10) : undefined,
+                    high: r[0] === 'lessThan' ? parseInt(r[1], 10) : undefined,
+                });
+                if (rebateData && rebateData.total > 0) {
+                    const ids = query.id
+                        ? query.id.split(',').filter((id) => {
+                              return rebateData.data.find((item) => {
+                                  return item.user_id === parseInt(`${id}`, 10);
+                              });
+                          })
+                        : rebateData.data.map((item) => item.user_id);
+                    query.id = ids.join(',');
+                } else {
+                    query.id = '0,0';
                 }
             }
 
@@ -707,9 +733,6 @@ export class User {
             }
 
             // if (query.rank && query.rank.length > 0) {
-            // }
-
-            // if (query.rebate && query.rebate.length > 0) {
             // }
 
             if (query.total_amount) {
@@ -810,7 +833,10 @@ export class User {
                 const neverBuyingData = await db.query(
                     `SELECT userID, JSON_UNQUOTE(JSON_EXTRACT(userData, '$.email')) AS email
                     FROM \`${this.app}\`.t_user
-                    WHERE userID not in (${buyingList.map((item) => item.userID).concat([-1312]).join(',')})`,
+                    WHERE userID not in (${buyingList
+                        .map((item) => item.userID)
+                        .concat([-1312])
+                        .join(',')})`,
                     []
                 );
 
@@ -867,7 +893,7 @@ export class User {
                 }),
             };
         } catch (e) {
-            console.error(e)
+            console.error(e);
             throw exception.BadRequestError('BAD_REQUEST', 'getUserGroups Error:' + e, null);
         }
     }

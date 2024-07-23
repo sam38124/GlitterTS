@@ -86,13 +86,13 @@ class Rebate {
         }
     }
     async getRebateList(query) {
-        var _a, _b, _c, _d, _e;
+        var _a, _b, _c, _d;
         const limit = (_a = query.limit) !== null && _a !== void 0 ? _a : 20;
-        const start = (((_b = query.page) !== null && _b !== void 0 ? _b : 1) - 1) * limit;
+        const start = ((query.page || 1) - 1) * limit;
         const end = start + limit;
-        const search = (_c = query.search) !== null && _c !== void 0 ? _c : '';
-        const low = (_d = query.low) !== null && _d !== void 0 ? _d : 0;
-        const high = (_e = query.high) !== null && _e !== void 0 ? _e : 10000000000;
+        const search = (_b = query.search) !== null && _b !== void 0 ? _b : '';
+        const low = (_c = query.low) !== null && _c !== void 0 ? _c : 0;
+        const high = (_d = query.high) !== null && _d !== void 0 ? _d : 10000000000;
         const dataArray = [];
         const searchSQL = search
             ? ` AND (JSON_EXTRACT(userData, '$.name') LIKE '%${search !== null && search !== void 0 ? search : ''}%'

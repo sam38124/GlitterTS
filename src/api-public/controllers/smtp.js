@@ -14,6 +14,7 @@ router.post('/', async (req, resp) => {
             for (const b of chunkArray(Array.from(new Set(req.body.email)), 10)) {
                 let check = b.length;
                 await new Promise((resolve) => {
+                    console.log(req.body.sendTime);
                     for (const d of b) {
                         (0, ses_js_1.sendmail)(`${req.body.name} <${process.env.smtp}>`, d, req.body.title, req.body.content, () => {
                             check--;
