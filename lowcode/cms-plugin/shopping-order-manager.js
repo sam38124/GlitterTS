@@ -172,7 +172,6 @@ export class ShoppingOrderManager {
                                     };
                                     exportData.push(rowData);
                                 });
-                                console.log(exportData);
                                 exportDataTo(firstRow, exportData);
                             });
                         }))}

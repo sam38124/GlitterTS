@@ -16,94 +16,245 @@ import { BgProduct } from '../backend-manager/bg-product.js';
 import { FilterOptions } from './filter-options.js';
 import { BgListComponent } from '../backend-manager/bg-list-component.js';
 class Excel {
-    constructor(gvc, headers) {
+    constructor(gvc, headers, lineName) {
         this.gvc = gvc;
         this.headers = headers;
+        this.lineName = lineName;
     }
     loadScript() {
         return new Promise((resolve, reject) => {
-            if (window.XLSX) {
+            if (window.ExcelJS) {
+                this.initExcel();
                 resolve(true);
             }
             else {
-                this.gvc.addMtScript([{ src: 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js' }], () => {
+                this.gvc.addMtScript([{ src: 'https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js' }], () => {
                     if (window.XLSX) {
-                        this.XLSX = window.XLSX;
-                        this.workbook = this.XLSX.utils.book_new();
-                        this.worksheet = this.XLSX.utils.aoa_to_sheet([[]]);
+                        this.initExcel();
                         resolve(true);
                     }
                 }, () => { });
             }
         });
     }
-    importExcel(event) {
+    initExcel() {
+        this.ExcelJS = window.ExcelJS;
+        this.workbook = new this.ExcelJS.Workbook();
+        this.worksheet = this.workbook.addWorksheet('Sheet1');
+    }
+    importData(file) {
         return __awaiter(this, void 0, void 0, function* () {
             yield this.loadScript();
-            const input = event.target;
-            if (!input.files || input.files.length === 0) {
-                console.log('No file selected');
-                return;
-            }
-            const file = input.files[0];
             const reader = new FileReader();
-            reader.onload = (e) => {
-                if (!e.target) {
-                    console.log('Failed to read file');
-                    return;
-                }
-                const data = new Uint8Array(e.target.result);
-                const workbook = this.XLSX.read(data, { type: 'array' });
-                const firstSheetName = workbook.SheetNames[0];
-                const worksheet = workbook.Sheets[firstSheetName];
-                const json = this.XLSX.utils.sheet_to_json(worksheet);
-            };
+            reader.onload = (e) => __awaiter(this, void 0, void 0, function* () {
+                const arrayBuffer = e.target.result;
+                const workbook = new this.ExcelJS.Workbook();
+                yield workbook.xlsx.load(arrayBuffer);
+                const worksheet = workbook.getWorksheet(1);
+                const data = [];
+                worksheet.eachRow({ includeEmpty: true }, (row, rowNumber) => {
+                    const rowData = [];
+                    row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+                        rowData.push(cell.value);
+                    });
+                    data.push(rowData);
+                });
+                let postMD = [];
+                let productData = {};
+                let variantData = {
+                    barcode: "",
+                    compare_price: 0,
+                    cost: 0,
+                    preview_image: "",
+                    profit: 0,
+                    sale_price: 0,
+                    shipment_type: "weight",
+                    show_understocking: "",
+                    sku: "",
+                    spec: [],
+                    stock: 0,
+                    type: "",
+                    v_height: 0,
+                    v_length: 0,
+                    v_width: 0,
+                    weight: 0
+                };
+                data.forEach((row, index) => {
+                    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
+                    variantData = {
+                        barcode: "",
+                        compare_price: 0,
+                        cost: 0,
+                        preview_image: "",
+                        profit: 0,
+                        sale_price: 0,
+                        shipment_type: "weight",
+                        show_understocking: "",
+                        sku: "",
+                        spec: [],
+                        stock: 0,
+                        type: "",
+                        v_height: 0,
+                        v_length: 0,
+                        v_width: 0,
+                        weight: 0
+                    };
+                    if (index != 0) {
+                        if (row[1]) {
+                            if (Object.keys(productData).length != 0) {
+                                postMD.push(productData);
+                            }
+                            productData = {
+                                title: '',
+                                productType: {
+                                    product: true,
+                                    addProduct: false,
+                                    giveaway: false,
+                                },
+                                content: '',
+                                status: 'active',
+                                collection: [],
+                                hideIndex: 'false',
+                                preview_image: "",
+                                specs: [],
+                                variants: [],
+                                seo: {
+                                    title: '',
+                                    content: '',
+                                    keywords: '',
+                                },
+                                template: '',
+                            };
+                            productData.title = (_a = row[0]) !== null && _a !== void 0 ? _a : "";
+                            productData.status = (row[1] == "上架") ? 'active' : 'draft';
+                            productData.collection = (_b = row[2].split(" / ")) !== null && _b !== void 0 ? _b : [];
+                            productData.productType.addProduct = row[3].includes("加購品");
+                            productData.productType.product = row[3].includes("商品");
+                            productData.productType.giveaway = row[3].includes("贈品");
+                            productData.preview_image = (_c = row[4]) !== null && _c !== void 0 ? _c : "";
+                            productData.seo.title = (_d = row[5]) !== null && _d !== void 0 ? _d : "";
+                            productData.seo.content = (_e = row[6]) !== null && _e !== void 0 ? _e : "";
+                            productData.seo.keywords = (_f = row[7]) !== null && _f !== void 0 ? _f : "";
+                            let indices = [8, 10, 12];
+                            indices.forEach(index => {
+                                if (row[index]) {
+                                    productData.specs.push(row[index]);
+                                }
+                            });
+                        }
+                        let indices = [9, 11, 13];
+                        indices.forEach(index => {
+                            if (row[index]) {
+                                variantData.spec.push(row[index]);
+                            }
+                        });
+                        variantData.sku = (_g = row[14]) !== null && _g !== void 0 ? _g : "";
+                        variantData.cost = (_h = row[15]) !== null && _h !== void 0 ? _h : "";
+                        variantData.sale_price = (_j = row[16]) !== null && _j !== void 0 ? _j : "";
+                        variantData.compare_price = (_k = row[17]) !== null && _k !== void 0 ? _k : "";
+                        variantData.profit = (_l = row[18]) !== null && _l !== void 0 ? _l : "";
+                        const shipmentTypeMap = {
+                            "依材積計算": "volume",
+                            "不計算運費": "none"
+                        };
+                        variantData.shipment_type = shipmentTypeMap[row[19]] || "weight";
+                        variantData.v_length = row[20];
+                        variantData.v_width = row[21];
+                        variantData.v_height = row[22];
+                        variantData.weight = row[23];
+                        variantData.sale_price = (_m = row[24]) !== null && _m !== void 0 ? _m : "";
+                    }
+                });
+            });
             reader.readAsArrayBuffer(file);
         });
     }
     exportData(data) {
         return __awaiter(this, void 0, void 0, function* () {
             yield this.loadScript();
-            const stringData = this.convertToString(data);
-            this.worksheet = this.XLSX.utils.json_to_sheet(data, { skipHeader: true });
-            this.XLSX.utils.sheet_add_aoa(this.worksheet, [this.headers], { origin: 'A1' });
-            const maxLengths = this.headers.map((header) => header.length);
-            stringData.forEach((row) => {
-                Object.values(row).forEach((value, index) => {
-                    const valueLength = String(value).length;
-                    if (valueLength > maxLengths[index]) {
-                        maxLengths[index] = valueLength;
-                    }
-                });
-            });
-            this.worksheet['!cols'] = maxLengths.map((length) => ({ wch: length }));
-            const range = this.XLSX.utils.decode_range(this.worksheet['!ref']);
-            for (let R = range.s.r; R <= range.e.r; ++R) {
-                for (let C = range.s.c; C <= range.e.c; ++C) {
-                    const cell_address = { c: C, r: R };
-                    const cell_ref = this.XLSX.utils.encode_cell(cell_address);
-                    if (!this.worksheet[cell_ref])
-                        continue;
-                    if (!this.worksheet[cell_ref].s) {
-                        this.worksheet[cell_ref].s = {};
-                    }
-                    this.worksheet[cell_ref].s.alignment = {
-                        horizontal: 'right',
-                    };
-                }
-            }
-            this.XLSX.utils.book_append_sheet(this.workbook, this.worksheet, 'Sheet1');
+            this.setHeader();
+            this.insertData(data);
+            this.setHeaderStyle();
+            this.setRowHeight();
+            this.setFontAndAlignmentStyle();
+            this.adjustColumnWidths(data);
+            const buffer = yield this.workbook.xlsx.writeBuffer();
+            this.saveAsExcelFile(buffer, `example_${new Date().toISOString()}.xlsx`);
         });
     }
-    convertToString(data) {
-        return data.map((item) => {
-            const newItem = {};
-            for (const key in item) {
-                if (item.hasOwnProperty(key)) {
-                    newItem[key] = String(item[key]);
-                }
+    insertData(data) {
+        data.forEach((row) => {
+            this.worksheet.addRow(Object.values(row));
+        });
+    }
+    setHeader() {
+        this.worksheet.addRow(this.headers);
+    }
+    setHeaderStyle() {
+        this.worksheet.getRow(1).eachCell((cell) => {
+            cell.font = { name: 'Microsoft JhengHei', bold: true };
+            cell.alignment = { vertical: 'middle', horizontal: 'center' };
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE1E1E1' } };
+        });
+    }
+    setRowHeight() {
+        this.worksheet.eachRow((row, rowNumber) => {
+            row.height = 18;
+        });
+    }
+    setFontAndAlignmentStyle() {
+        this.worksheet.eachRow((row, rowNumber) => {
+            row.eachCell((cell) => {
+                cell.font = { name: 'Microsoft JhengHei' };
+                cell.alignment = { vertical: 'middle', horizontal: 'center' };
+            });
+        });
+    }
+    exportToExcel() {
+        return __awaiter(this, void 0, void 0, function* () {
+            const buffer = yield this.workbook.xlsx.writeBuffer();
+            this.saveAsExcelFile(buffer, `example_${new Date().toISOString()}.xlsx`);
+        });
+    }
+    saveAsExcelFile(buffer, fileName) {
+        const EXCEL_TYPE = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8';
+        const data = new Blob([buffer], { type: EXCEL_TYPE });
+        const link = document.createElement('a');
+        link.href = window.URL.createObjectURL(data);
+        link.download = fileName;
+        link.click();
+    }
+    getByteLength(str) {
+        let byteLength = 0;
+        for (let i = 0; i < str.length; i++) {
+            const charCode = str.charCodeAt(i);
+            if (charCode <= 0x007f) {
+                byteLength += 1;
             }
-            return newItem;
+            else if (charCode <= 0x07ff) {
+                byteLength += 2;
+            }
+            else if (charCode <= 0xffff) {
+                byteLength += 3;
+            }
+            else {
+                byteLength += 4;
+            }
+        }
+        return byteLength;
+    }
+    adjustColumnWidths(sheetData) {
+        const maxLengths = this.headers.map(header => this.getByteLength(header));
+        sheetData.forEach((row) => {
+            Object.values(row).forEach((value, index) => {
+                const valueLength = this.getByteLength(value);
+                if (valueLength > maxLengths[index]) {
+                    maxLengths[index] = valueLength;
+                }
+            });
+        });
+        this.worksheet.columns = this.headers.map((header, index) => {
+            return { header, width: maxLengths[index] + 2 };
         });
     }
 }
@@ -122,12 +273,46 @@ export class ShoppingProductSetting {
             orderString: '',
             filter: {},
         };
+        const rowInitData = {
+            name: "",
+            status: "",
+            category: "",
+            productType: ``,
+            img: "",
+            SEO_title: "",
+            SEO_desc: "",
+            SEO_keyword: "",
+            spec1: "",
+            spec1Value: "",
+            spec2: "",
+            spec2Value: "",
+            spec3: "",
+            spec3Value: "",
+            sku: "",
+            cost: "",
+            sale_price: "",
+            compare_price: "",
+            benefit: "",
+            shipment_type: "",
+            length: "",
+            width: "",
+            height: "",
+            weight: "",
+            weightUnit: "",
+            stockPolicy: "",
+            stock: "",
+            save_stock: "",
+            barcode: "",
+        };
         const excel = new Excel(gvc, [
             '商品名稱',
             '啟用狀態',
             '商品類別',
             '商品類型',
             '商品圖片',
+            'SEO標題',
+            'SEO內文',
+            'SEO關鍵字',
             '規格1',
             '規格詳細',
             '規格2',
@@ -149,60 +334,12 @@ export class ShoppingProductSetting {
             '庫存',
             '安全庫存',
             '商品條碼',
-        ]);
+        ], Object.keys(rowInitData));
+        let dialog = new ShareDialog(glitter);
         let replaceData = '';
         const ListComp = new BgListComponent(gvc, vm, FilterOptions.productFilterFrame);
         gvc.addMtScript([{ src: 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js' }], () => { }, () => { });
         vm.filter = ListComp.getFilterObject();
-        function importDataTo(event) {
-            const input = event.target;
-            const XLSX = window.XLSX;
-            if (!input.files || input.files.length === 0) {
-                console.log('No file selected');
-                return;
-            }
-            const file = input.files[0];
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                if (!e.target) {
-                    console.log('Failed to read file');
-                    return;
-                }
-                const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, { type: 'array' });
-                const firstSheetName = workbook.SheetNames[0];
-                const worksheet = workbook.Sheets[firstSheetName];
-                const json = XLSX.utils.sheet_to_json(worksheet);
-            };
-            reader.readAsArrayBuffer(file);
-        }
-        function exportDataTo(firstRow, data) {
-            if (window.XLSX) {
-                let XLSX = window.XLSX;
-                const worksheet = XLSX.utils.json_to_sheet(data, { skipHeader: true });
-                XLSX.utils.sheet_add_aoa(worksheet, [firstRow], { origin: 'A1' });
-                const workbook = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
-                const wbout = XLSX.write(workbook, { bookType: 'xlsx', type: 'binary' });
-                function s2ab(s) {
-                    const buf = new ArrayBuffer(s.length);
-                    const view = new Uint8Array(buf);
-                    for (let i = 0; i < s.length; i++) {
-                        view[i] = s.charCodeAt(i) & 0xff;
-                    }
-                    return buf;
-                }
-                const blob = new Blob([s2ab(wbout)], { type: 'application/octet-stream' });
-                const link = document.createElement('a');
-                const url = URL.createObjectURL(blob);
-                link.href = url;
-                link.download = 'data.xlsx';
-                link.click();
-                setTimeout(() => {
-                    URL.revokeObjectURL(url);
-                }, 100);
-            }
-        }
         return gvc.bindView(() => {
             return {
                 dataList: [{ obj: vm, key: 'type' }],
@@ -257,13 +394,334 @@ export class ShoppingProductSetting {
                                                             type="file"
                                                             id="upload-excel"
                                                             onchange="${gvc.event((e, event) => {
-                                            importDataTo(event);
+                                            const file = event.target.files[0];
+                                            console.log("OK");
+                                            excel.importData(file);
                                         })}"
                                                         />
                                                         ${BgWidget.grayButton('匯入', gvc.event((e) => {
                                             document.querySelector('#upload-excel').click();
+                                            return ``;
+                                            let sample = [
+                                                [
+                                                    '產品1',
+                                                    '啟用',
+                                                    '商品',
+                                                    '精品/手套',
+                                                    'image1',
+                                                    '大小',
+                                                    'S',
+                                                    '形狀',
+                                                    '長方形',
+                                                    '顏色',
+                                                    '白色',
+                                                    'product-1-variant-1',
+                                                    '5000',
+                                                    '13000',
+                                                    '12000',
+                                                    '7000',
+                                                    '依重量計算',
+                                                    '10',
+                                                    '15',
+                                                    '10',
+                                                    '7',
+                                                    'KG',
+                                                    '追蹤商品庫存',
+                                                    '13',
+                                                    '35',
+                                                    '001001001',
+                                                ],
+                                                [
+                                                    '產品1',
+                                                    '',
+                                                    '',
+                                                    '',
+                                                    'image2',
+                                                    '',
+                                                    'S',
+                                                    '',
+                                                    '長方形',
+                                                    '',
+                                                    '黑色',
+                                                    'product-1-variant-2',
+                                                    '5000',
+                                                    '13000',
+                                                    '12000',
+                                                    '7000',
+                                                    '依重量計算',
+                                                    '10',
+                                                    '15',
+                                                    '10',
+                                                    '7',
+                                                    'KG',
+                                                    '追蹤商品庫存',
+                                                    '13',
+                                                    '35',
+                                                    '001001002',
+                                                ],
+                                                [
+                                                    '產品1',
+                                                    '',
+                                                    '',
+                                                    '',
+                                                    'image3',
+                                                    '',
+                                                    'L',
+                                                    '',
+                                                    '正方形',
+                                                    '',
+                                                    '黑色',
+                                                    'product-1-variant-3',
+                                                    '4300',
+                                                    '12000',
+                                                    '11000',
+                                                    '7000',
+                                                    '依重量計算',
+                                                    '10',
+                                                    '10',
+                                                    '10',
+                                                    '6',
+                                                    'KG',
+                                                    '追蹤商品庫存',
+                                                    '13',
+                                                    '35',
+                                                    '001001003',
+                                                ],
+                                                [
+                                                    '產品2',
+                                                    '啟用',
+                                                    '商品',
+                                                    '工具/餐具',
+                                                    'image1-1',
+                                                    '材質',
+                                                    '木頭',
+                                                    '形狀',
+                                                    '長方形',
+                                                    '',
+                                                    '',
+                                                    'product-2-variant-1',
+                                                    '700',
+                                                    '1300',
+                                                    '1200',
+                                                    '700',
+                                                    '依體積計算',
+                                                    '5',
+                                                    '5',
+                                                    '6',
+                                                    '2',
+                                                    'KG',
+                                                    '不追蹤',
+                                                    '5',
+                                                    '35',
+                                                    '001002001',
+                                                ],
+                                                [
+                                                    '產品2',
+                                                    '',
+                                                    '',
+                                                    '工具/',
+                                                    'image1-2',
+                                                    '',
+                                                    '金屬',
+                                                    '',
+                                                    '長方形',
+                                                    '',
+                                                    '',
+                                                    'product-2-variant-2',
+                                                    '700',
+                                                    '1300',
+                                                    '1200',
+                                                    '700',
+                                                    '依體積計算',
+                                                    '5',
+                                                    '5',
+                                                    '6',
+                                                    '3',
+                                                    'KG',
+                                                    '不追蹤',
+                                                    '5',
+                                                    '35',
+                                                    '001002002',
+                                                ],
+                                            ];
+                                            excel.exportData(sample).then((r) => {
+                                                alert('匯出成功');
+                                            });
                                         }))}${BgWidget.grayButton('匯出', gvc.event(() => {
-                                            let dialog = new ShareDialog(glitter);
+                                            gvc.glitter.innerDialog((gvc) => {
+                                                return html `
+                                                                        <div style="width: 569px;height: 408px;border-radius: 10px;background: #FFF;display: flex;flex-direction: column;color: #393939;">
+                                                                            <div class="w-100" style="padding: 12px 20px;display: flex;align-items: center;font-size: 16px;font-weight: 700;border-radius: 10px 10px 0px 0px;background: #F2F2F2;">
+                                                                                匯出商品
+                                                                            </div>
+                                                                            <div class="w-100" style="display: flex;flex-direction: column;align-items: flex-start;gap: 24px;padding: 20px;">
+                                                                                <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 16px;align-self: stretch;">
+                                                                                    <div style="">匯出</div>
+                                                                                    ${gvc.bindView({
+                                                    bind: "exportSelect",
+                                                    view: () => {
+                                                        let selectCircle = html `<div style="background-color: white;border: solid 4px #393939;border-radius: 20px;width: 16px;height: 16px;"></div>`;
+                                                        let unselectCircle = html `<div style="background-color: white;border-radius: 20px;border: 1px solid #DDD;width: 16px;height: 16px;"></div>`;
+                                                        let disableCircle = html `<div style="border-radius: 20px;border: 1px solid #DDD;background: #DDD;width: 16px;height: 16px;"></div>`;
+                                                        return html `
+                                                                                                <div style="display: flex;align-items: center;gap: 6px;align-self: stretch;">
+                                                                                                    ${selectCircle}全部商品
+                                                                                                </div>
+                                                                                                <div style="display: flex;align-items: center;gap: 6px;align-self: stretch;">
+                                                                                                    ${unselectCircle}目前篩選結果
+                                                                                                </div>
+                                                                                                <div style="display: flex;align-items: center;gap: 6px;align-self: stretch;color:#BABABA;font-size: 16px;font-weight: 400;">
+                                                                                                    ${disableCircle}目前選擇: 0份商品
+                                                                                                </div>
+                                                                                            `;
+                                                    }, divCreate: { style: `display: flex;flex-direction: column;align-items: center;gap: 12px;align-self: stretch;` }
+                                                })}
+                                                                                </div>
+                                                                                <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 16px;align-self: stretch;">
+                                                                                    <div style="">匯出為</div>
+                                                                                    ${gvc.bindView({
+                                                    bind: "exportFile",
+                                                    view: () => {
+                                                        let selectCircle = html `<div style="background-color: white;border: solid 4px #393939;border-radius: 20px;width: 16px;height: 16px;"></div>`;
+                                                        let unselectCircle = html `<div style="background-color: white;border-radius: 20px;border: 1px solid #DDD;border-radius: 20px;width: 16px;height: 16px;"></div>`;
+                                                        return html `
+                                                                                                <div style="display: flex;align-items: center;gap: 6px;align-self: stretch;">
+                                                                                                    ${selectCircle}Excel檔案
+                                                                                                </div>
+                                                                                               
+                                                                                            `;
+                                                    }, divCreate: { style: `display: flex;flex-direction: column;align-items: center;gap: 12px;align-self: stretch;` }
+                                                })}
+                                                                                </div>
+                                                                            </div>
+                                                                            <div style="display: flex;justify-content: flex-end;align-items: flex-start;gap: 14px;padding: 20px">
+                                                                                ${BgWidget.cancel(gvc.event(() => { gvc.glitter.closeDiaLog(); }))}
+                                                                                ${BgWidget.save(gvc.event(() => {
+                                                    dialog.dataLoading({ visible: true });
+                                                    ApiShop.getProduct({
+                                                        page: 0,
+                                                        limit: 100,
+                                                        search: undefined,
+                                                        searchType: undefined,
+                                                        orderBy: undefined,
+                                                        status: (() => {
+                                                            if (vm.filter.status && vm.filter.status.length === 1) {
+                                                                switch (vm.filter.status[0]) {
+                                                                    case 'active':
+                                                                        return 'active';
+                                                                    case 'draft':
+                                                                        return 'draft';
+                                                                }
+                                                            }
+                                                            return undefined;
+                                                        })(),
+                                                        collection: vm.filter.collection,
+                                                        accurate_search_collection: true,
+                                                    }).then((response) => {
+                                                        dialog.dataLoading({ visible: false });
+                                                        let exportData = [];
+                                                        response.response.data.map((productData) => {
+                                                            var _a;
+                                                            let rowData = {
+                                                                name: (_a = productData.content.title) !== null && _a !== void 0 ? _a : "未命名商品",
+                                                                status: "",
+                                                                category: "",
+                                                                productType: ``,
+                                                                img: "",
+                                                                SEO_title: "",
+                                                                SEO_desc: "",
+                                                                SEO_keyword: "",
+                                                                spec1: "",
+                                                                spec1Value: "",
+                                                                spec2: "",
+                                                                spec2Value: "",
+                                                                spec3: "",
+                                                                spec3Value: "",
+                                                                sku: "",
+                                                                cost: "",
+                                                                sale_price: "",
+                                                                compare_price: "",
+                                                                benefit: "",
+                                                                shipment_type: "",
+                                                                length: "",
+                                                                width: "",
+                                                                height: "",
+                                                                weight: "",
+                                                                weightUnit: "",
+                                                                stockPolicy: "",
+                                                                stock: "",
+                                                                save_stock: "",
+                                                                barcode: "",
+                                                            };
+                                                            productData.content.variants.map((variant, index) => {
+                                                                var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16, _17, _18, _19, _20, _21;
+                                                                if (index == 0) {
+                                                                    rowData.SEO_title = (_c = (_b = (_a = productData.content) === null || _a === void 0 ? void 0 : _a.seo) === null || _b === void 0 ? void 0 : _b.title) !== null && _c !== void 0 ? _c : "";
+                                                                    rowData.SEO_desc = (_f = (_e = (_d = productData.content) === null || _d === void 0 ? void 0 : _d.seo) === null || _e === void 0 ? void 0 : _e.content) !== null && _f !== void 0 ? _f : "";
+                                                                    rowData.SEO_keyword = (_j = (_h = (_g = productData.content) === null || _g === void 0 ? void 0 : _g.seo) === null || _h === void 0 ? void 0 : _h.keyword) !== null && _j !== void 0 ? _j : "";
+                                                                    rowData.category = (_k = productData.content.collection.join("/")) !== null && _k !== void 0 ? _k : "";
+                                                                    rowData.productType = `${((_m = (_l = productData.content) === null || _l === void 0 ? void 0 : _l.productType) === null || _m === void 0 ? void 0 : _m.product) ? '商品' : ''} ${((_p = (_o = productData.content) === null || _o === void 0 ? void 0 : _o.productType) === null || _p === void 0 ? void 0 : _p.addProduct) ? '加購品' : ''} ${((_r = (_q = productData.content) === null || _q === void 0 ? void 0 : _q.productType) === null || _r === void 0 ? void 0 : _r.giveaway) ? '贈品' : ''}`;
+                                                                    rowData.status = (((_s = productData.content) === null || _s === void 0 ? void 0 : _s.status) == 'active') ? "上架" : "下架";
+                                                                    rowData.spec1 = (_v = (_u = (_t = productData.content) === null || _t === void 0 ? void 0 : _t.specs[0]) === null || _u === void 0 ? void 0 : _u.title) !== null && _v !== void 0 ? _v : "";
+                                                                    rowData.spec2 = (_y = (_x = (_w = productData.content) === null || _w === void 0 ? void 0 : _w.specs[1]) === null || _x === void 0 ? void 0 : _x.title) !== null && _y !== void 0 ? _y : "";
+                                                                    rowData.spec3 = (_1 = (_0 = (_z = productData.content) === null || _z === void 0 ? void 0 : _z.specs[2]) === null || _0 === void 0 ? void 0 : _0.title) !== null && _1 !== void 0 ? _1 : "";
+                                                                }
+                                                                else {
+                                                                    rowData.category = ``;
+                                                                    rowData.productType = ``;
+                                                                    rowData.status = ``;
+                                                                    rowData.spec1 = "";
+                                                                    rowData.spec2 = "";
+                                                                    rowData.spec3 = "";
+                                                                }
+                                                                rowData.img = (_2 = variant.preview_image) !== null && _2 !== void 0 ? _2 : "";
+                                                                rowData.spec1Value = (_3 = variant.spec[0]) !== null && _3 !== void 0 ? _3 : "";
+                                                                rowData.spec2Value = (_4 = variant.spec[1]) !== null && _4 !== void 0 ? _4 : "";
+                                                                rowData.spec3Value = (_5 = variant.spec[2]) !== null && _5 !== void 0 ? _5 : "";
+                                                                rowData.sku = (_6 = variant.sku) !== null && _6 !== void 0 ? _6 : "";
+                                                                rowData.cost = (_7 = variant.cost) !== null && _7 !== void 0 ? _7 : "";
+                                                                rowData.sale_price = (_8 = variant.sale_price) !== null && _8 !== void 0 ? _8 : "";
+                                                                rowData.benefit = (_9 = variant.profit) !== null && _9 !== void 0 ? _9 : "";
+                                                                rowData.compare_price = (_10 = variant.compare_price) !== null && _10 !== void 0 ? _10 : "";
+                                                                rowData.width = (_12 = (_11 = variant === null || variant === void 0 ? void 0 : variant.volume) === null || _11 === void 0 ? void 0 : _11.v_width) !== null && _12 !== void 0 ? _12 : "0";
+                                                                rowData.height = (_14 = (_13 = variant === null || variant === void 0 ? void 0 : variant.volume) === null || _13 === void 0 ? void 0 : _13.v_height) !== null && _14 !== void 0 ? _14 : "0";
+                                                                rowData.length = (_16 = (_15 = variant === null || variant === void 0 ? void 0 : variant.volume) === null || _15 === void 0 ? void 0 : _15.v_length) !== null && _16 !== void 0 ? _16 : "0";
+                                                                rowData.weight = (_17 = variant.weight) !== null && _17 !== void 0 ? _17 : "0";
+                                                                rowData.weightUnit = (_18 = variant.weightUnit) !== null && _18 !== void 0 ? _18 : "KG";
+                                                                rowData.stockPolicy = (variant.show_understocking) ? "追蹤" : "不追蹤";
+                                                                rowData.stock = (_19 = variant.stock) !== null && _19 !== void 0 ? _19 : "0";
+                                                                rowData.save_stock = (_20 = variant.save_stock) !== null && _20 !== void 0 ? _20 : "0";
+                                                                rowData.barcode = (_21 = variant.barcode) !== null && _21 !== void 0 ? _21 : "";
+                                                                if (variant.shipment_type) {
+                                                                    switch (variant.shipment_type) {
+                                                                        case "volume": {
+                                                                            rowData.shipment_type = "依材積計算";
+                                                                            break;
+                                                                        }
+                                                                        case "none": {
+                                                                            rowData.shipment_type = "不計算運費";
+                                                                            break;
+                                                                        }
+                                                                        default: {
+                                                                            rowData.shipment_type = "依重量計算";
+                                                                        }
+                                                                    }
+                                                                }
+                                                                else {
+                                                                    rowData.shipment_type = "依重量計算";
+                                                                }
+                                                                exportData.push(JSON.parse(JSON.stringify(rowData)));
+                                                            });
+                                                        });
+                                                        excel.exportData(exportData).then((r) => {
+                                                        });
+                                                    });
+                                                }), '匯出')}
+                                                                            </div>
+                                                                        </div>
+                                                                    `;
+                                            }, 'export');
+                                            return;
                                             dialog.dataLoading({ visible: true });
                                             ApiShop.getProduct({
                                                 page: 0,
@@ -350,11 +808,11 @@ export class ShoppingProductSetting {
                                                         '產品1',
                                                         '',
                                                         '',
-                                                        '精品/',
+                                                        '',
                                                         'image3',
                                                         '',
                                                         'L',
-                                                        '形狀',
+                                                        '',
                                                         '正方形',
                                                         '',
                                                         '黑色',
@@ -432,7 +890,6 @@ export class ShoppingProductSetting {
                                                     ],
                                                 ];
                                                 excel.exportData(sample).then((r) => {
-                                                    alert('匯出成功');
                                                 });
                                             });
                                         }))}
