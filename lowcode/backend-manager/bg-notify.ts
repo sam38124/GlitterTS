@@ -49,7 +49,6 @@ export class BgNotify {
                 bind: id,
                 view: () => {
                     let vmi: any = undefined;
-
                     function getDatalist() {
                         let interval: any = 0;
                         return vm.dataList.map((dd: any) => {
@@ -72,7 +71,6 @@ export class BgNotify {
                                                 });
                                             }, 10);
                                         }
-
                                         return EditorElem.checkBoxOnly({
                                             gvc: gvc,
                                             def: !vm.dataList.find((dd: any) => {
@@ -2010,7 +2008,6 @@ export class BgNotify {
                                                             ];
                                                         });
                                                     }
-
                                                     vmi.data = getDatalist();
                                                     vmi.loading = false;
                                                     vmi.callback();
@@ -2143,7 +2140,6 @@ export class BgNotify {
         const glitter = gvc.glitter;
         const filterID = glitter.getUUID();
         const id = glitter.getUUID();
-        const dialog = new ShareDialog(gvc.glitter);
         return gvc.bindView(() => {
             return {
                 bind: id,
@@ -2505,7 +2501,6 @@ export class BgNotify {
                 bind: id,
                 view: () => {
                     let vmi: any = undefined;
-
                     function getDatalist() {
                         let interval: any = 0;
                         return vm.dataList.map((dd: any) => {

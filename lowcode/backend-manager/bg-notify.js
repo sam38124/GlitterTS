@@ -1931,7 +1931,6 @@ export class BgNotify {
         const glitter = gvc.glitter;
         const filterID = glitter.getUUID();
         const id = glitter.getUUID();
-        const dialog = new ShareDialog(gvc.glitter);
         return gvc.bindView(() => {
             return {
                 bind: id,

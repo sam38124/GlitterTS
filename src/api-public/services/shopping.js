@@ -411,8 +411,7 @@ class Shopping {
                         }
                     }
                 }
-                catch (e) {
-                }
+                catch (e) { }
             }
             carData.total += carData.shipment_fee;
             const f_rebate = await this.formatUseRebate(carData.total, carData.use_rebate);
@@ -814,14 +813,10 @@ class Shopping {
     }
     async proofPurchase(order_id, text) {
         try {
-            const orderData = (await database_js_1.default.query(`select orderData
-                                               from \`${this.app}\`.t_checkout
-                                               where cart_token = ?`, [order_id]))[0]['orderData'];
+            const orderData = (await database_js_1.default.query(`select orderData from \`${this.app}\`.t_checkout where cart_token=?`, [order_id]))[0]['orderData'];
             orderData.proof_purchase = text;
             new notify_js_1.ManagerNotify(this.app).uploadProof({ orderData: orderData });
-            await database_js_1.default.query(`update \`${this.app}\`.t_checkout
-                            set orderData=?
-                            where cart_token = ?`, [JSON.stringify(orderData), order_id]);
+            await database_js_1.default.query(`update \`${this.app}\`.t_checkout set orderData=? where cart_token=?`, [JSON.stringify(orderData), order_id]);
             return {
                 result: true,
             };
