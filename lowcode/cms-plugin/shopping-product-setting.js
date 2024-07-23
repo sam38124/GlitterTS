@@ -272,6 +272,7 @@ export class ShoppingProductSetting {
             queryType: '',
             orderString: '',
             filter: {},
+            replaceData: ''
         };
         const rowInitData = {
             name: "",
@@ -1089,7 +1090,7 @@ export class ShoppingProductSetting {
                                                         });
                                                     },
                                                     rowClick: (data, index) => {
-                                                        replaceData = vm.dataList[index].content;
+                                                        vm.replaceData = vm.dataList[index].content;
                                                         vm.type = 'replace';
                                                     },
                                                     filter: html `
@@ -1257,14 +1258,14 @@ export class ShoppingProductSetting {
                                 vm: vm,
                                 gvc: gvc,
                                 type: 'replace',
-                                defData: replaceData,
+                                defData: vm.replaceData,
                             });
                         case 'editSpec':
                             vm.last_scroll = document.querySelector('.pd-w-c').scrollTop;
                             return ShoppingProductSetting.editProductSpec({
                                 vm: vm,
                                 gvc: gvc,
-                                defData: replaceData,
+                                defData: vm.replaceData,
                             });
                     }
                 },
@@ -1725,6 +1726,9 @@ export class ShoppingProductSetting {
             };
             if (obj.type === 'replace') {
                 postMD = obj.defData;
+            }
+            else {
+                obj.vm.replaceData = postMD;
             }
             const html = String.raw;
             let oneSpecViewID = ['oneSpec', 'oneShipment', 'oneSetSku'];
@@ -3492,7 +3496,7 @@ ${(_e = postMD.seo.keywords) !== null && _e !== void 0 ? _e : ''}</textarea
                             }), '取消')}
                             ${BgWidget.save(obj.gvc.event(() => {
                                 setTimeout(() => {
-                                    if (obj.type === 'replace') {
+                                    if (postMD.id) {
                                         ShoppingProductSetting.putEvent(postMD, obj.gvc, obj.vm);
                                     }
                                     else {

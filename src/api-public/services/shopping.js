@@ -147,25 +147,26 @@ class Shopping {
         }
         else {
             return {
-                data: await database_js_1.default.query(`SELECT *
+                data: (await database_js_1.default.query(`SELECT *
                      FROM (${sql}) as subqyery
                          limit ${query.page * query.limit}
-                        , ${query.limit}`, []),
+                        , ${query.limit}`, [])).map((dd) => {
+                    dd.content.id = dd.id;
+                    return dd;
+                }),
                 total: (await database_js_1.default.query(`SELECT count(1)
-                                        FROM (${sql}) as subqyery`, []))[0]['count(1)'],
+                         FROM (${sql}) as subqyery`, []))[0]['count(1)'],
             };
         }
     }
     async querySqlByVariants(querySql, query) {
-        let sql = `SELECT 
-                        v.id,
-                        v.product_id,
-                        v.content as variant_content,
-                        p.content as product_content,
-                        CAST(JSON_EXTRACT(v.content, '$.stock') AS UNSIGNED) as stock
-                    FROM
-                        \`${this.app}\`.t_variants AS v
-                    JOIN
+        let sql = `SELECT v.id,
+                          v.product_id,
+                          v.content                                            as variant_content,
+                          p.content                                            as product_content,
+                          CAST(JSON_EXTRACT(v.content, '$.stock') AS UNSIGNED) as stock
+                   FROM \`${this.app}\`.t_variants AS v
+                            JOIN
                         \`${this.app}\`.t_manager_post AS p ON v.product_id = p.id
                    WHERE ${querySql.join(' and ')} ${query.order_by || `order by id desc`}
         `;
@@ -183,7 +184,7 @@ class Shopping {
                          limit ${query.page * query.limit}
                         , ${query.limit}`, []),
                 total: (await database_js_1.default.query(`SELECT count(1)
-                                        FROM (${sql}) as subqyery`, []))[0]['count(1)'],
+                         FROM (${sql}) as subqyery`, []))[0]['count(1)'],
             };
         }
     }
@@ -213,9 +214,31 @@ class Shopping {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'GetProduct Error:' + e, null);
         }
     }
-    async toCheckout(data, type = 'add') {
+    async toCheckout(data, type = 'add', replace_order_id) {
         var _a, _b, _c, _d;
         try {
+            console.log(`replace_order_id`, replace_order_id);
+            if (replace_order_id) {
+                const orderData = (await database_js_1.default.query(`SELECT *
+                                                   FROM \`${this.app}\`.t_checkout
+                                                   where cart_token = ?
+                                                     and status = 0;`, [replace_order_id]))[0];
+                if (orderData) {
+                    await database_js_1.default.query(`delete
+                                    from \`${this.app}\`.t_checkout
+                                    where cart_token = ?
+                                      and status = 0;`, [replace_order_id]);
+                    data.lineItems = orderData.orderData.lineItems;
+                    data.email = orderData.email;
+                    data.user_info = orderData.orderData.user_info;
+                    data.code = orderData.orderData.code;
+                    data.customer_info = orderData.orderData.customer_info;
+                    data.use_rebate = orderData.orderData.use_rebate;
+                }
+                else {
+                    throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ToCheckout Error:Cant find this orderID.', null);
+                }
+            }
             const userClass = new user_js_1.User(this.app);
             const rebateClass = new rebate_js_1.Rebate(this.app);
             if (type !== 'preview' && !(this.token && this.token.userID) && !data.email && !(data.user_info && data.user_info.email)) {
@@ -375,7 +398,7 @@ class Shopping {
                                 let deadTime = new Date();
                                 deadTime.setMinutes(deadTime.getMinutes() + 15);
                                 await database_js_1.default.query(`INSERT INTO \`${this.app}\`.\`t_stock_recover\`
-                                                set ?`, [
+                                     set ?`, [
                                     {
                                         product_id: pdDqlData.id,
                                         spec: variant.spec.join('-'),
@@ -388,7 +411,8 @@ class Shopping {
                         }
                     }
                 }
-                catch (e) { }
+                catch (e) {
+                }
             }
             carData.total += carData.shipment_fee;
             const f_rebate = await this.formatUseRebate(carData.total, carData.use_rebate);
@@ -413,9 +437,9 @@ class Shopping {
                         }
                     }
                     const sum = (await database_js_1.default.query(`SELECT sum(money)
-                             FROM \`${this.app}\`.t_wallet
-                             WHERE status in (1, 2)
-                               and userID = ?`, [userData.userID]))[0]['sum(money)'] || 0;
+                                 FROM \`${this.app}\`.t_wallet
+                                 WHERE status in (1, 2)
+                                   and userID = ?`, [userData.userID]))[0]['sum(money)'] || 0;
                     carData.use_wallet = sum < carData.total ? sum : carData.total;
                 }
             }
@@ -508,7 +532,7 @@ class Shopping {
                     });
                     carData.method = 'off_line';
                     await database_js_1.default.execute(`INSERT INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
-                     values (?, ?, ?, ?)`, [carData.orderID, 0, carData.email, carData]);
+                         values (?, ?, ?, ?)`, [carData.orderID, 0, carData.email, carData]);
                     return {
                         off_line: true,
                         return_url: `${process.env.DOMAIN}/api-public/v1/ec/redirect?g-app=${this.app}&return=${id}`,
@@ -788,10 +812,14 @@ class Shopping {
     }
     async proofPurchase(order_id, text) {
         try {
-            const orderData = (await database_js_1.default.query(`select orderData from \`${this.app}\`.t_checkout where cart_token=?`, [order_id]))[0]['orderData'];
+            const orderData = (await database_js_1.default.query(`select orderData
+                                               from \`${this.app}\`.t_checkout
+                                               where cart_token = ?`, [order_id]))[0]['orderData'];
             orderData.proof_purchase = text;
             new notify_js_1.ManagerNotify(this.app).uploadProof({ orderData: orderData });
-            await database_js_1.default.query(`update \`${this.app}\`.t_checkout set orderData=? where cart_token=?`, [JSON.stringify(orderData), order_id]);
+            await database_js_1.default.query(`update \`${this.app}\`.t_checkout
+                            set orderData=?
+                            where cart_token = ?`, [JSON.stringify(orderData), order_id]);
             return {
                 result: true
             };
@@ -939,7 +967,7 @@ class Shopping {
                         email: cartData.email,
                         subject: customerMail.title,
                     });
-                    (0, ses_js_1.sendmail)(`${userData.userData.name} <${process.env.smtp}>`, cartData.email, customerMail.title, customerMail.content.replace(/@\{\{訂單號碼\}\}/g, order_id));
+                    (0, ses_js_1.sendmail)(`${userData.userData.name} <${process.env.smtp}>`, cartData.email, customerMail.title.replace(/@\{\{訂單號碼\}\}/g, order_id), customerMail.content.replace(/@\{\{訂單號碼\}\}/g, order_id));
                 }
                 if (userData && cartData.orderData.rebate > 0) {
                     const rebateClass = new rebate_js_1.Rebate(this.app);
@@ -1022,7 +1050,7 @@ class Shopping {
     async insertVoucherHistory(user_id, order_id, voucher_id) {
         try {
             await database_js_1.default.query(`INSERT INTO \`${this.app}\`.\`t_voucher_history\`
-                            set ?`, [
+                 set ?`, [
                 {
                     user_id,
                     order_id,
@@ -1040,8 +1068,8 @@ class Shopping {
     async releaseVoucherHistory(order_id, status) {
         try {
             await database_js_1.default.query(`UPDATE \`${this.app}\`.t_voucher_history
-                            SET status = ?
-                            WHERE order_id = ?;`, [status, order_id]);
+                 SET status = ?
+                 WHERE order_id = ?;`, [status, order_id]);
         }
         catch (error) {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'insertVoucherHistory Error:' + express_1.default, null);
@@ -1067,7 +1095,8 @@ class Shopping {
         content.id &&
             (await database_js_1.default.query(`DELETE
              from \`${this.app}\`.t_variants
-             WHERE (product_id=${content.id}) and id>0`, []));
+             WHERE (product_id = ${content.id})
+               and id > 0`, []));
         for (const a of content.variants) {
             content.min_price = (_b = content.min_price) !== null && _b !== void 0 ? _b : a.sale_price;
             content.max_price = (_c = content.max_price) !== null && _c !== void 0 ? _c : a.sale_price;
@@ -1130,16 +1159,16 @@ class Shopping {
     async getOrderToDay() {
         try {
             const order = await database_js_1.default.query(`SELECT *
-                                          FROM \`${this.app}\`.t_checkout
-                                          WHERE DATE (created_time) = CURDATE()`, []);
+                 FROM \`${this.app}\`.t_checkout
+                 WHERE DATE (created_time) = CURDATE()`, []);
             return {
                 total_count: order.filter((dd) => {
                     return dd.status === 1;
                 }).length,
                 un_shipment: (await database_js_1.default.query(`SELECT count(1)
-                                              from \`${this.app}\`.t_checkout
-                                              WHERE (orderData ->> '$.progress' is null || orderData ->> '$.progress' = 'wait')
-                                                and status = 1`, []))[0]['count(1)'],
+                         from \`${this.app}\`.t_checkout
+                         WHERE (orderData ->> '$.progress' is null || orderData ->> '$.progress' = 'wait')
+                           and status = 1`, []))[0]['count(1)'],
                 un_pay: order.filter((dd) => {
                     return dd.status === 0;
                 }).length,
@@ -1223,7 +1252,8 @@ class Shopping {
             const checkoutSQL = `
                 SELECT JSON_EXTRACT(orderData, '$.lineItems') as lineItems
                 FROM \`${this.app}\`.t_checkout
-                WHERE status = 1 AND (created_time BETWEEN DATE_SUB(NOW(), INTERVAL 1 MONTH) AND NOW());
+                WHERE status = 1
+                  AND (created_time BETWEEN DATE_SUB(NOW(), INTERVAL 1 MONTH) AND NOW());
             `;
             const checkouts = await database_js_1.default.query(checkoutSQL, []);
             const series = [];
@@ -1385,8 +1415,8 @@ class Shopping {
         var _a;
         try {
             let config = (_a = (await database_js_1.default.query(`SELECT *
-                                          FROM \`${this.app}\`.public_config
-                                          WHERE \`key\` = 'collection';`, []))[0]) !== null && _a !== void 0 ? _a : {};
+                         FROM \`${this.app}\`.public_config
+                         WHERE \`key\` = 'collection';`, []))[0]) !== null && _a !== void 0 ? _a : {};
             config.value = config.value || [];
             if (data.id == -1 || data.parent_name !== data.origin.parent_name || data.name !== data.origin.item_name) {
                 if (data.parent_id === undefined && config.value.find((item) => item.title === data.name)) {
@@ -1559,7 +1589,8 @@ class Shopping {
             content.type = 'product';
             this.checkVariantDataType(content.variants);
             const data = await database_js_1.default.query(`update \`${this.app}\`.\`t_manager_post\`
-                 SET ? where id=?`, [
+                 SET ?
+                 where id = ?`, [
                 {
                     content: JSON.stringify(content),
                 },
@@ -1576,8 +1607,8 @@ class Shopping {
     async deleteCollection(id_array) {
         try {
             const config = (await database_js_1.default.query(`SELECT *
-                                            FROM \`${this.app}\`.public_config
-                                            WHERE \`key\` = 'collection';`, []))[0];
+                     FROM \`${this.app}\`.public_config
+                     WHERE \`key\` = 'collection';`, []))[0];
             const delete_index_array = [];
             id_array.map((id) => {
                 if (typeof id === 'number') {
@@ -1750,10 +1781,12 @@ class Shopping {
     async putVariants(query) {
         try {
             for (const data of query) {
-                await database_js_1.default.query(`UPDATE \`${this.app}\`.t_variants SET ?
-                    WHERE id = ?`, [{ content: JSON.stringify(data.variant_content) }, data.id]);
-                await database_js_1.default.query(`UPDATE \`${this.app}\`.t_manager_post SET ?
-                    WHERE id = ?`, [{ content: JSON.stringify(data.product_content) }, data.product_id]);
+                await database_js_1.default.query(`UPDATE \`${this.app}\`.t_variants
+                     SET ?
+                     WHERE id = ?`, [{ content: JSON.stringify(data.variant_content) }, data.id]);
+                await database_js_1.default.query(`UPDATE \`${this.app}\`.t_manager_post
+                     SET ?
+                     WHERE id = ?`, [{ content: JSON.stringify(data.product_content) }, data.product_id]);
             }
             return {
                 result: 'success',

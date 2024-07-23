@@ -340,6 +340,7 @@ export class ShoppingProductSetting {
             queryType: string;
             orderString: string;
             filter?: any;
+            replaceData:any
         } = {
             id: glitter.getUUID(),
             tableId: glitter.getUUID(),
@@ -350,6 +351,7 @@ export class ShoppingProductSetting {
             queryType: '',
             orderString: '',
             filter: {},
+            replaceData:''
         };
         const rowInitData :{
             name:string,
@@ -445,6 +447,7 @@ export class ShoppingProductSetting {
         ],Object.keys(rowInitData));
         let dialog = new ShareDialog(glitter);
         let replaceData: any = '';
+
         const ListComp = new BgListComponent(gvc, vm, FilterOptions.productFilterFrame);
         gvc.addMtScript(
             [{ src: 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js' }],
@@ -1274,7 +1277,7 @@ export class ShoppingProductSetting {
                                                                         });
                                                                     },
                                                                     rowClick: (data, index) => {
-                                                                        replaceData = vm.dataList[index].content;
+                                                                        vm.replaceData = vm.dataList[index].content;
                                                                         vm.type = 'replace';
                                                                     },
                                                                     filter: html`
@@ -1447,14 +1450,14 @@ export class ShoppingProductSetting {
                                 vm: vm,
                                 gvc: gvc,
                                 type: 'replace',
-                                defData: replaceData,
+                                defData: vm.replaceData,
                             });
                         case 'editSpec':
                             vm.last_scroll = document.querySelector('.pd-w-c')!.scrollTop;
                             return ShoppingProductSetting.editProductSpec({
                                 vm: vm,
                                 gvc: gvc,
-                                defData: replaceData,
+                                defData: vm.replaceData,
                             });
                     }
                 },
@@ -1980,8 +1983,11 @@ export class ShoppingProductSetting {
             },
             template: '',
         };
+
         if (obj.type === 'replace') {
             postMD = obj.defData;
+        }else{
+            obj.vm.replaceData=postMD;
         }
         const html = String.raw;
         let oneSpecViewID = ['oneSpec', 'oneShipment', 'oneSetSku'];
@@ -3847,7 +3853,7 @@ ${postMD.seo.keywords ?? ''}</textarea
                             ${BgWidget.save(
                                 obj.gvc.event(() => {
                                     setTimeout(() => {
-                                        if (obj.type === 'replace') {
+                                        if (postMD.id) {
                                             ShoppingProductSetting.putEvent(postMD, obj.gvc, obj.vm);
                                         } else {
                                         

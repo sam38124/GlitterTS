@@ -7,12 +7,13 @@ import {EditorElem} from "../../glitterBundle/plugins/editor-elem.js";
 import {FormWidget} from "./form.js";
 import {ApiPageConfig} from "../../api/pageConfig.js";
 import {Storage} from "../../glitterBundle/helper/storage.js";
+import {GlobalWidget} from "../../glitterBundle/html-component/global-widget.js";
 
 
 export const component = Plugin.createComponent(import.meta.url, (glitter: Glitter, editMode: boolean) => {
     return {
-        render: (gvc: GVC, widget: HtmlJson, setting: HtmlJson[], hoverID: string[], subData, htmlGenerate,doc) => {
-            const document=doc || (window.document);
+        render: (gvc: GVC, widget: HtmlJson, setting: HtmlJson[], hoverID: string[], subData, htmlGenerate, doc) => {
+            const document = doc || (window.document);
             widget.data.list = widget.data.list ?? []
             widget.storage = widget.storage ?? {};
             widget.storage.updateFormData = widget.storage.updateFormData ?? ((page_config: any) => {
@@ -395,6 +396,9 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                     let spiltCount = 0
 
                                                     function appendHtml(pageData: any, widget: any, initial: boolean, id: string, parent_array: any) {
+                                                        const vm={
+                                                            id:gvc.glitter.getUUID()
+                                                        }
                                                         const page_config = pageData.page_config
                                                         if (page_config.formFormat && page_config.formFormat.length !== 0) {
                                                             if (!initial && (spiltCount++ > 1)) {
@@ -404,11 +408,12 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
 <div class="flex-fill border"></div>
 </div>`
                                                             }
-                                                            console.log(`formData->`,page_config)
-                                                            page_config.formData=page_config.formData||{}
+                                                            console.log(`formData->`, page_config)
+                                                            page_config.formData = page_config.formData || {}
 
-                                                            const refer_form = ((widget.data.refer_app)) ? ((widget.data.refer_form_data || page_config.formData)||{}) : page_config.formData;
-                                                            function refresh(){
+                                                            let  refer_form :any = undefined;
+
+                                                            function refresh(widget:any) {
                                                                 console.log('refresh')
                                                                 if (widget.data.refer_app) {
                                                                     widget.data.refer_form_data = refer_form;
@@ -424,22 +429,22 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                                                 resolve(true)
                                                                             })
                                                                         });
-                                                                        try{
-                                                                            (window as any).glitterInitialHelper.share[`getPageData-${parent_array.tag}`].data.response.result[0].config=parent_array;
-                                                                        }catch{
+                                                                        try {
+                                                                            (window as any).glitterInitialHelper.share[`getPageData-${parent_array.tag}`].data.response.result[0].config = parent_array;
+                                                                        } catch {
 
                                                                         }
                                                                     }
 
-                                                                    if(!widget.storage){
+                                                                    if (!widget.storage) {
                                                                         try {
-                                                                            const doc:any=(((document.querySelector('#editerCenter iframe') as any)!.contentWindow as any).document).querySelectorAll(`.${widget.data.refer_app}_${widget.data.tag}`)!;
-                                                                            if(doc){
-                                                                                for (const b of doc){
+                                                                            const doc: any = (((document.querySelector('#editerCenter iframe') as any)!.contentWindow as any).document).querySelectorAll(`.${widget.data.refer_app}_${widget.data.tag}`)!;
+                                                                            if (doc) {
+                                                                                for (const b of doc) {
                                                                                     b.updatePageConfig(refer_form)
                                                                                 }
                                                                             }
-                                                                        }catch (e){
+                                                                        } catch (e) {
 
                                                                         }
 
@@ -453,40 +458,54 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                                             page_config: pageData.page_config,
                                                                         })
                                                                     });
-                                                                    try{
-                                                                        (window as any).glitterInitialHelper.share[`getPageData-${pageData.tag}`].data.response.result[0].page_config=pageData.page_config;
-                                                                    }catch{
+                                                                    try {
+                                                                        (window as any).glitterInitialHelper.share[`getPageData-${pageData.tag}`].data.response.result[0].page_config = pageData.page_config;
+                                                                    } catch {
 
                                                                     }
                                                                 }
                                                                 widget.storage && widget.storage.updatePageConfig && widget.storage.updatePageConfig(refer_form);
                                                             }
 
-                                                            html += gvc.bindView(()=>{
-                                                                const id=gvc.glitter.getUUID()
+                                                            html += gvc.bindView(() => {
+                                                                const id = gvc.glitter.getUUID()
                                                                 return {
-                                                                    bind:id,
-                                                                    view:()=>{
-                                                                        return FormWidget.editorView({
-                                                                            gvc: gvc,
-                                                                            array: page_config.formFormat,
-                                                                            refresh:refresh,
-                                                                            formData: refer_form
-                                                                        })
+                                                                    bind: id,
+                                                                    view: () => {
+                                                                        return [
+                                                                            GlobalWidget.showCaseBar(gvc, widget, () => {
+                                                                                gvc.notifyDataChange(id)
+                                                                            }),
+                                                                            GlobalWidget.showCaseEditor({
+                                                                                gvc: gvc,
+                                                                                widget: widget,
+                                                                                view: (widget) => {
+                                                                                    refer_form=((widget.data.refer_app)) ? ((widget.data.refer_form_data || page_config.formData) || {}) : page_config.formData
+                                                                                    return `<div class="mx-n2">${FormWidget.editorView({
+                                                                                        gvc: gvc,
+                                                                                        array: page_config.formFormat,
+                                                                                        refresh: ()=>{
+                                                                                            refresh(widget)
+                                                                                        },
+                                                                                        formData: refer_form
+                                                                                    })}</div>`
+                                                                                }
+                                                                            })
+                                                                        ].join('')
                                                                     },
-                                                                    onDestroy:()=>{
-                                                                        refresh()
+                                                                    onDestroy: () => {
                                                                     },
-                                                                    divCreate:{
-                                                                        class:``
+                                                                    divCreate: {
+                                                                        class: ``
                                                                     }
                                                                 }
                                                             })
                                                         }
                                                     }
 
-                                                    pageData.config.tag=pageData.tag;
+                                                    pageData.config.tag = pageData.tag;
                                                     appendHtml(pageData, widget, true, pageData.id, pageData.config)
+
                                                     async function loop(array: any, id: string, parent_config: any) {
                                                         for (const dd of array) {
                                                             if (dd.type === 'container') {
@@ -498,7 +517,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                                 } : dd.data.tag);
                                                                 appendHtml(pageData, dd, false, (dd.data.refer_app) ? id : pageData.id, parent_config);
                                                                 if (!dd.data.refer_app) {
-                                                                    pageData.config.tag=pageData.tag;
+                                                                    pageData.config.tag = pageData.tag;
                                                                     await loop(pageData.config ?? [], pageData.id, pageData.config);
                                                                 }
                                                             }
@@ -547,6 +566,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                     let data: any = undefined
                     let tag = widget.data.tag
                     let carryData = widget.data.carryData
+
                     async function getData(document: any) {
                         return new Promise(async (resolve, reject) => {
                             try {
@@ -572,8 +592,8 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                         } else {
                                             if (b.codeVersion === 'v2') {
                                                 if ((await eval(`(() => {
-                                                ${b.code}
-                                            })()`)) === true) {
+                                                    ${b.code}
+                                                })()`)) === true) {
                                                     tag = b.tag
                                                     carryData = b.carryData
                                                     break
@@ -628,6 +648,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                             url.searchParams.set('iframe_id', `${id}`)
                                             gvc.glitter.config.frameHeight = gvc.glitter.config.frameHeight ?? {}
                                             gvc.glitter.config.frameHeight[url.href] = gvc.glitter.config.frameHeight[url.href] ?? 0
+
                                             async function iframeView() {
                                                 let rendered = false
                                                 glitter.share.iframeHeightChange = glitter.share.iframeHeightChange ?? {};
@@ -657,7 +678,17 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                             createOption.class = createOption.class || ``
                                             createOption.childContainer = true
                                             if ((widget.data.refer_app)) {
-                                                data.page_config.formData = (widget.data.refer_form_data || data.page_config.formData)
+                                                GlobalWidget.initialShowCaseData({
+                                                    widget:widget,
+                                                    gvc:gvc
+                                                })
+                                                if(gvc.glitter.document.body.clientWidth<800 && (widget as any).mobile.refer==='custom'){
+                                                    data.page_config.formData = ((widget as any).mobile.data.refer_form_data || data.page_config.formData);
+                                                }else if(gvc.glitter.document.body.clientWidth>=800 && (widget as any).desktop.refer==='custom'){
+                                                    data.page_config.formData = ((widget as any).desktop.data.refer_form_data || data.page_config.formData);
+                                                }else{
+                                                    data.page_config.formData = (widget.data.refer_form_data || data.page_config.formData)
+                                                }
                                             }
                                             data.config.formData = data.page_config.formData
                                             viewConfig = data.config;
@@ -679,12 +710,12 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                     class: ``,
                                                     style: ``,
                                                     containerID: id,
-                                                    tag:page_request_config.tag,
+                                                    tag: page_request_config.tag,
                                                     jsFinish: () => {
                                                     },
                                                     onCreate: () => {
                                                         if (glitter.htmlGenerate.isEditMode()) {
-                                                            gvc.getBindViewElem(id).get(0).updatePageConfig=(formData: any) => {
+                                                            gvc.getBindViewElem(id).get(0).updatePageConfig = (formData: any) => {
                                                                 viewConfig.formData = formData
                                                                 document.querySelector(`[gvc-id="${gvc.id(id)}"]`).outerHTML = getView()
                                                             }
@@ -699,7 +730,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                 try {
                                                     viewConfig.formData = formData
                                                     document.querySelector(`[gvc-id="${gvc.id(id)}"]`).outerHTML = getView()
-                                                }catch (e){
+                                                } catch (e) {
 
                                                 }
                                             }
@@ -711,7 +742,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
 
                                     })
                                 }
-                            }catch (e){
+                            } catch (e) {
                                 console.log(e)
                             }
                         })

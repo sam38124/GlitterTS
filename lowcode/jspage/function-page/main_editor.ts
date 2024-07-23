@@ -4,7 +4,7 @@ import Add_item_dia from '../../glitterBundle/plugins/add_item_dia.js';
 import {EditorElem} from '../../glitterBundle/plugins/editor-elem.js';
 import {PageEditor} from '../../editor/page-editor.js';
 import {fileManager} from '../../setting/appSetting.js';
-import {ShareDialog} from '../../dialog/ShareDialog.js';
+import {ShareDialog} from '../../glitterBundle/dialog/ShareDialog.js';
 import {allKeys} from 'underscore';
 import {Setting_editor} from './setting_editor.js';
 import {HtmlGenerate} from '../../glitterBundle/module/html-generate.js';
@@ -16,6 +16,7 @@ import {NormalPageEditor} from '../../editor/normal-page-editor.js';
 import {ColorThemeSelector} from "../../form-view/editor/color-theme-selector.js";
 import {EditorConfig} from "../../editor-config.js";
 import {ToolSetting} from "./tool-setting.js";
+import {BgWidget} from "../../backend-manager/bg-widget.js";
 
 enum ViewType {
     mobile = 'mobile',
@@ -79,8 +80,8 @@ export class Main_editor {
                                         style="cursor: pointer;color:#393939;"
                                         onclick="${gvc.event(() => {
                                             Storage.lastSelect = '';
-                                           glitter.share.editorViewModel.selectItem = undefined;
-                                           glitter.share.selectEditorItem();
+                                            glitter.share.editorViewModel.selectItem = undefined;
+                                            glitter.share.selectEditorItem();
                                         })}"
                                 >
                                     <span>${viewModel.data.name}</span>
@@ -93,6 +94,7 @@ export class Main_editor {
                                         let pageConfig = (viewModel.data! as any).config.filter((dd: any, index: number) => {
                                             return dd.type !== 'code' && (dd.type !== 'widget' || (dd.data.elem !== 'style' && dd.data.elem !== 'link' && dd.data.elem !== 'script'));
                                         });
+
                                         function setPageConfig() {
                                             const containerConfig = glitter.share.editorViewModel.data.config.container_config;
                                             (viewModel.data! as any).config = pageConfig.concat(
@@ -158,7 +160,6 @@ export class Main_editor {
                                                                                     style="gap:5px;color:#393939;${dd.toggle && dd.type === 'container' ? `border-radius: 5px;background: #F2F2F2;` : ``}"
                                                                                     onclick="${gvc.event(() => {
                                                                                         if (lastClick.stop() > 0.1) {
-                                                                                            dd.toggle = !dd.toggle;
                                                                                             dd.info && (dd.info.toggle = !dd.info.toggle);
                                                                                             gvc.notifyDataChange(id);
                                                                                             dd.info.editorEvent();
@@ -194,8 +195,9 @@ export class Main_editor {
                                                                                         onclick="${gvc.event((e, event) => {
                                                                                             lastClick.zeroing();
                                                                                             event.stopPropagation();
-                                                                                            glitter.htmlGenerate.deleteWidget(og_array, og_array[index])
+                                                                                            glitter.htmlGenerate.deleteWidget(og_array, og_array[index]);
                                                                                             setPageConfig();
+                                                                                            
                                                                                         })}"
                                                                                 >
                                                                                     <i class="fa-regular fa-trash d-flex align-items-center justify-content-center "></i>
@@ -260,16 +262,17 @@ export class Main_editor {
                                                                                     glitter.share.editorViewModel.selectContainer = og_array;
                                                                                 }
                                                                             }
+
                                                                             // alert(JSON.stringify((glitter.share.editorViewModel.data! as any).config.container_config));
                                                                             setSelectContainer()
                                                                             AddComponent.toggle(true);
 
                                                                             AddComponent.addWidget = (gvc: GVC, cf: any) => {
-                                                                               glitter.share.addComponent(cf);
+                                                                                glitter.share.addComponent(cf);
                                                                                 // gvc.notifyDataChange(vid)
                                                                             }
                                                                             AddComponent.addEvent = (gvc: GVC, tdata: any) => {
-                                                                             glitter.share.addComponent({
+                                                                                glitter.share.addComponent({
                                                                                     "id": gvc.glitter.getUUID(),
                                                                                     "js": "./official_view_component/official.js",
                                                                                     "css": {
@@ -561,7 +564,7 @@ export class Main_editor {
                                 title: dd.title,
                                 callback: (text) => {
                                     vm.data[dd.key] = text;
-                                    
+
                                     gvc.glitter.share.globalValue[`theme_color.${vm.index}.${dd.key}`] = text;
                                     const lastScrollY = (document.querySelector('#editerCenter iframe') as any).contentWindow.scrollY;
                                     (document.querySelector('#editerCenter  iframe') as any).contentWindow.glitter.share.globalValue = gvc.glitter.share.globalValue;
@@ -569,13 +572,13 @@ export class Main_editor {
                                     Object.keys(element).map((dd) => {
                                         try {
                                             element[dd].updateAttribute()
-                                        }catch (e) {
-                                            
+                                        } catch (e) {
+
                                         }
-                                       
+
                                     });
-                                    if(`${vm.index}`==='0'){
-                                        (document.querySelector('#editerCenter iframe') as any).contentWindow.document.querySelector('body')!.style.background=gvc.glitter.share.globalValue[`theme_color.0.background`];
+                                    if (`${vm.index}` === '0') {
+                                        (document.querySelector('#editerCenter iframe') as any).contentWindow.document.querySelector('body')!.style.background = gvc.glitter.share.globalValue[`theme_color.0.background`];
                                     }
                                     gvc.notifyDataChange(vId)
                                 },
@@ -607,7 +610,7 @@ export class Main_editor {
         "border-button-bg": string,
         "border-button-text": string
     }) {
-        cf=(cf || {}) as any;
+        cf = (cf || {}) as any;
         return `<div style="width:100%;padding: 11px 18px;background: ${cf.background || 'white'}; border-radius: 7px; overflow: hidden; border: 1px #DDDDDD solid; justify-content: center; align-items: center; display: flex">
     <div style="align-self: stretch; flex-direction: column; justify-content: flex-start; align-items: center; gap: 2px; display: inline-flex">
       <div style="font-size: 16px;  font-weight: 400; word-wrap: break-word">
@@ -699,7 +702,7 @@ export class Main_editor {
             html`
                 <div
                         class="right_scroll"
-                        style="overflow-y:auto;${Storage.select_function === 'user-editor' ? `height:calc(100vh - ${document.body.clientWidth<800 ? 0:56}px)` : `height:calc(100vh - 150px);`}"
+                        style="overflow-y:auto;${Storage.select_function === 'user-editor' ? `height:calc(100vh - ${document.body.clientWidth < 800 ? 0 : 56}px)` : `height:calc(100vh - 150px);`}"
                         onscroll="${gvc.event(() => {
                             if (document.querySelector('.right_scroll')!.scrollTop > 0) {
                                 glitter.share.lastRightScrollTop = document.querySelector('.right_scroll')!.scrollTop;
@@ -741,19 +744,13 @@ export class Main_editor {
                                                             style="cursor: pointer;color:#393939;border-radius: 0px;gap:10px;"
                                                             onclick="${gvc.event(() => {
                                                                 Storage.lastSelect = '';
-                                                              glitter.share.editorViewModel.selectItem = undefined;
-                                                              glitter.share.selectEditorItem();
+                                                                glitter.share.editorViewModel.selectItem = undefined;
+                                                                glitter.share.selectEditorItem();
                                                             })}"
                                                     >
                                                         <i class="fa-solid fa-chevron-left"></i>
                                                         <span style="max-width: calc(100% - 50px);text-overflow: ellipsis;white-space: nowrap;overflow: hidden;">${viewModel.selectItem.label}</span>
                                                         <div class="flex-fill"></div>
-                                                        <div class="p-1" onclick="${gvc.event(() => {
-                                                            glitter.htmlGenerate.deleteWidget(glitter.share.editorViewModel.selectContainer, viewModel.selectItem)
-                                                        })}">
-                                                            <i class="fa-regular fa-trash d-flex align-items-center justify-content-center "
-                                                               aria-hidden="true"></i>
-                                                        </div>
                                                     </div>
                                                 `
                                                 : ``) +
@@ -783,6 +780,19 @@ export class Main_editor {
                             },
                         };
                     })}
+                    <div style="height: 60px;"></div>
+                    <div class="position-absolute w-100 bottom-0 d-flex align-items-center p-3 shadow justify-content-end border-top bg-white"
+                         style="height: 60px;">
+                        ${BgWidget.cancel(gvc.event(() => {
+                            const dialog=new ShareDialog(gvc.glitter)
+                            navigator.clipboard.writeText(JSON.stringify(viewModel.selectItem));
+                            dialog.successMessage({text:'複製成功'})
+                        }), '複製元件')}
+                        <div class="mx-2"></div>
+                        ${BgWidget.cancel(gvc.event(() => {
+                            glitter.htmlGenerate.deleteWidget(glitter.share.editorViewModel.selectContainer, viewModel.selectItem)
+                        }), '刪除元件')}
+                    </div>
                 </div>
             `,
             gvc.bindView(() => {
@@ -1149,7 +1159,7 @@ ${dd.value === vm.select ? `background:linear-gradient(135deg, #667eea 0%, #764b
                 },
                 divCreate: option.divCreate || {
                     class: `w-100`,
-                    style: `height:calc(100vh - ${(document.body.clientWidth<800) ? 0:56}px);overflow-y:auto;`,
+                    style: `height:calc(100vh - ${(document.body.clientWidth < 800) ? 0 : 56}px);overflow-y:auto;`,
                 },
             };
         });

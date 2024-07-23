@@ -23,12 +23,12 @@ export class DynamicCode {
             const a = (() => {
                 const preload_code = window.preloadData.eval_code_hash[checkSum];
                 if (preload_code) {
-                    return preload_code(gvc, widget, object, subData, element, window, document, gvc.glitter, gvc.glitter.$);
+                    return preload_code(gvc, widget, object, subData, element, gvc.glitter.window, gvc.glitter.document, gvc.glitter, gvc.glitter.$);
                 }
                 else {
                     const myFunction = new Function(evalString);
                     window.preloadData.eval_code_hash[checkSum] = myFunction().execute;
-                    return ((myFunction().execute(gvc, widget, object, subData, element, window, document, gvc.glitter, gvc.glitter.$)));
+                    return ((myFunction().execute(gvc, widget, object, subData, element, gvc.glitter.window, gvc.glitter.document, gvc.glitter, gvc.glitter.$)));
                 }
             })();
             return a;

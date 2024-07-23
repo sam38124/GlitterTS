@@ -10,7 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import { Storage } from '../glitterBundle/helper/storage.js';
 import { ApiPageConfig } from '../api/pageConfig.js';
 import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
-import { ShareDialog } from '../dialog/ShareDialog.js';
+import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
 import Add_item_dia from '../glitterBundle/plugins/add_item_dia.js';
 import { PageEditor } from './page-editor.js';
 import { BaseApi } from '../glitterBundle/api/base.js';
@@ -357,6 +357,25 @@ export class AddComponent {
                             })}"
                                     >
                                         <i class="fa-solid fa-plus"></i>
+                                    </div>
+                                    <div
+                                            class="bt_ffb40_stroke"
+                                            style="width:50px;"
+                                            onclick="${gvc.event(() => {
+                                navigator.clipboard.readText().then((clipboardText) => {
+                                    try {
+                                        const data = JSON.parse(clipboardText);
+                                        data.id = gvc.glitter.getUUID();
+                                        gvc.glitter.share.addComponent(data);
+                                    }
+                                    catch (e) {
+                                        const dialog = new ShareDialog(gvc.glitter);
+                                        dialog.errorMessage({ text: '請先選擇元件複製!' });
+                                    }
+                                });
+                            })}"
+                                    >
+                                        <i class="fa-regular fa-paste"></i>
                                     </div>
                                 </div>
                                 <div class="p-2 border-bottom border-top ${vm.template_from === 'plus' ? `d-none` : ``}" style="">

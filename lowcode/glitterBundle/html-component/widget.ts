@@ -8,459 +8,490 @@ import autosize from "../plugins/autosize.js";
 import {ShareDialog} from "../dialog/ShareDialog.js";
 import {Storage} from "../helper/storage.js";
 import {NormalPageEditor} from "../../editor/normal-page-editor.js";
+import {GlobalWidget} from "./global-widget.js";
 
 export const widgetComponent = {
     render: (gvc: GVC, widget: HtmlJson, setting: any, hoverID: string[], sub: any, htmlGenerate: any, document?: any) => {
         const rootHtmlGenerate = htmlGenerate;
         const glitter = gvc.glitter;
-        if (widget.data.onCreateEvent) {
-            (widget as any).onCreateEvent = widget.data.onCreateEvent;
-            widget.data.onCreateEvent = undefined;
-        }
-        widget.data.elem = widget.data.elem ?? "div"
-        widget.data.inner = widget.data.inner ?? ""
-        widget.data.attr = widget.data.attr ?? []
-        widget.data._padding = widget.data._padding ?? {}
-        widget.data._margin = widget.data._margin ?? {}
-        widget.data._max_width = widget.data._max_width ?? 0
-        const id = htmlGenerate.widgetComponentID
         const subData = sub ?? {};
         let formData = subData;
+        const id = htmlGenerate.widgetComponentID
+        function initialWidget(widget:any){
+            if (widget.data.onCreateEvent) {
+                (widget as any).onCreateEvent = widget.data.onCreateEvent;
+                widget.data.onCreateEvent = undefined;
+            }
+            widget.data.elem = widget.data.elem ?? "div"
+            widget.data.inner = widget.data.inner ?? ""
+            widget.data.attr = widget.data.attr ?? []
+            widget.data._padding = widget.data._padding ?? {}
+            widget.data._margin = widget.data._margin ?? {}
+            widget.data._max_width = widget.data._max_width ?? ''
 
+        }
+        initialWidget(widget)
         return {
             view: () => {
-                let innerText = (() => {
-                    if ((widget.data.dataFrom === "code") || (widget.data.dataFrom === "code_text")) {
-                        return ``
-                    } else {
-                        return widget.data.inner;
-                    }
-                })()
-
-                function getCreateOption() {
-                    let option = widget.data.attr.map((dd: any) => {
-                        if (dd.type === 'par') {
-                            try {
-                                if (dd.valueFrom === 'code') {
-                                    return {
-                                        key: dd.attr, value: eval(`(() => {
+               return  GlobalWidget.showCaseData({
+                    gvc:gvc,
+                    widget:widget,
+                    view:(widget)=>{
+                        try {
+                            initialWidget(widget);
+                            let innerText = (() => {
+                                if ((widget.data.dataFrom === "code") || (widget.data.dataFrom === "code_text")) {
+                                    return ``
+                                } else {
+                                    return widget.data.inner;
+                                }
+                            })()
+                            function getCreateOption() {
+                                let option = widget.data.attr.map((dd: any) => {
+                                    if (dd.type === 'par') {
+                                        try {
+                                            if (dd.valueFrom === 'code') {
+                                                return {
+                                                    key: dd.attr, value: eval(`(() => {
                                             ${dd.value}
                                         })()`)
-                                    }
-                                } else {
-                                    return {key: dd.attr, value: dd.value}
-                                }
-
-                            } catch (e) {
-                                return {key: dd.attr, value: dd.value}
-                            }
-                        } else if (dd.type === 'append') {
-                            return {
-                                key: glitter.promiseValue(new Promise((resolve, reject) => {
-                                    TriggerEvent.trigger({
-                                        gvc: gvc,
-                                        widget: widget,
-                                        clickEvent: dd,
-                                        subData: subData
-                                    }).then((data) => {
-                                        if (data) {
-                                            resolve(dd.attr)
-                                        }
-                                    })
-                                })), value: ''
-                            }
-                        } else {
-                            return {
-                                key: dd.attr, value: gvc.event((e, event) => {
-                                    event.stopPropagation();
-                                    TriggerEvent.trigger({
-                                        gvc: gvc,
-                                        widget: widget,
-                                        clickEvent: dd,
-                                        element: {e, event},
-                                        subData: subData
-                                    }).then((data) => {
-                                    })
-                                })
-                            }
-                        }
-                    })
-                    if (widget.data.elem === 'a' && ((window.parent as any).editerData !== undefined)) {
-                        option = option.filter((dd: any) => {
-                            return dd.key !== 'href'
-                        })
-                    }
-                    if (widget.data.elem === 'img') {
-                        option.push({key: 'src', value: innerText})
-                    } else if (widget.data.elem === 'input') {
-                        option.push({key: 'value', value: innerText})
-                    }
-                    let classList = []
-                    if ((window.parent as any).editerData !== undefined && htmlGenerate.root) {
-                        classList.push(`editorParent`)
-                        classList.push(`relativePosition`)
-                    }
-                    classList.push(glitter.htmlGenerate.styleEditor(widget.data, gvc, widget as any, subData).class())
-                    widget.hashTag && classList.push(`glitterTag${widget.hashTag}`);
-                    let style_user = ''
-                    if (widget.type === 'container') {
-                        ['top', 'bottom', 'left', 'right'].map((dd) => {
-                            if(widget.data._padding[dd]){
-                                if(!isNaN(widget.data._padding[dd])){
-                                    (style_user += `padding-${dd}:${widget.data._padding[dd]}px;`)
-                                }else{
-                                    (style_user += `padding-${dd}:${widget.data._padding[dd]};`)
-                                }
-
-                            }
-                        });
-
-                        ['top', 'bottom', 'left', 'right'].map((dd) => {
-                            if(widget.data._margin[dd]){
-                                if(!isNaN(widget.data._margin[dd])){
-                                    (style_user += `margin-${dd}:${widget.data._margin[dd]}px;`)
-                                }else{
-                                    (style_user += `margin-${dd}:${widget.data._margin[dd]};`)
-                                }
-
-                            }
-                        })
-                        widget.data._max_width && (style_user += `width:${(isNaN(widget.data._max_width)) ? widget.data._max_width:`${widget.data._max_width}px`};max-width:100%;margin:auto;`)
-                    }
-                    return {
-                        elem: widget.data.elem,
-                        class: classList.join(' '),
-                        style: glitter.htmlGenerate.styleEditor(widget.data, gvc, widget as any, subData).style() + ` ${((window.parent as any).editerData !== undefined) ? `${((widget as any).visible === false) ? `display:none;` : ``}` : ``} ${style_user}`,
-                        option: option.concat(htmlGenerate.option),
-                    }
-                }
-
-                if (widget.type === 'container') {
-                    const glitter = (window as any).glitter
-                    widget.data.setting.formData = widget.formData;
-
-                    function getView() {
-                        const htmlGenerate = new glitter.htmlGenerate(widget.data.setting, hoverID, subData, rootHtmlGenerate.root);
-                        innerText = '';
-                        return htmlGenerate.render(gvc, {
-                            containerID: id,
-                            tag: (widget as any).tag,
-                            onCreate: () => {
-                                TriggerEvent.trigger({
-                                    gvc,
-                                    widget: widget as any,
-                                    clickEvent: (widget as any).onCreateEvent,
-                                    subData: subData,
-                                    element: gvc.getBindViewElem(id).get(0)
-                                })
-                                gvc.glitter.document.querySelector(`[gvc-id="${gvc.id(id)}"]`).onResumeEvent = () => {
-                                    TriggerEvent.trigger({
-                                        gvc,
-                                        widget: widget as any,
-                                        clickEvent: (widget as any).onResumtEvent,
-                                        subData: subData
-                                    })
-                                }
-                            },
-                            onDestroy: () => {
-                                TriggerEvent.trigger({
-                                    gvc,
-                                    widget: widget as any,
-                                    clickEvent: (widget as any).onDestoryEvent,
-                                    subData: subData
-                                })
-                            },
-                            onInitial: () => {
-                                TriggerEvent.trigger({
-                                    gvc,
-                                    widget: widget as any,
-                                    clickEvent: (widget as any).onInitialEvent,
-                                    subData: subData
-                                })
-                            },
-                            app_config: widget.global.appConfig,
-                            page_config: widget.global.pageConfig,
-                            document: document,
-                            editorSection: widget.id
-                        }, getCreateOption)
-                    }
-
-                    widget.data.setting.refresh = (() => {
-                        try {
-                            hoverID = [Storage.lastSelect];
-                            gvc.glitter.document.querySelector('.selectComponentHover') && gvc.glitter.document.querySelector('.selectComponentHover').classList.remove("selectComponentHover");
-                            gvc.glitter.document.querySelector(`[gvc-id="${gvc.id(id)}"]`).outerHTML = getView()
-                            setTimeout(() => {
-                                gvc.glitter.document.querySelector('.selectComponentHover').scrollIntoView({
-                                    behavior: 'auto', // 使用平滑滾動效果
-                                    block: 'center', // 將元素置中
-                                })
-                            }, 10)
-                        } catch (e) {
-
-                        }
-                    });
-                    return getView()
-                }
-
-                if ((widget.data.dataFrom === "code")) {
-                    if (widget.data.elem !== 'select') {
-                        innerText = ''
-                    }
-                    widget.data.innerEvenet = widget.data.innerEvenet ?? {}
-                    TriggerEvent.trigger({
-                        gvc: gvc,
-                        widget: widget,
-                        clickEvent: widget.data.innerEvenet,
-                        subData
-                    }).then((data) => {
-                        if (widget.data.elem === 'select') {
-                            formData[widget.data.key] = data
-                        }
-                        innerText = data || ''
-                        gvc.notifyDataChange(id)
-                    })
-                } else if (widget.data.dataFrom === "code_text") {
-                    const inner = (eval(`(() => {
-                        ${widget.data.inner}
-                    })()`))
-
-                    if (inner && inner.then) {
-
-                        inner.then((data: any) => {
-                            innerText = data || ''
-                            gvc.notifyDataChange(id)
-                        })
-                    } else {
-                        innerText = inner
-                        gvc.notifyDataChange(id)
-                    }
-                }
-                return gvc.bindView(() => {
-                    return {
-                        bind: id,
-                        view: () => {
-                            let view: any = []
-                            switch (widget.data.elem) {
-                                case 'select':
-                                    return new Promise(async (resolve, reject) => {
-                                        const vm: {
-                                            callback: () => void,
-                                            data: any
-                                        } = {
-                                            callback: () => {
-
-                                            },
-                                            data: []
-                                        }
-                                        await new Promise((resolve, reject) => {
-                                            if (widget.data.elem === 'select' && widget.data.selectType === 'api') {
-                                                widget.data.selectAPI = widget.data.selectAPI ?? {}
-                                                vm.callback = () => {
-                                                    resolve(true)
                                                 }
+                                            } else {
+                                                return {key: dd.attr, value: dd.value}
+                                            }
+
+                                        } catch (e) {
+                                            return {key: dd.attr, value: dd.value}
+                                        }
+                                    } else if (dd.type === 'append') {
+                                        return {
+                                            key: glitter.promiseValue(new Promise((resolve, reject) => {
                                                 TriggerEvent.trigger({
                                                     gvc: gvc,
                                                     widget: widget,
-                                                    clickEvent: widget.data.selectAPI,
-                                                    subData: vm
+                                                    clickEvent: dd,
+                                                    subData: subData
+                                                }).then((data) => {
+                                                    if (data) {
+                                                        resolve(dd.attr)
+                                                    }
                                                 })
-                                                resolve(true)
-                                            } else {
-                                                resolve(true)
+                                            })), value: ''
+                                        }
+                                    } else {
+                                        return {
+                                            key: dd.attr, value: gvc.event((e, event) => {
+                                                event.stopPropagation();
+                                                TriggerEvent.trigger({
+                                                    gvc: gvc,
+                                                    widget: widget,
+                                                    clickEvent: dd,
+                                                    element: {e, event},
+                                                    subData: subData
+                                                }).then((data) => {
+                                                })
+                                            })
+                                        }
+                                    }
+                                })
+                                if (widget.data.elem === 'a' && ((window.parent as any).editerData !== undefined)) {
+                                    option = option.filter((dd: any) => {
+                                        return dd.key !== 'href'
+                                    })
+                                }
+                                if (widget.data.elem === 'img') {
+                                    option.push({key: 'src', value: innerText})
+                                } else if (widget.data.elem === 'input') {
+                                    option.push({key: 'value', value: innerText})
+                                }
+                                let classList = []
+                                if ((window.parent as any).editerData !== undefined && htmlGenerate.root) {
+                                    classList.push(`editorParent`)
+                                    classList.push(`relativePosition`)
+                                }
+                                classList.push(glitter.htmlGenerate.styleEditor(widget.data, gvc, widget as any, subData).class())
+                                widget.hashTag && classList.push(`glitterTag${widget.hashTag}`);
+                                let style_user = ''
+                                if (widget.type === 'container') {
+                                    ['top', 'bottom', 'left', 'right'].map((dd) => {
+                                        if(widget.data._padding[dd]){
+                                            if(!isNaN(widget.data._padding[dd])){
+                                                (style_user += `padding-${dd}:${widget.data._padding[dd]}px;`)
+                                            }else{
+                                                (style_user += `padding-${dd}:${widget.data._padding[dd]};`)
                                             }
-                                        })
-                                        formData[widget.data.key] = innerText
-                                        if (widget.data.selectType === 'api') {
-                                            resolve(vm.data.map((dd: any) => {
-                                                formData[widget.data.key] = formData[widget.data.key] ?? dd.value
-                                                if (dd.visible === 'invisible' && (dd.value !== formData[widget.data.key])) {
-                                                    return ``
-                                                }
-                                                return glitter.html`<option class="" value="${dd.value}" ${`${dd.value}` === `${formData[widget.data.key]}` ? `selected` : ``}>
-                                ${dd.key}
-                            </option>`;
-                                            }).join('') + `<option value="" ${formData[widget.data.key] === '' ? `selected` : ``}>
-                                選擇${widget.data.label}
-                            </option>`)
-                                        } else if (widget.data.selectType === 'trigger') {
-                                            const data = await TriggerEvent.trigger({
-                                                gvc: gvc,
-                                                widget: widget,
-                                                clickEvent: widget.data.selectTrigger,
-                                                subData: subData
-                                            })
-                                            const selectItem = await TriggerEvent.trigger({
-                                                gvc: gvc,
-                                                widget: widget,
-                                                clickEvent: widget.data.selectItem,
-                                                subData: subData
-                                            })
 
-                                            resolve((data as any).map((dd: any) => {
-                                                return /*html*/ `<option value="${dd.value}" ${`${dd.value}` === `${selectItem}` ? `selected` : ``}>
-                                ${dd.name}
-                            </option>`;
-                                            }).join(''))
-                                        } else {
-                                            resolve(widget.data.selectList.map((dd: any) => {
-                                                if (dd.visible === 'invisible' && (dd.value !== formData[widget.data.key])) {
-                                                    return ``
-                                                }
-                                                formData[widget.data.key] = formData[widget.data.key] ?? dd.value
-                                                return /*html*/ `<option value="${dd.value}" ${dd.value === formData[widget.data.key] ? `selected` : ``}>
-                                ${dd.name}
-                            </option>`;
-                                            }).join(''))
+                                        }
+                                    });
+
+                                    ['top', 'bottom', 'left', 'right'].map((dd) => {
+                                        if(widget.data._margin[dd]){
+                                            if(!isNaN(widget.data._margin[dd])){
+                                                (style_user += `margin-${dd}:${widget.data._margin[dd]}px;`)
+                                            }else{
+                                                (style_user += `margin-${dd}:${widget.data._margin[dd]};`)
+                                            }
+
                                         }
                                     })
-                                case 'img':
-                                case 'input':
-                                    break
-                                default:
-                                    view.push(innerText)
-                                    break
+                                    widget.data._max_width && (style_user += `width:${(isNaN(widget.data._max_width)) ? widget.data._max_width:`${widget.data._max_width}px`};max-width:100%;margin:auto;`)
+                                }
+                                return {
+                                    elem: widget.data.elem,
+                                    class: classList.join(' '),
+                                    style: glitter.htmlGenerate.styleEditor(widget.data, gvc, widget as any, subData).style() + ` ${((window.parent as any).editerData !== undefined) ? `${((widget as any).visible === false) ? `display:none;` : ``}` : ``} ${style_user}`,
+                                    option: option.concat(htmlGenerate.option),
+                                }
+                            }
+                            if (widget.type === 'container') {
+                                const glitter = (window as any).glitter
+                                widget.data.setting.formData = widget.formData;
+                                function getView() {
+                                    const htmlGenerate = new glitter.htmlGenerate(widget.data.setting, hoverID, subData, rootHtmlGenerate.root);
+                                    innerText = '';
+                                    return htmlGenerate.render(gvc, {
+                                        containerID: id,
+                                        tag: (widget as any).tag,
+                                        onCreate: () => {
+                                            TriggerEvent.trigger({
+                                                gvc,
+                                                widget: widget as any,
+                                                clickEvent: (widget as any).onCreateEvent,
+                                                subData: subData,
+                                                element: gvc.getBindViewElem(id).get(0)
+                                            })
+                                            gvc.glitter.document.querySelector(`[gvc-id="${gvc.id(id)}"]`).onResumeEvent = () => {
+                                                TriggerEvent.trigger({
+                                                    gvc,
+                                                    widget: widget as any,
+                                                    clickEvent: (widget as any).onResumtEvent,
+                                                    subData: subData
+                                                })
+                                            }
+                                        },
+                                        onDestroy: () => {
+                                            TriggerEvent.trigger({
+                                                gvc,
+                                                widget: widget as any,
+                                                clickEvent: (widget as any).onDestoryEvent,
+                                                subData: subData
+                                            })
+                                        },
+                                        onInitial: () => {
+                                            TriggerEvent.trigger({
+                                                gvc,
+                                                widget: widget as any,
+                                                clickEvent: (widget as any).onInitialEvent,
+                                                subData: subData
+                                            })
+                                        },
+                                        app_config: widget.global.appConfig,
+                                        page_config: widget.global.pageConfig,
+                                        document: document,
+                                        editorSection: widget.id
+                                    }, getCreateOption)
+                                }
+                                widget.data.setting.refresh = (() => {
+                                    try {
+                                        hoverID = [Storage.lastSelect];
+                                        gvc.glitter.document.querySelector('.selectComponentHover') && gvc.glitter.document.querySelector('.selectComponentHover').classList.remove("selectComponentHover");
+                                        gvc.glitter.document.querySelector(`[gvc-id="${gvc.id(id)}"]`).outerHTML = getView()
+                                        setTimeout(() => {
+                                            gvc.glitter.document.querySelector('.selectComponentHover').scrollIntoView({
+                                                behavior: 'auto', // 使用平滑滾動效果
+                                                block: 'center', // 將元素置中
+                                            })
+                                        }, 10)
+                                    } catch (e) {
 
+                                    }
+                                });
+                                return getView()
                             }
-                            if ((window.parent as any).editerData !== undefined && htmlGenerate.root && widget.data.elem !== 'textArea') {
-                                view.push(glitter.htmlGenerate.getEditorSelectSection({
-                                    id: widget.id,
-                                    gvc: gvc,
-                                    label: widget.label
-                                }));
-                            }
-
-                            return view.join('')
-                        },
-                        divCreate: getCreateOption,
-                        onCreate: () => {
-                            glitter.elementCallback[gvc.id(id)].updateAttribute()
-                            if (widget.data.elem.toLowerCase() === 'textarea') {
-                                autosize(gvc.getBindViewElem(id).get(0))
-                            }
-                            TriggerEvent.trigger({
-                                gvc,
-                                widget: widget as any,
-                                clickEvent: (widget as any).onCreateEvent,
-                                subData: subData,
-                                element: gvc.getBindViewElem(id).get(0)
-                            })
-                            gvc.glitter.document.querySelector(`[gvc-id="${gvc.id(id)}"]`).onResumeEvent = () => {
+                            if ((widget.data.dataFrom === "code")) {
+                                if (widget.data.elem !== 'select') {
+                                    innerText = ''
+                                }
+                                widget.data.innerEvenet = widget.data.innerEvenet ?? {}
                                 TriggerEvent.trigger({
-                                    gvc,
-                                    widget: widget as any,
-                                    clickEvent: (widget as any).onResumtEvent,
-                                    subData: subData
+                                    gvc: gvc,
+                                    widget: widget,
+                                    clickEvent: widget.data.innerEvenet,
+                                    subData
+                                }).then((data) => {
+                                    if (widget.data.elem === 'select') {
+                                        formData[widget.data.key] = data
+                                    }
+                                    innerText = data || ''
+                                    gvc.notifyDataChange(id)
                                 })
+                            } else if (widget.data.dataFrom === "code_text") {
+                                const inner = (eval(`(() => {
+                        ${widget.data.inner}
+                    })()`))
+                                if (inner && inner.then) {
+
+                                    inner.then((data: any) => {
+                                        innerText = data || ''
+                                        gvc.notifyDataChange(id)
+                                    })
+                                } else {
+                                    innerText = inner
+                                    gvc.notifyDataChange(id)
+                                }
                             }
-                        },
-                        onDestroy: () => {
-                            TriggerEvent.trigger({
-                                gvc,
-                                widget: widget as any,
-                                clickEvent: (widget as any).onDestoryEvent,
-                                subData: subData
+                            return gvc.bindView(() => {
+                                return {
+                                    bind: id,
+                                    view: () => {
+                                        let view: any = []
+                                        switch (widget.data.elem) {
+                                            case 'select':
+                                                return new Promise(async (resolve, reject) => {
+                                                    const vm: {
+                                                        callback: () => void,
+                                                        data: any
+                                                    } = {
+                                                        callback: () => {
+
+                                                        },
+                                                        data: []
+                                                    }
+                                                    await new Promise((resolve, reject) => {
+                                                        if (widget.data.elem === 'select' && widget.data.selectType === 'api') {
+                                                            widget.data.selectAPI = widget.data.selectAPI ?? {}
+                                                            vm.callback = () => {
+                                                                resolve(true)
+                                                            }
+                                                            TriggerEvent.trigger({
+                                                                gvc: gvc,
+                                                                widget: widget,
+                                                                clickEvent: widget.data.selectAPI,
+                                                                subData: vm
+                                                            })
+                                                            resolve(true)
+                                                        } else {
+                                                            resolve(true)
+                                                        }
+                                                    })
+                                                    formData[widget.data.key] = innerText
+                                                    if (widget.data.selectType === 'api') {
+                                                        resolve(vm.data.map((dd: any) => {
+                                                            formData[widget.data.key] = formData[widget.data.key] ?? dd.value
+                                                            if (dd.visible === 'invisible' && (dd.value !== formData[widget.data.key])) {
+                                                                return ``
+                                                            }
+                                                            return glitter.html`<option class="" value="${dd.value}" ${`${dd.value}` === `${formData[widget.data.key]}` ? `selected` : ``}>
+                                ${dd.key}
+                            </option>`;
+                                                        }).join('') + `<option value="" ${formData[widget.data.key] === '' ? `selected` : ``}>
+                                選擇${widget.data.label}
+                            </option>`)
+                                                    } else if (widget.data.selectType === 'trigger') {
+                                                        const data = await TriggerEvent.trigger({
+                                                            gvc: gvc,
+                                                            widget: widget,
+                                                            clickEvent: widget.data.selectTrigger,
+                                                            subData: subData
+                                                        })
+                                                        const selectItem = await TriggerEvent.trigger({
+                                                            gvc: gvc,
+                                                            widget: widget,
+                                                            clickEvent: widget.data.selectItem,
+                                                            subData: subData
+                                                        })
+
+                                                        resolve((data as any).map((dd: any) => {
+                                                            return /*html*/ `<option value="${dd.value}" ${`${dd.value}` === `${selectItem}` ? `selected` : ``}>
+                                ${dd.name}
+                            </option>`;
+                                                        }).join(''))
+                                                    } else {
+                                                        resolve(widget.data.selectList.map((dd: any) => {
+                                                            if (dd.visible === 'invisible' && (dd.value !== formData[widget.data.key])) {
+                                                                return ``
+                                                            }
+                                                            formData[widget.data.key] = formData[widget.data.key] ?? dd.value
+                                                            return /*html*/ `<option value="${dd.value}" ${dd.value === formData[widget.data.key] ? `selected` : ``}>
+                                ${dd.name}
+                            </option>`;
+                                                        }).join(''))
+                                                    }
+                                                })
+                                            case 'img':
+                                            case 'input':
+                                                break
+                                            default:
+                                                view.push(innerText)
+                                                break
+
+                                        }
+                                        if ((window.parent as any).editerData !== undefined && htmlGenerate.root && widget.data.elem !== 'textArea') {
+                                            view.push(glitter.htmlGenerate.getEditorSelectSection({
+                                                id: widget.id,
+                                                gvc: gvc,
+                                                label: widget.label
+                                            }));
+                                        }
+
+                                        return view.join('')
+                                    },
+                                    divCreate: getCreateOption,
+                                    onCreate: () => {
+                                        glitter.elementCallback[gvc.id(id)].updateAttribute()
+                                        if (widget.data.elem.toLowerCase() === 'textarea') {
+                                            autosize(gvc.getBindViewElem(id).get(0))
+                                        }
+                                        TriggerEvent.trigger({
+                                            gvc,
+                                            widget: widget as any,
+                                            clickEvent: (widget as any).onCreateEvent,
+                                            subData: subData,
+                                            element: gvc.getBindViewElem(id).get(0)
+                                        })
+                                        gvc.glitter.document.querySelector(`[gvc-id="${gvc.id(id)}"]`).onResumeEvent = () => {
+                                            TriggerEvent.trigger({
+                                                gvc,
+                                                widget: widget as any,
+                                                clickEvent: (widget as any).onResumtEvent,
+                                                subData: subData
+                                            })
+                                        }
+                                    },
+                                    onDestroy: () => {
+                                        TriggerEvent.trigger({
+                                            gvc,
+                                            widget: widget as any,
+                                            clickEvent: (widget as any).onDestoryEvent,
+                                            subData: subData
+                                        })
+                                    },
+                                    onInitial: () => {
+                                        TriggerEvent.trigger({
+                                            gvc,
+                                            widget: widget as any,
+                                            clickEvent: (widget as any).onInitialEvent,
+                                            subData: subData
+                                        })
+                                    }
+                                }
                             })
-                        },
-                        onInitial: () => {
-                            TriggerEvent.trigger({
-                                gvc,
-                                widget: widget as any,
-                                clickEvent: (widget as any).onInitialEvent,
-                                subData: subData
-                            })
+                        }catch (e) {
+                            console.log(e)
+                            return  `${e}`
                         }
+
                     }
-                })
+               })
+
             },
             editor: () => {
                 if (widget.type === 'container' && Storage.select_function === 'user-editor') {
-                    return [
-                        `<div class="alert alert-secondary p-2 fw-500 mt-2 " style="word-break: break-all;white-space: normal;letter-spacing: 0.5px;">
+                    return gvc.bindView(()=>{
+                        const id=gvc.glitter.getUUID()
+                        return {
+                            bind:id,
+                            view:()=>{
+                                return [
+                                    GlobalWidget.showCaseBar(gvc,widget,()=>{
+                                      gvc.notifyDataChange(id)
+                                    }),
+                                    GlobalWidget.showCaseEditor({
+                                        gvc:gvc,
+                                        widget:widget,
+                                        view:(widget)=>{
+                                            return [
+                                                `<div class="alert  alert-secondary p-2 fw-500 mt-2 " style="word-break: break-all;white-space: normal;letter-spacing: 0.5px;">
                             可輸入純數值 (px) 或附加單位(%,rem,vw,vh,calc,px)。
 </div>`,
-                        EditorElem.editeInput({
-                            gvc: gvc,
-                            title: `容器最大寬度 << 不輸入則自適應寬度 >>
+                                                EditorElem.editeInput({
+                                                    gvc: gvc,
+                                                    title: `容器最大寬度 << 不輸入則自適應寬度 >>
                            
                             `,
-                            default: widget.data._max_width,
-                            placeHolder: '',
-                            callback: (text) => {
-                                widget.data._max_width = text
-                                widget.refreshComponent()
-                            }
-                        }),
-                        `<div class="my-2"></div>`,
-                        EditorElem.toggleExpand({
-                            gvc: gvc,
-                            title: `內距`,
-                            data: widget.data._padding,
-                            innerText: () => {
-                                return [{
-                                    title: '上',
-                                    key: 'top'
-                                },
-                                    {
-                                        title: '下',
-                                        key: 'bottom'
-                                    },
-                                    {
-                                        title: '左',
-                                        key: 'left'
-                                    },
-                                    {
-                                        title: '右',
-                                        key: 'right'
-                                    }].map((dd) => {
-                                    return EditorElem.editeInput({
-                                        gvc: gvc,
-                                        title: dd.title,
-                                        default: widget.data._padding[dd.key] || '0',
-                                        placeHolder: '單位px',
-                                        callback: (text) => {
-                                            widget.data._padding[dd.key] = text
-                                            widget.refreshComponent()
+                                                    default: widget.data._max_width,
+                                                    placeHolder: '',
+                                                    callback: (text) => {
+                                                        widget.data._max_width = text
+                                                        widget.refreshComponent()
+                                                    }
+                                                }),
+                                                `<div class="my-2"></div>`,
+                                                EditorElem.toggleExpand({
+                                                    gvc: gvc,
+                                                    title: `內距`,
+                                                    data: widget.data._padding,
+                                                    innerText: () => {
+                                                        return [{
+                                                            title: '上',
+                                                            key: 'top'
+                                                        },
+                                                            {
+                                                                title: '下',
+                                                                key: 'bottom'
+                                                            },
+                                                            {
+                                                                title: '左',
+                                                                key: 'left'
+                                                            },
+                                                            {
+                                                                title: '右',
+                                                                key: 'right'
+                                                            }].map((dd) => {
+                                                            return EditorElem.editeInput({
+                                                                gvc: gvc,
+                                                                title: dd.title,
+                                                                default: widget.data._padding[dd.key] || '0',
+                                                                placeHolder: '單位px',
+                                                                callback: (text) => {
+                                                                    widget.data._padding[dd.key] = text
+                                                                    widget.refreshComponent()
+                                                                }
+                                                            })
+                                                        }).join('')
+                                                    }
+                                                }),
+                                                EditorElem.toggleExpand({
+                                                    gvc: gvc,
+                                                    title: `外距`,
+                                                    data: widget.data._margin,
+                                                    innerText: () => {
+                                                        return [{
+                                                            title: '上',
+                                                            key: 'top'
+                                                        },
+                                                            {
+                                                                title: '下',
+                                                                key: 'bottom'
+                                                            },
+                                                            {
+                                                                title: '左',
+                                                                key: 'left'
+                                                            },
+                                                            {
+                                                                title: '右',
+                                                                key: 'right'
+                                                            }].map((dd) => {
+                                                            return EditorElem.editeInput({
+                                                                gvc: gvc,
+                                                                title: dd.title,
+                                                                default: widget.data._margin[dd.key] || '0',
+                                                                placeHolder: '單位px',
+                                                                callback: (text) => {
+                                                                    widget.data._margin[dd.key] = text
+                                                                    widget.refreshComponent()
+                                                                }
+                                                            })
+                                                        }).join('')
+                                                    },
+                                                })
+                                            ].join('')
                                         }
-                                    })
-                                }).join('')
+                                    }),
+                                ].join('')
                             }
-                        }),
-                        EditorElem.toggleExpand({
-                            gvc: gvc,
-                            title: `外距`,
-                            data: widget.data._margin,
-                            innerText: () => {
-                                return [{
-                                    title: '上',
-                                    key: 'top'
-                                },
-                                    {
-                                        title: '下',
-                                        key: 'bottom'
-                                    },
-                                    {
-                                        title: '左',
-                                        key: 'left'
-                                    },
-                                    {
-                                        title: '右',
-                                        key: 'right'
-                                    }].map((dd) => {
-                                    return EditorElem.editeInput({
-                                        gvc: gvc,
-                                        title: dd.title,
-                                        default: widget.data._margin[dd.key] || '0',
-                                        placeHolder: '單位px',
-                                        callback: (text) => {
-                                            widget.data._margin[dd.key] = text
-                                            widget.refreshComponent()
-                                        }
-                                    })
-                                }).join('')
-                            },
-                        })
-                    ].join('')
+                        }
+                    })
                 }
                 widget.type = widget.type ?? "elem"
                 widget.data.elemExpand = widget.data.elemExpand ?? {}

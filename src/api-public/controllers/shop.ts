@@ -181,6 +181,20 @@ router.post('/checkout', async (req: express.Request, resp: express.Response) =>
     }
 });
 
+//重新付款
+router.post('/checkout/repay', async (req: express.Request, resp: express.Response) => {
+    try {
+        return response.succ(
+            resp,
+            await new Shopping(req.get('g-app') as string, req.body.token).toCheckout({
+                return_url:req.body.return_url
+            } as any,'add',req.body.order_id)
+        );
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+
 router.post('/manager/checkout', async (req: express.Request, resp: express.Response) => {
     try {
         if (await UtPermission.isManager(req)) {

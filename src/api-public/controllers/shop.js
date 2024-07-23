@@ -186,6 +186,16 @@ router.post('/checkout', async (req, resp) => {
         return response_1.default.fail(resp, err);
     }
 });
+router.post('/checkout/repay', async (req, resp) => {
+    try {
+        return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).toCheckout({
+            return_url: req.body.return_url
+        }, 'add', req.body.order_id));
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
 router.post('/manager/checkout', async (req, resp) => {
     try {
         if (await ut_permission_1.UtPermission.isManager(req)) {

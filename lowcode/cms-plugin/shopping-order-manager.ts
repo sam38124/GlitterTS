@@ -2088,7 +2088,7 @@ export class ShoppingOrderManager {
                                                     </svg>
                                                 </div>
                                             </div>
-                                        `
+       `
                                     })
 
                                 }
@@ -2823,4 +2823,4 @@ export class ShoppingOrderManager {
     }
 }
 
-(window as any).glitter.setModule(import.meta.url, ShoppingOrderManager);
+(window as any).glitter.setModule(import.meta.url, ShoppingOrderManager)

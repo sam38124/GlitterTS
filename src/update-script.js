@@ -7,12 +7,18 @@ exports.UpdateScript = void 0;
 const database_1 = __importDefault(require("./modules/database"));
 class UpdateScript {
     static async run() {
-        await UpdateScript.migrateDialog(['shopnex']);
+        const migrate_template = (await database_1.default.query('SELECT appName FROM glitter.app_config where template_type!=0;', [])).map((dd) => {
+            return dd.appName;
+        }).concat('shop-template-clothing-v3', 'shop-template-clothing-v3');
+        await UpdateScript.migrateLink(migrate_template);
     }
     static async migrateLink(appList) {
         for (const appName of appList) {
             for (const b of appList) {
-                await database_1.default.query(`update \`${b}\`.t_user_public_config set value=? where \`key\`='menu-setting' and id>0`, [JSON.stringify([
+                await database_1.default.query(`update \`${b}\`.t_user_public_config
+                                set value=?
+                                where \`key\` = 'menu-setting'
+                                  and id > 0`, [JSON.stringify([
                         {
                             "link": "./index",
                             "items": [],
@@ -46,24 +52,71 @@ class UpdateScript {
                             "title": "關於我們"
                         }
                     ])]);
+                await database_1.default.query(`update \`${b}\`.t_user_public_config
+                                set value=?
+                                where \`key\` = 'footer-setting'
+                                  and id > 0`, [JSON.stringify([{
+                            "link": "",
+                            "items": [{
+                                    "link": "./?page=aboutus",
+                                    "items": [],
+                                    "title": "品牌故事"
+                                }, { "link": "./?page=contact-us", "items": [], "title": "加入我們" }, {
+                                    "link": "./?page=blog_list",
+                                    "items": [],
+                                    "title": "最新消息"
+                                }],
+                            "title": "關於我們",
+                            "toggle": false
+                        }, {
+                            "link": "",
+                            "items": [{
+                                    "link": "./?page=ask",
+                                    "items": [],
+                                    "title": "常見問題"
+                                }, { "link": "./?page=refund_privacy", "items": [], "title": "退換貨政策" }, {
+                                    "link": "",
+                                    "items": [],
+                                    "title": "購物須知"
+                                }, { "link": "", "items": [], "title": "實體店面" }],
+                            "title": "購買相關",
+                            "toggle": false
+                        }, {
+                            "link": "",
+                            "items": [{
+                                    "link": "",
+                                    "items": [],
+                                    "title": "營業時間 : 10:00～19:00"
+                                }, { "link": "http://lin.ee/s212wq", "items": [], "title": "line客服 : @sam31212" }, {
+                                    "link": "",
+                                    "items": [],
+                                    "title": "電話：0912345678"
+                                }, { "link": "", "items": [], "title": "統一編號 : 90687281" }],
+                            "title": "聯絡我們",
+                            "toggle": true
+                        }])]);
             }
         }
     }
     static async migrateRichText() {
-        const page_list = (await database_1.default.query(`select page_config,id
-                                             FROM glitter.page_config where template_type=2`, []));
+        const page_list = (await database_1.default.query(`select page_config, id
+                                           FROM glitter.page_config
+                                           where template_type = 2`, []));
         page_list.map((d) => {
             d.page_config = JSON.parse(JSON.stringify(d.page_config).replace(/multiple_line_text/g, 'rich_text'));
         });
         for (const p of page_list) {
-            await database_1.default.query(`update glitter.page_config set page_config=? where id=?`, [JSON.stringify(p.page_config), p.id]);
+            await database_1.default.query(`update glitter.page_config
+                            set page_config=?
+                            where id = ?`, [JSON.stringify(p.page_config), p.id]);
         }
     }
     static async migrateAccount(appName) {
         const page_list = (await database_1.default.query(`SELECT *
-                                             FROM glitter.page_config
-                                             where appName = 't_1719819344426'
-                                               and tag in ('account_userinfo','rebate','order_list','wishlist','register')`, []));
+                                           FROM glitter.page_config
+                                           where appName = 't_1719819344426'
+                                             and tag in ('account_userinfo', 'rebate', 'order_list', 'wishlist',
+                                                         'register')`, []));
         page_list.map((d) => {
             Object.keys(d).map((dd) => {
                 if (typeof d[dd] === 'object') {
@@ -91,7 +144,11 @@ class UpdateScript {
                                              where \`key\` in ('menu-setting', 'footer-setting');`, []));
         for (const b of appList) {
             for (const c of rebate_page) {
-                (await database_1.default.query(`replace into \`${b}\`.t_user_public_config set ?`, [
+                if (typeof c.value !== 'string') {
+                    c.value = JSON.stringify(c);
+                }
+                (await database_1.default.query(`replace
+                into \`${b}\`.t_user_public_config set ?`, [
                     c
                 ]));
             }
@@ -153,10 +210,11 @@ class UpdateScript {
     }
     static async migrateDialog(appList) {
         const page_list = (await database_1.default.query(`SELECT *
-                                             FROM glitter.page_config
-                                             where appName = 'cms_system'
-                                               and tag in ('loading_dialog','toast','false_dialog')`, []));
-        const global_event = (await database_1.default.query(`SELECT * FROM cms_system.t_global_event;`, []));
+                                           FROM glitter.page_config
+                                           where appName = 'cms_system'
+                                             and tag in ('loading_dialog', 'toast', 'false_dialog')`, []));
+        const global_event = (await database_1.default.query(`SELECT *
+                                              FROM cms_system.t_global_event;`, []));
         page_list.map((d) => {
             Object.keys(d).map((dd) => {
                 if (typeof d[dd] === 'object') {
@@ -167,18 +225,19 @@ class UpdateScript {
         for (const appName of appList) {
             for (const b of page_list) {
                 await database_1.default.query(`delete
-                            from glitter.page_config
-                            where appName = ${database_1.default.escape(appName)}
-                              and tag = ?`, [b.tag]);
+                                from glitter.page_config
+                                where appName = ${database_1.default.escape(appName)}
+                                  and tag = ?`, [b.tag]);
                 b['appName'] = appName;
                 b['id'] = undefined;
                 b['created_time'] = new Date();
                 b['updated_time'] = new Date();
                 await database_1.default.query(`insert into glitter.page_config
-                            set ?`, [
+                                set ?`, [
                     b
                 ]);
-                await database_1.default.query(`replace into \`${appName}\`.t_global_event
+                await database_1.default.query(`replace
+                into \`${appName}\`.t_global_event
                             (tag,name,json) values ?`, [
                     global_event.map((dd) => {
                         dd.id = undefined;
@@ -195,7 +254,9 @@ class UpdateScript {
         }
     }
     static async hiddenEditorAble() {
-        const hidden_page = await database_1.default.query(`SELECT * FROM glitter.page_config where  tag!='index' and page_config->>'$.support_editor'="true";`, []);
+        const hidden_page = await database_1.default.query(`SELECT *
+                                            FROM glitter.page_config
+                                            where tag!='index' and page_config->>'$.support_editor'="true";`, []);
         for (const b of hidden_page) {
             b.page_config.support_editor = 'false';
             b['id'] = undefined;
@@ -206,7 +267,8 @@ class UpdateScript {
             });
             b['created_time'] = new Date();
             b['updated_time'] = new Date();
-            await database_1.default.query(`replace into glitter.page_config
+            await database_1.default.query(`replace
+            into glitter.page_config
                             set ?`, [
                 b
             ]);
@@ -214,9 +276,9 @@ class UpdateScript {
     }
     static async migrateHeader(appList) {
         const page_list = (await database_1.default.query(`SELECT *
-                                             FROM glitter.page_config
-                                             where appName = 't_1719819344426'
-                                               and tag in ('c_header')`, []));
+                                           FROM glitter.page_config
+                                           where appName = 't_1719819344426'
+                                             and tag in ('c_header')`, []));
         page_list.map((d) => {
             Object.keys(d).map((dd) => {
                 if (typeof d[dd] === 'object') {
@@ -227,15 +289,15 @@ class UpdateScript {
         for (const appName of appList) {
             for (const b of page_list) {
                 await database_1.default.query(`delete
-                            from glitter.page_config
-                            where appName = ${database_1.default.escape(appName)}
-                              and tag = ?`, [b.tag]);
+                                from glitter.page_config
+                                where appName = ${database_1.default.escape(appName)}
+                                  and tag = ?`, [b.tag]);
                 b['appName'] = appName;
                 b['id'] = undefined;
                 b['created_time'] = new Date();
                 b['updated_time'] = new Date();
                 await database_1.default.query(`insert into glitter.page_config
-                            set ?`, [
+                                set ?`, [
                     b
                 ]);
             }

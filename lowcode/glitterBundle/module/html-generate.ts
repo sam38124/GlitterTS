@@ -1262,9 +1262,7 @@ ${e.line}
                     } else {
                         resolve(
                             [
-                                Storage.select_function === 'user-editor'
-                                    ? ``
-                                    : gvc.bindView(() => {
+                                Storage.select_function === 'user-editor' ? `` : gvc.bindView(() => {
                                           const vm: {
                                               id: string;
                                               type: 'edit' | 'preview';
@@ -1538,7 +1536,6 @@ ${dd.value === vm.select ? `background:linear-gradient(135deg, #667eea 0%, #764b
                                 gvc.bindView(() => {
                                     let loading = true;
                                     let data: string | Promise<string> = '';
-
                                     function getData() {
                                         if (dd.type === 'code') {
                                             data = codeComponent
@@ -1660,8 +1657,7 @@ ${e.line}
                                             getData();
                                         }, 100);
                                     }
-                                    return `
-<div class="alert alert-danger" role="alert" style="word-break: break-word;white-space: normal;">
+                                    return `<div class="alert alert-danger" role="alert" style="word-break: break-word;white-space: normal;">
   <i class="fa-duotone fa-triangle-exclamation"></i>
 <br>
 解析錯誤:${e.message}
@@ -2121,12 +2117,12 @@ ${e.line}
                                     AddComponent.toggle(true);
                                     AddComponent.addWidget = (gvc: GVC, cf: any) => {
                                         glitter.share.editorViewModel.selectContainer = widget.data.setting;
-                                        glitter.share.addComponent(cf);
+                                        (window.parent as any).glitter.share.addComponent(cf);
                                         cf.gvc.glitter.document.querySelector('#' + addID).remove();
                                     };
                                     AddComponent.addEvent = (gvc: GVC, tdata: any) => {
                                         glitter.share.editorViewModel.selectContainer = widget.data.setting;
-                                        glitter.share.addComponent({
+                                        (window.parent as any).glitter.share.addComponent({
                                             id: gvc.glitter.getUUID(),
                                             js: './official_view_component/official.js',
                                             css: {

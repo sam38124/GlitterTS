@@ -313,6 +313,10 @@ TriggerEvent.create(import.meta.url, {
         title: '電子商務 / 上傳付款證明',
         fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/proof-purchase.js'),
     },
+    repay: {
+        title: '電子商務 / 重新付款',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/repay.js'),
+    },
     setVoucher: {
         title: '電子商務 / 設定優惠券',
         fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/set-voucher.js'),
