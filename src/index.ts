@@ -132,6 +132,8 @@ export async function createAPP(dd: any) {
                     if (data && data.page_config) {
                         data.page_config = data.page_config ?? {};
                         const d = data.page_config.seo ?? {};
+                        console.log(`data.page_type->`,data.page_type)
+                        console.log(`data.page_config.template_type->`,data.page_config.template_type)
                         if (data.page_type === 'article' && data.page_config.template_type === 'product') {
                             const pd = await new Shopping(appName, undefined).getProduct({
                                 page: 0,
@@ -149,6 +151,7 @@ export async function createAPP(dd: any) {
                                 data = await Seo.getPageInfo(appName, data.config.homePage);
                             }
                         } else if (data.page_type === 'article' && data.page_config.template_type === 'blog') {
+                            req.query.article=req.query.article || (req.query.page as any).split('/')[1]
                             let query = [`(content->>'$.type'='article')`, `(content->>'$.tag'='${req.query.article}')`];
                             const article: any = await new UtDatabase(appName, `t_manager_post`).querySql(query, {
                                 page: 0,

@@ -25,13 +25,13 @@ export class DynamicCode{
                 const preload_code = (window as any).preloadData.eval_code_hash[checkSum]
                 if (preload_code) {
                     return preload_code(
-                        gvc, widget, object, subData, element, window, document, gvc.glitter, gvc.glitter.$
+                        gvc, widget, object, subData, element, gvc.glitter.window,gvc.glitter.document, gvc.glitter, gvc.glitter.$
                     )
                 } else {
                     const myFunction = new Function(evalString);
                     (window as any).preloadData.eval_code_hash[checkSum]=myFunction().execute;
                     return ((myFunction().execute(
-                        gvc, widget, object, subData, element, window, document, gvc.glitter, gvc.glitter.$
+                        gvc, widget, object, subData, element, gvc.glitter.window,gvc.glitter.document, gvc.glitter, gvc.glitter.$
                     )))
                 }
             })();

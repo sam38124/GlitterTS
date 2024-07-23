@@ -13,458 +13,494 @@ import autosize from "../plugins/autosize.js";
 import { ShareDialog } from "../dialog/ShareDialog.js";
 import { Storage } from "../helper/storage.js";
 import { NormalPageEditor } from "../../editor/normal-page-editor.js";
+import { GlobalWidget } from "./global-widget.js";
 export const widgetComponent = {
     render: (gvc, widget, setting, hoverID, sub, htmlGenerate, document) => {
-        var _a, _b, _c, _d, _e, _f;
         const rootHtmlGenerate = htmlGenerate;
         const glitter = gvc.glitter;
-        if (widget.data.onCreateEvent) {
-            widget.onCreateEvent = widget.data.onCreateEvent;
-            widget.data.onCreateEvent = undefined;
-        }
-        widget.data.elem = (_a = widget.data.elem) !== null && _a !== void 0 ? _a : "div";
-        widget.data.inner = (_b = widget.data.inner) !== null && _b !== void 0 ? _b : "";
-        widget.data.attr = (_c = widget.data.attr) !== null && _c !== void 0 ? _c : [];
-        widget.data._padding = (_d = widget.data._padding) !== null && _d !== void 0 ? _d : {};
-        widget.data._margin = (_e = widget.data._margin) !== null && _e !== void 0 ? _e : {};
-        widget.data._max_width = (_f = widget.data._max_width) !== null && _f !== void 0 ? _f : 0;
-        const id = htmlGenerate.widgetComponentID;
         const subData = sub !== null && sub !== void 0 ? sub : {};
         let formData = subData;
+        const id = htmlGenerate.widgetComponentID;
+        function initialWidget(widget) {
+            var _a, _b, _c, _d, _e, _f;
+            if (widget.data.onCreateEvent) {
+                widget.onCreateEvent = widget.data.onCreateEvent;
+                widget.data.onCreateEvent = undefined;
+            }
+            widget.data.elem = (_a = widget.data.elem) !== null && _a !== void 0 ? _a : "div";
+            widget.data.inner = (_b = widget.data.inner) !== null && _b !== void 0 ? _b : "";
+            widget.data.attr = (_c = widget.data.attr) !== null && _c !== void 0 ? _c : [];
+            widget.data._padding = (_d = widget.data._padding) !== null && _d !== void 0 ? _d : {};
+            widget.data._margin = (_e = widget.data._margin) !== null && _e !== void 0 ? _e : {};
+            widget.data._max_width = (_f = widget.data._max_width) !== null && _f !== void 0 ? _f : '';
+        }
+        initialWidget(widget);
         return {
             view: () => {
-                var _a;
-                let innerText = (() => {
-                    if ((widget.data.dataFrom === "code") || (widget.data.dataFrom === "code_text")) {
-                        return ``;
-                    }
-                    else {
-                        return widget.data.inner;
-                    }
-                })();
-                function getCreateOption() {
-                    let option = widget.data.attr.map((dd) => {
-                        if (dd.type === 'par') {
-                            try {
-                                if (dd.valueFrom === 'code') {
-                                    return {
-                                        key: dd.attr, value: eval(`(() => {
+                return GlobalWidget.showCaseData({
+                    gvc: gvc,
+                    widget: widget,
+                    view: (widget) => {
+                        var _a;
+                        try {
+                            initialWidget(widget);
+                            let innerText = (() => {
+                                if ((widget.data.dataFrom === "code") || (widget.data.dataFrom === "code_text")) {
+                                    return ``;
+                                }
+                                else {
+                                    return widget.data.inner;
+                                }
+                            })();
+                            function getCreateOption() {
+                                let option = widget.data.attr.map((dd) => {
+                                    if (dd.type === 'par') {
+                                        try {
+                                            if (dd.valueFrom === 'code') {
+                                                return {
+                                                    key: dd.attr, value: eval(`(() => {
                                             ${dd.value}
                                         })()`)
-                                    };
-                                }
-                                else {
-                                    return { key: dd.attr, value: dd.value };
-                                }
-                            }
-                            catch (e) {
-                                return { key: dd.attr, value: dd.value };
-                            }
-                        }
-                        else if (dd.type === 'append') {
-                            return {
-                                key: glitter.promiseValue(new Promise((resolve, reject) => {
-                                    TriggerEvent.trigger({
-                                        gvc: gvc,
-                                        widget: widget,
-                                        clickEvent: dd,
-                                        subData: subData
-                                    }).then((data) => {
-                                        if (data) {
-                                            resolve(dd.attr);
-                                        }
-                                    });
-                                })), value: ''
-                            };
-                        }
-                        else {
-                            return {
-                                key: dd.attr, value: gvc.event((e, event) => {
-                                    event.stopPropagation();
-                                    TriggerEvent.trigger({
-                                        gvc: gvc,
-                                        widget: widget,
-                                        clickEvent: dd,
-                                        element: { e, event },
-                                        subData: subData
-                                    }).then((data) => {
-                                    });
-                                })
-                            };
-                        }
-                    });
-                    if (widget.data.elem === 'a' && (window.parent.editerData !== undefined)) {
-                        option = option.filter((dd) => {
-                            return dd.key !== 'href';
-                        });
-                    }
-                    if (widget.data.elem === 'img') {
-                        option.push({ key: 'src', value: innerText });
-                    }
-                    else if (widget.data.elem === 'input') {
-                        option.push({ key: 'value', value: innerText });
-                    }
-                    let classList = [];
-                    if (window.parent.editerData !== undefined && htmlGenerate.root) {
-                        classList.push(`editorParent`);
-                        classList.push(`relativePosition`);
-                    }
-                    classList.push(glitter.htmlGenerate.styleEditor(widget.data, gvc, widget, subData).class());
-                    widget.hashTag && classList.push(`glitterTag${widget.hashTag}`);
-                    let style_user = '';
-                    if (widget.type === 'container') {
-                        ['top', 'bottom', 'left', 'right'].map((dd) => {
-                            if (widget.data._padding[dd]) {
-                                if (!isNaN(widget.data._padding[dd])) {
-                                    (style_user += `padding-${dd}:${widget.data._padding[dd]}px;`);
-                                }
-                                else {
-                                    (style_user += `padding-${dd}:${widget.data._padding[dd]};`);
-                                }
-                            }
-                        });
-                        ['top', 'bottom', 'left', 'right'].map((dd) => {
-                            if (widget.data._margin[dd]) {
-                                if (!isNaN(widget.data._margin[dd])) {
-                                    (style_user += `margin-${dd}:${widget.data._margin[dd]}px;`);
-                                }
-                                else {
-                                    (style_user += `margin-${dd}:${widget.data._margin[dd]};`);
-                                }
-                            }
-                        });
-                        widget.data._max_width && (style_user += `width:${(isNaN(widget.data._max_width)) ? widget.data._max_width : `${widget.data._max_width}px`};max-width:100%;margin:auto;`);
-                    }
-                    return {
-                        elem: widget.data.elem,
-                        class: classList.join(' '),
-                        style: glitter.htmlGenerate.styleEditor(widget.data, gvc, widget, subData).style() + ` ${(window.parent.editerData !== undefined) ? `${(widget.visible === false) ? `display:none;` : ``}` : ``} ${style_user}`,
-                        option: option.concat(htmlGenerate.option),
-                    };
-                }
-                if (widget.type === 'container') {
-                    const glitter = window.glitter;
-                    widget.data.setting.formData = widget.formData;
-                    function getView() {
-                        const htmlGenerate = new glitter.htmlGenerate(widget.data.setting, hoverID, subData, rootHtmlGenerate.root);
-                        innerText = '';
-                        return htmlGenerate.render(gvc, {
-                            containerID: id,
-                            tag: widget.tag,
-                            onCreate: () => {
-                                TriggerEvent.trigger({
-                                    gvc,
-                                    widget: widget,
-                                    clickEvent: widget.onCreateEvent,
-                                    subData: subData,
-                                    element: gvc.getBindViewElem(id).get(0)
-                                });
-                                gvc.glitter.document.querySelector(`[gvc-id="${gvc.id(id)}"]`).onResumeEvent = () => {
-                                    TriggerEvent.trigger({
-                                        gvc,
-                                        widget: widget,
-                                        clickEvent: widget.onResumtEvent,
-                                        subData: subData
-                                    });
-                                };
-                            },
-                            onDestroy: () => {
-                                TriggerEvent.trigger({
-                                    gvc,
-                                    widget: widget,
-                                    clickEvent: widget.onDestoryEvent,
-                                    subData: subData
-                                });
-                            },
-                            onInitial: () => {
-                                TriggerEvent.trigger({
-                                    gvc,
-                                    widget: widget,
-                                    clickEvent: widget.onInitialEvent,
-                                    subData: subData
-                                });
-                            },
-                            app_config: widget.global.appConfig,
-                            page_config: widget.global.pageConfig,
-                            document: document,
-                            editorSection: widget.id
-                        }, getCreateOption);
-                    }
-                    widget.data.setting.refresh = (() => {
-                        try {
-                            hoverID = [Storage.lastSelect];
-                            gvc.glitter.document.querySelector('.selectComponentHover') && gvc.glitter.document.querySelector('.selectComponentHover').classList.remove("selectComponentHover");
-                            gvc.glitter.document.querySelector(`[gvc-id="${gvc.id(id)}"]`).outerHTML = getView();
-                            setTimeout(() => {
-                                gvc.glitter.document.querySelector('.selectComponentHover').scrollIntoView({
-                                    behavior: 'auto',
-                                    block: 'center',
-                                });
-                            }, 10);
-                        }
-                        catch (e) {
-                        }
-                    });
-                    return getView();
-                }
-                if ((widget.data.dataFrom === "code")) {
-                    if (widget.data.elem !== 'select') {
-                        innerText = '';
-                    }
-                    widget.data.innerEvenet = (_a = widget.data.innerEvenet) !== null && _a !== void 0 ? _a : {};
-                    TriggerEvent.trigger({
-                        gvc: gvc,
-                        widget: widget,
-                        clickEvent: widget.data.innerEvenet,
-                        subData
-                    }).then((data) => {
-                        if (widget.data.elem === 'select') {
-                            formData[widget.data.key] = data;
-                        }
-                        innerText = data || '';
-                        gvc.notifyDataChange(id);
-                    });
-                }
-                else if (widget.data.dataFrom === "code_text") {
-                    const inner = (eval(`(() => {
-                        ${widget.data.inner}
-                    })()`));
-                    if (inner && inner.then) {
-                        inner.then((data) => {
-                            innerText = data || '';
-                            gvc.notifyDataChange(id);
-                        });
-                    }
-                    else {
-                        innerText = inner;
-                        gvc.notifyDataChange(id);
-                    }
-                }
-                return gvc.bindView(() => {
-                    return {
-                        bind: id,
-                        view: () => {
-                            let view = [];
-                            switch (widget.data.elem) {
-                                case 'select':
-                                    return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
-                                        const vm = {
-                                            callback: () => {
-                                            },
-                                            data: []
-                                        };
-                                        yield new Promise((resolve, reject) => {
-                                            var _a;
-                                            if (widget.data.elem === 'select' && widget.data.selectType === 'api') {
-                                                widget.data.selectAPI = (_a = widget.data.selectAPI) !== null && _a !== void 0 ? _a : {};
-                                                vm.callback = () => {
-                                                    resolve(true);
                                                 };
+                                            }
+                                            else {
+                                                return { key: dd.attr, value: dd.value };
+                                            }
+                                        }
+                                        catch (e) {
+                                            return { key: dd.attr, value: dd.value };
+                                        }
+                                    }
+                                    else if (dd.type === 'append') {
+                                        return {
+                                            key: glitter.promiseValue(new Promise((resolve, reject) => {
                                                 TriggerEvent.trigger({
                                                     gvc: gvc,
                                                     widget: widget,
-                                                    clickEvent: widget.data.selectAPI,
-                                                    subData: vm
+                                                    clickEvent: dd,
+                                                    subData: subData
+                                                }).then((data) => {
+                                                    if (data) {
+                                                        resolve(dd.attr);
+                                                    }
                                                 });
-                                                resolve(true);
+                                            })), value: ''
+                                        };
+                                    }
+                                    else {
+                                        return {
+                                            key: dd.attr, value: gvc.event((e, event) => {
+                                                event.stopPropagation();
+                                                TriggerEvent.trigger({
+                                                    gvc: gvc,
+                                                    widget: widget,
+                                                    clickEvent: dd,
+                                                    element: { e, event },
+                                                    subData: subData
+                                                }).then((data) => {
+                                                });
+                                            })
+                                        };
+                                    }
+                                });
+                                if (widget.data.elem === 'a' && (window.parent.editerData !== undefined)) {
+                                    option = option.filter((dd) => {
+                                        return dd.key !== 'href';
+                                    });
+                                }
+                                if (widget.data.elem === 'img') {
+                                    option.push({ key: 'src', value: innerText });
+                                }
+                                else if (widget.data.elem === 'input') {
+                                    option.push({ key: 'value', value: innerText });
+                                }
+                                let classList = [];
+                                if (window.parent.editerData !== undefined && htmlGenerate.root) {
+                                    classList.push(`editorParent`);
+                                    classList.push(`relativePosition`);
+                                }
+                                classList.push(glitter.htmlGenerate.styleEditor(widget.data, gvc, widget, subData).class());
+                                widget.hashTag && classList.push(`glitterTag${widget.hashTag}`);
+                                let style_user = '';
+                                if (widget.type === 'container') {
+                                    ['top', 'bottom', 'left', 'right'].map((dd) => {
+                                        if (widget.data._padding[dd]) {
+                                            if (!isNaN(widget.data._padding[dd])) {
+                                                (style_user += `padding-${dd}:${widget.data._padding[dd]}px;`);
                                             }
                                             else {
-                                                resolve(true);
+                                                (style_user += `padding-${dd}:${widget.data._padding[dd]};`);
                                             }
-                                        });
-                                        formData[widget.data.key] = innerText;
-                                        if (widget.data.selectType === 'api') {
-                                            resolve(vm.data.map((dd) => {
-                                                var _a;
-                                                formData[widget.data.key] = (_a = formData[widget.data.key]) !== null && _a !== void 0 ? _a : dd.value;
-                                                if (dd.visible === 'invisible' && (dd.value !== formData[widget.data.key])) {
-                                                    return ``;
-                                                }
-                                                return glitter.html `<option class="" value="${dd.value}" ${`${dd.value}` === `${formData[widget.data.key]}` ? `selected` : ``}>
+                                        }
+                                    });
+                                    ['top', 'bottom', 'left', 'right'].map((dd) => {
+                                        if (widget.data._margin[dd]) {
+                                            if (!isNaN(widget.data._margin[dd])) {
+                                                (style_user += `margin-${dd}:${widget.data._margin[dd]}px;`);
+                                            }
+                                            else {
+                                                (style_user += `margin-${dd}:${widget.data._margin[dd]};`);
+                                            }
+                                        }
+                                    });
+                                    widget.data._max_width && (style_user += `width:${(isNaN(widget.data._max_width)) ? widget.data._max_width : `${widget.data._max_width}px`};max-width:100%;margin:auto;`);
+                                }
+                                return {
+                                    elem: widget.data.elem,
+                                    class: classList.join(' '),
+                                    style: glitter.htmlGenerate.styleEditor(widget.data, gvc, widget, subData).style() + ` ${(window.parent.editerData !== undefined) ? `${(widget.visible === false) ? `display:none;` : ``}` : ``} ${style_user}`,
+                                    option: option.concat(htmlGenerate.option),
+                                };
+                            }
+                            if (widget.type === 'container') {
+                                const glitter = window.glitter;
+                                widget.data.setting.formData = widget.formData;
+                                function getView() {
+                                    const htmlGenerate = new glitter.htmlGenerate(widget.data.setting, hoverID, subData, rootHtmlGenerate.root);
+                                    innerText = '';
+                                    return htmlGenerate.render(gvc, {
+                                        containerID: id,
+                                        tag: widget.tag,
+                                        onCreate: () => {
+                                            TriggerEvent.trigger({
+                                                gvc,
+                                                widget: widget,
+                                                clickEvent: widget.onCreateEvent,
+                                                subData: subData,
+                                                element: gvc.getBindViewElem(id).get(0)
+                                            });
+                                            gvc.glitter.document.querySelector(`[gvc-id="${gvc.id(id)}"]`).onResumeEvent = () => {
+                                                TriggerEvent.trigger({
+                                                    gvc,
+                                                    widget: widget,
+                                                    clickEvent: widget.onResumtEvent,
+                                                    subData: subData
+                                                });
+                                            };
+                                        },
+                                        onDestroy: () => {
+                                            TriggerEvent.trigger({
+                                                gvc,
+                                                widget: widget,
+                                                clickEvent: widget.onDestoryEvent,
+                                                subData: subData
+                                            });
+                                        },
+                                        onInitial: () => {
+                                            TriggerEvent.trigger({
+                                                gvc,
+                                                widget: widget,
+                                                clickEvent: widget.onInitialEvent,
+                                                subData: subData
+                                            });
+                                        },
+                                        app_config: widget.global.appConfig,
+                                        page_config: widget.global.pageConfig,
+                                        document: document,
+                                        editorSection: widget.id
+                                    }, getCreateOption);
+                                }
+                                widget.data.setting.refresh = (() => {
+                                    try {
+                                        hoverID = [Storage.lastSelect];
+                                        gvc.glitter.document.querySelector('.selectComponentHover') && gvc.glitter.document.querySelector('.selectComponentHover').classList.remove("selectComponentHover");
+                                        gvc.glitter.document.querySelector(`[gvc-id="${gvc.id(id)}"]`).outerHTML = getView();
+                                        setTimeout(() => {
+                                            gvc.glitter.document.querySelector('.selectComponentHover').scrollIntoView({
+                                                behavior: 'auto',
+                                                block: 'center',
+                                            });
+                                        }, 10);
+                                    }
+                                    catch (e) {
+                                    }
+                                });
+                                return getView();
+                            }
+                            if ((widget.data.dataFrom === "code")) {
+                                if (widget.data.elem !== 'select') {
+                                    innerText = '';
+                                }
+                                widget.data.innerEvenet = (_a = widget.data.innerEvenet) !== null && _a !== void 0 ? _a : {};
+                                TriggerEvent.trigger({
+                                    gvc: gvc,
+                                    widget: widget,
+                                    clickEvent: widget.data.innerEvenet,
+                                    subData
+                                }).then((data) => {
+                                    if (widget.data.elem === 'select') {
+                                        formData[widget.data.key] = data;
+                                    }
+                                    innerText = data || '';
+                                    gvc.notifyDataChange(id);
+                                });
+                            }
+                            else if (widget.data.dataFrom === "code_text") {
+                                const inner = (eval(`(() => {
+                        ${widget.data.inner}
+                    })()`));
+                                if (inner && inner.then) {
+                                    inner.then((data) => {
+                                        innerText = data || '';
+                                        gvc.notifyDataChange(id);
+                                    });
+                                }
+                                else {
+                                    innerText = inner;
+                                    gvc.notifyDataChange(id);
+                                }
+                            }
+                            return gvc.bindView(() => {
+                                return {
+                                    bind: id,
+                                    view: () => {
+                                        let view = [];
+                                        switch (widget.data.elem) {
+                                            case 'select':
+                                                return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
+                                                    const vm = {
+                                                        callback: () => {
+                                                        },
+                                                        data: []
+                                                    };
+                                                    yield new Promise((resolve, reject) => {
+                                                        var _a;
+                                                        if (widget.data.elem === 'select' && widget.data.selectType === 'api') {
+                                                            widget.data.selectAPI = (_a = widget.data.selectAPI) !== null && _a !== void 0 ? _a : {};
+                                                            vm.callback = () => {
+                                                                resolve(true);
+                                                            };
+                                                            TriggerEvent.trigger({
+                                                                gvc: gvc,
+                                                                widget: widget,
+                                                                clickEvent: widget.data.selectAPI,
+                                                                subData: vm
+                                                            });
+                                                            resolve(true);
+                                                        }
+                                                        else {
+                                                            resolve(true);
+                                                        }
+                                                    });
+                                                    formData[widget.data.key] = innerText;
+                                                    if (widget.data.selectType === 'api') {
+                                                        resolve(vm.data.map((dd) => {
+                                                            var _a;
+                                                            formData[widget.data.key] = (_a = formData[widget.data.key]) !== null && _a !== void 0 ? _a : dd.value;
+                                                            if (dd.visible === 'invisible' && (dd.value !== formData[widget.data.key])) {
+                                                                return ``;
+                                                            }
+                                                            return glitter.html `<option class="" value="${dd.value}" ${`${dd.value}` === `${formData[widget.data.key]}` ? `selected` : ``}>
                                 ${dd.key}
                             </option>`;
-                                            }).join('') + `<option value="" ${formData[widget.data.key] === '' ? `selected` : ``}>
+                                                        }).join('') + `<option value="" ${formData[widget.data.key] === '' ? `selected` : ``}>
                                 選擇${widget.data.label}
                             </option>`);
-                                        }
-                                        else if (widget.data.selectType === 'trigger') {
-                                            const data = yield TriggerEvent.trigger({
-                                                gvc: gvc,
-                                                widget: widget,
-                                                clickEvent: widget.data.selectTrigger,
-                                                subData: subData
-                                            });
-                                            const selectItem = yield TriggerEvent.trigger({
-                                                gvc: gvc,
-                                                widget: widget,
-                                                clickEvent: widget.data.selectItem,
-                                                subData: subData
-                                            });
-                                            resolve(data.map((dd) => {
-                                                return `<option value="${dd.value}" ${`${dd.value}` === `${selectItem}` ? `selected` : ``}>
+                                                    }
+                                                    else if (widget.data.selectType === 'trigger') {
+                                                        const data = yield TriggerEvent.trigger({
+                                                            gvc: gvc,
+                                                            widget: widget,
+                                                            clickEvent: widget.data.selectTrigger,
+                                                            subData: subData
+                                                        });
+                                                        const selectItem = yield TriggerEvent.trigger({
+                                                            gvc: gvc,
+                                                            widget: widget,
+                                                            clickEvent: widget.data.selectItem,
+                                                            subData: subData
+                                                        });
+                                                        resolve(data.map((dd) => {
+                                                            return `<option value="${dd.value}" ${`${dd.value}` === `${selectItem}` ? `selected` : ``}>
                                 ${dd.name}
                             </option>`;
-                                            }).join(''));
-                                        }
-                                        else {
-                                            resolve(widget.data.selectList.map((dd) => {
-                                                var _a;
-                                                if (dd.visible === 'invisible' && (dd.value !== formData[widget.data.key])) {
-                                                    return ``;
-                                                }
-                                                formData[widget.data.key] = (_a = formData[widget.data.key]) !== null && _a !== void 0 ? _a : dd.value;
-                                                return `<option value="${dd.value}" ${dd.value === formData[widget.data.key] ? `selected` : ``}>
+                                                        }).join(''));
+                                                    }
+                                                    else {
+                                                        resolve(widget.data.selectList.map((dd) => {
+                                                            var _a;
+                                                            if (dd.visible === 'invisible' && (dd.value !== formData[widget.data.key])) {
+                                                                return ``;
+                                                            }
+                                                            formData[widget.data.key] = (_a = formData[widget.data.key]) !== null && _a !== void 0 ? _a : dd.value;
+                                                            return `<option value="${dd.value}" ${dd.value === formData[widget.data.key] ? `selected` : ``}>
                                 ${dd.name}
                             </option>`;
-                                            }).join(''));
+                                                        }).join(''));
+                                                    }
+                                                }));
+                                            case 'img':
+                                            case 'input':
+                                                break;
+                                            default:
+                                                view.push(innerText);
+                                                break;
                                         }
-                                    }));
-                                case 'img':
-                                case 'input':
-                                    break;
-                                default:
-                                    view.push(innerText);
-                                    break;
-                            }
-                            if (window.parent.editerData !== undefined && htmlGenerate.root && widget.data.elem !== 'textArea') {
-                                view.push(glitter.htmlGenerate.getEditorSelectSection({
-                                    id: widget.id,
-                                    gvc: gvc,
-                                    label: widget.label
-                                }));
-                            }
-                            return view.join('');
-                        },
-                        divCreate: getCreateOption,
-                        onCreate: () => {
-                            glitter.elementCallback[gvc.id(id)].updateAttribute();
-                            if (widget.data.elem.toLowerCase() === 'textarea') {
-                                autosize(gvc.getBindViewElem(id).get(0));
-                            }
-                            TriggerEvent.trigger({
-                                gvc,
-                                widget: widget,
-                                clickEvent: widget.onCreateEvent,
-                                subData: subData,
-                                element: gvc.getBindViewElem(id).get(0)
-                            });
-                            gvc.glitter.document.querySelector(`[gvc-id="${gvc.id(id)}"]`).onResumeEvent = () => {
-                                TriggerEvent.trigger({
-                                    gvc,
-                                    widget: widget,
-                                    clickEvent: widget.onResumtEvent,
-                                    subData: subData
-                                });
-                            };
-                        },
-                        onDestroy: () => {
-                            TriggerEvent.trigger({
-                                gvc,
-                                widget: widget,
-                                clickEvent: widget.onDestoryEvent,
-                                subData: subData
-                            });
-                        },
-                        onInitial: () => {
-                            TriggerEvent.trigger({
-                                gvc,
-                                widget: widget,
-                                clickEvent: widget.onInitialEvent,
-                                subData: subData
+                                        if (window.parent.editerData !== undefined && htmlGenerate.root && widget.data.elem !== 'textArea') {
+                                            view.push(glitter.htmlGenerate.getEditorSelectSection({
+                                                id: widget.id,
+                                                gvc: gvc,
+                                                label: widget.label
+                                            }));
+                                        }
+                                        return view.join('');
+                                    },
+                                    divCreate: getCreateOption,
+                                    onCreate: () => {
+                                        glitter.elementCallback[gvc.id(id)].updateAttribute();
+                                        if (widget.data.elem.toLowerCase() === 'textarea') {
+                                            autosize(gvc.getBindViewElem(id).get(0));
+                                        }
+                                        TriggerEvent.trigger({
+                                            gvc,
+                                            widget: widget,
+                                            clickEvent: widget.onCreateEvent,
+                                            subData: subData,
+                                            element: gvc.getBindViewElem(id).get(0)
+                                        });
+                                        gvc.glitter.document.querySelector(`[gvc-id="${gvc.id(id)}"]`).onResumeEvent = () => {
+                                            TriggerEvent.trigger({
+                                                gvc,
+                                                widget: widget,
+                                                clickEvent: widget.onResumtEvent,
+                                                subData: subData
+                                            });
+                                        };
+                                    },
+                                    onDestroy: () => {
+                                        TriggerEvent.trigger({
+                                            gvc,
+                                            widget: widget,
+                                            clickEvent: widget.onDestoryEvent,
+                                            subData: subData
+                                        });
+                                    },
+                                    onInitial: () => {
+                                        TriggerEvent.trigger({
+                                            gvc,
+                                            widget: widget,
+                                            clickEvent: widget.onInitialEvent,
+                                            subData: subData
+                                        });
+                                    }
+                                };
                             });
                         }
-                    };
+                        catch (e) {
+                            console.log(e);
+                            return `${e}`;
+                        }
+                    }
                 });
             },
             editor: () => {
                 var _a, _b, _c;
                 if (widget.type === 'container' && Storage.select_function === 'user-editor') {
-                    return [
-                        `<div class="alert alert-secondary p-2 fw-500 mt-2 " style="word-break: break-all;white-space: normal;letter-spacing: 0.5px;">
+                    return gvc.bindView(() => {
+                        const id = gvc.glitter.getUUID();
+                        return {
+                            bind: id,
+                            view: () => {
+                                return [
+                                    GlobalWidget.showCaseBar(gvc, widget, () => {
+                                        gvc.notifyDataChange(id);
+                                    }),
+                                    GlobalWidget.showCaseEditor({
+                                        gvc: gvc,
+                                        widget: widget,
+                                        view: (widget) => {
+                                            return [
+                                                `<div class="alert  alert-secondary p-2 fw-500 mt-2 " style="word-break: break-all;white-space: normal;letter-spacing: 0.5px;">
                             可輸入純數值 (px) 或附加單位(%,rem,vw,vh,calc,px)。
 </div>`,
-                        EditorElem.editeInput({
-                            gvc: gvc,
-                            title: `容器最大寬度 << 不輸入則自適應寬度 >>
+                                                EditorElem.editeInput({
+                                                    gvc: gvc,
+                                                    title: `容器最大寬度 << 不輸入則自適應寬度 >>
                            
                             `,
-                            default: widget.data._max_width,
-                            placeHolder: '',
-                            callback: (text) => {
-                                widget.data._max_width = text;
-                                widget.refreshComponent();
-                            }
-                        }),
-                        `<div class="my-2"></div>`,
-                        EditorElem.toggleExpand({
-                            gvc: gvc,
-                            title: `內距`,
-                            data: widget.data._padding,
-                            innerText: () => {
-                                return [{
-                                        title: '上',
-                                        key: 'top'
-                                    },
-                                    {
-                                        title: '下',
-                                        key: 'bottom'
-                                    },
-                                    {
-                                        title: '左',
-                                        key: 'left'
-                                    },
-                                    {
-                                        title: '右',
-                                        key: 'right'
-                                    }].map((dd) => {
-                                    return EditorElem.editeInput({
-                                        gvc: gvc,
-                                        title: dd.title,
-                                        default: widget.data._padding[dd.key] || '0',
-                                        placeHolder: '單位px',
-                                        callback: (text) => {
-                                            widget.data._padding[dd.key] = text;
-                                            widget.refreshComponent();
+                                                    default: widget.data._max_width,
+                                                    placeHolder: '',
+                                                    callback: (text) => {
+                                                        widget.data._max_width = text;
+                                                        widget.refreshComponent();
+                                                    }
+                                                }),
+                                                `<div class="my-2"></div>`,
+                                                EditorElem.toggleExpand({
+                                                    gvc: gvc,
+                                                    title: `內距`,
+                                                    data: widget.data._padding,
+                                                    innerText: () => {
+                                                        return [{
+                                                                title: '上',
+                                                                key: 'top'
+                                                            },
+                                                            {
+                                                                title: '下',
+                                                                key: 'bottom'
+                                                            },
+                                                            {
+                                                                title: '左',
+                                                                key: 'left'
+                                                            },
+                                                            {
+                                                                title: '右',
+                                                                key: 'right'
+                                                            }].map((dd) => {
+                                                            return EditorElem.editeInput({
+                                                                gvc: gvc,
+                                                                title: dd.title,
+                                                                default: widget.data._padding[dd.key] || '0',
+                                                                placeHolder: '單位px',
+                                                                callback: (text) => {
+                                                                    widget.data._padding[dd.key] = text;
+                                                                    widget.refreshComponent();
+                                                                }
+                                                            });
+                                                        }).join('');
+                                                    }
+                                                }),
+                                                EditorElem.toggleExpand({
+                                                    gvc: gvc,
+                                                    title: `外距`,
+                                                    data: widget.data._margin,
+                                                    innerText: () => {
+                                                        return [{
+                                                                title: '上',
+                                                                key: 'top'
+                                                            },
+                                                            {
+                                                                title: '下',
+                                                                key: 'bottom'
+                                                            },
+                                                            {
+                                                                title: '左',
+                                                                key: 'left'
+                                                            },
+                                                            {
+                                                                title: '右',
+                                                                key: 'right'
+                                                            }].map((dd) => {
+                                                            return EditorElem.editeInput({
+                                                                gvc: gvc,
+                                                                title: dd.title,
+                                                                default: widget.data._margin[dd.key] || '0',
+                                                                placeHolder: '單位px',
+                                                                callback: (text) => {
+                                                                    widget.data._margin[dd.key] = text;
+                                                                    widget.refreshComponent();
+                                                                }
+                                                            });
+                                                        }).join('');
+                                                    },
+                                                })
+                                            ].join('');
                                         }
-                                    });
-                                }).join('');
+                                    }),
+                                ].join('');
                             }
-                        }),
-                        EditorElem.toggleExpand({
-                            gvc: gvc,
-                            title: `外距`,
-                            data: widget.data._margin,
-                            innerText: () => {
-                                return [{
-                                        title: '上',
-                                        key: 'top'
-                                    },
-                                    {
-                                        title: '下',
-                                        key: 'bottom'
-                                    },
-                                    {
-                                        title: '左',
-                                        key: 'left'
-                                    },
-                                    {
-                                        title: '右',
-                                        key: 'right'
-                                    }].map((dd) => {
-                                    return EditorElem.editeInput({
-                                        gvc: gvc,
-                                        title: dd.title,
-                                        default: widget.data._margin[dd.key] || '0',
-                                        placeHolder: '單位px',
-                                        callback: (text) => {
-                                            widget.data._margin[dd.key] = text;
-                                            widget.refreshComponent();
-                                        }
-                                    });
-                                }).join('');
-                            },
-                        })
-                    ].join('');
+                        };
+                    });
                 }
                 widget.type = (_a = widget.type) !== null && _a !== void 0 ? _a : "elem";
                 widget.data.elemExpand = (_b = widget.data.elemExpand) !== null && _b !== void 0 ? _b : {};

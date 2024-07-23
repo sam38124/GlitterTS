@@ -1,11 +1,12 @@
 import { Swal } from '../../modules/sweetAlert.js';
 import { EditorElem } from '../../glitterBundle/plugins/editor-elem.js';
 import { PageEditor } from '../../editor/page-editor.js';
-import { ShareDialog } from '../../dialog/ShareDialog.js';
+import { ShareDialog } from '../../glitterBundle/dialog/ShareDialog.js';
 import { Storage } from '../../glitterBundle/helper/storage.js';
 import { AddComponent } from '../../editor/add-component.js';
 import { EditorConfig } from "../../editor-config.js";
 import { ToolSetting } from "./tool-setting.js";
+import { BgWidget } from "../../backend-manager/bg-widget.js";
 var ViewType;
 (function (ViewType) {
     ViewType["mobile"] = "mobile";
@@ -141,7 +142,6 @@ export class Main_editor {
                                                                                     style="gap:5px;color:#393939;${dd.toggle && dd.type === 'container' ? `border-radius: 5px;background: #F2F2F2;` : ``}"
                                                                                     onclick="${gvc.event(() => {
                                                                 if (lastClick.stop() > 0.1) {
-                                                                    dd.toggle = !dd.toggle;
                                                                     dd.info && (dd.info.toggle = !dd.info.toggle);
                                                                     gvc.notifyDataChange(id);
                                                                     dd.info.editorEvent();
@@ -683,12 +683,6 @@ export class Main_editor {
                                                         <i class="fa-solid fa-chevron-left"></i>
                                                         <span style="max-width: calc(100% - 50px);text-overflow: ellipsis;white-space: nowrap;overflow: hidden;">${viewModel.selectItem.label}</span>
                                                         <div class="flex-fill"></div>
-                                                        <div class="p-1" onclick="${gvc.event(() => {
-                                glitter.htmlGenerate.deleteWidget(glitter.share.editorViewModel.selectContainer, viewModel.selectItem);
-                            })}">
-                                                            <i class="fa-regular fa-trash d-flex align-items-center justify-content-center "
-                                                               aria-hidden="true"></i>
-                                                        </div>
                                                     </div>
                                                 `
                             : ``) +
@@ -718,6 +712,19 @@ export class Main_editor {
                     },
                 };
             })}
+                    <div style="height: 60px;"></div>
+                    <div class="position-absolute w-100 bottom-0 d-flex align-items-center p-3 shadow justify-content-end border-top bg-white"
+                         style="height: 60px;">
+                        ${BgWidget.cancel(gvc.event(() => {
+                const dialog = new ShareDialog(gvc.glitter);
+                navigator.clipboard.writeText(JSON.stringify(viewModel.selectItem));
+                dialog.successMessage({ text: '複製成功' });
+            }), '複製元件')}
+                        <div class="mx-2"></div>
+                        ${BgWidget.cancel(gvc.event(() => {
+                glitter.htmlGenerate.deleteWidget(glitter.share.editorViewModel.selectContainer, viewModel.selectItem);
+            }), '刪除元件')}
+                    </div>
                 </div>
             `,
             gvc.bindView(() => {

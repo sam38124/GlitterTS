@@ -145,6 +145,8 @@ async function createAPP(dd) {
                     if (data && data.page_config) {
                         data.page_config = (_a = data.page_config) !== null && _a !== void 0 ? _a : {};
                         const d = (_b = data.page_config.seo) !== null && _b !== void 0 ? _b : {};
+                        console.log(`data.page_type->`, data.page_type);
+                        console.log(`data.page_config.template_type->`, data.page_config.template_type);
                         if (data.page_type === 'article' && data.page_config.template_type === 'product') {
                             const pd = await new shopping_js_1.Shopping(appName, undefined).getProduct({
                                 page: 0,
@@ -164,6 +166,7 @@ async function createAPP(dd) {
                             }
                         }
                         else if (data.page_type === 'article' && data.page_config.template_type === 'blog') {
+                            req.query.article = req.query.article || req.query.page.split('/')[1];
                             let query = [`(content->>'$.type'='article')`, `(content->>'$.tag'='${req.query.article}')`];
                             const article = await new ut_database_js_1.UtDatabase(appName, `t_manager_post`).querySql(query, {
                                 page: 0,

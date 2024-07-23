@@ -393,6 +393,21 @@ export class ApiShop {
             })
         });
     }
+    static repay(order_id, return_url) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/ec/checkout/repay`,
+            type: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: getConfig().config.token,
+            },
+            data: JSON.stringify({
+                "return_url": return_url,
+                "order_id": order_id
+            })
+        });
+    }
     static getVoucherCode() {
         const glitter = window.glitter;
         return new Promise((resolve, reject) => {

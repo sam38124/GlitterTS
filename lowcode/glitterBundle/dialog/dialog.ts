@@ -84,7 +84,9 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                 case 'successMessage':
                     setTimeout(() => gvc.closeDialog(), 1200);
                     return html`
-                        <div class="dialog-box">
+                        <div class="dialog-box" onclick="${gvc.event(()=>{
+                            gvc.closeDialog()
+                        })}">
                             <div class="dialog-content">
                                 <i class="fa-regular fa-circle-check fs-1"></i>
                                 <div class="mt-3 fs-6 fw-500">${gBundle.obj.text ?? '成功'}</div>

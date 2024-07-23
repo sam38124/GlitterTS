@@ -27,7 +27,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
      </div>
 </div>`;
                 case 'successMessage':
-                    return `<div class="vw-100 vh-100 position-fixed top-0 left-0"  style="background-color: rgba(0,0,0,0.5);z-index: 10000;">
+                    return `<div class="vw-100 vh-100 position-fixed top-0 left-0"  style="background-color: rgba(0,0,0,0.5);z-index: 10000;" >
 <div class="bg-white rounded" style="width: 150px;position: absolute;z-index: 999;transform: translate(-50%,-50%);left: 50%;top:50%;">
   <div class="w-100 d-flex align-items-center justify-content-center text-success fw-500" style="height: 80px;"> <i class="fad fa-badge-check" style="font-size: 50px;margin: auto;"></i></div>
          <h3 id="info" style="font-size: 14px;margin-top: 0px;width: calc(100% - 10px);text-align: center;white-space: normal;word-break: break-all;" class="mx-auto text-success fw-500">${

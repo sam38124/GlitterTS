@@ -125,7 +125,7 @@ export declare class Shopping {
         discount?: number;
         total?: number;
         pay_status?: number;
-    }, type?: 'add' | 'preview' | 'manual' | 'manual-preview'): Promise<{
+    }, type?: 'add' | 'preview' | 'manual' | 'manual-preview', replace_order_id?: string): Promise<{
         data: {
             customer_info: any;
             lineItems: {

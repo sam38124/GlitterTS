@@ -211,6 +211,7 @@ export class PathSelect {
                                                     <div class="m-3" style="display: flex; align-items: center; justify-content: space-between;">
                                                         <div
                                                             class="link-item-container ${tag.link && tag.link.length > 0 ? 'hoverF2' : ''}"
+                                                            style="cursor: pointer;"
                                                             onclick=${obj.gvc.event(() => {
                                         tag.link && tag.link.length > 0 && callbackEvent(tag);
                                     })}
@@ -279,7 +280,7 @@ export class PathSelect {
                                     data.response.data.map((item) => {
                                         const { id, title, preview_image } = item.content;
                                         const icon = preview_image && preview_image[0] ? preview_image[0] : '';
-                                        productList.push({ name: title, icon: icon, link: `./?appName=${appName}&product_id=${id}&page=product_detail` });
+                                        productList.push({ name: title, icon: icon, link: `/products?product_id=${id}` });
                                     });
                                     resolve();
                                 }
@@ -291,7 +292,7 @@ export class PathSelect {
                                     data.response.data.map((item) => {
                                         const { name, tag } = item.content;
                                         if (name) {
-                                            acticleList.push({ name: name, icon: '', link: `./?appName=${appName}&article=${tag}&page=article` });
+                                            acticleList.push({ name: name, icon: '', link: `/pages/${tag}` });
                                         }
                                     });
                                 }

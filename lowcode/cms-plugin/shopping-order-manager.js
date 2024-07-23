@@ -1763,7 +1763,7 @@ export class ShoppingOrderManager {
                                                     </svg>
                                                 </div>
                                             </div>
-                                        `;
+       `;
                     });
                 }
                 return returnHTML;
