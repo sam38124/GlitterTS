@@ -1697,12 +1697,12 @@ ${obj.gvc.bindView({
                         glitter.getModule(new URL(gvc.glitter.root_path + 'editor/add-component.js').href, (AddComponent) => {
                             AddComponent.toggle(true);
                             AddComponent.addWidget = (gvc, cf) => {
-                                glitter.share.editorViewModel.selectContainer = widget.data.setting;
+                                window.parent.glitter.share.editorViewModel.selectContainer = widget.data.setting;
                                 window.parent.glitter.share.addComponent(cf);
                                 cf.gvc.glitter.document.querySelector('#' + addID).remove();
                             };
                             AddComponent.addEvent = (gvc, tdata) => {
-                                glitter.share.editorViewModel.selectContainer = widget.data.setting;
+                                window.parent.glitter.share.editorViewModel.selectContainer = widget.data.setting;
                                 window.parent.glitter.share.addComponent({
                                     id: gvc.glitter.getUUID(),
                                     js: './official_view_component/official.js',
@@ -1762,9 +1762,9 @@ ${obj.gvc.bindView({
                             HtmlGenerate.block_timer = new Date().getTime();
                             glitter.getModule(new URL('../.././editor/add-component.js', import.meta.url).href, (AddComponent) => {
                                 AddComponent.toggle(true);
-                                AddComponent.addWidget = (gvc, cf) => {
+                                AddComponent.addWidget = (gvc, tdata) => {
                                     glitter.share.addWithIndex({
-                                        data: cf,
+                                        data: tdata,
                                         index: cf.id,
                                         direction: -1,
                                     });
@@ -1817,9 +1817,9 @@ ${obj.gvc.bindView({
                             HtmlGenerate.block_timer = new Date().getTime();
                             glitter.getModule(new URL('../.././editor/add-component.js', import.meta.url).href, (AddComponent) => {
                                 AddComponent.toggle(true);
-                                AddComponent.addWidget = (gvc, cf) => {
+                                AddComponent.addWidget = (gvc, tdata) => {
                                     glitter.share.addWithIndex({
-                                        data: cf,
+                                        data: tdata,
                                         index: cf.id,
                                         direction: 1,
                                     });
