@@ -101,7 +101,7 @@ export class Setting_editor {
                                         },
                                         {
                                             icon: '',
-                                            page: 'collection',
+                                            page: 'collection_v2',
                                             group: '商品管理',
                                             title: '商品分類',
                                             appName: 'cms_system',

@@ -68,6 +68,19 @@ interface ProductItem {
     total_sales?: number;
 }
 
+type Collection = {
+    title: string;
+    array: Collection[];
+    checked: boolean;
+    product_id?: number[];
+    parentTitles: string[];
+    subCollections: string[];
+    allCollections: string[];
+    seo_title: string;
+    seo_content: string;
+    seo_image: string;
+};
+
 export class Shopping {
     public app: string;
     public token?: IToken;
@@ -375,24 +388,19 @@ export class Shopping {
         replace_order_id?: string
     ) {
         try {
-            console.log(`replace_order_id`, replace_order_id);
             //判斷是重新付款則取代
             if (replace_order_id) {
                 const orderData = (
                     await db.query(
-                        `SELECT *
-                                                   FROM \`${this.app}\`.t_checkout
-                                                   where cart_token = ?
-                                                     and status = 0;`,
+                        `SELECT * FROM \`${this.app}\`.t_checkout
+                        WHERE cart_token = ? AND status = 0;`,
                         [replace_order_id]
                     )
                 )[0];
                 if (orderData) {
                     await db.query(
-                        `delete
-                                    from \`${this.app}\`.t_checkout
-                                    where cart_token = ?
-                                      and status = 0;`,
+                        `DELETE FROM \`${this.app}\`.t_checkout
+                        WHERE cart_token = ? AND status = 0;`,
                         [replace_order_id]
                     );
                     data.lineItems = orderData.orderData.lineItems;
@@ -1860,8 +1868,9 @@ export class Shopping {
         }
     }
 
-    async putCollection(data: any) {
+    async putCollection(replace: Collection, original: Collection) {
         try {
+            const data: any = {};
             let config =
                 (
                     await db.query(
@@ -1872,70 +1881,93 @@ export class Shopping {
                     )
                 )[0] ?? {};
             config.value = config.value || [];
-            if (data.id == -1 || data.parent_name !== data.origin.parent_name || data.name !== data.origin.item_name) {
-                if (data.parent_id === undefined && config.value.find((item: { title: string }) => item.title === data.name)) {
-                    return { result: false, message: `上層分類已存在「${data.name}」類別名稱` };
+
+            if (replace.parentTitles.length > 0) {
+                // 子類別驗證
+                const oTitle = original.parentTitles[0] ?? '';
+                const rTitle = replace.parentTitles[0];
+                if (!(replace.title === original.title && rTitle === oTitle)) {
+                    const parent = config.value.find((col: { title: string }) => col.title === rTitle);
+                    const children = parent.array.find((chi: { title: string }) => chi.title === replace.title);
+                    if (children) {
+                        return {
+                            result: false,
+                            message: `上層分類「${parent.title}」已存在「${children.title}」類別名稱`,
+                        };
+                    }
                 }
-                if (data.parent_id !== undefined && config.value[data.parent_id].array.find((item: { title: string }) => item.title === data.name)) {
-                    return {
-                        result: false,
-                        message: `上層分類「${config.value[data.parent_id].title}」已存在「${data.name}」類別名稱`,
-                    };
+            } else {
+                // 父類別驗證
+                if (replace.title !== original.title) {
+                    const parent = config.value.find((col: { title: string }) => col.title === replace.title);
+                    if (parent) {
+                        return {
+                            result: false,
+                            message: `上層分類已存在「${parent.title}」類別名稱`,
+                        };
+                    }
                 }
             }
 
-            if (data.id == -1) {
-                if (data.parent_id === undefined) {
+            const formatData = {
+                array: [],
+                title: replace.title,
+                seo_title: replace.seo_title,
+                seo_content: replace.seo_content,
+                seo_image: replace.seo_image,
+            };
+
+            if (original.title.length === 0) {
+                const parentIndex = config.value.findIndex((col: { title: string }) => {
+                    return col.title === replace.parentTitles[0];
+                });
+                if (parentIndex === -1) {
                     // 新增父層類別
-                    config.value.push({ array: [], title: data.name });
+                    config.value.push(formatData);
                 } else {
                     // 新增子層類別
-                    config.value[data.parent_id].array.push({ array: [], title: data.name });
+                    config.value[parentIndex].array.push(formatData);
                 }
-            } else if (data.origin.parent_id === undefined) {
+            } else if (replace.parentTitles.length === 0) {
                 // 編輯父層類別
-                config.value[data.origin.item_id] = {
-                    array: data.children_collections.map((col: { name: string }) => ({ array: [], title: col.name })),
-                    title: data.name,
+                const parentIndex = config.value.findIndex((col: { title: string }) => {
+                    return col.title === original.title;
+                });
+                config.value[parentIndex] = {
+                    ...formatData,
+                    array: replace.subCollections.map((col) => ({ array: [], title: col })),
                 };
             } else {
-                if (data.origin.parent_id === data.parent_id) {
+                const oTitle = original.parentTitles[0] ?? '';
+                const rTitle = replace.parentTitles[0];
+                const originParentIndex = config.value.findIndex((col: { title: string }) => col.title === oTitle);
+                const replaceParentIndex = config.value.findIndex((col: { title: string }) => col.title === rTitle);
+                const childrenIndex = config.value[originParentIndex].array.findIndex((chi: { title: string }) => {
+                    return chi.title === original.title;
+                });
+                if (originParentIndex === replaceParentIndex) {
                     // 編輯子層類別，沒有調整父層
-                    config.value[data.origin.parent_id].array[data.origin.item_id] = { array: [], title: data.name };
+                    config.value[originParentIndex].array[childrenIndex] = formatData;
                 } else {
                     // 編輯子層類別，有調整父層
-                    config.value[data.origin.parent_id].array.splice(data.origin.item_id, 1);
-                    config.value[data.parent_id].array.push({ array: [], title: data.name });
+                    config.value[originParentIndex].array.splice(childrenIndex, 1);
+                    config.value[replaceParentIndex].array.push(formatData);
                 }
             }
 
             // 更新父層的子類別
-            if (data.id != -1 && data.origin.children_collections) {
-                const filter_childrens = data.origin.children_collections
-                    .filter((child: any) => {
-                        return data.children_collections.find((child2: any) => child2.id === child.id) === undefined;
-                    })
-                    .map((child: any) => {
-                        return child.name;
-                    });
-                await this.deleteCollectionProduct(data.origin.item_name, filter_childrens);
+            if (original.parentTitles[0]) {
+                const filter_childrens = original.subCollections.filter((child) => {
+                    return replace.subCollections.findIndex((child2) => child2 === child) === -1;
+                });
+                await this.deleteCollectionProduct(original.title, filter_childrens);
             }
 
-            // 更新商品類別 config
-            const update_col_sql = `UPDATE \`${this.app}\`.public_config
-                                    SET value = ?
-                                    WHERE \`key\` = 'collection';`;
-            await db.execute(update_col_sql, [config.value]);
-
             // 類別刪除產品
-            if (data.id != -1) {
-                const delete_id_list = data.origin.product_list
-                    .filter((o_prod: { id: number }) => {
-                        return data.product_list.find((prod: { id: number }) => prod.id === o_prod.id) === undefined;
-                    })
-                    .map((o_prod: { id: number }) => {
-                        return o_prod.id;
-                    });
+            if (original.title.length > 0) {
+                const delete_id_list = (original.product_id ?? []).filter((oid) => {
+                    return (replace.product_id ?? []).findIndex((rid) => rid === oid) === -1;
+                });
                 if (delete_id_list.length > 0) {
                     const products_sql = `SELECT *
                                           FROM \`${this.app}\`.t_manager_post
@@ -1943,16 +1975,11 @@ export class Shopping {
                     const delete_product_list = await db.query(products_sql, []);
                     for (const product of delete_product_list) {
                         product.content.collection = product.content.collection.filter((str: string) => {
-                            if (data.origin.parent_name) {
-                                if (str.includes(data.origin.item_name) || str.includes(`${data.origin.item_name} /`)) {
-                                    return false;
-                                }
+                            if (original.parentTitles[0]) {
+                                return str !== `${original.parentTitles[0]} / ${original.title}`;
                             } else {
-                                if (str.includes(data.origin.item_name) || str.includes(`${data.origin.item_name} /`) || str.includes(data.origin.parent_name)) {
-                                    return false;
-                                }
+                                return !(str.includes(`${original.title} /`) || str === `${original.title}`);
                             }
-                            return true;
                         });
                         await this.updateProductCollection(product.content, product.id);
                     }
@@ -1963,47 +1990,49 @@ export class Shopping {
             const get_product_sql = `SELECT *
                                      FROM \`${this.app}\`.t_manager_post
                                      WHERE id = ?`;
-            for (const p of data.product_list) {
-                const get_product = await db.query(get_product_sql, [p.id]);
+            for (const id of replace.product_id ?? []) {
+                const get_product = await db.query(get_product_sql, [id]);
                 if (get_product[0]) {
                     const product = get_product[0];
+                    const originalParentTitles = original.parentTitles[0] ?? '';
+                    const replaceParentTitles = replace.parentTitles[0] ?? '';
 
-                    if (data.id != -1) {
+                    if (original.title.length > 0) {
                         product.content.collection = product.content.collection
                             .filter((str: string) => {
-                                if (data.origin.parent_name === data.parent_name) {
+                                if (originalParentTitles === replaceParentTitles) {
                                     return true;
                                 }
-                                if (data.parent_name) {
-                                    if (str === data.origin.parent_name || str.includes(`${data.origin.parent_name} / ${data.origin.item_name}`)) {
+                                if (replaceParentTitles) {
+                                    if (str === originalParentTitles || str.includes(`${originalParentTitles} / ${original.title}`)) {
                                         return false;
                                     }
                                 } else {
-                                    if (str === data.origin.item_name || str.includes(`${data.origin.item_name} /`)) {
+                                    if (str === original.title || str.includes(`${original.title} /`)) {
                                         return false;
                                     }
                                 }
                                 return true;
                             })
                             .map((str: string) => {
-                                if (data.parent_name) {
-                                    if (str.includes(`${data.origin.parent_name} / ${data.origin.item_name}`)) {
-                                        return str.replace(data.origin.item_name, data.name);
+                                if (replaceParentTitles) {
+                                    if (str.includes(`${originalParentTitles} / ${original.title}`)) {
+                                        return str.replace(original.title, replace.title);
                                     }
                                 } else {
-                                    if (str === data.origin.item_name || str.includes(`${data.origin.item_name} /`)) {
-                                        return str.replace(data.origin.item_name, data.name);
+                                    if (str === original.title || str.includes(`${original.title} /`)) {
+                                        return str.replace(original.title, replace.title);
                                     }
                                 }
                                 return str;
                             });
                     }
 
-                    if (data.parent_id === undefined) {
-                        product.content.collection.push(data.name);
+                    if (replaceParentTitles === '') {
+                        product.content.collection.push(replace.title);
                     } else {
-                        product.content.collection.push(data.parent_name);
-                        product.content.collection.push(`${data.parent_name} / ${data.name}`);
+                        product.content.collection.push(replaceParentTitles);
+                        product.content.collection.push(`${replaceParentTitles} / ${replace.title}`);
                     }
 
                     product.content.collection = [...new Set(product.content.collection)];
@@ -2011,6 +2040,13 @@ export class Shopping {
                     await this.updateProductCollection(product.content, product.id);
                 }
             }
+
+            // 更新商品類別 config
+            const update_col_sql = `UPDATE \`${this.app}\`.public_config
+                                    SET value = ?
+                                    WHERE \`key\` = 'collection';`;
+            await db.execute(update_col_sql, [config.value]);
+
             return { result: true };
         } catch (e) {
             console.error(e);
@@ -2074,7 +2110,7 @@ export class Shopping {
         }
     }
 
-    async deleteCollection(id_array: any) {
+    async deleteCollection(dataArray: Collection[]) {
         try {
             const config = (
                 await db.query(
@@ -2084,50 +2120,50 @@ export class Shopping {
                     []
                 )
             )[0];
-            const delete_index_array: { parent: number; child: number[] }[] = [];
+            const deleteList: { parent: number; child: number[] }[] = [];
 
             // format 刪除類別 index
-            id_array.map((id: string | number) => {
-                if (typeof id === 'number') {
-                    delete_index_array.push({ parent: id, child: [-1] });
-                } else {
-                    const arr = id.split('_').map((str) => parseInt(str, 10));
-                    const n = delete_index_array.findIndex((obj) => obj.parent === arr[0]);
+            dataArray.map((data) => {
+                const parentTitles = data.parentTitles[0] ?? '';
+                if (parentTitles.length > 0) {
+                    // data 為子層
+                    const parentIndex = config.value.findIndex((col: { title: string }) => col.title === parentTitles);
+                    const childrenIndex = config.value[parentIndex].array.findIndex((col: { title: string }) => col.title === data.title);
+                    const n = deleteList.findIndex((obj) => obj.parent === parentIndex);
                     if (n === -1) {
-                        delete_index_array.push({ parent: arr[0], child: [arr[1]] });
+                        deleteList.push({ parent: parentIndex, child: [childrenIndex] });
                     } else {
-                        delete_index_array[n].child.push(arr[1]);
+                        deleteList[n].child.push(childrenIndex);
                     }
+                } else {
+                    // data 為父層
+                    const parentIndex = config.value.findIndex((col: { title: string }) => col.title === data.title);
+                    deleteList.push({ parent: parentIndex, child: [-1] });
                 }
             });
 
             // 刪除類別之產品
-            for (const d of delete_index_array) {
+            for (const d of deleteList) {
                 const collection = config.value[d.parent];
                 for (const index of d.child) {
                     if (index !== -1) {
                         await this.deleteCollectionProduct(collection.title, [`${collection.array[index].title}`]);
                     }
                 }
-                if (d.child.length === collection.array.length || d.child[0] === -1) {
+                if (d.child[0] === -1) {
                     await this.deleteCollectionProduct(collection.title);
                 }
             }
 
             // 取得新的類別 config 陣列
-            delete_index_array.map((obj) => {
+            deleteList.map((obj) => {
                 config.value[obj.parent].array = config.value[obj.parent].array.filter((col: any, index: number) => {
                     return !obj.child.includes(index);
                 });
             });
             config.value = config.value.filter((col: any, index: number) => {
-                const find_collection = delete_index_array.find((obj) => obj.parent === index);
-                if (find_collection) {
-                    if (col.array.length === 0 || find_collection.child[0] === -1) {
-                        return false;
-                    }
-                }
-                return true;
+                const find_collection = deleteList.find((obj) => obj.parent === index);
+                return !(find_collection && find_collection.child[0] === -1);
             });
 
             // 更新商品類別
@@ -2171,7 +2207,7 @@ export class Shopping {
     containsTagSQL(name: string) {
         return `SELECT *
                 FROM \`${this.app}\`.t_manager_post
-                WHERE JSON_CONTAINS(content - > '$.collection', '"${name}"');`;
+                WHERE JSON_CONTAINS(content -> '$.collection', '"${name}"');`;
     }
 
     async updateProductCollection(content: string[], id: number) {

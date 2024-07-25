@@ -699,6 +699,45 @@ ul {
     background: #646464;
 }
 
+.uimg-container {
+    width: 100%;
+    height: 190px;
+    border: 1px solid #d4d7e5;
+    padding-top: 58px;
+    padding-bottom: 58px;
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+    justify-content: center;
+    align-items: center;
+    display: flex;
+    position: relative;
+}
+
+.uimg-image {
+    position: absolute;
+    max-width: 100%;
+    height: calc(100% - 10px);
+}
+
+.uimg-shadow {
+    opacity: 0;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.726);
+    top: 0px;
+}
+
+.uimg-trash {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    top: 50%;
+    left: 50%;
+    color: white;
+    cursor: pointer;
+}
+
 @media (max-width: 768px) {
     .c_select_w_100 {
         width: 100%;

@@ -189,7 +189,7 @@ router.post('/checkout', async (req, resp) => {
 router.post('/checkout/repay', async (req, resp) => {
     try {
         return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).toCheckout({
-            return_url: req.body.return_url
+            return_url: req.body.return_url,
         }, 'add', req.body.order_id));
     }
     catch (err) {
@@ -279,12 +279,11 @@ router.get('/order/payment-method', async (req, resp) => {
         });
         return response_1.default.succ(resp, keyData);
     }
-    catch (e) {
-    }
+    catch (e) { }
 });
 router.put('/order/proof-purchase', async (req, resp) => {
     try {
-        return response_1.default.succ(resp, await (new shopping_1.Shopping(req.get('g-app'), req.body.token)).proofPurchase(req.body.order_id, req.body.text));
+        return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).proofPurchase(req.body.order_id, req.body.text));
     }
     catch (err) {
         return response_1.default.fail(resp, err);
@@ -408,29 +407,28 @@ async function redirect_link(req, resp) {
         let return_url = new URL((await redis_js_1.default.getValue(req.query.return)));
         const html = String.raw;
         return resp.send(html `<!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8"/>
-            <title>Title</title>
-        </head>
-        <body>
-        <script>
-            try {
-                window.webkit.messageHandlers.addJsInterFace.postMessage(
-                        JSON.stringify({
-                            functionName: 'closeWebView',
-                            callBackId: 0,
-                            data: {
-                                redirect: '${return_url.href}',
-                            },
-                        })
-                );
-            } catch (e) {
-            }
-            location.href = '${return_url.href}';
-        </script>
-        </body>
-        </html> `);
+            <html lang="en">
+                <head>
+                    <meta charset="UTF-8" />
+                    <title>Title</title>
+                </head>
+                <body>
+                    <script>
+                        try {
+                            window.webkit.messageHandlers.addJsInterFace.postMessage(
+                                JSON.stringify({
+                                    functionName: 'closeWebView',
+                                    callBackId: 0,
+                                    data: {
+                                        redirect: '${return_url.href}',
+                                    },
+                                })
+                            );
+                        } catch (e) {}
+                        location.href = '${return_url.href}';
+                    </script>
+                </body>
+            </html> `);
     }
     catch (err) {
         return response_1.default.fail(resp, err);
@@ -622,7 +620,7 @@ router.get('/collection/products', async (req, resp) => {
 router.put('/collection', async (req, resp) => {
     try {
         if (await ut_permission_1.UtPermission.isManager(req)) {
-            return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).putCollection(req.body.data));
+            return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).putCollection(req.body.replace, req.body.original));
         }
         else {
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null);
@@ -704,7 +702,7 @@ router.post('/product', async (req, resp) => {
         else {
             return response_1.default.succ(resp, {
                 result: true,
-                id: await new shopping_1.Shopping(req.get('g-app'), req.body.token).postProduct(req.body)
+                id: await new shopping_1.Shopping(req.get('g-app'), req.body.token).postProduct(req.body),
             });
         }
     }
@@ -720,7 +718,7 @@ router.put('/product', async (req, resp) => {
         else {
             return response_1.default.succ(resp, {
                 result: true,
-                id: await new shopping_1.Shopping(req.get('g-app'), req.body.token).putProduct(req.body)
+                id: await new shopping_1.Shopping(req.get('g-app'), req.body.token).putProduct(req.body),
             });
         }
     }
