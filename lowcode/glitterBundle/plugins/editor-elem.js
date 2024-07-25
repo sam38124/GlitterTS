@@ -85,6 +85,86 @@ export class EditorElem {
             };
         })} `;
     }
+    static uploadImageContainer(obj) {
+        const gvc = obj.gvc;
+        const glitter = gvc.glitter;
+        return html `${EditorElem.h3(obj.title)}
+        ${gvc.bindView(() => {
+            const id = glitter.getUUID();
+            return {
+                bind: id,
+                view: () => {
+                    if (obj.def && obj.def.length > 0) {
+                        return html `<div class="uimg-container">
+                            <img class="uimg-image" src="${obj.def}" />
+                            <div
+                                class="uimg-shadow"
+                                onmouseover="${gvc.event((e) => {
+                            e.style.opacity = '1';
+                        })}"
+                                onmouseout="${gvc.event((e) => {
+                            e.style.opacity = '0';
+                        })}"
+                            >
+                                <i
+                                    class="fa-regular fa-trash mx-auto fs-1 uimg-trash"
+                                    onclick="${gvc.event(() => {
+                            obj.def = '';
+                            obj.callback(obj.def);
+                            gvc.notifyDataChange(id);
+                        })}"
+                                ></i>
+                            </div>
+                        </div>`;
+                    }
+                    return html `<div class="uimg-container">
+                        <button
+                            class="btn btn-gray"
+                            type="button"
+                            onclick="${gvc.event(() => {
+                        glitter.ut.chooseMediaCallback({
+                            single: true,
+                            accept: 'json,image/*',
+                            callback(data) {
+                                const saasConfig = window.saasConfig;
+                                const dialog = new ShareDialog(gvc.glitter);
+                                dialog.dataLoading({ visible: true });
+                                const file = data[0].file;
+                                saasConfig.api.uploadFile(file.name).then((data) => {
+                                    dialog.dataLoading({ visible: false });
+                                    const data1 = data.response;
+                                    dialog.dataLoading({ visible: true });
+                                    BaseApi.create({
+                                        url: data1.url,
+                                        type: 'put',
+                                        data: file,
+                                        headers: {
+                                            'Content-Type': data1.type,
+                                        },
+                                    }).then((res) => {
+                                        if (res.result) {
+                                            dialog.dataLoading({ visible: false });
+                                            obj.callback(data1.fullUrl);
+                                            obj.def = data1.fullUrl;
+                                            gvc.notifyDataChange(id);
+                                        }
+                                        else {
+                                            dialog.dataLoading({ visible: false });
+                                            dialog.errorMessage({ text: '上傳失敗' });
+                                        }
+                                    });
+                                });
+                            },
+                        });
+                    })}"
+                        >
+                            <span class="tx_700">新增圖片</span>
+                        </button>
+                    </div>`;
+                },
+            };
+        })}`;
+    }
     static fileUploadEvent(file, callback) {
         const glitter = window.glitter;
         glitter.ut.chooseMediaCallback({
@@ -1060,7 +1140,7 @@ ${obj.gvc.bindView(() => {
         const $ = glitter.$;
         return html `<h3 style="color: white;font-size: 16px;margin-bottom: 10px;" class="mt-2">${obj.title}</h3>
             <div class="alert alert-dark alert-dismissible fade show" role="alert" style="white-space: normal;word-break: break-word;">
-                <a onclick="${obj.gvc.event(() => glitter.openNewTab(`https://lottiefiles.com/`))}" class=" fw text-white" style="cursor: pointer;">Lottie</a>
+                <a onclick="${obj.gvc.event(() => glitter.openNewTab(`https://lottiefiles.com/`))}" class="fw text-white" style="cursor: pointer;">Lottie</a>
                 是開放且免費的動畫平台，可以前往下載動畫檔後進行上傳．
             </div>
             <div class="d-flex align-items-center mb-3">

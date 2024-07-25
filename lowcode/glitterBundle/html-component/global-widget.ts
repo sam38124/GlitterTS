@@ -147,7 +147,7 @@ export class GlobalWidget {
         } else {
             const id = obj.gvc.glitter.getUUID()
             GlobalWidget.initialShowCaseData({widget:obj.widget,gvc:obj.gvc})
-            function selector(widget: any) {
+            function selector(widget: any,key:string) {
                 return EditorElem.select({
                     title: '樣式來源',
                     gvc: obj.gvc,
@@ -157,12 +157,8 @@ export class GlobalWidget {
                         {title: '自定義', value: "custom"}
                     ],
                     callback: (text) => {
-                        widget.refer = text
-                        setTimeout(()=>{
-                            obj.gvc.notifyDataChange(id)
-                        })
-
-                        // obj.widget.refreshComponent()
+                      obj.widget[key].refer=text;
+                        obj.widget.refreshComponent()
                     }
                 })
             }
@@ -171,13 +167,13 @@ export class GlobalWidget {
                     bind: id,
                     view: () => {
                         if (GlobalWidget.glitter_view_type === ViewType.mobile) {
-                            const view = [selector(obj.widget.mobile)]
+                            const view = [selector(obj.widget.mobile,'mobile')]
                             if (obj.widget.mobile.refer !== 'def') {
                                 view.push(obj.view(obj.widget.mobile))
                             }
                             return view.join('')
                         } else if (GlobalWidget.glitter_view_type === ViewType.desktop) {
-                            const view = [selector(obj.widget.desktop)]
+                            const view = [selector(obj.widget.desktop,'desktop')]
                             if (obj.widget.desktop.refer !== 'def') {
                                 view.push(obj.view(obj.widget.desktop))
                             }

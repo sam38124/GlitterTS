@@ -142,7 +142,7 @@ export class Rebate {
     // 取得購物金列表
     async getRebateList(query: IRebateSearch) {
         const limit = query.limit ?? 20;
-        const start = ((query.page ?? 1) - 1) * limit;
+        const start = ((query.page || 1) - 1) * limit;
         const end = start + limit;
         const search = query.search ?? '';
         const low = query.low ?? 0;

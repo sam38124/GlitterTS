@@ -1,7 +1,6 @@
 import { GlobalUser } from '../global/global-user.js';
 import { BaseApi } from '../../glitterBundle/api/base.js';
 export class ApiShop {
-    constructor() { }
     static postProduct(cf) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/product`,
@@ -30,6 +29,30 @@ export class ApiShop {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/product`,
             type: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: cf.token || getConfig().config.token,
+            },
+            data: JSON.stringify(cf.data),
+        });
+    }
+    static putCollections(cf) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/ec/collection`,
+            type: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: cf.token || getConfig().config.token,
+            },
+            data: JSON.stringify(cf.data),
+        });
+    }
+    static deleteCollections(cf) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/ec/collection`,
+            type: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
                 'g-app': getConfig().config.appName,
@@ -387,7 +410,7 @@ export class ApiShop {
                 'Content-Type': 'application/json',
                 'g-app': getConfig().config.appName,
                 Authorization: getConfig().config.token,
-            }
+            },
         });
     }
     static proofPurchase(order_id, text) {
@@ -400,9 +423,9 @@ export class ApiShop {
                 Authorization: getConfig().config.token,
             },
             data: JSON.stringify({
-                "order_id": order_id,
-                "text": text
-            })
+                order_id: order_id,
+                text: text,
+            }),
         });
     }
     static repay(order_id, return_url) {
@@ -415,9 +438,9 @@ export class ApiShop {
                 Authorization: getConfig().config.token,
             },
             data: JSON.stringify({
-                "return_url": return_url,
-                "order_id": order_id
-            })
+                return_url: return_url,
+                order_id: order_id,
+            }),
         });
     }
     static getVoucherCode() {

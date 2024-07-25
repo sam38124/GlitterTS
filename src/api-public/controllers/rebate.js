@@ -106,10 +106,12 @@ router.post('/batch', async (req, resp) => {
                 }
             }
             for (const userID of req.body.userID) {
-                await rebateClass.insertRebate(userID, amount, note && note.length > 0 ? note : '手動設定', {
-                    type: 'manual',
-                    deadTime: deadline,
-                });
+                if (amount !== 0) {
+                    await rebateClass.insertRebate(userID, amount, note && note.length > 0 ? note : '手動設定', {
+                        type: 'manual',
+                        deadTime: deadline,
+                    });
+                }
             }
             return response_1.default.succ(resp, { result: true });
         }

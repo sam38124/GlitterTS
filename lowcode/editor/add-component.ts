@@ -402,7 +402,11 @@ export class AddComponent {
                                                     try {
                                                         const data = JSON.parse(clipboardText);
                                                         data.id=gvc.glitter.getUUID()
-                                                        gvc.glitter.share.addComponent(data);
+                                                        try {
+                                                            AddComponent.addWidget(gvc,data);
+                                                        }catch (e) {
+                                                            
+                                                        }
                                                     }catch (e) {
                                                      const dialog=new ShareDialog(gvc.glitter)
                                                      dialog.errorMessage({text:'請先選擇元件複製!'})   

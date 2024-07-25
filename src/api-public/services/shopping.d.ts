@@ -35,6 +35,18 @@ interface VoucherData {
     target: string;
     targetList: string[];
 }
+type Collection = {
+    title: string;
+    array: Collection[];
+    checked: boolean;
+    product_id?: number[];
+    parentTitles: string[];
+    subCollections: string[];
+    allCollections: string[];
+    seo_title: string;
+    seo_content: string;
+    seo_image: string;
+};
 export declare class Shopping {
     app: string;
     token?: IToken;
@@ -335,7 +347,7 @@ export declare class Shopping {
         countArray: number[];
     }>;
     getCollectionProducts(tag: string): Promise<any>;
-    putCollection(data: any): Promise<{
+    putCollection(replace: Collection, original: Collection): Promise<{
         result: boolean;
         message: string;
     } | {
@@ -347,7 +359,7 @@ export declare class Shopping {
     postMulProduct(content: any): Promise<any>;
     processProducts(productArray: any, insertIDStart: any): Promise<void>;
     putProduct(content: any): Promise<any>;
-    deleteCollection(id_array: any): Promise<{
+    deleteCollection(dataArray: Collection[]): Promise<{
         result: boolean;
     }>;
     deleteCollectionProduct(parent_name: string, children_list?: string[]): Promise<{

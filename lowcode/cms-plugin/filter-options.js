@@ -40,6 +40,15 @@ FilterOptions.userFunnel = [
         ],
     },
     {
+        key: 'rebate',
+        type: 'radio_and_input',
+        name: '持有回饋金',
+        data: [
+            { key: 'lessThan', name: '小於', type: 'number', placeHolder: '請輸入數值', unit: '元' },
+            { key: 'moreThan', name: '大於', type: 'number', placeHolder: '請輸入數值', unit: '元' },
+        ],
+    },
+    {
         key: 'total_amount',
         type: 'radio_and_input',
         name: '累積消費金額',
@@ -213,4 +222,12 @@ FilterOptions.stockOrderBy = [
     { key: 'min_price', value: '價格低 > 高' },
     { key: 'stock_desc', value: '庫存數量多 > 少' },
     { key: 'stock_asc', value: '庫存數量少 > 多' },
+];
+FilterOptions.emailOptions = [
+    { key: 'def', value: '請選擇根據的條件' },
+    { key: 'allCustomer', value: '指定顧客' },
+    { key: 'level', value: '會員等級' },
+    { key: 'group', value: '顧客分群' },
+    { key: 'birth', value: '顧客生日月份' },
+    { key: 'remain', value: '購物金剩餘點數' },
 ];

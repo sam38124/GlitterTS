@@ -13,7 +13,7 @@ import { config } from './config.js';
 import { ApiPageConfig } from './api/pageConfig.js';
 import { BaseApi } from './glitterBundle/api/base.js';
 import { GlobalUser } from './glitter-base/global/global-user.js';
-import { EditorConfig } from "./editor-config.js";
+import { EditorConfig } from './editor-config.js';
 export class Entry {
     static onCreate(glitter) {
         var _a;
@@ -22,43 +22,40 @@ export class Entry {
             Object.keys(hashCode).map((dd, index) => {
                 if (typeof hashCode[dd] === 'string') {
                     try {
-                        hashCode[dd] = (new Function(`return {
+                        hashCode[dd] = new Function(`return {
                         execute:(gvc,widget,object,subData,element,window,document,glitter,$)=>{
                          return (() => { ${hashCode[dd]} })()
                         }
-                        }`))().execute;
+                        }`)().execute;
                     }
                     catch (e) {
-                        console.log(`error->`, `return {
-                        execute:(gvc,widget,object,subData,element,window,document,glitter,$)=>{
-                         return (() => { ${hashCode[dd]} })()
-                        }
-                        }`);
                     }
                 }
             });
         };
         glitter.share.reload_code_hash();
         glitter.share.editor_util = {
-            baseApi: BaseApi
+            baseApi: BaseApi,
         };
         glitter.page = window.glitter_page;
         glitter.share.GlobalUser = GlobalUser;
         Entry.checkRedirectPage(glitter);
         glitter.share.logID = glitter.getUUID();
-        glitter.addStyle(`@media (prefers-reduced-motion: no-preference) {
-          :root {
-            scroll-behavior: auto !important;
-          }
-        }`);
+        glitter.addStyle(`
+            @media (prefers-reduced-motion: no-preference) {
+                :root {
+                    scroll-behavior: auto !important;
+                }
+            }
+        `);
         if (glitter.getUrlParameter('appName')) {
             window.appName = glitter.getUrlParameter('appName');
             config.appName = glitter.getUrlParameter('appName');
         }
         window.renderClock = (_a = window.renderClock) !== null && _a !== void 0 ? _a : clockF();
         console.log(`Entry-time:`, window.renderClock.stop());
-        glitter.share.editerVersion = "V_9.4.6";
-        glitter.share.start = (new Date());
+        glitter.share.editerVersion = 'V_9.4.8';
+        glitter.share.start = new Date();
         const vm = {
             appConfig: [],
         };
@@ -69,62 +66,65 @@ export class Entry {
         };
         config.token = GlobalUser.saas_token;
         Entry.resourceInitial(glitter, vm, (dd) => __awaiter(this, void 0, void 0, function* () {
-            glitter.addStyle(`  /* 隐藏子元素 */
-          .editorParent .editorChild {
-            display: none;
-          }
-          .editorChild::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index:99999;
-          }
+            glitter.addStyle(`
+                .editorParent .editorChild {
+                    display: none;
+                }
 
-          /* 当父元素悬停时显示子元素 */
-         
-          .editorParent:hover > .editorChild {
-            display: block;
-            border: 2px dashed  #FFB400 ;
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-          }
-          
-          .editorItemActive{
-            display: block !important;
-            border: 2px solid #FFB400 !important;
-            z-index:99999;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            position: absolute;
-            background: linear-gradient(143deg, rgba(255, 180, 0, 0.20) -22.7%, rgba(255, 108, 2, 0.20) 114.57%);
-          }
+                .editorChild::before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    pointer-events: none;
+                    z-index: 99999;
+                }
 
-          .editorItemActive > .badge_it{
-            display:flex;
-          }
-           .editorItemActive > .plus_btn{
-            display:none;
-          }
-          
-           .editorParent:hover > .editorChild > .plus_btn {
-            display:block !important;
-          }
-          .badge_it{
-            display:none;
-          }
-          .relativePosition{
-            position: relative;
-          }`);
+                .editorParent:hover > .editorChild {
+                    display: block;
+                    border: 2px dashed #ffb400;
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    pointer-events: none;
+                }
+
+                .editorItemActive {
+                    display: block !important;
+                    border: 2px solid #ffb400 !important;
+                    z-index: 99999;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    position: absolute;
+                    background: linear-gradient(143deg, rgba(255, 180, 0, 0.2) -22.7%, rgba(255, 108, 2, 0.2) 114.57%);
+                }
+
+                .editorItemActive > .badge_it {
+                    display: flex;
+                }
+
+                .editorItemActive > .plus_btn {
+                    display: none;
+                }
+
+                .editorParent:hover > .editorChild > .plus_btn {
+                    display: block !important;
+                }
+
+                .badge_it {
+                    display: none;
+                }
+
+                .relativePosition {
+                    position: relative;
+                }
+            `);
             yield Entry.globalStyle(glitter, dd);
             if (glitter.getUrlParameter('type') === 'editor') {
                 Entry.toBackendEditor(glitter, () => { });
@@ -143,44 +143,46 @@ export class Entry {
     }
     static checkIframe(glitter) {
         if (glitter.getUrlParameter('isIframe') === 'true') {
-            console.log('checkIframe' + glitter.share.logID);
+            console.log('checkIframe:' + glitter.share.logID);
             glitter.goBack = window.parent.glitter.goBack;
             setInterval(() => {
                 window.parent.glitter.share.iframeHeightChange[glitter.getUrlParameter('iframe_id')](document.body.scrollHeight);
                 $(`body`).height(`${document.body.scrollHeight}px`);
             }, 100);
-            glitter.addStyle(`html,body{
-            overflow:hidden !important;
-            }`);
+            glitter.addStyle(`
+                html,
+                body {
+                    overflow: hidden !important;
+                }
+            `);
         }
         else {
-            glitter.addStyle(`html,body{
-        height: 100vh !important;
-    }`);
+            glitter.addStyle(`
+                html,
+                body {
+                    height: 100vh !important;
+                }
+            `);
         }
     }
     static toBackendEditor(glitter, callback) {
         if (!glitter.getUrlParameter('function')) {
             glitter.setUrlParameter('function', 'backend-manger');
         }
-        const css = String.raw;
-        glitter.addStyle(css `
+        glitter.addStyle(`
             @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@100..900&family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap');
             @media (prefers-reduced-motion: no-preference) {
                 :root {
                     scroll-behavior: auto !important;
                 }
             }
-
             ::-webkit-scrollbar {
                 width: 0px !important; /* 滚动条宽度 */
                 height: 0px !important;
             }
         `);
         glitter.share.EditorMode = true;
-        glitter.share.evalPlace = (evals) => {
-            return eval(evals);
-        };
+        glitter.share.evalPlace = (evals) => eval(evals);
         function running() {
             return __awaiter(this, void 0, void 0, function* () {
                 glitter.addStyleLink(['assets/vendor/boxicons/css/boxicons.min.css', 'assets/css/theme.css', 'css/editor.css']);
@@ -267,11 +269,12 @@ export class Entry {
         var _a;
         window.preloadData.eval_code_hash = window.parent.preloadData.eval_code_hash;
         glitter.share.reload_code_hash();
-        glitter.addMtScript([{
-                src: 'https://kit.fontawesome.com/cccedec0f8.js'
-            }], () => { }, () => { });
-        const css = String.raw;
-        glitter.addStyle(css `
+        glitter.addMtScript([
+            {
+                src: 'https://kit.fontawesome.com/cccedec0f8.js',
+            },
+        ], () => { }, () => { });
+        glitter.addStyle(`
             @media (prefers-reduced-motion: no-preference) {
                 :root {
                     scroll-behavior: auto !important;
@@ -432,7 +435,7 @@ export class Entry {
                     });
                 }
                 catch (e) {
-                    console.log(e);
+                    console.error(e);
                 }
             }
             if (glitter.getUrlParameter('type') === 'htmlEditor') {
@@ -487,7 +490,7 @@ export class Entry {
                     }
                 }
                 catch (e) {
-                    console.log(e);
+                    console.error(e);
                     vm.count--;
                 }
             }
@@ -514,4 +517,3 @@ let clockF = () => {
         },
     };
 };
-``;

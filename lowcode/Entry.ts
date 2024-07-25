@@ -5,54 +5,56 @@ import { config } from './config.js';
 import { ApiPageConfig } from './api/pageConfig.js';
 import { BaseApi } from './glitterBundle/api/base.js';
 import { GlobalUser } from './glitter-base/global/global-user.js';
-import { GVCType, PageConfig } from './glitterBundle/module/PageManager.js';
-import {ColorThemeSelector} from "./form-view/editor/color-theme-selector.js";
-import {EditorConfig} from "./editor-config.js";
+import { EditorConfig } from './editor-config.js';
 
 export class Entry {
     public static onCreate(glitter: Glitter) {
-        glitter.share.reload_code_hash=function (){
-            const hashCode=(window as any).preloadData.eval_code_hash || {}
-            Object.keys(hashCode).map((dd,index)=>{
-                if(typeof hashCode[dd]==='string'){
+        glitter.share.reload_code_hash = function () {
+            const hashCode = (window as any).preloadData.eval_code_hash || {};
+            Object.keys(hashCode).map((dd, index) => {
+                if (typeof hashCode[dd] === 'string') {
                     try {
-                        hashCode[dd]=(new Function(`return {
+                        hashCode[dd] = new Function(`return {
                         execute:(gvc,widget,object,subData,element,window,document,glitter,$)=>{
                          return (() => { ${hashCode[dd]} })()
                         }
-                        }`))().execute
-                    }catch (e){
-                        console.log(`error->`,`return {
-                        execute:(gvc,widget,object,subData,element,window,document,glitter,$)=>{
-                         return (() => { ${hashCode[dd]} })()
-                        }
-                        }`)
+                        }`)().execute;
+                    } catch (e) {
+                        // console.log(
+                        //     `error->`,
+                        //     `return {
+                        // execute:(gvc,widget,object,subData,element,window,document,glitter,$)=>{
+                        //  return (() => { ${hashCode[dd]} })()
+                        // }
+                        // }`
+                        // );
                     }
                 }
-            })
-        }
-        glitter.share.reload_code_hash()
-        // console.log(`hashCode->`,hashCode)
-        glitter.share.editor_util={
-            baseApi:BaseApi
-        }
+            });
+        };
+        glitter.share.reload_code_hash();
+        glitter.share.editor_util = {
+            baseApi: BaseApi,
+        };
         glitter.page = (window as any).glitter_page;
         glitter.share.GlobalUser = GlobalUser;
         Entry.checkRedirectPage(glitter);
         glitter.share.logID = glitter.getUUID();
-        glitter.addStyle(`@media (prefers-reduced-motion: no-preference) {
-          :root {
-            scroll-behavior: auto !important;
-          }
-        }`);
+        glitter.addStyle(`
+            @media (prefers-reduced-motion: no-preference) {
+                :root {
+                    scroll-behavior: auto !important;
+                }
+            }
+        `);
         if (glitter.getUrlParameter('appName')) {
             (window as any).appName = glitter.getUrlParameter('appName');
             config.appName = glitter.getUrlParameter('appName');
         }
         (window as any).renderClock = (window as any).renderClock ?? clockF();
         console.log(`Entry-time:`, (window as any).renderClock.stop());
-        glitter.share.editerVersion = "V_9.4.6";
-        glitter.share.start = (new Date());
+        glitter.share.editerVersion = 'V_9.4.8';
+        glitter.share.start = new Date();
         const vm: {
             appConfig: any;
         } = {
@@ -64,78 +66,84 @@ export class Entry {
             api: ApiPageConfig,
             appConfig: undefined,
         };
-        //設定SAAS管理員請求API
+
+        // 設定SAAS管理員請求API
         config.token = GlobalUser.saas_token;
-        //資源初始化
+
+        // 資源初始化
         Entry.resourceInitial(glitter, vm, async (dd) => {
-            glitter.addStyle(`  /* 隐藏子元素 */
-          .editorParent .editorChild {
-            display: none;
-          }
-          .editorChild::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index:99999;
-          }
+            glitter.addStyle(`
+                .editorParent .editorChild {
+                    display: none;
+                }
 
-          /* 当父元素悬停时显示子元素 */
-         
-          .editorParent:hover > .editorChild {
-            display: block;
-            border: 2px dashed  #FFB400 ;
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-          }
-          
-          .editorItemActive{
-            display: block !important;
-            border: 2px solid #FFB400 !important;
-            z-index:99999;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            position: absolute;
-            background: linear-gradient(143deg, rgba(255, 180, 0, 0.20) -22.7%, rgba(255, 108, 2, 0.20) 114.57%);
-          }
+                .editorChild::before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    pointer-events: none;
+                    z-index: 99999;
+                }
 
-          .editorItemActive > .badge_it{
-            display:flex;
-          }
-           .editorItemActive > .plus_btn{
-            display:none;
-          }
-          
-           .editorParent:hover > .editorChild > .plus_btn {
-            display:block !important;
-          }
-          .badge_it{
-            display:none;
-          }
-          .relativePosition{
-            position: relative;
-          }`);
-            //載入全域資源
+                .editorParent:hover > .editorChild {
+                    display: block;
+                    border: 2px dashed #ffb400;
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    pointer-events: none;
+                }
+
+                .editorItemActive {
+                    display: block !important;
+                    border: 2px solid #ffb400 !important;
+                    z-index: 99999;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    position: absolute;
+                    background: linear-gradient(143deg, rgba(255, 180, 0, 0.2) -22.7%, rgba(255, 108, 2, 0.2) 114.57%);
+                }
+
+                .editorItemActive > .badge_it {
+                    display: flex;
+                }
+
+                .editorItemActive > .plus_btn {
+                    display: none;
+                }
+
+                .editorParent:hover > .editorChild > .plus_btn {
+                    display: block !important;
+                }
+
+                .badge_it {
+                    display: none;
+                }
+
+                .relativePosition {
+                    position: relative;
+                }
+            `);
+
+            // 載入全域資源
             await Entry.globalStyle(glitter, dd);
             if (glitter.getUrlParameter('type') === 'editor') {
-                //頁面編輯器
+                // 頁面編輯器
                 Entry.toBackendEditor(glitter, () => {});
             } else if (glitter.getUrlParameter('type') === 'htmlEditor') {
-                //Iframe預覽區塊
+                // Iframe預覽區塊
                 Entry.toHtmlEditor(glitter, vm, () => {
                     Entry.checkIframe(glitter);
                 });
             } else {
-                //一般頁面
+                // 一般頁面
                 Entry.toNormalRender(glitter, vm, () => {
                     Entry.checkIframe(glitter);
                 });
@@ -143,49 +151,50 @@ export class Entry {
         });
     }
 
-    //判斷是否為Iframe來覆寫Glitter代碼
+    // 判斷是否為Iframe來覆寫Glitter代碼
     public static checkIframe(glitter: Glitter) {
         if (glitter.getUrlParameter('isIframe') === 'true') {
-            console.log('checkIframe' + glitter.share.logID);
+            console.log('checkIframe:' + glitter.share.logID);
             glitter.goBack = (window.parent as any).glitter.goBack;
-            // 创建一个 MutationObserver 实例
             setInterval(() => {
                 (window.parent as any).glitter.share.iframeHeightChange[glitter.getUrlParameter('iframe_id')](document.body.scrollHeight);
                 $(`body`).height(`${document.body.scrollHeight}px`);
             }, 100);
-            glitter.addStyle(`html,body{
-            overflow:hidden !important;
-            }`);
+            glitter.addStyle(`
+                html,
+                body {
+                    overflow: hidden !important;
+                }
+            `);
         } else {
-            glitter.addStyle(`html,body{
-        height: 100vh !important;
-    }`);
+            glitter.addStyle(`
+                html,
+                body {
+                    height: 100vh !important;
+                }
+            `);
         }
     }
 
-    //跳轉至頁面編輯器
+    // 跳轉至頁面編輯器
     public static toBackendEditor(glitter: Glitter, callback: () => void) {
         if (!glitter.getUrlParameter('function')) {
             glitter.setUrlParameter('function', 'backend-manger');
         }
-        const css = String.raw;
-        glitter.addStyle(css`
+        glitter.addStyle(`
             @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@100..900&family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap');
             @media (prefers-reduced-motion: no-preference) {
                 :root {
                     scroll-behavior: auto !important;
                 }
             }
-
             ::-webkit-scrollbar {
                 width: 0px !important; /* 滚动条宽度 */
                 height: 0px !important;
             }
         `);
         glitter.share.EditorMode = true;
-        glitter.share.evalPlace = (evals: string) => {
-            return eval(evals);
-        };
+        glitter.share.evalPlace = (evals: string) => eval(evals);
 
         async function running() {
             glitter.addStyleLink(['assets/vendor/boxicons/css/boxicons.min.css', 'assets/css/theme.css', 'css/editor.css']);
@@ -276,15 +285,20 @@ export class Entry {
         }
     }
 
-    //跳轉至頁面編輯器Iframe顯示
+    // 跳轉至頁面編輯器Iframe顯示
     public static toHtmlEditor(glitter: Glitter, vm: any, callback: () => void) {
-        (window as any).preloadData.eval_code_hash=(window.parent as any).preloadData.eval_code_hash;
-        glitter.share.reload_code_hash()
-        glitter.addMtScript([{
-            src:'https://kit.fontawesome.com/cccedec0f8.js'
-        }],()=>{},()=>{})
-        const css = String.raw;
-        glitter.addStyle(css`
+        (window as any).preloadData.eval_code_hash = (window.parent as any).preloadData.eval_code_hash;
+        glitter.share.reload_code_hash();
+        glitter.addMtScript(
+            [
+                {
+                    src: 'https://kit.fontawesome.com/cccedec0f8.js',
+                },
+            ],
+            () => {},
+            () => {}
+        );
+        glitter.addStyle(`
             @media (prefers-reduced-motion: no-preference) {
                 :root {
                     scroll-behavior: auto !important;
@@ -312,9 +326,11 @@ export class Entry {
                 clearInterval(interVal);
             }
         });
+
         (window.parent as any).glitter.share.evalPlace = (evals: string) => {
             return eval(evals);
         };
+
         glitter.addMtScript(
             (window.parent as any).editerData.setting.map((dd: any) => {
                 return {
@@ -327,7 +343,7 @@ export class Entry {
             [{ key: 'async', value: 'true' }]
         );
 
-        //Preload page script.
+        // Preload page script
         glitter.htmlGenerate.loadScript(
             glitter,
             (window.parent as any).editerData.setting
@@ -383,7 +399,7 @@ export class Entry {
 
                 return;
             }
-            //Preload page script.
+            // Preload page script
             glitter.htmlGenerate.loadScript(
                 glitter,
                 data.response.result[0].config
@@ -417,7 +433,7 @@ export class Entry {
                 });
             }
 
-            //判斷APP是否過期
+            // 判斷APP是否過期
             if (
                 (window as any).memberType !== 'noLimit' &&
                 vm.appConfig.dead_line &&
@@ -431,12 +447,12 @@ export class Entry {
         });
     }
 
-    //資源初始化
+    // 資源初始化
     public static resourceInitial(glitter: Glitter, vm: any, callback: (data: any) => void) {
         (window as any).glitterInitialHelper.getPlugin((dd: any) => {
             console.log(`getPlugin-time:`, (window as any).renderClock.stop());
             (window as any).saasConfig.appConfig = dd.response.data;
-            //設定預設的多國語言
+            // 設定預設的多國語言
             GlobalUser.language = GlobalUser.language || navigator.language;
             vm.appConfig = dd.response.data;
             glitter.share.appConfigresponse = dd;
@@ -472,7 +488,7 @@ export class Entry {
                         }
                     });
                 } catch (e) {
-                    console.log(e);
+                    console.error(e);
                 }
             }
             if (glitter.getUrlParameter('type') === 'htmlEditor') {
@@ -486,10 +502,10 @@ export class Entry {
         });
     }
 
-    //載入全域資源
+    // 載入全域資源
     public static globalStyle(glitter: Glitter, dd: any) {
         return new Promise(async (resolve, reject) => {
-            //Initial Global style
+            // Initial Global style
             // if (glitter.getUrlParameter("type") !== 'editor') {
             //     for (const data of (dd.response.data.initialStyleSheet ?? [])) {
             //         try {
@@ -499,13 +515,13 @@ export class Entry {
             //                 glitter.addStyle(data.src.official)
             //             }
             //         } catch (e) {
-            //             console.log(e)
+            //             console.error(e)
             //         }
             //     }
             // }
             let countI = dd.response.data.initialList.length;
             const vm = {
-                //@ts-ignore
+                // @ts-ignore
                 get count() {
                     return countI;
                 },
@@ -544,7 +560,7 @@ export class Entry {
                         vm.count--;
                     }
                 } catch (e) {
-                    console.log(e);
+                    console.error(e);
                     vm.count--;
                 }
             }
@@ -554,7 +570,7 @@ export class Entry {
         });
     }
 
-    //判斷是否要重新定義頁面
+    // 判斷是否要重新定義頁面
     public static checkRedirectPage(glitter: Glitter) {
         const url = new URL(location.href);
         if (url.searchParams.get('state') === 'google_login') {
@@ -574,4 +590,3 @@ let clockF = () => {
         },
     };
 };
-``

@@ -84,9 +84,12 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                 case 'successMessage':
                     setTimeout(() => gvc.closeDialog(), 1200);
                     return html `
-                        <div class="dialog-box" onclick="${gvc.event(() => {
+                        <div
+                            class="dialog-box"
+                            onclick="${gvc.event(() => {
                         gvc.closeDialog();
-                    })}">
+                    })}"
+                        >
                             <div class="dialog-content">
                                 <i class="fa-regular fa-circle-check fs-1"></i>
                                 <div class="mt-3 fs-6 fw-500">${(_c = gBundle.obj.text) !== null && _c !== void 0 ? _c : '成功'}</div>
@@ -98,7 +101,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                         <div class="dialog-box">
                             <div class="dialog-content position-relative pb-5" style="width: 270px;">
                                 <i class="fa-regular fa-circle-question fs-1"></i>
-                                <div class="my-3 fs-6 fw-500">${gBundle.title}</div>
+                                <div class="my-3 fs-6 fw-500 text-center">${gBundle.title}</div>
                                 <div class="dialog-absolute">
                                     <div
                                         class="w-100 h-100 text-center pt-2 hover-cancel"

@@ -101,10 +101,12 @@ export class Schedule {
                         async function postUserRebate(id: number, value: number) {
                             const used = await rebateClass.canUseRebate(id, 'birth');
                             if (used?.result) {
-                                await rebateClass.insertRebate(id, value, '生日禮', {
-                                    type: 'birth',
-                                    deadTime: rgs.unlimited ? undefined : moment().add(rgs.date, 'd').format('YYYY-MM-DD HH:mm:ss'),
-                                });
+                                if (value !== 0) {
+                                    await rebateClass.insertRebate(id, value, '生日禮', {
+                                        type: 'birth',
+                                        deadTime: rgs.unlimited ? undefined : moment().add(rgs.date, 'd').format('YYYY-MM-DD HH:mm:ss'),
+                                    });
+                                }
                             }
                         }
 

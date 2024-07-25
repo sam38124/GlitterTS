@@ -1,10 +1,8 @@
 import { GlobalUser } from '../global/global-user.js';
 import { BaseApi } from '../../glitterBundle/api/base.js';
-import { Glitter } from '../../glitterBundle/Glitter.js';
 
 export class ApiShop {
-    constructor() {}
-    public static postProduct(cf: { data: any; token?: string }) {
+    static postProduct(cf: { data: any; token?: string }) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/product`,
             type: 'POST',
@@ -17,7 +15,6 @@ export class ApiShop {
         });
     }
     public static postMultiProduct(cf: { data: any; token?: string }) {
-
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/product/multiple`,
             type: 'POST',
@@ -41,6 +38,33 @@ export class ApiShop {
             data: JSON.stringify(cf.data),
         });
     }
+
+    static putCollections(cf: { data: any; token?: string }) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/ec/collection`,
+            type: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: cf.token || getConfig().config.token,
+            },
+            data: JSON.stringify(cf.data),
+        });
+    }
+
+    static deleteCollections(cf: { data: any; token?: string }) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/ec/collection`,
+            type: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: cf.token || getConfig().config.token,
+            },
+            data: JSON.stringify(cf.data),
+        });
+    }
+
     static getRebate(query: { userID?: string }) {
         return BaseApi.create({
             url:
@@ -166,7 +190,7 @@ export class ApiShop {
         });
     }
 
-    public static orderListFilterString(obj: any): string[] {
+    static orderListFilterString(obj: any): string[] {
         if (!obj) return [];
         let list = [] as string[];
         if (obj) {
@@ -326,7 +350,7 @@ export class ApiShop {
         });
     }
 
-    public static getInvoiceType() {
+    static getInvoiceType() {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/invoice/invoice-type`,
             type: 'GET',
@@ -337,7 +361,7 @@ export class ApiShop {
         });
     }
 
-    public static getLoginForOrder() {
+    static getLoginForOrder() {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/check-login-for-order`,
             type: 'GET',
@@ -348,7 +372,7 @@ export class ApiShop {
         });
     }
 
-    public static setShowList(json: any) {
+    static setShowList(json: any) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/manager/config`,
             type: 'PUT',
@@ -400,11 +424,11 @@ export class ApiShop {
             address?: string;
             email?: string;
         };
-        customer_info?:{
+        customer_info?: {
             name?: string;
             phone?: string;
             email?: string;
-        },
+        };
         code?: string;
         use_rebate?: number;
     }) {
@@ -461,6 +485,7 @@ export class ApiShop {
             data: JSON.stringify(json),
         });
     }
+
     static toManualCheckout(passData: any) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/manager/checkout/`,
@@ -482,10 +507,11 @@ export class ApiShop {
                 'Content-Type': 'application/json',
                 'g-app': getConfig().config.appName,
                 Authorization: getConfig().config.token,
-            }
+            },
         });
     }
-    static proofPurchase(order_id:string,text:string) {
+
+    static proofPurchase(order_id: string, text: string) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/order/proof-purchase`,
             type: 'PUT',
@@ -494,13 +520,14 @@ export class ApiShop {
                 'g-app': getConfig().config.appName,
                 Authorization: getConfig().config.token,
             },
-            data:JSON.stringify({
-                "order_id":order_id,
-                "text":text
-            })
+            data: JSON.stringify({
+                order_id: order_id,
+                text: text,
+            }),
         });
     }
-    static repay(order_id:string,return_url:string) {
+
+    static repay(order_id: string, return_url: string) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/checkout/repay`,
             type: 'POST',
@@ -509,10 +536,10 @@ export class ApiShop {
                 'g-app': getConfig().config.appName,
                 Authorization: getConfig().config.token,
             },
-            data:JSON.stringify({
-                "return_url":return_url,
-                "order_id":order_id
-            })
+            data: JSON.stringify({
+                return_url: return_url,
+                order_id: order_id,
+            }),
         });
     }
 
@@ -647,7 +674,7 @@ export class ApiShop {
         });
     }
 
-    public static putVariants(cf: { data: any; token?: string }) {
+    static putVariants(cf: { data: any; token?: string }) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/product/variants`,
             type: 'PUT',

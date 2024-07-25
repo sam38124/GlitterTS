@@ -121,7 +121,7 @@ class Shopping {
                 }
                 await trans.commit();
             }
-            (productList).map((product) => {
+            productList.map((product) => {
                 const record = itemRecord.find((item) => item.id === product.id);
                 product.total_sales = record ? record.count : 0;
                 return product;
@@ -217,17 +217,12 @@ class Shopping {
     async toCheckout(data, type = 'add', replace_order_id) {
         var _a, _b, _c, _d;
         try {
-            console.log(`replace_order_id`, replace_order_id);
             if (replace_order_id) {
-                const orderData = (await database_js_1.default.query(`SELECT *
-                                                   FROM \`${this.app}\`.t_checkout
-                                                   where cart_token = ?
-                                                     and status = 0;`, [replace_order_id]))[0];
+                const orderData = (await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_checkout
+                        WHERE cart_token = ? AND status = 0;`, [replace_order_id]))[0];
                 if (orderData) {
-                    await database_js_1.default.query(`delete
-                                    from \`${this.app}\`.t_checkout
-                                    where cart_token = ?
-                                      and status = 0;`, [replace_order_id]);
+                    await database_js_1.default.query(`DELETE FROM \`${this.app}\`.t_checkout
+                        WHERE cart_token = ? AND status = 0;`, [replace_order_id]);
                     data.lineItems = orderData.orderData.lineItems;
                     data.email = orderData.email;
                     data.user_info = orderData.orderData.user_info;
@@ -411,8 +406,7 @@ class Shopping {
                         }
                     }
                 }
-                catch (e) {
-                }
+                catch (e) { }
             }
             carData.total += carData.shipment_fee;
             const f_rebate = await this.formatUseRebate(carData.total, carData.use_rebate);
@@ -485,7 +479,9 @@ class Shopping {
                         }, {}, true);
                         customerData = await userClass.getUserData(data.email || data.user_info.email, 'account');
                     }
-                    await rebateClass.insertRebate(customerData.userID, carData.rebate, `手動新增訂單 - 優惠券購物金：${tempVoucher.title}`);
+                    if (carData.rebate !== 0) {
+                        await rebateClass.insertRebate(customerData.userID, carData.rebate, `手動新增訂單 - 優惠券購物金：${tempVoucher.title}`);
+                    }
                 }
                 await database_js_1.default.execute(`INSERT INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
                      values (?, ?, ?, ?)`, [carData.orderID, data.pay_status, carData.email, carData]);
@@ -782,7 +778,7 @@ class Shopping {
         try {
             const update = {};
             if (data.status !== undefined) {
-                (update.status = data.status);
+                update.status = data.status;
             }
             data.orderData && (update.orderData = JSON.stringify(data.orderData));
             await database_js_1.default.query(`UPDATE \`${this.app}\`.t_checkout
@@ -812,16 +808,12 @@ class Shopping {
     }
     async proofPurchase(order_id, text) {
         try {
-            const orderData = (await database_js_1.default.query(`select orderData
-                                               from \`${this.app}\`.t_checkout
-                                               where cart_token = ?`, [order_id]))[0]['orderData'];
+            const orderData = (await database_js_1.default.query(`select orderData from \`${this.app}\`.t_checkout where cart_token=?`, [order_id]))[0]['orderData'];
             orderData.proof_purchase = text;
             new notify_js_1.ManagerNotify(this.app).uploadProof({ orderData: orderData });
-            await database_js_1.default.query(`update \`${this.app}\`.t_checkout
-                            set orderData=?
-                            where cart_token = ?`, [JSON.stringify(orderData), order_id]);
+            await database_js_1.default.query(`update \`${this.app}\`.t_checkout set orderData=? where cart_token=?`, [JSON.stringify(orderData), order_id]);
             return {
-                result: true
+                result: true,
             };
         }
         catch (e) {
@@ -987,13 +979,15 @@ class Shopping {
                                 });
                                 if (item.rebate > 0 && (useCheck === null || useCheck === void 0 ? void 0 : useCheck.result)) {
                                     const content = voucherRow[0].content;
-                                    await rebateClass.insertRebate(userData.userID, item.rebate * item.count, `優惠券購物金：${content.title}`, {
-                                        voucher_id: orderVoucher.id,
-                                        order_id: order_id,
-                                        sku: item.sku,
-                                        quantity: item.count,
-                                        deadTime: content.rebateEndDay ? (0, moment_1.default)().add(content.rebateEndDay, 'd').format('YYYY-MM-DD HH:mm:ss') : undefined,
-                                    });
+                                    if (item.rebate * item.count !== 0) {
+                                        await rebateClass.insertRebate(userData.userID, item.rebate * item.count, `優惠券購物金：${content.title}`, {
+                                            voucher_id: orderVoucher.id,
+                                            order_id: order_id,
+                                            sku: item.sku,
+                                            quantity: item.count,
+                                            deadTime: content.rebateEndDay ? (0, moment_1.default)().add(content.rebateEndDay, 'd').format('YYYY-MM-DD HH:mm:ss') : undefined,
+                                        });
+                                    }
                                 }
                             }
                         }
@@ -1411,68 +1405,89 @@ class Shopping {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getCollectionProducts Error:' + e, null);
         }
     }
-    async putCollection(data) {
-        var _a;
+    async putCollection(replace, original) {
+        var _a, _b, _c, _d, _e, _f, _g;
         try {
+            const data = {};
             let config = (_a = (await database_js_1.default.query(`SELECT *
                          FROM \`${this.app}\`.public_config
                          WHERE \`key\` = 'collection';`, []))[0]) !== null && _a !== void 0 ? _a : {};
             config.value = config.value || [];
-            if (data.id == -1 || data.parent_name !== data.origin.parent_name || data.name !== data.origin.item_name) {
-                if (data.parent_id === undefined && config.value.find((item) => item.title === data.name)) {
-                    return { result: false, message: `上層分類已存在「${data.name}」類別名稱` };
+            if (replace.parentTitles.length > 0) {
+                const oTitle = (_b = original.parentTitles[0]) !== null && _b !== void 0 ? _b : '';
+                const rTitle = replace.parentTitles[0];
+                if (!(replace.title === original.title && rTitle === oTitle)) {
+                    const parent = config.value.find((col) => col.title === rTitle);
+                    const children = parent.array.find((chi) => chi.title === replace.title);
+                    if (children) {
+                        return {
+                            result: false,
+                            message: `上層分類「${parent.title}」已存在「${children.title}」類別名稱`,
+                        };
+                    }
                 }
-                if (data.parent_id !== undefined && config.value[data.parent_id].array.find((item) => item.title === data.name)) {
-                    return {
-                        result: false,
-                        message: `上層分類「${config.value[data.parent_id].title}」已存在「${data.name}」類別名稱`,
-                    };
-                }
-            }
-            if (data.id == -1) {
-                if (data.parent_id === undefined) {
-                    config.value.push({ array: [], title: data.name });
-                }
-                else {
-                    config.value[data.parent_id].array.push({ array: [], title: data.name });
-                }
-            }
-            else if (data.origin.parent_id === undefined) {
-                config.value[data.origin.item_id] = {
-                    array: data.children_collections.map((col) => ({ array: [], title: col.name })),
-                    title: data.name,
-                };
             }
             else {
-                if (data.origin.parent_id === data.parent_id) {
-                    config.value[data.origin.parent_id].array[data.origin.item_id] = { array: [], title: data.name };
+                if (replace.title !== original.title) {
+                    const parent = config.value.find((col) => col.title === replace.title);
+                    if (parent) {
+                        return {
+                            result: false,
+                            message: `上層分類已存在「${parent.title}」類別名稱`,
+                        };
+                    }
+                }
+            }
+            const formatData = {
+                array: [],
+                title: replace.title,
+                seo_title: replace.seo_title,
+                seo_content: replace.seo_content,
+                seo_image: replace.seo_image,
+            };
+            if (original.title.length === 0) {
+                const parentIndex = config.value.findIndex((col) => {
+                    return col.title === replace.parentTitles[0];
+                });
+                if (parentIndex === -1) {
+                    config.value.push(formatData);
                 }
                 else {
-                    config.value[data.origin.parent_id].array.splice(data.origin.item_id, 1);
-                    config.value[data.parent_id].array.push({ array: [], title: data.name });
+                    config.value[parentIndex].array.push(formatData);
                 }
             }
-            if (data.id != -1 && data.origin.children_collections) {
-                const filter_childrens = data.origin.children_collections
-                    .filter((child) => {
-                    return data.children_collections.find((child2) => child2.id === child.id) === undefined;
-                })
-                    .map((child) => {
-                    return child.name;
+            else if (replace.parentTitles.length === 0) {
+                const parentIndex = config.value.findIndex((col) => {
+                    return col.title === original.title;
                 });
-                await this.deleteCollectionProduct(data.origin.item_name, filter_childrens);
+                config.value[parentIndex] = Object.assign(Object.assign({}, formatData), { array: replace.subCollections.map((col) => ({ array: [], title: col })) });
             }
-            const update_col_sql = `UPDATE \`${this.app}\`.public_config
-                                    SET value = ?
-                                    WHERE \`key\` = 'collection';`;
-            await database_js_1.default.execute(update_col_sql, [config.value]);
-            if (data.id != -1) {
-                const delete_id_list = data.origin.product_list
-                    .filter((o_prod) => {
-                    return data.product_list.find((prod) => prod.id === o_prod.id) === undefined;
-                })
-                    .map((o_prod) => {
-                    return o_prod.id;
+            else {
+                const oTitle = (_c = original.parentTitles[0]) !== null && _c !== void 0 ? _c : '';
+                const rTitle = replace.parentTitles[0];
+                const originParentIndex = config.value.findIndex((col) => col.title === oTitle);
+                const replaceParentIndex = config.value.findIndex((col) => col.title === rTitle);
+                const childrenIndex = config.value[originParentIndex].array.findIndex((chi) => {
+                    return chi.title === original.title;
+                });
+                if (originParentIndex === replaceParentIndex) {
+                    config.value[originParentIndex].array[childrenIndex] = formatData;
+                }
+                else {
+                    config.value[originParentIndex].array.splice(childrenIndex, 1);
+                    config.value[replaceParentIndex].array.push(formatData);
+                }
+            }
+            if (original.parentTitles[0]) {
+                const filter_childrens = original.subCollections.filter((child) => {
+                    return replace.subCollections.findIndex((child2) => child2 === child) === -1;
+                });
+                await this.deleteCollectionProduct(original.title, filter_childrens);
+            }
+            if (original.title.length > 0) {
+                const delete_id_list = ((_d = original.product_id) !== null && _d !== void 0 ? _d : []).filter((oid) => {
+                    var _a;
+                    return ((_a = replace.product_id) !== null && _a !== void 0 ? _a : []).findIndex((rid) => rid === oid) === -1;
                 });
                 if (delete_id_list.length > 0) {
                     const products_sql = `SELECT *
@@ -1481,17 +1496,12 @@ class Shopping {
                     const delete_product_list = await database_js_1.default.query(products_sql, []);
                     for (const product of delete_product_list) {
                         product.content.collection = product.content.collection.filter((str) => {
-                            if (data.origin.parent_name) {
-                                if (str.includes(data.origin.item_name) || str.includes(`${data.origin.item_name} /`)) {
-                                    return false;
-                                }
+                            if (original.parentTitles[0]) {
+                                return str !== `${original.parentTitles[0]} / ${original.title}`;
                             }
                             else {
-                                if (str.includes(data.origin.item_name) || str.includes(`${data.origin.item_name} /`) || str.includes(data.origin.parent_name)) {
-                                    return false;
-                                }
+                                return !(str.includes(`${original.title} /`) || str === `${original.title}`);
                             }
-                            return true;
                         });
                         await this.updateProductCollection(product.content, product.id);
                     }
@@ -1500,53 +1510,59 @@ class Shopping {
             const get_product_sql = `SELECT *
                                      FROM \`${this.app}\`.t_manager_post
                                      WHERE id = ?`;
-            for (const p of data.product_list) {
-                const get_product = await database_js_1.default.query(get_product_sql, [p.id]);
+            for (const id of (_e = replace.product_id) !== null && _e !== void 0 ? _e : []) {
+                const get_product = await database_js_1.default.query(get_product_sql, [id]);
                 if (get_product[0]) {
                     const product = get_product[0];
-                    if (data.id != -1) {
+                    const originalParentTitles = (_f = original.parentTitles[0]) !== null && _f !== void 0 ? _f : '';
+                    const replaceParentTitles = (_g = replace.parentTitles[0]) !== null && _g !== void 0 ? _g : '';
+                    if (original.title.length > 0) {
                         product.content.collection = product.content.collection
                             .filter((str) => {
-                            if (data.origin.parent_name === data.parent_name) {
+                            if (originalParentTitles === replaceParentTitles) {
                                 return true;
                             }
-                            if (data.parent_name) {
-                                if (str === data.origin.parent_name || str.includes(`${data.origin.parent_name} / ${data.origin.item_name}`)) {
+                            if (replaceParentTitles) {
+                                if (str === originalParentTitles || str.includes(`${originalParentTitles} / ${original.title}`)) {
                                     return false;
                                 }
                             }
                             else {
-                                if (str === data.origin.item_name || str.includes(`${data.origin.item_name} /`)) {
+                                if (str === original.title || str.includes(`${original.title} /`)) {
                                     return false;
                                 }
                             }
                             return true;
                         })
                             .map((str) => {
-                            if (data.parent_name) {
-                                if (str.includes(`${data.origin.parent_name} / ${data.origin.item_name}`)) {
-                                    return str.replace(data.origin.item_name, data.name);
+                            if (replaceParentTitles) {
+                                if (str.includes(`${originalParentTitles} / ${original.title}`)) {
+                                    return str.replace(original.title, replace.title);
                                 }
                             }
                             else {
-                                if (str === data.origin.item_name || str.includes(`${data.origin.item_name} /`)) {
-                                    return str.replace(data.origin.item_name, data.name);
+                                if (str === original.title || str.includes(`${original.title} /`)) {
+                                    return str.replace(original.title, replace.title);
                                 }
                             }
                             return str;
                         });
                     }
-                    if (data.parent_id === undefined) {
-                        product.content.collection.push(data.name);
+                    if (replaceParentTitles === '') {
+                        product.content.collection.push(replace.title);
                     }
                     else {
-                        product.content.collection.push(data.parent_name);
-                        product.content.collection.push(`${data.parent_name} / ${data.name}`);
+                        product.content.collection.push(replaceParentTitles);
+                        product.content.collection.push(`${replaceParentTitles} / ${replace.title}`);
                     }
                     product.content.collection = [...new Set(product.content.collection)];
                     await this.updateProductCollection(product.content, product.id);
                 }
             }
+            const update_col_sql = `UPDATE \`${this.app}\`.public_config
+                                    SET value = ?
+                                    WHERE \`key\` = 'collection';`;
+            await database_js_1.default.execute(update_col_sql, [config.value]);
             return { result: true };
         }
         catch (e) {
@@ -1638,51 +1654,50 @@ class Shopping {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'postProduct Error:' + e, null);
         }
     }
-    async deleteCollection(id_array) {
+    async deleteCollection(dataArray) {
         try {
             const config = (await database_js_1.default.query(`SELECT *
                      FROM \`${this.app}\`.public_config
                      WHERE \`key\` = 'collection';`, []))[0];
-            const delete_index_array = [];
-            id_array.map((id) => {
-                if (typeof id === 'number') {
-                    delete_index_array.push({ parent: id, child: [-1] });
-                }
-                else {
-                    const arr = id.split('_').map((str) => parseInt(str, 10));
-                    const n = delete_index_array.findIndex((obj) => obj.parent === arr[0]);
+            const deleteList = [];
+            dataArray.map((data) => {
+                var _a;
+                const parentTitles = (_a = data.parentTitles[0]) !== null && _a !== void 0 ? _a : '';
+                if (parentTitles.length > 0) {
+                    const parentIndex = config.value.findIndex((col) => col.title === parentTitles);
+                    const childrenIndex = config.value[parentIndex].array.findIndex((col) => col.title === data.title);
+                    const n = deleteList.findIndex((obj) => obj.parent === parentIndex);
                     if (n === -1) {
-                        delete_index_array.push({ parent: arr[0], child: [arr[1]] });
+                        deleteList.push({ parent: parentIndex, child: [childrenIndex] });
                     }
                     else {
-                        delete_index_array[n].child.push(arr[1]);
+                        deleteList[n].child.push(childrenIndex);
                     }
                 }
+                else {
+                    const parentIndex = config.value.findIndex((col) => col.title === data.title);
+                    deleteList.push({ parent: parentIndex, child: [-1] });
+                }
             });
-            for (const d of delete_index_array) {
+            for (const d of deleteList) {
                 const collection = config.value[d.parent];
                 for (const index of d.child) {
                     if (index !== -1) {
                         await this.deleteCollectionProduct(collection.title, [`${collection.array[index].title}`]);
                     }
                 }
-                if (d.child.length === collection.array.length || d.child[0] === -1) {
+                if (d.child[0] === -1) {
                     await this.deleteCollectionProduct(collection.title);
                 }
             }
-            delete_index_array.map((obj) => {
+            deleteList.map((obj) => {
                 config.value[obj.parent].array = config.value[obj.parent].array.filter((col, index) => {
                     return !obj.child.includes(index);
                 });
             });
             config.value = config.value.filter((col, index) => {
-                const find_collection = delete_index_array.find((obj) => obj.parent === index);
-                if (find_collection) {
-                    if (col.array.length === 0 || find_collection.child[0] === -1) {
-                        return false;
-                    }
-                }
-                return true;
+                const find_collection = deleteList.find((obj) => obj.parent === index);
+                return !(find_collection && find_collection.child[0] === -1);
             });
             const update_col_sql = `UPDATE \`${this.app}\`.public_config
                                     SET value = ?
@@ -1724,7 +1739,7 @@ class Shopping {
     containsTagSQL(name) {
         return `SELECT *
                 FROM \`${this.app}\`.t_manager_post
-                WHERE JSON_CONTAINS(content - > '$.collection', '"${name}"');`;
+                WHERE JSON_CONTAINS(content -> '$.collection', '"${name}"');`;
     }
     async updateProductCollection(content, id) {
         try {

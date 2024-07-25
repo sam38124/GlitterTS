@@ -186,7 +186,7 @@ export class BgWidget {
                                 const pencilId = gvc.glitter.getUUID();
                                 return html ` <tr
                                                           style="${obj.rowClick ? `cursor:pointer;` : ``};color:#303030;position: relative;"
-                                                          onclick="${gvc.event((e, ev) => {
+                                                          onclick="${gvc.event(() => {
                                     obj.rowClick && obj.rowClick(dd, index);
                                 })}"
                                                           onmouseover="${gvc.event(() => {
@@ -452,7 +452,7 @@ export class BgWidget {
         return html `
             <div style="${(_b = obj.divStyle) !== null && _b !== void 0 ? _b : ''}">
                 ${obj.title ? html ` <div class="tx_normal fw-normal" style="${(_c = obj.titleStyle) !== null && _c !== void 0 ? _c : ''}">${obj.title}</div>` : ``}
-                <div class="d-flex align-items-center border rounded-3 ${obj.readonly ? `bgw-input-readonly` : ``}" style="margin: 8px 0;">
+                <div class="d-flex w-100 align-items-center border rounded-3 ${obj.readonly ? `bgw-input-readonly` : ``}" style="margin: 8px 0;">
                     ${obj.startText ? html ` <div class="py-2 ps-3">${obj.startText}</div>` : ''}
                     <input
                         class="bgw-input ${obj.readonly ? `bgw-input-readonly` : ``}"
@@ -864,7 +864,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         var _a, _b;
         return html ` <div style="display: flex; align-items: center;">
             <div class="tx_normal me-2">${(_a = text.left) !== null && _a !== void 0 ? _a : ''}</div>
-            <div class="form-check form-switch m-0 mt-1" style="margin-top: 10px; cursor: pointer;">
+            <div class="form-check form-switch m-0" style="margin-top: 10px; cursor: pointer; display: flex; align-items: center;">
                 <input
                     class="form-check-input"
                     type="checkbox"
@@ -933,7 +933,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         return obj.gvc.bindView({
             bind: vm.id,
             view: () => {
-                var _a;
+                var _a, _b;
                 const defLine = obj.options.filter((item) => {
                     return obj.default.includes(item.key);
                 });
@@ -957,7 +957,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                         return item.value;
                     })
                         .join(' / ')
-                    : BgWidget.grayNote('（點擊選擇項目）')}
+                    : BgWidget.grayNote((_b = obj.placeholder) !== null && _b !== void 0 ? _b : '（點擊選擇項目）')}
                         </div>
                     </div>
                     ${vm.show
@@ -1021,6 +1021,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                 options: [],
                 query: '',
                 orderString: '',
+                selectKey: '',
             };
             obj.gvc.addStyle(`
                 .${vm.checkClass}:checked[type='checkbox'] {
@@ -1052,25 +1053,30 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                             <div class="c_dialog">
                                 <div class="c_dialog_body">
                                     <div class="c_dialog_main">
-                                        <div class="d-flex" style="gap: 12px;">
-                                            ${this.searchFilter(gvc.event((e, event) => {
-                        vm.query = e.value;
-                        vm.loading = true;
-                        obj.gvc.notifyDataChange(vm.id);
-                    }), vm.query || '', '搜尋')}
-                                            ${this.updownFilter({
-                        gvc,
-                        callback: (value) => {
-                            vm.orderString = value;
+                                        ${obj.readonly
+                        ? ''
+                        : html `<div class="d-flex" style="gap: 12px;">
+                                                  ${this.searchFilter(gvc.event((e, event) => {
+                            vm.query = e.value;
                             vm.loading = true;
                             obj.gvc.notifyDataChange(vm.id);
-                        },
-                        default: vm.orderString || 'default',
-                        options: obj.updownOptions || [],
-                    })}
-                                        </div>
+                        }), vm.query || '', '搜尋')}
+                                                  ${obj.updownOptions
+                            ? this.updownFilter({
+                                gvc,
+                                callback: (value) => {
+                                    vm.orderString = value;
+                                    vm.loading = true;
+                                    obj.gvc.notifyDataChange(vm.id);
+                                },
+                                default: vm.orderString || 'default',
+                                options: obj.updownOptions || [],
+                            })
+                            : ''}
+                                              </div>`}
                                         ${obj.gvc.map(vm.options.map((opt) => {
                         function call() {
+                            vm.selectKey = opt.key;
                             if (obj.default.includes(opt.key)) {
                                 obj.default = obj.default.filter((item) => item !== opt.key);
                             }
@@ -1080,37 +1086,41 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                             obj.gvc.notifyDataChange(vm.id);
                         }
                         return html ` <div class="d-flex align-items-center" style="gap: 24px">
-                                                    <input
-                                                        class="form-check-input mt-0 ${vm.checkClass}"
-                                                        type="checkbox"
-                                                        id="${opt.key}"
-                                                        name="radio_${vm.id}"
-                                                        onclick="${obj.gvc.event(() => call())}"
-                                                        ${obj.default.includes(opt.key) ? 'checked' : ''}
-                                                    />
-                                                    <div class="form-check-label c_updown_label cursor_pointer" onclick="${obj.gvc.event(() => call())}">
+                                                    ${obj.readonly
+                            ? ''
+                            : html `<input
+                                                              class="form-check-input mt-0 ${vm.checkClass}"
+                                                              type="checkbox"
+                                                              id="${opt.key}"
+                                                              name="radio_${vm.id}"
+                                                              onclick="${obj.gvc.event(() => call())}"
+                                                              ${obj.default.includes(opt.key) ? 'checked' : ''}
+                                                          />`}
+                                                    <div class="form-check-label c_updown_label ${obj.readonly ? '' : 'cursor_pointer'}" onclick="${obj.gvc.event(() => call())}">
                                                         <div class="tx_normal ${opt.note ? 'mb-1' : ''}">${opt.value}</div>
                                                         ${opt.note ? html ` <div class="tx_gray_12">${opt.note}</div> ` : ''}
                                                     </div>
                                                 </div>`;
                     }))}
                                     </div>
-                                    <div class="c_dialog_bar">
-                                        ${BgWidget.cancel(obj.gvc.event(() => {
-                        obj.callback([]);
-                        gvc.closeDialog();
-                    }), '清除全部')}
-                                        ${BgWidget.cancel(obj.gvc.event(() => {
-                        obj.callback(vm.def);
-                        gvc.closeDialog();
-                    }))}
-                                        ${BgWidget.save(obj.gvc.event(() => {
-                        obj.callback(obj.default.filter((item) => {
-                            return vm.options.find((opt) => opt.key === item);
-                        }));
-                        gvc.closeDialog();
-                    }), '確認')}
-                                    </div>
+                                    ${obj.readonly
+                        ? ''
+                        : html `<div class="c_dialog_bar">
+                                              ${BgWidget.cancel(obj.gvc.event(() => {
+                            obj.callback([]);
+                            gvc.closeDialog();
+                        }), '清除全部')}
+                                              ${BgWidget.cancel(obj.gvc.event(() => {
+                            obj.callback(vm.def);
+                            gvc.closeDialog();
+                        }))}
+                                              ${BgWidget.save(obj.gvc.event(() => {
+                            obj.callback(obj.default.filter((item) => {
+                                return vm.options.find((opt) => opt.key === item);
+                            }));
+                            gvc.closeDialog();
+                        }), '確認')}
+                                          </div>`}
                                 </div>
                             </div>
                         </div>`;
@@ -1125,6 +1135,19 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                             vm.loading = false;
                             obj.gvc.notifyDataChange(vm.id);
                         });
+                    }
+                    else {
+                        const si = setInterval(() => {
+                            const element = document.getElementById(vm.selectKey);
+                            if (element) {
+                                element.scrollIntoView();
+                                const element2 = document.querySelector('.c_dialog_main');
+                                if (element2) {
+                                    element2.scrollTop -= element2.clientHeight / 2;
+                                }
+                                clearInterval(si);
+                            }
+                        }, 100);
                     }
                 },
             })}

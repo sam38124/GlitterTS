@@ -93,7 +93,6 @@ class User {
         }
     }
     async createUserHook(userID) {
-        var _a;
         const usData = await this.getUserData(userID, 'userID');
         const data = await auto_send_email_js_1.AutoSendEmail.getDefCompare(this.app, 'auto-email-welcome');
         if (data.toggle) {
@@ -101,8 +100,8 @@ class User {
         }
         const getRS = await this.getConfig({ key: 'rebate_setting', user_id: 'manager' });
         const rgs = getRS[0] && getRS[0].value.register ? getRS[0].value.register : {};
-        if (rgs && rgs.switch) {
-            await new rebate_js_1.Rebate(this.app).insertRebate(userID, (_a = rgs.value) !== null && _a !== void 0 ? _a : 0, '新加入會員', {
+        if (rgs && rgs.switch && rgs.value) {
+            await new rebate_js_1.Rebate(this.app).insertRebate(userID, rgs.value, '新加入會員', {
                 type: 'first_regiser',
                 deadTime: rgs.unlimited ? undefined : (0, moment_1.default)().add(rgs.date, 'd').format('YYYY-MM-DD HH:mm:ss'),
             });
@@ -564,6 +563,33 @@ class User {
                         : users.map((item) => item.userID);
                     query.id = ids.join(',');
                 }
+                else {
+                    query.id = '0,0';
+                }
+            }
+            if (query.rebate && query.rebate.length > 0) {
+                const r = query.rebate.split(',');
+                const rebateData = await new rebate_js_1.Rebate(this.app).getRebateList({
+                    page: 0,
+                    limit: 0,
+                    search: '',
+                    type: 'download',
+                    low: r[0] === 'moreThan' ? parseInt(r[1], 10) : undefined,
+                    high: r[0] === 'lessThan' ? parseInt(r[1], 10) : undefined,
+                });
+                if (rebateData && rebateData.total > 0) {
+                    const ids = query.id
+                        ? query.id.split(',').filter((id) => {
+                            return rebateData.data.find((item) => {
+                                return item.user_id === parseInt(`${id}`, 10);
+                            });
+                        })
+                        : rebateData.data.map((item) => item.user_id);
+                    query.id = ids.join(',');
+                }
+                else {
+                    query.id = '0,0';
+                }
             }
             if (query.id && query.id.length > 1) {
                 querySql.push(`(u.userID in (${query.id}))`);
@@ -665,7 +691,10 @@ class User {
                 const usuallyBuyingList = buyingList.filter((item) => item.count > usuallyBuyingStandard);
                 const neverBuyingData = await database_1.default.query(`SELECT userID, JSON_UNQUOTE(JSON_EXTRACT(userData, '$.email')) AS email
                     FROM \`${this.app}\`.t_user
-                    WHERE userID not in (${buyingList.map((item) => item.userID).concat([-1312]).join(',')})`, []);
+                    WHERE userID not in (${buyingList
+                    .map((item) => item.userID)
+                    .concat([-1312])
+                    .join(',')})`, []);
                 dataList = dataList.concat([
                     { type: 'neverBuying', title: '尚未購買過的顧客', users: neverBuyingData },
                     { type: 'usuallyBuying', title: '已購買多次的顧客', users: usuallyBuyingList },

@@ -89,10 +89,12 @@ class Schedule {
                         async function postUserRebate(id, value) {
                             const used = await rebateClass.canUseRebate(id, 'birth');
                             if (used === null || used === void 0 ? void 0 : used.result) {
-                                await rebateClass.insertRebate(id, value, '生日禮', {
-                                    type: 'birth',
-                                    deadTime: rgs.unlimited ? undefined : (0, moment_1.default)().add(rgs.date, 'd').format('YYYY-MM-DD HH:mm:ss'),
-                                });
+                                if (value !== 0) {
+                                    await rebateClass.insertRebate(id, value, '生日禮', {
+                                        type: 'birth',
+                                        deadTime: rgs.unlimited ? undefined : (0, moment_1.default)().add(rgs.date, 'd').format('YYYY-MM-DD HH:mm:ss'),
+                                    });
+                                }
                             }
                         }
                         const users = await database_1.default.query(`SELECT *

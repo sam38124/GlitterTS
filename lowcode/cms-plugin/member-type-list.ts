@@ -180,7 +180,7 @@ export class MemberTypeList {
                                                                         '批量移除',
                                                                         gvc.event(() => {
                                                                             dialog.checkYesOrNot({
-                                                                                text: '是否確認移除所選項目?',
+                                                                                text: '是否確認刪除所選項目？',
                                                                                 callback: (response) => {
                                                                                     if (response) {
                                                                                         widget.event('loading', {
