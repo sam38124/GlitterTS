@@ -344,6 +344,8 @@ export declare class Shopping {
     }>;
     checkVariantDataType(variants: any[]): void;
     postProduct(content: any): Promise<any>;
+    postMulProduct(content: any): Promise<any>;
+    processProducts(productArray: any, insertIDStart: any): Promise<void>;
     putProduct(content: any): Promise<any>;
     deleteCollection(id_array: any): Promise<{
         result: boolean;

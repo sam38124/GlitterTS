@@ -16,6 +16,19 @@ export class ApiShop {
             data: JSON.stringify(cf.data),
         });
     }
+    public static postMultiProduct(cf: { data: any; token?: string }) {
+
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/ec/product/multiple`,
+            type: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: cf.token || getConfig().config.token,
+            },
+            data: JSON.stringify(cf.data),
+        });
+    }
     public static putProduct(cf: { data: any; token?: string }) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/product`,

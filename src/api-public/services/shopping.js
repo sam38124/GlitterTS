@@ -1584,6 +1584,40 @@ class Shopping {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'postProduct Error:' + e, null);
         }
     }
+    async postMulProduct(content) {
+        try {
+            let productArray = content.data;
+            let passArray = [];
+            productArray.forEach((product, index) => {
+                product.type = 'product';
+            });
+            const data = await database_js_1.default.query(`INSERT INTO \`${this.app}\`.\`t_manager_post\` (userID , content)
+                 VALUES ?`, [productArray.map((product) => {
+                    var _a;
+                    product.type = 'product';
+                    this.checkVariantDataType(product.variants);
+                    return [
+                        (_a = this.token) === null || _a === void 0 ? void 0 : _a.userID,
+                        JSON.stringify(product),
+                    ];
+                })]);
+            let insertIDStart = data.insertId;
+            await new Shopping(this.app, this.token).processProducts(productArray, insertIDStart);
+            return insertIDStart;
+            return ``;
+        }
+        catch (e) {
+            console.error(e);
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'postProduct Error:' + e, null);
+        }
+    }
+    async processProducts(productArray, insertIDStart) {
+        const promises = productArray.map((product) => {
+            product.id = insertIDStart++;
+            return new Shopping(this.app, this.token).postVariantsAndPriceValue(product);
+        });
+        await Promise.all(promises);
+    }
     async putProduct(content) {
         try {
             content.type = 'product';

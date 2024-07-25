@@ -765,6 +765,21 @@ router.post('/product', async (req: express.Request, resp: express.Response) => 
         return response.fail(resp, err);
     }
 });
+router.post('/product/multiple', async (req: express.Request, resp: express.Response) => {
+    try {
+        if (!(await UtPermission.isManager(req))) {
+            return response.fail(resp, exception.BadRequestError('BAD_REQUEST', 'No permission.', null));
+        } else {
+
+            return response.succ(resp, {
+                result: true,
+                id: await new Shopping(req.get('g-app') as string, req.body.token).postMulProduct(req.body)
+            });
+        }
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
 
 router.put('/product', async (req: express.Request, resp: express.Response) => {
     try {
