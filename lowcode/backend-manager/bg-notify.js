@@ -1247,6 +1247,7 @@ export class BgNotify {
                                                 date: date,
                                                 time: (_b = (_a = postData.sendTime) === null || _a === void 0 ? void 0 : _a.time) !== null && _b !== void 0 ? _b : '',
                                             };
+                                            console.log(postData.sendTime);
                                         },
                                     })}
                                                             ${EditorElem.editeInput({
@@ -1262,6 +1263,7 @@ export class BgNotify {
                                                 date: (_b = (_a = postData.sendTime) === null || _a === void 0 ? void 0 : _a.date) !== null && _b !== void 0 ? _b : '',
                                                 time: time,
                                             };
+                                            console.log(postData.sendTime);
                                         },
                                     })}
                                                         </div>`,
@@ -1270,6 +1272,9 @@ export class BgNotify {
                             callback: (text) => {
                                 if (text === 'now') {
                                     postData.sendTime = undefined;
+                                }
+                                if (text === 'set') {
+                                    postData.sendTime = { date: startDate, time: startTime };
                                 }
                             },
                         })}`),

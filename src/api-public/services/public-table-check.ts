@@ -51,6 +51,18 @@ export class ApiPublic {
                 },
                 {
                     scheme: appName,
+                    table: 't_triggers',
+                    sql: `(
+  \`id\` int NOT NULL AUTO_INCREMENT,
+  \`tag\` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL,
+  \`content\` json NOT NULL,
+  \`trigger_time\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  \`status\` int NOT NULL DEFAULT '1',
+  PRIMARY KEY (\`id\`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+                },
+                {
+                    scheme: appName,
                     table: 't_api_router',
                     sql: `(
   \`id\` int NOT NULL AUTO_INCREMENT,

@@ -1363,6 +1363,7 @@ export class BgNotify {
                                                                         date: date,
                                                                         time: postData.sendTime?.time ?? '',
                                                                     };
+                                                                    console.log(postData.sendTime);
                                                                 },
                                                             })}
                                                             ${EditorElem.editeInput({
@@ -1377,6 +1378,7 @@ export class BgNotify {
                                                                         date: postData.sendTime?.date ?? '',
                                                                         time: time,
                                                                     };
+                                                                    console.log(postData.sendTime);
                                                                 },
                                                             })}
                                                         </div>`,
@@ -1385,6 +1387,9 @@ export class BgNotify {
                                                 callback: (text) => {
                                                     if (text === 'now') {
                                                         postData.sendTime = undefined;
+                                                    }
+                                                    if (text === 'set') {
+                                                        postData.sendTime = { date: startDate, time: startTime };
                                                     }
                                                 },
                                             })}`
