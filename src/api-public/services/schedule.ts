@@ -4,6 +4,8 @@ import exception from '../../modules/exception';
 import { Rebate } from './rebate';
 import { User } from './user';
 import { Shopping } from './shopping';
+import { sendmail } from '../../services/ses.js';
+import { Mail } from '../services/mail.js';
 
 type ScheduleItem = {
     second: number;
@@ -24,6 +26,7 @@ export class Schedule {
         if (!(await this.isDatabaseExists())) return false;
         if (!(await this.isTableExists('t_user_public_config'))) return false;
         if (!(await this.isTableExists('t_voucher_history'))) return false;
+        if (!(await this.isTableExists('t_triggers'))) return false;
         return true;
     }
 
@@ -153,12 +156,35 @@ export class Schedule {
         setTimeout(() => this.resetVoucherHistory(sec), sec * 1000);
     }
 
+    async autoSendMail(sec: number) {
+        try {
+            if (await this.perload()) {
+                const emails = await db.query(
+                    `SELECT * FROM \`${this.app}\`.t_triggers
+                     WHERE 
+                        tag = 'sendMailBySchedule' AND 
+                        DATE_FORMAT(trigger_time, '%Y-%m-%d %H:%i') = DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i');`,
+                    []
+                );
+                for (const email of emails) {
+                    if (email.status === 0) {
+                        new Mail(this.app).chunkSendMail(email.content, email.id);
+                    }
+                }
+            }
+        } catch (e) {
+            throw exception.BadRequestError('BAD_REQUEST', 'autoSendMail Error: ' + e, null);
+        }
+        setTimeout(() => this.autoSendMail(sec), sec * 1000);
+    }
+
     async main() {
         const scheduleList: ScheduleItem[] = [
             { second: 10, status: false, func: 'example', desc: '排程啟用範例' },
             { second: 3600, status: true, func: 'birthRebate', desc: '生日禮發放購物金' },
             { second: 600, status: true, func: 'refreshMember', desc: '更新會員分級' },
             { second: 30, status: true, func: 'resetVoucherHistory', desc: '未付款歷史優惠券重設' },
+            { second: 30, status: true, func: 'autoSendMail', desc: '自動排程寄送信件' },
         ];
 
         try {

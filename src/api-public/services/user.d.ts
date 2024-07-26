@@ -8,7 +8,7 @@ interface UserQuery {
     order_string?: string;
     created_time?: string;
     birth?: string;
-    rank?: string;
+    level?: string;
     rebate?: string;
     total_amount?: string;
     groupType?: string;

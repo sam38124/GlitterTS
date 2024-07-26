@@ -237,8 +237,8 @@ export class ApiUser {
         if (obj.birth && obj.birth.length > 0) {
             list.push(`birth=${obj.birth.join(',')}`);
         }
-        if (obj.rank && obj.rank.length > 0) {
-            list.push(`rank=${obj.rank.join(',')}`);
+        if (obj.level && obj.level.length > 0) {
+            list.push(`level=${obj.level.join(',')}`);
         }
         if (obj.rebate && obj.rebate.key && obj.rebate.value) {
             list.push(`rebate=${obj.rebate.key},${obj.rebate.value}`);

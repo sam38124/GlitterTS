@@ -778,7 +778,7 @@ export class WalletList {
                     if (vm.type === 'list') {
                         return BgWidget.container(html`
                             <div class="d-flex w-100 align-items-center mb-3 ">
-                                ${BgWidget.title('回饋金紀錄')}
+                                ${BgWidget.title('購物金紀錄')}
                                 <div class="flex-fill"></div>
                                 <button
                                     class="btn hoverBtn me-2 px-3"

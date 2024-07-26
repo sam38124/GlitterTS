@@ -444,7 +444,7 @@ export class Shopping {
                 throw exception.BadRequestError('BAD_REQUEST', 'ToCheckout Error:No email address.', null);
             }
 
-            // 判斷回饋金是否可用
+            // 判斷購物金是否可用
             if (data.use_rebate && data.use_rebate > 0) {
                 if (userData) {
                     const userRebate = await rebateClass.getOneRebate({ user_id: userData.userID });
@@ -663,13 +663,13 @@ export class Shopping {
                 })
             )[0].value;
             //付款資訊設定
-            (carData as any).payment_setting={
-                TYPE:keyData.TYPE
-            }
-            if(keyData.TYPE==='off_line'){
-                (carData as any).off_line_support=keyData.off_line_support;
-                (carData as any).payment_info_line_pay=keyData.payment_info_line_pay;
-                (carData as any).payment_info_atm=keyData.payment_info_atm;
+            (carData as any).payment_setting = {
+                TYPE: keyData.TYPE,
+            };
+            if (keyData.TYPE === 'off_line') {
+                (carData as any).off_line_support = keyData.off_line_support;
+                (carData as any).payment_info_line_pay = keyData.payment_info_line_pay;
+                (carData as any).payment_info_atm = keyData.payment_info_atm;
             }
             if (type === 'preview' || type === 'manual-preview') return { data: carData };
             // ================================ Add DOWN ================================
@@ -1885,8 +1885,7 @@ export class Shopping {
 
     async putCollection(replace: Collection, original: Collection) {
         try {
-            const data: any = {};
-            let config =
+            const config =
                 (
                     await db.query(
                         `SELECT *
@@ -1896,6 +1895,13 @@ export class Shopping {
                     )
                 )[0] ?? {};
             config.value = config.value || [];
+
+            if (replace.parentTitles[0] === '(無)') {
+                replace.parentTitles = [];
+            }
+
+            // 標題禁止空白格與指定符號
+            replace.title = replace.title.replace(/[\s,\/\\]+/g, '');
 
             if (replace.parentTitles.length > 0) {
                 // 子類別驗證
@@ -2171,25 +2177,25 @@ export class Shopping {
                 await this.updateCollectionFromUpdateProduct(content.collection);
             }
             let productArray = content.data;
-            let passArray = []
-            productArray.forEach((product:any , index:number)=>{
-                product.type  = 'product';
-            })
+            let passArray = [];
+            productArray.forEach((product: any, index: number) => {
+                product.type = 'product';
+            });
             const data = await db.query(
                 `INSERT INTO \`${this.app}\`.\`t_manager_post\` (userID , content)
-                 VALUES ?`,[productArray.map((product:any)=>{
-                    product.type  = 'product';
-                    this.checkVariantDataType(product.variants);
-                    return [
-                        this.token?.userID,
-                        JSON.stringify(product),
-                    ]
-                })]
+                 VALUES ?`,
+                [
+                    productArray.map((product: any) => {
+                        product.type = 'product';
+                        this.checkVariantDataType(product.variants);
+                        return [this.token?.userID, JSON.stringify(product)];
+                    }),
+                ]
             );
 
             let insertIDStart = data.insertId;
 
-            await new Shopping(this.app, this.token).processProducts(productArray , insertIDStart);
+            await new Shopping(this.app, this.token).processProducts(productArray, insertIDStart);
             return insertIDStart;
         } catch (e) {
             console.error(e);
@@ -2197,8 +2203,8 @@ export class Shopping {
         }
     }
 
-    async processProducts(productArray :any, insertIDStart:any) {
-        const promises = productArray.map((product:any) => {
+    async processProducts(productArray: any, insertIDStart: any) {
+        const promises = productArray.map((product: any) => {
             product.id = insertIDStart++;
             return new Shopping(this.app, this.token).postVariantsAndPriceValue(product);
         });

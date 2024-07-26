@@ -10,6 +10,7 @@ const exception_1 = __importDefault(require("../../modules/exception"));
 const rebate_1 = require("./rebate");
 const user_1 = require("./user");
 const shopping_1 = require("./shopping");
+const mail_js_1 = require("../services/mail.js");
 class Schedule {
     constructor(app) {
         this.app = app;
@@ -22,6 +23,8 @@ class Schedule {
         if (!(await this.isTableExists('t_user_public_config')))
             return false;
         if (!(await this.isTableExists('t_voucher_history')))
+            return false;
+        if (!(await this.isTableExists('t_triggers')))
             return false;
         return true;
     }
@@ -137,12 +140,32 @@ class Schedule {
         }
         setTimeout(() => this.resetVoucherHistory(sec), sec * 1000);
     }
+    async autoSendMail(sec) {
+        try {
+            if (await this.perload()) {
+                const emails = await database_1.default.query(`SELECT * FROM \`${this.app}\`.t_triggers
+                     WHERE 
+                        tag = 'sendMailBySchedule' AND 
+                        DATE_FORMAT(trigger_time, '%Y-%m-%d %H:%i') = DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i');`, []);
+                for (const email of emails) {
+                    if (email.status === 0) {
+                        new mail_js_1.Mail(this.app).chunkSendMail(email.content, email.id);
+                    }
+                }
+            }
+        }
+        catch (e) {
+            throw exception_1.default.BadRequestError('BAD_REQUEST', 'autoSendMail Error: ' + e, null);
+        }
+        setTimeout(() => this.autoSendMail(sec), sec * 1000);
+    }
     async main() {
         const scheduleList = [
             { second: 10, status: false, func: 'example', desc: '排程啟用範例' },
             { second: 3600, status: true, func: 'birthRebate', desc: '生日禮發放購物金' },
             { second: 600, status: true, func: 'refreshMember', desc: '更新會員分級' },
             { second: 30, status: true, func: 'resetVoucherHistory', desc: '未付款歷史優惠券重設' },
+            { second: 30, status: true, func: 'autoSendMail', desc: '自動排程寄送信件' },
         ];
         try {
             scheduleList.forEach((schedule) => {

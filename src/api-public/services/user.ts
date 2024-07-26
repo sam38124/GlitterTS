@@ -29,7 +29,7 @@ interface UserQuery {
     order_string?: string;
     created_time?: string;
     birth?: string;
-    rank?: string;
+    level?: string;
     rebate?: string;
     total_amount?: string;
     groupType?: string;
@@ -116,7 +116,7 @@ export class User {
             sendmail(`${data.name} <${process.env.smtp}>`, usData.account, data.title, data.content);
         }
 
-        //發送回饋金
+        //發送購物金
         const getRS = await this.getConfig({ key: 'rebate_setting', user_id: 'manager' });
         const rgs = getRS[0] && getRS[0].value.register ? getRS[0].value.register : {};
         if (rgs && rgs.switch && rgs.value) {
@@ -710,6 +710,31 @@ export class User {
                 }
             }
 
+            if (query.level && query.level.length > 0) {
+                const levels = query.level.split(',');
+                const levelGroup = await this.getUserGroups(['level']);
+                if (levelGroup.result) {
+                    let levelIds: number[] = [];
+                    levelGroup.data.map((item) => {
+                        if (item.tag && levels.includes(item.tag)) {
+                            levelIds = levelIds.concat(item.users.map((user) => user.userID));
+                        }
+                    });
+                    if (levelIds.length > 0) {
+                        const ids = query.id
+                            ? query.id.split(',').filter((id) => {
+                                  return levelIds.find((item) => {
+                                      return item === parseInt(`${id}`, 10);
+                                  });
+                              })
+                            : levelIds;
+                        query.id = ids.join(',');
+                    } else {
+                        query.id = '0,0';
+                    }
+                }
+            }
+
             if (query.id && query.id.length > 1) {
                 querySql.push(`(u.userID in (${query.id}))`);
             }
@@ -731,9 +756,6 @@ export class User {
                     querySql.push(`(MONTH(JSON_EXTRACT(u.userData, '$.birth')) IN (${birthMap.join(',')}))`);
                 }
             }
-
-            // if (query.rank && query.rank.length > 0) {
-            // }
 
             if (query.total_amount) {
                 const totalAmount = query.total_amount.split(',');

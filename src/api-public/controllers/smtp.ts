@@ -2,7 +2,7 @@ import express from 'express';
 import response from '../../modules/response';
 import exception from '../../modules/exception';
 import { UtPermission } from '../utils/ut-permission.js';
-import { sendmail } from '../../services/ses.js';
+import { Mail } from '../services/mail.js';
 
 const router: express.Router = express.Router();
 
@@ -11,19 +11,9 @@ export = router;
 router.post('/', async (req: express.Request, resp: express.Response) => {
     try {
         if (await UtPermission.isManager(req)) {
-            for (const b of chunkArray(Array.from(new Set(req.body.email)), 10)) {
-                let check = b.length;
-                await new Promise((resolve) => {
-                    console.log(req.body.sendTime);
-                    for (const d of b) {
-                        sendmail(`${req.body.name} <${process.env.smtp}>`, d, req.body.title, req.body.content, () => {
-                            check--;
-                            if (check === 0) {
-                                resolve(true);
-                            }
-                        });
-                    }
-                });
+            const result = await new Mail(req.get('g-app') as string, req.body.token).postMail(req.body);
+            if (!result) {
+                return response.fail(resp, exception.BadRequestError('BAD_REQUEST', 'Post Mail Failed', null));
             }
             return response.succ(resp, { result: true });
         } else {
@@ -33,11 +23,3 @@ router.post('/', async (req: express.Request, resp: express.Response) => {
         return response.fail(resp, err);
     }
 });
-
-function chunkArray(array: any, groupSize: number) {
-    const result = [];
-    for (let i = 0; i < array.length; i += groupSize) {
-        result.push(array.slice(i, i + groupSize));
-    }
-    return result;
-}
