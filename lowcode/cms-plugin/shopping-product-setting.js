@@ -188,7 +188,7 @@ class Excel {
             reader.readAsArrayBuffer(file);
         });
     }
-    exportData(data) {
+    exportData(data, name) {
         return __awaiter(this, void 0, void 0, function* () {
             yield this.loadScript();
             this.setHeader();
@@ -198,7 +198,8 @@ class Excel {
             this.setFontAndAlignmentStyle();
             this.adjustColumnWidths(data);
             const buffer = yield this.workbook.xlsx.writeBuffer();
-            this.saveAsExcelFile(buffer, `example_${new Date().toISOString()}.xlsx`);
+            let fileName = name !== null && name !== void 0 ? name : `example_${new Date().toISOString()}`;
+            this.saveAsExcelFile(buffer, `${name}.xlsx`);
         });
     }
     insertData(data) {
@@ -652,9 +653,7 @@ export class ShoppingProductSetting {
                                                     },
                                                     divCreate: { style: `border-radius: 10px;background: #FFF;width: 569px;height: 391px;` }
                                                 });
-                                                return ``;
                                             }, 'import');
-                                            return ``;
                                             return ``;
                                         }))}${BgWidget.grayButton('匯出', gvc.event(() => {
                                             gvc.glitter.innerDialog((gvc) => {
@@ -704,7 +703,7 @@ export class ShoppingProductSetting {
                                                         let selectCircle = html `
                                                                                                     <div style="background-color: white;border: solid 4px #393939;border-radius: 20px;width: 16px;height: 16px;"></div>`;
                                                         let unselectCircle = html `
-                                                                                                    <div style="background-color: white;border-radius: 20px;border: 1px solid #DDD;border-radius: 20px;width: 16px;height: 16px;"></div>`;
+                                                                                                    <div style="background-color: white;border-radius: 20px;border: 1px solid #DDD;width: 16px;height: 16px;"></div>`;
                                                         return html `
                                                                                                     <div style="display: flex;align-items: center;gap: 6px;align-self: stretch;">
                                                                                                         ${selectCircle}
@@ -843,7 +842,7 @@ export class ShoppingProductSetting {
                                                                 exportData.push(JSON.parse(JSON.stringify(rowData)));
                                                             });
                                                         });
-                                                        excel.exportData(exportData).then((r) => {
+                                                        excel.exportData(exportData, "product_export").then((r) => {
                                                         });
                                                     });
                                                 }), '匯出')}

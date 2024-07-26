@@ -249,7 +249,7 @@ class Excel {
         reader.readAsArrayBuffer(file);
     }
 
-    async exportData(data: any) {
+    async exportData(data: any ,name?:string) {
         await this.loadScript();
         this.setHeader();
         this.insertData(data);
@@ -258,7 +258,8 @@ class Excel {
         this.setFontAndAlignmentStyle();
         this.adjustColumnWidths(data);
         const buffer = await this.workbook.xlsx.writeBuffer();
-        this.saveAsExcelFile(buffer, `example_${new Date().toISOString()}.xlsx`);
+        let fileName = name??`example_${new Date().toISOString()}`
+        this.saveAsExcelFile(buffer, `${name}.xlsx`);
     }
 
     private insertData(data: any): void {
@@ -777,10 +778,7 @@ export class ShoppingProductSetting {
                                                                             },
                                                                             divCreate: {style: `border-radius: 10px;background: #FFF;width: 569px;height: 391px;`}
                                                                         })
-                                                                        return ``
                                                                     }, 'import')
-                                                                    return ``
-
                                                                     return ``
 
                                                                 })
@@ -834,7 +832,7 @@ export class ShoppingProductSetting {
                                                                                                 let selectCircle = html`
                                                                                                     <div style="background-color: white;border: solid 4px #393939;border-radius: 20px;width: 16px;height: 16px;"></div>`
                                                                                                 let unselectCircle = html`
-                                                                                                    <div style="background-color: white;border-radius: 20px;border: 1px solid #DDD;border-radius: 20px;width: 16px;height: 16px;"></div>`
+                                                                                                    <div style="background-color: white;border-radius: 20px;border: 1px solid #DDD;width: 16px;height: 16px;"></div>`
                                                                                                 return html`
                                                                                                     <div style="display: flex;align-items: center;gap: 6px;align-self: stretch;">
                                                                                                         ${selectCircle}
@@ -1006,7 +1004,7 @@ export class ShoppingProductSetting {
                                                                                             })
 
                                                                                             //
-                                                                                            excel.exportData(exportData).then((r) => {
+                                                                                            excel.exportData(exportData , "product_export").then((r) => {
 
                                                                                             });
                                                                                         });
