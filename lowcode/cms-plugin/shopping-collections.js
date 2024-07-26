@@ -82,7 +82,9 @@ export class ShoppingCollections {
             };
             data.products.forEach((product) => {
                 product.content.collection.forEach((category) => {
-                    const path = category.split(' / ');
+                    const path = category.split('/').map((item) => {
+                        return item.replace(/\s/g, '');
+                    });
                     for (let i = 0; i < path.length; i++) {
                         const subPath = path.slice(0, i + 1);
                         const collection = findCollection(data.collections, subPath);
@@ -131,7 +133,7 @@ export class ShoppingCollections {
                                     if (d.result) {
                                         const products = d.response.data;
                                         ApiShop.getCollection().then((data) => {
-                                            if (data.result) {
+                                            if (data.result && data.response.value.length > 0) {
                                                 vm.allParents = ['(無)'].concat(data.response.value.map((item) => item.title));
                                                 const collections = updateCollections({ products, collections: data.response.value });
                                                 function getDatalist() {
@@ -183,9 +185,13 @@ export class ShoppingCollections {
                                                 }
                                                 vm.dataList = collections;
                                                 vmi.data = getDatalist();
-                                                vmi.loading = false;
-                                                vmi.callback();
                                             }
+                                            else {
+                                                vm.dataList = [];
+                                                vmi.data = [];
+                                            }
+                                            vmi.loading = false;
+                                            vmi.callback();
                                         });
                                     }
                                 });
@@ -251,6 +257,7 @@ export class ShoppingCollections {
                                     };
                                 }),
                             ].join(''),
+                            hiddenPageSplit: true,
                         })))}
                                 ${BgWidget.mbContainer(120)}
                             `, BgWidget.getContainerWidth());
@@ -299,7 +306,7 @@ export class ShoppingCollections {
                                 gvc: gvc,
                                 title: '',
                                 default: vm.data.title,
-                                placeHolder: '請輸入類別名稱',
+                                placeHolder: '請輸入分類名稱',
                                 callback: (text) => {
                                     vm.data.title = text;
                                 },
@@ -423,18 +430,18 @@ export class ShoppingCollections {
                                     gvc: gvc,
                                     title: '',
                                     default: (_a = vm.data.seo_title) !== null && _a !== void 0 ? _a : '',
-                                    placeHolder: '請輸入類別名稱',
+                                    placeHolder: '請輸入 SEO 標題',
                                     callback: (text) => {
                                         vm.data.seo_title = text;
                                     },
                                 })}`,
                                 ,
                                 html ` <div class="tx_700" style="margin-bottom: 18px">SEO 描述</div>
-                                                    ${EditorElem.editeInput({
+                                                    ${EditorElem.editeText({
                                     gvc: gvc,
                                     title: '',
                                     default: (_b = vm.data.seo_content) !== null && _b !== void 0 ? _b : '',
-                                    placeHolder: '請輸入類別名稱',
+                                    placeHolder: '請輸入 SEO 描述',
                                     callback: (text) => {
                                         vm.data.seo_content = text;
                                     },
@@ -523,6 +530,11 @@ export class ShoppingCollections {
                             vm.type = 'list';
                         }))}
                                 ${BgWidget.save(gvc.event(() => {
+                            const regex = /[\s,\/\\]+/g;
+                            if (regex.test(vm.data.title)) {
+                                alert('標題不可包含空白格與以下符號：「 , 」「 / 」「 \\ 」');
+                                return;
+                            }
                             dialog.dataLoading({ visible: true });
                             ApiShop.putCollections({
                                 data: { replace: vm.data, original },

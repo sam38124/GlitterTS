@@ -423,7 +423,7 @@ class Shopping {
                 key: 'glitter_finance',
             }))[0].value;
             carData.payment_setting = {
-                TYPE: keyData.TYPE
+                TYPE: keyData.TYPE,
             };
             if (keyData.TYPE === 'off_line') {
                 carData.off_line_support = keyData.off_line_support;
@@ -1420,11 +1420,14 @@ class Shopping {
     async putCollection(replace, original) {
         var _a, _b, _c, _d, _e, _f, _g;
         try {
-            const data = {};
-            let config = (_a = (await database_js_1.default.query(`SELECT *
+            const config = (_a = (await database_js_1.default.query(`SELECT *
                          FROM \`${this.app}\`.public_config
                          WHERE \`key\` = 'collection';`, []))[0]) !== null && _a !== void 0 ? _a : {};
             config.value = config.value || [];
+            if (replace.parentTitles[0] === '(無)') {
+                replace.parentTitles = [];
+            }
+            replace.title = replace.title.replace(/[\s,\/\\]+/g, '');
             if (replace.parentTitles.length > 0) {
                 const oTitle = (_b = original.parentTitles[0]) !== null && _b !== void 0 ? _b : '';
                 const rTitle = replace.parentTitles[0];
@@ -1620,15 +1623,14 @@ class Shopping {
                 product.type = 'product';
             });
             const data = await database_js_1.default.query(`INSERT INTO \`${this.app}\`.\`t_manager_post\` (userID , content)
-                 VALUES ?`, [productArray.map((product) => {
+                 VALUES ?`, [
+                productArray.map((product) => {
                     var _a;
                     product.type = 'product';
                     this.checkVariantDataType(product.variants);
-                    return [
-                        (_a = this.token) === null || _a === void 0 ? void 0 : _a.userID,
-                        JSON.stringify(product),
-                    ];
-                })]);
+                    return [(_a = this.token) === null || _a === void 0 ? void 0 : _a.userID, JSON.stringify(product)];
+                }),
+            ]);
             let insertIDStart = data.insertId;
             await new Shopping(this.app, this.token).processProducts(productArray, insertIDStart);
             return insertIDStart;

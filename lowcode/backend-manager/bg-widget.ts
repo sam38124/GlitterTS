@@ -110,7 +110,7 @@ export class BgWidget {
                                                           (dd: any, index: number) =>
                                                               html` <th
                                                                   class="${dd.position ?? 'text-start'} tx_normal fw-bold"
-                                                                  style="border:none;padding-bottom: 30px;color:#393939 !important;${(obj.style || []) && obj.style![index] ? obj.style![index] : ``}"
+                                                                  style="border:none;padding-bottom: 30px;color:#393939 !important;${obj.style && obj.style![index] ? obj.style![index] : ``}"
                                                               >
                                                                   ${dd.key}
                                                               </th>`
@@ -143,9 +143,9 @@ export class BgWidget {
                                                                       html` <td
                                                                           class="${d3.position ?? 'text-start'}  tx_normal"
                                                                           ${d3.key === '●' || d3.stopDialog ? '' : html` onclick="${gvc.event(() => {})}"`}
-                                                                          style="color:#393939 !important;border:none; ${(obj.style || []) && obj.style![index] ? obj.style![index] : ``}"
+                                                                          style="color:#393939 !important;border:none; ${obj.style && obj.style![index] ? obj.style![index] : ``}"
                                                                       >
-                                                                          <div class="my-auto" style="${(obj.style || []) && obj.style![index] ? obj.style![index] : ``}">${d3.value}</div>
+                                                                          <div class="my-auto" style="${obj.style && obj.style![index] ? obj.style![index] : ``}">${d3.value}</div>
                                                                       </td>`
                                                               )
                                                               .join('')}
@@ -198,6 +198,7 @@ export class BgWidget {
         style?: string[];
         table_style?: string;
         tableHeader?: string[];
+        hiddenPageSplit?: boolean;
     }) {
         obj.style = obj.style || [];
         const gvc = obj.gvc;
@@ -249,7 +250,7 @@ export class BgWidget {
                                                           (dd: any, index: number) =>
                                                               html` <th
                                                                   class="${dd.position ?? 'text-start'} tx_700"
-                                                                  style="white-space:nowrap;border:none; color:#393939 !important; ${(obj.style || []) && obj.style![index] ? obj.style![index] : ``}"
+                                                                  style="white-space:nowrap;border:none; color:#393939 !important; ${obj.style && obj.style![index] ? obj.style![index] : ``}"
                                                               >
                                                                   ${dd.key}
                                                               </th>`
@@ -281,11 +282,9 @@ export class BgWidget {
                                                                       html` <td
                                                                           class="${d3.position ?? 'text-start'} tx_normal"
                                                                           ${d3.key === '●' || d3.stopDialog ? '' : html` onclick="${gvc.event(() => {})}"`}
-                                                                          style="color:#393939 !important;border:none;vertical-align: middle;${(obj.style || []) && obj.style![index]
-                                                                              ? obj.style![index]
-                                                                              : ``}"
+                                                                          style="color:#393939 !important;border:none;vertical-align: middle;${obj.style && obj.style![index] ? obj.style![index] : ``}"
                                                                       >
-                                                                          <div class="my-1 text-nowrap" style="${(obj.style || []) && obj.style![index] ? obj.style![index] : ``}">${d3.value}</div>
+                                                                          <div class="my-1 text-nowrap" style="${obj.style && obj.style![index] ? obj.style![index] : ``}">${d3.value}</div>
                                                                       </td>`
                                                               )
                                                               .join('')}
@@ -295,7 +294,7 @@ export class BgWidget {
                                     </tbody>
                                 </table>
                                 <div>
-                                    ${vm.data.length === 0
+                                    ${vm.data.length === 0 || obj.hiddenPageSplit
                                         ? ''
                                         : ps.pageSplitV2(
                                               vm.pageSize,
@@ -384,7 +383,7 @@ export class BgWidget {
         return html` <h3 class="my-auto tx_title" style="white-space: nowrap;">${title}</h3>`;
     }
 
-    static title_16(title: string,style:string='') {
+    static title_16(title: string, style: string = '') {
         return html` <h3 class="my-auto tx_title" style="white-space: nowrap;font-size: 16px;${style}">${title}</h3>`;
     }
 
