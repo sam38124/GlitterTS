@@ -31,7 +31,9 @@ init(import.meta.url,(gvc, glitter, gBundle)=>{
 <i class="fa-solid fa-xmark " style="color:white;"></i>
 </div>
 </div>
-<div id="${id}"><img style="max-width: 100%;max-height: 100%;" src="${gBundle}" ></div>
+<div id="${id}" style="max-width: 100%;max-height: 100%;">
+<img style="max-width: 100vw;max-height: 100vh;" src="${gBundle}" >
+</div>
 </div>`
         }
     }

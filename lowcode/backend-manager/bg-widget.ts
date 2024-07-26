@@ -384,8 +384,8 @@ export class BgWidget {
         return html` <h3 class="my-auto tx_title" style="white-space: nowrap;">${title}</h3>`;
     }
 
-    static title_16(title: string) {
-        return html` <h3 class="my-auto tx_title" style="white-space: nowrap;font-size: 16px;">${title}</h3>`;
+    static title_16(title: string,style:string='') {
+        return html` <h3 class="my-auto tx_title" style="white-space: nowrap;font-size: 16px;${style}">${title}</h3>`;
     }
 
     static hint_title(title: string) {

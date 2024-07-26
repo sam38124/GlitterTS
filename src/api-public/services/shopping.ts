@@ -656,6 +656,21 @@ export class Shopping {
             }
 
             // ================================ Preview UP ================================
+            const keyData = (
+                await Private_config.getConfig({
+                    appName: this.app,
+                    key: 'glitter_finance',
+                })
+            )[0].value;
+            //付款資訊設定
+            (carData as any).payment_setting={
+                TYPE:keyData.TYPE
+            }
+            if(keyData.TYPE==='off_line'){
+                (carData as any).off_line_support=keyData.off_line_support;
+                (carData as any).payment_info_line_pay=keyData.payment_info_line_pay;
+                (carData as any).payment_info_atm=keyData.payment_info_atm;
+            }
             if (type === 'preview' || type === 'manual-preview') return { data: carData };
             // ================================ Add DOWN ================================
             // 手動結帳地方判定

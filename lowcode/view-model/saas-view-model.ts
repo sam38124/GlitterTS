@@ -1,12 +1,13 @@
-import { ApiUser } from '../glitter-base/route/user.js';
-import { GlobalUser } from '../glitter-base/global/global-user.js';
-import { GVC } from '../glitterBundle/GVController.js';
-import { EditorConfig } from '../editor-config.js';
-import { ApiPageConfig } from '../api/pageConfig.js';
-import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
-import { ShareDialog } from '../dialog/ShareDialog.js';
-import { BaseApi } from '../glitterBundle/api/base.js';
-import { BgWidget } from '../backend-manager/bg-widget.js';
+import {ApiUser} from '../glitter-base/route/user.js';
+import {GlobalUser} from '../glitter-base/global/global-user.js';
+import {GVC} from '../glitterBundle/GVController.js';
+import {EditorConfig} from '../editor-config.js';
+import {ApiPageConfig} from '../api/pageConfig.js';
+import {EditorElem} from '../glitterBundle/plugins/editor-elem.js';
+import {ShareDialog} from '../glitterBundle/dialog/ShareDialog.js';
+import {BaseApi} from '../glitterBundle/api/base.js';
+import {BgWidget} from '../backend-manager/bg-widget.js';
+import {Storage} from "../glitterBundle/helper/storage.js";
 
 const html = String.raw;
 
@@ -20,14 +21,16 @@ export class SaasViewModel {
                 view: () => {
                     return new Promise(async (resolve, reject) => {
                         const userData = (await ApiUser.getSaasUserData(GlobalUser.saas_token, 'me')).response;
-                        resolve(html` <div class="btn btn-outline-secondary dropdown-toggle border-0 p-1 position-relative" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        resolve(html`
+                            <div class="btn btn-outline-secondary dropdown-toggle border-0 p-1 position-relative"
+                                 data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <div class="d-flex align-items-center ">
                                     <img
-                                        src="https://assets.imgix.net/~text?bg=7ED379&txtclr=ffffff&w=100&h=100&txtsize=40&txt=${userData.userData.name}&txtfont=Helvetica&txtalign=middle,center"
-                                        class="rounded-circle"
-                                        width="48"
-                                        alt="Avatar"
-                                        style="width:40px;height:40px;"
+                                            src="https://assets.imgix.net/~text?bg=7ED379&txtclr=ffffff&w=100&h=100&txtsize=40&txt=${userData.userData.name}&txtfont=Helvetica&txtalign=middle,center"
+                                            class="rounded-circle"
+                                            width="48"
+                                            alt="Avatar"
+                                            style="width:40px;height:40px;"
                                     />
                                     <div class="d-none d-sm-block ps-2">
                                         <div class="fs-xs lh-1 opacity-60 fw-500">Hello,</div>
@@ -35,265 +38,291 @@ export class SaasViewModel {
                                     </div>
                                 </div>
                             </div>
-                            <div class="dropdown-menu position-absolute" style="top:50px; ${document.body.clientWidth > 768 ? 'right: 0;' : 'left: -110px;'}">
+                            <div class="dropdown-menu position-absolute"
+                                 style="top:50px; ${document.body.clientWidth > 768 ? 'right: 0;' : 'left: -110px;'}">
                                 <a
-                                    class="dropdown-item cursor_pointer"
-                                    onclick="${gvc.event(() => {
-                                        gvc.glitter.innerDialog((gvc: GVC) => {
-                                            const vm: {
-                                                type: 'list' | 'replace';
-                                            } = {
-                                                type: 'list',
-                                            };
-                                            return gvc.bindView(() => {
-                                                const id = gvc.glitter.getUUID();
-                                                return {
-                                                    bind: id,
-                                                    view: () => {
-                                                        if (vm.type === 'list') {
-                                                            return html` <div style="width: 600px; max-width: 95vw; overflow-y: auto;" class="bg-white shadow rounded-3">
-                                                                <div class="w-100 d-flex align-items-center p-3 border-bottom">
-                                                                    <div class="tx_700 me-3">所有商店</div>
-                                                                    ${BgWidget.grayButton(
-                                                                        '新增商店',
-                                                                        gvc.event(() => {
-                                                                            vm.type = 'replace';
-                                                                            gvc.notifyDataChange(id);
-                                                                        }),
-                                                                        { icon: 'fa-regular fa-circle-plus tx_normal' }
-                                                                    )}
-                                                                    <div class="flex-fill"></div>
-                                                                    <i
-                                                                        class="fa-regular fa-circle-xmark fs-5"
-                                                                        style="color:black; cursor:pointer;"
-                                                                        onclick="${gvc.event(() => {
-                                                                            gvc.closeDialog();
-                                                                        })}"
-                                                                    ></i>
-                                                                </div>
-                                                                ${gvc.bindView(() => {
-                                                                    const vm: {
-                                                                        loading: boolean;
-                                                                        data: any;
-                                                                    } = {
-                                                                        loading: true,
-                                                                        data: [],
-                                                                    };
-                                                                    const id = gvc.glitter.getUUID();
-
-                                                                    function refresh() {
-                                                                        vm.loading = true;
-                                                                        gvc.notifyDataChange(id);
-                                                                        ApiPageConfig.getAppList().then((res) => {
-                                                                            vm.loading = false;
-                                                                            vm.data = res.response.result;
-                                                                            gvc.notifyDataChange(id);
-                                                                        });
-                                                                    }
-
-                                                                    refresh();
-                                                                    return {
-                                                                        bind: id,
-                                                                        view: () => {
-                                                                            if (vm.loading) {
-                                                                                return html`<div class="p-4 d-flex align-items-center justify-content-center">
-                                                                                    <div class="spinner-border"></div>
-                                                                                </div>`;
-                                                                            } else {
-                                                                                return vm.data
-                                                                                    .map((dd: any) => {
-                                                                                        dd.theme_config = dd.theme_config ?? {};
-                                                                                        const storeList = [
-                                                                                            html`<div
-                                                                                                class="rounded-3 shadow"
-                                                                                                style="width: 120px; height: 94px; background-position: center; background-repeat: no-repeat; background-size: cover; 
-                                                                                                background-image: url('${dd.theme_config.preview_image ||
-                                                                                                (dd.config && dd.template_config && dd.template_config.image && dd.template_config.image[0]) ||
-                                                                                                'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713445383494-未命名(1080x1080像素).jpg'}');"
-                                                                                            ></div>`,
-                                                                                            html`<div class="d-flex flex-column" style="margin-left: 15px; gap:1px;">
-                                                                                                <div class="fw-500 fs-5 cl_39">${dd.theme_config.name || dd.appName}</div>
-                                                                                                ${(() => {
-                                                                                                    const config = dd;
-                                                                                                    let planText = '免費試用方案';
-                                                                                                    if (config.plan === 'basic') {
-                                                                                                        planText = '基本開店方案';
-                                                                                                    } else if (config.plan === 'web+app') {
-                                                                                                        planText = 'Web+App方案';
-                                                                                                    }
-                                                                                                    return html`<div class="d-flex flex-column fw-500 cl_39" style="font-size:14px;">
-                                                                                                        當前方案 : ${planText}
-                                                                                                        <div
-                                                                                                            style="font-size: 13px; color: ${new Date(config.dead_line).getTime() < new Date().getTime()
-                                                                                                                ? `#EF4444`
-                                                                                                                : `#295ed1`};"
-                                                                                                        >
-                                                                                                            ${new Date(config.dead_line).getTime() < new Date().getTime()
-                                                                                                                ? ` 方案已過期`
-                                                                                                                : ` 方案到期日`}
-                                                                                                            ：${gvc.glitter.ut.dateFormat(new Date(config.dead_line), 'yyyy-MM-dd hh:mm')}
-                                                                                                        </div>
-                                                                                                    </div>`;
-                                                                                                })()}
-                                                                                                <div class="fw-500 cl_39" style="font-size: 13px;">
-                                                                                                    上次儲存時間：${gvc.glitter.ut.dateFormat(new Date(dd.update_time), 'MM-dd hh:mm')}
-                                                                                                </div>
-                                                                                            </div>`,
-                                                                                            html`<div class="p-0 me-3" style="width: 40px;">
-                                                                                                <button
-                                                                                                    class="btn btn-sm bgf6 text-black w-100 me-2"
-                                                                                                    style="color: black; border-radius: 10px; box-shadow: 0px 0px 2px 0px rgba(0, 0, 0, 0.08); height: 28px"
-                                                                                                    type="button"
-                                                                                                    data-bs-toggle="dropdown"
-                                                                                                    aria-haspopup="true"
-                                                                                                    aria-expanded="false"
-                                                                                                >
-                                                                                                    <i class="fa-solid fa-ellipsis" aria-hidden="true"></i>
-                                                                                                </button>
-                                                                                                <div class="dropdown-menu">
-                                                                                                    <a
-                                                                                                        class="dropdown-item"
-                                                                                                        onclick="${gvc.event(() => {
-                                                                                                            gvc.glitter.setUrlParameter('appName', dd.appName);
-                                                                                                            SaasViewModel.renew(gvc);
-                                                                                                        })}"
-                                                                                                        >續費</a
-                                                                                                    >
-                                                                                                    <div class="dropdown-divider"></div>
-                                                                                                    <a
-                                                                                                        class=" dropdown-item"
-                                                                                                        onclick="${gvc.event(() => {
-                                                                                                            EditorElem.openEditorDialog(
-                                                                                                                gvc,
-                                                                                                                (gvc) => {
-                                                                                                                    const appName = dd.theme_config.name || dd.appName;
-                                                                                                                    let deleteText = '';
-                                                                                                                    return html`<div class="p-2">
-                                                                                                                        ${[
-                                                                                                                            html` <div
-                                                                                                                                class="alert alert-danger p-2 fs-base"
-                                                                                                                                style="white-space: normal;"
-                                                                                                                            >
-                                                                                                                                是否確認刪除此商店，刪除之後則無法復原，請謹慎進行操作!
-                                                                                                                            </div>`,
-                                                                                                                            EditorElem.editeInput({
-                                                                                                                                gvc: gvc,
-                                                                                                                                title: '刪除確認',
-                                                                                                                                placeHolder: `請輸入 -> ${appName}`,
-                                                                                                                                default: deleteText,
-                                                                                                                                callback: (text) => {
-                                                                                                                                    deleteText = text;
-                                                                                                                                },
-                                                                                                                            }),
-                                                                                                                            html`<div
-                                                                                                                                class="d-flex align-items-center justify-content-end pt-2 border-top mt-2"
-                                                                                                                            >
-                                                                                                                                <button
-                                                                                                                                    class="btn btn-danger btn-sm"
-                                                                                                                                    onclick="${gvc.event(() => {
-                                                                                                                                        if (deleteText === appName) {
-                                                                                                                                            const dialog = new ShareDialog(gvc.glitter);
-                                                                                                                                            dialog.dataLoading({ visible: true });
-                                                                                                                                            ApiPageConfig.deleteApp(dd.appName).then((res) => {
-                                                                                                                                                dialog.dataLoading({ visible: false });
-                                                                                                                                                if (dd.appName === (window as any).appName) {
-                                                                                                                                                    const url = new URL(location.href);
-                                                                                                                                                    location.href = url.href.replace(url.search, '');
-                                                                                                                                                } else {
-                                                                                                                                                    gvc.closeDialog();
-                                                                                                                                                    refresh();
-                                                                                                                                                }
-                                                                                                                                            });
-                                                                                                                                        } else {
-                                                                                                                                            alert('輸入錯誤');
-                                                                                                                                        }
-                                                                                                                                    })}"
-                                                                                                                                >
-                                                                                                                                    確認刪除
-                                                                                                                                </button>
-                                                                                                                            </div>`,
-                                                                                                                        ].join('')}
-                                                                                                                    </div>`;
-                                                                                                                },
-                                                                                                                () => {},
-                                                                                                                400,
-                                                                                                                '刪除商店'
-                                                                                                            );
-                                                                                                        })}"
-                                                                                                        >刪除商店</a
-                                                                                                    >
-                                                                                                </div>
-                                                                                            </div>`,
-                                                                                            html`<div>
-                                                                                                ${BgWidget.darkButton(
-                                                                                                    '更換商店',
-                                                                                                    gvc.event(() => {
-                                                                                                        const url = new URL(gvc.glitter.root_path);
-                                                                                                        url.searchParams.set('type', 'editor');
-                                                                                                        url.searchParams.set('function', 'backend-manger');
-                                                                                                        url.searchParams.set('appName', dd.appName);
-                                                                                                        location.href = url.href;
-                                                                                                    }),
-                                                                                                    { size: 'sm' }
-                                                                                                )}
-                                                                                            </div>`,
-                                                                                        ];
-
-                                                                                        if (document.body.clientWidth > 768) {
-                                                                                            return html` <div class="p-4" style="display: flex; align-items: center;">
-                                                                                                ${storeList[0]}${storeList[1]}
-                                                                                                <div class="flex-fill"></div>
-                                                                                                ${storeList[2]}${storeList[3]}
-                                                                                            </div>`;
-                                                                                        }
-                                                                                        return html` <div
-                                                                                            class="p-4"
-                                                                                            style="display: flex; align-items: center; justify-content: flex-start; gap: 16px;"
-                                                                                        >
-                                                                                            ${storeList[0]}
-                                                                                            <div style="width: 100%;">
-                                                                                                ${storeList[1]}
-                                                                                                <div style="display: flex; justify-content: flex-end; margin-top: 12px;">
-                                                                                                    ${storeList[2]}${storeList[3]}
-                                                                                                </div>
-                                                                                            </div>
-                                                                                        </div>`;
-                                                                                    })
-                                                                                    .join(html`<div class="w-100 border-bottom"></div>`);
-                                                                            }
-                                                                        },
-                                                                        divCreate: {
-                                                                            style: `max-height: 600px; overflow-y: auto;`,
-                                                                        },
-                                                                    };
-                                                                })}
-                                                            </div>`;
-                                                        } else {
-                                                            return SaasViewModel.createShop(gvc, false);
-                                                        }
-                                                    },
+                                        class="dropdown-item cursor_pointer"
+                                        onclick="${gvc.event(() => {
+                                            gvc.glitter.innerDialog((gvc: GVC) => {
+                                                const vm: {
+                                                    type: 'list' | 'replace';
+                                                } = {
+                                                    type: 'list',
                                                 };
-                                            });
-                                        }, 'change_app');
-                                    })}"
-                                    >所有商店</a
+                                                return gvc.bindView(() => {
+                                                    const id = gvc.glitter.getUUID();
+                                                    return {
+                                                        bind: id,
+                                                        view: () => {
+                                                            if (vm.type === 'list') {
+                                                                return html`
+                                                                    <div style="width: 600px; max-width: 95vw; overflow-y: auto;"
+                                                                         class="bg-white shadow rounded-3">
+                                                                        <div class="w-100 d-flex align-items-center p-3 border-bottom">
+                                                                            <div class="tx_700 me-3">所有商店</div>
+                                                                            ${BgWidget.grayButton(
+                                                                                    '新增商店',
+                                                                                    gvc.event(() => {
+                                                                                        vm.type = 'replace';
+                                                                                        gvc.notifyDataChange(id);
+                                                                                    }),
+                                                                                    {icon: 'fa-regular fa-circle-plus tx_normal'}
+                                                                            )}
+                                                                            <div class="flex-fill"></div>
+                                                                            <i
+                                                                                    class="fa-regular fa-circle-xmark fs-5"
+                                                                                    style="color:black; cursor:pointer;"
+                                                                                    onclick="${gvc.event(() => {
+                                                                                        gvc.closeDialog();
+                                                                                    })}"
+                                                                            ></i>
+                                                                        </div>
+                                                                        ${gvc.bindView(() => {
+                                                                            const vm: {
+                                                                                loading: boolean;
+                                                                                data: any;
+                                                                            } = {
+                                                                                loading: true,
+                                                                                data: [],
+                                                                            };
+                                                                            const id = gvc.glitter.getUUID();
+
+                                                                            function refresh() {
+                                                                                vm.loading = true;
+                                                                                gvc.notifyDataChange(id);
+                                                                                ApiPageConfig.getAppList().then((res) => {
+                                                                                    vm.loading = false;
+                                                                                    vm.data = res.response.result;
+                                                                                    gvc.notifyDataChange(id);
+                                                                                });
+                                                                            }
+
+                                                                            refresh();
+                                                                            return {
+                                                                                bind: id,
+                                                                                view: () => {
+                                                                                    if (vm.loading) {
+                                                                                        return html`
+                                                                                            <div class="p-4 d-flex align-items-center justify-content-center">
+                                                                                                <div class="spinner-border"></div>
+                                                                                            </div>`;
+                                                                                    } else {
+                                                                                        return vm.data
+                                                                                                .map((dd: any) => {
+                                                                                                    dd.theme_config = dd.theme_config ?? {};
+                                                                                                    const storeList = [
+                                                                                                        html`
+                                                                                                            <div
+                                                                                                                    class="rounded-3 shadow"
+                                                                                                                    style="width: 120px; height: 94px; background-position: center; background-repeat: no-repeat; background-size: cover; 
+                                                                                                background-image: url('${dd.theme_config.preview_image ||
+                                                                                                                    (dd.config && dd.template_config && dd.template_config.image && dd.template_config.image[0]) ||
+                                                                                                                    'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713445383494-未命名(1080x1080像素).jpg'}');"
+                                                                                                            ></div>`,
+                                                                                                        html`
+                                                                                                            <div class="d-flex flex-column"
+                                                                                                                 style="margin-left: 15px; gap:1px;">
+                                                                                                                <div class="fw-500 fs-5 cl_39">
+                                                                                                                    ${dd.theme_config.name || dd.appName}
+                                                                                                                </div>
+                                                                                                                ${(() => {
+                                                                                                                    const config = dd;
+                                                                                                                    let planText = '免費試用方案';
+                                                                                                                    if (config.plan === 'basic') {
+                                                                                                                        planText = '基本開店方案';
+                                                                                                                    } else if (config.plan === 'web+app') {
+                                                                                                                        planText = 'Web+App方案';
+                                                                                                                    }
+                                                                                                                    return html`
+                                                                                                                        <div class="d-flex flex-column fw-500 cl_39"
+                                                                                                                             style="font-size:14px;">
+                                                                                                                            當前方案
+                                                                                                                            :
+                                                                                                                            ${planText}
+                                                                                                                            <div
+                                                                                                                                    style="font-size: 13px; color: ${new Date(config.dead_line).getTime() < new Date().getTime()
+                                                                                                                                            ? `#EF4444`
+                                                                                                                                            : `#295ed1`};"
+                                                                                                                            >
+                                                                                                                                ${new Date(config.dead_line).getTime() < new Date().getTime()
+                                                                                                                                        ? ` 方案已過期`
+                                                                                                                                        : ` 方案到期日`}
+                                                                                                                                    ：${gvc.glitter.ut.dateFormat(new Date(config.dead_line), 'yyyy-MM-dd hh:mm')}
+                                                                                                                            </div>
+                                                                                                                        </div>`;
+                                                                                                                })()}
+                                                                                                                <div class="fw-500 cl_39"
+                                                                                                                     style="font-size: 13px;">
+                                                                                                                        上次儲存時間：${gvc.glitter.ut.dateFormat(new Date(dd.update_time), 'MM-dd hh:mm')}
+                                                                                                                </div>
+                                                                                                            </div>`,
+                                                                                                        html`
+                                                                                                            <div class="p-0 me-3"
+                                                                                                                 style="width: 40px;">
+                                                                                                                <button
+                                                                                                                        class="btn btn-sm bgf6 text-black w-100 me-2"
+                                                                                                                        style="color: black; border-radius: 10px; box-shadow: 0px 0px 2px 0px rgba(0, 0, 0, 0.08); height: 28px"
+                                                                                                                        type="button"
+                                                                                                                        data-bs-toggle="dropdown"
+                                                                                                                        aria-haspopup="true"
+                                                                                                                        aria-expanded="false"
+                                                                                                                >
+                                                                                                                    <i class="fa-solid fa-ellipsis"
+                                                                                                                       aria-hidden="true"></i>
+                                                                                                                </button>
+                                                                                                                <div class="dropdown-menu">
+                                                                                                                    <a
+                                                                                                                            class="dropdown-item"
+                                                                                                                            onclick="${gvc.event(() => {
+                                                                                                                                gvc.glitter.setUrlParameter('appName', dd.appName);
+                                                                                                                                SaasViewModel.renew(gvc);
+                                                                                                                            })}"
+                                                                                                                    >續費</a
+                                                                                                                    >
+                                                                                                                    <div class="dropdown-divider"></div>
+                                                                                                                    <a
+                                                                                                                            class=" dropdown-item"
+                                                                                                                            onclick="${gvc.event(() => {
+                                                                                                                                EditorElem.openEditorDialog(
+                                                                                                                                        gvc,
+                                                                                                                                        (gvc) => {
+                                                                                                                                            const appName = dd.theme_config.name || dd.appName;
+                                                                                                                                            let deleteText = '';
+                                                                                                                                            return html`
+                                                                                                                                                <div class="p-2">
+                                                                                                                                                    ${[
+                                                                                                                                                        html`
+                                                                                                                                                            <div
+                                                                                                                                                                    class="alert alert-danger p-2 fs-base"
+                                                                                                                                                                    style="white-space: normal;"
+                                                                                                                                                            >
+                                                                                                                                                                是否確認刪除此商店，刪除之後則無法復原，請謹慎進行操作!
+                                                                                                                                                            </div>`,
+                                                                                                                                                        EditorElem.editeInput({
+                                                                                                                                                            gvc: gvc,
+                                                                                                                                                            title: '刪除確認',
+                                                                                                                                                            placeHolder: `請輸入 -> ${appName}`,
+                                                                                                                                                            default: deleteText,
+                                                                                                                                                            callback: (text) => {
+                                                                                                                                                                deleteText = text;
+                                                                                                                                                            },
+                                                                                                                                                        }),
+                                                                                                                                                        html`
+                                                                                                                                                            <div
+                                                                                                                                                                    class="d-flex align-items-center justify-content-end pt-2 border-top mt-2"
+                                                                                                                                                            >
+                                                                                                                                                                <button
+                                                                                                                                                                        class="btn btn-danger btn-sm"
+                                                                                                                                                                        onclick="${gvc.event(() => {
+                                                                                                                                                                            if (deleteText === appName) {
+                                                                                                                                                                                const dialog = new ShareDialog(gvc.glitter);
+                                                                                                                                                                                dialog.dataLoading({visible: true});
+                                                                                                                                                                                ApiPageConfig.deleteApp(dd.appName).then((res) => {
+                                                                                                                                                                                    dialog.dataLoading({visible: false});
+                                                                                                                                                                                    if (dd.appName === (window as any).appName) {
+                                                                                                                                                                                        const url = new URL(location.href);
+                                                                                                                                                                                        location.href = url.href.replace(url.search, '');
+                                                                                                                                                                                    } else {
+                                                                                                                                                                                        gvc.closeDialog();
+                                                                                                                                                                                        refresh();
+                                                                                                                                                                                    }
+                                                                                                                                                                                });
+                                                                                                                                                                            } else {
+                                                                                                                                                                                alert('輸入錯誤');
+                                                                                                                                                                            }
+                                                                                                                                                                        })}"
+                                                                                                                                                                >
+                                                                                                                                                                    確認刪除
+                                                                                                                                                                </button>
+                                                                                                                                                            </div>`,
+                                                                                                                                                    ].join('')}
+                                                                                                                                                </div>`;
+                                                                                                                                        },
+                                                                                                                                        () => {
+                                                                                                                                        },
+                                                                                                                                        400,
+                                                                                                                                        '刪除商店'
+                                                                                                                                );
+                                                                                                                            })}"
+                                                                                                                    >刪除商店</a
+                                                                                                                    >
+                                                                                                                </div>
+                                                                                                            </div>`,
+                                                                                                        html`
+                                                                                                            <div>
+                                                                                                                ${BgWidget.darkButton(
+                                                                                                                        '更換商店',
+                                                                                                                        gvc.event(() => {
+                                                                                                                            const url = new URL(gvc.glitter.root_path);
+                                                                                                                            url.searchParams.set('type', 'editor');
+                                                                                                                            url.searchParams.set('function', 'backend-manger');
+                                                                                                                            url.searchParams.set('appName', dd.appName);
+                                                                                                                            location.href = url.href;
+                                                                                                                        }),
+                                                                                                                        {size: 'sm'}
+                                                                                                                )}
+                                                                                                            </div>`,
+                                                                                                    ];
+
+                                                                                                    if (document.body.clientWidth > 768) {
+                                                                                                        return html`
+                                                                                                            <div class="p-4"
+                                                                                                                 style="display: flex; align-items: center;">
+                                                                                                                ${storeList[0]}${storeList[1]}
+                                                                                                                <div class="flex-fill"></div>
+                                                                                                                ${storeList[2]}${storeList[3]}
+                                                                                                            </div>`;
+                                                                                                    }
+                                                                                                    return html`
+                                                                                                        <div
+                                                                                                                class="p-4"
+                                                                                                                style="display: flex; align-items: center; justify-content: flex-start; gap: 16px;"
+                                                                                                        >
+                                                                                                            ${storeList[0]}
+                                                                                                            <div style="width: 100%;">
+                                                                                                                ${storeList[1]}
+                                                                                                                <div style="display: flex; justify-content: flex-end; margin-top: 12px;">
+                                                                                                                    ${storeList[2]}${storeList[3]}
+                                                                                                                </div>
+                                                                                                            </div>
+                                                                                                        </div>`;
+                                                                                                })
+                                                                                                .join(html`
+                                                                                                    <div class="w-100 border-bottom"></div>`);
+                                                                                    }
+                                                                                },
+                                                                                divCreate: {
+                                                                                    style: `max-height: 600px; overflow-y: auto;`,
+                                                                                },
+                                                                            };
+                                                                        })}
+                                                                    </div>`;
+                                                            } else {
+                                                                return SaasViewModel.createShop(gvc, false);
+                                                            }
+                                                        },
+                                                    };
+                                                });
+                                            }, 'change_app');
+                                        })}"
+                                >所有商店</a
                                 >
                                 <div class="dropdown-divider"></div>
                                 <a
-                                    class="dropdown-item cursor_pointer"
-                                    onclick="${gvc.event(() => {
-                                        dialog.checkYesOrNot({
-                                            callback: (bool) => {
-                                                if (bool) {
-                                                    GlobalUser.saas_token = '';
-                                                    const url = new URL(location.href);
-                                                    location.href = url.href.replace(url.search, '');
-                                                }
-                                            },
-                                            text: '確定要登出嗎？',
-                                        });
-                                    })}"
-                                    >登出</a
+                                        class="dropdown-item cursor_pointer"
+                                        onclick="${gvc.event(() => {
+                                            dialog.checkYesOrNot({
+                                                callback: (bool) => {
+                                                    if (bool) {
+                                                        GlobalUser.saas_token = '';
+                                                        const url = new URL(location.href);
+                                                        location.href = url.href.replace(url.search, '');
+                                                    }
+                                                },
+                                                text: '確定要登出嗎？',
+                                            });
+                                        })}"
+                                >登出</a
                                 >
                             </div>`);
                     });
@@ -306,97 +335,262 @@ export class SaasViewModel {
     }
 
     public static createShop(gvc: GVC, register?: boolean) {
-        const hr = html` <div style="width: 400px; overflow-y: auto;" class="bg-white shadow rounded-3">
-            <div class="w-100 d-flex align-items-center p-3 border-bottom">
-                <div class="fw-500  cl_39">建立您的商店</div>
-                <div class="flex-fill"></div>
-                <i
-                    class="fa-regular fa-circle-xmark fs-5 cl_39 ${register ? `d-none` : ``}"
-                    style="cursor:pointer;"
-                    onclick="${gvc.event(() => {
-                        gvc.closeDialog();
-                    })}"
-                ></i>
-            </div>
-            ${gvc.bindView(() => {
-                const id = gvc.glitter.getUUID();
-                const postMD: {
-                    appName: string;
-                    name: string;
-                    sub_domain: string;
-                } = {
-                    name: '',
-                    appName: 't_' + new Date().getTime(),
-                    sub_domain: '',
-                };
-                return {
-                    bind: id,
-                    view: () => {
-                        return html` <div class="px-3 py-2">
-                            ${[
-                                EditorElem.editeInput({
-                                    gvc: gvc,
-                                    title: '商店名稱',
-                                    style: 'color:#393939',
-                                    placeHolder: `請輸入商店名稱`,
-                                    default: postMD.name,
-                                    callback: (text) => {
-                                        postMD.name = text;
-                                    },
-                                }),
-                                EditorElem.editeInput({
-                                    gvc: gvc,
-                                    title: html`
-                                        <div>免費商店網址</div>
-                                        <div class="mt-2" style="color:#006621;font-size: 13px;">https://${postMD.sub_domain || '請輸入網址'}.shopnex.cc</div>
-                                    `,
-                                    pattern: `A-Za-z0-9-`,
-                                    placeHolder: `請輸入商店網址`,
-                                    default: postMD.sub_domain,
-                                    callback: (text) => {
-                                        postMD.sub_domain = text;
-                                        gvc.notifyDataChange(id);
-                                    },
-                                }),
-                            ].join('<div class="my-2"></div>')}
-                            <div
-                                class="w-100 btn my-3"
-                                style="background:${EditorConfig.editor_layout.btn_background};color:white;"
-                                onclick="${gvc.event(() => {
-                                    if (!postMD.sub_domain || !postMD.appName || !postMD.name) {
-                                        const dialog = new ShareDialog(gvc.glitter);
-                                        dialog.errorMessage({
-                                            text: '請確實填寫所有資料!',
-                                        });
-                                        return;
-                                    }
-                                    SaasViewModel.createApp(gvc, postMD.appName, postMD.name, 't_1719819344426', postMD.sub_domain, register!);
-                                })}"
-                            >
-                                確認建立
-                            </div>
-                        </div>`;
-                    },
-                    divCreate: {
-                        style: `max-height:600px;overflow-y:auto;`,
-                        class: ``,
-                    },
-                };
-            })}
-        </div>`;
+        const postMD: {
+            appName: string;
+            name: string;
+            sub_domain: string;
+            refer_app: string
+        } = {
+            name: '',
+            appName: 't_' + new Date().getTime(),
+            sub_domain: '',
+            refer_app: ''
+        };
+        gvc.addStyle(`.hoverHidden div{
+                        display:none;
+                        }
+                        .hoverHidden:hover div{
+                        display:flex;
+                        }
+                        `);
+        gvc.glitter.addStyleLink(gvc.glitter.root_path+`/css/editor.css`)
+        const hr = html`
+            <div style="width: 600px;max-width: calc(100vw - 20px); overflow-y: auto;max-height: 100vh;"
+                 class="bg-white shadow rounded-3">
+                <div class="w-100 d-flex align-items-center p-3 border-bottom">
+                    <div class="fw-500  cl_39">建立您的商店</div>
+                    <div class="flex-fill"></div>
+                    <i
+                            class="fa-regular fa-circle-xmark fs-5 cl_39 ${register ? `d-none` : ``}"
+                            style="cursor:pointer;"
+                            onclick="${gvc.event(() => {
+                                gvc.closeDialog();
+                            })}"
+                    ></i>
+                </div>
+                ${gvc.bindView(() => {
+                    const id = gvc.glitter.getUUID();
+                    return {
+                        bind: id,
+                        view: () => {
+                            return html`
+                                <div class="px-3 py-2">
+                                    ${[
+                                        EditorElem.editeInput({
+                                            gvc: gvc,
+                                            title: '商店名稱',
+                                            style: 'color:#393939',
+                                            placeHolder: `請輸入商店名稱`,
+                                            default: postMD.name,
+                                            callback: (text) => {
+                                                postMD.name = text;
+                                            },
+                                        }),
+                                            gvc.bindView(()=>{
+                                                const id=gvc.glitter.getUUID()
+                                                return {
+                                                    bind:id,
+                                                    view:()=>{
+                                                        return  EditorElem.editeInput({
+                                                            gvc: gvc,
+                                                            title: html`
+                                                <div>免費商店網址</div>
+                                                <div class="mt-2" style="color:#006621;font-size: 13px;">
+                                                        https://${postMD.sub_domain || '請輸入網址'}.shopnex.cc
+                                                </div>
+                                            `,
+                                                            pattern: `A-Za-z0-9-`,
+                                                            placeHolder: `請輸入商店網址`,
+                                                            default: postMD.sub_domain,
+                                                            callback: (text) => {
+                                                                postMD.sub_domain = text;
+                                                                gvc.notifyDataChange(id);
+                                                            },
+                                                        })
+                                                    }
+                                                }
+                                            })
+                                       ,
+                                        `${BgWidget.title_16('選擇初始模板', 'font-weight:500;')}
+                            ${SaasViewModel.initialTemplate(gvc, (appName) => {
+                                            postMD.refer_app=appName
+                                        })}`
+                                    ].join('<div class="my-2"></div>')}
+                                </div>`;
+                        },
+                        divCreate: {
+                            style: `max-height:calc(100vh - 200px);overflow-y:auto;`,
+                            class: ``,
+                        },
+                    };
+                })}
+                <div class="w-100 d-flex align-items-center justify-content-end shadow p-3">
+                    ${BgWidget.save(gvc.event(() => {
+                        const dialog = new ShareDialog(gvc.glitter);
+                        if(!postMD.sub_domain){
+                            dialog.errorMessage({
+                                text: '請填寫預設網域',
+                            });
+                        }else if(!postMD.name ){
+                            dialog.errorMessage({
+                                text: '請填寫商店名稱',
+                            });
+                        }else if(!postMD.refer_app){
+                            dialog.errorMessage({
+                                text: '請選擇預設模板',
+                            });
+                        }else{
+                            SaasViewModel.createApp(gvc, postMD.appName, postMD.name, postMD.refer_app, postMD.sub_domain, register!);
+                        }
+                    }), '確認建立')}
+                </div>
+
+            </div>`;
         if (register) {
-            return html`<div
-                class="position-fixed vw-100 vh-100 d-flex align-items-center justify-content-center bg-white"
-                style="left: 0px;top:0px;
+            return html`
+                <div
+                        class="position-fixed vw-100 vh-100 d-flex align-items-center justify-content-center bg-white"
+                        style="left: 0px;top:0px;
 background-image: url('https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1711305933115-第一個背景橘色.png');
 background-size: cover;
 "
-            >
-                ${hr}
-            </div>`;
+                >
+                    ${hr}
+                </div>`;
         } else {
             return hr;
         }
+    }
+
+    public static initialTemplate(gvc: GVC, callback: (appName: string) => void) {
+        let vm = {
+            search: '',
+            select: ''
+        };
+        const containerID = gvc.glitter.getUUID();
+        return (
+            gvc.bindView(() => {
+                return {
+                    bind: containerID,
+                    view: () => {
+                        return gvc.bindView(() => {
+                            let data: any = undefined;
+                            const id = gvc.glitter.getUUID();
+                            ApiPageConfig.getTemplateList().then((res) => {
+                                data = res;
+                                data.response.result.reverse()
+                                gvc.notifyDataChange(id);
+                            })
+
+                            return {
+                                bind: id,
+                                view: () => {
+                                    if (data) {
+                                        return (() => {
+                                            if (data.response.result.length === 0) {
+                                                if (!vm.search) {
+                                                    return html`
+                                                        <div class="d-flex align-items-center justify-content-center flex-column w-100 py-4"
+                                                             style="width:700px;gap:10px;">
+                                                            <img src="./img/box-open-solid.svg"/>
+                                                            <span class="cl_39 text-center">尚未自製任何模塊<br/>請前往開發者模式自製專屬模塊</span>
+                                                        </div>
+                                                    `;
+                                                } else {
+                                                    return html`
+                                                        <div class="d-flex align-items-center justify-content-center flex-column w-100 py-4"
+                                                             style="width:700px;gap:10px;">
+                                                            <img src="./img/box-open-solid.svg"/>
+                                                            <span class="cl_39 text-center">查無相關模塊</span>
+                                                        </div>
+                                                    `;
+                                                }
+                                            } else {
+                                                return html`
+                                                    <div
+                                                            class="w-100"
+                                                            style=" overflow-y: auto;"
+                                                    >
+                                                        <div class="row m-0 pt-2  mx-n2">
+                                                            ${data.response.result
+                                                                    .map((dd: any, index: number) => {
+                                                                        return html`
+                                                                            <div class="col-6 col-sm-4 mb-3 rounded-3"
+                                                                            >
+                                                                                <div class="d-flex flex-column justify-content-center w-100 "
+                                                                                     style="gap:5px;cursor:pointer;${vm.select === dd.appName ? `overflow:hidden;background: #FFB400;border: 1px solid #FF6C02;padding:10px;border-radius: 5px;` : ``}">
+                                                                                    <div class="card w-100 position-relative rounded hoverHidden bgf6 rounded-3"
+                                                                                         style="padding-bottom: 58%;">
+                                                                                        <div
+                                                                                                class="position-absolute w-100 h-100 d-flex align-items-center justify-content-center rounded-3"
+                                                                                                style="overflow: hidden;"
+                                                                                        >
+                                                                                            <img
+                                                                                                    class="w-100 "
+                                                                                                    src="${dd.template_config.image[0] ??
+                                                                                                    'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713445383494-未命名(1080x1080像素).jpg'}"
+                                                                                            />
+                                                                                        </div>
+
+                                                                                        <div
+                                                                                                class="position-absolute w-100 h-100  align-items-center justify-content-center rounded fs-6 flex-column"
+                                                                                                style="background: rgba(0,0,0,0.5);gap:5px;"
+                                                                                        >
+                                                                                            <button
+                                                                                                    class="btn btn-secondary d-flex align-items-center "
+                                                                                                    style="height: 28px;width: 75px;gap:5px;"
+                                                                                                    onclick="${gvc.event(() => {
+                                                                                                        vm.select = dd.appName
+
+                                                                                                        gvc.notifyDataChange(id)
+                                                                                                    })}"
+                                                                                            >選擇
+                                                                                            </button>
+                                                                                        </div>
+
+                                                                                    </div>
+                                                                                    <h3 class="fs-6 mb-0 d-flex justify-content-between align-items-center">
+                                                                                        ${dd.template_config.name} <i
+                                                                                            class="fa-solid fa-eye"
+                                                                                            style="cursor:pointer;"
+                                                                                            onclick="${
+                                                                                                    gvc.event(() => {
+                                                                                                        gvc.glitter.openNewTab(`https://${dd.domain}/index`);
+                                                                                                        // gvc.glitter.openDiaLog(new URL(gvc.glitter.root_path + 'editor/preview-app.js', import.meta.url).href, 'preview', {
+                                                                                                        //     page: dd.tag,
+                                                                                                        //     appName: dd.appName,
+                                                                                                        //     title: dd.name,
+                                                                                                        // });
+                                                                                                    })
+                                                                                            }"></i></h3>
+                                                                                </div>
+                                                                            </div>
+                                                                        `;
+                                                                    })
+                                                                    .join('')}
+                                                        </div>
+                                                    </div>
+                                                `;
+                                            }
+                                        })();
+                                    } else {
+                                        return html`
+                                            <div class="w-100 p-3 d-flex align-items-center justify-content-center flex-column"
+                                                 style="gap: 10px;">
+                                                <div class="spinner-border fs-5"></div>
+                                                <div class="fs-6 fw-500">載入中...</div>
+                                            </div>`;
+                                    }
+                                },
+                                divCreate: {
+                                    style: '',
+                                },
+                            };
+                        });
+                    },
+                };
+            })
+        );
     }
 
     public static renew(gvc: GVC) {
@@ -418,11 +612,11 @@ background-size: cover;
             const shareDialog = new ShareDialog(glitter);
             const html = String.raw;
             if (gvc.glitter.getCookieByName('glitterToken') === undefined) {
-                shareDialog.errorMessage({ text: '請先登入' });
+                shareDialog.errorMessage({text: '請先登入'});
                 return;
             } else {
                 if (!appName) {
-                    shareDialog.errorMessage({ text: '請輸入APP名稱' });
+                    shareDialog.errorMessage({text: '請輸入APP名稱'});
                     return;
                 }
                 const saasConfig: {
@@ -451,7 +645,7 @@ background-size: cover;
                         copyWith: ['checkout', 'manager_post', 'user_post', 'user', 'public_config'],
                     }),
                 }).then((d2) => {
-                    shareDialog.dataLoading({ visible: false });
+                    shareDialog.dataLoading({visible: false});
                     if (d2.result) {
                         const url = new URL(location.href);
                         url.searchParams.set('type', 'editor');
@@ -462,11 +656,11 @@ background-size: cover;
                         resolve(true);
                     } else {
                         if (d2.response.code === 'HAVE_APP') {
-                            shareDialog.errorMessage({ text: '建立失敗，此英文名稱已被使用!' });
+                            shareDialog.errorMessage({text: '建立失敗，此英文名稱已被使用!'});
                         } else if (d2.response.code === 'HAVE_DOMAIN') {
-                            shareDialog.errorMessage({ text: '建立失敗，此網域名稱已被使用!' });
+                            shareDialog.errorMessage({text: '建立失敗，此網域名稱已被使用!'});
                         } else {
-                            shareDialog.errorMessage({ text: '建立失敗，此英文名稱已被使用!' });
+                            shareDialog.errorMessage({text: '建立失敗，此英文名稱已被使用!'});
                         }
                         resolve(false);
                     }

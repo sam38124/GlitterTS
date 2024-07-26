@@ -836,6 +836,11 @@ export class Main_editor {
                                                 value: 'codeBlock',
                                                 icon: 'fa-regular fa-brackets-curly',
                                             },
+                                            {
+                                                title: '表單編輯',
+                                                value: 'user_editor',
+                                                icon: 'fa-regular fa-pen-to-square',
+                                            },
                                         ].filter((dd) => {
                                             if (dd.value === 'basic' && Storage.select_page_type === 'module') {
                                                 return false;
@@ -880,7 +885,7 @@ ${dd.value === vm.select ? `background:linear-gradient(135deg, #667eea 0%, #764b
                                                 </div>
                                             </div>
                                         </div>`);
-                                    vm.select === 'codeBlock' &&
+                                    (vm.select === 'codeBlock' || vm.select === 'user_editor') &&
                                         array.push(Main_editor.editorContent({
                                             gvc: gvc,
                                             viewModel: data,
