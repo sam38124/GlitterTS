@@ -104,7 +104,7 @@ export class ShoppingRebateSetting {
                 }
                 const given = [];
                 if (vm.data.birth.type === 'base') {
-                    given.push(`統一給予${vm.data.birth.value}點回饋金`);
+                    given.push(`統一給予${vm.data.birth.value}點購物金`);
                 } else {
                     given.push(`依照會員等級給予${vm.data.birth.level.length}種購物金`);
                 }

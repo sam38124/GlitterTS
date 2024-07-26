@@ -930,7 +930,7 @@ export class BgProject {
                                                     };
                                                 })} `,
                                             html`
-                                                <div class="fw-bold fs-7">回饋金</div>
+                                                <div class="fw-bold fs-7">購物金</div>
                                                 <div class="fs-7">
                                                     ${gvc.bindView(() => {
                                                         return {

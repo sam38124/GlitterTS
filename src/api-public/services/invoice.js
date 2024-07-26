@@ -15,23 +15,23 @@ class Invoice {
     }
     async postInvoice(cf) {
         try {
-            const config = await app_js_1.default.getAdConfig(this.appName, "invoice_setting");
+            const config = await app_js_1.default.getAdConfig(this.appName, 'invoice_setting');
             switch (config.fincial) {
-                case "ezpay":
+                case 'ezpay':
                     return await invoice_js_1.EzInvoice.postInvoice({
                         hashKey: config.hashkey,
                         hash_IV: config.hashiv,
                         merchNO: config.merchNO,
                         invoice_data: cf.invoice_data,
-                        beta: (config.point === "beta")
+                        beta: config.point === 'beta',
                     });
-                case "ecpay":
+                case 'ecpay':
                     return await EcInvoice_js_1.EcInvoice.postInvoice({
                         hashKey: config.hashkey,
                         hash_IV: config.hashiv,
                         merchNO: config.merchNO,
                         invoice_data: cf.invoice_data,
-                        beta: (config.point === "beta")
+                        beta: config.point === 'beta',
                     });
             }
         }
@@ -43,7 +43,7 @@ class Invoice {
         const order = (await database_js_1.default.query(`SELECT *
                              FROM \`${this.appName}\`.t_checkout
                              where cart_token = ?`, [orderID]))[0]['orderData'];
-        const config = await app_js_1.default.getAdConfig(this.appName, "invoice_setting");
+        const config = await app_js_1.default.getAdConfig(this.appName, 'invoice_setting');
         const line_item = order.lineItems.map((dd) => {
             return {
                 ItemName: dd.title + (dd.spec.join('-') ? `/${dd.spec.join('-')}` : ``),
@@ -55,7 +55,7 @@ class Invoice {
         });
         if (order.use_rebate) {
             line_item.push({
-                ItemName: '回饋金',
+                ItemName: '購物金',
                 ItemUnit: '-',
                 ItemCount: 1,
                 ItemPrice: order.use_rebate * -1,
@@ -107,49 +107,49 @@ class Invoice {
                 ItemAmt: line_item.map((dd) => dd.ItemAmt || dd.price * dd.quantity).join('|'),
                 ItemTaxType: line_item.map(() => '1').join('|'),
             };
-            return await (this.postInvoice({
-                invoice_data: json
-            }));
+            return await this.postInvoice({
+                invoice_data: json,
+            });
         }
         else if (config.fincial === 'ecpay') {
             const json = {
                 MerchantID: config.merchNO,
                 RelateNumber: orderID,
                 CustomerID: order.user_info.email,
-                CustomerIdentifier: (order.user_info.invoice_type === 'company' ? (order.user_info.gui_number || '') : undefined),
-                CustomerName: (order.user_info.invoice_type === 'company' ? (order.user_info.company) : order.user_info.name),
+                CustomerIdentifier: (order.user_info.invoice_type === 'company' ? order.user_info.gui_number || '' : undefined),
+                CustomerName: (order.user_info.invoice_type === 'company' ? order.user_info.company : order.user_info.name),
                 CustomerAddr: order.user_info.address,
                 CustomerPhone: (order.user_info.phone || undefined),
                 CustomerEmail: order.user_info.email,
                 Print: '0',
-                CarrierType: (order.user_info.invoice_type === 'me' && order.user_info.send_type === 'carrier') ? '3' : '1',
-                CarrierNum: (order.user_info.invoice_type === 'me' && order.user_info.send_type === 'carrier') ? order.user_info.carrier_num : undefined,
-                Donation: (order.user_info.invoice_type === 'donate') ? '1' : '0',
-                LoveCode: (order.user_info.invoice_type === 'donate') ? order.user_info.love_code : undefined,
+                CarrierType: order.user_info.invoice_type === 'me' && order.user_info.send_type === 'carrier' ? '3' : '1',
+                CarrierNum: order.user_info.invoice_type === 'me' && order.user_info.send_type === 'carrier' ? order.user_info.carrier_num : undefined,
+                Donation: order.user_info.invoice_type === 'donate' ? '1' : '0',
+                LoveCode: order.user_info.invoice_type === 'donate' ? order.user_info.love_code : undefined,
                 TaxType: '1',
                 SalesAmount: order.total,
                 InvType: '07',
                 Items: line_item.map((dd, index) => {
                     return {
-                        "ItemSeq": index + 1,
-                        "ItemName": dd.ItemName,
-                        "ItemCount": dd.ItemCount,
-                        "ItemWord": dd.ItemUnit,
-                        "ItemPrice": dd.ItemPrice,
-                        "ItemTaxType": "1",
-                        "ItemAmount": dd.ItemAmt,
-                        "ItemRemark": ""
+                        ItemSeq: index + 1,
+                        ItemName: dd.ItemName,
+                        ItemCount: dd.ItemCount,
+                        ItemWord: dd.ItemUnit,
+                        ItemPrice: dd.ItemPrice,
+                        ItemTaxType: '1',
+                        ItemAmount: dd.ItemAmt,
+                        ItemRemark: '',
                     };
-                })
+                }),
             };
             console.log(`invoice_data->`, json);
-            return await (this.postInvoice({
-                invoice_data: json
-            }));
+            return await this.postInvoice({
+                invoice_data: json,
+            });
         }
     }
     static checkWhiteList(config, invoice_data) {
-        if (config.point === "beta" && invoice_data.BuyerEmail && config.whiteList && config.whiteList.length > 0) {
+        if (config.point === 'beta' && invoice_data.BuyerEmail && config.whiteList && config.whiteList.length > 0) {
             return config.whiteList.find((dd) => {
                 return dd.email === invoice_data.BuyerEmail;
             });

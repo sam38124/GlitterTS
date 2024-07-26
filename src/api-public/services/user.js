@@ -591,6 +591,31 @@ class User {
                     query.id = '0,0';
                 }
             }
+            if (query.level && query.level.length > 0) {
+                const levels = query.level.split(',');
+                const levelGroup = await this.getUserGroups(['level']);
+                if (levelGroup.result) {
+                    let levelIds = [];
+                    levelGroup.data.map((item) => {
+                        if (item.tag && levels.includes(item.tag)) {
+                            levelIds = levelIds.concat(item.users.map((user) => user.userID));
+                        }
+                    });
+                    if (levelIds.length > 0) {
+                        const ids = query.id
+                            ? query.id.split(',').filter((id) => {
+                                return levelIds.find((item) => {
+                                    return item === parseInt(`${id}`, 10);
+                                });
+                            })
+                            : levelIds;
+                        query.id = ids.join(',');
+                    }
+                    else {
+                        query.id = '0,0';
+                    }
+                }
+            }
             if (query.id && query.id.length > 1) {
                 querySql.push(`(u.userID in (${query.id}))`);
             }

@@ -444,7 +444,7 @@ export class Shopping {
                 throw exception.BadRequestError('BAD_REQUEST', 'ToCheckout Error:No email address.', null);
             }
 
-            // 判斷回饋金是否可用
+            // 判斷購物金是否可用
             if (data.use_rebate && data.use_rebate > 0) {
                 if (userData) {
                     const userRebate = await rebateClass.getOneRebate({ user_id: userData.userID });

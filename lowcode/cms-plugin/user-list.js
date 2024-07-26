@@ -155,7 +155,31 @@ export class UserList {
                                         }), vm.query || '', '搜尋所有用戶'),
                                         BgWidget.funnelFilter({
                                             gvc,
-                                            callback: () => ListComp.showRightMenu(FilterOptions.userFunnel),
+                                            callback: () => __awaiter(this, void 0, void 0, function* () {
+                                                const userFunnel = FilterOptions.userFunnel;
+                                                return yield new Promise((resolve) => {
+                                                    ApiUser.getPublicConfig('member_level_config', 'manager').then((dd) => {
+                                                        if (dd.result && dd.response.value) {
+                                                            resolve(dd.response.value.levels.map((item) => {
+                                                                return {
+                                                                    key: item.id,
+                                                                    name: item.tag_name,
+                                                                };
+                                                            }));
+                                                        }
+                                                        else {
+                                                            resolve([]);
+                                                        }
+                                                    });
+                                                }).then((res) => {
+                                                    userFunnel.map((item) => {
+                                                        if (item.key === 'level') {
+                                                            item.data = res;
+                                                        }
+                                                    });
+                                                    return ListComp.showRightMenu(userFunnel);
+                                                });
+                                            }),
                                         }),
                                         BgWidget.updownFilter({
                                             gvc,
@@ -448,7 +472,7 @@ export class UserList {
                             return gvc.glitter.ut.dateFormat(new Date(dd.deadline), 'yyyy-MM-dd hh:mm');
                         })(),
                     },
-                    { key: '回饋金項目', value: (_a = dd.note) !== null && _a !== void 0 ? _a : '' },
+                    { key: '購物金項目', value: (_a = dd.note) !== null && _a !== void 0 ? _a : '' },
                     {
                         key: '增減金額',
                         value: (() => {
@@ -654,10 +678,10 @@ export class UserList {
                                             bind: id,
                                             view: () => {
                                                 return BgWidget.mainCard(html `<div style="display: flex; margin-bottom: 12px;">
-                                                                    <span class="tx_700">回饋金</span>
+                                                                    <span class="tx_700">購物金</span>
                                                                 </div>` +
                                                     html `<div style="display: flex; margin-bottom: 18px; align-items: center; gap: 18px">
-                                                                        <span class="tx_700">現有回饋金</span>
+                                                                        <span class="tx_700">現有購物金</span>
                                                                         <span style="font-size: 24px; font-weight: 400; color: #393939;"
                                                                             >${gvc.bindView(() => {
                                                         const id = gvc.glitter.getUUID();
@@ -680,7 +704,7 @@ export class UserList {
                                                                         >
                                                                     </div>` +
                                                     html `<div style="display: flex; margin-bottom: 18px;">
-                                                                        <span class="tx_700">回饋金紀錄</span>
+                                                                        <span class="tx_700">購物金紀錄</span>
                                                                     </div>` +
                                                     gvc.bindView(() => {
                                                         const id = gvc.glitter.getUUID();

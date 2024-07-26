@@ -502,7 +502,7 @@ export class BgShopping {
                                                                     if (orderData.orderData.use_rebate) {
                                                                         return [
                                                                             {
-                                                                                title: '回饋金',
+                                                                                title: '購物金',
                                                                                 description: ``,
                                                                                 total: `- $${orderData.orderData.use_rebate.toLocaleString()}`,
                                                                             },
@@ -1129,7 +1129,7 @@ export class BgShopping {
                                                     def: voucherData.reBackType,
                                                     array: [
                                                         { title: '訂單現折', value: 'discount' },
-                                                        { title: '回饋金', value: 'rebate' },
+                                                        { title: '購物金', value: 'rebate' },
                                                         { title: '滿額免運', value: 'shipment_free' },
                                                     ],
                                                     callback: (text) => {
