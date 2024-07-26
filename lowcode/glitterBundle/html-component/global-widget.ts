@@ -132,7 +132,7 @@ export class GlobalWidget {
                     return `@{{theme_color.${index}.${key}}}`;
                 };
             }else{
-                obj.widget[d2]={refer: 'def'}
+                obj.widget[d2]={refer: obj.widget[d2].refer}
             }
         })
 
@@ -149,12 +149,13 @@ export class GlobalWidget {
             GlobalWidget.initialShowCaseData({widget:obj.widget,gvc:obj.gvc})
             function selector(widget: any,key:string) {
                 return EditorElem.select({
-                    title: '樣式來源',
+                    title: '顯示方式',
                     gvc: obj.gvc,
                     def: widget.refer,
                     array: [
                         {title: '參照預設', value: "def"},
-                        {title: '自定義', value: "custom"}
+                        {title: '自定義', value: "custom"},
+                        {title: '不顯示', value: "hide"}
                     ],
                     callback: (text) => {
                       obj.widget[key].refer=text;
@@ -168,13 +169,13 @@ export class GlobalWidget {
                     view: () => {
                         if (GlobalWidget.glitter_view_type === ViewType.mobile) {
                             const view = [selector(obj.widget.mobile,'mobile')]
-                            if (obj.widget.mobile.refer !== 'def') {
+                            if (obj.widget.mobile.refer === 'custom') {
                                 view.push(obj.view(obj.widget.mobile))
                             }
                             return view.join('')
                         } else if (GlobalWidget.glitter_view_type === ViewType.desktop) {
                             const view = [selector(obj.widget.desktop,'desktop')]
-                            if (obj.widget.desktop.refer !== 'def') {
+                            if (obj.widget.desktop.refer === 'custom') {
                                 view.push(obj.view(obj.widget.desktop))
                             }
                             return view.join('')
@@ -193,10 +194,15 @@ export class GlobalWidget {
         view: (widget: any) => string
     }) {
         GlobalWidget.initialShowCaseData({widget:obj.widget,gvc:obj.gvc})
+
         if(obj.gvc.glitter.document.body.clientWidth<800 && obj.widget.mobile.refer==='custom'){
             return obj.view(obj.widget.mobile)
+        }else if(obj.gvc.glitter.document.body.clientWidth<800 && obj.widget.mobile.refer==='hide'){
+            return ``
         }else if(obj.gvc.glitter.document.body.clientWidth>=800 && obj.widget.desktop.refer==='custom'){
             return obj.view(obj.widget.desktop)
+        }else if(obj.gvc.glitter.document.body.clientWidth>=800 && obj.widget.desktop.refer==='hide'){
+            return ``
         }else{
             return obj.view(obj.widget)
         }

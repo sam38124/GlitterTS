@@ -82,7 +82,7 @@ const query = async (sql: string, params: unknown[]): Promise<any> => {
     try {
         const connection=await pool.getConnection()
         const [results] = await (connection).query(sql, params);
-        connection.release()
+        connection.release();
         return results;
     } catch (err) {
         logger.error(TAG, 'Failed to query statement ' + sql + ' because ' + err);

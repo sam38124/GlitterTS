@@ -713,8 +713,12 @@ ${obj.gvc.bindView({
                             },
                         });
                     }
-                    dd.globalColor = function (key: string, index: number) {
-                        return `@{{theme_color.${index}.${key}}}`;
+                    dd.globalColor = function (key: string, index: any) {
+                        if(`${index}`.split('-')[0]==='custom'){
+                            return dd.formData[`${index}`.split('-')[1]][key];
+                        }else{
+                            return `@{{theme_color.${index}.${key}}}`;
+                        }
                     };
 
                     if (!dd.bundle) {
@@ -2136,7 +2140,7 @@ ${e.line}
                                                 carryData: {},
                                             },
                                             type: 'component',
-                                            class: '',
+                                            class: 'w-100',
                                             index: 0,
                                             label: tdata.title,
                                             style: '',
@@ -2203,7 +2207,7 @@ ${e.line}
                                                         carryData: {},
                                                     },
                                                     type: 'component',
-                                                    class: '',
+                                                    class: 'w-100',
                                                     index: 0,
                                                     label: tdata.title,
                                                     style: '',
@@ -2258,7 +2262,7 @@ ${e.line}
                                                         carryData: {},
                                                     },
                                                     type: 'component',
-                                                    class: '',
+                                                    class: 'w-100',
                                                     index: 0,
                                                     label: tdata.title,
                                                     style: '',

@@ -91,7 +91,8 @@ export class ShoppingOrderManager {
         }, () => {
 
         })
-        function importDataTo(event:Event){
+
+        function importDataTo(event: Event) {
             const input = event.target as HTMLInputElement;
             const XLSX = (window as any).XLSX;
             if (!input.files || input.files.length === 0) {
@@ -108,7 +109,7 @@ export class ShoppingOrderManager {
                     return;
                 }
                 const data = new Uint8Array(e.target.result as ArrayBuffer);
-                const workbook = XLSX.read(data, { type: 'array' });
+                const workbook = XLSX.read(data, {type: 'array'});
 
                 // 假設我們只讀取第一個工作表
                 const firstSheetName = workbook.SheetNames[0];
@@ -122,13 +123,14 @@ export class ShoppingOrderManager {
 
             reader.readAsArrayBuffer(file);
         }
-        function exportDataTo(firstRow:string[] , data:any) {
+
+        function exportDataTo(firstRow: string[], data: any) {
             if ((window as any).XLSX) {
                 // 將資料轉換成工作表
                 let XLSX = (window as any).XLSX;
 
-                const worksheet = XLSX.utils.json_to_sheet(data , { skipHeader: true });
-                XLSX.utils.sheet_add_aoa(worksheet, [firstRow], { origin: "A1" });
+                const worksheet = XLSX.utils.json_to_sheet(data, {skipHeader: true});
+                XLSX.utils.sheet_add_aoa(worksheet, [firstRow], {origin: "A1"});
 
                 // 創建一個新的工作簿
                 const workbook = XLSX.utils.book_new();
@@ -138,7 +140,7 @@ export class ShoppingOrderManager {
                 const wbout = XLSX.write(workbook, {bookType: 'xlsx', type: 'binary'});
 
                 // 將二進制數據轉換成 Blob 物件
-                function s2ab(s:any) {
+                function s2ab(s: any) {
                     const buf = new ArrayBuffer(s.length);
                     const view = new Uint8Array(buf);
                     for (let i = 0; i < s.length; i++) {
@@ -175,9 +177,10 @@ export class ShoppingOrderManager {
                                 <div class="flex-fill"></div>
                                 <div style="display: flex; gap: 14px;">
 
-                                    <input class="d-none" type="file" id="upload-excel" onchange="${gvc.event((e , event)=>{
-                                        importDataTo(event)
-                                    })}"/>
+                                    <input class="d-none" type="file" id="upload-excel"
+                                           onchange="${gvc.event((e, event) => {
+                                               importDataTo(event)
+                                           })}"/>
                                     ${BgWidget.grayButton(
                                             '匯入',
                                             gvc.event((e) => {
@@ -198,10 +201,10 @@ export class ShoppingOrderManager {
                                                     archived: (vm.filter_type === 'normal') ? `false` : `true`
                                                 }).then(response => {
                                                     dialog.dataLoading({visible: false})
-                                                    let firstRow = ["訂單編號" , "訂購人", "訂購人email" , "訂單金額" , "付款狀態" , "出貨狀態" , "訂單狀態" ];
-                                                    let exportData:any = [];
+                                                    let firstRow = ["訂單編號", "訂購人", "訂購人email", "訂單金額", "付款狀態", "出貨狀態", "訂單狀態"];
+                                                    let exportData: any = [];
                                                     console.log(response.response.data)
-                                                    response.response.data.map((orderData:any)=>{
+                                                    response.response.data.map((orderData: any) => {
                                                         let rowData: {
                                                             orderID: string;
                                                             order_name: string;
@@ -210,13 +213,13 @@ export class ShoppingOrderManager {
                                                             pay_status: string;
                                                             progress: string;
                                                             order_status: string
-                                                        }={
-                                                            orderID:orderData.cart_token,
-                                                            order_name: orderData?.customer_info?.name??orderData.orderData.user_info.name,
+                                                        } = {
+                                                            orderID: orderData.cart_token,
+                                                            order_name: orderData?.customer_info?.name ?? orderData.orderData.user_info.name,
                                                             order_email: orderData.orderData.user_email,
                                                             total: orderData.orderData.total,
-                                                            pay_status:  (()=>{
-                                                                switch (orderData.status){
+                                                            pay_status: (() => {
+                                                                switch (orderData.status) {
                                                                     case 0:
                                                                         return `未付款`;
                                                                     case 1:
@@ -228,8 +231,8 @@ export class ShoppingOrderManager {
                                                                 }
                                                                 return ``
                                                             })(),
-                                                            progress: (()=>{
-                                                                switch (orderData.orderData.progress ?? 'wait'){
+                                                            progress: (() => {
+                                                                switch (orderData.orderData.progress ?? 'wait') {
                                                                     case 'wait':
                                                                         return `未出貨`;
                                                                     case 'shipping':
@@ -243,8 +246,8 @@ export class ShoppingOrderManager {
                                                                 }
                                                                 return ``
                                                             })(),
-                                                            order_status: (()=>{
-                                                                switch (orderData.orderData.orderStatus??'0'){
+                                                            order_status: (() => {
+                                                                switch (orderData.orderData.orderStatus ?? '0') {
                                                                     case '-1':
                                                                         return `已取消`;
                                                                     case '0':
@@ -257,7 +260,7 @@ export class ShoppingOrderManager {
                                                         };
                                                         exportData.push(rowData)
                                                     })
-                                                    exportDataTo(firstRow , exportData);
+                                                    exportDataTo(firstRow, exportData);
                                                 })
                                             })
                                     )}
@@ -346,9 +349,13 @@ export class ShoppingOrderManager {
                                                         value: (() => {
 
                                                             switch (dd.status) {
-
                                                                 case 0:
-                                                                    return `<div class="badge" style="border-radius: 7px;background: #FFD5D0;height: 22px;padding: 4px 6px;font-size: 14px;color:#393939;">未付款</div>`;
+                                                                    if (dd.orderData.proof_purchase) {
+                                                                        return `<div class="badge" style="border-radius: 7px;background: #FFE9B2;height: 22px;padding: 4px 6px;font-size: 14px;color:#393939;">待核款</div>`;
+                                                                    } else {
+                                                                        return `<div class="badge" style="border-radius: 7px;background: #FFD5D0;height: 22px;padding: 4px 6px;font-size: 14px;color:#393939;">未付款</div>`;
+                                                                    }
+
                                                                 case 1:
                                                                     return `<div class="badge" style="border-radius: 7px;background: #D8ECDA;height: 22px;padding: 4px 6px;font-size: 14px;color:#393939;">已付款</div>`;
                                                                 case -1:
@@ -553,6 +560,7 @@ export class ShoppingOrderManager {
                     code_note?: string
                 };
                 shipment_form_format?: any,
+                proof_purchase: any,
                 progress: string;
                 // progress: 'finish' | 'wait' | 'shipping' | "returns";
                 order_note: string;
@@ -657,13 +665,19 @@ export class ShoppingOrderManager {
         const vt = {
             paymentBadge: () => {
                 if (orderData.status === 0) {
-                    return drawBadge('red', "未付款");
+                    if (orderData.orderData.proof_purchase) {
+                        return drawBadge('#FFE9B2', '待核款');
+                    } else {
+                        return drawBadge('red', '未付款');
+                    }
+
+
                 } else if (orderData.status === 1) {
-                    return drawBadge('green', "已付款");
+                    return drawBadge('green', '已付款');
                 } else if (orderData.status === -2) {
-                    return drawBadge('red', "已退款");
+                    return drawBadge('red', '已退款');
                 } else {
-                    return drawBadge('red', "付款失敗");
+                    return drawBadge('red', '付款失敗');
                 }
             },
             outShipBadge: () => {
@@ -1001,7 +1015,10 @@ export class ShoppingOrderManager {
                                                                 array: [
                                                                     {title: '變更付款狀態', value: ''},
                                                                     {title: '已付款', value: '1'},
-                                                                    {title: '未付款', value: '0'},
+                                                                    {
+                                                                        title: (orderData.orderData.proof_purchase) ? `待核款` : `未付款`,
+                                                                        value: '0'
+                                                                    },
                                                                     {title: '已退款', value: '-2'},
                                                                 ],
                                                                 callback: (text) => {
@@ -1018,8 +1035,10 @@ export class ShoppingOrderManager {
                                                             付款方式
                                                         </div>
                                                         <div style="color: #393939;font-size: 16px;font-weight: 400; line-height: 140%;">
-                                                            ${ShoppingOrderManager.getPaymentMethodText(orderData.orderData.method)}
+                                                            ${ShoppingOrderManager.getPaymentMethodText(orderData.orderData.method, orderData.orderData)}
                                                         </div>
+                                                        ${ShoppingOrderManager.getProofPurchaseString(orderData.orderData,gvc)}
+
                                                     </div>
                                                 `)}
                                                 ${BgWidget.card(html`
@@ -1163,30 +1182,39 @@ export class ShoppingOrderManager {
                                                         </div>
                                                         <div class="w-100 d-flex flex-column mt-2" style="gap:12px;">
                                                             ${[
-                                                                html`<div class="d-flex flex-column" style="gap:8px;">
-                                            <div class="d-flex align-items-center" style="color: #4D86DB;font-weight: 400; gap:8px;cursor:pointer;" onclick="${gvc.event(() => {
-                                                                    child_vm.userID = userData.userID
-                                                                    child_vm.type = 'user'
-                                                                })}">${userData?.userData?.name ?? "訪客"}
-                                                ${(() => {
+                                                                html`
+                                                                    <div class="d-flex flex-column" style="gap:8px;">
+                                                                        <div class="d-flex align-items-center"
+                                                                             style="color: #4D86DB;font-weight: 400; gap:8px;cursor:pointer;"
+                                                                             onclick="${gvc.event(() => {
+                                                                                 child_vm.userID = userData.userID
+                                                                                 child_vm.type = 'user'
+                                                                             })}">${userData?.userData?.name ?? "訪客"}
+                                                                            ${(() => {
 
-                                                                    if (userData?.member) {
+                                                                                if (userData?.member) {
 
-                                                                        for (let i = 0; i < userData.member.length; i++) {
+                                                                                    for (let i = 0; i < userData.member.length; i++) {
 
-                                                                            if (userData.member[i].trigger) {
-                                                                                return `<div class="d-flex align-items-center justify-content-center" style="padding: 4px 6px;border-radius: 7px;background: #393939;color: #FFF;">${userData.member[i].tag_name}</div>`
-                                                                            }
-                                                                        }
-                                                                    }
+                                                                                        if (userData.member[i].trigger) {
+                                                                                            return `<div class="d-flex align-items-center justify-content-center" style="padding: 4px 6px;border-radius: 7px;background: #393939;color: #FFF;">${userData.member[i].tag_name}</div>`
+                                                                                        }
+                                                                                    }
+                                                                                }
 
-                                                                    return `<div style="border-radius: 7px;background: #EAEAEA;padding: 4px 6px;color:#393939;font-weight: 700;">訪客</div>`
-                                                                })()}
-                                                
-                                            </div>
-                                            <div class="" style="color: #393939;font-weight: 400;">${userData?.userData?.phone ?? orderData.orderData.user_info.phone}</div>
-                                            <div class="" style="color: #393939;font-weight: 400;">${userData?.userData?.email ?? orderData.orderData.user_info.email}</div>
-                                        </div>`,
+                                                                                return `<div style="border-radius: 7px;background: #EAEAEA;padding: 4px 6px;color:#393939;font-weight: 700;">訪客</div>`
+                                                                            })()}
+
+                                                                        </div>
+                                                                        <div class=""
+                                                                             style="color: #393939;font-weight: 400;">
+                                                                            ${userData?.userData?.phone ?? orderData.orderData.user_info.phone}
+                                                                        </div>
+                                                                        <div class=""
+                                                                             style="color: #393939;font-weight: 400;">
+                                                                            ${userData?.userData?.email ?? orderData.orderData.user_info.email}
+                                                                        </div>
+                                                                    </div>`,
                                                                 `<div class="bgf6" style="height: 1px;margin: 8px 0"></div>`,
                                                                 `<div class="" style="font-size: 16px;font-weight: 700;">收件人資料</div>`,
                                                                 `<div class="d-flex flex-column" style="gap:8px;">
@@ -1195,7 +1223,7 @@ export class ShoppingOrderManager {
                         <!--                                            <div class="fw-normal fs-6">Email:${orderData.orderData.user_info.email}</div>-->
                                                                  </div>`,
                                                                 `<div class="" style="font-size: 16px;font-weight: 700;">付款方式</div>`,
-                                                                `<div style=""> ${ShoppingOrderManager.getPaymentMethodText(orderData.orderData.method)}</div>`,
+                                                                `<div style=""> ${ShoppingOrderManager.getPaymentMethodText(orderData.orderData.method, orderData.orderData)}</div>`,
                                                                 `<div class="" style="font-size: 16px;font-weight: 700;">配送方式</div>`,
                                                                 `<div class="" style="color: #393939;line-height: 140%; ">${(() => {
                                                                     switch (orderData.orderData.user_info.shipment) {
@@ -1572,7 +1600,7 @@ export class ShoppingOrderManager {
 
         //     todo 選擇門市
         //點擊選擇取貨門市之後 回傳門市資訊
-        function selectCVS(cvsCode:string) {
+        function selectCVS(cvsCode: string) {
             // UNIMARTC2C: `7-11`,
             // FAMIC2C: `全家`,
             // HILIFEC2C: `萊爾富`,
@@ -2068,7 +2096,8 @@ export class ShoppingOrderManager {
                                                         }
                                                     })}">
                                                 </div>
-                                                <div class="" style="font-size: 16px;font-weight: 400;width: 50px;text-align: right;">
+                                                <div class=""
+                                                     style="font-size: 16px;font-weight: 400;width: 50px;text-align: right;">
                                                     ${selectVariant.sale_price * selectVariant.qty}
                                                 </div>
                                                 <div class="d-flex align-items-center"
@@ -2088,7 +2117,7 @@ export class ShoppingOrderManager {
                                                     </svg>
                                                 </div>
                                             </div>
-       `
+                                        `
                                     })
 
                                 }
@@ -2578,11 +2607,16 @@ export class ShoppingOrderManager {
                                         <div class="d-flex flex-column flex-fill" style="gap: 8px;">
                                             <div>付款方式和付款狀態</div>
                                             <select class="form-select"
-                                                style="border-radius: 10px;border: 1px solid #DDD;padding: 9px 18px;" onchange="${gvc.event((e)=>{
-                                                orderDetail.pay_status = e.value;                                                      
-                                            })}">
-                                                <option value="1" ${(orderDetail.pay_status == 1)?'selected':''}>線下付款-已付款</option>
-                                                <option value="0" ${(orderDetail.pay_status == 0)?'selected':''}>線下付款-未付款</option>
+                                                    style="border-radius: 10px;border: 1px solid #DDD;padding: 9px 18px;"
+                                                    onchange="${gvc.event((e) => {
+                                                        orderDetail.pay_status = e.value;
+                                                    })}">
+                                                <option value="1" ${(orderDetail.pay_status == 1) ? 'selected' : ''}>
+                                                    線下付款-已付款
+                                                </option>
+                                                <option value="0" ${(orderDetail.pay_status == 0) ? 'selected' : ''}>
+                                                    線下付款-未付款
+                                                </option>
                                             </select>
                                         </div>
                                         <div class="d-flex flex-column flex-fill" style="gap: 8px;">
@@ -2592,11 +2626,25 @@ export class ShoppingOrderManager {
                                                     onchange="${gvc.event((e) => {
                                                         orderDetail.user_info!.shipment = e.value;
                                                     })}">
-                                                <option value="normal" ${(orderDetail.user_info!.shipment  == 'normal')?'selected':''}>宅配</option>
-                                                <option value="UNIMARTC2C" ${(orderDetail.user_info!.shipment  == 'UNIMARTC2C')?'selected':''}>7-11店到店</option>
-                                                <option value="FAMIC2C" ${(orderDetail.user_info!.shipment  == 'FAMIC2C')?'selected':''}>全家店到店</option>
-                                                <option value="OKMARTC2C" ${(orderDetail.user_info!.shipment  == 'OKMARTC2C')?'selected':''}>OK店到店</option>
-                                                <option value="HILIFEC2C" ${(orderDetail.user_info!.shipment  == 'HILIFEC2C')?'selected':''}>萊爾富店到店</option>
+                                                <option value="normal"
+                                                        ${(orderDetail.user_info!.shipment == 'normal') ? 'selected' : ''}>宅配
+                                                </option>
+                                                <option value="UNIMARTC2C"
+                                                        ${(orderDetail.user_info!.shipment == 'UNIMARTC2C') ? 'selected' : ''}>
+                                                    7-11店到店
+                                                </option>
+                                                <option value="FAMIC2C"
+                                                        ${(orderDetail.user_info!.shipment == 'FAMIC2C') ? 'selected' : ''}>
+                                                    全家店到店
+                                                </option>
+                                                <option value="OKMARTC2C"
+                                                        ${(orderDetail.user_info!.shipment == 'OKMARTC2C') ? 'selected' : ''}>
+                                                    OK店到店
+                                                </option>
+                                                <option value="HILIFEC2C"
+                                                        ${(orderDetail.user_info!.shipment == 'HILIFEC2C') ? 'selected' : ''}>
+                                                    萊爾富店到店
+                                                </option>
                                             </select>
                                         </div>
                                     </div>
@@ -2752,17 +2800,17 @@ export class ShoppingOrderManager {
                         }))}
                         ${BgWidget.save(gvc.event(() => {
                             let passData = JSON.parse(JSON.stringify(orderDetail))
-                           
+
                             passData.total = orderDetail.total;
                             passData.orderStatus = 1;
 
                             delete passData.tag
                             const dialog = new ShareDialog(glitter);
-                            
-                            dialog.dataLoading({visible:true})
+
+                            dialog.dataLoading({visible: true})
                             if (checkOrderEmpty(passData)) {
                                 ApiShop.toManualCheckout(passData).then(r => {
-                                    dialog.dataLoading({visible:false})
+                                    dialog.dataLoading({visible: false})
                                     gvc.glitter.innerDialog((gvc: GVC) => {
                                         return html`
                                             <div style="position: relative;width: 492px;height: 223px;border-radius: 10px;background: #FFF;display: flex;flex-direction: column;align-items: center;justify-content: center;">
@@ -2809,9 +2857,17 @@ export class ShoppingOrderManager {
             , 1200);
     }
 
-    public static getPaymentMethodText(key: string) {
+    public static getPaymentMethodText(key: string, orderData: any) {
         switch (key) {
             case 'off_line':
+                switch (orderData.customer_info.payment_select) {
+                    case 'atm':
+                        return `銀行轉帳`
+                    case 'line':
+                        return `Line Pay`
+                    case 'cash_on_delivery':
+                        return `貨到付款`
+                }
                 return `線下付款`
             case 'newWebPay':
                 return `藍新金流`
@@ -2820,6 +2876,49 @@ export class ShoppingOrderManager {
             default:
                 return `線下付款`
         }
+    }
+
+    public static getProofPurchaseString(orderData: any,gvc:GVC) {
+        if (orderData.method !== 'off_line' || orderData.customer_info.payment_select==='cash_on_delivery') {
+            return ``
+        } else {
+            return [
+                BgWidget.title_16('付款證明回傳'),
+                `<div class="border rounded-3 w-100 p-3" style="color: #393939;font-size: 16px;font-weight: 400; line-height: 120%;">
+${(() => {
+                    const array: any = [];
+                    switch (orderData.customer_info.payment_select) {
+                        case 'atm':
+                            ['pay-date','bank_name','bank_account','trasaction_code'].map((dd,index)=>{
+                                if(orderData.proof_purchase[dd]){
+                                    array.push(`${['交易時間','銀行名稱','銀行戶名','銀行帳號後五碼'][index]} : ${orderData.proof_purchase[dd]}`)
+                                } 
+                            })
+                           break
+                        case 'line':
+                            ['image'].map((dd,index)=>{
+                                if(orderData.proof_purchase[dd]){
+                                    array.push(`<img src="${orderData.proof_purchase[dd]}" style="width: 300px;cursor: pointer;" onclick="${gvc.event(()=>{
+                                        (window.parent as any).glitter.openDiaLog( (window.parent as any).glitter.root_path+'/dialog/image-preview.js', 'preview', orderData.proof_purchase[dd])
+                                    })}">`)
+                                }
+                            })
+                            break
+                        case 'cash_on_delivery':
+                            return `貨到付款`
+                    }
+                    return array.join('<div class="my-2"></div>') || '尚未回傳付款證明'
+                })()}
+        </div>`
+            ].join('')
+        }
+        // ${(orderData.orderData.proof_purchase) ?
+        //                                                        [BgWidget.title_16('付款證明回傳'),`
+        //                                                    <div class="border rounded-3 w-100 p-3" style="color: #393939;font-size: 16px;font-weight: 400; line-height: 120%;">
+        //                                                ${orderData.orderData.proof_purchase}
+        // </div>
+        //     `].join('')
+        //                                                         :``}
     }
 }
 

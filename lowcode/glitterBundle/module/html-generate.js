@@ -112,7 +112,12 @@ export class HtmlGenerate {
                         });
                     }
                     dd.globalColor = function (key, index) {
-                        return `@{{theme_color.${index}.${key}}}`;
+                        if (`${index}`.split('-')[0] === 'custom') {
+                            return dd.formData[`${index}`.split('-')[1]][key];
+                        }
+                        else {
+                            return `@{{theme_color.${index}.${key}}}`;
+                        }
                     };
                     if (!dd.bundle) {
                         try {
@@ -1717,7 +1722,7 @@ ${obj.gvc.bindView({
                                         carryData: {},
                                     },
                                     type: 'component',
-                                    class: '',
+                                    class: 'w-100',
                                     index: 0,
                                     label: tdata.title,
                                     style: '',
@@ -1785,7 +1790,7 @@ ${obj.gvc.bindView({
                                                 carryData: {},
                                             },
                                             type: 'component',
-                                            class: '',
+                                            class: 'w-100',
                                             index: 0,
                                             label: tdata.title,
                                             style: '',
@@ -1840,7 +1845,7 @@ ${obj.gvc.bindView({
                                                 carryData: {},
                                             },
                                             type: 'component',
-                                            class: '',
+                                            class: 'w-100',
                                             index: 0,
                                             label: tdata.title,
                                             style: '',

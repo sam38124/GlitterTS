@@ -18,19 +18,34 @@ export class ShoppingFinanceSetting {
             HASH_IV: string;
             ActionURL: string;
             credit?: boolean;
+            payment_info_atm?: {
+                bank_code: string,
+                bank_name: string,
+                bank_user: string,
+                bank_account: string,
+                text: string
+            },
+            payment_info_line_pay?:{
+                text:string
+            },
+            off_line_support?:{
+                line:boolean,
+                atm:boolean,
+                cash_on_delivery:boolean
+            },
             atm?: boolean;
             web_atm?: boolean;
             c_code?: boolean;
-            payment_info_text?:string
+            payment_info_text?: string
             c_bar_code?: boolean;
-            TYPE?: 'newWebPay' | 'ecPay';
+            TYPE?: 'newWebPay' | 'ecPay' | 'off_line';
         } = {
             MERCHANT_ID: 'MS350015371',
             HASH_KEY: 'yP9K0sXy1P2WcWfcbhcZDfHASdREcCz1',
             HASH_IV: 'C4AlT6GjEEr1Z9VP',
             ActionURL: 'https://core.newebpay.com/MPG/mpg_gateway',
             TYPE: 'newWebPay',
-            payment_info_text:''
+            payment_info_text: ''
         };
         const vm = {
             id: gvc.glitter.getUUID(),
@@ -143,25 +158,47 @@ export class ShoppingFinanceSetting {
                                                                                                          style="left: 0px;"></div>
                                                                                                     <div class="flex-fill "
                                                                                                          style="margin-left:30px;max-width: 100%;">
-                                                                                                        ${(() => { if(keyData.TYPE !== dd.value){
-                                                                                                                return  ``
-                                                                                                            } else  if ((keyData.TYPE as any) === 'off_line') {
-                                                                                                            //於訂單確認頁面及通知郵件中顯示，告知顧客付款的銀行帳戶或其他付款說明
-                                                                                                            return [
-                                                                                                                `  <div class="tx_normal fw-normal">
-                                                                                                       付款資訊
-                                                                                                    </div>`,
-                                                                                                                BgWidget.hint_title('於訂單確認頁面及通知郵件中顯示，告知顧客付款的銀行帳戶或其他付款說明'),
-                                                                                                                    `<div class="my-3"></div>`,
-                                                                                                                    EditorElem.richText({
-                                                                                                                        gvc:gvc,
-                                                                                                                        def:keyData.payment_info_text ?? '',
-                                                                                                                        callback:(text)=>{
-                                                                                                                            keyData.payment_info_text=text
-                                                                                                                        }
-                                                                                                                    })
-                                                                                                            ].join('')
-                                                                                                        } else {
+                                                                                                        ${(() => {
+                                                                                                            if (keyData.TYPE !== dd.value) {
+                                                                                                                return ``
+                                                                                                            } else if ((keyData.TYPE as any) === 'off_line') {
+                                                                                                                //於訂單確認頁面及通知郵件中顯示，告知顧客付款的銀行帳戶或其他付款說明
+                                                                                                                (keyData.off_line_support as any)=keyData.off_line_support ?? {}
+                                                                                                                return [
+                                                                                                                    BgWidget.inlineCheckBox({
+                                                                                                                        title: '付款方式(多選)',
+                                                                                                                        gvc: gvc,
+                                                                                                                        def: ['atm', 'line', 'cash_on_delivery'].filter((dd) => {
+                                                                                                                            return (keyData.off_line_support as any)[dd];
+                                                                                                                        }),
+                                                                                                                        array: [
+                                                                                                                            {
+                                                                                                                                title: 'ATM銀行轉帳',
+                                                                                                                                value: 'atm',
+                                                                                                                            },
+                                                                                                                            {
+                                                                                                                                title: 'LINE Pay',
+                                                                                                                                value: 'line',
+                                                                                                                            },
+                                                                                                                            {
+                                                                                                                                title: '貨到付款',
+                                                                                                                                value: 'cash_on_delivery',
+                                                                                                                            }
+                                                                                                                        ],
+                                                                                                                        callback: (array: any) => {
+                                                                                                                            ['atm', 'line', 'cash_on_delivery'].map((dd) => {
+                                                                                                                                (keyData.off_line_support as any)[dd] = !!array.find((d1: string) => {
+                                                                                                                                    return d1 === dd;
+                                                                                                                                });
+                                                                                                                            });
+                                                                                                                        },
+                                                                                                                        type: 'multiple',
+                                                                                                                    }),
+                                                                                                                    `<div class="my-3 w-100 border"></div>`,
+                                                                                                                    ShoppingFinanceSetting.atm(gvc,keyData),
+                                                                                                                  ShoppingFinanceSetting.line_pay(gvc,keyData)
+                                                                                                                ].join('')
+                                                                                                            } else {
                                                                                                                 return [
                                                                                                                     BgWidget.inlineCheckBox({
                                                                                                                         title: '金流站點',
@@ -196,7 +233,6 @@ export class ShoppingFinanceSetting {
                                                                                                                             keyData.ActionURL = text;
                                                                                                                         },
                                                                                                                     }),
-
                                                                                                                     BgWidget.inlineCheckBox({
                                                                                                                         title: '開通付款方式',
                                                                                                                         gvc: gvc,
@@ -305,6 +341,107 @@ export class ShoppingFinanceSetting {
         });
     }
 
+    public static line_pay(gvc:GVC,keyData:any){
+        const defText=`<p>您選擇了線下Line Pay付款。請完成付款後，提供證明截圖(左圖)，或是照著(右圖)的流程擷取『付款詳細資訊』並上傳，以便我們核款。&nbsp;</p>
+
+<p>
+\t<br><img src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1721809235108-6f302dc7696d15557c0f722311f51976.png" class="fr-fic fr-dii" style="width: 181px;">&nbsp;<img src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1721809257002-92b58012edbc40f9686217cc95f963e3.png" class="fr-fic fr-dii" style="width: 427px;"></p>
+
+<p>
+\t<br>
+</p>
+`
+        keyData.payment_info_line_pay=keyData.payment_info_line_pay ?? {
+            text:''
+        }
+        return gvc.bindView(()=>{
+            const id=gvc.glitter.getUUID()
+            return {
+                bind:id,
+                view:()=>{
+                    return [
+                        BgWidget.title_16('LINE Pay'),
+                        `<div class="my-2"></div>`,
+                        BgWidget.hint_title('提供上傳圖片的按鈕讓消費者直接上傳證明截圖'),
+                        `<div class="my-2"></div>`,
+                        `<div class="d-flex justify-content-between">
+<div style="color: #393939; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word;" class="pb-2">付款說明</div>
+<div style="color: #393939; font-size: 16px; font-family: Noto Sans; font-weight: 400; text-decoration: underline; word-wrap: break-word;cursor: pointer;" onclick="${gvc.event(()=>{
+                            keyData.payment_info_line_pay.text=defText
+                            gvc.notifyDataChange(id)
+                        })}"
+>返回預設</div>
+</div>`,
+                        EditorElem.richText({
+                            gvc: gvc,
+                            def: keyData.payment_info_line_pay?.text ?? '',
+                            callback: (text) => {
+                                keyData.payment_info_line_pay!.text = text
+                            }
+                        })
+                    ].join('')
+                }
+            }
+        })
+    }
+    public static atm(gvc:GVC,keyData:any){
+        keyData.payment_info_atm = keyData.payment_info_atm ?? {
+            bank_account: '',
+            bank_code: '',
+            bank_name: '',
+            bank_user: ''
+        } as any;
+          return gvc.bindView(()=>{
+            const id=gvc.glitter.getUUID()
+            return {
+                bind:id,
+                view:()=>{
+                    return [ BgWidget.title_16('ATM銀行轉帳'),
+                        `<div class="my-3"></div>`,
+                        `<div class="row w-100">
+${[
+                            {
+                                key: 'bank_code',
+                                title: '銀行代號'
+                            },
+                            {
+                                key: 'bank_name',
+                                title: '銀行名稱'
+                            },
+                            {
+                                key: 'bank_user',
+                                title: '銀行戶名'
+                            },
+                            {
+                                key: 'bank_account',
+                                title: '銀行帳號'
+                            }
+                        ].map((dd) => {
+                            return `<div class="col-6 mb-2">
+  <div class="w-100 mb-1">
+  <span style="color: #393939; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word">${dd.title}</span>
+  <span style="color: #E80000; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word">*</span>
+  </div>
+  <input class="form-control w-100" placeholder="請輸入${dd.title}" value="${(keyData.payment_info_atm as any)[dd.key]}" onchange="${gvc.event((e, event) => {
+                                (keyData.payment_info_atm as any)[dd.key] = e.value
+                            })}">
+</div>`
+                        }).join('')}
+</div>`,
+                        `<div  style="color: #393939; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word" class="pb-3">付款說明</div>`,
+                        ``,
+                        EditorElem.richText({
+                            gvc: gvc,
+                            def: keyData.payment_info_atm?.text ?? '',
+                            callback: (text) => {
+                                keyData.payment_info_atm!.text = text
+                            }
+                        }),
+                        `<div class="my-3 border w-100"></div>`,].join('')
+                }
+            }
+        })
+    }
     public static logistics_setting(gvc: GVC, widget: any) {
         const saasConfig: {
             config: any;
@@ -343,7 +480,7 @@ export class ShoppingFinanceSetting {
                     }
                     vm.data.support = vm.data.support || [];
                     vm.data.info = vm.data.info || ''
-                    vm.data.form=vm.data.form || []
+                    vm.data.form = vm.data.form || []
                     return BgWidget.container(
                         html`
                             <div class="d-flex w-100 align-items-center">
@@ -462,13 +599,13 @@ export class ShoppingFinanceSetting {
                             <div
                                     style="width: 100%;padding: 14px 16px;background: #FFF;box-shadow: 0px 1px 10px 0px rgba(0, 0, 0, 0.15);display: flex;justify-content: end;position: fixed;bottom: 0;right: 0;z-index:1;gap:14px;"
                             >
-                                
+
                                 ${BgWidget.save(
                                         gvc.event(async () => {
-                                            await widget.event('loading',{visible:true})
+                                            await widget.event('loading', {visible: true})
                                             save()
-                                            await widget.event('loading',{visible:false})
-                                            await widget.event('success',{title:'儲存成功'})
+                                            await widget.event('loading', {visible: false})
+                                            await widget.event('success', {title: '儲存成功'})
                                         }),
                                         '儲存'
                                 )}

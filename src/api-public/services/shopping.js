@@ -418,6 +418,18 @@ class Shopping {
             if (type !== 'manual' && type !== 'manual-preview') {
                 await this.checkVoucher(carData);
             }
+            const keyData = (await private_config_js_1.Private_config.getConfig({
+                appName: this.app,
+                key: 'glitter_finance',
+            }))[0].value;
+            carData.payment_setting = {
+                TYPE: keyData.TYPE
+            };
+            if (keyData.TYPE === 'off_line') {
+                carData.off_line_support = keyData.off_line_support;
+                carData.payment_info_line_pay = keyData.payment_info_line_pay;
+                carData.payment_info_atm = keyData.payment_info_atm;
+            }
             if (type === 'preview' || type === 'manual-preview')
                 return { data: carData };
             if (type !== 'manual') {

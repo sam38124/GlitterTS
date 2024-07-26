@@ -8,11 +8,10 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
             return html `
                 <div class="vw-100  vh-100 bg-white">
                     <div class="w-100  d-lg-flex justify-content-start border-bottom px-0" style="height: 56px;">
-                        <div class="navbar-brand text-dark d-none d-lg-flex py-0 h-100">
+                        <div class="navbar-brand text-dark  d-lg-flex py-0 h-100">
                             <div class="d-flex align-items-center justify-content-center border-end "
                                  style="width:50px;height: 56px;" onclick="${gvc.event(() => {
                 gvc.closeDialog();
-                gvc.glitter.goBack();
             })}">
                                 <i class="fa-solid fa-left-to-bracket hoverBtn" style="cursor:pointer;"
                                    aria-hidden="true">
@@ -20,7 +19,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                             </div>
                             <span class="ms-3 fw-500 fs-6" style="color:black;">${gBundle.title || '預覽頁面'}</span>
                         </div>
-                        <div class="position-absolute  translate-middle-x start-50" style="top:5px;">
+                        <div class="position-absolute  translate-middle-x start-50 d-none d-sm-block" style="top:5px;">
                             ${gvc.bindView({
                 bind: `showViewIcon`,
                 view: () => {
@@ -57,7 +56,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
             })}
                         </div>
                     </div>
-                    <div class="m-2 d-flex align-items-center justify-content-center" style="height:calc(100vh - 70px);">
+                    <div class="m-0 m-sm-2 d-flex align-items-center justify-content-center" style="${document.body.clientWidth > 800 ? `height:calc(100vh - 70px);` : `height:calc(100vh - 55px);`}">
                         
                         <iframe class="" src="${(() => {
                 const url = new URL(`${glitter.root_path}${gBundle.page}${location.search}`);
@@ -65,7 +64,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                 url.searchParams.delete('type');
                 return url.href;
             })()}"
-                        style="border:2px solid lightgrey;${(viewType === ViewType.mobile) ? `width: 414px;` : `width:100%;height:100%;`}
+                        style="border:2px solid lightgrey;${(viewType === ViewType.mobile && document.body.clientWidth > 800) ? `width: 414px;` : `width:100%;height:100%;`}
 "
                         ></iframe>
                     </div>
