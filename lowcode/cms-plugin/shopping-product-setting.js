@@ -58,7 +58,10 @@ class Excel {
                     row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
                         rowData.push(cell.value);
                     });
-                    data.push(rowData);
+                    const isEmptyRow = rowData.every((cellValue) => cellValue === null || cellValue === '');
+                    if (!isEmptyRow) {
+                        data.push(rowData);
+                    }
                 });
                 let postMD = [];
                 let productData = {};
@@ -101,6 +104,7 @@ class Excel {
                         weight: 0
                     };
                     if (index != 0) {
+                        console.log(row);
                         if (row[1]) {
                             if (Object.keys(productData).length != 0) {
                                 postMD.push(productData);
@@ -132,7 +136,7 @@ class Excel {
                             productData.productType.addProduct = row[3].includes("加購品");
                             productData.productType.product = row[3].includes("商品");
                             productData.productType.giveaway = row[3].includes("贈品");
-                            productData.preview_image = (_c = [row[4]]) !== null && _c !== void 0 ? _c : [""];
+                            productData.preview_image = (_c = [row[4]]) !== null && _c !== void 0 ? _c : ["商品圖片"];
                             productData.seo.title = (_d = row[5]) !== null && _d !== void 0 ? _d : "";
                             productData.seo.content = (_e = row[6]) !== null && _e !== void 0 ? _e : "";
                             productData.seo.keywords = (_f = row[7]) !== null && _f !== void 0 ? _f : "";
@@ -177,12 +181,15 @@ class Excel {
                         productData.variants.push(JSON.parse(JSON.stringify(variantData)));
                     }
                 });
+                postMD.push(productData);
                 let passData = {
                     data: postMD
                 };
                 yield ApiShop.postMultiProduct({
                     data: passData,
                     token: window.parent.config.token,
+                }).then((res) => {
+                    console.log(res);
                 });
             });
             reader.readAsArrayBuffer(file);
@@ -199,7 +206,7 @@ class Excel {
             this.adjustColumnWidths(data);
             const buffer = yield this.workbook.xlsx.writeBuffer();
             let fileName = name !== null && name !== void 0 ? name : `example_${new Date().toISOString()}`;
-            this.saveAsExcelFile(buffer, `${name}.xlsx`);
+            this.saveAsExcelFile(buffer, `${fileName}.xlsx`);
         });
     }
     insertData(data) {
@@ -427,7 +434,7 @@ export class ShoppingProductSetting {
                                                                                     <div style="display: flex;width: 100%;align-items: flex-start;gap: 16px;padding:20px;flex-direction: column">
                                                                                         <div style="display: flex;align-items: baseline;gap: 12px;align-self: stretch;">
                                                                                             <div style="color:#393939;font-size: 16px;font-weight: 400;">
-                                                                                                透過CSV檔案匯入商品
+                                                                                                透過XLSX檔案匯入商品
                                                                                             </div>
                                                                                             <div style="color: #36B; font-size: 14px; font-style: normal; font-weight: 400; line-height: normal; text-decoration-line: underline;"
                                                                                                  onclick="${gvc.event(() => {
@@ -592,17 +599,17 @@ export class ShoppingProductSetting {
                                                                                                 id="upload-excel"
                                                                                                 onchange="${gvc.event((e, event) => {
                                                             importInput = event.target;
+                                                            dialog.dataLoading({ visible: false });
                                                             gvc.notifyDataChange('importView');
                                                         })}"
                                                                                         />
                                                                                         <div style="display: flex;justify-content: center;padding: 59px 0px 58px 0px;align-items: center;flex-direction: column;gap: 10px;width: 100%;border-radius: 10px;border: 1px solid #DDD;background: #FFF;">
                                                                                             ${(() => {
                                                             if (importInput.files && importInput.files.length > 0) {
-                                                                console.log();
                                                                 return html `
                                                                                                         <div style="display: flex;padding: 10px;justify-content: center;align-items: center;gap: 10px;border-radius: 10px;background: #FFF;box-shadow: 0px 0px 7px 0px rgba(0, 0, 0, 0.10);color: #393939;font-size: 16px;font-weight: 400;"
                                                                                                              onclick="${gvc.event(() => {
-                                                                    ;
+                                                                    dialog.dataLoading({ visible: true });
                                                                     document.querySelector('#upload-excel').click();
                                                                 })}">
                                                                                                             更換檔案
@@ -616,13 +623,13 @@ export class ShoppingProductSetting {
                                                                 return html `
                                                                                                         <div style="display: flex;padding: 10px;justify-content: center;align-items: center;gap: 10px;border-radius: 10px;background: #FFF;box-shadow: 0px 0px 7px 0px rgba(0, 0, 0, 0.10);color: #393939;font-size: 16px;font-weight: 400;"
                                                                                                              onclick="${gvc.event(() => {
-                                                                    ;
+                                                                    dialog.dataLoading({ visible: true });
                                                                     document.querySelector('#upload-excel').click();
                                                                 })}">
                                                                                                             新增檔案
                                                                                                         </div>
                                                                                                         <div style="color:#8D8D8D;">
-                                                                                                            或拖曳至此上傳
+                                                                                                            
                                                                                                         </div>
                                                                                                     `;
                                                             }
@@ -743,6 +750,7 @@ export class ShoppingProductSetting {
                                                         accurate_search_collection: true,
                                                     }).then((response) => {
                                                         dialog.dataLoading({ visible: false });
+                                                        console.log(response.response);
                                                         let exportData = [];
                                                         response.response.data.map((productData) => {
                                                             var _a;
@@ -778,12 +786,12 @@ export class ShoppingProductSetting {
                                                                 barcode: "",
                                                             };
                                                             productData.content.variants.map((variant, index) => {
-                                                                var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16, _17, _18, _19, _20, _21, _22;
+                                                                var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16, _17, _18, _19;
                                                                 if (index == 0) {
                                                                     rowData.SEO_title = (_c = (_b = (_a = productData.content) === null || _a === void 0 ? void 0 : _a.seo) === null || _b === void 0 ? void 0 : _b.title) !== null && _c !== void 0 ? _c : "";
                                                                     rowData.SEO_desc = (_f = (_e = (_d = productData.content) === null || _d === void 0 ? void 0 : _d.seo) === null || _e === void 0 ? void 0 : _e.content) !== null && _f !== void 0 ? _f : "";
                                                                     rowData.SEO_keyword = (_j = (_h = (_g = productData.content) === null || _g === void 0 ? void 0 : _g.seo) === null || _h === void 0 ? void 0 : _h.keyword) !== null && _j !== void 0 ? _j : "";
-                                                                    rowData.category = (_k = productData.content.collection.join("/")) !== null && _k !== void 0 ? _k : "";
+                                                                    rowData.category = (_k = productData.content.collection.join(" , ")) !== null && _k !== void 0 ? _k : "";
                                                                     rowData.productType = `${((_m = (_l = productData.content) === null || _l === void 0 ? void 0 : _l.productType) === null || _m === void 0 ? void 0 : _m.product) ? '商品' : ''} ${((_p = (_o = productData.content) === null || _o === void 0 ? void 0 : _o.productType) === null || _p === void 0 ? void 0 : _p.addProduct) ? '加購品' : ''} ${((_r = (_q = productData.content) === null || _q === void 0 ? void 0 : _q.productType) === null || _r === void 0 ? void 0 : _r.giveaway) ? '贈品' : ''}`;
                                                                     rowData.status = (((_s = productData.content) === null || _s === void 0 ? void 0 : _s.status) == 'active') ? "上架" : "下架";
                                                                     rowData.spec1 = (_v = (_u = (_t = productData.content) === null || _t === void 0 ? void 0 : _t.specs[0]) === null || _u === void 0 ? void 0 : _u.title) !== null && _v !== void 0 ? _v : "";
@@ -812,15 +820,15 @@ export class ShoppingProductSetting {
                                                                 rowData.sale_price = (_9 = variant.sale_price) !== null && _9 !== void 0 ? _9 : "";
                                                                 rowData.benefit = (_10 = variant.profit) !== null && _10 !== void 0 ? _10 : "";
                                                                 rowData.compare_price = (_11 = variant.compare_price) !== null && _11 !== void 0 ? _11 : "";
-                                                                rowData.width = (_13 = (_12 = variant === null || variant === void 0 ? void 0 : variant.volume) === null || _12 === void 0 ? void 0 : _12.v_width) !== null && _13 !== void 0 ? _13 : "0";
-                                                                rowData.height = (_15 = (_14 = variant === null || variant === void 0 ? void 0 : variant.volume) === null || _14 === void 0 ? void 0 : _14.v_height) !== null && _15 !== void 0 ? _15 : "0";
-                                                                rowData.length = (_17 = (_16 = variant === null || variant === void 0 ? void 0 : variant.volume) === null || _16 === void 0 ? void 0 : _16.v_length) !== null && _17 !== void 0 ? _17 : "0";
-                                                                rowData.weight = (_18 = variant.weight) !== null && _18 !== void 0 ? _18 : "0";
-                                                                rowData.weightUnit = (_19 = variant.weightUnit) !== null && _19 !== void 0 ? _19 : "KG";
+                                                                rowData.width = (_12 = variant === null || variant === void 0 ? void 0 : variant.v_width) !== null && _12 !== void 0 ? _12 : "0";
+                                                                rowData.height = (_13 = variant === null || variant === void 0 ? void 0 : variant.v_height) !== null && _13 !== void 0 ? _13 : "0";
+                                                                rowData.length = (_14 = variant === null || variant === void 0 ? void 0 : variant.v_length) !== null && _14 !== void 0 ? _14 : "0";
+                                                                rowData.weight = (_15 = variant.weight) !== null && _15 !== void 0 ? _15 : "0";
+                                                                rowData.weightUnit = (_16 = variant.weightUnit) !== null && _16 !== void 0 ? _16 : "KG";
                                                                 rowData.stockPolicy = (variant.show_understocking) ? "追蹤" : "不追蹤";
-                                                                rowData.stock = (_20 = variant.stock) !== null && _20 !== void 0 ? _20 : "0";
-                                                                rowData.save_stock = (_21 = variant.save_stock) !== null && _21 !== void 0 ? _21 : "0";
-                                                                rowData.barcode = (_22 = variant.barcode) !== null && _22 !== void 0 ? _22 : "";
+                                                                rowData.stock = (_17 = variant.stock) !== null && _17 !== void 0 ? _17 : "0";
+                                                                rowData.save_stock = (_18 = variant.save_stock) !== null && _18 !== void 0 ? _18 : "0";
+                                                                rowData.barcode = (_19 = variant.barcode) !== null && _19 !== void 0 ? _19 : "";
                                                                 if (variant.shipment_type) {
                                                                     switch (variant.shipment_type) {
                                                                         case "volume": {

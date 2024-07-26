@@ -82,15 +82,17 @@ class Excel {
             const worksheet = workbook.getWorksheet(1);
 
             const data: any = [];
-
             worksheet.eachRow({includeEmpty: true}, (row: any, rowNumber: any) => {
                 const rowData: any = [];
                 row.eachCell({includeEmpty: true}, (cell: any, colNumber: any) => {
                     rowData.push(cell.value);
                 });
-                data.push(rowData);
-            });
+                const isEmptyRow = rowData.every((cellValue:any) => cellValue === null || cellValue === '');
+                if (!isEmptyRow) {
+                    data.push(rowData);
+                }
 
+            });
 
             let postMD: {
                 title: string;
@@ -133,6 +135,7 @@ class Excel {
                 weight: 0
             };
             data.forEach((row: any, index: number) => {
+
                 variantData = {
                     barcode: "",
                     compare_price: 0,
@@ -151,9 +154,8 @@ class Excel {
                     v_width: 0,
                     weight: 0
                 };
-                //商品基本資訊 過濾標頭
-                if (index != 0) {
-                    // 判斷上架狀態的值寫在每個商品的第一欄
+                if (index != 0 ){
+                    console.log(row)
                     if (row[1]) {
                         if (Object.keys(productData).length != 0) {
                             postMD.push(productData)
@@ -185,7 +187,7 @@ class Excel {
                         productData.productType.addProduct = row[3].includes("加購品")
                         productData.productType.product = row[3].includes("商品")
                         productData.productType.giveaway = row[3].includes("贈品")
-                        productData.preview_image = [row[4]] ?? [""];
+                        productData.preview_image = [row[4]] ?? ["商品圖片"];
                         productData.seo.title = row[5] ?? "";
                         productData.seo.content = row[6] ?? "";
                         productData.seo.keywords = row[7] ?? "";
@@ -202,6 +204,7 @@ class Excel {
 
 
                     }
+
                     let indices = [9, 11, 13];
                     indices.forEach((rowindex, key) => {
                         if (row[rowindex]) {
@@ -237,13 +240,19 @@ class Excel {
 
                     productData.variants.push(JSON.parse(JSON.stringify(variantData)))
                 }
+
             })
+            //最後一個沒推進去
+            postMD.push(productData)
             let passData = {
                 data: postMD
             }
             await ApiShop.postMultiProduct({
                 data: passData,
                 token: (window.parent as any).config.token,
+            }).then((res)=>{
+                console.log(res)
+
             });
         }
         reader.readAsArrayBuffer(file);
@@ -259,7 +268,8 @@ class Excel {
         this.adjustColumnWidths(data);
         const buffer = await this.workbook.xlsx.writeBuffer();
         let fileName = name??`example_${new Date().toISOString()}`
-        this.saveAsExcelFile(buffer, `${name}.xlsx`);
+
+        this.saveAsExcelFile(buffer, `${fileName}.xlsx`);
     }
 
     private insertData(data: any): void {
@@ -359,6 +369,7 @@ export class ShoppingProductSetting {
     public static main(gvc: GVC) {
         const html = String.raw;
         const glitter = gvc.glitter;
+
         const vm: {
             id: string;
             tableId: string;
@@ -553,7 +564,7 @@ export class ShoppingProductSetting {
                                                                                     <div style="display: flex;width: 100%;align-items: flex-start;gap: 16px;padding:20px;flex-direction: column">
                                                                                         <div style="display: flex;align-items: baseline;gap: 12px;align-self: stretch;">
                                                                                             <div style="color:#393939;font-size: 16px;font-weight: 400;">
-                                                                                                透過CSV檔案匯入商品
+                                                                                                透過XLSX檔案匯入商品
                                                                                             </div>
                                                                                             <div style="color: #36B; font-size: 14px; font-style: normal; font-weight: 400; line-height: normal; text-decoration-line: underline;"
                                                                                                  onclick="${gvc.event(() => {
@@ -718,6 +729,7 @@ export class ShoppingProductSetting {
                                                                                                 id="upload-excel"
                                                                                                 onchange="${gvc.event((e, event) => {
                                                                                                     importInput = event.target;
+                                                                                                    dialog.dataLoading({visible:false})
                                                                                                     gvc.notifyDataChange('importView')
                                                                                                 })}"
                                                                                         />
@@ -725,10 +737,11 @@ export class ShoppingProductSetting {
                                                                                             ${(() => {
 
                                                                                                 if (importInput.files && importInput.files.length > 0) {
-                                                                                                    console.log()
+                                                                                                  
                                                                                                     return html`
                                                                                                         <div style="display: flex;padding: 10px;justify-content: center;align-items: center;gap: 10px;border-radius: 10px;background: #FFF;box-shadow: 0px 0px 7px 0px rgba(0, 0, 0, 0.10);color: #393939;font-size: 16px;font-weight: 400;"
                                                                                                              onclick="${gvc.event(() => {
+                                                                                                                 dialog.dataLoading({visible:true})
                                                                                                                  ;(document.querySelector('#upload-excel') as HTMLInputElement)!.click();
                                                                                                              })}">
                                                                                                             更換檔案
@@ -741,12 +754,13 @@ export class ShoppingProductSetting {
                                                                                                     return html`
                                                                                                         <div style="display: flex;padding: 10px;justify-content: center;align-items: center;gap: 10px;border-radius: 10px;background: #FFF;box-shadow: 0px 0px 7px 0px rgba(0, 0, 0, 0.10);color: #393939;font-size: 16px;font-weight: 400;"
                                                                                                              onclick="${gvc.event(() => {
+                                                                                                                 dialog.dataLoading({visible:true})
                                                                                                                  ;(document.querySelector('#upload-excel') as HTMLInputElement)!.click();
                                                                                                              })}">
                                                                                                             新增檔案
                                                                                                         </div>
                                                                                                         <div style="color:#8D8D8D;">
-                                                                                                            或拖曳至此上傳
+                                                                                                            
                                                                                                         </div>
                                                                                                     `
                                                                                                 }
@@ -872,7 +886,8 @@ export class ShoppingProductSetting {
                                                                                             accurate_search_collection: true,
                                                                                         }).then((response) => {
                                                                                             dialog.dataLoading({visible: false});
-
+                                                                                            console.log(response.response)
+    
                                                                                             let exportData: any = [];
                                                                                             response.response.data.map((productData: any) => {
                                                                                                 let rowData: {
@@ -936,14 +951,15 @@ export class ShoppingProductSetting {
                                                                                                     save_stock: "",
                                                                                                     barcode: "",
                                                                                                 };
-
+                                
                                                                                                 productData.content.variants.map((variant: any, index: number) => {
 
                                                                                                     if (index == 0) {
+                                                                                                        
                                                                                                         rowData.SEO_title = productData.content?.seo?.title ?? "";
                                                                                                         rowData.SEO_desc = productData.content?.seo?.content ?? "";
                                                                                                         rowData.SEO_keyword = productData.content?.seo?.keyword ?? "";
-                                                                                                        rowData.category = productData.content.collection.join("/") ?? ""
+                                                                                                        rowData.category = productData.content.collection.join(" , ") ?? ""
                                                                                                         rowData.productType = `${productData.content?.productType?.product ? '商品' : ''} ${productData.content?.productType?.addProduct ? '加購品' : ''} ${productData.content?.productType?.giveaway ? '贈品' : ''}`
                                                                                                         rowData.status = (productData.content?.status == 'active') ? "上架" : "下架";
                                                                                                         rowData.spec1 = productData.content?.specs[0]?.title ?? "";
@@ -971,9 +987,9 @@ export class ShoppingProductSetting {
                                                                                                     rowData.sale_price = variant.sale_price ?? "";
                                                                                                     rowData.benefit = variant.profit ?? "";
                                                                                                     rowData.compare_price = variant.compare_price ?? "";
-                                                                                                    rowData.width = variant?.volume?.v_width ?? "0";
-                                                                                                    rowData.height = variant?.volume?.v_height ?? "0";
-                                                                                                    rowData.length = variant?.volume?.v_length ?? "0";
+                                                                                                    rowData.width = variant?.v_width ?? "0";
+                                                                                                    rowData.height = variant?.v_height ?? "0";
+                                                                                                    rowData.length = variant?.v_length ?? "0";
                                                                                                     rowData.weight = variant.weight ?? "0";
                                                                                                     rowData.weightUnit = variant.weightUnit ?? "KG";
                                                                                                     rowData.stockPolicy = (variant.show_understocking) ? "追蹤" : "不追蹤";
