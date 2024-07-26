@@ -1612,8 +1612,61 @@ class Shopping {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'postProduct Error:' + e, null);
         }
     }
+    async updateCollectionFromUpdateProduct(collection) {
+        var _a;
+        let config = (_a = (await database_js_1.default.query(`SELECT *
+                         FROM \`${this.app}\`.public_config
+                         WHERE \`key\` = 'collection';`, []))[0]) !== null && _a !== void 0 ? _a : {};
+        config.value = config.value || [];
+        function findRepeatCollection(data, fatherTitle = "") {
+            let returnArray = [`${fatherTitle ? `${fatherTitle}/` : ``}${data.title}`];
+            let t = [1, 2, 3];
+            if (data.array && data.array.length > 0) {
+                data.array.forEach((item) => {
+                    returnArray.push(...findRepeatCollection(item, data.title));
+                });
+            }
+            return returnArray;
+        }
+        let stillCollection = [];
+        config.value.forEach((collection) => {
+            stillCollection.push(...findRepeatCollection(collection));
+        });
+        const nonCommonElements = collection.filter((item) => !stillCollection.includes(item));
+        function addCategory(nodes, levels) {
+            if (levels.length === 0)
+                return;
+            const title = levels[0];
+            let node = nodes.find(n => n.title === title);
+            if (!node) {
+                node = { title, array: [] };
+                nodes.push(node);
+            }
+            if (levels.length > 1) {
+                addCategory(node.array, levels.slice(1));
+            }
+        }
+        function buildCategoryTree(categories) {
+            const root = [];
+            categories.forEach(category => {
+                const levels = category.split('/');
+                addCategory(root, levels);
+            });
+            return root;
+        }
+        const categoryTree = buildCategoryTree(nonCommonElements);
+        config.value.push(...categoryTree);
+        const update_col_sql = `UPDATE \`${this.app}\`.public_config
+                                    SET value = ?
+                                    WHERE \`key\` = 'collection';`;
+        await database_js_1.default.execute(update_col_sql, [config.value]);
+    }
     async postMulProduct(content) {
         try {
+            if (content.collection.length > 0) {
+                await this.updateCollectionFromUpdateProduct(content.collection);
+            }
+            return;
             let productArray = content.data;
             let passArray = [];
             productArray.forEach((product, index) => {
@@ -1632,7 +1685,6 @@ class Shopping {
             let insertIDStart = data.insertId;
             await new Shopping(this.app, this.token).processProducts(productArray, insertIDStart);
             return insertIDStart;
-            return ``;
         }
         catch (e) {
             console.error(e);

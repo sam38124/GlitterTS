@@ -2101,8 +2101,75 @@ export class Shopping {
             throw exception.BadRequestError('BAD_REQUEST', 'postProduct Error:' + e, null);
         }
     }
+    //輸入collection , 根據/的分層 整理好分類的分層並更新
+    async updateCollectionFromUpdateProduct(collection: string[]) {
+        //有新類別要處理
+        let config =
+            (
+                await db.query(
+                    `SELECT *
+                         FROM \`${this.app}\`.public_config
+                         WHERE \`key\` = 'collection';`,
+                    []
+                )
+            )[0] ?? {};
+        config.value = config.value || [];
+
+        function findRepeatCollection(data:any,fatherTitle:string=""){
+            let returnArray = [`${fatherTitle?`${fatherTitle}/`:``}${data.title}`]
+            let t = [1 , 2 , 3]
+            if (data.array && data.array.length > 0){
+                data.array.forEach((item:any) => {
+                    returnArray.push(...findRepeatCollection(item , data.title));
+                })
+            }
+            return returnArray
+
+        }
+        let stillCollection: any[] = [];
+        config.value.forEach((collection:any) => {
+            stillCollection.push(...findRepeatCollection(collection));
+        })
+        const nonCommonElements = collection.filter((item:string) => !stillCollection.includes(item));
+        type CategoryNode = {
+            title: string;
+            array: CategoryNode[];
+        };
+        function addCategory(nodes: CategoryNode[], levels: string[]): void {
+            if (levels.length === 0) return;
+            const title = levels[0];
+            let node = nodes.find(n => n.title === title);
+            if (!node) {
+                node = { title, array: [] };
+                nodes.push(node);
+            }
+            if (levels.length > 1) {
+                addCategory(node.array, levels.slice(1));
+            }
+        }
+        function buildCategoryTree(categories: string[]): CategoryNode[] {
+            const root: CategoryNode[] = [];
+            categories.forEach(category => {
+                const levels = category.split('/');
+                addCategory(root, levels);
+            });
+            return root;
+        }
+        const categoryTree = buildCategoryTree(nonCommonElements);
+
+        config.value.push(...categoryTree);
+        // 更新商品類別 config
+        const update_col_sql = `UPDATE \`${this.app}\`.public_config
+                                    SET value = ?
+                                    WHERE \`key\` = 'collection';`;
+        await db.execute(update_col_sql, [config.value]);
+    }
     async postMulProduct(content: any) {
         try {
+            if (content.collection.length > 0){
+                //有新類別要處理
+                await this.updateCollectionFromUpdateProduct(content.collection);
+            }
             let productArray = content.data;
             let passArray = []
             productArray.forEach((product:any , index:number)=>{
@@ -2124,7 +2191,6 @@ export class Shopping {
 
             await new Shopping(this.app, this.token).processProducts(productArray , insertIDStart);
             return insertIDStart;
-            return ``
         } catch (e) {
             console.error(e);
             throw exception.BadRequestError('BAD_REQUEST', 'postProduct Error:' + e, null);

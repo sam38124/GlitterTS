@@ -63,6 +63,8 @@ class Excel {
                         data.push(rowData);
                     }
                 });
+                let error = false;
+                let addCollection = [];
                 let postMD = [];
                 let productData = {};
                 let variantData = {
@@ -104,11 +106,11 @@ class Excel {
                         weight: 0
                     };
                     if (index != 0) {
-                        console.log(row);
                         if (row[1]) {
                             if (Object.keys(productData).length != 0) {
                                 postMD.push(productData);
                             }
+                            addCollection = [];
                             productData = {
                                 title: '',
                                 productType: {
@@ -132,7 +134,34 @@ class Excel {
                             };
                             productData.title = (_a = row[0]) !== null && _a !== void 0 ? _a : "";
                             productData.status = (row[1] == "上架") ? 'active' : 'draft';
-                            productData.collection = (_b = row[2].split(" / ")) !== null && _b !== void 0 ? _b : [];
+                            productData.collection = (_b = row[2].split(",")) !== null && _b !== void 0 ? _b : [];
+                            const regex = /[\s,\\]+/g;
+                            productData.collection = productData.collection.map((item) => item.replace(/\s+/g, ''));
+                            productData.collection.forEach((row) => {
+                                let collection = row.replace(/\s+/g, '');
+                                if (regex.test(collection)) {
+                                    error = true;
+                                    alert(`第${index + 1}行的類別名稱不可包含空白格與以下符號：「 , 」「 / 」「 \\ 」，並以,區分不同類別`);
+                                    return;
+                                }
+                                function splitStringIncrementally(input) {
+                                    const parts = input.split('/');
+                                    const result = [];
+                                    parts.reduce((acc, part) => {
+                                        const newAcc = acc ? `${acc}/${part}` : part;
+                                        result.push(newAcc);
+                                        return newAcc;
+                                    }, '');
+                                    return result;
+                                }
+                                if (collection.split("/").length > 1) {
+                                    let check = splitStringIncrementally(collection);
+                                    const newItems = check.filter((item) => !productData.collection.includes(item));
+                                    addCollection.push(...newItems);
+                                }
+                                addCollection.push(collection);
+                            });
+                            productData.collection = addCollection;
                             productData.productType.addProduct = row[3].includes("加購品");
                             productData.productType.product = row[3].includes("商品");
                             productData.productType.giveaway = row[3].includes("贈品");
@@ -183,14 +212,17 @@ class Excel {
                 });
                 postMD.push(productData);
                 let passData = {
-                    data: postMD
+                    data: postMD,
+                    collection: addCollection
                 };
-                yield ApiShop.postMultiProduct({
-                    data: passData,
-                    token: window.parent.config.token,
-                }).then((res) => {
-                    console.log(res);
-                });
+                if (!error) {
+                    yield ApiShop.postMultiProduct({
+                        data: passData,
+                        token: window.parent.config.token,
+                    }).then((res) => {
+                        console.log(res);
+                    });
+                }
             });
             reader.readAsArrayBuffer(file);
         });

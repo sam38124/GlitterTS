@@ -93,7 +93,8 @@ class Excel {
                 }
 
             });
-
+            let error = false;
+            let addCollection:any = [];
             let postMD: {
                 title: string;
                 productType: {
@@ -155,11 +156,11 @@ class Excel {
                     weight: 0
                 };
                 if (index != 0 ){
-                    console.log(row)
                     if (row[1]) {
                         if (Object.keys(productData).length != 0) {
                             postMD.push(productData)
                         }
+                        addCollection = [];
                         productData = {
                             title: '',
                             productType: {
@@ -183,7 +184,43 @@ class Excel {
                         }
                         productData.title = row[0] ?? "";
                         productData.status = (row[1] == "上架") ? 'active' : 'draft';
-                        productData.collection = row[2].split(" / ") ?? [];
+                        productData.collection = row[2].split(",") ?? [];
+                        const regex = /[\s,\\]+/g;
+                        //去除多餘空白
+                        productData.collection = productData.collection.map((item: string) => item.replace(/\s+/g, ''));
+
+                        productData.collection.forEach((row:any) => {
+                            let collection = row.replace(/\s+/g, '');
+                            if (regex.test(collection)) {
+                                error = true;
+                                alert(`第${index + 1}行的類別名稱不可包含空白格與以下符號：「 , 」「 / 」「 \\ 」，並以,區分不同類別`);
+                                return;
+                            }
+                            //如果它帶有/ 要自動加上父類
+                            function splitStringIncrementally(input: string): string[] {
+                                const parts = input.split('/');
+                                const result: string[] = [];
+
+                                // 使用 reduce 来构建每一部分的拼接字符串
+                                parts.reduce((acc, part) => {
+                                    const newAcc = acc ? `${acc}/${part}` : part;
+                                    result.push(newAcc);
+                                    return newAcc;
+                                }, '');
+
+                                return result;
+                            }
+                            if (collection.split("/").length > 1){
+                                //會進來代表有/的內容 需要檢查放進去的collection有沒有父類
+                                //先取得目前分層 例如 貓/貓用品/貓砂/A品牌 會拆分成 貓/貓用品/貓砂 , 貓/貓用品, 貓
+                                //然後把父層自動推進去
+                                let check = splitStringIncrementally(collection);
+                                const newItems = check.filter((item: string) => !productData.collection.includes(item));
+                                addCollection.push(...newItems);
+                            }
+                            addCollection.push(collection)
+                        })
+                        productData.collection = addCollection;
                         productData.productType.addProduct = row[3].includes("加購品")
                         productData.productType.product = row[3].includes("商品")
                         productData.productType.giveaway = row[3].includes("贈品")
@@ -245,15 +282,19 @@ class Excel {
             //最後一個沒推進去
             postMD.push(productData)
             let passData = {
-                data: postMD
+                data: postMD,
+                collection : addCollection
             }
-            await ApiShop.postMultiProduct({
-                data: passData,
-                token: (window.parent as any).config.token,
-            }).then((res)=>{
-                console.log(res)
+            if (!error){
+                await ApiShop.postMultiProduct({
+                    data: passData,
+                    token: (window.parent as any).config.token,
+                }).then((res)=>{
+                    console.log(res)
 
-            });
+                });
+            }
+
         }
         reader.readAsArrayBuffer(file);
     }
