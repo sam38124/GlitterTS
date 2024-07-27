@@ -17,5 +17,8 @@ export declare class Mail {
         data: any;
         total: any;
     }>;
-    postMail(data: any): Promise<boolean>;
+    postMail(data: any): Promise<{
+        result: boolean;
+        message: string;
+    }>;
 }

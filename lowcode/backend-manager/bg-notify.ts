@@ -1709,11 +1709,15 @@ export class BgNotify {
                             ApiSmtp.send({
                                 ...postData,
                                 email: postData.userList.map((user) => user.email),
-                            }).then(() => {
+                            }).then((data) => {
                                 dialog.dataLoading({ visible: false });
-                                dialog.successMessage({
-                                    text: postData.sendTime ? '排定成功' : '發送成功',
-                                });
+                                if (data.result) {
+                                    dialog.successMessage({
+                                        text: postData.sendTime ? '排定成功' : '發送成功',
+                                    });
+                                } else {
+                                    dialog.errorMessage({ text: '手動寄件失敗' });
+                                }
                             });
                         }),
                         '送出'

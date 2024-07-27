@@ -75,10 +75,13 @@ export class Mail {
         }
     }
 
-    async postMail(data: any): Promise<boolean> {
-        delete data.token;
+    async postMail(data: any): Promise<{ result: boolean; message: string }> {
+        data.token && delete data.token;
         try {
             if (Boolean(data.sendTime)) {
+                if (isLater(data.sendTime)) {
+                    return { result: false, message: '排定發送的時間需大於現在時間' };
+                }
                 await db.query(`INSERT INTO \`${this.app}\`.\`t_triggers\` SET ? ;`, [
                     {
                         tag: 'sendMailBySchedule',
@@ -98,7 +101,7 @@ export class Mail {
                 ]);
                 this.chunkSendMail(data, insertData.insertId);
             }
-            return true;
+            return { result: true, message: '寄送成功' };
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'postMail Error:' + e, null);
         }
@@ -118,4 +121,12 @@ function chunkArray(array: any, groupSize: number) {
         result.push(array.slice(i, i + groupSize));
     }
     return result;
+}
+
+function isLater(dateTimeObj: { date: string; time: string }) {
+    const currentDateTime = new Date();
+    const { date, time } = dateTimeObj;
+    const dateTimeString = `${date}T${time}:00`;
+    const providedDateTime = new Date(dateTimeString);
+    return currentDateTime > providedDateTime;
 }

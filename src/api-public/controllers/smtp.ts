@@ -35,11 +35,8 @@ router.get('/', async (req: express.Request, resp: express.Response) => {
 router.post('/', async (req: express.Request, resp: express.Response) => {
     try {
         if (await UtPermission.isManager(req)) {
-            const result = await new Mail(req.get('g-app') as string, req.body.token).postMail(req.body);
-            if (!result) {
-                return response.fail(resp, exception.BadRequestError('BAD_REQUEST', 'Post Mail Failed', null));
-            }
-            return response.succ(resp, { result: true });
+            const post = await new Mail(req.get('g-app') as string, req.body.token).postMail(req.body);
+            return response.succ(resp, { data: post });
         } else {
             return response.fail(resp, exception.BadRequestError('BAD_REQUEST', 'No permission.', null));
         }
