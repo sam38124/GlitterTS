@@ -756,21 +756,19 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
             ` + getComponent(obj.gvc, obj.height));
     }
     static richText(obj) {
-        let quill = undefined;
-        return obj.gvc.bindView(() => {
-            const id = obj.gvc.glitter.getUUID();
-            const richID = obj.gvc.glitter.getUUID();
-            obj.gvc.glitter.addMtScript([
-                '../../jslib/froala.js',
-                '../../jslib/froala/languages/zh_tw.js',
-            ].map((dd) => {
+        const gvc = obj.gvc;
+        const glitter = gvc.glitter;
+        return gvc.bindView(() => {
+            const id = glitter.getUUID();
+            const richID = glitter.getUUID();
+            glitter.addMtScript(['../../jslib/froala.js', '../../jslib/froala/languages/zh_tw.js'].map((dd) => {
                 return { src: new URL(dd, import.meta.url) };
             }), () => { }, () => { });
-            obj.gvc.addStyleLink(['https://cdn.jsdelivr.net/npm/froala-editor@latest/css/froala_editor.pkgd.min.css']);
+            gvc.addStyleLink(['https://cdn.jsdelivr.net/npm/froala-editor@latest/css/froala_editor.pkgd.min.css']);
             return {
                 bind: id,
                 view: () => {
-                    return html ` <div style="" class="" id="${richID}">${obj.def}</div>`;
+                    return html ` <div id="${richID}">${obj.def}</div>`;
                 },
                 divCreate: {
                     style: `${obj.style || `overflow-y: auto;`}position:relative;`,
@@ -778,14 +776,15 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                 onCreate: () => {
                     const interval = setInterval(() => {
                         if (window.FroalaEditor) {
-                            obj.gvc.addStyle(`.fr-sticky-on {
-    position: relative !important;
-    z-index: 10;
-}
-.fr-sticky-dummy{
-display:none !important;
-}
-`);
+                            gvc.addStyle(`
+                                .fr-sticky-on {
+                                    position: relative !important;
+                                    z-index: 10;
+                                }
+                                .fr-sticky-dummy {
+                                    display: none !important;
+                                }
+                            `);
                             const editor = new FroalaEditor('#' + richID, {
                                 language: 'zh_tw',
                                 heightMin: 500,
@@ -798,7 +797,7 @@ display:none !important;
                                     },
                                     'image.beforeUpload': function (e, images) {
                                         EditorElem.uploadFileFunction({
-                                            gvc: obj.gvc,
+                                            gvc: gvc,
                                             callback: (text) => {
                                                 editor.html.insert(`<img src="${text}">`);
                                             },
@@ -819,12 +818,12 @@ display:none !important;
                                     class="fr-command fr-btn "
                                     data-title="插入圖片 (⌘P)"
                                     onclick="${obj.gvc.event(() => {
-                                    obj.gvc.glitter.ut.chooseMediaCallback({
+                                    glitter.ut.chooseMediaCallback({
                                         single: true,
                                         accept: 'image/*',
                                         callback(data) {
                                             const saasConfig = window.saasConfig;
-                                            const dialog = new ShareDialog(obj.gvc.glitter);
+                                            const dialog = new ShareDialog(glitter);
                                             dialog.dataLoading({ visible: true });
                                             const file = data[0].file;
                                             saasConfig.api.uploadFile(file.name).then((data) => {
@@ -859,6 +858,10 @@ display:none !important;
                                     </svg>
                                     <span class="fr-sr-only">插入圖片</span>
                                 </button>`;
+                                if (obj.readonly) {
+                                    editor.edit.off();
+                                    editor.toolbar.disable();
+                                }
                             }, 100);
                             clearInterval(interval);
                         }
@@ -870,8 +873,8 @@ display:none !important;
     static richTextBtn(obj) {
         return EditorElem.buttonPrimary(obj.title, obj.gvc.event(() => {
             EditorElem.openEditorDialog(obj.gvc, () => {
-                return `<div class="p-3" style="overflow: hidden;">
-${EditorElem.richText({
+                return html `<div class="p-3" style="overflow: hidden;">
+                            ${EditorElem.richText({
                     gvc: obj.gvc,
                     def: obj.def,
                     callback: (text) => {
@@ -879,7 +882,7 @@ ${EditorElem.richText({
                         obj.callback(text);
                     },
                 })}
-</div>`;
+                        </div>`;
             }, () => { }, 800, obj.title);
         }));
     }
@@ -1673,6 +1676,9 @@ ${obj.gvc.bindView(() => {
                                     <div
                                         class="d-flex align-items-center"
                                         onclick="${obj.gvc.event(() => {
+                            if (obj.readonly) {
+                                return;
+                            }
                             if (obj.type === 'multiple') {
                                 if (obj.def.find((d2) => {
                                     return d2 === dd.value;
@@ -2088,7 +2094,6 @@ ${obj.gvc.bindView(() => {
                                                 startIndex = evt.oldIndex;
                                             },
                                             onEnd: (evt) => {
-                                                console.log(evt.newIndex);
                                                 swapArr(obj.originalArray, startIndex, evt.newIndex);
                                                 obj.refreshComponent();
                                             },
@@ -2287,15 +2292,6 @@ ${obj.gvc.bindView(() => {
             </div>
         </div>`;
     }
-}
-EditorElem.codeEventListener = () => { };
-function swapArr(arr, index1, index2) {
-    const data = arr[index1];
-    arr.splice(index1, 1);
-    arr.splice(index2, 0, data);
-}
-export class Element {
-    constructor() { }
 }
 const interval = setInterval(() => {
     if (window.glitter) {

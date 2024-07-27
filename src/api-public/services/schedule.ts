@@ -4,7 +4,6 @@ import exception from '../../modules/exception';
 import { Rebate } from './rebate';
 import { User } from './user';
 import { Shopping } from './shopping';
-import { sendmail } from '../../services/ses.js';
 import { Mail } from '../services/mail.js';
 
 type ScheduleItem = {

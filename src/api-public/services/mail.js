@@ -33,6 +33,38 @@ class Mail {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'chunkSendMail Error:' + e, null);
         }
     }
+    async getMail(query) {
+        var _a, _b, _c;
+        try {
+            let searchSQL = '';
+            switch (query.searchType) {
+                case 'email':
+                    searchSQL = ` AND JSON_SEARCH(content->'$.email', 'one', '%${(_a = query.search) !== null && _a !== void 0 ? _a : ''}%', NULL, '$[*]') IS NOT NULL `;
+                    break;
+                case 'name':
+                    searchSQL = ` AND UPPER(JSON_EXTRACT(content, '$.name')) LIKE UPPER('%${(_b = query.search) !== null && _b !== void 0 ? _b : ''}%') `;
+                    break;
+                case 'title':
+                    searchSQL = ` AND UPPER(JSON_EXTRACT(content, '$.title')) LIKE UPPER('%${(_c = query.search) !== null && _c !== void 0 ? _c : ''}%') `;
+                    break;
+            }
+            let statusSQL = '';
+            if (query.status) {
+                statusSQL = ` AND status = ${query.status}`;
+            }
+            const whereSQL = `(tag = 'sendMail' OR tag = 'sendMailBySchedule')${searchSQL}${statusSQL}`;
+            const emails = await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_triggers
+                 WHERE ${whereSQL}
+                 ORDER BY id DESC
+                 ${query.type === 'download' ? '' : `LIMIT ${query.page * query.limit}, ${query.limit}`};`, []);
+            const total = await database_js_1.default.query(`SELECT count(id) as c FROM \`${this.app}\`.t_triggers
+                 WHERE ${whereSQL};`, []);
+            return { data: emails, total: total[0].c };
+        }
+        catch (e) {
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getMail Error:' + e, null);
+        }
+    }
     async postMail(data) {
         delete data.token;
         try {

@@ -225,6 +225,15 @@ export class Setting_editor {
                                         },
                                         {
                                             icon: '',
+                                            page: 'send_mail_history',
+                                            group: '信件群發',
+                                            title: '歷史寄件紀錄',
+                                            appName: 'cms_system',
+                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713375442916-Component 56 (4).svg',
+                                            moduleName: '群發設定',
+                                        },
+                                        {
+                                            icon: '',
                                             page: 'customer_message',
                                             group: '顧客管理',
                                             title: '客服系統',

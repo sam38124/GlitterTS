@@ -253,6 +253,16 @@ export class FilterOptions {
         { key: 'stock_asc', value: '庫存數量少 > 多' },
     ];
 
+    static emailFilterFrame = {
+        status: [],
+    };
+
+    static emailSelect = [
+        { key: 'email', value: '顧客信箱' },
+        { key: 'name', value: '寄件人名稱' },
+        { key: 'title', value: '標題' },
+    ];
+
     static emailOptions = [
         { key: 'def', value: '請選擇根據的條件' },
         { key: 'allCustomer', value: '指定顧客' },
@@ -262,5 +272,17 @@ export class FilterOptions {
         // { key: 'expiry', value: '購物金到期日' },
         { key: 'remain', value: '購物金剩餘點數' },
         // { key: 'uncheckout', value: '購物車裡的商品未結帳' },
+    ];
+
+    static emailFunnel = [
+        {
+            key: 'status',
+            type: 'multi_checkbox',
+            name: '寄送狀態',
+            data: [
+                { key: '0', name: '尚未寄送' },
+                { key: '1', name: '已寄送' },
+            ],
+        },
     ];
 }

@@ -678,6 +678,14 @@ ul {
     background-position-x: 97.5%;
 }
 
+.c_filter_container {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    margin: 8px 0;
+}
+
 .c_filter_tag {
     display: flex;
     padding: 4px 10px;
@@ -686,7 +694,7 @@ ul {
     gap: 4px;
     border-radius: 7px;
     background: #f7f7f7;
-    color: #8d8d8d;
+    color: #646464;
     font-size: 16px;
 }
 
