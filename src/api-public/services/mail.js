@@ -67,7 +67,6 @@ class Mail {
     }
     async postMail(data) {
         data.token && delete data.token;
-        console.log(JSON.stringify(data));
         try {
             if (Boolean(data.sendTime)) {
                 if (isLater(data.sendTime)) {
