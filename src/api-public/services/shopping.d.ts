@@ -137,6 +137,8 @@ export declare class Shopping {
         discount?: number;
         total?: number;
         pay_status?: number;
+        custom_form_format?: any;
+        custom_form_data?: any;
     }, type?: 'add' | 'preview' | 'manual' | 'manual-preview', replace_order_id?: string): Promise<{
         data: {
             customer_info: any;
@@ -170,8 +172,8 @@ export declare class Shopping {
                 condition?: number | undefined;
             } | undefined;
             voucherList?: VoucherData[] | undefined;
-            shipment_form_data: any;
-            shipment_form_format: any;
+            custom_form_format?: any;
+            custom_form_data?: any;
         };
         is_free?: undefined;
         return_url?: undefined;

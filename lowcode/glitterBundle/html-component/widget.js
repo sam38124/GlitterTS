@@ -280,8 +280,9 @@ export const widgetComponent = {
                                                         resolve(data.map((dd) => {
                                                             return `<option value="${dd.value}" ${`${dd.value}` === `${selectItem}` ? `selected` : ``}>
                                 ${dd.name}
-                            </option>`;
-                                                        }).join(''));
+                            </option>
+`;
+                                                        }).join('') + `<option class="d-none" ${(data.find((dd) => { return `${dd.value}` === `${selectItem}`; })) ? `` : `selected`}>請選擇</option>`);
                                                     }
                                                     else {
                                                         resolve(widget.data.selectList.map((dd) => {

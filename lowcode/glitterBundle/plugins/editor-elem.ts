@@ -1681,6 +1681,9 @@ ${obj.gvc.bindView(() => {
                         }
                     })
                     .join('')}
+                ${((obj.array as any).find((dd:any)=>{
+                    return dd.value===obj.def
+                })) ? ``:`<option class="d-none" selected>請選擇項目</option>`}
             </select>
         `;
     }
@@ -1855,7 +1858,7 @@ ${obj.gvc.bindView(() => {
         `;
     }
 
-    public static editerDialog(par: { gvc: GVC; dialog: (gvc: GVC) => string; width?: string; editTitle?: string }) {
+    public static editerDialog(par: { gvc: GVC; dialog: (gvc: GVC) => string; width?: string; editTitle?: string,callback?:()=>void }) {
         return html` <button
             type="button"
             class="btn btn-primary-c  w-100"
@@ -1871,6 +1874,8 @@ ${obj.gvc.bindView(() => {
                         </div>`,
                     title: par.editTitle || '',
                 });
+                par.callback && (NormalPageEditor.closeEvent=par.callback)
+                
             })}"
         >
             ${par.editTitle}

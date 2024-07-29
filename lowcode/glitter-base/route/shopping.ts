@@ -431,6 +431,8 @@ export class ApiShop {
         };
         code?: string;
         use_rebate?: number;
+        custom_form_format?:any,
+        custom_form_data?:any
     }) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/checkout`,

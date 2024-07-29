@@ -74,7 +74,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                         <div class="dialog-box">
                             <div class="dialog-content position-relative pb-5">
                                 <i class="fa-solid fa-triangle-exclamation fs-1"></i>
-                                <div class="my-3 fs-6 fw-500">${gBundle.obj.text ?? '發生錯誤'}</div>
+                                <div class="my-3 fs-6 fw-500" style="white-space: normal;">${gBundle.obj.text ?? '發生錯誤'}</div>
                                 <div class="dialog-absolute" onclick="${gvc.event(() => gvc.closeDialog())}">
                                     <div class="fs-6 fw-500">關閉</div>
                                 </div>
@@ -101,7 +101,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                         <div class="dialog-box">
                             <div class="dialog-content position-relative pb-5" style="width: 270px;">
                                 <i class="fa-regular fa-circle-question fs-1"></i>
-                                <div class="my-3 fs-6 fw-500 text-center">${gBundle.title}</div>
+                                <div class="my-3 fs-6 fw-500 text-center" style="white-space: normal;">${gBundle.title}</div>
                                 <div class="dialog-absolute">
                                     <div
                                         class="w-100 h-100 text-center pt-2 hover-cancel"

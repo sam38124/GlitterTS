@@ -538,8 +538,6 @@ ${CustomerMessageUser.detail({
             };
         });
     }
-
-
     public static list(gvc: GVC, callback: (chat_id: any) => void): string {
         return gvc.bindView(() => {
             const html = String.raw
@@ -658,7 +656,457 @@ position: absolute;right: -15px;top:-5px;font-size:11px;">${unReadCount}
         gvc.notifyDataChange(BgCustomerMessage.id);
     }
 
+    public static userMessage(cf: { gvc: GVC; userID: string; toUser: string; width: number; height: number; color: string; hideBar: boolean }) {
+        const gvc = cf.gvc;
+        const html = String.raw;
+        cf.userID = `${cf.userID}`;
+        const chatID = [cf.userID, cf.toUser].sort().join('-');
+        return gvc.bindView(() => {
+            const id = gvc.glitter.getUUID();
+            return {
+                bind: id,
+                view: () => {
+                    return ``;
+                },
+                divCreate: {
+                    elem: 'web-component',
+                    option: [
+                        {
+                            key: 'id',
+                            value: id,
+                        },
+                    ],
+                    class: `w-100 h-100`,
+                    style: `z-index:9999;bottom:0px;left:0px;`,
+                },
+                onCreate: async () => {
+                    BgCustomerMessage.config.hideBar = cf.hideBar;
+                    BgCustomerMessage.config.color = cf.color;
+                    await Chat.post({
+                        type: 'user',
+                        participant: [cf.userID, cf.toUser],
+                    });
+                    const css = String.raw;
+                    const viewId = gvc.glitter.getUUID();
+                    const chatView = `<div class="w-100 h-100" style="position: relative;">${BgCustomerMessage.detail({
+                        gvc: gvc,
+                        chat: {
+                            chat_id: chatID,
+                            type: 'user',
+                        },
+                        user_id: cf.userID,
+                        containerHeight: `${cf.height}px`,
+                        document: (document.querySelector('#' + id)! as any).shadowRoot,
+                        goBack: () => {
+                            gvc.notifyDataChange(viewId);
+                        },
+                        close: gvc.glitter.ut.frSize(
+                            {
+                                sm: undefined,
+                            },
+                            () => {
+                                gvc.notifyDataChange(id);
+                            }
+                        ),
+                    })}</div>`;
 
+                    const baseUrl = new URL('../', import.meta.url);
+                    (document.querySelector('#' + id)! as any).addStyleLink(baseUrl.href + `assets/css/theme.css`);
+                    (document.querySelector('#' + id)! as any).addStyleLink(baseUrl.href + `assets/vendor/boxicons/css/boxicons.min.css`);
+                    (document.querySelector('#' + id)! as any).addStyleLink(`https://kit.fontawesome.com/cccedec0f8.css`);
+                    (document.querySelector('#' + id)! as any).addStyle(css`
+                        .btn-white-primary {
+                            border: 2px solid ${BgCustomerMessage.config.color};
+                            justify-content: space-between;
+                            align-items: center;
+                            cursor: pointer;
+                            color: ${BgCustomerMessage.config.color};
+                            gap: 10px;
+                        }
+
+                        .btn-white-primary:hover {
+                            background: ${BgCustomerMessage.config.color};
+                            color: white !important;
+                        }
+                    `);
+                    (document.querySelector('#' + id)! as any).setView({
+                        gvc: gvc,
+                        view: chatView,
+                        id: id,
+                    });
+                },
+            };
+        });
+    }
+    public static detail(cf: { gvc: GVC; chat: any; user_id: string; containerHeight: string; document: any; goBack: () => void; close?: () => void }) {
+        const gvc = cf.gvc;
+        const document = cf.document;
+        return gvc.bindView(() => {
+            const id = gvc.glitter.getUUID();
+            return {
+                bind: id,
+                view: () => {
+                    return [
+                        gvc.bindView(() => {
+                            const id = gvc.glitter.getUUID();
+                            return {
+                                bind: id,
+                                view: () => {
+                                    return new Promise(async (resolve, reject) => {
+                                        const chatRoom = (
+                                            await Chat.getChatRoom({
+                                                page: 0,
+                                                limit: 1000,
+                                                user_id: cf.user_id,
+                                                chat_id: cf.chat.chat_id,
+                                            })
+                                        ).response.data[0];
+                                        if (chatRoom.who === 'manager') {
+                                            chatRoom.user_data = BgCustomerMessage.config;
+                                        }
+                                        resolve(`<div class="navbar  d-flex align-items-center justify-content-between w-100  p-3 ${
+                                            BgCustomerMessage.config.hideBar ? `d-none` : ``
+                                        }" style="background: ${BgCustomerMessage.config.color};">
+                      <div class="d-flex align-items-center pe-3 w-100" style="gap:10px;display: flex;align-items: center;">
+                        <i class="fa-solid fa-chevron-left fs-6" style="color:white;cursor: pointer;" onclick="${gvc.event(() => {
+                                            if (cf.user_id === 'manager') {
+                                                BgCustomerMessage.vm.type = 'list';
+                                                gvc.notifyDataChange(BgCustomerMessage.id);
+                                            } else {
+                                                cf.goBack();
+                                            }
+                                        })}"></i>
+                        <img src="${
+                                            chatRoom.type === 'user'
+                                                ? (chatRoom.user_data && chatRoom.user_data.head) || chatRoom.user_data.head_img || 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1704269678588-43.png'
+                                                : `https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1704269678588-43.png`
+                                        }" class="rounded-circle border" style="background: white;" width="40" alt="Albert Flores">
+                        <h6 class="mb-0 px-1 text-white">${chatRoom.type === 'user' ? (chatRoom.user_data && chatRoom.user_data.name) || '訪客' : `群組`}</h6>
+                        <div class="flex-fill" style="flex: 1;"></div>
+                      <i class="fa-regular fa-circle-xmark text-white fs-3 ${cf.close ? `` : `d-none`}" onclick="${gvc.event(() => {
+                                            cf.close && cf.close();
+                                        })}"></i>
+                      </div>
+                    </div>`);
+                                    });
+                                },
+                            };
+                        }),
+                        gvc.bindView(() => {
+                            const viewId = gvc.glitter.getUUID();
+                            const messageID = gvc.glitter.getUUID();
+                            const vm: {
+                                data: any;
+                                loading: boolean;
+                                scrollToBtn: boolean;
+                                lastScroll: number;
+                                message: string;
+                                prefixScroll: number;
+                                last_read: any;
+                                close: boolean;
+                            } = {
+                                data: [],
+                                loading: true,
+                                scrollToBtn: false,
+                                lastScroll: -1,
+                                message: '',
+                                prefixScroll: 0,
+                                last_read: {},
+                                close: false,
+                            };
+                            //chat_id
+                            Chat.getMessage({
+                                page: 0,
+                                limit: 50,
+                                chat_id: cf.chat.chat_id,
+                                user_id: cf.user_id,
+                            }).then((res) => {
+                                vm.data = res.response.data.reverse();
+                                vm.last_read = res.response.lastRead;
+                                vm.loading = false;
+                                gvc.notifyDataChange(viewId);
+                            });
+
+                            const url = new URL((window as any).glitterBackend);
+
+                            let socket: any = undefined;
+
+                            function connect() {
+                                if (gvc.glitter.share.close_socket) {
+                                    gvc.glitter.share.close_socket();
+                                }
+                                vm.close = false;
+                                socket = location.href.includes('https://') ? new WebSocket(`wss://${url.hostname}/websocket`) : new WebSocket(`ws://${url.hostname}:9003`);
+                                gvc.glitter.share.close_socket = () => {
+                                    vm.close = true;
+                                    socket.close();
+                                    gvc.glitter.share.close_socket = undefined;
+                                };
+                                gvc.glitter.share.socket = socket;
+                                socket.addEventListener('open', function (event: any) {
+                                    console.log('Connected to server');
+                                    socket.send(
+                                        JSON.stringify({
+                                            type: 'message',
+                                            chatID: cf.chat.chat_id,
+                                            user_id: cf.user_id,
+                                        })
+                                    );
+                                });
+                                let interVal: any = 0;
+                                socket.addEventListener('message', function (event: any) {
+                                    const data = JSON.parse(event.data);
+                                    if (data.type === 'update_read_count') {
+                                        vm.last_read = data.data;
+                                    } else {
+                                        vm.data.push(data);
+                                        const element: any = document.querySelector('.chatContainer')!;
+                                        const st = element.scrollTop;
+                                        const ofs = element.offsetHeight;
+                                        const sh = element.scrollHeight;
+                                        for (const dd of document.querySelectorAll('.time-mute')){
+                                            dd.remove()
+                                        }
+                                        document.querySelector(`#message-lines`).innerHTML+=(BgCustomerMessage.message_line(data,cf,vm.data.length-1,vm,gvc))
+                                        if (st + ofs >= sh - 50) {
+                                            element.scrollTop=element.scrollHeight;
+                                        }
+                                    }
+                                    //
+                                    // alert(vm.lastScroll)
+                                    // gvc.notifyDataChange(messageID);
+                                    // console.log('Message from server:', event.data);
+                                });
+                                socket.addEventListener('close', function (event: any) {
+                                    console.log('Disconnected from server');
+                                    if (!vm.close) {
+                                        console.log('Reconnected from server');
+                                        connect();
+                                    }
+                                });
+                            }
+                            connect();
+                            const textAreaId = gvc.glitter.getUUID();
+                            const html = String.raw;
+                            return {
+                                bind: viewId,
+                                view: () => {
+                                    if (vm.loading) {
+                                        return String.raw`<div class="d-flex align-items-center justify-content-center w-100 flex-column pt-3">
+                                <div class="spinner-border" role="status">
+                                    <span class="sr-only"></span>
+                                </div>
+                                <span class="mt-2">載入中...</span>
+                            </div>`;
+                                    }
+                                    return html` ${gvc.bindView(() => {
+                                        return {
+                                            bind: messageID,
+                                            view: () => {
+                                                return ` 
+                                                <div class="my-auto flex-fill" id=""></div>
+                                                <div class="w-100" id="message-lines">
+                                                 ${vm.data
+                                                        .map((dd: any, index: number) => {
+                                                            return BgCustomerMessage.message_line(dd,cf,index,vm,gvc)
+                                                        })
+                                                        .join('')}
+</div>
+                                               
+                                            ${
+                                                    vm.data.length === 0
+                                                        ? `
+                                            <div class="w-100 text-center"><div class="badge bg-secondary">尚未展開對話，於下方輸入訊息並傳送。</div></div>
+                                            `
+                                                        : ``
+                                                }`;
+                                            },
+                                            divCreate: {
+                                                class: `chatContainer p-3 d-flex flex-column`,
+                                                style: `overflow-y: auto;height: calc(${cf.containerHeight} - 220px);background: white;padding-bottom:80px !important;`,
+                                            },
+                                            onCreate: () => {
+                                                vm.close = false;
+                                                // 取得要監聽的元素
+                                                let targetElement = document.querySelector('.chatContainer')!;
+                                                if (vm.lastScroll === -1) {
+                                                    document.querySelector('.chatContainer')!.scrollTop = document.querySelector('.chatContainer')!.scrollHeight;
+                                                } else {
+                                                    if (vm.prefixScroll) {
+                                                        vm.lastScroll = targetElement.scrollHeight - vm.prefixScroll + vm.lastScroll;
+                                                        vm.prefixScroll = 0;
+                                                    }
+                                                    document.querySelector('.chatContainer')!.scrollTop = vm.lastScroll;
+                                                }
+                                                // 添加滾動事件監聽器
+                                                targetElement.addEventListener('scroll', () => {
+                                                    vm.lastScroll = targetElement.scrollTop;
+                                                    if (targetElement.scrollTop === 0) {
+                                                        console.log(`scrollTop===0`)
+                                                        if (vm.loading) {
+                                                            return;
+                                                        }
+                                                        vm.loading = true;
+                                                        Chat.getMessage({
+                                                            page: 0,
+                                                            limit: 50,
+                                                            chat_id: cf.chat.chat_id,
+                                                            olderID: vm.data[0].id,
+                                                            user_id: cf.user_id,
+                                                        }).then((res) => {
+                                                            vm.loading = false;
+                                                            vm.prefixScroll = targetElement.scrollHeight;
+                                                            vm.data = res.response.data.reverse().concat(vm.data);
+                                                            gvc.notifyDataChange(viewId);
+                                                        });
+                                                    }
+                                                });
+                                            },
+                                        };
+                                    })}
+                                        <div
+                                            class="card-footer border-top d-flex align-items-center w-100 border-0 pt-3 pb-3 px-4 position-fixed bottom-0 position-lg-absolute"
+                                            style="background: white;"
+                                        >
+                                            <div class="position-relative w-100 me-2 ">
+                                                ${gvc.bindView(() => {
+                                        return {
+                                            bind: textAreaId,
+                                            view: () => {
+                                                return vm.message ?? '';
+                                            },
+                                            divCreate: {
+                                                elem: `textArea`,
+                                                style: `max-height:100px;white-space: pre-wrap; word-wrap: break-word;height:40px;`,
+                                                class: `form-control`,
+                                                option: [
+                                                    { key: 'placeholder', value: '輸入訊息內容' },
+                                                    {
+                                                        key: 'onchange',
+                                                        value: gvc.event((e) => {
+                                                            vm.message = e.value;
+                                                        }),
+                                                    },
+                                                ],
+                                            },
+                                            onCreate: () => {
+                                                const input = gvc.getBindViewElem(id).get(0);
+                                                input.addEventListener('input', function () {
+                                                    console.log(`input.scrollHeight->`, input.scrollHeight);
+                                                    input.style.height = 'auto'; // 重置高度
+                                                    input.style.height = input.scrollHeight + 'px'; // 设置为内容高度
+                                                });
+
+                                                // autosize(gvc.getBindViewElem(id))
+                                            },
+                                        };
+                                    })}
+                                            </div>
+                                            <button
+                                                type="button"
+                                                class="btn btn-icon btn-lg  d-sm-inline-flex ms-1"
+                                                style="height: 36px;background: ${BgCustomerMessage.config.color};"
+                                                onclick="${gvc.event(() => {
+                                        if (vm.message) {
+                                            Chat.postMessage({
+                                                chat_id: cf.chat.chat_id,
+                                                user_id: cf.user_id,
+                                                message: {
+                                                    text: vm.message,
+                                                    attachment: '',
+                                                },
+                                            }).then(() => {
+                                                vm.message = '';
+                                                // gvc.notifyDataChange(textAreaId);
+                                            });
+                                            const textArea = gvc.getBindViewElem(textAreaId).get(0);
+                                            textArea.value = '';
+                                            textArea.focus()
+                                        } 
+                                    })}"
+                                            >
+                                                <i class="fa-regular fa-paper-plane-top"></i>
+                                            </button>
+                                        </div>`;
+                                },
+                                divCreate: {},
+                                onCreate: () => {},
+                                onDestroy: () => {
+                                    vm.close = true;
+                                    socket.close();
+                                },
+                            };
+                        }),
+                    ].join('');
+                },
+            };
+        });
+    }
+    public static message_line(dd:any,cf:any,index:number,vm:any,gvc:GVC){
+        const html=String.raw
+           if (dd.user_id == 'manager') {
+            dd.user_data = BgCustomerMessage.config;
+        }
+        if (cf.user_id !== dd.user_id) {
+            return html` <div
+                                                                class="mt-auto d-flex align-items-start ${vm.data[index + 1] && vm.data[index + 1].user_id === dd.user_id ? `mb-1` : `mb-3`}"
+                                                            >
+                                                                <img
+                                                                    src="${(dd.user_data && dd.user_data.head) || `https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1704269678588-43.png`}"
+                                                                    class="rounded-circle border"
+                                                                    width="40"
+                                                                    alt="Albert Flores"
+                                                                />
+                                                                <div class="ps-2 ms-1" style="max-width: 348px;">
+                                                                    <div
+                                                                        class="p-3 mb-1"
+                                                                        style="background:#eeeef1;border-top-right-radius: .5rem; border-bottom-right-radius: .5rem; border-bottom-left-radius: .5rem;white-space: normal;"
+                                                                    >
+                                                                        ${dd.message.text.replace(/\n/g, '<br>')}
+                                                                    </div>
+                                                                    <div class="fs-sm text-muted ${vm.data[index + 1] && vm.data[index + 1].user_id === dd.user_id ? `d-none` : ``}">
+                                                                        ${gvc.glitter.ut.dateFormat(new Date(dd.created_time), 'MM-dd hh:mm')}
+                                                                    </div>
+                                                                </div>
+                                                            </div>`;
+        } else {
+            return html` <div
+                                                                class="d-flex align-items-start justify-content-end ${vm.data[index + 1] && vm.data[index + 1].user_id === dd.user_id
+                ? `mb-1`
+                : `mb-3`}"
+                                                            >
+                                                                <div class="pe-2 me-1" style="max-width: 348px;">
+                                                                    <div
+                                                                        class=" text-light p-3 mb-1"
+                                                                        style="background:${BgCustomerMessage.config
+                .color};border-top-left-radius: .5rem; border-bottom-right-radius: .5rem; border-bottom-left-radius: .5rem;white-space: normal;"
+                                                                    >
+                                                                        ${dd.message.text.replace(/\n/g, '<br>')}
+                                                                    </div>
+                                                                    <div
+                                                                        class="time-mute fw-500 d-flex justify-content-end align-items-center fs-sm text-muted ${vm.data[index + 1] &&
+            vm.data[index + 1].user_id === dd.user_id
+                ? `d-none`
+                : ``}"
+                                                                        style="gap:5px;"
+                                                                    >
+                                                                        <span > ${gvc.glitter.ut.dateFormat(new Date(dd.created_time), 'MM/dd hh:mm')}</span>
+                                                                        ${vm.last_read.find((d2: any) => {
+                return d2.user_id !== cf.user_id && new Date(d2.last_read).getTime() >= new Date(dd.created_time).getTime();
+            })
+                ? `已讀`
+                : ``}
+                                                                    </div>
+                                                                </div>
+                                                                <img
+                                                                    src="${(dd.user_data && dd.user_data.head) || `https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1704269678588-43.png`}"
+                                                                    class="rounded-circle border"
+                                                                    width="40"
+                                                                    alt="Albert Flores"
+                                                                />
+                                                            </div>`;
+        }
+    }
 }
 
 (window as any).glitter.setModule(import.meta.url, BgCustomerMessage);

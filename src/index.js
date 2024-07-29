@@ -145,8 +145,6 @@ async function createAPP(dd) {
                     if (data && data.page_config) {
                         data.page_config = (_a = data.page_config) !== null && _a !== void 0 ? _a : {};
                         const d = (_b = data.page_config.seo) !== null && _b !== void 0 ? _b : {};
-                        console.log(`data.page_type->`, data.page_type);
-                        console.log(`data.page_config.template_type->`, data.page_config.template_type);
                         if (data.page_type === 'article' && data.page_config.template_type === 'product') {
                             const pd = await new shopping_js_1.Shopping(appName, undefined).getProduct({
                                 page: 0,
@@ -203,20 +201,43 @@ async function createAPP(dd) {
                             link_prefix = '';
                         }
                         return `${(() => {
-                            var _a, _b, _c, _d, _e, _f, _g, _h, _j;
+                            var _a;
                             const d = data.page_config.seo;
                             return html `
                                 <head>
-                                    <title>${(_a = d.title) !== null && _a !== void 0 ? _a : '尚未設定標題'}</title>
-                                    <link rel="canonical" href="/${link_prefix && `${link_prefix}/`}${data.tag}"/>
-                                    <meta name="keywords" content="${(_b = d.keywords) !== null && _b !== void 0 ? _b : '尚未設定關鍵字'}"/>
-                                    <link id="appImage" rel="shortcut icon" href="${(_c = d.logo) !== null && _c !== void 0 ? _c : ''}" type="image/x-icon"/>
-                                    <link rel="icon" href="${(_d = d.logo) !== null && _d !== void 0 ? _d : ''}" type="image/png" sizes="128x128"/>
-                                    <meta property="og:image" content="${(_e = d.image) !== null && _e !== void 0 ? _e : ''}"/>
-                                    <meta property="og:title" content="${((_f = d.title) !== null && _f !== void 0 ? _f : '').replace(/\n/g, '')}"/>
-                                    <meta name="description" content="${((_g = d.content) !== null && _g !== void 0 ? _g : '').replace(/\n/g, '')}"/>
-                                    <meta name="og:description" content="${((_h = d.content) !== null && _h !== void 0 ? _h : '').replace(/\n/g, '')}"/>
-                                    ${(_j = d.code) !== null && _j !== void 0 ? _j : ''}
+                                    ${(() => {
+                                var _a, _b, _c, _d, _e, _f, _g, _h;
+                                if (req.query.type === 'editor') {
+                                    return html `<title>SHOPNEX後台系統</title>
+    <link rel="canonical" href="/index"/>
+    <meta name="keywords" content="SHOPNEX,電商平台" />
+    <link id="appImage" rel="shortcut icon"
+        href="https://liondesign-prd.s3.amazonaws.com/file/252530754/1697354801736-Glitter logo.png"
+        type="image/x-icon" />
+    <link rel="icon" href="https://liondesign-prd.s3.amazonaws.com/file/252530754/1697354801736-Glitter logo.png"
+        type="image/png" sizes="128x128" />
+    <meta property="og:image"
+        content="https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1718778766524-shopnex_banner.jpg" />
+    <meta property="og:title" content="SHOPNEX後台系統"/>
+    <meta name="description"
+        content="SHOPNEX電商開店平台，零抽成、免手續費。提供精美模板和豐富插件，操作簡單，3分鐘內快速打造專屬商店。購物車、金物流、SEO行銷、資料分析一站搞定。支援APP上架，並提供100%客製化設計，立即免費體驗30天。" />
+    <meta name="og:description"
+        content="SHOPNEX電商開店平台，零抽成、免手續費。提供精美模板和豐富插件，操作簡單，3分鐘內快速打造專屬商店。購物車、金物流、SEO行銷、資料分析一站搞定。支援APP上架，並提供100%客製化設計，立即免費體驗30天。" />`;
+                                }
+                                else {
+                                    return html `<title>${(_a = d.title) !== null && _a !== void 0 ? _a : '尚未設定標題'}</title>
+                                            <link rel="canonical" href="/${link_prefix && `${link_prefix}/`}${data.tag}"/>
+                                            <meta name="keywords" content="${(_b = d.keywords) !== null && _b !== void 0 ? _b : '尚未設定關鍵字'}"/>
+                                            <link id="appImage" rel="shortcut icon" href="${(_c = d.logo) !== null && _c !== void 0 ? _c : ''}" type="image/x-icon"/>
+                                            <link rel="icon" href="${(_d = d.logo) !== null && _d !== void 0 ? _d : ''}" type="image/png" sizes="128x128"/>
+                                            <meta property="og:image" content="${(_e = d.image) !== null && _e !== void 0 ? _e : ''}"/>
+                                            <meta property="og:title" content="${((_f = d.title) !== null && _f !== void 0 ? _f : '').replace(/\n/g, '')}"/>
+                                            <meta name="description" content="${((_g = d.content) !== null && _g !== void 0 ? _g : '').replace(/\n/g, '')}"/>
+                                            <meta name="og:description" content="${((_h = d.content) !== null && _h !== void 0 ? _h : '').replace(/\n/g, '')}"/>`;
+                                }
+                            })()}
+                                  
+                                    ${(_a = d.code) !== null && _a !== void 0 ? _a : ''}
                                     ${(() => {
                                 var _a;
                                 if (req.query.type === 'editor') {

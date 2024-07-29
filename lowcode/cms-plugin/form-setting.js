@@ -368,31 +368,37 @@ export class FormSetting {
             return {
                 bind: id,
                 view: () => {
-                    return [
-                        html ` <div class="d-flex w-100 align-items-center mb-3 ">
+                    try {
+                        return [
+                            html ` <div class="d-flex w-100 align-items-center mb-3 ">
                                 ${BgWidget.goBack(gvc.event(() => {
-                            if (viewType === 'preview') {
-                                viewType = 'editor';
-                                gvc.notifyDataChange(id);
-                            }
-                            else {
-                                cf.vm.type = 'list';
-                            }
-                        }))}
+                                if (viewType === 'preview') {
+                                    viewType = 'editor';
+                                    gvc.notifyDataChange(id);
+                                }
+                                else {
+                                    cf.vm.type = 'list';
+                                }
+                            }))}
                                 ${BgWidget.title(`表單內容`)}
                                 <div class="flex-fill"></div>
                             </div>`,
-                        BgWidget.mainCard((() => {
-                            return FormWidget.editorView({
-                                gvc: gvc,
-                                array: postMd.form_config,
-                                refresh: () => {
-                                    gvc.notifyDataChange(id);
-                                },
-                                formData: postMd.form_data,
-                            });
-                        })()),
-                    ].join('');
+                            BgWidget.mainCard((() => {
+                                return FormWidget.editorView({
+                                    gvc: gvc,
+                                    array: postMd.form_config,
+                                    refresh: () => {
+                                        gvc.notifyDataChange(id);
+                                    },
+                                    formData: postMd.form_data,
+                                });
+                            })()),
+                        ].join('');
+                    }
+                    catch (e) {
+                        console.log(e);
+                        return `${e}`;
+                    }
                 },
                 onCreate: () => {
                     $('.tooltip').remove();

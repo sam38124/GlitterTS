@@ -309,6 +309,9 @@ export class CustomerMessageUser {
                                 return {
                                     bind: id,
                                     view: () => {
+                                        if (cf.hideBar) {
+                                            return ``;
+                                        }
                                         return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
                                             const chatRoom = (yield Chat.getChatRoom({
                                                 page: 0,
@@ -517,7 +520,7 @@ export class CustomerMessageUser {
                                                 },
                                                 divCreate: {
                                                     class: `chatContainer p-3 d-flex flex-column`,
-                                                    style: `overflow-y: auto;height: calc(${cf.containerHeight} - 220px);background: white;padding-bottom:0px !important;`,
+                                                    style: `overflow-y: auto;height: calc(${cf.containerHeight} - 220px);background: white;padding-bottom:${cf.hideBar ? `80` : `0`}px !important;`,
                                                 },
                                                 onCreate: () => {
                                                     vm.close = false;

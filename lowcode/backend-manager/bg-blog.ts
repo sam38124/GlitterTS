@@ -372,23 +372,7 @@ ${[ `<div class="my-3"></div>`,
                                                         <div class="row m-0 pt-2 w-100">
                                                             ${data.response.result.data
                                                     .sort((a: any, b: any) => {
-                                                        const aData = (a.template_config.tag ?? []).find((dd: any) => {
-                                                            return dd === '基本元件';
-                                                        });
-                                                        const bData = (b.template_config.tag ?? []).find((dd: any) => {
-                                                            return dd === '基本元件';
-                                                        });
-                                                        if (aData && bData) {
-                                                            if (a.template_config.name === '空白-嵌入模塊') {
-                                                                return -1;
-                                                            } else {
-                                                                return 1;
-                                                            }
-                                                        } else if (aData) {
-                                                            return -1;
-                                                        } else {
-                                                            return 1;
-                                                        }
+                                                    return      a.template_config.name.localeCompare(b.template_config.name);
                                                     })
                                                     .map((dd: any, index: number) => {
                                                         return html`<div class="col-6 col-sm-3 mb-3 rounded-3">

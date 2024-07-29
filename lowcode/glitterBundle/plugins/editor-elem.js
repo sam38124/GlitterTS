@@ -1557,6 +1557,9 @@ ${obj.gvc.bindView(() => {
             }
         })
             .join('')}
+                ${(obj.array.find((dd) => {
+            return dd.value === obj.def;
+        })) ? `` : `<option class="d-none" selected>請選擇項目</option>`}
             </select>
         `;
     }
@@ -1730,6 +1733,7 @@ ${obj.gvc.bindView(() => {
                         </div>`,
                 title: par.editTitle || '',
             });
+            par.callback && (NormalPageEditor.closeEvent = par.callback);
         })}"
         >
             ${par.editTitle}

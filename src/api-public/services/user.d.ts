@@ -93,6 +93,7 @@ export declare class User {
     updateUserData(userID: string, par: any, manager?: boolean): Promise<{
         data: any;
     }>;
+    clearUselessData(userData: any, manager: boolean): Promise<void>;
     checkUpdate(cf: {
         updateUserData: any;
         manager: boolean;

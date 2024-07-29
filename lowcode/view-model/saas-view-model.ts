@@ -541,7 +541,7 @@ background-size: cover;
                                                                                                     style="height: 28px;width: 75px;gap:5px;"
                                                                                                     onclick="${gvc.event(() => {
                                                                                                         vm.select = dd.appName
-
+callback(dd.appName)
                                                                                                         gvc.notifyDataChange(id)
                                                                                                     })}"
                                                                                             >選擇

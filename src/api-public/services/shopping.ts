@@ -383,6 +383,8 @@ export class Shopping {
             discount?: number; //自定義金額
             total?: number; //自定義總額
             pay_status?: number; //自定義訂單狀態
+            custom_form_format?:any;//自定義表單格式
+            custom_form_data?:any;//自定義表單資料
         },
         type: 'add' | 'preview' | 'manual' | 'manual-preview' = 'add',
         replace_order_id?: string
@@ -520,8 +522,8 @@ export class Shopping {
                 method: string;
                 useRebateInfo?: { point: number; limit?: number; condition?: number };
                 voucherList?: VoucherData[];
-                shipment_form_data: any;
-                shipment_form_format: any;
+                custom_form_format?:any;//自定義表單格式
+                custom_form_data?:any;//自定義表單資料
             } = {
                 customer_info: data.customer_info || {},
                 lineItems: [],
@@ -533,13 +535,13 @@ export class Shopping {
                 use_rebate: data.use_rebate || 0,
                 orderID: `${new Date().getTime()}`,
                 shipment_support: shipment_setting.support as any,
-                shipment_form_format: shipment_setting.form as any,
-                shipment_form_data: {},
                 shipment_info: shipment_setting.info as any,
                 use_wallet: 0,
                 method: data.user_info && data.user_info.method,
                 user_email: (userData && userData.account) || (data.email ?? ((data.user_info && data.user_info.email) || '')),
                 useRebateInfo: { point: 0 },
+                custom_form_format:data.custom_form_format,
+                custom_form_data:data.custom_form_data
             };
 
             function calculateShipment(dataList: { key: string; value: string }[], value: number | string) {
@@ -2183,14 +2185,15 @@ export class Shopping {
             });
             const data = await db.query(
                 `INSERT INTO \`${this.app}\`.\`t_manager_post\` (userID , content)
-                 VALUES ?`,
-                [
-                    productArray.map((product: any) => {
-                        product.type = 'product';
-                        this.checkVariantDataType(product.variants);
-                        return [this.token?.userID, JSON.stringify(product)];
-                    }),
-                ]
+                VALUES ?`,[productArray.map((product:any)=>{
+                    product.type  = 'product';
+
+                    this.checkVariantDataType(product.variants);
+                    return [
+                        this.token?.userID,
+                        JSON.stringify(product),
+                    ]
+                })]
             );
 
             let insertIDStart = data.insertId;

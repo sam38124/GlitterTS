@@ -58,7 +58,6 @@ class Schedule {
                         member_count[member_levels.id]++;
                     }
                 }
-                console.log('member_levels_count_list');
                 await userClass.setConfig({
                     key: 'member_levels_count_list',
                     value: member_count,

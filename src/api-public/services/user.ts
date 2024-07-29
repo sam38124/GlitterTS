@@ -61,7 +61,11 @@ export class User {
                 key: 'login_config',
                 user_id: 'manager',
             });
+            userData=userData ?? {};
+            delete userData.pwd;
+            delete userData.repeat_password;
             const userID = generateUserID();
+
             if (!pass_verify) {
                 if (userData.verify_code) {
                     if (userData.verify_code !== (await redis.getValue(`verify-${account}`))) {
@@ -111,6 +115,13 @@ export class User {
     public async createUserHook(userID: string) {
         //發送歡迎信件
         const usData: any = await this.getUserData(userID, 'userID');
+
+        await db.query(`update \`${this.app}\`.t_user set userData=? where userID=?`,[
+            JSON.stringify( await this.checkUpdate({
+                userID:userID,updateUserData:usData.userData,manager:false
+            })),
+            userID
+        ])
         const data = await AutoSendEmail.getDefCompare(this.app, 'auto-email-welcome');
         if (data.toggle) {
             sendmail(`${data.name} <${process.env.smtp}>`, usData.account, data.title, data.content);
@@ -256,6 +267,8 @@ export class User {
                 key: 'login_line_setting',
                 user_id: 'manager',
             });
+            console.log(`redirect=>`,redirect)
+            console.log(`lineData=>`,lineData)
             const lineResponse: any = await new Promise((resolve, reject) => {
                 axios
                     .request({
@@ -277,6 +290,7 @@ export class User {
                         resolve(response.data);
                     })
                     .catch((error) => {
+                        console.error(error.message)
                         resolve(false);
                     });
             });
@@ -284,13 +298,37 @@ export class User {
                 throw exception.BadRequestError('BAD_REQUEST', 'Line Register Error', null);
             }
             const userData = jwt.decode(lineResponse.id_token);
+            const line_profile: any = await new Promise((resolve, reject) => {
+                axios
+                    .request({
+                        method: 'post',
+                        maxBodyLength: Infinity,
+                        url: 'https://api.line.me/oauth2/v2.1/verify',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        data: qs.stringify({
+                            id_token: lineResponse.id_token,
+                            client_id: lineData.id,
+                        }),
+                    })
+                    .then((response) => {
+                        resolve(response.data);
+                    })
+                    .catch((error) => {
+                        resolve(false);
+                    });
+            });
+            if(!line_profile.email){
+                throw exception.BadRequestError('BAD_REQUEST', 'Line Register Error', null);
+            }
             if (
                 (
                     await db.query(
                         `select count(1)
                          from \`${this.app}\`.t_user
-                         where userData ->>'$.lineID'=?`,
-                        [(userData as any).sub]
+                         where account=?`,
+                        [line_profile.email]
                     )
                 )[0]['count(1)'] == 0
             ) {
@@ -300,7 +338,7 @@ export class User {
                      VALUES (?, ?, ?, ?, ?);`,
                     [
                         userID,
-                        (userData as any).sub,
+                        line_profile.email,
                         await tool.hashPwd(generateUserID()),
                         {
                             name: (userData as any).name || '未命名',
@@ -315,8 +353,8 @@ export class User {
                 (await db.execute(
                     `select *
                      from \`${this.app}\`.t_user
-                     where userData ->>'$.lineID'=?`,
-                    [(userData as any).sub]
+                     where account=?`,
+                    [line_profile.email]
                 )) as any
             )[0];
             const usData: any = await this.getUserData(data.userID, 'userID');
@@ -328,6 +366,7 @@ export class User {
             });
             return usData;
         } catch (e) {
+            console.error(e)
             throw exception.BadRequestError('BAD_REQUEST', e as any, null);
         }
     }
@@ -871,6 +910,7 @@ export class User {
             // 會員等級
             if (pass('level')) {
                 const levelData = await this.getConfigV2({ key: 'member_level_config', user_id: 'manager' });
+                levelData.levels=levelData.levels || []
                 const levels = levelData.levels
                     .map((item: any) => {
                         return { id: item.id, name: item.tag_name };
@@ -1098,8 +1138,31 @@ export class User {
         }
     }
 
-    public async checkUpdate(cf: { updateUserData: any; manager: boolean; userID: string }) {
+    public async clearUselessData(userData:any,manager:boolean){
         let config = await App.getAdConfig(this.app, 'glitterUserForm');
+        let register_form=(await this.getConfigV2({
+            key:'custom_form_register',
+            user_id:'manager'
+        })).list ?? []
+        let customer_form_user_setting=(await this.getConfigV2({
+            key:'customer_form_user_setting',
+            user_id:'manager'
+        })).list ?? []
+        if (!Array.isArray(config)) {
+            config = [];
+        }
+        config=config.concat(register_form).concat(customer_form_user_setting);
+        Object.keys(userData).map((dd) => {
+            if (
+                !config.find((d2: any) => {
+                    return d2.key === dd && (d2.auth !== 'manager' || manager);
+                })
+            ) {
+                delete userData[dd]
+            }
+        })
+    }
+    public async checkUpdate(cf: { updateUserData: any; manager: boolean; userID: string }) {
         let originUserData = (
             await db.query(
                 `select userData
@@ -1111,26 +1174,14 @@ export class User {
         if (typeof originUserData !== 'object') {
             originUserData = {};
         }
-        if (!Array.isArray(config)) {
-            config = [];
-        }
-
+        //清空不得編輯的資料
+        await this.clearUselessData(cf.updateUserData,cf.manager)
         function mapUserData(userData: any, originUserData: any) {
             Object.keys(userData).map((dd) => {
-                if (
-                    cf.manager ||
-                    config.find((d2: any) => {
-                        return d2.key === dd && d2.auth !== 'manager';
-                    }) ||
-                    dd === 'fcmToken'
-                ) {
-                    originUserData[dd] = userData[dd];
-                }
+                originUserData[dd] = userData[dd];
             });
         }
-
         mapUserData(cf.updateUserData, originUserData);
-
         return originUserData;
     }
 

@@ -14,6 +14,7 @@ export class CustomerMessageUser {
         chat_user: '',
         select_bt: 'list',
     };
+
     public static id = `dsmdklweew3`;
 
     public static showCustomerMessage(cf: { gvc: GVC; userID: string; toUser?: string; viewType?: string; open?: boolean, type?: 'preview' | 'def' }) {
@@ -304,7 +305,8 @@ export class CustomerMessageUser {
         });
     }
 
-    public static detail(cf: { gvc: GVC; chat: any; user_id: string; containerHeight: string; document: any; goBack: () => void; close?: () => void }) {
+    public static detail(cf: { gvc: GVC; chat: any; user_id: string; containerHeight: string; document: any; goBack: () => void; close?: () => void ,
+        hideBar?:boolean}) {
         const gvc = cf.gvc;
         const document = cf.document;
         const css = String.raw
@@ -343,8 +345,10 @@ export class CustomerMessageUser {
                                 return {
                                     bind: id,
                                     view: () => {
+                                        if(cf.hideBar){
+                                            return  ``
+                                        }
                                         return new Promise(async (resolve, reject) => {
-
                                             const chatRoom = (
                                                 await Chat.getChatRoom({
                                                     page: 0,
@@ -574,7 +578,7 @@ export class CustomerMessageUser {
                                                 },
                                                 divCreate: {
                                                     class: `chatContainer p-3 d-flex flex-column`,
-                                                    style: `overflow-y: auto;height: calc(${cf.containerHeight} - 220px);background: white;padding-bottom:0px !important;`,
+                                                    style: `overflow-y: auto;height: calc(${cf.containerHeight} - 220px);background: white;padding-bottom:${cf.hideBar ? `80`:`0`}px !important;`,
                                                 },
                                                 onCreate: () => {
                                                     vm.close = false;

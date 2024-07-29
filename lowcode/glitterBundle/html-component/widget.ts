@@ -274,8 +274,9 @@ export const widgetComponent = {
                                                         resolve((data as any).map((dd: any) => {
                                                             return /*html*/ `<option value="${dd.value}" ${`${dd.value}` === `${selectItem}` ? `selected` : ``}>
                                 ${dd.name}
-                            </option>`;
-                                                        }).join(''))
+                            </option>
+`;
+                                                        }).join('')+`<option class="d-none" ${((data as any).find((dd:any)=>{return `${dd.value}` === `${selectItem}`})) ? ``:`selected`}>請選擇</option>`)
                                                     } else {
                                                         resolve(widget.data.selectList.map((dd: any) => {
                                                             if (dd.visible === 'invisible' && (dd.value !== formData[widget.data.key])) {

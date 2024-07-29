@@ -9,8 +9,10 @@ class UpdateScript {
     static async run() {
         const migrate_template = (await database_1.default.query('SELECT appName FROM glitter.app_config where template_type!=0;', [])).map((dd) => {
             return dd.appName;
-        }).concat('shop-template-clothing-v3', 'shop-template-clothing-v3');
-        await UpdateScript.migrateLink(migrate_template);
+        }).concat('shop-template-clothing-v3');
+        await UpdateScript.migratePages(migrate_template.filter((dd) => {
+            return dd !== 't_1719819344426';
+        }), ['about-us', 'privacy', 'terms']);
     }
     static async migrateLink(appList) {
         for (const appName of appList) {
@@ -131,6 +133,7 @@ class UpdateScript {
                               and tag = ?`, [b.tag]);
             b['appName'] = appName;
             b['id'] = undefined;
+            b['updated_time'] = new Date();
             b['created_time'] = new Date();
             await database_1.default.query(`insert into glitter.page_config
                             set ?`, [
@@ -154,19 +157,14 @@ class UpdateScript {
             }
         }
     }
-    static async migrateTermsOfService(appList) {
-        const migrateArticle = ['privacyterms', 'termsofservice', 'novice'];
+    static async migratePages(appList, migrate) {
         const rebate_page = (await database_1.default.query(`SELECT *
-                                             FROM shopnex.t_manager_post
-                                             where content - > '$.type' = 'article'
-                                               and content - > '$.tag' in (${migrateArticle.map((dd) => {
+                                             FROM t_1719819344426.t_manager_post
+                                             where content ->> '$.type' = 'article'
+                                               and content ->> '$.tag' in (${migrate.map((dd) => {
             return `"${dd}"`;
         }).join(',')})`, []));
         rebate_page.map((dd) => {
-            const index = ['privacyterms', 'termsofservice', 'novice'].findIndex((d1) => {
-                return d1 === dd.content.tag;
-            });
-            dd.content.tag = ['privacy', 'terms', 'novice'][index];
             dd.content.template = 'article';
             dd.content = JSON.stringify(dd.content);
             dd['id'] = undefined;
@@ -174,7 +172,7 @@ class UpdateScript {
         for (const b of appList) {
             await database_1.default.query(`delete
                             from \`${b}\`.t_manager_post
-                            where content - > '$.type' = 'article' `, []);
+                            where content ->> '$.type' = 'article' `, []);
             for (const c of rebate_page) {
                 await database_1.default.query(`insert into \`${b}\`.t_manager_post
                                 set ?`, [

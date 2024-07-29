@@ -242,7 +242,6 @@ export class Chat {
                                                  const id = ['0'].concat(notifyUser)
                                                  return id.join(',')
                                              })()});`, [])
-
             //SAAS品牌和用戶類型
             const managerUser = (await App.checkBrandAndMemberType(this.app))
 

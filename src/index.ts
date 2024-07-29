@@ -132,8 +132,6 @@ export async function createAPP(dd: any) {
                     if (data && data.page_config) {
                         data.page_config = data.page_config ?? {};
                         const d = data.page_config.seo ?? {};
-                        console.log(`data.page_type->`,data.page_type)
-                        console.log(`data.page_config.template_type->`,data.page_config.template_type)
                         if (data.page_type === 'article' && data.page_config.template_type === 'product') {
                             const pd = await new Shopping(appName, undefined).getProduct({
                                 page: 0,
@@ -188,17 +186,39 @@ export async function createAPP(dd: any) {
 
                         return `${(() => {
                             const d = data.page_config.seo;
+                            
                             return html`
                                 <head>
-                                    <title>${d.title ?? '尚未設定標題'}</title>
-                                    <link rel="canonical" href="/${link_prefix && `${link_prefix}/`}${data.tag}"/>
-                                    <meta name="keywords" content="${d.keywords ?? '尚未設定關鍵字'}"/>
-                                    <link id="appImage" rel="shortcut icon" href="${d.logo ?? ''}" type="image/x-icon"/>
-                                    <link rel="icon" href="${d.logo ?? ''}" type="image/png" sizes="128x128"/>
-                                    <meta property="og:image" content="${d.image ?? ''}"/>
-                                    <meta property="og:title" content="${(d.title ?? '').replace(/\n/g, '')}"/>
-                                    <meta name="description" content="${(d.content ?? '').replace(/\n/g, '')}"/>
-                                    <meta name="og:description" content="${(d.content ?? '').replace(/\n/g, '')}"/>
+                                    ${(()=>{
+                                        if(req.query.type === 'editor'){
+                                            return  html`<title>SHOPNEX後台系統</title>
+    <link rel="canonical" href="/index"/>
+    <meta name="keywords" content="SHOPNEX,電商平台" />
+    <link id="appImage" rel="shortcut icon"
+        href="https://liondesign-prd.s3.amazonaws.com/file/252530754/1697354801736-Glitter logo.png"
+        type="image/x-icon" />
+    <link rel="icon" href="https://liondesign-prd.s3.amazonaws.com/file/252530754/1697354801736-Glitter logo.png"
+        type="image/png" sizes="128x128" />
+    <meta property="og:image"
+        content="https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1718778766524-shopnex_banner.jpg" />
+    <meta property="og:title" content="SHOPNEX後台系統"/>
+    <meta name="description"
+        content="SHOPNEX電商開店平台，零抽成、免手續費。提供精美模板和豐富插件，操作簡單，3分鐘內快速打造專屬商店。購物車、金物流、SEO行銷、資料分析一站搞定。支援APP上架，並提供100%客製化設計，立即免費體驗30天。" />
+    <meta name="og:description"
+        content="SHOPNEX電商開店平台，零抽成、免手續費。提供精美模板和豐富插件，操作簡單，3分鐘內快速打造專屬商店。購物車、金物流、SEO行銷、資料分析一站搞定。支援APP上架，並提供100%客製化設計，立即免費體驗30天。" />`
+                                        }else{
+                                          return   html`<title>${d.title ?? '尚未設定標題'}</title>
+                                            <link rel="canonical" href="/${link_prefix && `${link_prefix}/`}${data.tag}"/>
+                                            <meta name="keywords" content="${d.keywords ?? '尚未設定關鍵字'}"/>
+                                            <link id="appImage" rel="shortcut icon" href="${d.logo ?? ''}" type="image/x-icon"/>
+                                            <link rel="icon" href="${d.logo ?? ''}" type="image/png" sizes="128x128"/>
+                                            <meta property="og:image" content="${d.image ?? ''}"/>
+                                            <meta property="og:title" content="${(d.title ?? '').replace(/\n/g, '')}"/>
+                                            <meta name="description" content="${(d.content ?? '').replace(/\n/g, '')}"/>
+                                            <meta name="og:description" content="${(d.content ?? '').replace(/\n/g, '')}"/>`
+                                        }
+                                    })()}
+                                  
                                     ${d.code ?? ''}
                                     ${(() => {
                                         if (req.query.type === 'editor') {

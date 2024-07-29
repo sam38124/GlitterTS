@@ -54,6 +54,9 @@ class User {
                 key: 'login_config',
                 user_id: 'manager',
             });
+            userData = userData !== null && userData !== void 0 ? userData : {};
+            delete userData.pwd;
+            delete userData.repeat_password;
             const userID = generateUserID();
             if (!pass_verify) {
                 if (userData.verify_code) {
@@ -94,6 +97,12 @@ class User {
     }
     async createUserHook(userID) {
         const usData = await this.getUserData(userID, 'userID');
+        await database_1.default.query(`update \`${this.app}\`.t_user set userData=? where userID=?`, [
+            JSON.stringify(await this.checkUpdate({
+                userID: userID, updateUserData: usData.userData, manager: false
+            })),
+            userID
+        ]);
         const data = await auto_send_email_js_1.AutoSendEmail.getDefCompare(this.app, 'auto-email-welcome');
         if (data.toggle) {
             (0, ses_js_1.sendmail)(`${data.name} <${process_1.default.env.smtp}>`, usData.account, data.title, data.content);
@@ -214,6 +223,8 @@ class User {
                 key: 'login_line_setting',
                 user_id: 'manager',
             });
+            console.log(`redirect=>`, redirect);
+            console.log(`lineData=>`, lineData);
             const lineResponse = await new Promise((resolve, reject) => {
                 axios_1.default
                     .request({
@@ -235,6 +246,7 @@ class User {
                     resolve(response.data);
                 })
                     .catch((error) => {
+                    console.error(error.message);
                     resolve(false);
                 });
             });
@@ -242,14 +254,38 @@ class User {
                 throw exception_1.default.BadRequestError('BAD_REQUEST', 'Line Register Error', null);
             }
             const userData = jsonwebtoken_1.default.decode(lineResponse.id_token);
+            const line_profile = await new Promise((resolve, reject) => {
+                axios_1.default
+                    .request({
+                    method: 'post',
+                    maxBodyLength: Infinity,
+                    url: 'https://api.line.me/oauth2/v2.1/verify',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    data: qs_1.default.stringify({
+                        id_token: lineResponse.id_token,
+                        client_id: lineData.id,
+                    }),
+                })
+                    .then((response) => {
+                    resolve(response.data);
+                })
+                    .catch((error) => {
+                    resolve(false);
+                });
+            });
+            if (!line_profile.email) {
+                throw exception_1.default.BadRequestError('BAD_REQUEST', 'Line Register Error', null);
+            }
             if ((await database_1.default.query(`select count(1)
                          from \`${this.app}\`.t_user
-                         where userData ->>'$.lineID'=?`, [userData.sub]))[0]['count(1)'] == 0) {
+                         where account=?`, [line_profile.email]))[0]['count(1)'] == 0) {
                 const userID = generateUserID();
                 await database_1.default.execute(`INSERT INTO \`${this.app}\`.\`t_user\` (\`userID\`, \`account\`, \`pwd\`, \`userData\`, \`status\`)
                      VALUES (?, ?, ?, ?, ?);`, [
                     userID,
-                    userData.sub,
+                    line_profile.email,
                     await tool_1.default.hashPwd(generateUserID()),
                     {
                         name: userData.name || '未命名',
@@ -261,7 +297,7 @@ class User {
             }
             const data = (await database_1.default.execute(`select *
                      from \`${this.app}\`.t_user
-                     where userData ->>'$.lineID'=?`, [userData.sub]))[0];
+                     where account=?`, [line_profile.email]))[0];
             const usData = await this.getUserData(data.userID, 'userID');
             usData.pwd = undefined;
             usData.token = await UserUtil_1.default.generateToken({
@@ -272,6 +308,7 @@ class User {
             return usData;
         }
         catch (e) {
+            console.error(e);
             throw exception_1.default.BadRequestError('BAD_REQUEST', e, null);
         }
     }
@@ -727,6 +764,7 @@ class User {
             }
             if (pass('level')) {
                 const levelData = await this.getConfigV2({ key: 'member_level_config', user_id: 'manager' });
+                levelData.levels = levelData.levels || [];
                 const levels = levelData.levels
                     .map((item) => {
                     return { id: item.id, name: item.tag_name };
@@ -911,26 +949,40 @@ class User {
             throw exception_1.default.BadRequestError(e.code || 'BAD_REQUEST', e.message, null);
         }
     }
-    async checkUpdate(cf) {
+    async clearUselessData(userData, manager) {
+        var _a, _b;
         let config = await app_js_1.default.getAdConfig(this.app, 'glitterUserForm');
+        let register_form = (_a = (await this.getConfigV2({
+            key: 'custom_form_register',
+            user_id: 'manager'
+        })).list) !== null && _a !== void 0 ? _a : [];
+        let customer_form_user_setting = (_b = (await this.getConfigV2({
+            key: 'customer_form_user_setting',
+            user_id: 'manager'
+        })).list) !== null && _b !== void 0 ? _b : [];
+        if (!Array.isArray(config)) {
+            config = [];
+        }
+        config = config.concat(register_form).concat(customer_form_user_setting);
+        Object.keys(userData).map((dd) => {
+            if (!config.find((d2) => {
+                return d2.key === dd && (d2.auth !== 'manager' || manager);
+            })) {
+                delete userData[dd];
+            }
+        });
+    }
+    async checkUpdate(cf) {
         let originUserData = (await database_1.default.query(`select userData
                  from \`${this.app}\`.\`t_user\`
                  where userID = ${database_1.default.escape(cf.userID)}`, []))[0]['userData'];
         if (typeof originUserData !== 'object') {
             originUserData = {};
         }
-        if (!Array.isArray(config)) {
-            config = [];
-        }
+        await this.clearUselessData(cf.updateUserData, cf.manager);
         function mapUserData(userData, originUserData) {
             Object.keys(userData).map((dd) => {
-                if (cf.manager ||
-                    config.find((d2) => {
-                        return d2.key === dd && d2.auth !== 'manager';
-                    }) ||
-                    dd === 'fcmToken') {
-                    originUserData[dd] = userData[dd];
-                }
+                originUserData[dd] = userData[dd];
             });
         }
         mapUserData(cf.updateUserData, originUserData);
