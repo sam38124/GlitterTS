@@ -1669,7 +1669,6 @@ class Shopping {
             if (content.collection.length > 0) {
                 await this.updateCollectionFromUpdateProduct(content.collection);
             }
-            return;
             let productArray = content.data;
             let passArray = [];
             productArray.forEach((product, index) => {

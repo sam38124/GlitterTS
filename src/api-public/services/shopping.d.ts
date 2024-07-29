@@ -356,7 +356,7 @@ export declare class Shopping {
     }>;
     checkVariantDataType(variants: any[]): void;
     postProduct(content: any): Promise<any>;
-    updateCollectionFromUpdateProduct(collection: any[]): Promise<void>;
+    updateCollectionFromUpdateProduct(collection: string[]): Promise<void>;
     postMulProduct(content: any): Promise<any>;
     processProducts(productArray: any, insertIDStart: any): Promise<void>;
     putProduct(content: any): Promise<any>;
