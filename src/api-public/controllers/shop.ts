@@ -2,81 +2,23 @@ import express from 'express';
 import response from '../../modules/response';
 import multer from 'multer';
 import exception from '../../modules/exception';
-import { Shopping } from '../services/shopping';
+import db from '../../modules/database.js';
+import crypto from 'crypto';
+import redis from '../../modules/redis.js';
+import { UtDatabase } from '../utils/ut-database.js';
 import { UtPermission } from '../utils/ut-permission';
 import { EcPay, EzPay } from '../services/financial-service.js';
 import { Private_config } from '../../services/private_config.js';
-import db from '../../modules/database.js';
-import { Invoice } from '../services/invoice.js';
 import { User } from '../services/user.js';
-import { UtDatabase } from '../utils/ut-database.js';
 import { Post } from '../services/post.js';
-import crypto from 'crypto';
-import redis from '../../modules/redis.js';
+import { Shopping } from '../services/shopping';
 import { Rebate, IRebateSearch } from '../services/rebate';
 
 const router: express.Router = express.Router();
 
 export = router;
 
-router.get('/rebate/sum', async (req: express.Request, resp: express.Response) => {
-    try {
-        const app = req.get('g-app') as string;
-        const rebateClass = new Rebate(app);
-        const data = await rebateClass.getOneRebate({ user_id: req.query.userID || req.body.token.userID });
-        const main = await rebateClass.mainStatus();
-        return response.succ(resp, { main: main, sum: data ? data.point : 0 });
-    } catch (err) {
-        return response.fail(resp, err);
-    }
-});
-router.get('/product', async (req: express.Request, resp: express.Response) => {
-    try {
-        const shopping = await new Shopping(req.get('g-app') as string, req.body.token).getProduct({
-            page: (req.query.page ?? 0) as number,
-            limit: (req.query.limit ?? 50) as number,
-            search: req.query.search as string,
-            searchType: req.query.searchType as string,
-            sku: req.query.sku as string,
-            id: req.query.id as string,
-            collection: req.query.collection as string,
-            accurate_search_collection: req.query.accurate_search_collection === 'true',
-            min_price: req.query.min_price as string,
-            max_price: req.query.max_price as string,
-            status: req.query.status as string,
-            id_list: req.query.id_list as string,
-            order_by: (() => {
-                switch (req.query.order_by) {
-                    case 'title':
-                        return `order by JSON_EXTRACT(content, '$.title')`;
-                    case 'max_price':
-                        return `order by (CAST(JSON_UNQUOTE(JSON_EXTRACT(content, '$.max_price')) AS SIGNED)) desc`;
-                    case 'min_price':
-                        return `order by (CAST(JSON_UNQUOTE(JSON_EXTRACT(content, '$.min_price')) AS SIGNED)) asc`;
-                    case 'created_time_desc':
-                        return `order by created_time desc`;
-                    case 'created_time_asc':
-                        return `order by created_time`;
-                    case 'updated_time_desc':
-                        return `order by updated_time desc`;
-                    case 'updated_time_asc':
-                        return `order by updated_time`;
-                    case 'stock_desc':
-                        return ``;
-                    case 'stock_asc':
-                        return ``;
-                    case 'default':
-                    default:
-                        return `order by id desc`;
-                }
-            })(),
-            with_hide_index: req.query.with_hide_index as string,
-        });
-        return response.succ(resp, shopping);
-    } catch (err) {
-        return response.fail(resp, err);
-    }
-});
+// 回饋金
 router.get('/rebate', async (req: express.Request, resp: express.Response) => {
     try {
         const app = req.get('g-app') as string;
@@ -113,6 +55,17 @@ router.get('/rebate', async (req: express.Request, resp: express.Response) => {
         return response.fail(resp, err);
     }
 });
+router.get('/rebate/sum', async (req: express.Request, resp: express.Response) => {
+    try {
+        const app = req.get('g-app') as string;
+        const rebateClass = new Rebate(app);
+        const data = await rebateClass.getOneRebate({ user_id: req.query.userID || req.body.token.userID });
+        const main = await rebateClass.mainStatus();
+        return response.succ(resp, { main: main, sum: data ? data.point : 0 });
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
 router.post('/rebate/manager', async (req: express.Request, resp: express.Response) => {
     try {
         if (await UtPermission.isManager(req)) {
@@ -142,20 +95,8 @@ router.delete('/rebate', async (req: express.Request, resp: express.Response) =>
         return response.fail(resp, err);
     }
 });
-router.delete('/product', async (req: express.Request, resp: express.Response) => {
-    try {
-        if (await UtPermission.isManager(req)) {
-            await new Shopping(req.get('g-app') as string, req.body.token).deleteProduct({
-                id: req.query.id as string,
-            });
-            return response.succ(resp, { result: true });
-        } else {
-            return response.fail(resp, exception.BadRequestError('BAD_REQUEST', 'No permission.', null));
-        }
-    } catch (err) {
-        return response.fail(resp, err);
-    }
-});
+
+// 結帳付款
 router.post('/checkout', async (req: express.Request, resp: express.Response) => {
     try {
         return response.succ(
@@ -174,14 +115,14 @@ router.post('/checkout', async (req: express.Request, resp: express.Response) =>
                         return 0;
                     }
                 })(),
+                custom_form_format:req.body.custom_form_format,
+                custom_form_data:req.body.custom_form_data
             })
         );
     } catch (err) {
         return response.fail(resp, err);
     }
 });
-
-//重新付款
 router.post('/checkout/repay', async (req: express.Request, resp: express.Response) => {
     try {
         return response.succ(
@@ -194,35 +135,6 @@ router.post('/checkout/repay', async (req: express.Request, resp: express.Respon
                 req.body.order_id
             )
         );
-    } catch (err) {
-        return response.fail(resp, err);
-    }
-});
-
-router.post('/manager/checkout', async (req: express.Request, resp: express.Response) => {
-    try {
-        if (await UtPermission.isManager(req)) {
-            return response.succ(
-                resp,
-                await new Shopping(req.get('g-app') as string, req.body.token).toCheckout(
-                    {
-                        lineItems: req.body.lineItems as any,
-                        email: req.body.customer_info.email,
-                        return_url: req.body.return_url,
-                        user_info: req.body.user_info,
-                        checkOutType: 'manual',
-                        voucher: req.body.voucher,
-                        customer_info: req.body.customer_info,
-                        discount: req.body.discount,
-                        total: req.body.total,
-                        pay_status: req.body.pay_status,
-                    },
-                    'manual'
-                )
-            );
-        } else {
-            return response.fail(resp, exception.BadRequestError('BAD_REQUEST', 'No permission.', null));
-        }
     } catch (err) {
         return response.fail(resp, err);
     }
@@ -249,6 +161,34 @@ router.post('/checkout/preview', async (req: express.Request, resp: express.Resp
                 'preview'
             )
         );
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+router.post('/manager/checkout', async (req: express.Request, resp: express.Response) => {
+    try {
+        if (await UtPermission.isManager(req)) {
+            return response.succ(
+                resp,
+                await new Shopping(req.get('g-app') as string, req.body.token).toCheckout(
+                    {
+                        lineItems: req.body.lineItems as any,
+                        email: req.body.customer_info.email,
+                        return_url: req.body.return_url,
+                        user_info: req.body.user_info,
+                        checkOutType: 'manual',
+                        voucher: req.body.voucher,
+                        customer_info: req.body.customer_info,
+                        discount: req.body.discount,
+                        total: req.body.total,
+                        pay_status: req.body.pay_status,
+                    },
+                    'manual'
+                )
+            );
+        } else {
+            return response.fail(resp, exception.BadRequestError('BAD_REQUEST', 'No permission.', null));
+        }
     } catch (err) {
         return response.fail(resp, err);
     }
@@ -282,32 +222,8 @@ router.post('/manager/checkout/preview', async (req: express.Request, resp: expr
         return response.fail(resp, err);
     }
 });
-//取得付款方式資訊
-router.get('/order/payment-method', async (req: express.Request, resp: express.Response) => {
-    try {
-        const keyData = (
-            await Private_config.getConfig({
-                appName: req.get('g-app') as string,
-                key: 'glitter_finance',
-            })
-        )[0].value;
-        //清空敏感資料
-        ['MERCHANT_ID', 'HASH_KEY', 'HASH_IV'].map((dd) => {
-            delete keyData[dd];
-        });
-        return response.succ(resp, keyData);
-    } catch (e) {}
-});
 
-//上傳付款
-router.put('/order/proof-purchase', async (req: express.Request, resp: express.Response) => {
-    try {
-        return response.succ(resp, await new Shopping(req.get('g-app') as string, req.body.token).proofPurchase(req.body.order_id, req.body.text));
-    } catch (err) {
-        return response.fail(resp, err);
-    }
-});
-
+// 訂單
 router.get('/order', async (req: express.Request, resp: express.Response) => {
     try {
         if (await UtPermission.isManager(req)) {
@@ -365,6 +281,67 @@ router.get('/order', async (req: express.Request, resp: express.Response) => {
         return response.fail(resp, err);
     }
 });
+router.get('/order/payment-method', async (req: express.Request, resp: express.Response) => {
+    try {
+        const keyData = (
+            await Private_config.getConfig({
+                appName: req.get('g-app') as string,
+                key: 'glitter_finance',
+            })
+        )[0].value;
+        //清空敏感資料
+        ['MERCHANT_ID', 'HASH_KEY', 'HASH_IV'].map((dd) => {
+            delete keyData[dd];
+        });
+        return response.succ(resp, keyData);
+    } catch (e) {}
+});
+router.get('/payment/method', async (req: express.Request, resp: express.Response) => {
+    try {
+        const keyData = (
+            await Private_config.getConfig({
+                appName: req.get('g-app') as string,
+                key: 'glitter_finance',
+            })
+        )[0].value;
+
+        return response.succ(resp, {
+            method: [
+                {
+                    value: 'credit',
+                    title: '信用卡',
+                },
+                {
+                    value: 'atm',
+                    title: 'ATM',
+                },
+                {
+                    value: 'web_atm',
+                    title: '網路ATM',
+                },
+                {
+                    value: 'c_code',
+                    title: '超商代碼',
+                },
+                {
+                    value: 'c_bar_code',
+                    title: '超商條碼',
+                },
+            ].filter((dd) => {
+                return keyData[dd.value] && keyData.TYPE !== 'off_line';
+            }),
+        });
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+router.put('/order/proof-purchase', async (req: express.Request, resp: express.Response) => {
+    try {
+        return response.succ(resp, await new Shopping(req.get('g-app') as string, req.body.token).proofPurchase(req.body.order_id, req.body.text));
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
 router.put('/order', async (req: express.Request, resp: express.Response) => {
     try {
         if (await UtPermission.isManager(req)) {
@@ -399,6 +376,8 @@ router.delete('/order', async (req: express.Request, resp: express.Response) => 
         return response.fail(resp, err);
     }
 });
+
+// 優惠券
 router.get('/voucher', async (req: express.Request, resp: express.Response) => {
     try {
         let query = [`(content->>'$.type'='voucher')`];
@@ -430,6 +409,7 @@ router.delete('/voucher', async (req: express.Request, resp: express.Response) =
     }
 });
 
+// 重導向
 async function redirect_link(req: express.Request, resp: express.Response) {
     try {
         let return_url = new URL((await redis.getValue(req.query.return as string)) as any);
@@ -461,13 +441,24 @@ async function redirect_link(req: express.Request, resp: express.Response) {
         return response.fail(resp, err);
     }
 }
-
-router.post('/redirect', redirect_link);
 router.get('/redirect', redirect_link);
+router.post('/redirect', redirect_link);
 
-const storage = multer.memoryStorage(); // 文件暫存
+// 執行訂單結帳與付款事項
+const storage = multer.memoryStorage();
 const upload = multer({ storage });
-
+router.get('/testRelease', async (req: express.Request, resp: express.Response) => {
+    try {
+        const test = true;
+        const appName = req.get('g-app') as string;
+        if (test) {
+            await new Shopping(appName).releaseCheckout(1, req.query.orderId + '');
+        }
+        return response.succ(resp, {});
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
 router.post('/notify', upload.single('file'), async (req: express.Request, resp: express.Response) => {
     try {
         const appName = req.query['g-app'] as string;
@@ -530,19 +521,7 @@ router.post('/notify', upload.single('file'), async (req: express.Request, resp:
     }
 });
 
-router.get('/testRelease', async (req: express.Request, resp: express.Response) => {
-    try {
-        const test = true;
-        const appName = req.get('g-app') as string;
-        if (test) {
-            await new Shopping(appName).releaseCheckout(1, req.query.orderId + '');
-        }
-        return response.succ(resp, {});
-    } catch (err) {
-        return response.fail(resp, err);
-    }
-});
-
+// 許願池
 router.get('/wishlist', async (req: express.Request, resp: express.Response) => {
     try {
         let query = [`(content->>'$.type'='wishlist')`, `userID = ${req.body.token.userID}`];
@@ -634,6 +613,8 @@ router.delete('/wishlist', async (req: express.Request, resp: express.Response) 
         return response.fail(resp, err);
     }
 });
+
+// 資料分析
 router.get('/dataAnalyze', async (req: express.Request, resp: express.Response) => {
     try {
         const tags = `${req.query.tags}`;
@@ -661,6 +642,8 @@ router.get('/dataAnalyze', async (req: express.Request, resp: express.Response) 
         return response.fail(resp, err);
     }
 });
+
+// 商品類別
 router.get('/collection/products', async (req: express.Request, resp: express.Response) => {
     try {
         if (await UtPermission.isManager(req)) {
@@ -695,106 +678,54 @@ router.delete('/collection', async (req: express.Request, resp: express.Response
     }
 });
 
-router.get('/payment/method', async (req: express.Request, resp: express.Response) => {
+// 產品
+router.get('/product', async (req: express.Request, resp: express.Response) => {
     try {
-        const keyData = (
-            await Private_config.getConfig({
-                appName: req.get('g-app') as string,
-                key: 'glitter_finance',
-            })
-        )[0].value;
-
-        return response.succ(resp, {
-            method: [
-                {
-                    value: 'credit',
-                    title: '信用卡',
-                },
-                {
-                    value: 'atm',
-                    title: 'ATM',
-                },
-                {
-                    value: 'web_atm',
-                    title: '網路ATM',
-                },
-                {
-                    value: 'c_code',
-                    title: '超商代碼',
-                },
-                {
-                    value: 'c_bar_code',
-                    title: '超商條碼',
-                },
-            ].filter((dd) => {
-                return keyData[dd.value] && keyData.TYPE !== 'off_line';
-            }),
+        const shopping = await new Shopping(req.get('g-app') as string, req.body.token).getProduct({
+            page: (req.query.page ?? 0) as number,
+            limit: (req.query.limit ?? 50) as number,
+            search: req.query.search as string,
+            searchType: req.query.searchType as string,
+            sku: req.query.sku as string,
+            id: req.query.id as string,
+            collection: req.query.collection as string,
+            accurate_search_collection: req.query.accurate_search_collection === 'true',
+            min_price: req.query.min_price as string,
+            max_price: req.query.max_price as string,
+            status: req.query.status as string,
+            id_list: req.query.id_list as string,
+            order_by: (() => {
+                switch (req.query.order_by) {
+                    case 'title':
+                        return `order by JSON_EXTRACT(content, '$.title')`;
+                    case 'max_price':
+                        return `order by (CAST(JSON_UNQUOTE(JSON_EXTRACT(content, '$.max_price')) AS SIGNED)) desc`;
+                    case 'min_price':
+                        return `order by (CAST(JSON_UNQUOTE(JSON_EXTRACT(content, '$.min_price')) AS SIGNED)) asc`;
+                    case 'created_time_desc':
+                        return `order by created_time desc`;
+                    case 'created_time_asc':
+                        return `order by created_time`;
+                    case 'updated_time_desc':
+                        return `order by updated_time desc`;
+                    case 'updated_time_asc':
+                        return `order by updated_time`;
+                    case 'stock_desc':
+                        return ``;
+                    case 'stock_asc':
+                        return ``;
+                    case 'default':
+                    default:
+                        return `order by id desc`;
+                }
+            })(),
+            with_hide_index: req.query.with_hide_index as string,
         });
+        return response.succ(resp, shopping);
     } catch (err) {
         return response.fail(resp, err);
     }
 });
-
-router.get('/check-login-for-order', async (req: express.Request, resp: express.Response) => {
-    try {
-        const keyData = await new User(req.get('g-app') as string).getConfigV2({
-            user_id: 'manager',
-            key: 'login_config',
-        });
-
-        return response.succ(resp, {
-            result: keyData.login_in_to_order,
-        });
-    } catch (err) {
-        return response.fail(resp, err);
-    }
-});
-
-router.post('/product', async (req: express.Request, resp: express.Response) => {
-    try {
-        if (!(await UtPermission.isManager(req))) {
-            return response.fail(resp, exception.BadRequestError('BAD_REQUEST', 'No permission.', null));
-        } else {
-            return response.succ(resp, {
-                result: true,
-                id: await new Shopping(req.get('g-app') as string, req.body.token).postProduct(req.body),
-            });
-        }
-    } catch (err) {
-        return response.fail(resp, err);
-    }
-});
-router.post('/product/multiple', async (req: express.Request, resp: express.Response) => {
-    try {
-        if (!(await UtPermission.isManager(req))) {
-            return response.fail(resp, exception.BadRequestError('BAD_REQUEST', 'No permission.', null));
-        } else {
-
-            return response.succ(resp, {
-                result: true,
-                id: await new Shopping(req.get('g-app') as string, req.body.token).postMulProduct(req.body)
-            });
-        }
-    } catch (err) {
-        return response.fail(resp, err);
-    }
-});
-
-router.put('/product', async (req: express.Request, resp: express.Response) => {
-    try {
-        if (!(await UtPermission.isManager(req))) {
-            return response.fail(resp, exception.BadRequestError('BAD_REQUEST', 'No permission.', null));
-        } else {
-            return response.succ(resp, {
-                result: true,
-                id: await new Shopping(req.get('g-app') as string, req.body.token).putProduct(req.body),
-            });
-        }
-    } catch (err) {
-        return response.fail(resp, err);
-    }
-});
-
 router.get('/product/variants', async (req: express.Request, resp: express.Response) => {
     try {
         const shopping = await new Shopping(req.get('g-app') as string, req.body.token).getVariants({
@@ -815,7 +746,48 @@ router.get('/product/variants', async (req: express.Request, resp: express.Respo
         return response.fail(resp, err);
     }
 });
-
+router.post('/product', async (req: express.Request, resp: express.Response) => {
+    try {
+        if (!(await UtPermission.isManager(req))) {
+            return response.fail(resp, exception.BadRequestError('BAD_REQUEST', 'No permission.', null));
+        } else {
+            return response.succ(resp, {
+                result: true,
+                id: await new Shopping(req.get('g-app') as string, req.body.token).postProduct(req.body),
+            });
+        }
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+router.post('/product/multiple', async (req: express.Request, resp: express.Response) => {
+    try {
+        if (!(await UtPermission.isManager(req))) {
+            return response.fail(resp, exception.BadRequestError('BAD_REQUEST', 'No permission.', null));
+        } else {
+            return response.succ(resp, {
+                result: true,
+                id: await new Shopping(req.get('g-app') as string, req.body.token).postMulProduct(req.body),
+            });
+        }
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+router.put('/product', async (req: express.Request, resp: express.Response) => {
+    try {
+        if (!(await UtPermission.isManager(req))) {
+            return response.fail(resp, exception.BadRequestError('BAD_REQUEST', 'No permission.', null));
+        } else {
+            return response.succ(resp, {
+                result: true,
+                id: await new Shopping(req.get('g-app') as string, req.body.token).putProduct(req.body),
+            });
+        }
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
 router.put('/product/variants', async (req: express.Request, resp: express.Response) => {
     try {
         if (await UtPermission.isManager(req)) {
@@ -823,6 +795,36 @@ router.put('/product/variants', async (req: express.Request, resp: express.Respo
         } else {
             throw exception.BadRequestError('BAD_REQUEST', 'No permission.', null);
         }
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+router.delete('/product', async (req: express.Request, resp: express.Response) => {
+    try {
+        if (await UtPermission.isManager(req)) {
+            await new Shopping(req.get('g-app') as string, req.body.token).deleteProduct({
+                id: req.query.id as string,
+            });
+            return response.succ(resp, { result: true });
+        } else {
+            return response.fail(resp, exception.BadRequestError('BAD_REQUEST', 'No permission.', null));
+        }
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+
+// 登入選項
+router.get('/check-login-for-order', async (req: express.Request, resp: express.Response) => {
+    try {
+        const keyData = await new User(req.get('g-app') as string).getConfigV2({
+            user_id: 'manager',
+            key: 'login_config',
+        });
+
+        return response.succ(resp, {
+            result: keyData.login_in_to_order,
+        });
     } catch (err) {
         return response.fail(resp, err);
     }

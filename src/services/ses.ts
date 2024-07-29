@@ -1,4 +1,4 @@
-export function sendmail(sender: any, recipient: any, subject: any, body: any, callback?: (result: boolean) => void) {
+export async function sendmail(sender: any, recipient: any, subject: any, body: any, callback?: (result: boolean) => void) {
     const AWS = require('aws-sdk');
 
     // 設定 AWS 區域

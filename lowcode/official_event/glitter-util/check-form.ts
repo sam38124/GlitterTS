@@ -77,14 +77,14 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                         }else{
                             formID=object.formID
                         }
-                        const result = (document.querySelector(`.formID-${formID}`) as any).checkEditFinish()
-                        if (result) {
+                        const result = (document.querySelector(`.formID-${formID}`) as any).checkLeakData()
+                        if (!result) {
                             await TriggerEvent.trigger({
                                 gvc: gvc, widget: widget, clickEvent: object.finish, subData: subData
                             })
                         } else {
                             await TriggerEvent.trigger({
-                                gvc: gvc, widget: widget, clickEvent: object.notFinish, subData: subData
+                                gvc: gvc, widget: widget, clickEvent: object.notFinish, subData: result
                             })
                         }
                         resolve(result)

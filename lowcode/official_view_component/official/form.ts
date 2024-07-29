@@ -24,6 +24,33 @@ export class FormWidget {
         const gvc = obj.gvc
         const array = obj.array
         const glitter = obj.gvc.glitter;
+        if(obj.user_mode){
+            array.map((dd:any)=>{
+                 dd.toggle=false
+            })
+            return gvc.bindView(()=>{
+                return {
+                    bind:gvc.glitter.getUUID(),
+                    view:()=>{
+                        return new Promise((resolve, reject)=>{
+                            (window as any).glitter.getModule(glitter.root_path+`cms-plugin/module/form-module.js`,(module:any)=>{
+                                resolve(module.editor(gvc, array, `
+                                                                    <div class="tx_normal fw-bolder  d-flex flex-column"
+                                                                         style="margin-bottom: 12px;">${obj.title ?? "表單項目"}
+                                                                      
+                                                                    </div>
+                                                                `,()=>{
+                                    obj.refresh && obj.refresh()
+                                })+`<div class="w-100 border-top my-3"></div>`)
+                            })
+                        })
+                    },
+                    divCreate:{
+                        class:`mx-2 mt-n3`
+                    }
+                }
+            })
+        }
         return EditorElem.arrayItem({
             title: obj.title ?? "表單項目",
             gvc: gvc,
@@ -319,7 +346,6 @@ export class FormWidget {
         const glitter = obj.gvc.glitter
         const gvc = obj.gvc
         const formData = obj.formData
-
         function getRaw(array: []) {
             return array.map((dd: {
                 placeHolder?: string,
@@ -919,7 +945,13 @@ Plugin.createComponent(import.meta.url, (glitter: Glitter, editMode: boolean) =>
                                 (document.querySelector(`.formID-${formID}`) as any).formValue = () => {
                                     return formData
                                 }
-                                (document.querySelector(`.formID-${formID}`) as any).checkEditFinish = checkEditFinish
+                                (document.querySelector(`.formID-${formID}`) as any).checkEditFinish = checkEditFinish;
+                                (document.querySelector(`.formID-${formID}`) as any).checkLeakData = ()=>{
+                                    const find=form_config_list.find((dd:any) => {
+                                        return (dd.require === 'true') && (!formData[dd.key])
+                                    })
+                                    return find && find.title
+                                }
                             }
                         }
                     })

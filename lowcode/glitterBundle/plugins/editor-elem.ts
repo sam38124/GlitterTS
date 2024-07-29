@@ -634,8 +634,6 @@ export class EditorElem {
         return html` <iframe class="rounded-3" src="${href.href}" style="border: none;width:${cf.width}px;height:${cf.height}px;"></iframe>`;
     }
 
-    public static codeEventListener = () => {};
-
     public static codeEditor(obj: { gvc: GVC; height: number; initial: string; title: string; callback: (data: string) => void; structStart?: string; structEnd?: string }) {
         const codeID = obj.gvc.glitter.getUUID();
 
@@ -815,184 +813,24 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
         );
     }
 
-    public static richText(obj: { gvc: GVC; def: string; callback: (text: string) => void; style?: string }) {
-        let quill: any = undefined;
-        //         return obj.gvc.bindView(() => {
-        //             const id = obj.gvc.glitter.getUUID();
-        //             const toolBarID = obj.gvc.glitter.getUUID();
-        //             return {
-        //                 bind: id,
-        //                 view: () => {
-        //                     return `<div id="${toolBarID}" style="white-space: normal;">
-        //   <span class="ql-formats">
-        //     <select class="ql-font"></select>
-        //     <select class="ql-size"></select>
-        //   </span>
-        //   <span class="ql-formats">
-        //     <button class="ql-bold"></button>
-        //     <button class="ql-italic"></button>
-        //     <button class="ql-underline"></button>
-        //     <button class="ql-strike"></button>
-        //   </span>
-        //   <span class="ql-formats">
-        //     <select class="ql-color"></select>
-        //     <select class="ql-background"></select>
-        //   </span>
-        //   <span class="ql-formats">
-        //     <button class="ql-script" value="sub"></button>
-        //     <button class="ql-script" value="super"></button>
-        //   </span>
-        //   <span class="ql-formats">
-        //     <button class="ql-header" value="1"></button>
-        //     <button class="ql-header" value="2"></button>
-        //     <button class="ql-blockquote"></button>
-        //     <button class="ql-code-block"></button>
-        //   </span>
-        //   <span class="ql-formats">
-        //     <button class="ql-list" value="ordered"></button>
-        //     <button class="ql-list" value="bullet"></button>
-        //     <button class="ql-indent" value="-1"></button>
-        //     <button class="ql-indent" value="+1"></button>
-        //   </span>
-        //   <span class="ql-formats">
-        //     <button class="ql-direction" value="rtl"></button>
-        //     <select class="ql-align"></select>
-        //   </span>
-        //   <span class="ql-formats">
-        //     <button class="ql-link"></button>
-        //     <i class="fa-solid fa-image ms-1" style="cursor:pointer;" onclick="${obj.gvc.event(() => {
-        //                         EditorElem.fileUploadEvent('image/*', (link: string) => {
-        //                             try {
-        //                                 var range = ((quill.getSelection) && quill.getSelection().index) || 0;
-        //                                 quill.insertEmbed(range, 'image', link);
-        //                             } catch {
-        //                                 quill.insertEmbed(0, 'image', link);
-        //                             }
-        //                         })
-        //                     })}"></i>
-        //   </span>
-        //   <span class="ql-formats">
-        //     <button class="ql-clean"></button>
-        //   </span>
-        // </div>
-        // <div id="${id}" ></div>`
-        //                 },
-        //                 divCreate: {
-        //                     elem: 'div',
-        //                     option: []
-        //                 },
-        //                 onCreate: () => {
-        //                     obj.gvc.glitter.addStyleLink([`https://cdn.jsdelivr.net/npm/quill@2.0.0-rc.5/dist/quill.snow.css`])
-        //                     const quill_resize=new URL('../../jslib/froala/jslib/quill-resize.js',import.meta.url)
-        //                     obj.gvc.addMtScript([
-        //                         {
-        //                             src: `https://cdn.jsdelivr.net/npm/quill@2.0.0-rc.5/dist/quill.js`
-        //                         },
-        //                         {
-        //                             src: quill_resize.href
-        //                         },
-        //                         {
-        //                             src: `https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js`
-        //                         }
-        //                     ], () => {
-        //                         const interval = setInterval(() => {
-        //                             if ((window as any).Quill) {
-        //                                 try {
-        //                                     (window as any).Quill.register("modules/resize", (window as any).QuillResizeModule);
-        //                                     //@ts-ignore
-        //                                     quill = new (window as any).Quill('#' + id, {
-        //                                         modules: {
-        //                                             resize: {
-        //                                                 locale: {
-        //                                                     altTip: "按住alt键比例缩放",
-        //                                                     inputTip: "",
-        //                                                     floatLeft: "靠左",
-        //                                                     floatRight: "靠右",
-        //                                                     center: "居中",
-        //                                                     restore: "還原",
-        //                                                 },
-        //                                             },
-        //                                             syntax: false,
-        //                                             toolbar: `#` + toolBarID,
-        //                                         },
-        //                                         placeholder: '請輸入內容...',
-        //                                         theme: 'snow',
-        //                                     });
-        //                                     clearInterval(interval)
-        //                                 } catch (e) {
-        //                                     clearInterval(interval)
-        //                                 }
-        //
-        //                             }
-        //                             quill.container.firstChild.innerHTML=obj.def
-        //                             quill.on('text-change', (delta:any, oldDelta:any, source:any) => {
-        //                                 obj.callback(quill.container.firstChild.innerHTML)
-        //                             });
-        //                             // const observer = new MutationObserver(function (mutationsList) {
-        //                             //     obj.callback(quill.container.firstChild.innerHTML)
-        //                             // });
-        //                             // observer.observe(document.querySelector(`#${id}`)!, {childList: true, subtree: true});
-        //                             // const editableDiv:any = document.querySelector( `#${id} .ql-editor`);
-        //                             //
-        //                             // // 添加 input 事件监听器
-        //                             // editableDiv.addEventListener('input', function() {
-        //                             //     console.log(`change`)
-        //                             //     obj.callback(quill.container.firstChild.innerHTML)
-        //                             // });
-        //
-        //                         }, 100)
-        //
-        //                     }, () => {
-        //                     });
-        //                 }
-        //             }
-        //         })
-        return obj.gvc.bindView(() => {
-            const id = obj.gvc.glitter.getUUID();
-            const richID = obj.gvc.glitter.getUUID();
-            obj.gvc.glitter.addMtScript(
-                [
-                    // 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js',
-                    // 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/xml/xml.min.js',
-                    '../../jslib/froala.js',
-                    // '../../jslib/froala/plugins/align.min.js',
-                    // '../../jslib/froala/plugins/code_beautifier.min.js',
-                    // '../../jslib/froala/plugins/code_view.min.js',
-                    // '../../jslib/froala/plugins/colors.min.js',
-                    // '../../jslib/froala/plugins/draggable.min.js',
-                    // '../../jslib/froala/plugins/emoticons.min.js',
-                    // '../../jslib/froala/plugins/font_size.min.js',
-                    // '../../jslib/froala/plugins/font_family.min.js',
-                    // '../../jslib/froala/plugins/image.min.js',
-                    // '../../jslib/froala/plugins/file.min.js',
-                    // '../../jslib/froala/plugins/image_manager.min.js',
-                    // '../../jslib/froala/plugins/line_breaker.min.js',
-                    // '../../jslib/froala/plugins/link.min.js',
-                    // '../../jslib/froala/plugins/lists.min.js',
-                    // '../../jslib/froala/plugins/paragraph_format.min.js',
-                    // '../../jslib/froala/plugins/paragraph_style.min.js',
-                    // '../../jslib/froala/plugins/video.min.js',
-                    // '../../jslib/froala/plugins/table.min.js',
-                    // '../../jslib/froala/plugins/url.min.js',
-                    // '../../jslib/froala/plugins/entities.min.js',
-                    // '../../jslib/froala/plugins/char_counter.min.js',
-                    // '../../jslib/froala/plugins/inline_style.min.js',
-                    // '../../jslib/froala/plugins/save.min.js',
-                    // '../../jslib/froala/plugins/fullscreen.min.js',
-                    // '../../jslib/froala/plugins/quote.min.js',
-                    // '../../jslib/froala/plugins/quick_insert.min.js',
-                    '../../jslib/froala/languages/zh_tw.js',
-                ].map((dd) => {
+    public static richText(obj: { gvc: GVC; def: string; callback: (text: string) => void; style?: string; readonly?: boolean }) {
+        const gvc = obj.gvc;
+        const glitter = gvc.glitter;
+        return gvc.bindView(() => {
+            const id = glitter.getUUID();
+            const richID = glitter.getUUID();
+            glitter.addMtScript(
+                ['../../jslib/froala.js', '../../jslib/froala/languages/zh_tw.js'].map((dd) => {
                     return { src: new URL(dd, import.meta.url) };
                 }),
                 () => {},
                 () => {}
             );
-            obj.gvc.addStyleLink(['https://cdn.jsdelivr.net/npm/froala-editor@latest/css/froala_editor.pkgd.min.css']);
+            gvc.addStyleLink(['https://cdn.jsdelivr.net/npm/froala-editor@latest/css/froala_editor.pkgd.min.css']);
             return {
                 bind: id,
                 view: () => {
-                    return html` <div style="" class="" id="${richID}">${obj.def}</div>`;
+                    return html` <div id="${richID}">${obj.def}</div>`;
                 },
                 divCreate: {
                     style: `${obj.style || `overflow-y: auto;`}position:relative;`,
@@ -1000,14 +838,15 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                 onCreate: () => {
                     const interval = setInterval(() => {
                         if ((window as any).FroalaEditor) {
-                            obj.gvc.addStyle(`.fr-sticky-on {
-    position: relative !important;
-    z-index: 10;
-}
-.fr-sticky-dummy{
-display:none !important;
-}
-`);
+                            gvc.addStyle(`
+                                .fr-sticky-on {
+                                    position: relative !important;
+                                    z-index: 10;
+                                }
+                                .fr-sticky-dummy {
+                                    display: none !important;
+                                }
+                            `);
                             //@ts-ignore
                             const editor = new FroalaEditor('#' + richID, {
                                 language: 'zh_tw',
@@ -1020,41 +859,16 @@ display:none !important;
                                     // Allow to upload PNG and JPG.
                                     imageAllowedTypes: ['jpeg', 'jpg', 'png'],
                                     contentChanged: function () {
-                                        // Do something here.
-                                        // this is the editor instance.
                                         obj.callback(editor.html.get());
                                     },
                                     'image.beforeUpload': function (e: any, images: any) {
                                         EditorElem.uploadFileFunction({
-                                            gvc: obj.gvc,
+                                            gvc: gvc,
                                             callback: (text) => {
                                                 editor.html.insert(`<img src="${text}">`);
                                             },
                                             file: e[0],
                                         });
-                                        // 在图片上传之前执行的自定义逻辑
-                                        // images 参数是要上传的图片文件数组
-
-                                        // 在此处执行上传逻辑
-                                        // 可以使用 AJAX 或其他方式将图片上传到指定的服务器端
-
-                                        // 如果使用 AJAX，可以如下示例：
-                                        // $.ajax({
-                                        //   type: 'POST',
-                                        //   url: '/upload-image',
-                                        //   data: formData,
-                                        //   processData: false,
-                                        //   contentType: false,
-                                        //   success: function (data) {
-                                        //     // 处理上传成功后的逻辑
-                                        //     // data 包含了服务器响应的信息
-                                        //   },
-                                        //   error: function (error) {
-                                        //     // 处理上传失败时的逻辑
-                                        //   }
-                                        // });
-
-                                        // 阻止默认上传行为
                                         return false;
                                     },
                                 },
@@ -1070,12 +884,12 @@ display:none !important;
                                     class="fr-command fr-btn "
                                     data-title="插入圖片 (⌘P)"
                                     onclick="${obj.gvc.event(() => {
-                                        obj.gvc.glitter.ut.chooseMediaCallback({
+                                        glitter.ut.chooseMediaCallback({
                                             single: true,
                                             accept: 'image/*',
                                             callback(data: any) {
                                                 const saasConfig: { config: any; api: any } = (window as any).saasConfig;
-                                                const dialog = new ShareDialog(obj.gvc.glitter);
+                                                const dialog = new ShareDialog(glitter);
                                                 dialog.dataLoading({ visible: true });
                                                 const file = data[0].file;
                                                 saasConfig.api.uploadFile(file.name).then((data: any) => {
@@ -1109,13 +923,11 @@ display:none !important;
                                     </svg>
                                     <span class="fr-sr-only">插入圖片</span>
                                 </button>`;
-                                // (document.querySelector(`#insertImage-1`)! as any).addEventListener('click', function(event:any) {
-                                //     event.stopPropagation(); // 阻止事件冒泡
-                                //     event.preventDefault();
-                                //
-                                // });
+                                if (obj.readonly) {
+                                    editor.edit.off();
+                                    editor.toolbar.disable();
+                                }
                             }, 100);
-
                             clearInterval(interval);
                         }
                     }, 200);
@@ -1125,28 +937,22 @@ display:none !important;
     }
 
     public static richTextBtn(obj: { gvc: GVC; def: string; title: string; callback: (text: string) => void; style?: string }) {
-        // return EditorElem.richText({
-        //         gvc: obj.gvc, def: obj.def, callback: (text) => {
-        //             obj.def = text
-        //             obj.callback(text)
-        //         }
-        //     })
         return EditorElem.buttonPrimary(
             obj.title,
             obj.gvc.event(() => {
                 EditorElem.openEditorDialog(
                     obj.gvc,
                     () => {
-                        return `<div class="p-3" style="overflow: hidden;">
-${EditorElem.richText({
-    gvc: obj.gvc,
-    def: obj.def,
-    callback: (text) => {
-        obj.def = text;
-        obj.callback(text);
-    },
-})}
-</div>`;
+                        return html`<div class="p-3" style="overflow: hidden;">
+                            ${EditorElem.richText({
+                                gvc: obj.gvc,
+                                def: obj.def,
+                                callback: (text) => {
+                                    obj.def = text;
+                                    obj.callback(text);
+                                },
+                            })}
+                        </div>`;
                     },
                     () => {},
                     800,
@@ -1875,6 +1681,9 @@ ${obj.gvc.bindView(() => {
                         }
                     })
                     .join('')}
+                ${((obj.array as any).find((dd:any)=>{
+                    return dd.value===obj.def
+                })) ? ``:`<option class="d-none" selected>請選擇項目</option>`}
             </select>
         `;
     }
@@ -1983,6 +1792,7 @@ ${obj.gvc.bindView(() => {
         callback: (text: string) => void;
         type?: 'single' | 'multiple';
         oneLine?: boolean;
+        readonly?: boolean;
     }) {
         obj.type = obj.type ?? 'single';
         const gvc = obj.gvc;
@@ -2009,6 +1819,9 @@ ${obj.gvc.bindView(() => {
                                     <div
                                         class="d-flex align-items-center"
                                         onclick="${obj.gvc.event(() => {
+                                            if (obj.readonly) {
+                                                return;
+                                            }
                                             if (obj.type === 'multiple') {
                                                 if (
                                                     (obj.def as any).find((d2: any) => {
@@ -2045,7 +1858,7 @@ ${obj.gvc.bindView(() => {
         `;
     }
 
-    public static editerDialog(par: { gvc: GVC; dialog: (gvc: GVC) => string; width?: string; editTitle?: string }) {
+    public static editerDialog(par: { gvc: GVC; dialog: (gvc: GVC) => string; width?: string; editTitle?: string,callback?:()=>void }) {
         return html` <button
             type="button"
             class="btn btn-primary-c  w-100"
@@ -2061,6 +1874,8 @@ ${obj.gvc.bindView(() => {
                         </div>`,
                     title: par.editTitle || '',
                 });
+                par.callback && (NormalPageEditor.closeEvent=par.callback)
+                
             })}"
         >
             ${par.editTitle}
@@ -2482,7 +2297,6 @@ ${obj.gvc.bindView(() => {
                                                     startIndex = evt.oldIndex;
                                                 },
                                                 onEnd: (evt: any) => {
-                                                    console.log(evt.newIndex);
                                                     swapArr(obj.originalArray, startIndex, evt.newIndex);
                                                     obj.refreshComponent();
                                                 },
@@ -2699,16 +2513,6 @@ ${obj.gvc.bindView(() => {
             </div>
         </div>`;
     }
-}
-
-function swapArr(arr: any, index1: number, index2: number) {
-    const data = arr[index1];
-    arr.splice(index1, 1);
-    arr.splice(index2, 0, data);
-}
-
-export class Element {
-    constructor() {}
 }
 
 const interval = setInterval(() => {

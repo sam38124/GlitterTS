@@ -33,10 +33,55 @@ export class Mail {
         }
     }
 
-    async postMail(data: any): Promise<boolean> {
-        delete data.token;
+    async getMail(query: { type: string; page: number; limit: number; search: string; searchType: string; sendDate: string; sendTime: string; status: string }) {
+        try {
+            let searchSQL = '';
+            switch (query.searchType) {
+                case 'email':
+                    searchSQL = ` AND JSON_SEARCH(content->'$.email', 'one', '%${query.search ?? ''}%', NULL, '$[*]') IS NOT NULL `;
+                    break;
+                case 'name':
+                    searchSQL = ` AND UPPER(JSON_EXTRACT(content, '$.name')) LIKE UPPER('%${query.search ?? ''}%') `;
+                    break;
+                case 'title':
+                    searchSQL = ` AND UPPER(JSON_EXTRACT(content, '$.title')) LIKE UPPER('%${query.search ?? ''}%') `;
+                    break;
+            }
+
+            let statusSQL = '';
+            if (query.status) {
+                statusSQL = ` AND status = ${query.status}`;
+            }
+
+            const whereSQL = `(tag = 'sendMail' OR tag = 'sendMailBySchedule')${searchSQL}${statusSQL}`;
+
+            const emails = await db.query(
+                `SELECT * FROM \`${this.app}\`.t_triggers
+                 WHERE ${whereSQL}
+                 ORDER BY id DESC
+                 ${query.type === 'download' ? '' : `LIMIT ${query.page * query.limit}, ${query.limit}`};`,
+                []
+            );
+
+            const total = await db.query(
+                `SELECT count(id) as c FROM \`${this.app}\`.t_triggers
+                 WHERE ${whereSQL};`,
+                []
+            );
+
+            return { data: emails, total: total[0].c };
+        } catch (e) {
+            throw exception.BadRequestError('BAD_REQUEST', 'getMail Error:' + e, null);
+        }
+    }
+
+    async postMail(data: any): Promise<{ result: boolean; message: string }> {
+        data.token && delete data.token;
         try {
             if (Boolean(data.sendTime)) {
+                if (isLater(data.sendTime)) {
+                    return { result: false, message: '排定發送的時間需大於現在時間' };
+                }
                 await db.query(`INSERT INTO \`${this.app}\`.\`t_triggers\` SET ? ;`, [
                     {
                         tag: 'sendMailBySchedule',
@@ -56,7 +101,7 @@ export class Mail {
                 ]);
                 this.chunkSendMail(data, insertData.insertId);
             }
-            return true;
+            return { result: true, message: '寄送成功' };
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'postMail Error:' + e, null);
         }
@@ -76,4 +121,12 @@ function chunkArray(array: any, groupSize: number) {
         result.push(array.slice(i, i + groupSize));
     }
     return result;
+}
+
+function isLater(dateTimeObj: { date: string; time: string }) {
+    const currentDateTime = new Date();
+    const { date, time } = dateTimeObj;
+    const dateTimeString = `${date}T${time}:00`;
+    const providedDateTime = new Date(dateTimeString);
+    return currentDateTime > providedDateTime;
 }

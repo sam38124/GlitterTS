@@ -134,15 +134,13 @@ export class Firebase {
                         },
                         "token": token!
                     }).then((response: any) => {
-                        resolve(true)
                         console.log('成功發送推播：', response);
                     }).catch((error: any) => {
-                        resolve(false)
                         console.error('發送推播時發生錯誤：', error);
                     })
                 }
             }
-
+            resolve(true)
         })
 
     }

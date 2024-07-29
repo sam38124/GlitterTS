@@ -181,7 +181,9 @@ class Excel {
                         }
                         let indices = [9, 11, 13];
                         indices.forEach((rowindex, key) => {
+                            var _a;
                             if (row[rowindex]) {
+                                productData.specs[key].option = (_a = productData.specs[key].option) !== null && _a !== void 0 ? _a : [];
                                 const exists = productData.specs[key].option.some((item) => item.title === row[rowindex]);
                                 if (!exists) {
                                     productData.specs[key].option.push({ title: row[rowindex], expand: true });
@@ -3159,7 +3161,6 @@ color: ${isCheck ? `#393939` : `#DDD`};font-size: 18px;
                                                                                                                                         </div>`;
                                                                                     })
                                                                                         .join('')}
-
                                                                                                                         <div
                                                                                                                                 class="d-none d-sm-block"
                                                                                                                                 style="color:#393939;font-size: 16px;font-weight: 400;width: 20%;"
@@ -3178,7 +3179,6 @@ color: ${isCheck ? `#393939` : `#DDD`};font-size: 18px;
                                                                                         gvc.notifyDataChange(vm.id);
                                                                                     })}"
                                                                                                                             >
-                                                                                                                                >
                                                                                                                                 <option class="d-none">
                                                                                                                                     統一設定
                                                                                                                                 </option>

@@ -86,15 +86,15 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                         else {
                             formID = object.formID;
                         }
-                        const result = document.querySelector(`.formID-${formID}`).checkEditFinish();
-                        if (result) {
+                        const result = document.querySelector(`.formID-${formID}`).checkLeakData();
+                        if (!result) {
                             yield TriggerEvent.trigger({
                                 gvc: gvc, widget: widget, clickEvent: object.finish, subData: subData
                             });
                         }
                         else {
                             yield TriggerEvent.trigger({
-                                gvc: gvc, widget: widget, clickEvent: object.notFinish, subData: subData
+                                gvc: gvc, widget: widget, clickEvent: object.notFinish, subData: result
                             });
                         }
                         resolve(result);

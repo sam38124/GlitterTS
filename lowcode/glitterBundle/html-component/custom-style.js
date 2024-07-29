@@ -170,6 +170,26 @@ export class CustomStyle {
                             }
                         }),
                         EditorElem.select({
+                            title: '水平位置',
+                            gvc: gvc,
+                            def: widget.data._hor_position,
+                            array: [{
+                                    title: "靠左",
+                                    value: "left"
+                                }, {
+                                    title: "置中",
+                                    value: "center"
+                                },
+                                {
+                                    title: "靠右",
+                                    value: "right"
+                                }],
+                            callback: (text) => {
+                                widget.data._hor_position = text;
+                                widget.refreshComponent();
+                            }
+                        }),
+                        EditorElem.select({
                             title: "內容翻轉",
                             gvc: gvc,
                             def: widget.data._reverse,
@@ -185,6 +205,35 @@ export class CustomStyle {
                             ],
                             callback: (text) => {
                                 widget.data._reverse = text;
+                                widget.refreshComponent();
+                            }
+                        }),
+                        EditorElem.editeInput({
+                            gvc: gvc,
+                            title: '圖層高度',
+                            type: 'number',
+                            default: widget.data._z_index || '0',
+                            placeHolder: '請輸入圖層高度',
+                            callback: (text) => {
+                                widget.data._z_index = text;
+                                widget.refreshComponent();
+                            }
+                        }),
+                        `<div class="mt-2"></div>` + EditorElem.editerDialog({
+                            gvc: gvc,
+                            dialog: () => {
+                                return EditorElem.styleEditor({
+                                    gvc: gvc,
+                                    title: '自訂Style代碼',
+                                    height: 400,
+                                    initial: widget.data._style || '',
+                                    callback: (text) => {
+                                        widget.data._style = text;
+                                    }
+                                });
+                            },
+                            editTitle: '自訂設計代碼',
+                            callback: () => {
                                 widget.refreshComponent();
                             }
                         })
@@ -206,8 +255,45 @@ export class CustomStyle {
                 }
             }
         });
+        if (widget.data._display_block === 'vertical') {
+            (style_string += `display: flex;align-items: center;justify-content: center;flex-direction: column;`);
+        }
+        else if (widget.data._display_block === 'horizontal') {
+            (style_string += `display: flex;align-items: center;justify-content: center;flex-direction: row;`);
+        }
+        widget.data._max_width && (style_string += `width:${(isNaN(widget.data._max_width)) ? widget.data._max_width : `${widget.data._max_width}px`};max-width:100%;`);
+        widget.data._border.width && (style_string += `border: ${widget.data._border.width}px solid ${widget.data._border.color};`);
+        widget.data._border['radius'] && (style_string += `border-radius: ${widget.data._border.radius}px;`);
+        widget.data._border['radius'] && ((widget.data._border.radius || '0') > 0 && (style_string += 'overflow:hidden;'));
+        widget.data._gap && (style_string += `gap:${widget.data._gap}px;`);
+        widget.data._background && (style_string += `background:${widget.data._background};`);
+        widget.data._radius && (style_string += `background:${widget.data._background};`);
+        widget.data._z_index && (style_string += `z-index:${widget.data._z_index};`);
+        switch (widget.data._hor_position) {
+            case "left":
+                if (widget.data._display_block === 'vertical') {
+                    style_string += `align-items: start;`;
+                }
+                else {
+                    style_string += `justify-content: start;`;
+                }
+                break;
+            case "right":
+                if (widget.data._display_block === 'vertical') {
+                    style_string += `align-items: end;`;
+                }
+                else {
+                    style_string += `justify-content: end;`;
+                }
+                break;
+            case "center":
+                if (widget.data._max_width) {
+                    style_string += `margin:auto;`;
+                }
+                break;
+        }
         ['top', 'bottom', 'left', 'right'].map((dd) => {
-            if (widget.data._margin[dd]) {
+            if (widget.data._margin[dd] && (widget.data._margin[dd] != '0')) {
                 if (!isNaN(widget.data._margin[dd])) {
                     (style_string += `margin-${dd}:${widget.data._margin[dd]}px;`);
                 }
@@ -216,24 +302,12 @@ export class CustomStyle {
                 }
             }
         });
-        if (widget.data._display_block === 'vertical') {
-            (style_string += `display: flex;align-items: center;justify-content: center;flex-direction: column;`);
-        }
-        else if (widget.data._display_block === 'horizontal') {
-            (style_string += `display: flex;align-items: center;justify-content: center;flex-direction: row;`);
-        }
-        widget.data._max_width && (style_string += `width:${(isNaN(widget.data._max_width)) ? widget.data._max_width : `${widget.data._max_width}px`};max-width:100%;margin:auto;`);
-        widget.data._border.width && (style_string += `border: ${widget.data._border.width}px solid ${widget.data._border.color};`);
-        widget.data._border['radius'] && (style_string += `border-radius: ${widget.data._border.radius}px;`);
-        widget.data._border['radius'] && ((widget.data._border.radius || '0') > 0 && (style_string += 'overflow:hidden;'));
-        widget.data._gap && (style_string += `gap:${widget.data._gap}px;`);
-        widget.data._background && (style_string += `background:${widget.data._background};`);
-        widget.data._radius && (style_string += `background:${widget.data._background};`);
+        (widget.data._style) && (style_string += widget.data._style);
         (widget.data._reverse === 'true') && (style_string += ((widget.data._display_block === 'vertical') ? `flex-direction: column-reverse !important;` : `flex-direction: row-reverse !important;`));
         return style_string;
     }
     static initialWidget(widget) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
         if (widget.data.onCreateEvent) {
             widget.onCreateEvent = widget.data.onCreateEvent;
             widget.data.onCreateEvent = undefined;
@@ -250,5 +324,6 @@ export class CustomStyle {
         widget.data._other = (_j = widget.data._other) !== null && _j !== void 0 ? _j : {};
         widget.data._radius = (_k = widget.data._radius) !== null && _k !== void 0 ? _k : '';
         widget.data._reverse = (_l = widget.data._reverse) !== null && _l !== void 0 ? _l : 'false';
+        widget.data._hor_position = (_m = widget.data._hor_position) !== null && _m !== void 0 ? _m : 'center';
     }
 }

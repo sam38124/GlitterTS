@@ -1,7 +1,29 @@
 import { BaseApi } from '../../glitterBundle/api/base.js';
+import { PostData } from '../../backend-manager/bg-notify.js';
 
 export class ApiSmtp {
-    public static send(json: { email: string[]; name: string; title: string; content: string; sendTime?: { date: string; time: string } }) {
+    public static history(json: { page: number; limit: number; search: string; searchType: string; sendTime?: { date: string; time: string }; status?: number }) {
+        return BaseApi.create({
+            url:
+                getBaseUrl() +
+                `/api-public/v1/smtp?${(() => {
+                    let par = [`type=list`, `limit=${json.limit}`, `page=${json.page}`];
+                    json.status !== undefined && par.push(`status=${json.status}`);
+                    json.search && par.push(`search=${json.search}`);
+                    json.searchType && par.push(`searchType=${json.searchType}`);
+                    json.sendTime && par.push(`sendDate=${json.sendTime.date}&sendTime=${json.sendTime.time}`);
+                    return par.join('&');
+                })()}`,
+            type: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: getConfig().config.token,
+            },
+        });
+    }
+
+    public static send(json: PostData) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/smtp`,
             type: 'POST',

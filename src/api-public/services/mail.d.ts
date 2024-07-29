@@ -4,5 +4,21 @@ export declare class Mail {
     token?: IToken;
     constructor(app: string, token?: IToken);
     chunkSendMail(data: any, id: number): Promise<void>;
-    postMail(data: any): Promise<boolean>;
+    getMail(query: {
+        type: string;
+        page: number;
+        limit: number;
+        search: string;
+        searchType: string;
+        sendDate: string;
+        sendTime: string;
+        status: string;
+    }): Promise<{
+        data: any;
+        total: any;
+    }>;
+    postMail(data: any): Promise<{
+        result: boolean;
+        message: string;
+    }>;
 }

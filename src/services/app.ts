@@ -109,23 +109,6 @@ export class App {
             });
             await ApiPublic.createScheme(cf.appName);
             const trans = await db.Transaction.build();
-
-            if (cf.copyWith.indexOf('checkout') !== -1) {
-                for (const dd of await db.query(
-                    `SELECT *
-                     FROM \`${cf.copyApp}\`.t_checkout`,
-                    []
-                )) {
-                    dd.orderData = dd.orderData && JSON.stringify(dd.orderData);
-                    await trans.execute(
-                        `
-                            insert into \`${cf.appName}\`.t_checkout
-                            SET ?;
-                        `,
-                        [dd]
-                    );
-                }
-            }
             if (cf.copyWith.indexOf('manager_post') !== -1) {
                 for (const dd of await db.query(
                     `SELECT *

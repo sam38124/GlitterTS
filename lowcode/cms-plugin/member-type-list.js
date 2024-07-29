@@ -60,7 +60,7 @@ export class MemberTypeList {
                                     return dd.checked;
                                 }));
                             },
-                            style: 'height:25px;',
+                            style: 'height: 37.5px;',
                         }),
                     },
                     {
@@ -146,6 +146,7 @@ export class MemberTypeList {
                                     vmi.callback();
                                 });
                             }),
+                            style: ['height: 36px;'],
                             rowClick: (data, index) => {
                                 vm.index = vm.dataList.length - 1 - index;
                                 vm.type = 'replace';

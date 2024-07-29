@@ -1,4 +1,4 @@
-import express, { query } from 'express';
+import express from 'express';
 import response from '../../modules/response';
 import exception from '../../modules/exception';
 import { UtPermission } from '../utils/ut-permission';

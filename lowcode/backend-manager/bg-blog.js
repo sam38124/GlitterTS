@@ -337,27 +337,7 @@ ${[`<div class="my-3"></div>`,
                                                         <div class="row m-0 pt-2 w-100">
                                                             ${data.response.result.data
                                                     .sort((a, b) => {
-                                                    var _a, _b;
-                                                    const aData = ((_a = a.template_config.tag) !== null && _a !== void 0 ? _a : []).find((dd) => {
-                                                        return dd === '基本元件';
-                                                    });
-                                                    const bData = ((_b = b.template_config.tag) !== null && _b !== void 0 ? _b : []).find((dd) => {
-                                                        return dd === '基本元件';
-                                                    });
-                                                    if (aData && bData) {
-                                                        if (a.template_config.name === '空白-嵌入模塊') {
-                                                            return -1;
-                                                        }
-                                                        else {
-                                                            return 1;
-                                                        }
-                                                    }
-                                                    else if (aData) {
-                                                        return -1;
-                                                    }
-                                                    else {
-                                                        return 1;
-                                                    }
+                                                    return a.template_config.name.localeCompare(b.template_config.name);
                                                 })
                                                     .map((dd, index) => {
                                                     var _a;

@@ -13,6 +13,8 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
             object.codeData=object.codeData ?? {}
             object.redirect=object.redirect ?? {}
             object.customer_info=object.customer_info ?? {}
+            object.custom_form_format=object.custom_form_format ?? {}
+            object.custom_form_data=object.custom_form_data ?? {}
             return {
                 editor: () => {
                     return gvc.bindView(() => {
@@ -56,6 +58,16 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                         hover: false,
                                         option: [],
                                         title: '取得配送資料'
+                                    }),
+                                    TriggerEvent.editer(gvc, widget, object.custom_form_format, {
+                                        hover: false,
+                                        option: [],
+                                        title: '自訂表單格式'
+                                    }),
+                                    TriggerEvent.editer(gvc, widget, object.custom_form_data, {
+                                        hover: false,
+                                        option: [],
+                                        title: '自訂表單資料'
                                     })
                                 ]
                                 if (object.dataFrom === 'code') {
@@ -89,7 +101,6 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                     })
                 },
                 event: () => {
-
                     return new Promise(async (resolve, reject) => {
                         const userInfo = await TriggerEvent.trigger({
                             gvc: gvc,
@@ -100,6 +111,16 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                             gvc: gvc,
                             widget: widget,
                             clickEvent: object.redirect
+                        })
+                        const custom_form_format= await TriggerEvent.trigger({
+                            gvc: gvc,
+                            widget: widget,
+                            clickEvent: object.custom_form_format
+                        })
+                        const custom_form_data= await TriggerEvent.trigger({
+                            gvc: gvc,
+                            widget: widget,
+                            clickEvent: object.custom_form_data
                         })
                         const customer_info=(await TriggerEvent.trigger({
                             gvc: gvc,
@@ -140,7 +161,9 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                 return_url: href.href,
                                 user_info: userInfo as any,
                                 code: voucher as string,
-                                use_rebate: parseInt(rebate as string, 10)
+                                use_rebate: parseInt(rebate as string, 10),
+                                custom_form_format:custom_form_format,
+                                custom_form_data:custom_form_data
                             }).then((res) => {
                                 if (object.payType === 'offline' || res.response.off_line || res.response.is_free) {
                                     ApiShop.clearCart()

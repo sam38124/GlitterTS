@@ -229,6 +229,14 @@ FilterOptions.stockOrderBy = [
     { key: 'stock_desc', value: '庫存數量多 > 少' },
     { key: 'stock_asc', value: '庫存數量少 > 多' },
 ];
+FilterOptions.emailFilterFrame = {
+    status: [],
+};
+FilterOptions.emailSelect = [
+    { key: 'email', value: '顧客信箱' },
+    { key: 'name', value: '寄件人名稱' },
+    { key: 'title', value: '標題' },
+];
 FilterOptions.emailOptions = [
     { key: 'def', value: '請選擇根據的條件' },
     { key: 'allCustomer', value: '指定顧客' },
@@ -236,4 +244,15 @@ FilterOptions.emailOptions = [
     { key: 'group', value: '顧客分群' },
     { key: 'birth', value: '顧客生日月份' },
     { key: 'remain', value: '購物金剩餘點數' },
+];
+FilterOptions.emailFunnel = [
+    {
+        key: 'status',
+        type: 'multi_checkbox',
+        name: '寄送狀態',
+        data: [
+            { key: '0', name: '尚未寄送' },
+            { key: '1', name: '已寄送' },
+        ],
+    },
 ];

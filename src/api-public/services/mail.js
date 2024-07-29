@@ -33,10 +33,45 @@ class Mail {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'chunkSendMail Error:' + e, null);
         }
     }
+    async getMail(query) {
+        var _a, _b, _c;
+        try {
+            let searchSQL = '';
+            switch (query.searchType) {
+                case 'email':
+                    searchSQL = ` AND JSON_SEARCH(content->'$.email', 'one', '%${(_a = query.search) !== null && _a !== void 0 ? _a : ''}%', NULL, '$[*]') IS NOT NULL `;
+                    break;
+                case 'name':
+                    searchSQL = ` AND UPPER(JSON_EXTRACT(content, '$.name')) LIKE UPPER('%${(_b = query.search) !== null && _b !== void 0 ? _b : ''}%') `;
+                    break;
+                case 'title':
+                    searchSQL = ` AND UPPER(JSON_EXTRACT(content, '$.title')) LIKE UPPER('%${(_c = query.search) !== null && _c !== void 0 ? _c : ''}%') `;
+                    break;
+            }
+            let statusSQL = '';
+            if (query.status) {
+                statusSQL = ` AND status = ${query.status}`;
+            }
+            const whereSQL = `(tag = 'sendMail' OR tag = 'sendMailBySchedule')${searchSQL}${statusSQL}`;
+            const emails = await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_triggers
+                 WHERE ${whereSQL}
+                 ORDER BY id DESC
+                 ${query.type === 'download' ? '' : `LIMIT ${query.page * query.limit}, ${query.limit}`};`, []);
+            const total = await database_js_1.default.query(`SELECT count(id) as c FROM \`${this.app}\`.t_triggers
+                 WHERE ${whereSQL};`, []);
+            return { data: emails, total: total[0].c };
+        }
+        catch (e) {
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getMail Error:' + e, null);
+        }
+    }
     async postMail(data) {
-        delete data.token;
+        data.token && delete data.token;
         try {
             if (Boolean(data.sendTime)) {
+                if (isLater(data.sendTime)) {
+                    return { result: false, message: '排定發送的時間需大於現在時間' };
+                }
                 await database_js_1.default.query(`INSERT INTO \`${this.app}\`.\`t_triggers\` SET ? ;`, [
                     {
                         tag: 'sendMailBySchedule',
@@ -57,7 +92,7 @@ class Mail {
                 ]);
                 this.chunkSendMail(data, insertData.insertId);
             }
-            return true;
+            return { result: true, message: '寄送成功' };
         }
         catch (e) {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'postMail Error:' + e, null);
@@ -77,5 +112,12 @@ function chunkArray(array, groupSize) {
         result.push(array.slice(i, i + groupSize));
     }
     return result;
+}
+function isLater(dateTimeObj) {
+    const currentDateTime = new Date();
+    const { date, time } = dateTimeObj;
+    const dateTimeString = `${date}T${time}:00`;
+    const providedDateTime = new Date(dateTimeString);
+    return currentDateTime > providedDateTime;
 }
 //# sourceMappingURL=mail.js.map

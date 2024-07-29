@@ -48,7 +48,7 @@ export class AutoReply {
                                 },
                                 {
                                     key: '標題',
-                                    value: dd.title,
+                                    value: truncateString(dd.title, 40),
                                 },
                                 {
                                     key: '最後更新時間',
@@ -102,6 +102,14 @@ export class AutoReply {
                                 },
                             ];
                         });
+                    }
+
+                    function truncateString(str: string, maxLength: number) {
+                        if (str.length > maxLength) {
+                            return str.slice(0, maxLength) + '...';
+                        } else {
+                            return str;
+                        }
                     }
 
                     return BgWidget.container(

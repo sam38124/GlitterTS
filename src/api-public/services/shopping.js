@@ -316,13 +316,13 @@ class Shopping {
                 use_rebate: data.use_rebate || 0,
                 orderID: `${new Date().getTime()}`,
                 shipment_support: shipment_setting.support,
-                shipment_form_format: shipment_setting.form,
-                shipment_form_data: {},
                 shipment_info: shipment_setting.info,
                 use_wallet: 0,
                 method: data.user_info && data.user_info.method,
                 user_email: (userData && userData.account) || ((_c = data.email) !== null && _c !== void 0 ? _c : ((data.user_info && data.user_info.email) || '')),
                 useRebateInfo: { point: 0 },
+                custom_form_format: data.custom_form_format,
+                custom_form_data: data.custom_form_data
             };
             function calculateShipment(dataList, value) {
                 const productValue = parseInt(`${value}`, 10);
@@ -1675,14 +1675,15 @@ class Shopping {
                 product.type = 'product';
             });
             const data = await database_js_1.default.query(`INSERT INTO \`${this.app}\`.\`t_manager_post\` (userID , content)
-                 VALUES ?`, [
-                productArray.map((product) => {
+                VALUES ?`, [productArray.map((product) => {
                     var _a;
                     product.type = 'product';
                     this.checkVariantDataType(product.variants);
-                    return [(_a = this.token) === null || _a === void 0 ? void 0 : _a.userID, JSON.stringify(product)];
-                }),
-            ]);
+                    return [
+                        (_a = this.token) === null || _a === void 0 ? void 0 : _a.userID,
+                        JSON.stringify(product),
+                    ];
+                })]);
             let insertIDStart = data.insertId;
             await new Shopping(this.app, this.token).processProducts(productArray, insertIDStart);
             return insertIDStart;
