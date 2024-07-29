@@ -162,7 +162,7 @@ class Schedule {
     async main() {
         const scheduleList = [
             { second: 10, status: false, func: 'example', desc: '排程啟用範例' },
-            { second: 3600, status: true, func: 'birthRebate', desc: '生日禮發放購物金' },
+            { second: 15, status: true, func: 'birthRebate', desc: '生日禮發放購物金' },
             { second: 600, status: true, func: 'refreshMember', desc: '更新會員分級' },
             { second: 30, status: true, func: 'resetVoucherHistory', desc: '未付款歷史優惠券重設' },
             { second: 30, status: true, func: 'autoSendMail', desc: '自動排程寄送信件' },
