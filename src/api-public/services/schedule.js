@@ -45,6 +45,7 @@ class Schedule {
     }
     async refreshMember(sec) {
         try {
+            console.log(this.app, 'refreshMember');
             if (await this.perload()) {
                 const userClass = new user_1.User(this.app);
                 const member_count = {};

@@ -234,7 +234,7 @@ color: transparent;"
                                                 class="btn-group "
                                                 style="max-width: ${document.body.clientWidth < 800 ? 150 : 350}px; 
   min-width: ${document.body.clientWidth < 800 ? 150 : 200}px; 
-                                                ${(gvc.glitter.getUrlParameter('function')==='page-editor') ? ``:`transform: translateX(-15px);`}
+                                                ${gvc.glitter.getUrlParameter('function') === 'page-editor' ? `` : `transform: translateX(-15px);`}
                                                "
                                             >
                                                 <button
@@ -393,7 +393,9 @@ color: transparent;"
                                                                         setTimeout(() => {
                                                                             dialog.dataLoading({ text: '', visible: false });
                                                                             if (it.result) {
-                                                                                location.href = `${glitter.root_path}/${tdata.tag}?type=editor&appName=${(window as any).appName}&function=${glitter.getUrlParameter('function')}`;
+                                                                                location.href = `${glitter.root_path}/${tdata.tag}?type=editor&appName=${
+                                                                                    (window as any).appName
+                                                                                }&function=${glitter.getUrlParameter('function')}`;
                                                                             } else {
                                                                                 dialog.errorMessage({
                                                                                     text: '已有此頁面標籤',
@@ -599,7 +601,7 @@ color:white;
                                             <div
                                                 class="ms-auto me-2 bt_orange"
                                                 onclick="${gvc.event(() => {
-                                                    const url = new URL('', glitter.share.editorViewModel.domain ? `https://${glitter.share.editorViewModel.domain}/?page=index` : location.href);
+                                                    const url = new URL('', glitter.share.editorViewModel.domain ? `https://${glitter.share.editorViewModel.domain}index` : location.href);
                                                     url.searchParams.delete('type');
                                                     url.searchParams.set('page', glitter.getUrlParameter('page'));
                                                     glitter.openNewTab(url.href);

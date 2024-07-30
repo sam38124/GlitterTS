@@ -99,9 +99,11 @@ class User {
         const usData = await this.getUserData(userID, 'userID');
         await database_1.default.query(`update \`${this.app}\`.t_user set userData=? where userID=?`, [
             JSON.stringify(await this.checkUpdate({
-                userID: userID, updateUserData: usData.userData, manager: false
+                userID: userID,
+                updateUserData: usData.userData,
+                manager: false,
             })),
-            userID
+            userID,
         ]);
         const data = await auto_send_email_js_1.AutoSendEmail.getDefCompare(this.app, 'auto-email-welcome');
         if (data.toggle) {
@@ -382,6 +384,23 @@ class User {
             if (data) {
                 data.pwd = undefined;
                 data.member = await this.refreshMember(data);
+                data.member.push({
+                    id: '',
+                    og: {
+                        id: '',
+                        duration: { type: 'noLimit', value: 0 },
+                        tag_name: '一般會員',
+                        condition: { type: 'total', value: 0 },
+                        dead_line: { type: 'noLimit' },
+                        create_date: '2024-01-01T00:00:00.000Z',
+                    },
+                    sum: 0,
+                    leak: 0,
+                    trigger: true,
+                    tag_name: '一般會員',
+                    dead_line: '',
+                });
+                data.member_level = data.member.find((item) => item.trigger);
             }
             return data;
         }
@@ -408,6 +427,7 @@ class User {
                  order by id desc`, [])).map((dd) => {
                 return { total_amount: parseInt(`${dd.total}`, 10), date: dd.created_time };
             });
+            console.log(order_list);
             let pass_level = true;
             const member = member_list.map((dd) => {
                 if (dd.condition.type === 'single') {
@@ -503,6 +523,7 @@ class User {
                     }
                 }
             });
+            console.log(member);
             member_update.value = member.reverse();
             member_update.time = new Date();
             await this.setConfig({
@@ -954,11 +975,11 @@ class User {
         let config = await app_js_1.default.getAdConfig(this.app, 'glitterUserForm');
         let register_form = (_a = (await this.getConfigV2({
             key: 'custom_form_register',
-            user_id: 'manager'
+            user_id: 'manager',
         })).list) !== null && _a !== void 0 ? _a : [];
         let customer_form_user_setting = (_b = (await this.getConfigV2({
             key: 'customer_form_user_setting',
-            user_id: 'manager'
+            user_id: 'manager',
         })).list) !== null && _b !== void 0 ? _b : [];
         if (!Array.isArray(config)) {
             config = [];

@@ -49,6 +49,7 @@ export class Schedule {
 
     async refreshMember(sec: number) {
         try {
+            console.log(this.app, 'refreshMember');
             if (await this.perload()) {
                 const userClass = new User(this.app);
                 //紀錄當前分級會員的數量

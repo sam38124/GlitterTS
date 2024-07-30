@@ -17,6 +17,7 @@ export class PathSelect {
         };
         const dropMenu = {
             id: obj.gvc.glitter.getUUID(),
+            elementWidth: 240,
             loading: true,
             search: '',
             prevList: [],
@@ -26,7 +27,7 @@ export class PathSelect {
         const setCollectionPath = (target, data) => {
             data.map((item, index) => {
                 const { title, array } = item;
-                target.push({ name: title, icon: '', link: `./?appName=${appName}&collection=${title}&page=all-product` });
+                target.push({ name: title, icon: '', link: `/all-product?collection=${title}` });
                 if (array && array.length > 0) {
                     target[index].items = [];
                     setCollectionPath(target[index].items, array);
@@ -71,10 +72,25 @@ export class PathSelect {
             return text;
         };
         const componentFresh = () => {
+            const notify = () => {
+                obj.gvc.notifyDataChange(dropMenu.id);
+                obj.gvc.notifyDataChange(linkComp.id);
+            };
             linkComp.loading = !linkComp.loading;
             dropMenu.loading = !dropMenu.loading;
-            obj.gvc.notifyDataChange(dropMenu.id);
-            obj.gvc.notifyDataChange(linkComp.id);
+            if (dropMenu.loading) {
+                notify();
+            }
+            else {
+                const si = setInterval(() => {
+                    const inputElement = window.document.getElementById('path-input');
+                    if (inputElement) {
+                        dropMenu.elementWidth = inputElement.clientWidth - 20;
+                        notify();
+                        clearInterval(si);
+                    }
+                }, 100);
+            }
         };
         const callbackEvent = (data) => {
             linkComp.text = data.link;
@@ -108,13 +124,14 @@ export class PathSelect {
                             var _a, _b;
                             if (linkComp.loading) {
                                 return html `<div
-                                            class="form-control"
+                                            class="form-control ${linkComp.text.length > 0 ? '' : 'py-2'}"
+                                            id="path-input"
                                             style="margin-top:8px; white-space: normal; word-break: break-all; ${(_a = obj.style) !== null && _a !== void 0 ? _a : ''}"
                                             onclick="${obj.gvc.event(() => {
                                     componentFresh();
                                 })}"
                                         >
-                                            ${linkComp.text.length > 0 ? formatLinkText(linkComp.text) : `<span style="color: #b4b7c9">${obj.placeHolder}</span>`}
+                                            ${linkComp.text.length > 0 ? formatLinkText(linkComp.text) : html `<span style="color: #b4b7c9">${obj.placeHolder}</span>`}
                                         </div>`;
                             }
                             else {
@@ -166,7 +183,7 @@ export class PathSelect {
                                 let h1 = '';
                                 if (dropMenu.prevList.length > 0) {
                                     h1 += html ` <div
-                                                    class="m-3"
+                                                    class="m-3 hoverF2"
                                                     style="font-size: 16px; font-weight: 500; gap: 6px; line-height: 140%;cursor: pointer;"
                                                     onclick=${obj.gvc.event(() => {
                                         dataList = dropMenu.prevList[dropMenu.prevList.length - 1];
@@ -176,7 +193,7 @@ export class PathSelect {
                                         obj.gvc.notifyDataChange(dropMenu.id);
                                     })}
                                                 >
-                                                    <i class="fa-solid fa-chevron-left me-2 hoverF2"></i>
+                                                    <i class="fa-solid fa-chevron-left me-2"></i>
                                                     <span>${dropMenu.recentParent[dropMenu.recentParent.length - 1]}</span>
                                                 </div>
                                                 <input
@@ -210,10 +227,18 @@ export class PathSelect {
                                     h2 += html `
                                                     <div class="m-3" style="display: flex; align-items: center; justify-content: space-between;">
                                                         <div
-                                                            class="link-item-container ${tag.link && tag.link.length > 0 ? 'hoverF2' : ''}"
-                                                            style="cursor: pointer;"
+                                                            class="link-item-container hoverF2"
+                                                            style="cursor: pointer; text-wrap: wrap;"
                                                             onclick=${obj.gvc.event(() => {
-                                        tag.link && tag.link.length > 0 && callbackEvent(tag);
+                                        if (tag.link && tag.link.length > 0) {
+                                            callbackEvent(tag);
+                                        }
+                                        else {
+                                            dropMenu.prevList.push(dataList);
+                                            dropMenu.recentParent.push(tag.name);
+                                            tag.items && (dataList = tag.items);
+                                            obj.gvc.notifyDataChange(dropMenu.id);
+                                        }
                                     })}
                                                         >
                                                             <div style="width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">
@@ -221,7 +246,7 @@ export class PathSelect {
                                         if (tag.icon.includes('https://')) {
                                             return html `<div
                                                                             style="
-                                                                                width: 25px; height: 25px;
+                                                                                min-width: 25px; min-height: 25px;
                                                                                 background-image: url('${tag.icon}');
                                                                                 background-position: center;
                                                                                 background-size: cover;
@@ -249,14 +274,17 @@ export class PathSelect {
                                                 `;
                                 });
                                 return html `
-                                            <div class="border border-2 rounded-2 p-2" style="width: 240px">
+                                            <div class="p-2" style="width: ${dropMenu.elementWidth}px">
                                                 ${h1}
                                                 <div style="overflow-y: auto; max-height: 42.5vh;">${h2}</div>
                                             </div>
                                         `;
                             }
                         },
-                        divCreate: { style: 'position: absolute; top: 42.5px; right: 0; z-index: 1; background-color: #fff;' },
+                        divCreate: {
+                            class: 'border border-2 rounded-3',
+                            style: 'position: absolute; top: 42.5px; left: 0; z-index: 1; background-color: #fff;',
+                        },
                     })}
                         </div>`;
                 }
@@ -270,7 +298,9 @@ export class PathSelect {
                     Promise.all([
                         new Promise((resolve) => {
                             ApiShop.getCollection().then((data) => {
-                                setCollectionPath(collectionList, data.length > 0 ? data.response.value : []);
+                                if (data.result && data.response.value.length > 0) {
+                                    setCollectionPath(collectionList, data.response.value);
+                                }
                                 resolve();
                             });
                         }),
@@ -301,10 +331,10 @@ export class PathSelect {
                         }),
                     ]).then(() => {
                         dropMenu.recentList = [
-                            { name: '首頁', icon: 'fa-regular fa-house', link: './?page=index' },
-                            { name: '商品', icon: 'fa-regular fa-tag', link: './?page=all-product', items: productList },
+                            { name: '首頁', icon: 'fa-regular fa-house', link: '/index' },
+                            { name: '商品', icon: 'fa-regular fa-tag', link: '/all-product', items: productList },
                             { name: '商品分類', icon: 'fa-regular fa-tags', link: '', items: collectionList },
-                            { name: '網誌文章', icon: 'fa-regular fa-newspaper', link: '/blogs', items: acticleList }
+                            { name: '網誌文章', icon: 'fa-regular fa-newspaper', link: '/blogs', items: acticleList },
                         ].filter((menu) => {
                             if (menu.items === undefined)
                                 return true;

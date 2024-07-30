@@ -37,7 +37,11 @@ export declare class User {
     loginWithLine(code: string, redirect: string): Promise<any>;
     loginWithGoogle(code: string, redirect: string): Promise<any>;
     getUserData(query: string, type?: 'userID' | 'account'): Promise<any>;
-    refreshMember(userData: any): Promise<any>;
+    refreshMember(userData: any): Promise<{
+        id: string;
+        tag_name: string;
+        trigger: boolean;
+    }[]>;
     find30DayPeriodWith3000Spent(transactions: {
         total_amount: number;
         date: string;
