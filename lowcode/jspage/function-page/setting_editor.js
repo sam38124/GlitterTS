@@ -189,15 +189,6 @@ export class Setting_editor {
                                         },
                                         {
                                             icon: '',
-                                            page: 'mail_subscrible',
-                                            group: '信件群發',
-                                            title: '已訂閱郵件',
-                                            appName: 'cms_system',
-                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713375442916-Component 56 (4).svg',
-                                            moduleName: '已訂閱郵件',
-                                        },
-                                        {
-                                            icon: '',
                                             page: 'auto_send',
                                             group: '信件群發',
                                             title: '自動寄件',

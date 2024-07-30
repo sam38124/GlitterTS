@@ -1,7 +1,11 @@
 import { GVC } from '../glitterBundle/GVController.js';
 import { BgWidget } from '../backend-manager/bg-widget.js';
 import { ApiUser } from '../glitter-base/route/user.js';
+import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
 import { UserList } from './user-list.js';
+import { BgNotify } from '../backend-manager/bg-notify.js';
+
+type RegisterTag = 'registered' | 'notRegistered';
 
 export class MemberTypeList {
     public static main(gvc: GVC, widget: any) {
@@ -10,16 +14,18 @@ export class MemberTypeList {
 
         const vm: {
             id: string;
-            type: 'groupList' | 'list' | 'replace';
+            type: 'groupList' | 'list' | 'replace' | 'subscriber';
             index: number;
             group: { type: string; title: string };
             dataList: any;
+            tabs: { title: string; key: string }[];
         } = {
             id: glitter.getUUID(),
             type: 'groupList',
             group: { type: '', title: '' },
             index: 0,
             dataList: [],
+            tabs: [],
         };
         let vmi: any = undefined;
 
@@ -43,7 +49,11 @@ export class MemberTypeList {
                             value: BgWidget.grayButton(
                                 '查閱名單',
                                 gvc.event(() => {
-                                    vm.type = 'list';
+                                    if (dd.type === 'subscriber') {
+                                        vm.type = 'subscriber';
+                                    } else {
+                                        vm.type = 'list';
+                                    }
                                     vm.group = dd;
                                     gvc.notifyDataChange(vm.id);
                                 }),
@@ -86,6 +96,13 @@ export class MemberTypeList {
                             `,
                             BgWidget.getContainerWidth()
                         );
+                    } else if (vm.type === 'subscriber') {
+                        return MemberTypeList.subscriberTable(gvc, {
+                            group: vm.group,
+                            backButtonEvent: gvc.event(() => {
+                                vm.type = 'groupList';
+                            }),
+                        });
                     } else {
                         return UserList.main(gvc, {
                             group: vm.group,
@@ -100,6 +117,135 @@ export class MemberTypeList {
                     style: `max-width:100%;width:960px;`,
                 },
             };
+        });
+    }
+
+    public static subscriberTable(gvc: GVC, obj: { group: { type: string; title: string }; backButtonEvent: string }) {
+        const html = String.raw;
+        const glitter = gvc.glitter;
+        const dialog = new ShareDialog(glitter);
+        const vm: {
+            id: string;
+            type: RegisterTag;
+        } = {
+            id: glitter.getUUID(),
+            type: 'registered',
+        };
+        return gvc.bindView({
+            bind: vm.id,
+            view: () => {
+                return BgWidget.container(
+                    [
+                        html`<div class="d-flex w-100 align-items-center">
+                            ${BgWidget.goBack(obj.backButtonEvent) + BgWidget.title(obj.group.title)}
+                            <div class="flex-fill"></div>
+                            ${BgWidget.darkButton(
+                                '新增',
+                                gvc.event(() => {
+                                    gvc.glitter.innerDialog((gvc2) => {
+                                        let mail = '';
+                                        let tag = '';
+                                        return html`<div class="modal-content bg-white rounded-3 p-2" style="max-width:90%;width:400px;">
+                                            <div class="border-bottom ms-1 my-2 pb-2">
+                                                <span class="tx_700">新增推播信箱</span>
+                                            </div>
+                                            <div class="">
+                                                <div class="ps-1 pe-1">
+                                                    <div class="mb-3">
+                                                        <label for="username" class="form-label">信箱</label>
+                                                        <input
+                                                            class="form-control"
+                                                            type="text"
+                                                            id="userName"
+                                                            required=""
+                                                            placeholder="請輸入推播信箱"
+                                                            onchange="${gvc.event((e, event) => {
+                                                                mail = e.value;
+                                                            })}"
+                                                        />
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label for="username" class="form-label">標籤</label>
+                                                        <input
+                                                            class="form-control"
+                                                            type="text"
+                                                            id="userName"
+                                                            required=""
+                                                            placeholder="請輸入註冊標籤"
+                                                            onchange="${gvc.event((e, event) => {
+                                                                tag = e.value;
+                                                            })}"
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer mb-0 pb-0">
+                                                    <button
+                                                        type="button"
+                                                        class="btn btn-outline-dark me-2"
+                                                        onclick="${gvc.event(() => {
+                                                            gvc2.closeDialog();
+                                                        })}"
+                                                    >
+                                                        取消
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        class="btn btn-primary-c"
+                                                        onclick="${gvc.event(() => {
+                                                            dialog.dataLoading({ visible: true });
+                                                            ApiUser.subScribe(mail, tag).then((response) => {
+                                                                dialog.dataLoading({ visible: false });
+                                                                if (!response.result) {
+                                                                    dialog.errorMessage({ text: '伺服器錯誤!' });
+                                                                } else {
+                                                                    dialog.successMessage({ text: '更新成功!' });
+                                                                    gvc.notifyDataChange(vm.id);
+                                                                    gvc2.closeDialog();
+                                                                }
+                                                            });
+                                                        })}"
+                                                    >
+                                                        確認添加
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>`;
+                                    }, 'add');
+                                })
+                            )}
+                        </div>`,
+                        BgWidget.tab(
+                            [
+                                { title: '已註冊', key: 'registered' },
+                                { title: '未註冊', key: 'notRegistered' },
+                            ],
+                            gvc,
+                            vm.type,
+                            (text) => {
+                                vm.type = text as RegisterTag;
+                                gvc.notifyDataChange(vm.id);
+                            },
+                            'margin-bottom: 0;'
+                        ),
+                        vm.type === 'registered'
+                            ? UserList.main(gvc, {
+                                  group: obj.group,
+                                  backButtonEvent: obj.backButtonEvent,
+                                  hiddenHeader: true,
+                              })
+                            : BgNotify.email(
+                                  gvc,
+                                  'list',
+                                  () => {
+                                      return obj.backButtonEvent;
+                                  },
+                                  {
+                                      hiddenHeader: true,
+                                  }
+                              ),
+                    ].join('')
+                );
+            },
         });
     }
 }

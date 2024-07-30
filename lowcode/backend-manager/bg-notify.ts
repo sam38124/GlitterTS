@@ -36,7 +36,14 @@ export type PostData = {
 const inputStyle = 'font-size: 16px; height:40px; width:300px;';
 
 export class BgNotify {
-    public static email(gvc: GVC, type: 'list' | 'select' = 'list', callback: (select: any) => void = () => {}) {
+    public static email(
+        gvc: GVC,
+        type: 'list' | 'select' = 'list',
+        callback: (select: any) => void = () => {},
+        obj?: {
+            hiddenHeader: boolean;
+        }
+    ) {
         const vm: {
             type: 'list' | 'replace';
             data: any;
@@ -60,7 +67,6 @@ export class BgNotify {
         const glitter = gvc.glitter;
         const filterID = glitter.getUUID();
         const id = glitter.getUUID();
-        const dialog = new ShareDialog(gvc.glitter);
         return gvc.bindView(() => {
             return {
                 bind: id,
@@ -139,84 +145,12 @@ export class BgNotify {
 
                     return BgWidget.container(
                         html`
-                            <div class="d-flex w-100 align-items-center ${type === 'select' ? `d-none` : ``}">
-                                ${BgWidget.title('已註冊信箱')}
-                                <div class="flex-fill"></div>
-                                ${BgWidget.darkButton(
-                                    '新增',
-                                    gvc.event(() => {
-                                        gvc.glitter.innerDialog((gvc2) => {
-                                            let mail = '';
-                                            let tag = '';
-                                            return html`<div class="modal-content bg-white rounded-3 p-2" style="max-width:90%;width:400px;">
-                                                <div class="border-bottom ms-1 my-2 pb-2">
-                                                    <span class="tx_700">新增推播信箱</span>
-                                                </div>
-                                                <div class="">
-                                                    <div class="ps-1 pe-1">
-                                                        <div class="mb-3">
-                                                            <label for="username" class="form-label">信箱</label>
-                                                            <input
-                                                                class="form-control"
-                                                                type="text"
-                                                                id="userName"
-                                                                required=""
-                                                                placeholder="請輸入推播信箱"
-                                                                onchange="${gvc.event((e, event) => {
-                                                                    mail = e.value;
-                                                                })}"
-                                                            />
-                                                        </div>
-                                                        <div class="mb-3">
-                                                            <label for="username" class="form-label">標籤</label>
-                                                            <input
-                                                                class="form-control"
-                                                                type="text"
-                                                                id="userName"
-                                                                required=""
-                                                                placeholder="請輸入註冊標籤"
-                                                                onchange="${gvc.event((e, event) => {
-                                                                    tag = e.value;
-                                                                })}"
-                                                            />
-                                                        </div>
-                                                    </div>
-                                                    <div class="modal-footer mb-0 pb-0">
-                                                        <button
-                                                            type="button"
-                                                            class="btn btn-outline-dark me-2"
-                                                            onclick="${gvc.event(() => {
-                                                                gvc2.closeDialog();
-                                                            })}"
-                                                        >
-                                                            取消
-                                                        </button>
-                                                        <button
-                                                            type="button"
-                                                            class="btn btn-primary-c"
-                                                            onclick="${gvc.event(() => {
-                                                                dialog.dataLoading({ visible: true });
-                                                                ApiUser.subScribe(mail, tag).then((response) => {
-                                                                    dialog.dataLoading({ visible: false });
-                                                                    if (!response.result) {
-                                                                        dialog.errorMessage({ text: '伺服器錯誤!' });
-                                                                    } else {
-                                                                        dialog.successMessage({ text: '更新成功!' });
-                                                                        gvc.notifyDataChange(id);
-                                                                        gvc2.closeDialog();
-                                                                    }
-                                                                });
-                                                            })}"
-                                                        >
-                                                            確認添加
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>`;
-                                        }, 'add');
-                                    })
-                                )}
-                            </div>
+                            ${obj && obj.hiddenHeader
+                                ? ''
+                                : html` <div class="d-flex w-100 align-items-center ${type === 'select' ? `d-none` : ``}">
+                                      ${BgWidget.title('已訂閱信件')}
+                                      <div class="flex-fill"></div>
+                                  </div>`}
                             ${BgWidget.container(
                                 BgWidget.mainCard(
                                     BgWidget.tableV2({
@@ -227,6 +161,7 @@ export class BgNotify {
                                                 page: vmi.page - 1,
                                                 limit: 20,
                                                 search: vm.query || undefined,
+                                                filter: { account: 'no' },
                                             }).then((data) => {
                                                 vmi.pageSize = Math.ceil(data.response.total / 20);
                                                 vm.dataList = data.response.data;
@@ -336,7 +271,8 @@ export class BgNotify {
                                 type === 'select' ? 850 : BgWidget.getContainerWidth()
                             )}
                         `,
-                        BgWidget.getContainerWidth()
+                        BgWidget.getContainerWidth(),
+                        obj && obj.hiddenHeader ? 'padding: 0' : undefined
                     );
                 },
                 divCreate: {

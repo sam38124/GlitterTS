@@ -73,12 +73,7 @@ export declare class User {
     }>;
     getSubScribe(query: any): Promise<{
         data: any;
-        result: boolean;
-        total?: undefined;
-    } | {
-        data: any;
         total: any;
-        result?: undefined;
     }>;
     getFCM(query: any): Promise<{
         data: any;

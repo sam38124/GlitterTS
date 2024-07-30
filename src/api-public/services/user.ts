@@ -113,7 +113,7 @@ export class User {
 
     // 用戶初次建立的initial函式
     public async createUserHook(userID: string) {
-        //發送歡迎信件
+        // 發送歡迎信件
         const usData: any = await this.getUserData(userID, 'userID');
 
         await db.query(`update \`${this.app}\`.t_user set userData=? where userID=?`, [
@@ -741,7 +741,7 @@ export class User {
                               });
                           })
                         : users.map((item: { userID: number }) => item.userID);
-                    query.id = ids.join(',');
+                    query.id = ids.filter((id) => id).join(',');
                 } else {
                     query.id = '0,0';
                 }
@@ -882,7 +882,7 @@ export class User {
                 const subscriberList = await db.query(
                     `SELECT DISTINCT u.userID, s.email
                     FROM
-                        \`${this.app}\`.t_subscribe AS s JOIN
+                        \`${this.app}\`.t_subscribe AS s LEFT JOIN
                         \`${this.app}\`.t_user AS u ON s.email = JSON_EXTRACT(u.userData, '$.email');`,
                     []
                 );
@@ -1038,17 +1038,50 @@ export class User {
 
     public async getSubScribe(query: any) {
         try {
+            const querySql: any = [];
             query.page = query.page ?? 0;
             query.limit = query.limit ?? 50;
-            const querySql: any = [];
-            query.search && querySql.push([`(email LIKE '%${query.search}%') && (tag != ${db.escape(query.search)})`, `(tag = ${db.escape(query.search)})`].join(` || `));
-            const data = await new UtDatabase(this.app, `t_subscribe`).querySql(querySql, query as any);
-            data.data.map((dd: any) => {
-                dd.pwd = undefined;
-            });
-            return data;
+            if (query.search) {
+                querySql.push(
+                    [
+                        `(s.email LIKE '%${query.search}%') && (s.tag != ${db.escape(query.search)})`,
+                        `(s.tag = ${db.escape(query.search)})
+                        `,
+                    ].join(` || `)
+                );
+            }
+            if (query.account) {
+                switch (query.account) {
+                    case 'yes':
+                        querySql.push(`(u.account is not null)`);
+                        break;
+                    case 'no':
+                        querySql.push(`(u.account is null)`);
+                        break;
+                }
+            }
+            const subData = await db.query(
+                `SELECT s.*, u.account FROM
+                    \`${this.app}\`.t_subscribe AS s LEFT JOIN \`${this.app}\`.t_user AS u
+                    ON s.email = u.account
+                    WHERE ${querySql.length > 0 ? querySql.join(' AND ') : '1 = 1'}
+                `,
+                []
+            );
+            const subTotal = await db.query(
+                `SELECT count(*) as c FROM
+                    \`${this.app}\`.t_subscribe AS s LEFT JOIN \`${this.app}\`.t_user AS u
+                    ON s.email = u.account
+                    WHERE ${querySql.length > 0 ? querySql.join(' AND ') : '1 = 1'}
+                `,
+                []
+            );
+            return {
+                data: subData,
+                total: subTotal[0].c,
+            };
         } catch (e) {
-            throw exception.BadRequestError('BAD_REQUEST', 'Login Error:' + e, null);
+            throw exception.BadRequestError('BAD_REQUEST', 'getSubScribe Error:' + e, null);
         }
     }
 
@@ -1057,7 +1090,6 @@ export class User {
             query.page = query.page ?? 0;
             query.limit = query.limit ?? 50;
             const querySql: any = [];
-            //'%${query.search}%'
             query.search &&
                 querySql.push([`(userID in (select userID from \`${this.app}\`.t_user where (UPPER(JSON_UNQUOTE(JSON_EXTRACT(userData, '$.name')) LIKE UPPER('%${query.search}%')))))`].join(` || `));
             const data = await new UtDatabase(this.app, `t_fcm`).querySql(querySql, query as any);

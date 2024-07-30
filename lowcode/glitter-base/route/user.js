@@ -157,6 +157,17 @@ export class ApiUser {
             },
         });
     }
+    static getFilterString(obj) {
+        if (!obj)
+            return [];
+        let list = [];
+        if (obj) {
+            if (obj.account && obj.account.length > 0) {
+                list.push(`account=${obj.account}`);
+            }
+        }
+        return list;
+    }
     static getSubScribe(json) {
         return BaseApi.create({
             url: getBaseUrl() +
@@ -164,6 +175,7 @@ export class ApiUser {
                     let par = [`limit=${json.limit}`, `page=${json.page}`];
                     json.search && par.push(`search=${json.search}`);
                     json.id && par.push(`id=${json.id}`);
+                    json.filter && par.push(ApiUser.getFilterString(json.filter).join('&'));
                     return par.join('&');
                 })()}`,
             type: 'GET',

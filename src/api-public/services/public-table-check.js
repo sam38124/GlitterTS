@@ -231,8 +231,8 @@ class ApiPublic {
                     table: 't_subscribe',
                     sql: `(
   \`id\` int NOT NULL AUTO_INCREMENT,
-  \`email\` varchar(105) COLLATE utf8mb4_general_ci NOT NULL,
-  \`tag\` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
+  \`email\` varchar(105) COLLATE utf8mb4_unicode_ci NOT NULL,
+  \`tag\` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
   PRIMARY KEY (\`id\`),
   UNIQUE KEY \`index2\` (\`email\`,\`tag\`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci         `,
