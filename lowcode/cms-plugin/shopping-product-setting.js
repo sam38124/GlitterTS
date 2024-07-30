@@ -213,6 +213,7 @@ class Excel {
                     }
                 });
                 postMD.push(productData);
+                productData.reverse;
                 let passData = {
                     data: postMD,
                     collection: addCollection

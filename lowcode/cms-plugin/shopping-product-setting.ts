@@ -281,6 +281,7 @@ class Excel {
             })
             //最後一個沒推進去
             postMD.push(productData)
+            productData.reverse;
             let passData = {
                 data: postMD,
                 collection : addCollection

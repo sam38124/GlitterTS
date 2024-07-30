@@ -397,6 +397,7 @@ export class BgWidget {
     }
 
     static container(htmlString: string, width?: number, style?: string) {
+
         return html`
             <div
                     class="${document.body.clientWidth < 768 ? 'row col-12 w-100' : ''}"
