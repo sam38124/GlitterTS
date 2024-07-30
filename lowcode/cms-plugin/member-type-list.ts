@@ -594,12 +594,13 @@ export class MemberTypeList {
                                         return {
                                             bind: noteID,
                                             view: () => {
+                                                const money = parseInt(`${vm.data.condition.value}`, 10).toLocaleString();
                                                 return BgWidget.mainCard(html`
                                                     <div class="tx_normal fw-bold">摘要</div>
                                                     <div class="tx_normal fw-normal" style="margin-top: 18px;margin-bottom: 18px;">會員名稱: ${vm.data.tag_name || '尚未設定'}</div>
                                                     <div class="w-100" style="background: #DDD;height: 2px;"></div>
                                                     <div class="tx_normal fw-normal" style="margin-top: 18px;">
-                                                        會員條件: ${vm.data.condition.type === 'single' ? `單筆消費金額${vm.data.condition.value}元` : `累計消費金額${vm.data.condition.value}元`}
+                                                        會員條件: ${vm.data.condition.type === 'single' ? `單筆消費金額${money}元` : `累計消費金額${money}元`}
                                                     </div>
                                                     <div class="tx_normal fw-normal" style="margin-top: 12px;margin-bottom: 18px;">
                                                         計算期間: ${vm.data.duration.type === 'noLimit' ? `不計算期限` : `${vm.data.duration.value}天`} 天內消費

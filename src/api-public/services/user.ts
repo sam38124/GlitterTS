@@ -61,7 +61,7 @@ export class User {
                 key: 'login_config',
                 user_id: 'manager',
             });
-            userData=userData ?? {};
+            userData = userData ?? {};
             delete userData.pwd;
             delete userData.repeat_password;
             const userID = generateUserID();
@@ -116,12 +116,16 @@ export class User {
         //發送歡迎信件
         const usData: any = await this.getUserData(userID, 'userID');
 
-        await db.query(`update \`${this.app}\`.t_user set userData=? where userID=?`,[
-            JSON.stringify( await this.checkUpdate({
-                userID:userID,updateUserData:usData.userData,manager:false
-            })),
-            userID
-        ])
+        await db.query(`update \`${this.app}\`.t_user set userData=? where userID=?`, [
+            JSON.stringify(
+                await this.checkUpdate({
+                    userID: userID,
+                    updateUserData: usData.userData,
+                    manager: false,
+                })
+            ),
+            userID,
+        ]);
         const data = await AutoSendEmail.getDefCompare(this.app, 'auto-email-welcome');
         if (data.toggle) {
             sendmail(`${data.name} <${process.env.smtp}>`, usData.account, data.title, data.content);
@@ -267,8 +271,8 @@ export class User {
                 key: 'login_line_setting',
                 user_id: 'manager',
             });
-            console.log(`redirect=>`,redirect)
-            console.log(`lineData=>`,lineData)
+            console.log(`redirect=>`, redirect);
+            console.log(`lineData=>`, lineData);
             const lineResponse: any = await new Promise((resolve, reject) => {
                 axios
                     .request({
@@ -290,7 +294,7 @@ export class User {
                         resolve(response.data);
                     })
                     .catch((error) => {
-                        console.error(error.message)
+                        console.error(error.message);
                         resolve(false);
                     });
             });
@@ -319,7 +323,7 @@ export class User {
                         resolve(false);
                     });
             });
-            if(!line_profile.email){
+            if (!line_profile.email) {
                 throw exception.BadRequestError('BAD_REQUEST', 'Line Register Error', null);
             }
             if (
@@ -366,7 +370,7 @@ export class User {
             });
             return usData;
         } catch (e) {
-            console.error(e)
+            console.error(e);
             throw exception.BadRequestError('BAD_REQUEST', e as any, null);
         }
     }
@@ -459,7 +463,23 @@ export class User {
             if (data) {
                 data.pwd = undefined;
                 data.member = await this.refreshMember(data);
-                // await this.checkRebate(data.userID);
+                data.member.push({
+                    id: '',
+                    og: {
+                        id: '',
+                        duration: { type: 'noLimit', value: 0 },
+                        tag_name: '一般會員',
+                        condition: { type: 'total', value: 0 },
+                        dead_line: { type: 'noLimit' },
+                        create_date: '2024-01-01T00:00:00.000Z',
+                    },
+                    sum: 0,
+                    leak: 0,
+                    trigger: true,
+                    tag_name: '一般會員',
+                    dead_line: '',
+                });
+                data.member_level = data.member.find((item: any) => item.trigger);
             }
             return data;
         } catch (e) {
@@ -467,7 +487,7 @@ export class User {
         }
     }
 
-    public async refreshMember(userData: any) {
+    public async refreshMember(userData: any): Promise<{ id: string; tag_name: string; trigger: boolean }[]> {
         const member_update = await this.getConfigV2({
             key: 'member_update',
             user_id: userData.userID,
@@ -497,6 +517,7 @@ export class User {
             ).map((dd: any) => {
                 return { total_amount: parseInt(`${dd.total}`, 10), date: dd.created_time };
             });
+            console.log(order_list);
             // 判斷是否符合上個等級
             let pass_level = true;
             const member = member_list.map(
@@ -606,6 +627,7 @@ export class User {
                     }
                 }
             );
+            console.log(member);
             member_update.value = member.reverse();
             member_update.time = new Date();
             await this.setConfig({
@@ -910,7 +932,7 @@ export class User {
             // 會員等級
             if (pass('level')) {
                 const levelData = await this.getConfigV2({ key: 'member_level_config', user_id: 'manager' });
-                levelData.levels=levelData.levels || []
+                levelData.levels = levelData.levels || [];
                 const levels = levelData.levels
                     .map((item: any) => {
                         return { id: item.id, name: item.tag_name };
@@ -1083,7 +1105,6 @@ export class User {
                 )
             )[0];
             const configAd = await App.getAdConfig(this.app, 'glitter_loginConfig');
-            //信箱更新
 
             if (
                 !manager &&
@@ -1138,29 +1159,35 @@ export class User {
         }
     }
 
-    public async clearUselessData(userData:any,manager:boolean){
+    public async clearUselessData(userData: any, manager: boolean) {
         let config = await App.getAdConfig(this.app, 'glitterUserForm');
-        let register_form=(await this.getConfigV2({
-            key:'custom_form_register',
-            user_id:'manager'
-        })).list ?? []
-        let customer_form_user_setting=(await this.getConfigV2({
-            key:'customer_form_user_setting',
-            user_id:'manager'
-        })).list ?? []
+        let register_form =
+            (
+                await this.getConfigV2({
+                    key: 'custom_form_register',
+                    user_id: 'manager',
+                })
+            ).list ?? [];
+        let customer_form_user_setting =
+            (
+                await this.getConfigV2({
+                    key: 'customer_form_user_setting',
+                    user_id: 'manager',
+                })
+            ).list ?? [];
         if (!Array.isArray(config)) {
             config = [];
         }
-        config=config.concat(register_form).concat(customer_form_user_setting);
+        config = config.concat(register_form).concat(customer_form_user_setting);
         Object.keys(userData).map((dd) => {
             if (
                 !config.find((d2: any) => {
                     return d2.key === dd && (d2.auth !== 'manager' || manager);
                 })
             ) {
-                delete userData[dd]
+                delete userData[dd];
             }
-        })
+        });
     }
     public async checkUpdate(cf: { updateUserData: any; manager: boolean; userID: string }) {
         let originUserData = (
@@ -1175,7 +1202,7 @@ export class User {
             originUserData = {};
         }
         //清空不得編輯的資料
-        await this.clearUselessData(cf.updateUserData,cf.manager)
+        await this.clearUselessData(cf.updateUserData, cf.manager);
         function mapUserData(userData: any, originUserData: any) {
             Object.keys(userData).map((dd) => {
                 originUserData[dd] = userData[dd];
