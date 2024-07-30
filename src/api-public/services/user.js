@@ -872,24 +872,23 @@ class User {
             const querySql = [];
             query.page = (_a = query.page) !== null && _a !== void 0 ? _a : 0;
             query.limit = (_b = query.limit) !== null && _b !== void 0 ? _b : 50;
-            query.search &&
+            if (query.search) {
                 querySql.push([
-                    `
-            (s.email LIKE '%${query.search}%') && (s.tag != ${database_1.default.escape(query.search)})
-            `,
-                    `
-            (s.tag = ${database_1.default.escape(query.search)})
-            `,
+                    `(s.email LIKE '%${query.search}%') && (s.tag != ${database_1.default.escape(query.search)})`,
+                    `(s.tag = ${database_1.default.escape(query.search)})
+                        `,
                 ].join(` || `));
-            if (query) {
-                if (query.account === 'yes') {
-                    querySql.push(`(u.account is not null)`);
-                }
-                if (query.account === 'no') {
-                    querySql.push(`(u.account is null)`);
+            }
+            if (query.account) {
+                switch (query.account) {
+                    case 'yes':
+                        querySql.push(`(u.account is not null)`);
+                        break;
+                    case 'no':
+                        querySql.push(`(u.account is null)`);
+                        break;
                 }
             }
-            console.log(querySql);
             const subData = await database_1.default.query(`SELECT s.*, u.account FROM
                     \`${this.app}\`.t_subscribe AS s LEFT JOIN \`${this.app}\`.t_user AS u
                     ON s.email = u.account
