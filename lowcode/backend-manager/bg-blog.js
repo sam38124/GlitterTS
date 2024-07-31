@@ -20,7 +20,7 @@ import { BgProduct } from './bg-product.js';
 const html = String.raw;
 export class BgBlog {
     static contentManager(gvc, type = 'list', callback = () => {
-    }, is_page, widget) {
+    }, is_page, widget, page_tab) {
         const html = String.raw;
         const glitter = gvc.glitter;
         const vm = {

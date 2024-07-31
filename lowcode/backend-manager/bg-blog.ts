@@ -23,7 +23,8 @@ const html = String.raw;
 
 export class BgBlog {
     public static contentManager(gvc: GVC, type: 'select' | 'list' | 'collection' = 'list', callback: (list: any[]) => void = () => {
-    }, is_page: boolean, widget: any) {
+    }, is_page: boolean, widget: any,page_tab:'page' | 'hidden' | 'shopping') {
+
         const html = String.raw;
         const glitter = gvc.glitter;
         const vm: {
