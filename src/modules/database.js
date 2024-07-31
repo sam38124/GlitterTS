@@ -57,7 +57,9 @@ const execute = async (sql, params) => {
         throw exception_1.default.ServerError('INTERNAL_SERVER_ERROR', 'Failed to exect statement because params=null');
     }
     try {
+        const connection = await pool.getConnection();
         const [results] = await pool.execute(sql, params);
+        connection.release();
         return results;
     }
     catch (err) {
@@ -73,7 +75,9 @@ const query = async (sql, params) => {
     const logger = new logger_1.default();
     const TAG = '[Database][Query]';
     try {
+        const connection = await pool.getConnection();
         const [results] = await pool.query(sql, params);
+        connection.release();
         return results;
     }
     catch (err) {

@@ -11,5 +11,5 @@ export declare class Schedule {
     birthBlessMail(sec: number): Promise<void>;
     resetVoucherHistory(sec: number): Promise<void>;
     autoSendMail(sec: number): Promise<void>;
-    main(): Promise<void>;
+    main(): void;
 }

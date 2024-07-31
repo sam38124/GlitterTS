@@ -237,6 +237,14 @@ export class App {
                 );
             }
             await trans.commit();
+            const store_information=(await db.query(`select * from \`${cf.appName}\`.t_user_public_config
+                            where \`key\` = ? `,[`store-information`]))[0]
+            if(store_information){
+                await db.query(`delete from \`${cf.appName}\`.t_user_public_config where \`key\` = ? and id>0`,['store-information'])
+                store_information.value.shop_name=cf.name;
+                store_information.value=JSON.stringify(store_information.value)
+                await db.query(`insert into  \`${cf.appName}\`.t_user_public_config set ?`,[store_information])
+            }
             await createAPP(cf);
             return true;
         } catch (e: any) {

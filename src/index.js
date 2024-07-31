@@ -61,6 +61,7 @@ const schedule_js_1 = require("./api-public/services/schedule.js");
 const private_config_js_1 = require("./services/private_config.js");
 const moment_js_1 = __importDefault(require("moment/moment.js"));
 const xml_formatter_1 = __importDefault(require("xml-formatter"));
+const system_schedule_1 = require("./services/system-schedule");
 exports.app = (0, express_1.default)();
 const logger = new logger_1.default();
 exports.app.options('/*', (req, res) => {
@@ -120,6 +121,7 @@ async function createAPP(dd) {
     live_source_1.Live_source.liveAPP.push(dd.appName);
     if (config_1.ConfigSetting.runSchedule) {
         new schedule_js_1.Schedule(dd.appName).main();
+        new system_schedule_1.SystemSchedule().start();
     }
     const file_path = path_1.default.resolve(__dirname, '../lowcode');
     return await glitter_util_js_1.GlitterUtil.set_frontend_v2(exports.app, [

@@ -36,6 +36,7 @@ import {Private_config} from './services/private_config.js';
 import moment from 'moment/moment.js';
 import admin from 'firebase-admin';
 import xmlFormatter from 'xml-formatter';
+import {SystemSchedule} from "./services/system-schedule";
 
 export const app = express();
 const logger = new Logger();
@@ -103,6 +104,7 @@ export async function createAPP(dd: any) {
     //正式區在跑排程
     if (ConfigSetting.runSchedule) {
         new Schedule(dd.appName).main();
+        new SystemSchedule().start()
     }
 
     const file_path = path.resolve(__dirname, '../lowcode');

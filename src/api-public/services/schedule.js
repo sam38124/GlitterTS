@@ -207,9 +207,8 @@ class Schedule {
         }
         setTimeout(() => this.autoSendMail(sec), sec * 1000);
     }
-    async main() {
+    main() {
         const scheduleList = [
-            { second: 10, status: false, func: 'example', desc: '排程啟用範例' },
             { second: 3600, status: true, func: 'birthRebate', desc: '生日禮發放購物金' },
             { second: 3600, status: true, func: 'birthBlessMail', desc: '生日祝福信件' },
             { second: 600, status: true, func: 'refreshMember', desc: '更新會員分級' },

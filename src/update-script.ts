@@ -18,9 +18,41 @@ export class UpdateScript {
         //     return dd !=='t_1719819344426'
         // }),['about-us','privacy','terms'])
         // t_1719819344426
-        await this.migrateSinglePage(migrate_template.reverse())
+        // await this.migrateSinglePage(migrate_template.reverse())
+        // await this.migrateInitialConfig(migrate_template)
     }
 
+    public static async migrateInitialConfig(appList:string[]){
+        //覆蓋私有配置檔案
+        let private_config=await db.query(`select * from glitter.private_config where app_name=?`,['t_1719819344426']);
+        //覆蓋公開配置檔案
+        let public_config=await db.query(`select * from \`t_1719819344426\`.t_user_public_config`,[]);
+        for (const v of appList){
+            for (const b of private_config){
+                b.id=undefined
+                b.app_name=v
+                b.updated_at=new Date()
+                if(typeof b.value === 'object'){
+                    b.value=JSON.stringify(b.value)
+                }
+                await db.query(`delete from glitter.private_config where app_name=? and \`key\`=?`,[v,b.key])
+                await db.query(`insert into glitter.private_config set ?`,[
+                    b
+                ])
+            }
+            for (const b of public_config){
+                b.id=undefined
+                b.updated_at=new Date()
+                if(typeof b.value === 'object'){
+                    b.value=JSON.stringify(b.value)
+                }
+                await db.query(`delete from \`${v}\`.t_user_public_config where \`key\`=? and id>0`,[b.key])
+                await db.query(`insert into \`${v}\`.t_user_public_config set ?`,[
+                    b
+                ])
+            }
+        }
+    }
     public static async migrateSinglePage(appList:string[]){
         const cart_footer={"id":"sdsds5s9s9sasbs8","js":"./official_view_component/official.js","css":{"class":{},"style":{}},"data":{"refer_app":"shop_template_black_style","tag":"sy01_checkout_detail","list":[],"carryData":{}},"type":"component","class":"w-100","index":0,"label":"SY01-購物車詳情","style":"","bundle":{},"global":[],"toggle":false,"stylist":[],"dataType":"static","style_from":"code","classDataType":"static","preloadEvenet":{},"share":{},"formData":{},"refreshAllParameter":{},"refreshComponentParameter":{},"list":[],"version":"v2","storage":{},"mobile":{"refer":"def"},"desktop":{"refer":"def"}}
         let index2:any=0

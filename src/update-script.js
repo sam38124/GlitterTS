@@ -10,7 +10,35 @@ class UpdateScript {
         const migrate_template = (await database_1.default.query('SELECT appName FROM glitter.app_config where template_type!=0;', [])).map((dd) => {
             return dd.appName;
         }).concat([]);
-        await this.migrateSinglePage(migrate_template.reverse());
+    }
+    static async migrateInitialConfig(appList) {
+        let private_config = await database_1.default.query(`select * from glitter.private_config where app_name=?`, ['t_1719819344426']);
+        let public_config = await database_1.default.query(`select * from \`t_1719819344426\`.t_user_public_config`, []);
+        for (const v of appList) {
+            for (const b of private_config) {
+                b.id = undefined;
+                b.app_name = v;
+                b.updated_at = new Date();
+                if (typeof b.value === 'object') {
+                    b.value = JSON.stringify(b.value);
+                }
+                await database_1.default.query(`delete from glitter.private_config where app_name=? and \`key\`=?`, [v, b.key]);
+                await database_1.default.query(`insert into glitter.private_config set ?`, [
+                    b
+                ]);
+            }
+            for (const b of public_config) {
+                b.id = undefined;
+                b.updated_at = new Date();
+                if (typeof b.value === 'object') {
+                    b.value = JSON.stringify(b.value);
+                }
+                await database_1.default.query(`delete from \`${v}\`.t_user_public_config where \`key\`=? and id>0`, [b.key]);
+                await database_1.default.query(`insert into \`${v}\`.t_user_public_config set ?`, [
+                    b
+                ]);
+            }
+        }
     }
     static async migrateSinglePage(appList) {
         const cart_footer = { "id": "sdsds5s9s9sasbs8", "js": "./official_view_component/official.js", "css": { "class": {}, "style": {} }, "data": { "refer_app": "shop_template_black_style", "tag": "sy01_checkout_detail", "list": [], "carryData": {} }, "type": "component", "class": "w-100", "index": 0, "label": "SY01-購物車詳情", "style": "", "bundle": {}, "global": [], "toggle": false, "stylist": [], "dataType": "static", "style_from": "code", "classDataType": "static", "preloadEvenet": {}, "share": {}, "formData": {}, "refreshAllParameter": {}, "refreshComponentParameter": {}, "list": [], "version": "v2", "storage": {}, "mobile": { "refer": "def" }, "desktop": { "refer": "def" } };

@@ -78,7 +78,6 @@ export class Post {
                 },
                 async (sql) => {
                     const apConfig = await App.getAdConfig(this.app, 'sql_api_config_post');
-                    console.log(apConfig.apiList);
                     const sq = apConfig.apiList.find((dd: any) => {
                         return dd.route === router && dd.type === type;
                     });
