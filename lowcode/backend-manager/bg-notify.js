@@ -497,8 +497,12 @@ export class BgNotify {
                                                         return data.response.data.map((dd) => {
                                                             return [
                                                                 {
+                                                                    key: '寄件類型',
+                                                                    value: html `<span class="fs-7">${dd.content.typeName}</span>`,
+                                                                },
+                                                                {
                                                                     key: '標題',
-                                                                    value: html `<span class="fs-7">[${dd.content.name}] ${dd.content.title}</span>`,
+                                                                    value: html `<span class="fs-7">${truncateString(`[${dd.content.name}] ${dd.content.title}`, 25)}</span>`,
                                                                 },
                                                                 {
                                                                     key: '收件群組',
@@ -596,14 +600,17 @@ export class BgNotify {
                     ${BgWidget.title(obj.readonly ? '信件詳細內容' : '編輯信件樣式')}
                     <div class="flex-fill"></div>
                     ${obj.readonly
-            ? (() => {
-                switch (vm.data.status) {
-                    case 0:
-                        return html `<div class="badge fs-7 me-1" style="color: #393939; background: #ffd6a4;">尚未寄送</div>`;
-                    case 1:
-                        return html `<div class="badge fs-7 me-1" style="color: #393939; background: #0000000f;">已寄出</div>`;
-                }
-            })()
+            ? [
+                html `<div class="badge fs-7 me-2" style="color: #393939; background: #0000000f;">${vm.data.typeName}</div>`,
+                (() => {
+                    switch (vm.data.status) {
+                        case 0:
+                            return html `<div class="badge fs-7 me-1" style="color: #393939; background: #ffd6a4;">尚未寄送</div>`;
+                        case 1:
+                            return html `<div class="badge fs-7 me-1" style="color: #393939; background: #0000000f;">已寄出</div>`;
+                    }
+                })(),
+            ].join('')
             : ''}
                 </div>
                 ${BgWidget.container(obj.gvc.bindView(() => {
@@ -611,19 +618,22 @@ export class BgNotify {
             return {
                 bind: bi,
                 view: () => {
+                    var _a;
                     let htmlList = [];
                     if (obj.readonly) {
-                        const sendGroupHTML = vm.data.sendGroup.map((str) => html `<div class="c_filter_tag">${str}</div>`);
+                        const sendGroupHTML = ((_a = vm.data.sendGroup) !== null && _a !== void 0 ? _a : []).map((str) => html `<div class="c_filter_tag">${str}</div>`);
                         const emailHTML = vm.data.email.map((str) => html `<div class="c_filter_tag">${str}</div>`);
                         htmlList = htmlList.concat([
                             BgWidget.mainCard(html `
-                                            <div class="tx_normal fw-normal">篩選條件</div>
-                                            <div class="c_filter_container">
-                                                ${sendGroupHTML.join(html `<span class="badge fs-7 px-1" style="color: #393939; background: #FFD5D0;"
-                                                    >${vm.data.boolean === 'and' ? '且' : '或'}</span
-                                                >`)}
-                                            </div>
-                                        `),
+                                                <div class="tx_normal fw-normal">篩選條件</div>
+                                                <div class="c_filter_container">
+                                                    ${sendGroupHTML.length === 0
+                                ? '沒有群組'
+                                : sendGroupHTML.join(html `<span class="badge fs-7 px-1" style="color: #393939; background: #FFD5D0;"
+                                                              >${vm.data.boolean === 'and' ? '且' : '或'}</span
+                                                          >`)}
+                                                </div>
+                                            `),
                             BgWidget.mainCard(html `
                                             <div class="tx_normal fw-normal">電子信箱</div>
                                             <div class="c_filter_container">${emailHTML.join('')}</div>
@@ -716,7 +726,7 @@ export class BgNotify {
                             readonly: obj.readonly,
                         })}`),
                     ]);
-                    return htmlList.join(BgWidget.mbContainer(16));
+                    return htmlList.filter((str) => str.length > 0).join(BgWidget.mbContainer(16));
                 },
                 divCreate: {},
             };

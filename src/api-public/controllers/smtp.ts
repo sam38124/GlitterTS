@@ -20,8 +20,6 @@ router.get('/', async (req: express.Request, resp: express.Response) => {
                     search: req.query.search ? `${req.query.search}` : '',
                     status: req.query.status !== undefined ? `${req.query.status}` : '',
                     searchType: req.query.searchType ? `${req.query.searchType}` : '',
-                    sendDate: req.query.sendDate ? `${req.query.sendDate}` : '',
-                    sendTime: req.query.sendTime ? `${req.query.sendTime}` : '',
                 })
             );
         } else {

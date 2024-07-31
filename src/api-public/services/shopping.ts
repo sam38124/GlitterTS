@@ -14,6 +14,7 @@ import moment from 'moment';
 import { ManagerNotify } from './notify.js';
 import { AutoSendEmail } from './auto-send-email.js';
 import { sendmail } from '../../services/ses.js';
+import { Mail } from '../services/mail.js';
 
 interface VoucherData {
     id: number;
@@ -383,8 +384,8 @@ export class Shopping {
             discount?: number; //自定義金額
             total?: number; //自定義總額
             pay_status?: number; //自定義訂單狀態
-            custom_form_format?:any;//自定義表單格式
-            custom_form_data?:any;//自定義表單資料
+            custom_form_format?: any; //自定義表單格式
+            custom_form_data?: any; //自定義表單資料
         },
         type: 'add' | 'preview' | 'manual' | 'manual-preview' = 'add',
         replace_order_id?: string
@@ -522,8 +523,8 @@ export class Shopping {
                 method: string;
                 useRebateInfo?: { point: number; limit?: number; condition?: number };
                 voucherList?: VoucherData[];
-                custom_form_format?:any;//自定義表單格式
-                custom_form_data?:any;//自定義表單資料
+                custom_form_format?: any; //自定義表單格式
+                custom_form_data?: any; //自定義表單資料
             } = {
                 customer_info: data.customer_info || {},
                 lineItems: [],
@@ -540,8 +541,8 @@ export class Shopping {
                 method: data.user_info && data.user_info.method,
                 user_email: (userData && userData.account) || (data.email ?? ((data.user_info && data.user_info.email) || '')),
                 useRebateInfo: { point: 0 },
-                custom_form_format:data.custom_form_format,
-                custom_form_data:data.custom_form_data
+                custom_form_format: data.custom_form_format,
+                custom_form_data: data.custom_form_data,
             };
 
             function calculateShipment(dataList: { key: string; value: string }[], value: number | string) {
@@ -808,10 +809,23 @@ export class Shopping {
                 )[0].value;
                 // 線下付款
                 if (keyData.TYPE === 'off_line') {
+                    // 管理員通知
                     new ManagerNotify(this.app).checkout({
                         orderData: carData,
                         status: 0,
                     });
+                    // 消費者寄件
+                    const customerMail = await AutoSendEmail.getDefCompare(this.app, 'auto-email-order-create');
+                    if (customerMail.toggle) {
+                        const mailClass = new Mail(this.app);
+                        await mailClass.postMail({
+                            name: customerMail.name,
+                            title: customerMail.title.replace(/@\{\{訂單號碼\}\}/g, carData.orderID),
+                            content: customerMail.content.replace(/@\{\{訂單號碼\}\}/g, carData.orderID),
+                            email: [carData.email],
+                            type: 'auto-email-order-create',
+                        });
+                    }
                     carData.method = 'off_line';
                     await db.execute(
                         `INSERT INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
@@ -1107,34 +1121,7 @@ export class Shopping {
         cart.voucherList = voucherList;
     }
 
-    public async putOrder(data: {
-        id: string;
-        orderData: {
-            id: number;
-            cart_token: string;
-            status: number;
-            email: string;
-            orderData: {
-                email: string;
-                total: number;
-                lineItems: {
-                    id: number;
-                    spec: string[];
-                    count: string;
-                    sale_price: number;
-                }[];
-                user_info: {
-                    name: string;
-                    email: string;
-                    phone: string;
-                    address: string;
-                };
-            };
-            created_time: string;
-            progress: 'finish' | 'wait' | 'shipping';
-        };
-        status: any;
-    }) {
+    public async putOrder(data: { id: string; orderData: any; status: any }) {
         try {
             const update: any = {};
             if (data.status !== undefined) {
@@ -1148,6 +1135,35 @@ export class Shopping {
                  WHERE id = ?`,
                 [update, data.id]
             );
+
+            const origin = await db.query(
+                `SELECT status FROM \`${this.app}\`.t_checkout WHERE id = ?;
+                    `,
+                [data.id]
+            );
+
+            // 手動更改已付款
+            if (origin[0].status === 0 && update.status === 1) {
+                // 管理員通知
+                new ManagerNotify(this.app).checkout({
+                    orderData: JSON.parse(update.orderData),
+                    status: update.status,
+                });
+
+                // 消費者寄件
+                const mailClass = new Mail(this.app);
+                const customerMail = await AutoSendEmail.getDefCompare(this.app, 'auto-email-payment-successful');
+                if (customerMail.toggle) {
+                    await mailClass.postMail({
+                        name: customerMail.name,
+                        title: customerMail.title.replace(/@\{\{訂單號碼\}\}/g, data.orderData.orderID),
+                        content: customerMail.content.replace(/@\{\{訂單號碼\}\}/g, data.orderData.orderID),
+                        email: [data.orderData.email],
+                        type: 'auto-email-payment-successful',
+                    });
+                }
+            }
+
             return {
                 result: 'success',
                 orderData: data.orderData,
@@ -1177,7 +1193,21 @@ export class Shopping {
         try {
             const orderData = (await db.query(`select orderData from \`${this.app}\`.t_checkout where cart_token=?`, [order_id]))[0]['orderData'];
             orderData.proof_purchase = text;
+
+            // 管理員通知
             new ManagerNotify(this.app).uploadProof({ orderData: orderData });
+            // 消費者寄件
+            const customerMail = await AutoSendEmail.getDefCompare(this.app, 'proof-purchase');
+            if (customerMail.toggle) {
+                const mailClass = new Mail(this.app);
+                await mailClass.postMail({
+                    name: customerMail.name,
+                    title: customerMail.title.replace(/@\{\{訂單號碼\}\}/g, order_id),
+                    content: customerMail.content.replace(/@\{\{訂單號碼\}\}/g, order_id),
+                    email: [orderData.email],
+                    type: 'proof-purchase',
+                });
+            }
             await db.query(`update \`${this.app}\`.t_checkout set orderData=? where cart_token=?`, [JSON.stringify(orderData), order_id]);
             return {
                 result: true,
@@ -1364,29 +1394,27 @@ export class Shopping {
                     )
                 )[0];
 
-                // 管理員通知新訂單
+                // 自動更改已付款
+                // 管理員通知
                 new ManagerNotify(this.app).checkout({
                     orderData: cartData.orderData,
                     status: status,
                 });
-                // 消費者通知
-                const userData = await new User(this.app).getUserData(cartData.email, 'account');
+
+                // 消費者寄件
+                const mailClass = new Mail(this.app);
                 const customerMail = await AutoSendEmail.getDefCompare(this.app, 'auto-email-payment-successful');
                 if (customerMail.toggle) {
-                    console.log({
-                        event: '訂單付款成功',
-                        name: userData.userData.name,
-                        email: cartData.email,
-                        subject: customerMail.title,
+                    await mailClass.postMail({
+                        name: customerMail.name,
+                        title: customerMail.title.replace(/@\{\{訂單號碼\}\}/g, order_id),
+                        content: customerMail.content.replace(/@\{\{訂單號碼\}\}/g, order_id),
+                        email: [cartData.email],
+                        type: 'auto-email-payment-successful',
                     });
-                    sendmail(
-                        `${userData.userData.name} <${process.env.smtp}>`,
-                        cartData.email,
-                        customerMail.title.replace(/@\{\{訂單號碼\}\}/g, order_id),
-                        customerMail.content.replace(/@\{\{訂單號碼\}\}/g, order_id)
-                    );
                 }
 
+                const userData = await new User(this.app).getUserData(cartData.email, 'account');
                 if (userData && cartData.orderData.rebate > 0) {
                     const rebateClass = new Rebate(this.app);
                     for (let i = 0; i < cartData.orderData.voucherList.length; i++) {
@@ -2123,22 +2151,21 @@ export class Shopping {
             )[0] ?? {};
         config.value = config.value || [];
 
-        function findRepeatCollection(data:any,fatherTitle:string=""){
-            let returnArray = [`${fatherTitle?`${fatherTitle}/`:``}${data.title}`]
-            let t = [1 , 2 , 3]
-            if (data.array && data.array.length > 0){
-                data.array.forEach((item:any) => {
-                    returnArray.push(...findRepeatCollection(item , data.title));
-                })
+        function findRepeatCollection(data: any, fatherTitle: string = '') {
+            let returnArray = [`${fatherTitle ? `${fatherTitle}/` : ``}${data.title}`];
+            let t = [1, 2, 3];
+            if (data.array && data.array.length > 0) {
+                data.array.forEach((item: any) => {
+                    returnArray.push(...findRepeatCollection(item, data.title));
+                });
             }
-            return returnArray
-
+            return returnArray;
         }
         let stillCollection: any[] = [];
-        config.value.forEach((collection:any) => {
+        config.value.forEach((collection: any) => {
             stillCollection.push(...findRepeatCollection(collection));
-        })
-        const nonCommonElements = collection.filter((item:string) => !stillCollection.includes(item));
+        });
+        const nonCommonElements = collection.filter((item: string) => !stillCollection.includes(item));
         type CategoryNode = {
             title: string;
             array: CategoryNode[];
@@ -2146,7 +2173,7 @@ export class Shopping {
         function addCategory(nodes: CategoryNode[], levels: string[]): void {
             if (levels.length === 0) return;
             const title = levels[0];
-            let node = nodes.find(n => n.title === title);
+            let node = nodes.find((n) => n.title === title);
             if (!node) {
                 node = { title, array: [] };
                 nodes.push(node);
@@ -2157,7 +2184,7 @@ export class Shopping {
         }
         function buildCategoryTree(categories: string[]): CategoryNode[] {
             const root: CategoryNode[] = [];
-            categories.forEach(category => {
+            categories.forEach((category) => {
                 const levels = category.split('/');
                 addCategory(root, levels);
             });
@@ -2174,7 +2201,7 @@ export class Shopping {
     }
     async postMulProduct(content: any) {
         try {
-            if (content.collection.length > 0){
+            if (content.collection.length > 0) {
                 //有新類別要處理
                 await this.updateCollectionFromUpdateProduct(content.collection);
             }
@@ -2185,15 +2212,15 @@ export class Shopping {
             });
             const data = await db.query(
                 `INSERT INTO \`${this.app}\`.\`t_manager_post\` (userID , content)
-                VALUES ?`,[productArray.map((product:any)=>{
-                    product.type  = 'product';
+                VALUES ?`,
+                [
+                    productArray.map((product: any) => {
+                        product.type = 'product';
 
-                    this.checkVariantDataType(product.variants);
-                    return [
-                        this.token?.userID,
-                        JSON.stringify(product),
-                    ]
-                })]
+                        this.checkVariantDataType(product.variants);
+                        return [this.token?.userID, JSON.stringify(product)];
+                    }),
+                ]
             );
 
             let insertIDStart = data.insertId;

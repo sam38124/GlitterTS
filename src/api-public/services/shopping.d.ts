@@ -225,57 +225,11 @@ export declare class Shopping {
     }): Promise<void>;
     putOrder(data: {
         id: string;
-        orderData: {
-            id: number;
-            cart_token: string;
-            status: number;
-            email: string;
-            orderData: {
-                email: string;
-                total: number;
-                lineItems: {
-                    id: number;
-                    spec: string[];
-                    count: string;
-                    sale_price: number;
-                }[];
-                user_info: {
-                    name: string;
-                    email: string;
-                    phone: string;
-                    address: string;
-                };
-            };
-            created_time: string;
-            progress: 'finish' | 'wait' | 'shipping';
-        };
+        orderData: any;
         status: any;
     }): Promise<{
         result: string;
-        orderData: {
-            id: number;
-            cart_token: string;
-            status: number;
-            email: string;
-            orderData: {
-                email: string;
-                total: number;
-                lineItems: {
-                    id: number;
-                    spec: string[];
-                    count: string;
-                    sale_price: number;
-                }[];
-                user_info: {
-                    name: string;
-                    email: string;
-                    phone: string;
-                    address: string;
-                };
-            };
-            created_time: string;
-            progress: 'finish' | 'wait' | 'shipping';
-        };
+        orderData: any;
     }>;
     deleteOrder(req: {
         id: string;

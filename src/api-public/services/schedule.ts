@@ -5,6 +5,7 @@ import { Rebate } from './rebate';
 import { User } from './user';
 import { Shopping } from './shopping';
 import { Mail } from '../services/mail.js';
+import { AutoSendEmail } from './auto-send-email.js';
 
 type ScheduleItem = {
     second: number;
@@ -49,7 +50,6 @@ export class Schedule {
 
     async refreshMember(sec: number) {
         try {
-            console.log(this.app, 'refreshMember');
             if (await this.perload()) {
                 const userClass = new User(this.app);
                 //紀錄當前分級會員的數量
@@ -145,6 +145,65 @@ export class Schedule {
         setTimeout(() => this.birthRebate(sec), sec * 1000);
     }
 
+    async birthBlessMail(sec: number) {
+        try {
+            if (await this.perload()) {
+                const mailType = 'auto-email-birthday';
+                const customerMail = await AutoSendEmail.getDefCompare(this.app, mailType);
+                if (customerMail.toggle) {
+                    // 歷史生日祝福寄件紀錄
+                    const mailClass = new Mail(this.app);
+                    const sendRecords = await mailClass.getMail({
+                        type: 'download',
+                        page: 0,
+                        limit: 0,
+                        mailType: mailType,
+                    });
+
+                    // 當月生日之顧客
+                    const users = await db.query(
+                        `SELECT *
+                        FROM \`${this.app}\`.t_user
+                        WHERE MONTH (JSON_EXTRACT(userData, '$.birth')) = MONTH (CURDATE());`,
+                        []
+                    );
+
+                    // 篩選出一年內曾寄信過的顧客
+                    const now = new Date();
+                    const oneYearAgo = new Date(now);
+                    oneYearAgo.setFullYear(now.getFullYear() - 1);
+                    const filteredData = sendRecords.data.filter((item: { trigger_time: string }) => {
+                        const triggerTime = new Date(item.trigger_time);
+                        return triggerTime > oneYearAgo;
+                    });
+
+                    // 一年內曾寄信過的顧客信箱陣列
+                    let hasBless: string[] = [];
+                    filteredData.map((item: { content: { email: string } }) => {
+                        hasBless = hasBless.concat(item.content.email);
+                    });
+                    hasBless = [...new Set(hasBless)];
+
+                    // 進入寄信程序
+                    for (const user of users) {
+                        if (!hasBless.includes(user.userData.email)) {
+                            await mailClass.postMail({
+                                name: customerMail.name,
+                                title: customerMail.title.replace(/@\{\{user_name\}\}/g, user.userData.name),
+                                content: customerMail.content.replace(/@\{\{user_name\}\}/g, user.userData.name),
+                                email: [user.userData.email],
+                                type: mailType,
+                            });
+                        }
+                    }
+                }
+            }
+        } catch (e) {
+            throw exception.BadRequestError('BAD_REQUEST', 'birthBlessMail Error: ' + e, null);
+        }
+        setTimeout(() => this.birthBlessMail(sec), sec * 1000);
+    }
+
     async resetVoucherHistory(sec: number) {
         try {
             if (await this.perload()) {
@@ -182,6 +241,7 @@ export class Schedule {
         const scheduleList: ScheduleItem[] = [
             { second: 10, status: false, func: 'example', desc: '排程啟用範例' },
             { second: 3600, status: true, func: 'birthRebate', desc: '生日禮發放購物金' },
+            { second: 3600, status: true, func: 'birthBlessMail', desc: '生日祝福信件' },
             { second: 600, status: true, func: 'refreshMember', desc: '更新會員分級' },
             { second: 30, status: true, func: 'resetVoucherHistory', desc: '未付款歷史優惠券重設' },
             { second: 30, status: true, func: 'autoSendMail', desc: '自動排程寄送信件' },

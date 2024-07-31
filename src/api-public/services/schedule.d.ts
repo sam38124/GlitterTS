@@ -8,6 +8,7 @@ export declare class Schedule {
     refreshMember(sec: number): Promise<void>;
     example(sec: number): Promise<void>;
     birthRebate(sec: number): Promise<void>;
+    birthBlessMail(sec: number): Promise<void>;
     resetVoucherHistory(sec: number): Promise<void>;
     autoSendMail(sec: number): Promise<void>;
     main(): Promise<void>;

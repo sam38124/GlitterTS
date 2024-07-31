@@ -31,6 +31,7 @@ export type PostData = {
     sendTime: { date: string; time: string } | undefined;
     sendGroup: string[];
     email?: string[];
+    typeName?: string;
 };
 
 const inputStyle = 'font-size: 16px; height:40px; width:300px;';
@@ -594,8 +595,12 @@ export class BgNotify {
                                                                         return data.response.data.map((dd: { content: PostData; status: number; trigger_time: string }) => {
                                                                             return [
                                                                                 {
+                                                                                    key: '寄件類型',
+                                                                                    value: html`<span class="fs-7">${dd.content.typeName}</span>`,
+                                                                                },
+                                                                                {
                                                                                     key: '標題',
-                                                                                    value: html`<span class="fs-7">[${dd.content.name}] ${dd.content.title}</span>`,
+                                                                                    value: html`<span class="fs-7">${truncateString(`[${dd.content.name}] ${dd.content.title}`, 25)}</span>`,
                                                                                 },
                                                                                 {
                                                                                     key: '收件群組',
@@ -708,14 +713,17 @@ export class BgNotify {
                     ${BgWidget.title(obj.readonly ? '信件詳細內容' : '編輯信件樣式')}
                     <div class="flex-fill"></div>
                     ${obj.readonly
-                        ? (() => {
-                              switch (vm.data.status) {
-                                  case 0:
-                                      return html`<div class="badge fs-7 me-1" style="color: #393939; background: #ffd6a4;">尚未寄送</div>`;
-                                  case 1:
-                                      return html`<div class="badge fs-7 me-1" style="color: #393939; background: #0000000f;">已寄出</div>`;
-                              }
-                          })()
+                        ? [
+                              html`<div class="badge fs-7 me-2" style="color: #393939; background: #0000000f;">${vm.data.typeName}</div>`,
+                              (() => {
+                                  switch (vm.data.status) {
+                                      case 0:
+                                          return html`<div class="badge fs-7 me-1" style="color: #393939; background: #ffd6a4;">尚未寄送</div>`;
+                                      case 1:
+                                          return html`<div class="badge fs-7 me-1" style="color: #393939; background: #0000000f;">已寄出</div>`;
+                                  }
+                              })(),
+                          ].join('')
                         : ''}
                 </div>
                 ${BgWidget.container(
@@ -726,17 +734,21 @@ export class BgNotify {
                             view: () => {
                                 let htmlList: string[] = [];
                                 if (obj.readonly) {
-                                    const sendGroupHTML = vm.data.sendGroup.map((str: string) => html`<div class="c_filter_tag">${str}</div>`);
+                                    const sendGroupHTML = (vm.data.sendGroup ?? []).map((str: string) => html`<div class="c_filter_tag">${str}</div>`);
                                     const emailHTML = vm.data.email.map((str: string) => html`<div class="c_filter_tag">${str}</div>`);
                                     htmlList = htmlList.concat([
-                                        BgWidget.mainCard(html`
-                                            <div class="tx_normal fw-normal">篩選條件</div>
-                                            <div class="c_filter_container">
-                                                ${sendGroupHTML.join(html`<span class="badge fs-7 px-1" style="color: #393939; background: #FFD5D0;"
-                                                    >${vm.data.boolean === 'and' ? '且' : '或'}</span
-                                                >`)}
-                                            </div>
-                                        `),
+                                        BgWidget.mainCard(
+                                            html`
+                                                <div class="tx_normal fw-normal">篩選條件</div>
+                                                <div class="c_filter_container">
+                                                    ${sendGroupHTML.length === 0
+                                                        ? '沒有群組'
+                                                        : sendGroupHTML.join(html`<span class="badge fs-7 px-1" style="color: #393939; background: #FFD5D0;"
+                                                              >${vm.data.boolean === 'and' ? '且' : '或'}</span
+                                                          >`)}
+                                                </div>
+                                            `
+                                        ),
                                         BgWidget.mainCard(html`
                                             <div class="tx_normal fw-normal">電子信箱</div>
                                             <div class="c_filter_container">${emailHTML.join('')}</div>
@@ -838,7 +850,7 @@ export class BgNotify {
                                             })}`
                                     ),
                                 ]);
-                                return htmlList.join(BgWidget.mbContainer(16));
+                                return htmlList.filter((str) => str.length > 0).join(BgWidget.mbContainer(16));
                             },
                             divCreate: {},
                         };

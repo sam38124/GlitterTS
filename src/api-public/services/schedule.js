@@ -11,6 +11,7 @@ const rebate_1 = require("./rebate");
 const user_1 = require("./user");
 const shopping_1 = require("./shopping");
 const mail_js_1 = require("../services/mail.js");
+const auto_send_email_js_1 = require("./auto-send-email.js");
 class Schedule {
     constructor(app) {
         this.app = app;
@@ -45,7 +46,6 @@ class Schedule {
     }
     async refreshMember(sec) {
         try {
-            console.log(this.app, 'refreshMember');
             if (await this.perload()) {
                 const userClass = new user_1.User(this.app);
                 const member_count = {};
@@ -130,6 +130,53 @@ class Schedule {
         }
         setTimeout(() => this.birthRebate(sec), sec * 1000);
     }
+    async birthBlessMail(sec) {
+        try {
+            if (await this.perload()) {
+                const mailType = 'auto-email-birthday';
+                const customerMail = await auto_send_email_js_1.AutoSendEmail.getDefCompare(this.app, mailType);
+                if (customerMail.toggle) {
+                    const mailClass = new mail_js_1.Mail(this.app);
+                    const sendRecords = await mailClass.getMail({
+                        type: 'download',
+                        page: 0,
+                        limit: 0,
+                        mailType: mailType,
+                    });
+                    const users = await database_1.default.query(`SELECT *
+                        FROM \`${this.app}\`.t_user
+                        WHERE MONTH (JSON_EXTRACT(userData, '$.birth')) = MONTH (CURDATE());`, []);
+                    const now = new Date();
+                    const oneYearAgo = new Date(now);
+                    oneYearAgo.setFullYear(now.getFullYear() - 1);
+                    const filteredData = sendRecords.data.filter((item) => {
+                        const triggerTime = new Date(item.trigger_time);
+                        return triggerTime > oneYearAgo;
+                    });
+                    let hasBless = [];
+                    filteredData.map((item) => {
+                        hasBless = hasBless.concat(item.content.email);
+                    });
+                    hasBless = [...new Set(hasBless)];
+                    for (const user of users) {
+                        if (!hasBless.includes(user.userData.email)) {
+                            await mailClass.postMail({
+                                name: customerMail.name,
+                                title: customerMail.title.replace(/@\{\{user_name\}\}/g, user.userData.name),
+                                content: customerMail.content.replace(/@\{\{user_name\}\}/g, user.userData.name),
+                                email: [user.userData.email],
+                                type: mailType,
+                            });
+                        }
+                    }
+                }
+            }
+        }
+        catch (e) {
+            throw exception_1.default.BadRequestError('BAD_REQUEST', 'birthBlessMail Error: ' + e, null);
+        }
+        setTimeout(() => this.birthBlessMail(sec), sec * 1000);
+    }
     async resetVoucherHistory(sec) {
         try {
             if (await this.perload()) {
@@ -164,6 +211,7 @@ class Schedule {
         const scheduleList = [
             { second: 10, status: false, func: 'example', desc: '排程啟用範例' },
             { second: 3600, status: true, func: 'birthRebate', desc: '生日禮發放購物金' },
+            { second: 3600, status: true, func: 'birthBlessMail', desc: '生日祝福信件' },
             { second: 600, status: true, func: 'refreshMember', desc: '更新會員分級' },
             { second: 30, status: true, func: 'resetVoucherHistory', desc: '未付款歷史優惠券重設' },
             { second: 30, status: true, func: 'autoSendMail', desc: '自動排程寄送信件' },
