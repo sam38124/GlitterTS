@@ -1072,7 +1072,7 @@ export class BgNotify {
                             id: tagData.filter.join(','),
                         }).then((dd) => {
                             dd.response.data.map((user: any) => {
-                                if (user.userData.email) {
+                                if (user.userData.email && user.userData.email.length > 0) {
                                     postData.userList.push({
                                         id: user.userID,
                                         email: user.userData.email,
@@ -1124,7 +1124,12 @@ export class BgNotify {
                                     limit: 99999,
                                     group: { type: type },
                                 }).then((data) => {
-                                    data.response.data.map((user: any) => {
+                                    // 加入額外的會員資料，例如有訂閱但未註冊者
+                                    let dataArray = data.response.data;
+                                    if (data.response.extra) {
+                                        dataArray = dataArray.concat(data.response.extra.noRegisterUsers);
+                                    }
+                                    dataArray.map((user: any) => {
                                         if (user.userData.email) {
                                             list.push({
                                                 id: user.userID,
@@ -1256,16 +1261,31 @@ export class BgNotify {
                                             ApiUser.getUserListOrders({
                                                 page: 0,
                                                 limit: 99999,
-                                                id: postData.userList.map((user) => user.id).join(','),
+                                                id: postData.userList.map((user) => user.id ?? 0).join(','),
                                             }).then((dd) => {
                                                 if (dd.response.data) {
                                                     vm.dataList = dd.response.data.map((item: { userID: number; userData: { name: string; email: string } }) => {
                                                         return {
                                                             key: item.userID,
-                                                            value: item.userData.name ?? '（尚無姓名）',
+                                                            value: item.userData.name,
                                                             note: item.userData.email,
                                                         };
                                                     });
+                                                    if (postData.userList.length > vm.dataList.length) {
+                                                        // 加入未註冊會員的信箱，例如有訂閱但未註冊者
+                                                        const noRegisterUser = postData.userList
+                                                            .filter((item) => {
+                                                                return item.id < 0 && item.email;
+                                                            })
+                                                            .map((item) => {
+                                                                return {
+                                                                    key: `${item.id}`,
+                                                                    value: '（未註冊的會員）',
+                                                                    note: item.email,
+                                                                };
+                                                            });
+                                                        vm.dataList = vm.dataList.concat(noRegisterUser);
+                                                    }
                                                     resolve(vm.dataList);
                                                 }
                                             });
@@ -1374,15 +1394,17 @@ export class BgNotify {
                                                                                             orderString: data.orderString,
                                                                                         }).then((dd) => {
                                                                                             if (dd.response.data) {
-                                                                                                vm.dataList = dd.response.data.map(
-                                                                                                    (item: { userID: number; userData: { name: string; email: string } }) => {
+                                                                                                vm.dataList = dd.response.data
+                                                                                                    .filter((item: { userData: { email: string } }) => {
+                                                                                                        return item.userData.email && item.userData.email.length > 0;
+                                                                                                    })
+                                                                                                    .map((item: { userID: number; userData: { name: string; email: string } }) => {
                                                                                                         return {
                                                                                                             key: item.userID,
                                                                                                             value: item.userData.name ?? '（尚無姓名）',
                                                                                                             note: item.userData.email,
                                                                                                         };
-                                                                                                    }
-                                                                                                );
+                                                                                                    });
                                                                                                 resolve(vm.dataList);
                                                                                             }
                                                                                         });

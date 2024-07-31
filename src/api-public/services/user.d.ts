@@ -59,6 +59,9 @@ export declare class User {
     getUserList(query: UserQuery): Promise<{
         data: any;
         total: any;
+        extra: {
+            noRegisterUsers: any[] | undefined;
+        };
     }>;
     getUserGroups(type?: string[], tag?: string): Promise<{
         result: false;

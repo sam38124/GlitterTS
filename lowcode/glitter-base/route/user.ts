@@ -296,8 +296,16 @@ export class ApiUser {
                 Authorization: getConfig().config.token,
             },
         }).then(async (data) => {
-            const array = data.response.data;
+            if (!data.result) {
+                return {
+                    response: {
+                        data: [],
+                        total: 0,
+                    },
+                };
+            }
 
+            const array = data.response.data;
             if (array.length > 0) {
                 await new Promise((resolve, reject) => {
                     let pass = 0;
@@ -361,6 +369,7 @@ export class ApiUser {
                 response: {
                     data: array,
                     total: data.response.total,
+                    extra: data.response.extra,
                 },
             };
         });

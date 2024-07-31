@@ -940,7 +940,7 @@ export class BgNotify {
                             id: tagData.filter.join(','),
                         }).then((dd) => {
                             dd.response.data.map((user) => {
-                                if (user.userData.email) {
+                                if (user.userData.email && user.userData.email.length > 0) {
                                     postData.userList.push({
                                         id: user.userID,
                                         email: user.userData.email,
@@ -992,7 +992,11 @@ export class BgNotify {
                                     limit: 99999,
                                     group: { type: type },
                                 }).then((data) => {
-                                    data.response.data.map((user) => {
+                                    let dataArray = data.response.data;
+                                    if (data.response.extra) {
+                                        dataArray = dataArray.concat(data.response.extra.noRegisterUsers);
+                                    }
+                                    dataArray.map((user) => {
                                         if (user.userData.email) {
                                             list.push({
                                                 id: user.userID,
@@ -1120,17 +1124,30 @@ export class BgNotify {
                                 ApiUser.getUserListOrders({
                                     page: 0,
                                     limit: 99999,
-                                    id: postData.userList.map((user) => user.id).join(','),
+                                    id: postData.userList.map((user) => { var _a; return (_a = user.id) !== null && _a !== void 0 ? _a : 0; }).join(','),
                                 }).then((dd) => {
                                     if (dd.response.data) {
                                         vm.dataList = dd.response.data.map((item) => {
-                                            var _a;
                                             return {
                                                 key: item.userID,
-                                                value: (_a = item.userData.name) !== null && _a !== void 0 ? _a : '（尚無姓名）',
+                                                value: item.userData.name,
                                                 note: item.userData.email,
                                             };
                                         });
+                                        if (postData.userList.length > vm.dataList.length) {
+                                            const noRegisterUser = postData.userList
+                                                .filter((item) => {
+                                                return item.id < 0 && item.email;
+                                            })
+                                                .map((item) => {
+                                                return {
+                                                    key: `${item.id}`,
+                                                    value: '（未註冊的會員）',
+                                                    note: item.email,
+                                                };
+                                            });
+                                            vm.dataList = vm.dataList.concat(noRegisterUser);
+                                        }
                                         resolve(vm.dataList);
                                     }
                                 });
@@ -1231,7 +1248,11 @@ export class BgNotify {
                                                                 orderString: data.orderString,
                                                             }).then((dd) => {
                                                                 if (dd.response.data) {
-                                                                    vm.dataList = dd.response.data.map((item) => {
+                                                                    vm.dataList = dd.response.data
+                                                                        .filter((item) => {
+                                                                        return item.userData.email && item.userData.email.length > 0;
+                                                                    })
+                                                                        .map((item) => {
                                                                         var _a;
                                                                         return {
                                                                             key: item.userID,

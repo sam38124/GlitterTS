@@ -288,6 +288,14 @@ export class ApiUser {
                 Authorization: getConfig().config.token,
             },
         }).then((data) => __awaiter(this, void 0, void 0, function* () {
+            if (!data.result) {
+                return {
+                    response: {
+                        data: [],
+                        total: 0,
+                    },
+                };
+            }
             const array = data.response.data;
             if (array.length > 0) {
                 yield new Promise((resolve, reject) => {
@@ -351,6 +359,7 @@ export class ApiUser {
                 response: {
                     data: array,
                     total: data.response.total,
+                    extra: data.response.extra,
                 },
             };
         }));

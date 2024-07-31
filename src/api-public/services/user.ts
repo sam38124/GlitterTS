@@ -727,6 +727,7 @@ export class User {
     public async getUserList(query: UserQuery) {
         try {
             const querySql: string[] = ['1=1'];
+            const noRegisterUsers: any[] = [];
             query.page = query.page ?? 0;
             query.limit = query.limit ?? 50;
 
@@ -734,6 +735,21 @@ export class User {
                 const getGroup = await this.getUserGroups(query.groupType.split(','), query.groupTag);
                 if (getGroup.result && getGroup.data[0]) {
                     const users = getGroup.data[0].users;
+
+                    // 加入有訂閱但未註冊者
+                    users.map((user, index) => {
+                        if (user.userID === null) {
+                            noRegisterUsers.push({
+                                id: -(index + 1),
+                                userID: -(index + 1),
+                                email: user.email,
+                                account: user.email,
+                                userData: { email: user.email },
+                                status: 1,
+                            });
+                        }
+                    });
+
                     const ids = query.id
                         ? query.id.split(',').filter((id) => {
                               return users.find((item) => {
@@ -861,11 +877,17 @@ export class User {
             });
 
             return {
+                // 所有註冊會員的詳細資料
                 data: (await db.query(dataSQL, [])).map((dd: any) => {
                     dd.pwd = undefined;
                     return dd;
                 }),
+                // 所有註冊會員的數量
                 total: (await db.query(countSQL, []))[0]['count(1)'],
+                // 額外資料（例如未註冊的訂閱者資料）
+                extra: {
+                    noRegisterUsers: noRegisterUsers.length > 0 ? noRegisterUsers : undefined,
+                },
             };
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'getUserList Error:' + e, null);

@@ -606,12 +606,25 @@ class User {
         var _a, _b, _c, _d;
         try {
             const querySql = ['1=1'];
+            const noRegisterUsers = [];
             query.page = (_a = query.page) !== null && _a !== void 0 ? _a : 0;
             query.limit = (_b = query.limit) !== null && _b !== void 0 ? _b : 50;
             if (query.groupType) {
                 const getGroup = await this.getUserGroups(query.groupType.split(','), query.groupTag);
                 if (getGroup.result && getGroup.data[0]) {
                     const users = getGroup.data[0].users;
+                    users.map((user, index) => {
+                        if (user.userID === null) {
+                            noRegisterUsers.push({
+                                id: -(index + 1),
+                                userID: -(index + 1),
+                                email: user.email,
+                                account: user.email,
+                                userData: { email: user.email },
+                                status: 1,
+                            });
+                        }
+                    });
                     const ids = query.id
                         ? query.id.split(',').filter((id) => {
                             return users.find((item) => {
@@ -737,6 +750,9 @@ class User {
                     return dd;
                 }),
                 total: (await database_1.default.query(countSQL, []))[0]['count(1)'],
+                extra: {
+                    noRegisterUsers: noRegisterUsers.length > 0 ? noRegisterUsers : undefined,
+                },
             };
         }
         catch (e) {
