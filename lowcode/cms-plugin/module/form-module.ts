@@ -9,12 +9,8 @@ export class FormModule {
         const option = [
             {
                 icon: '<i class="fa-solid fa-text me-3"></i>',
-                title: `單行文字框`,
+                title: `輸入框`,
                 key: "input"
-            }, {
-                icon: `<i class="fa-solid fa-text me-3"></i>`,
-                title: `多行文字框`,
-                key: "multiple_line_text"
             }, {
                 icon: `<i class="fa-regular fa-square-chevron-down me-3"></i>`,
                 title: `下拉選單`,
@@ -77,6 +73,85 @@ export class FormModule {
                                     case 'multiple_line_text':
                                     case 'input':
                                         return [
+                                            EditorElem.select({
+                                                title:'<div class="tx_normal fw-normal" >資料類型</div>',
+                                                gvc: gvc,
+                                                callback: (value) => {
+                                                    dd.form_config.type=value
+                                                    if(value==='textArea'){
+                                                        dd.page='multiple_line_text'
+                                                    }else{
+                                                        dd.page='input'
+                                                    }
+                                                    update && update()
+                                                    gvc.notifyDataChange(vm.id)
+                                                },
+                                                def: dd.form_config.type,
+                                                array: [
+                                                    {
+                                                        "key": "default",
+                                                        "name": "單行文字",
+                                                        "value": "text",
+                                                        "visible": "visible"
+                                                    },
+                                                    {
+                                                        "key": "default",
+                                                        "name": "多行文字",
+                                                        "value": "textArea",
+                                                        "visible": "visible"
+                                                    },
+                                                    {
+                                                        "key": "default",
+                                                        "name": "名稱",
+                                                        "value": "name",
+                                                        "visible": "visible"
+                                                    }, {
+                                                        "key": "default",
+                                                        "name": "日期",
+                                                        "value": "date",
+                                                        "visible": "visible"
+                                                    }, {
+                                                        "key": "default",
+                                                        "name": "時間",
+                                                        "value": "time",
+                                                        "visible": "visible"
+                                                    }, {
+                                                        "key": "default",
+                                                        "name": "email",
+                                                        "value": "email",
+                                                        "visible": "visible"
+                                                    }, {
+                                                        "key": "default",
+                                                        "name": "電話",
+                                                        "value": "phone",
+                                                        "visible": "visible"
+                                                    }, {
+                                                        "key": "default",
+                                                        "name": "顏色",
+                                                        "value": "color",
+                                                        "visible": "visible"
+                                                    }, {
+                                                        "key": "default",
+                                                        "name": "數字",
+                                                        "value": "number",
+                                                        "visible": "visible"
+                                                    }, {
+                                                        "key": "default",
+                                                        "name": "地址",
+                                                        "value": "address",
+                                                        "visible": "visible"
+                                                    }, {
+                                                        "key": "default",
+                                                        "name": "密碼",
+                                                        "value": "password",
+                                                        "visible": "visible"
+                                                    }].map((dd)=>{
+                                                    return {
+                                                        title:dd.name,
+                                                        value:dd.value
+                                                    }
+                                                }) as any
+                                            }),
                                             BgWidget.editeInput({
                                                 gvc: gvc,
                                                 title: '自訂欄位名稱',
@@ -98,72 +173,6 @@ export class FormModule {
                                                     gvc.notifyDataChange(vm.id)
                                                 },
                                                 placeHolder: '請輸入關於這項欄位的描述或指引',
-                                            }),EditorElem.select({
-                                                title:'<div class="tx_normal fw-normal" >資料類型</div>',
-                                                gvc: gvc,
-                                                callback: (value) => {
-                                                    dd.form_config.type=value
-                                                    update && update()
-                                                    gvc.notifyDataChange(vm.id)
-                                                },
-                                                def: dd.form_config.type,
-                                                array: [
-                                                    {
-                                                    "key": "default",
-                                                    "name": "名稱",
-                                                    "value": "name",
-                                                    "visible": "visible"
-                                                }, {
-                                                    "key": "default",
-                                                    "name": "日期",
-                                                    "value": "date",
-                                                    "visible": "visible"
-                                                }, {
-                                                    "key": "default",
-                                                    "name": "時間",
-                                                    "value": "time",
-                                                    "visible": "visible"
-                                                }, {
-                                                    "key": "default",
-                                                    "name": "文字",
-                                                    "value": "text",
-                                                    "visible": "visible"
-                                                }, {
-                                                    "key": "default",
-                                                    "name": "email",
-                                                    "value": "email",
-                                                    "visible": "visible"
-                                                }, {
-                                                    "key": "default",
-                                                    "name": "電話",
-                                                    "value": "phone",
-                                                    "visible": "visible"
-                                                }, {
-                                                    "key": "default",
-                                                    "name": "顏色",
-                                                    "value": "color",
-                                                    "visible": "visible"
-                                                }, {
-                                                    "key": "default",
-                                                    "name": "數字",
-                                                    "value": "number",
-                                                    "visible": "visible"
-                                                }, {
-                                                    "key": "default",
-                                                    "name": "地址",
-                                                    "value": "address",
-                                                    "visible": "visible"
-                                                }, {
-                                                    "key": "default",
-                                                    "name": "密碼",
-                                                    "value": "password",
-                                                    "visible": "visible"
-                                                }].map((dd)=>{
-                                                    return {
-                                                        title:dd.name,
-                                                        value:dd.value
-                                                    }
-                                                }) as any
                                             }),
                                             BgWidget.inlineCheckBox({
                                                 title: '',
@@ -386,7 +395,7 @@ ${BgWidget.cancel(gvc.event(() => {
                                     }
                                 },
                                 "form_config": {
-                                    "type": "name",
+                                    "type": "text",
                                     "title": "",
                                     "input_style": {
                                         "list": [],

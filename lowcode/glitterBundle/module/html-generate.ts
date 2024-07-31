@@ -2179,7 +2179,7 @@ ${e.line}
                             </div>
                             <div
                                 class="position-absolute fs-1 plus_btn"
-                                style="left:50%;transform: translateX(-50%);height:28px;width:28px;top:-40px;z-index:99999;cursor: pointer;pointer-events:all;"
+                                style="left:50%;transform: translateX(-50%);height:20px;width:20px;top:-40px;z-index:99999;cursor: pointer;pointer-events:all;"
                                 onmousedown="${cf.gvc.event((e, event) => {
                                     HtmlGenerate.block_timer = new Date().getTime();
                                     glitter.getModule(new URL('../.././editor/add-component.js', import.meta.url).href, (AddComponent: any) => {
@@ -2234,7 +2234,7 @@ ${e.line}
                             </div>
                             <div
                                 class="position-absolute fs-1 plus_btn"
-                                style="left:50%;transform: translateX(-50%);height:28px;width:28px;bottom:10px;z-index:99999;cursor: pointer;pointer-events:all;"
+                                style="left:50%;transform: translateX(-50%);height:20px;width:20px;bottom:20px;z-index:99999;cursor: pointer;pointer-events:all;"
                                 onmousedown="${cf.gvc.event((e, event) => {
                                     HtmlGenerate.block_timer = new Date().getTime();
                                     glitter.getModule(new URL('../.././editor/add-component.js', import.meta.url).href, (AddComponent: any) => {
@@ -2293,6 +2293,13 @@ ${e.line}
                         style: `z-index: 99999;top:0px;left:0px;`,
                     },
                     onCreate: () => {
+                        setTimeout(()=>{
+                            // const parentHeight=(cf.gvc.glitter.document.querySelector(`.editor_it_${cf.id}`) as any).parentNode.offsetHeight
+                            // const parentWidth=(cf.gvc.glitter.document.querySelector(`.editor_it_${cf.id}`) as any).parentNode.offsetWidth
+                            // if(parentHeight<60 && parentWidth<60){
+                            //     cf.gvc.glitter.$(`.editor_it_${cf.id} .plus_btn`).remove()
+                            // }
+                        },2000)
                         // if((cf.gvc.glitter.htmlGenerate.hover_items.indexOf(cf.id) !== -1)){
                         //     setTimeout(()=>{
                         //         (cf.gvc.glitter).$('.editorItemActive').width( (cf.gvc.glitter).$('.editorItemActive').parent().width() as any);

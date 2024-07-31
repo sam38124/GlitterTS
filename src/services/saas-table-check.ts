@@ -5,6 +5,7 @@ import {saasConfig} from "../config";
 export const SaasScheme = {
     createScheme: async () => {
         const sql = String.raw
+        await db.query(`SET GLOBAL max_prepared_stmt_count = 163820`,[]);
         await db.execute(`CREATE SCHEMA if not exists \`${saasConfig.SAAS_NAME}_recover\` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci ;`, [])
         await db.execute(`CREATE SCHEMA if not exists \`${saasConfig.SAAS_NAME}\` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci ;`, [])
         const sqlArray: { scheme?: string; table: string; sql: string }[]=[

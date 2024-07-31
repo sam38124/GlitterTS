@@ -428,7 +428,8 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                                                                         refresh: () => {
                                                                                             refresh(widget);
                                                                                         },
-                                                                                        formData: refer_form
+                                                                                        formData: refer_form,
+                                                                                        widget: pageData.config
                                                                                     })}</div>`;
                                                                                 }
                                                                             })
@@ -628,7 +629,19 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                                         widget: widget,
                                                         gvc: gvc
                                                     });
-                                                    if (gvc.glitter.document.body.clientWidth < 800 && widget.mobile.refer === 'custom') {
+                                                    if (gvc.glitter.document.body.clientWidth < 800 && widget.mobile.refer === 'hide') {
+                                                        resolve(`
+                                                <!-- tag=${tag} -->
+                                                `);
+                                                        return;
+                                                    }
+                                                    else if (gvc.glitter.document.body.clientWidth >= 800 && widget.desktop.refer === 'hide') {
+                                                        resolve(`
+                                                <!-- tag=${tag} -->
+                                                `);
+                                                        return;
+                                                    }
+                                                    else if (gvc.glitter.document.body.clientWidth < 800 && widget.mobile.refer === 'custom') {
                                                         data.page_config.formData = (widget.mobile.data.refer_form_data || data.page_config.formData);
                                                     }
                                                     else if (gvc.glitter.document.body.clientWidth >= 800 && widget.desktop.refer === 'custom') {

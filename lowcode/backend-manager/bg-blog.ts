@@ -12,6 +12,7 @@ import {BaseApi} from '../glitterBundle/api/base.js';
 import {ApiShop} from '../glitter-base/route/shopping.js';
 import {BgProduct, OptionsItem} from './bg-product.js';
 import {response} from 'express';
+import {all} from "underscore/index.js";
 
 interface MenuItem {
     link: string;
@@ -126,7 +127,16 @@ export class BgBlog {
                         return BgWidget.container(
                             html`
                                 <div class="d-flex w-100 align-items-center mb-3 ${type === 'select' ? `d-none` : ``}">
-                                    ${BgWidget.title(is_page ? '頁面管理' : '網誌文章')}
+                                    ${BgWidget.title(is_page ? (()=>{
+                                        switch (page_tab){
+                                            case "hidden":
+                                                return '隱形賣場'
+                                            case "page":
+                                                return '自訂頁面'
+                                            case "shopping":
+                                                return '一頁商店'
+                                        }
+                                    })() : '網誌文章')}
                                     <div class="flex-fill"></div>
                                     <div style="display: flex; gap: 12px;">
                                         ${is_page
@@ -158,6 +168,7 @@ export class BgBlog {
                                                     search: vm.query || undefined,
                                                     for_index: is_page ? `false` : `true`,
                                                     status: '0,1',
+                                                    page_type:page_tab
                                                 }).then((data) => {
                                                     vmi.pageSize = Math.ceil(data.response.total / 20);
                                                     vm.dataList = data.response.data;
@@ -271,6 +282,7 @@ export class BgBlog {
                             vm: vm,
                             is_page: is_page,
                             widget: widget,
+                            page_tab:page_tab
                         });
                     } else if (vm.type == 'collection') {
                         return BgWidget.container(
@@ -291,6 +303,7 @@ export class BgBlog {
                             vm: vm,
                             is_page: is_page,
                             widget: widget,
+                            page_tab:page_tab
                         });
                     }
                 },
@@ -298,7 +311,7 @@ export class BgBlog {
         });
     }
 
-    public static template_select(gvc: GVC, callback: (cf: any) => void) {
+    public static template_select(gvc: GVC, callback: (cf: any) => void,page_tab:'page' | 'hidden' | 'shopping') {
         let vm = {
             search: '',
         };
@@ -335,7 +348,17 @@ ${[ `<div class="my-3"></div>`,
                                 page: '0',
                                 limit: '3000',
                                 type: 'page',
-                                tag: '',
+                                tag: (()=>{
+                                    switch (page_tab){
+                                        case "shopping":
+                                        case "hidden":
+                                            return `一頁購物`
+                                        case "page":
+                                            return `關於我們,聯絡我們`
+                                        default:
+                                            return ``
+                                    }
+                                })(),
                                 search: vm.search,
                             }).then((res) => {
                                 data = res;
@@ -459,7 +482,7 @@ ${[ `<div class="my-3"></div>`,
     }
 }
 
-function editor(cf: { gvc: GVC; vm: any; is_page: boolean; widget: any }) {
+function editor(cf: { gvc: GVC; vm: any; is_page: boolean; widget: any,page_tab:'page' | 'hidden' | 'shopping' }) {
     const vm = cf.vm;
     const gvc = cf.gvc;
     const html = String.raw;
@@ -470,7 +493,7 @@ function editor(cf: { gvc: GVC; vm: any; is_page: boolean; widget: any }) {
     }else{
         vm.data.content.generator='rich_text'
     }
-    vm.data.content.page_type = vm.data.content.page_type || 'page';
+    vm.data.content.page_type = vm.data.content.page_type || cf.page_tab;
     let cVm: {
         id: string;
         type: 'detail' | 'collection' | 'template';
@@ -510,9 +533,9 @@ function editor(cf: { gvc: GVC; vm: any; is_page: boolean; widget: any }) {
                                 BgWidget.getContainerWidth()
                             );
                         case "detail":
-                            return detail(gvc, cf, vm, cVm);
+                            return detail(gvc, cf, vm, cVm,cf.page_tab);
                         case "template":
-                            return template_select(gvc, cf, vm, cVm)
+                            return template_select(gvc, cf, vm, cVm,cf.page_tab)
                         default:
                             return ``
                     }
@@ -527,8 +550,17 @@ function editor(cf: { gvc: GVC; vm: any; is_page: boolean; widget: any }) {
 
 
 //頁面編輯畫面
-function detail(gvc: GVC, cf: any, vm: any, cVm: any) {
+function detail(gvc: GVC, cf: any, vm: any, cVm: any,page_tab:'page' | 'hidden' | 'shopping') {
     vm.data.content.tag=vm.data.content.tag || `${new Date().getTime()}`
+    if(!vm.data.id && cf.is_page){
+setTimeout(()=>{
+    cVm.type='template'
+    vm.data.content.template='article'
+    gvc.notifyDataChange(cVm.id)
+},100)
+
+        return ``
+    }
     return html`
         <div class="d-flex w-100 align-items-center mb-3 ">
             ${BgWidget.goBack(
@@ -536,7 +568,16 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any) {
                         vm.type = 'list';
                     })
             )}
-            ${BgWidget.title(cf.is_page ? '編輯頁面' : '編輯網誌')}
+            ${BgWidget.title(cf.is_page ? (()=>{
+                switch (page_tab){
+                    case "hidden":
+                        return '隱形賣場'
+                    case "page":
+                        return '自訂頁面'
+                    case "shopping":
+                        return '一頁商店'
+                }
+            })() : '編輯網誌')}
             <div class="flex-fill"></div>
           <div class="d-flex ${(cf.is_page) ? ``:`d-none`}">
               ${BgWidget.grayButton(
@@ -798,7 +839,7 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any) {
                                                                                                                                 return BgBlog.template_select(gvc, (cf) => {
                                                                                                                                     vm.data.content.config = cf;
                                                                                                                                     rightMenu.toggle({visible: false});
-                                                                                                                                });
+                                                                                                                                },page_tab);
                                                                                                                             },
                                                                                                                             divCreate: {},
                                                                                                                         };
@@ -1029,20 +1070,21 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any) {
                                                             [
                                                                 BgWidget.title_16('賣場商品'),
                                                                 `<div style="height: 10px;"></div>`,
-                                                                html`
-                                                                    ${EditorElem.radio({
-                                                                        gvc: gvc,
-                                                                        title: '',
-                                                                        def: vm.data.content.relative,
-                                                                        array: productForList,
-                                                                        callback: (text) => {
-                                                                            vm.data.content.relative = text as 'collection' | 'product' | 'all';
-                                                                            gvc.notifyDataChange(id);
-                                                                        },
-                                                                        oneLine: true,
-                                                                    })}
-                                                                `,
+                                                                // html`
+                                                                //     ${EditorElem.radio({
+                                                                //         gvc: gvc,
+                                                                //         title: '',
+                                                                //         def: vm.data.content.relative,
+                                                                //         array: productForList,
+                                                                //         callback: (text) => {
+                                                                //             vm.data.content.relative = text as 'collection' | 'product' | 'all';
+                                                                //             gvc.notifyDataChange(id);
+                                                                //         },
+                                                                //         oneLine: true,
+                                                                //     })}
+                                                                // `,
                                                                 html`${(() => {
+                                                                    vm.data.content.relative='product'
                                                                     switch (vm.data.content.relative) {
                                                                         case 'collection':
                                                                             return gvc.bindView(() => {
@@ -1139,7 +1181,7 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any) {
                                                                                             <div class="d-flex flex-column p-2"
                                                                                                  style="gap: 18px;">
                                                                                                 <div
-                                                                                                        class="d-flex align-items-center gray-bottom-line-18"
+                                                                                                        class="d-flex align-items-center gray-bottom-line-18 d-none"
                                                                                                         style="gap: 24px; justify-content: space-between;"
                                                                                                 >
                                                                                                     <div class="form-check-label c_updown_label">
@@ -1166,15 +1208,14 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any) {
                                                                                                             {textStyle: 'font-weight: 400;'}
                                                                                                     )}
                                                                                                 </div>
-                                                                                                ${gvc.map(
-                                                                                                        subVM.dataList.map((opt: OptionsItem, index) => {
-                                                                                                            return html`
-                                                                                                                <div
-                                                                                                                        class="d-flex align-items-center form-check-label c_updown_label gap-3"
-                                                                                                                >
-                                                                                                                    <span class="tx_normal">${index + 1} .</span>
-                                                                                                                    <div
-                                                                                                                            style="
+                                                                                                ${subVM.dataList.map((opt: OptionsItem, index) => {
+                                                                                                    return html`
+                                                                                                        <div
+                                                                                                                class="d-flex align-items-center form-check-label c_updown_label gap-3"
+                                                                                                        >
+                                                                                                            <span class="tx_normal">${index + 1} .</span>
+                                                                                                            <div
+                                                                                                                    style="
                                                                                                     width: 40px;
                                                                                                     height: 40px;
                                                                                                     border-radius: 5px;
@@ -1183,21 +1224,52 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any) {
                                                                                                     background-position: center center;
                                                                                                     background-size: contain;
                                                                                                 "
-                                                                                                                    ></div>
-                                                                                                                    <div class="tx_normal ${opt.note ? 'mb-1' : ''}">
-                                                                                                                        ${opt.value}
-                                                                                                                    </div>
-                                                                                                                    ${opt.note ? html`
+                                                                                                            ></div>
+                                                                                                            <div class="tx_normal ${opt.note ? 'mb-1' : ''}">
+                                                                                                                ${opt.value}
+                                                                                                            </div>
+                                                                                                            ${opt.note ? html`
                                                                                                                         <div class="tx_gray_12">
                                                                                                                             ${opt.note}
                                                                                                                         </div> ` : ''}
-                                                                                                                </div>`;
-                                                                                                        })
-                                                                                                )}
+                                                                                                        </div>`;
+                                                                                                }).join('') || `<div class="w-100 d-flex align-content-center justify-content-center">尚未加入任何賣場商品</div>`}
                                                                                             </div>
                                                                                         `;
                                                                                     },
                                                                                     onCreate: () => {
+                                                                                        vm.data.content.relative_data=(()=>{
+                                                                                            const product_list:any=[]
+
+                                                                                            function loop(data:any) {
+
+                                                                                                data.map((dd:any) => {
+                                                                                                    if (Array.isArray(dd)) {
+                                                                                                        loop(dd)
+                                                                                                    } else if (typeof dd === 'object') {
+                                                                                                        function loopObj(dd:any){
+                                                                                                            Object.keys(dd).map((d1) => {
+                                                                                                                if (d1 === 'product_list') {
+                                                                                                                    for(const b of  dd[d1]){
+                                                                                                                        if(!product_list.find((d1:any)=>{return d1===b})){
+                                                                                                                            product_list.push(b)
+                                                                                                                        }
+                                                                                                                    }
+                                                                                                                } else if (Array.isArray(dd[d1])) {
+                                                                                                                    loop(dd[d1])
+                                                                                                                }else if(typeof dd[d1]==='object'){
+                                                                                                                    loopObj(dd[d1])
+                                                                                                                }
+                                                                                                            })
+                                                                                                        }
+                                                                                                        loopObj(dd)
+                                                                                                    }
+                                                                                                })
+                                                                                            }
+                                                                                            loop(vm.data.content.config)
+                                                                                            console.log(product_list)
+                                                                                            return product_list
+                                                                                        })()
                                                                                         if (subVM.loading) {
                                                                                             if (vm.data.content.relative_data.length === 0) {
                                                                                                 setTimeout(() => {
@@ -1207,6 +1279,7 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any) {
                                                                                                 }, 300);
                                                                                             } else {
                                                                                                 new Promise<OptionsItem[]>((resolve) => {
+                                                                                                    
                                                                                                     resolve(BgProduct.getProductOpts(vm.data.content.relative_data));
                                                                                                 }).then((data) => {
                                                                                                     subVM.dataList = data;
@@ -1359,35 +1432,6 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any) {
                                                                     return filter_result;
                                                                 }
                                                         ),
-                                                        (() => {
-                                                            if (cf.is_page) {
-                                                                return EditorElem.select({
-                                                                    title: '頁面類型',
-                                                                    gvc: gvc,
-                                                                    def: `${vm.data.content.page_type}`,
-                                                                    array: [
-                                                                        {
-                                                                            title: '自訂頁面',
-                                                                            value: 'page',
-                                                                        },
-                                                                        {
-                                                                            title: '隱形賣場',
-                                                                            value: 'hidden',
-                                                                        },
-                                                                        {
-                                                                            title: '一頁商店',
-                                                                            value: 'shopping',
-                                                                        },
-                                                                    ],
-                                                                    callback: (text: string) => {
-                                                                        vm.data.content.page_type = text;
-                                                                        gvc.notifyDataChange(cVm.id);
-                                                                    },
-                                                                });
-                                                            } else {
-                                                                return ``;
-                                                            }
-                                                        })(),
                                                         EditorElem.editeInput({
                                                             gvc: gvc,
                                                             title: '作者名稱',
@@ -1616,6 +1660,7 @@ async function saveData(gvc: GVC, cf: any, vm: any, cVm: any,silence:boolean){
                             title: '新增成功',
                         });
                     }
+                    cVm.type='detail'
                     gvc.notifyDataChange(cVm.id);
                 } else {
                     await cf.widget.event('error', {
@@ -2124,20 +2169,22 @@ function setCollection(cf: {
 }
 
 //模板選擇
-function template_select(gvc: GVC, cf: any, vm: any, cVm: any) {
+function template_select(gvc: GVC, cf: any, vm: any, cVm: any,page_type:any) {
    return  BgBlog.template_select(gvc, (c2) => {
        if(c2){
            vm.data.content.config = c2;
-           cVm.type='detail';
            saveData(gvc,cf,vm,cVm,false).then(()=>{
-               gvc.notifyDataChange(cVm.id)
+               cVm.type='detail';
            })
+       }else if(!vm.data.id){
+           vm.type='list';
+           gvc.notifyDataChange(cVm.id)
        }else{
            cVm.type='detail';
            gvc.notifyDataChange(cVm.id)
        }
 
-    })
+    },page_type)
 }
 
 (window as any).glitter.setModule(import.meta.url, BgBlog);

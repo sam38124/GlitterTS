@@ -9,7 +9,8 @@ export class Article{
         tag?:string,
         label?:string,
         for_index?:string,
-        status?:string
+        status?:string,
+        page_type?:string
     }) {
         return BaseApi.create({
             "url": getBaseUrl() + `/api-public/v1/article/manager?${ (() => {
@@ -23,6 +24,7 @@ export class Article{
                 json.label &&par.push(`label=${json.label}`)
                 json.for_index &&par.push(`for_index=${json.for_index}`)
                 json.status && par.push(`status=${json.status}`)
+                json.page_type && par.push(`page_type=${json.page_type}`);
                 return par.join('&')
             })()}`,
             "type": "GET",

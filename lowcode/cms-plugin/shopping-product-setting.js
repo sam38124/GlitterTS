@@ -3659,7 +3659,6 @@ ${(_e = postMD.seo.keywords) !== null && _e !== void 0 ? _e : ''}</textarea
                                     else {
                                         ShoppingProductSetting.postEvent(postMD, obj.gvc, obj.vm);
                                     }
-                                    obj.vm.type = 'list';
                                 }, 500);
                             }), '儲存')}
                             </div>`,
@@ -3796,6 +3795,7 @@ ${(_e = postMD.seo.keywords) !== null && _e !== void 0 ? _e : ''}</textarea
             dialog.dataLoading({ visible: false });
             if (re.result) {
                 dialog.successMessage({ text: `更改成功` });
+                vm.type = 'list';
             }
             else {
                 dialog.errorMessage({ text: `上傳失敗` });
@@ -3812,8 +3812,8 @@ ${(_e = postMD.seo.keywords) !== null && _e !== void 0 ? _e : ''}</textarea
         }).then((re) => {
             dialog.dataLoading({ visible: false });
             if (re.result) {
-                vm.type = 'list';
                 dialog.successMessage({ text: `上傳成功` });
+                vm.type = 'list';
             }
             else {
                 dialog.errorMessage({ text: `上傳失敗` });

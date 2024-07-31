@@ -1,5 +1,4 @@
 import {GVC} from "../GVController.js";
-import {BgWidget} from "../../backend-manager/bg-widget.js";
 import {EditorElem} from "../plugins/editor-elem.js";
 
 enum ViewType {
@@ -20,7 +19,7 @@ export class GlobalWidget {
                 view: () => {
                     GlobalWidget.glitter_view_type = GlobalWidget.glitter_view_type ?? ViewType.def
                     return html`
-                        <h3 class="my-auto tx_title me-2" style="white-space: nowrap;font-size: 16px;">元素顯示樣式</h3>
+                        <h3 class="my-auto tx_title me-2 ms-2" style="white-space: nowrap;font-size: 16px;">元件顯示樣式</h3>
                         <div style="background:#f1f1f1;border-radius:10px;"
                              class="d-flex align-items-center justify-content-center p-1 ">
                             ${[
@@ -131,11 +130,26 @@ export class GlobalWidget {
                 obj.widget[d2].globalColor = function (key: string, index: number) {
                     return `@{{theme_color.${index}.${key}}}`;
                 };
+            }else  if(obj.widget[d2].refer==='hide'){
+                obj.widget[d2]={refer: 'hide'}
             }else{
                 obj.widget[d2]={refer: obj.widget[d2].refer}
             }
         })
 
+    }
+    public     static switchButton(gvc: GVC, def: boolean, callback: (value: boolean) => void) {
+        return html`
+            <div class="form-check form-switch m-0" style="margin-top: 10px; cursor: pointer;">
+                <input
+                        class="form-check-input"
+                        type="checkbox"
+                        onchange="${gvc.event((e) => {
+            callback(e.checked);
+        })}"
+                        ${def ? `checked` : ``}
+                />
+            </div>`;
     }
     public static showCaseEditor(obj: {
         gvc: GVC,
@@ -148,40 +162,80 @@ export class GlobalWidget {
             const id = obj.gvc.glitter.getUUID()
             GlobalWidget.initialShowCaseData({widget:obj.widget,gvc:obj.gvc})
             function selector(widget: any,key:string) {
-                return EditorElem.select({
-                    title: '顯示方式',
-                    gvc: obj.gvc,
-                    def: widget.refer,
-                    array: [
-                        {title: '參照預設', value: "def"},
-                        {title: '自定義', value: "custom"},
-                        {title: '不顯示', value: "hide"}
-                    ],
-                    callback: (text) => {
-                      obj.widget[key].refer=text;
-                        obj.widget.refreshComponent()
-                    }
-                })
+                return `<div class="border-bottom mx-n2" style="padding-top: 18px;padding-bottom: 18px;padding-left: 18px;padding-right: 18px;">${
+                    [
+                     `<div class="d-flex align-content-center" style="gap:10px;">
+<h3 class="my-auto tx_title fw-normal" style="white-space: nowrap;font-size: 16px;">在${(()=>{
+    if(GlobalWidget.glitter_view_type === ViewType.mobile){
+        return `手機`
+    }else{
+        return  `電腦`
+    }
+                     })()}版上顯示</h3>
+${GlobalWidget.switchButton(obj.gvc, obj.widget[key].refer!=='hide', (bool) => {
+                         // vm.data.main = bool;
+                         if(bool){
+                             obj.widget[key].refer='def'    
+                         }else{
+                             obj.widget[key].refer='hide'
+                         }
+                         setTimeout(()=>{
+                             obj.widget.refreshComponent()
+                         },250)
+                     })}
+</div>`
+                    ].concat((()=>{
+                        if(obj.widget[key].refer==='hide'){
+                            return []
+                        }else{
+                            return  [ `<div class="fw-bold" style="font-size: 16px;">顯示樣式</div>`,
+                                EditorElem.select({
+                                    title: '',
+                                    gvc: obj.gvc,
+                                    def: widget.refer || 'def',
+                                    array: [
+                                        {title: '預設樣式', value: "def"},
+                                        {title: '自定義', value: "custom"}
+                                    ],
+                                    callback: (text) => {
+                                        obj.widget[key].refer=text;
+                                        // obj.gvc.notifyDataChange(id)
+                                        if(obj.widget.refreshComponent){
+                                            obj.widget.refreshComponent()
+                                        }else if(obj.widget.refreshAll){
+                                            obj.widget.refreshAll()
+                                        }
+                                    }
+                                })]
+                        }
+                    })()).join('<div class="my-3"></div>')
+                }</div>`
             }
             return obj.gvc.bindView(() => {
                 return {
                     bind: id,
                     view: () => {
-                        if (GlobalWidget.glitter_view_type === ViewType.mobile) {
-                            const view = [selector(obj.widget.mobile,'mobile')]
-                            if (obj.widget.mobile.refer === 'custom') {
-                                view.push(obj.view(obj.widget.mobile))
+                        try {
+                            if (GlobalWidget.glitter_view_type === ViewType.mobile) {
+                                const view = [selector(obj.widget.mobile,'mobile')]
+                                if (obj.widget.mobile.refer === 'custom') {
+                                    view.push(obj.view(obj.widget.mobile))
+                                }
+                                return view.join('')
+                            } else if (GlobalWidget.glitter_view_type === ViewType.desktop) {
+                                const view = [selector(obj.widget.desktop,'desktop')]
+                                if (obj.widget.desktop.refer === 'custom') {
+                                    view.push(obj.view(obj.widget.desktop))
+                                }
+                                return view.join('')
+                            } else {
+                                return obj.view(obj.widget)
                             }
-                            return view.join('')
-                        } else if (GlobalWidget.glitter_view_type === ViewType.desktop) {
-                            const view = [selector(obj.widget.desktop,'desktop')]
-                            if (obj.widget.desktop.refer === 'custom') {
-                                view.push(obj.view(obj.widget.desktop))
-                            }
-                            return view.join('')
-                        } else {
-                            return obj.view(obj.widget)
+                        }catch (e){
+                            console.log(e)
+                            return  `${e}`
                         }
+
                     }
                 }
             })
@@ -194,15 +248,14 @@ export class GlobalWidget {
         view: (widget: any) => string
     }) {
         GlobalWidget.initialShowCaseData({widget:obj.widget,gvc:obj.gvc})
-
-        if(obj.gvc.glitter.document.body.clientWidth<800 && obj.widget.mobile.refer==='custom'){
-            return obj.view(obj.widget.mobile)
-        }else if(obj.gvc.glitter.document.body.clientWidth<800 && obj.widget.mobile.refer==='hide'){
+        if(obj.gvc.glitter.document.body.clientWidth<800 && obj.widget.mobile.refer==='hide'){
             return ``
-        }else if(obj.gvc.glitter.document.body.clientWidth>=800 && obj.widget.desktop.refer==='custom'){
-            return obj.view(obj.widget.desktop)
         }else if(obj.gvc.glitter.document.body.clientWidth>=800 && obj.widget.desktop.refer==='hide'){
             return ``
+        }else if(obj.gvc.glitter.document.body.clientWidth<800 && obj.widget.mobile.refer==='custom'){
+            return obj.view(obj.widget.mobile)
+        }else if(obj.gvc.glitter.document.body.clientWidth>=800 && obj.widget.desktop.refer==='custom'){
+            return obj.view(obj.widget.desktop)
         }else{
             return obj.view(obj.widget)
         }

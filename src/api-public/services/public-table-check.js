@@ -364,7 +364,7 @@ class ApiPublic {
   \`created_time\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (\`id\`),
   INDEX \`index2\` (\`user_id\` ASC) VISIBLE);`,
-                },
+                }
             ];
             for (const b of chunkArray(sqlArray, groupSize)) {
                 let check = b.length;

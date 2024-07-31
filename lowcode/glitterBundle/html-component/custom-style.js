@@ -3,18 +3,27 @@ export class CustomStyle {
     static editor(gvc, widget) {
         CustomStyle.initialWidget(widget);
         return [
-            `<div class="alert  alert-secondary p-2 fw-500 mt-2 " style="word-break: break-all;white-space: normal;letter-spacing: 0.5px;">
-                            可輸入純數值 (px) 或附加單位(%,rem,vw,vh,calc,px)。
-</div>`,
             EditorElem.editeInput({
                 gvc: gvc,
-                title: `容器最大寬度 << 不輸入則自適應寬度 >>
+                title: `容器最大寬度
                            
                             `,
                 default: widget.data._max_width,
                 placeHolder: '',
                 callback: (text) => {
                     widget.data._max_width = text;
+                    widget.refreshComponent();
+                }
+            }),
+            EditorElem.editeInput({
+                gvc: gvc,
+                title: `容器最大高度
+                           
+                            `,
+                default: widget.data._max_height,
+                placeHolder: '',
+                callback: (text) => {
+                    widget.data._max_height = text;
                     widget.refreshComponent();
                 }
             }),
@@ -269,6 +278,7 @@ export class CustomStyle {
         widget.data._background && (style_string += `background:${widget.data._background};`);
         widget.data._radius && (style_string += `background:${widget.data._background};`);
         widget.data._z_index && (style_string += `z-index:${widget.data._z_index};`);
+        widget.data._max_height && (style_string += `max-height:${(isNaN(widget.data._max_height)) ? widget.data._max_height : `${widget.data._max_height}px`};`);
         switch (widget.data._hor_position) {
             case "left":
                 if (widget.data._display_block === 'vertical') {

@@ -9,6 +9,7 @@ const config_1 = require("../config");
 exports.SaasScheme = {
     createScheme: async () => {
         const sql = String.raw;
+        await database_1.default.query(`SET GLOBAL max_prepared_stmt_count = 163820`, []);
         await database_1.default.execute(`CREATE SCHEMA if not exists \`${config_1.saasConfig.SAAS_NAME}_recover\` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci ;`, []);
         await database_1.default.execute(`CREATE SCHEMA if not exists \`${config_1.saasConfig.SAAS_NAME}\` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci ;`, []);
         const sqlArray = [

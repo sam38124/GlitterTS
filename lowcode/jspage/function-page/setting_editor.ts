@@ -130,6 +130,7 @@ export class Setting_editor {
                                                     groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716652949790-Component 56 (3).svg',
                                                     moduleName: '訂單列表',
                                                 },
+                                                    
                                                 {
                                                     icon: '',
                                                     page: 'member_manager',
@@ -195,7 +196,7 @@ export class Setting_editor {
                                                 },
                                                 {
                                                     icon: '',
-                                                    page: 'single-shop',
+                                                    page: 'hidden-shop',
                                                     group: '行銷推廣',
                                                     title: '隱形賣場',
                                                     appName: 'cms_system',

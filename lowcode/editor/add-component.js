@@ -487,6 +487,11 @@ export class AddComponent {
                                                                 ${data.response.result.data
                                                             .sort((a, b) => {
                                                             var _a, _b;
+                                                            if (['SY00-內文', 'SY00-按鈕連結', 'SY00-圖片元件', 'SY00-影片方塊', 'SY00-標題', 'SY00-商品顯示區塊', 'SY00-富文本區塊'].find((dd) => {
+                                                                return a.template_config.name === dd;
+                                                            })) {
+                                                                return -1;
+                                                            }
                                                             const aData = ((_a = a.template_config.tag) !== null && _a !== void 0 ? _a : []).find((dd) => {
                                                                 return dd === '基本元件';
                                                             });
@@ -502,6 +507,13 @@ export class AddComponent {
                                                                 }
                                                             }
                                                             else if (aData) {
+                                                                return -1;
+                                                            }
+                                                            else {
+                                                                return 1;
+                                                            }
+                                                        }).sort((a, b) => {
+                                                            if (a.template_config.name === '空白-嵌入模塊') {
                                                                 return -1;
                                                             }
                                                             else {

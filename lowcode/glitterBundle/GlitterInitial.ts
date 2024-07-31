@@ -175,7 +175,6 @@ function traverseHTML(element: any, document: any) {
                                 if( document.querySelector(`[gvc-id="${id}"]`).style.height===(height+'px')){
                                     document.querySelector(`[gvc-id="${id}"]`).style.height='auto'
                                 }
-
                             }, 10)
                         });
                         (document.querySelector(`[gvc-id="${id}"]`) as any).wasRender = true

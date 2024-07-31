@@ -1762,7 +1762,7 @@ ${obj.gvc.bindView({
                             </div>
                             <div
                                 class="position-absolute fs-1 plus_btn"
-                                style="left:50%;transform: translateX(-50%);height:28px;width:28px;top:-40px;z-index:99999;cursor: pointer;pointer-events:all;"
+                                style="left:50%;transform: translateX(-50%);height:20px;width:20px;top:-40px;z-index:99999;cursor: pointer;pointer-events:all;"
                                 onmousedown="${cf.gvc.event((e, event) => {
                             HtmlGenerate.block_timer = new Date().getTime();
                             glitter.getModule(new URL('../.././editor/add-component.js', import.meta.url).href, (AddComponent) => {
@@ -1817,7 +1817,7 @@ ${obj.gvc.bindView({
                             </div>
                             <div
                                 class="position-absolute fs-1 plus_btn"
-                                style="left:50%;transform: translateX(-50%);height:28px;width:28px;bottom:10px;z-index:99999;cursor: pointer;pointer-events:all;"
+                                style="left:50%;transform: translateX(-50%);height:20px;width:20px;bottom:20px;z-index:99999;cursor: pointer;pointer-events:all;"
                                 onmousedown="${cf.gvc.event((e, event) => {
                             HtmlGenerate.block_timer = new Date().getTime();
                             glitter.getModule(new URL('../.././editor/add-component.js', import.meta.url).href, (AddComponent) => {
@@ -1876,6 +1876,8 @@ ${obj.gvc.bindView({
                         style: `z-index: 99999;top:0px;left:0px;`,
                     },
                     onCreate: () => {
+                        setTimeout(() => {
+                        }, 2000);
                     },
                 };
             }),

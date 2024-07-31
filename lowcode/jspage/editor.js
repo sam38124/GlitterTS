@@ -525,7 +525,7 @@ ${glitter.share.editor_vm ? `d-none` : ``}"
                         }
                         else {
                             return html ` <div
-                                                            class="d-flex align-items-center justify-content-center"
+                                                            class="d-flex align-items-center justify-content-center ci_${dd.type}"
                                                             style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
                                                             onclick="${gvc.event(() => {
                                 viewModel.type = dd.type;

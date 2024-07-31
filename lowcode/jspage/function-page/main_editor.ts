@@ -197,7 +197,7 @@ export class Main_editor {
                                                                                             event.stopPropagation();
                                                                                             glitter.htmlGenerate.deleteWidget(og_array, og_array[index]);
                                                                                             setPageConfig();
-                                                                                            
+
                                                                                         })}"
                                                                                 >
                                                                                     <i class="fa-regular fa-trash d-flex align-items-center justify-content-center "></i>
@@ -474,7 +474,7 @@ export class Main_editor {
                                     return html`
                                         <div class="px-3   border-bottom pb-3 fw-bold mt-2 pt-2"
                                              style="cursor: pointer;color:#393939;">
-                                            <span>配色設定</span>
+                                            <span>調色盤設定</span>
                                         </div>
                                         <div class="row ${(globalValue.color_theme.length === 0) ? `d-none` : ``}"
                                              style="margin:18px;">
@@ -486,7 +486,7 @@ export class Main_editor {
                                                     gvc.notifyDataChange(id)
                                                 })}">
                                                 ${Main_editor.colorCard(globalValue.color_theme[index])}
-                                                <div class="w-100 t_39_16 mt-2" style="text-align: center;">配色${index + 1}</div>
+                                                <div class="w-100 t_39_16 mt-2" style="text-align: center;">調色盤${index + 1}</div>
                                             </div>`
                                             }).join('')}
                                         </div>
@@ -495,7 +495,7 @@ export class Main_editor {
                                                  onclick="${gvc.event(() => {
                                                      vm.data = {id: gvc.glitter.getUUID()};
                                                      globalValue.color_theme.push(vm.data);
-                                                     vm.name = ('配色' + globalValue.color_theme.length);
+                                                     vm.name = ('調色盤' + globalValue.color_theme.length);
                                                      vm.type = 'detail'
                                                      vm.index = globalValue.color_theme.length - 1
                                                      gvc.notifyDataChange(id)
@@ -510,7 +510,7 @@ export class Main_editor {
                                             vm.type = 'list'
                                             gvc.notifyDataChange(id)
                                         },
-                                        name: `配色${vm.index + 1}`,
+                                        name: `調色盤${vm.index + 1}`,
                                         data: vm.data,
                                         index: vm.index
                                     })
@@ -526,12 +526,52 @@ export class Main_editor {
         });
     }
 
+    public static color_detail_custom(vm: {
+        gvc: GVC,
+        back: () => void,
+        name: string,
+        data: any,
+        index: number,
+        filter?: (key: string) => boolean
+    }) {
+        const gvc = vm.gvc
+        return `<div style="">${EditorConfig.color_setting_config.filter((dd) => {
+            return (!vm.filter) || vm.filter(dd.key)
+        }).map((dd) => {
+            vm.data[dd.key] = vm.data[dd.key] || '#FFFFFF'
+            return EditorElem.colorSelect({
+                title: dd.title,
+                callback: (text) => {
+                    vm.data[dd.key] = text;
+
+                    gvc.glitter.share.globalValue[`theme_color.${vm.index}.${dd.key}`] = text;
+                    const lastScrollY = (document.querySelector('#editerCenter iframe') as any).contentWindow.scrollY;
+                    (document.querySelector('#editerCenter  iframe') as any).contentWindow.glitter.share.globalValue = gvc.glitter.share.globalValue;
+                    const element = (document.querySelector('#editerCenter iframe') as any).contentWindow.glitter.elementCallback;
+                    Object.keys(element).map((dd) => {
+                        try {
+                            element[dd].updateAttribute()
+                        } catch (e) {
+                        }
+                    });
+                    if (`${vm.index}` === '0') {
+                        (document.querySelector('#editerCenter iframe') as any).contentWindow.document.querySelector('body')!.style.background = gvc.glitter.share.globalValue[`theme_color.0.background`];
+                    }
+                    vm.back()
+                },
+                gvc: gvc,
+                def: vm.data[dd.key]
+            })
+        }).join('<div style="height: 15px;"></div>')}</div>`
+    }
+
     public static color_detail(vm: {
         gvc: GVC,
         back: () => void,
         name: string,
         data: any,
-        index: number
+        index: number,
+        filter?: (key: string) => boolean
     }) {
         const gvc = vm.gvc
         const globalValue = gvc.glitter.share.editorViewModel.appConfig;
@@ -542,14 +582,13 @@ export class Main_editor {
                 bind: vId,
                 view: () => {
                     return [
-                        `
- <div class="px-3   border-bottom pb-3 fw-bold mt-2 pt-2" style="cursor: pointer;color:#393939;" onclick="${vm.gvc.event(() => {
+                        `<div class="px-3   border-bottom pb-3 fw-bold mt-2 pt-2" style="cursor: pointer;color:#393939;" onclick="${vm.gvc.event(() => {
                             vm.back()
                         })}">
- <i class="fa-solid fa-angle-left"></i>
+                            <i class="fa-solid fa-angle-left"></i>
                             <span>${vm.name} 編輯</span>
                         </div>
-                                    <div class="border-bottom w-100" style="padding: 24px;width: 100%; justify-content: flex-start; align-items: center; gap: 10px; display: inline-flex">
+                        <div class="border-bottom w-100" style="padding: 24px;width: 100%; justify-content: flex-start; align-items: center; gap: 10px; display: inline-flex">
   <div style="width: 93px;">
   ${Main_editor.colorCard(vm.data)}
 </div>
@@ -558,7 +597,9 @@ export class Main_editor {
   </div>
 </div>
                                     `,
-                        `<div style="padding: 18px 24px 24px;">${EditorConfig.color_setting_config.map((dd) => {
+                        `<div style="padding: 18px 24px 24px;">${EditorConfig.color_setting_config.filter((dd) => {
+                            return (!vm.filter) || vm.filter(dd.key)
+                        }).map((dd) => {
                             vm.data[dd.key] = vm.data[dd.key] || '#FFFFFF'
                             return EditorElem.colorSelect({
                                 title: dd.title,
@@ -573,9 +614,7 @@ export class Main_editor {
                                         try {
                                             element[dd].updateAttribute()
                                         } catch (e) {
-
                                         }
-
                                     });
                                     if (`${vm.index}` === '0') {
                                         (document.querySelector('#editerCenter iframe') as any).contentWindow.document.querySelector('body')!.style.background = gvc.glitter.share.globalValue[`theme_color.0.background`];
@@ -784,9 +823,9 @@ export class Main_editor {
                     <div class="position-absolute w-100 bottom-0 d-flex align-items-center p-3 shadow justify-content-end border-top bg-white"
                          style="height: 60px;">
                         ${BgWidget.cancel(gvc.event(() => {
-                            const dialog=new ShareDialog(gvc.glitter)
+                            const dialog = new ShareDialog(gvc.glitter)
                             navigator.clipboard.writeText(JSON.stringify(viewModel.selectItem));
-                            dialog.successMessage({text:'複製成功'})
+                            dialog.successMessage({text: '複製成功'})
                         }), '複製元件')}
                         <div class="mx-2"></div>
                         ${BgWidget.cancel(gvc.event(() => {

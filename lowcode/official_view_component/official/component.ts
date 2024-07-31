@@ -387,7 +387,6 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                             })
                                                         })
                                                     }
-
                                                     const pageData: any = await getPageData(widget.data.refer_app ? {
                                                         tag: selectTag,
                                                         appName: widget.data.refer_app
@@ -410,9 +409,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                             }
                                                             console.log(`formData->`, page_config)
                                                             page_config.formData = page_config.formData || {}
-
                                                             let  refer_form :any = undefined;
-
                                                             function refresh(widget:any) {
                                                                 console.log('refresh')
                                                                 if (widget.data.refer_app) {
@@ -487,7 +484,8 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                                                         refresh: ()=>{
                                                                                             refresh(widget)
                                                                                         },
-                                                                                        formData: refer_form
+                                                                                        formData: refer_form,
+                                                                                        widget:pageData.config
                                                                                     })}</div>`
                                                                                 }
                                                                             })
@@ -682,7 +680,17 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                     widget:widget,
                                                     gvc:gvc
                                                 })
-                                                if(gvc.glitter.document.body.clientWidth<800 && (widget as any).mobile.refer==='custom'){
+                                                if(gvc.glitter.document.body.clientWidth<800 && (widget as any).mobile.refer==='hide'){
+                                                    resolve(`
+                                                <!-- tag=${tag} -->
+                                                `)
+                                                    return
+                                                }else if(gvc.glitter.document.body.clientWidth>=800 && (widget as any).desktop.refer==='hide'){
+                                                    resolve(`
+                                                <!-- tag=${tag} -->
+                                                `)
+                                                    return
+                                                }else if(gvc.glitter.document.body.clientWidth<800 && (widget as any).mobile.refer==='custom'){
                                                     data.page_config.formData = ((widget as any).mobile.data.refer_form_data || data.page_config.formData);
                                                 }else if(gvc.glitter.document.body.clientWidth>=800 && (widget as any).desktop.refer==='custom'){
                                                     data.page_config.formData = ((widget as any).desktop.data.refer_form_data || data.page_config.formData);

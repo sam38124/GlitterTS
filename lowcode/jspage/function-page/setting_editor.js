@@ -189,7 +189,7 @@ export class Setting_editor {
                                         },
                                         {
                                             icon: '',
-                                            page: 'single-shop',
+                                            page: 'hidden-shop',
                                             group: '行銷推廣',
                                             title: '隱形賣場',
                                             appName: 'cms_system',
