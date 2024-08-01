@@ -9,7 +9,6 @@ export class MemberTypeList {
     public static main(gvc: GVC, widget: any) {
         const html = String.raw;
         const glitter = gvc.glitter;
-        let callback = (data: any) => {};
 
         const vm: {
             id: string;
@@ -19,105 +18,98 @@ export class MemberTypeList {
             query?: string;
             group: { type: string; title: string; tag: string };
         } = {
-            id: gvc.glitter.getUUID(),
+            id: glitter.getUUID(),
             type: 'list',
             index: 0,
             dataList: undefined,
             query: '',
             group: { type: 'level', title: '', tag: '' },
         };
-        const filterID = gvc.glitter.getUUID();
+        const filterID = glitter.getUUID();
         let vmi: any = undefined;
 
         function getDatalist() {
-            return vm.dataList.reverse().map((dd: any, index: number) => {
-                return [
-                    {
-                        key: EditorElem.checkBoxOnly({
-                            gvc: gvc,
-                            def: !vm.dataList.find((dd: any) => {
-                                return !dd.checked;
+            return vm.dataList
+                .slice()
+                .reverse()
+                .map((dd: any, index: number) => {
+                    return [
+                        {
+                            key: EditorElem.checkBoxOnly({
+                                gvc: gvc,
+                                def: !vm.dataList.find((dd: any) => {
+                                    return !dd.checked;
+                                }),
+                                callback: (result) => {
+                                    vm.dataList.map((dd: any) => {
+                                        dd.checked = result;
+                                    });
+                                    vmi.data = getDatalist();
+                                    vmi.callback();
+                                    gvc.notifyDataChange(filterID);
+                                },
                             }),
-                            callback: (result) => {
-                                vm.dataList.map((dd: any) => {
+                            value: EditorElem.checkBoxOnly({
+                                gvc: gvc,
+                                def: dd.checked,
+                                callback: (result) => {
                                     dd.checked = result;
-                                });
-                                vmi.data = getDatalist();
-                                vmi.callback();
-                                gvc.notifyDataChange(filterID);
-                                callback(
-                                    vm.dataList.filter((dd: any) => {
-                                        return dd.checked;
-                                    })
-                                );
-                            },
-                        }),
-                        value: EditorElem.checkBoxOnly({
-                            gvc: gvc,
-                            def: dd.checked,
-                            callback: (result) => {
-                                dd.checked = result;
-                                vmi.data = getDatalist();
-                                vmi.callback();
-                                gvc.notifyDataChange(filterID);
-                                callback(
-                                    vm.dataList.filter((dd: any) => {
-                                        return dd.checked;
-                                    })
-                                );
-                            },
-                            style: 'height: 37.5px;',
-                        }),
-                    },
-                    {
-                        key: '等級順序',
-                        value: `<span class="fs-7">等級${vm.dataList.length - index}</span>`,
-                    },
-                    {
-                        key: '有效期限',
-                        value: html`<span class="fs-7"
-                            >${(() => {
-                                const index = [30, 90, 180, 365].findIndex((d1) => {
-                                    return parseInt(dd.dead_line.value as any, 10) === d1;
-                                });
-                                if (dd.dead_line.type === 'date') {
-                                    if (index !== -1) {
-                                        return ['一個月', '三個月', '半年', '一年'][index];
+                                    vmi.data = getDatalist();
+                                    vmi.callback();
+                                    gvc.notifyDataChange(filterID);
+                                },
+                                style: 'height: 37.5px;',
+                            }),
+                        },
+                        {
+                            key: '等級順序',
+                            value: `<span class="fs-7">等級${vm.dataList.length - index}</span>`,
+                        },
+                        {
+                            key: '有效期限',
+                            value: html`<span class="fs-7"
+                                >${(() => {
+                                    const index = [30, 90, 180, 365].findIndex((d1) => {
+                                        return parseInt(dd.dead_line.value as any, 10) === d1;
+                                    });
+                                    if (dd.dead_line.type === 'date') {
+                                        if (index !== -1) {
+                                            return ['一個月', '三個月', '半年', '一年'][index];
+                                        } else {
+                                            return `${dd.dead_line.value}天`;
+                                        }
                                     } else {
-                                        return `${dd.dead_line.value}天`;
+                                        return `永久`;
                                     }
-                                } else {
-                                    return `永久`;
-                                }
-                            })()}</span
-                        >`,
-                    },
-                    {
-                        key: '會員名稱',
-                        value: `<span class="fs-7">${dd.tag_name}</span>`,
-                    },
-                    {
-                        key: '會員數',
-                        value: `<span class="fs-7">${dd.counts}</span>`,
-                    },
-                    {
-                        key: '',
-                        value:
-                            dd.counts > 0
-                                ? BgWidget.grayButton(
-                                      '查閱名單',
-                                      gvc.event((e, event) => {
-                                          event.stopPropagation();
-                                          vm.group = { type: 'level', title: dd.tag_name, tag: dd.id };
-                                          vm.type = 'userList';
-                                          gvc.notifyDataChange(vm.id);
-                                      }),
-                                      { textStyle: 'font-weight: normal; font-size: 14px;' }
-                                  )
-                                : '',
-                    },
-                ];
-            });
+                                })()}</span
+                            >`,
+                        },
+                        {
+                            key: '會員名稱',
+                            value: `<span class="fs-7">${dd.tag_name}</span>`,
+                        },
+                        {
+                            key: '會員數',
+                            value: `<span class="fs-7">${dd.counts}</span>`,
+                        },
+                        {
+                            key: '',
+                            value:
+                                dd.counts > 0
+                                    ? BgWidget.grayButton(
+                                          '查閱名單',
+                                          gvc.event((e, event) => {
+                                              event.stopPropagation();
+                                              vm.group = { type: 'level', title: dd.tag_name, tag: dd.id };
+                                              vm.type = 'userList';
+                                              gvc.notifyDataChange(vm.id);
+                                          }),
+                                          { textStyle: 'font-weight: normal; font-size: 14px;' }
+                                      )
+                                    : '',
+                        },
+                    ];
+                });
         }
 
         return gvc.bindView(() => {
@@ -172,7 +164,7 @@ export class MemberTypeList {
                                                     return {
                                                         bind: filterID,
                                                         view: () => {
-                                                            const dialog = new ShareDialog(gvc.glitter);
+                                                            const dialog = new ShareDialog(glitter);
                                                             const selCount = vm.dataList.filter((dd: any) => dd.checked).length;
                                                             return BgWidget.selNavbar({
                                                                 count: selCount,
@@ -274,7 +266,8 @@ export class MemberTypeList {
     public static userInformationDetail(cf: { gvc: GVC; widget: any; callback: () => void; index: number }) {
         const html = String.raw;
         const gvc = cf.gvc;
-        const id = gvc.glitter.getUUID();
+        const glitter = gvc.glitter;
+        const id = glitter.getUUID();
         const vm: {
             data: {
                 tag_name: string;
@@ -319,7 +312,7 @@ export class MemberTypeList {
                 dead_line: {
                     type: 'noLimit',
                 },
-                id: gvc.glitter.getUUID(),
+                id: glitter.getUUID(),
                 create_date: new Date(),
             };
             vm.original_data.levels.map((dd: any) => {
@@ -328,7 +321,7 @@ export class MemberTypeList {
             vm.loading = false;
             gvc.notifyDataChange(id);
         });
-        const noteID = gvc.glitter.getUUID();
+        const noteID = glitter.getUUID();
         return gvc.bindView(() => {
             return {
                 bind: id,
@@ -352,7 +345,7 @@ export class MemberTypeList {
                             html`<div class="d-flex justify-content-center ${document.body.clientWidth < 768 ? 'flex-column' : ''}" style="gap: 24px">
                                 ${BgWidget.container(
                                     gvc.bindView(() => {
-                                        const id = gvc.glitter.getUUID();
+                                        const id = glitter.getUUID();
                                         return {
                                             bind: id,
                                             view: () => {

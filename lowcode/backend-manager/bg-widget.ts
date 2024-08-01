@@ -22,6 +22,7 @@ export interface OptionsItem {
     key: string;
     value: string;
     note?: string;
+    image?: string;
 }
 
 export interface SelEventItem {
@@ -1245,7 +1246,10 @@ ${obj.default ?? ''}</textarea
                 options: [] as OptionsItem[],
                 query: '',
                 orderString: '',
-                selectKey: '',
+                selectKey: {
+                    name: '',
+                    index: 0,
+                },
             };
 
             obj.gvc.addStyle(`
@@ -1305,9 +1309,12 @@ ${obj.default ?? ''}</textarea
                                                       : ''}
                                               </div>`}
                                         ${obj.gvc.map(
-                                            vm.options.map((opt: OptionsItem) => {
+                                            vm.options.map((opt: OptionsItem, index: number) => {
                                                 function call() {
-                                                    vm.selectKey = opt.key;
+                                                    vm.selectKey = {
+                                                        name: opt.key,
+                                                        index: index,
+                                                    };
                                                     if (obj.default.includes(opt.key)) {
                                                         obj.default = obj.default.filter((item) => item !== opt.key);
                                                     } else {
@@ -1327,6 +1334,13 @@ ${obj.default ?? ''}</textarea
                                                               onclick="${obj.gvc.event(() => call())}"
                                                               ${obj.default.includes(opt.key) ? 'checked' : ''}
                                                           />`}
+                                                    ${opt.image
+                                                        ? html`
+                                                              <div style="line-height: 40px;">
+                                                                  <img class="rounded border" src="${opt.image}" style="width:40px; height:40px;" />
+                                                              </div>
+                                                          `
+                                                        : ''}
                                                     <div class="form-check-label c_updown_label ${obj.readonly ? '' : 'cursor_pointer'}" onclick="${obj.gvc.event(() => call())}">
                                                         <div class="tx_normal ${opt.note ? 'mb-1' : ''}">${opt.value}</div>
                                                         ${opt.note ? html` <div class="tx_gray_12">${opt.note}</div> ` : ''}
@@ -1378,15 +1392,21 @@ ${obj.default ?? ''}</textarea
                                 obj.gvc.notifyDataChange(vm.id);
                             });
                         } else {
+                            let n = 0;
                             const si = setInterval(() => {
-                                const element = document.getElementById(vm.selectKey);
+                                const element = document.getElementById(vm.selectKey.name);
                                 if (element) {
                                     element.scrollIntoView();
                                     const element2 = document.querySelector('.c_dialog_main');
-                                    if (element2) {
+                                    if (element2 && vm.selectKey.index < vm.options.length - 5) {
                                         element2.scrollTop -= element2.clientHeight / 2;
                                     }
                                     clearInterval(si);
+                                } else {
+                                    n++;
+                                    if (n > 50) {
+                                        clearInterval(si);
+                                    }
                                 }
                             }, 100);
                         }

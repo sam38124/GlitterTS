@@ -132,8 +132,8 @@ export class AutoReply {
                                                 'auto-email-payment-successful',
                                                 'auto-email-order-create',
                                                 'proof-purchase',
-                                                'auto-email-order-cancel-success',
-                                                'auto-email-order-cancel-false',
+                                                // 'auto-email-order-cancel-success',
+                                                // 'auto-email-order-cancel-false',
                                                 'auto-email-birthday',
                                                 'auto-email-welcome',
                                                 'auto-email-verify',
@@ -217,6 +217,10 @@ export class AutoReply {
                     )}
                 </div>`,
                 BgWidget.mbContainer(24),
+                BgWidget.alertInfo('可使用模板字串，信件將在寄送時自動填入相關數值', ['商家名稱：@{{app_name}}', '訂單號碼：@{{訂單號碼}}', '會員姓名：@{{user_name}}'], {
+                    class: 'mb-3',
+                    style: '',
+                }),
                 BgWidget.mainCard(
                     gvc.bindView(() => {
                         const id = gvc.glitter.getUUID();
