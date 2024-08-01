@@ -237,7 +237,7 @@ export class Schedule {
         setTimeout(() => this.autoSendMail(sec), sec * 1000);
     }
 
-     main() {
+    main() {
         const scheduleList: ScheduleItem[] = [
             // { second: 10, status: false, func: 'example', desc: '排程啟用範例' },
             { second: 3600, status: true, func: 'birthRebate', desc: '生日禮發放購物金' },
@@ -258,6 +258,3 @@ export class Schedule {
         }
     }
 }
-
-
-

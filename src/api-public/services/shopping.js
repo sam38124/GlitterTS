@@ -538,17 +538,7 @@ class Shopping {
                         orderData: carData,
                         status: 0,
                     });
-                    const customerMail = await auto_send_email_js_1.AutoSendEmail.getDefCompare(this.app, 'auto-email-order-create');
-                    if (customerMail.toggle) {
-                        const mailClass = new mail_js_1.Mail(this.app);
-                        await mailClass.postMail({
-                            name: customerMail.name,
-                            title: customerMail.title.replace(/@\{\{訂單號碼\}\}/g, carData.orderID),
-                            content: customerMail.content.replace(/@\{\{訂單號碼\}\}/g, carData.orderID),
-                            email: [carData.email],
-                            type: 'auto-email-order-create',
-                        });
-                    }
+                    await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-order-create', carData.orderID, carData.email);
                     carData.method = 'off_line';
                     await database_js_1.default.execute(`INSERT INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
                          values (?, ?, ?, ?)`, [carData.orderID, 0, carData.email, carData]);
@@ -799,32 +789,30 @@ class Shopping {
     }
     async putOrder(data) {
         try {
+            const mailClass = new mail_js_1.Mail(this.app);
             const update = {};
             if (data.status !== undefined) {
                 update.status = data.status;
             }
-            data.orderData && (update.orderData = JSON.stringify(data.orderData));
-            await database_js_1.default.query(`UPDATE \`${this.app}\`.t_checkout
-                 set ?
-                 WHERE id = ?`, [update, data.id]);
-            const origin = await database_js_1.default.query(`SELECT status FROM \`${this.app}\`.t_checkout WHERE id = ?;
+            if (data.orderData) {
+                update.orderData = JSON.stringify(data.orderData);
+            }
+            const origin = await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_checkout WHERE id = ?;
                     `, [data.id]);
+            await database_js_1.default.query(`UPDATE \`${this.app}\`.t_checkout SET ? WHERE id = ?
+                `, [update, data.id]);
+            if (origin[0].orderData.progress !== 'shipping' && update.orderData.progress === 'shipping') {
+                await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-shipment', data.orderData.orderID, data.orderData.email);
+            }
+            if (origin[0].orderData.progress !== 'arrived' && update.orderData.progress === 'arrived') {
+                await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-shipment-arrival', data.orderData.orderID, data.orderData.email);
+            }
             if (origin[0].status === 0 && update.status === 1) {
                 new notify_js_1.ManagerNotify(this.app).checkout({
                     orderData: JSON.parse(update.orderData),
-                    status: update.status,
+                    status: 1,
                 });
-                const mailClass = new mail_js_1.Mail(this.app);
-                const customerMail = await auto_send_email_js_1.AutoSendEmail.getDefCompare(this.app, 'auto-email-payment-successful');
-                if (customerMail.toggle) {
-                    await mailClass.postMail({
-                        name: customerMail.name,
-                        title: customerMail.title.replace(/@\{\{訂單號碼\}\}/g, data.orderData.orderID),
-                        content: customerMail.content.replace(/@\{\{訂單號碼\}\}/g, data.orderData.orderID),
-                        email: [data.orderData.email],
-                        type: 'auto-email-payment-successful',
-                    });
-                }
+                await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-payment-successful', data.orderData.orderID, data.orderData.email);
             }
             return {
                 result: 'success',
@@ -853,17 +841,7 @@ class Shopping {
             const orderData = (await database_js_1.default.query(`select orderData from \`${this.app}\`.t_checkout where cart_token=?`, [order_id]))[0]['orderData'];
             orderData.proof_purchase = text;
             new notify_js_1.ManagerNotify(this.app).uploadProof({ orderData: orderData });
-            const customerMail = await auto_send_email_js_1.AutoSendEmail.getDefCompare(this.app, 'proof-purchase');
-            if (customerMail.toggle) {
-                const mailClass = new mail_js_1.Mail(this.app);
-                await mailClass.postMail({
-                    name: customerMail.name,
-                    title: customerMail.title.replace(/@\{\{訂單號碼\}\}/g, order_id),
-                    content: customerMail.content.replace(/@\{\{訂單號碼\}\}/g, order_id),
-                    email: [orderData.email],
-                    type: 'proof-purchase',
-                });
-            }
+            await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'proof-purchase', order_id, orderData.email);
             await database_js_1.default.query(`update \`${this.app}\`.t_checkout set orderData=? where cart_token=?`, [JSON.stringify(orderData), order_id]);
             return {
                 result: true,
@@ -1003,17 +981,7 @@ class Shopping {
                     orderData: cartData.orderData,
                     status: status,
                 });
-                const mailClass = new mail_js_1.Mail(this.app);
-                const customerMail = await auto_send_email_js_1.AutoSendEmail.getDefCompare(this.app, 'auto-email-payment-successful');
-                if (customerMail.toggle) {
-                    await mailClass.postMail({
-                        name: customerMail.name,
-                        title: customerMail.title.replace(/@\{\{訂單號碼\}\}/g, order_id),
-                        content: customerMail.content.replace(/@\{\{訂單號碼\}\}/g, order_id),
-                        email: [cartData.email],
-                        type: 'auto-email-payment-successful',
-                    });
-                }
+                await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-payment-successful', order_id, cartData.email);
                 const userData = await new user_js_1.User(this.app).getUserData(cartData.email, 'account');
                 if (userData && cartData.orderData.rebate > 0) {
                     const rebateClass = new rebate_js_1.Rebate(this.app);
@@ -1191,6 +1159,7 @@ class Shopping {
                             break;
                         case 'sales_per_month_1_year':
                             result[tag] = await this.getSalesPerMonth1Year();
+                            break;
                         case 'order_today':
                             result[tag] = await this.getOrderToDay();
                             break;

@@ -2,24 +2,25 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AutoSendEmail = void 0;
 const user_js_1 = require("../services/user.js");
+const mail_js_1 = require("../services/mail.js");
 class AutoSendEmail {
     static async getDefCompare(app, tag) {
         var _a;
         const dataList = [
-            {
-                tag: 'auto-email-shipment-arrival',
-                tag_name: '商品到貨',
-                name: '@{{app_name}}',
-                title: '[@{{app_name}}] #@{{訂單號碼}} 送貨狀態 更新為: 已到達',
-                content: '[@{{app_name}}] #@{{訂單號碼}} 送貨狀態 更新為: 已到達',
-                toggle: true,
-            },
             {
                 tag: 'auto-email-shipment',
                 tag_name: '商品出貨',
                 name: '@{{app_name}}',
                 title: '[@{{app_name}}] #@{{訂單號碼}} 送貨狀態 更新為: 出貨中',
                 content: '[@{{app_name}}] #@{{訂單號碼}} 送貨狀態 更新為: 出貨中',
+                toggle: true,
+            },
+            {
+                tag: 'auto-email-shipment-arrival',
+                tag_name: '商品到貨',
+                name: '@{{app_name}}',
+                title: '[@{{app_name}}] #@{{訂單號碼}} 送貨狀態 更新為: 已到達',
+                content: '[@{{app_name}}] #@{{訂單號碼}} 送貨狀態 更新為: 已到達',
                 toggle: true,
             },
             {
@@ -330,6 +331,18 @@ class AutoSendEmail {
                 </tr>
             </tbody>
         </table>`;
+    }
+    static async customerOrder(app, tag, order_id, email) {
+        const customerMail = await this.getDefCompare(app, tag);
+        if (customerMail.toggle) {
+            await new mail_js_1.Mail(app).postMail({
+                name: customerMail.name,
+                title: customerMail.title.replace(/@\{\{訂單號碼\}\}/g, order_id),
+                content: customerMail.content.replace(/@\{\{訂單號碼\}\}/g, order_id),
+                email: [email],
+                type: tag,
+            });
+        }
     }
 }
 exports.AutoSendEmail = AutoSendEmail;

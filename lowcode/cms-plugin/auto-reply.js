@@ -46,7 +46,7 @@ export class AutoReply {
                                 },
                                 {
                                     key: '最後更新時間',
-                                    value: dd.updated_time ? gvc.glitter.ut.dateFormat(dd.updated_time, 'yyyy-MM-dd') : '無',
+                                    value: dd.updated_time ? gvc.glitter.ut.dateFormat(dd.updated_time, 'yyyy-MM-dd') : '系統預設',
                                 },
                                 {
                                     key: '狀態',
@@ -234,6 +234,7 @@ export class AutoReply {
             }))}
                     ${BgWidget.save(gvc.event(() => {
                 widget.event('loading', { title: '儲存中' });
+                vm.data.updated_time = new Date();
                 ApiUser.setPublicConfig({
                     key: tag,
                     value: vm.data,
@@ -253,19 +254,19 @@ export class AutoReply {
         return __awaiter(this, void 0, void 0, function* () {
             const dataList = [
                 {
-                    tag: 'auto-email-shipment-arrival',
-                    tag_name: '商品到貨',
-                    name: '@{{app_name}}',
-                    title: '[@{{app_name}}] #@{{訂單號碼}} 送貨狀態 更新為: 已到達',
-                    content: '[@{{app_name}}] #@{{訂單號碼}} 送貨狀態 更新為: 已到達',
-                    toggle: true,
-                },
-                {
                     tag: 'auto-email-shipment',
                     tag_name: '商品出貨',
                     name: '@{{app_name}}',
                     title: '[@{{app_name}}] #@{{訂單號碼}} 送貨狀態 更新為: 出貨中',
                     content: '[@{{app_name}}] #@{{訂單號碼}} 送貨狀態 更新為: 出貨中',
+                    toggle: true,
+                },
+                {
+                    tag: 'auto-email-shipment-arrival',
+                    tag_name: '商品到貨',
+                    name: '@{{app_name}}',
+                    title: '[@{{app_name}}] #@{{訂單號碼}} 送貨狀態 更新為: 已到達',
+                    content: '[@{{app_name}}] #@{{訂單號碼}} 送貨狀態 更新為: 已到達',
                     toggle: true,
                 },
                 {

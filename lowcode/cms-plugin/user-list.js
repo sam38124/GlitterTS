@@ -847,12 +847,12 @@ export class UserList {
                                         dialog.dataLoading({ text: '', visible: false });
                                         if (response.result) {
                                             regetData();
-                                            dialog.successMessage({ text: '更新成功!' });
+                                            dialog.successMessage({ text: '更新成功' });
                                             vm.loading = true;
                                             gvc.notifyDataChange(vm.id);
                                         }
                                         else {
-                                            dialog.errorMessage({ text: '更新異常!' });
+                                            dialog.errorMessage({ text: '更新異常' });
                                         }
                                     });
                                 }))}

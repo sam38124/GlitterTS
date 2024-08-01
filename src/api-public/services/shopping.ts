@@ -13,7 +13,6 @@ import { CustomCode } from '../services/custom-code.js';
 import moment from 'moment';
 import { ManagerNotify } from './notify.js';
 import { AutoSendEmail } from './auto-send-email.js';
-import { sendmail } from '../../services/ses.js';
 import { Mail } from '../services/mail.js';
 
 interface VoucherData {
@@ -809,23 +808,13 @@ export class Shopping {
                 )[0].value;
                 // 線下付款
                 if (keyData.TYPE === 'off_line') {
-                    // 管理員通知
+                    // 訂單成立信件通知
                     new ManagerNotify(this.app).checkout({
                         orderData: carData,
                         status: 0,
                     });
-                    // 消費者寄件
-                    const customerMail = await AutoSendEmail.getDefCompare(this.app, 'auto-email-order-create');
-                    if (customerMail.toggle) {
-                        const mailClass = new Mail(this.app);
-                        await mailClass.postMail({
-                            name: customerMail.name,
-                            title: customerMail.title.replace(/@\{\{訂單號碼\}\}/g, carData.orderID),
-                            content: customerMail.content.replace(/@\{\{訂單號碼\}\}/g, carData.orderID),
-                            email: [carData.email],
-                            type: 'auto-email-order-create',
-                        });
-                    }
+                    await AutoSendEmail.customerOrder(this.app, 'auto-email-order-create', carData.orderID, carData.email);
+
                     carData.method = 'off_line';
                     await db.execute(
                         `INSERT INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
@@ -1123,45 +1112,44 @@ export class Shopping {
 
     public async putOrder(data: { id: string; orderData: any; status: any }) {
         try {
+            const mailClass = new Mail(this.app);
             const update: any = {};
             if (data.status !== undefined) {
                 update.status = data.status;
             }
-            data.orderData && (update.orderData = JSON.stringify(data.orderData));
-
-            await db.query(
-                `UPDATE \`${this.app}\`.t_checkout
-                 set ?
-                 WHERE id = ?`,
-                [update, data.id]
-            );
+            if (data.orderData) {
+                update.orderData = JSON.stringify(data.orderData);
+            }
 
             const origin = await db.query(
-                `SELECT status FROM \`${this.app}\`.t_checkout WHERE id = ?;
+                `SELECT * FROM \`${this.app}\`.t_checkout WHERE id = ?;
                     `,
                 [data.id]
             );
 
-            // 手動更改已付款
+            await db.query(
+                `UPDATE \`${this.app}\`.t_checkout SET ? WHERE id = ?
+                `,
+                [update, data.id]
+            );
+
+            // 商品出貨信件通知（消費者）
+            if (origin[0].orderData.progress !== 'shipping' && update.orderData.progress === 'shipping') {
+                await AutoSendEmail.customerOrder(this.app, 'auto-email-shipment', data.orderData.orderID, data.orderData.email);
+            }
+
+            // 商品到貨信件通知（消費者）
+            if (origin[0].orderData.progress !== 'arrived' && update.orderData.progress === 'arrived') {
+                await AutoSendEmail.customerOrder(this.app, 'auto-email-shipment-arrival', data.orderData.orderID, data.orderData.email);
+            }
+
+            // 訂單已付款信件通知（管理員, 消費者）
             if (origin[0].status === 0 && update.status === 1) {
-                // 管理員通知
                 new ManagerNotify(this.app).checkout({
                     orderData: JSON.parse(update.orderData),
-                    status: update.status,
+                    status: 1,
                 });
-
-                // 消費者寄件
-                const mailClass = new Mail(this.app);
-                const customerMail = await AutoSendEmail.getDefCompare(this.app, 'auto-email-payment-successful');
-                if (customerMail.toggle) {
-                    await mailClass.postMail({
-                        name: customerMail.name,
-                        title: customerMail.title.replace(/@\{\{訂單號碼\}\}/g, data.orderData.orderID),
-                        content: customerMail.content.replace(/@\{\{訂單號碼\}\}/g, data.orderData.orderID),
-                        email: [data.orderData.email],
-                        type: 'auto-email-payment-successful',
-                    });
-                }
+                await AutoSendEmail.customerOrder(this.app, 'auto-email-payment-successful', data.orderData.orderID, data.orderData.email);
             }
 
             return {
@@ -1194,20 +1182,10 @@ export class Shopping {
             const orderData = (await db.query(`select orderData from \`${this.app}\`.t_checkout where cart_token=?`, [order_id]))[0]['orderData'];
             orderData.proof_purchase = text;
 
-            // 管理員通知
+            // 訂單待核款信件通知
             new ManagerNotify(this.app).uploadProof({ orderData: orderData });
-            // 消費者寄件
-            const customerMail = await AutoSendEmail.getDefCompare(this.app, 'proof-purchase');
-            if (customerMail.toggle) {
-                const mailClass = new Mail(this.app);
-                await mailClass.postMail({
-                    name: customerMail.name,
-                    title: customerMail.title.replace(/@\{\{訂單號碼\}\}/g, order_id),
-                    content: customerMail.content.replace(/@\{\{訂單號碼\}\}/g, order_id),
-                    email: [orderData.email],
-                    type: 'proof-purchase',
-                });
-            }
+            await AutoSendEmail.customerOrder(this.app, 'proof-purchase', order_id, orderData.email);
+
             await db.query(`update \`${this.app}\`.t_checkout set orderData=? where cart_token=?`, [JSON.stringify(orderData), order_id]);
             return {
                 result: true,
@@ -1394,25 +1372,12 @@ export class Shopping {
                     )
                 )[0];
 
-                // 自動更改已付款
-                // 管理員通知
+                // 訂單已付款信件通知（管理員, 消費者）
                 new ManagerNotify(this.app).checkout({
                     orderData: cartData.orderData,
                     status: status,
                 });
-
-                // 消費者寄件
-                const mailClass = new Mail(this.app);
-                const customerMail = await AutoSendEmail.getDefCompare(this.app, 'auto-email-payment-successful');
-                if (customerMail.toggle) {
-                    await mailClass.postMail({
-                        name: customerMail.name,
-                        title: customerMail.title.replace(/@\{\{訂單號碼\}\}/g, order_id),
-                        content: customerMail.content.replace(/@\{\{訂單號碼\}\}/g, order_id),
-                        email: [cartData.email],
-                        type: 'auto-email-payment-successful',
-                    });
-                }
+                await AutoSendEmail.customerOrder(this.app, 'auto-email-payment-successful', order_id, cartData.email);
 
                 const userData = await new User(this.app).getUserData(cartData.email, 'account');
                 if (userData && cartData.orderData.rebate > 0) {
@@ -1620,6 +1585,7 @@ export class Shopping {
                             break;
                         case 'sales_per_month_1_year':
                             result[tag] = await this.getSalesPerMonth1Year();
+                            break;
                         case 'order_today':
                             result[tag] = await this.getOrderToDay();
                             break;

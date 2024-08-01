@@ -2223,7 +2223,7 @@ export class BgNotify {
                                                                                                                         link: dd.content.link,
                                                                                                                     }).then(() => {
                                                                                                                         dialog.dataLoading({ visible: false });
-                                                                                                                        dialog.successMessage({ text: `發送成功!` });
+                                                                                                                        dialog.successMessage({ text: `發送成功` });
                                                                                                                     });
                                                                                                                 })}"
                                                                                                             >
@@ -2248,10 +2248,10 @@ export class BgNotify {
                                                                                                                             link: dd.content.link,
                                                                                                                         }).then(() => {
                                                                                                                             dialog.dataLoading({ visible: false });
-                                                                                                                            dialog.successMessage({ text: `發送成功!` });
+                                                                                                                            dialog.successMessage({ text: '發送成功' });
                                                                                                                         });
                                                                                                                     } else {
-                                                                                                                        dialog.errorMessage({ text: '請選擇發送對象!' });
+                                                                                                                        dialog.errorMessage({ text: '請選擇發送對象' });
                                                                                                                     }
                                                                                                                 })}"
                                                                                                             >
@@ -3094,7 +3094,7 @@ export class BgNotify {
                                                                 user_id: 'manager',
                                                             }).then((data: any) => {
                                                                 dialog.dataLoading({ visible: false });
-                                                                dialog.successMessage({ text: '設定成功!' });
+                                                                dialog.successMessage({ text: '設定成功' });
                                                             });
                                                         })}"
                                                     >
