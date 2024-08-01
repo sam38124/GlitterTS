@@ -1071,7 +1071,7 @@ export class UserList {
                             })}
                                     `,
                         })}
-                            `);
+                            `, undefined, 'padding: 0 !important; margin: 0 !important;');
                     }
                     else if (vm.type == 'replace') {
                         return this.userInformationDetail({

@@ -152,7 +152,7 @@ function traverseHTML(element, document) {
                                 }
                                 renderBindView();
                                 setTimeout(() => {
-                                    if (document.querySelector(`[gvc-id="${id}"]`).style.height === height + 'px') {
+                                    if (document.querySelector(`[gvc-id="${id}"]`) !== null && document.querySelector(`[gvc-id="${id}"]`).style.height === height + 'px') {
                                         document.querySelector(`[gvc-id="${id}"]`).style.height = 'auto';
                                     }
                                 }, 10);

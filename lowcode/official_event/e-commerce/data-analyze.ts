@@ -1,7 +1,6 @@
 import { TriggerEvent } from '../../glitterBundle/plugins/trigger-event.js';
 import { ApiShop } from '../../glitter-base/route/shopping.js';
 import { EditorElem } from '../../glitterBundle/plugins/editor-elem.js';
-import { GlobalUser } from '../../glitter-base/global/global-user.js';
 
 TriggerEvent.createSingleEvent(import.meta.url, () => {
     return {
@@ -17,7 +16,6 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                             { title: '目前活躍人數', value: 'recent_active_user' },
                             { title: '銷售額', value: 'recent_sales' },
                             { title: '訂單數', value: 'recent_orders' },
-                            // { title: '累積造訪人數', value: '' },
                             { title: '今日銷售紀錄', value: 'order_today' },
                             { title: '熱銷商品', value: 'hot_products' },
                             { title: '每日訂單平均消費金額', value: 'order_avg_sale_price' },
@@ -31,7 +29,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                     });
                 },
                 event: () => {
-                    return new Promise(async (resolve, reject) => {
+                    return new Promise(async (resolve) => {
                         ApiShop.ecDataAnalyze(object.typeArray).then(async (res) => {
                             resolve(res.result ? res.response : {});
                         });

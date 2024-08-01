@@ -597,6 +597,7 @@ ul {
     border: 0px solid #ddd;
     background-color: #fff;
     appearance: none;
+    width: 100%;
 }
 
 .bgw-input:focus {
@@ -605,6 +606,7 @@ ul {
 
 .bgw-input-readonly {
     background-color: #f7f7f7;
+    width: 100%;
 }
 
 .bgw-input-readonly:focus-visible {

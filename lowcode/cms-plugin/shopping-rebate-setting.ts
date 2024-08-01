@@ -290,7 +290,7 @@ export class ShoppingRebateSetting {
                                                                                                             vm.data.birth.level.map((item, index) => {
                                                                                                                 return html`
                                                                                                                     <div class="row d-flex align-items-center">
-                                                                                                                        <div class="col-6">
+                                                                                                                        <div class="col-6 mb-2">
                                                                                                                             <div class="tx_normal">會員等級</div>
                                                                                                                             ${BgWidget.select({
                                                                                                                                 gvc: gvc,
@@ -311,7 +311,7 @@ export class ShoppingRebateSetting {
                                                                                                                                 style: 'margin: 8px 0;',
                                                                                                                             })}
                                                                                                                         </div>
-                                                                                                                        <div class="col-5">
+                                                                                                                        <div class="col-5 mb-2">
                                                                                                                             ${BgWidget.editeInput({
                                                                                                                                 gvc: gvc,
                                                                                                                                 title: '購物金',
@@ -324,7 +324,10 @@ export class ShoppingRebateSetting {
                                                                                                                                 readonly: !vm.data.birth.switch,
                                                                                                                             })}
                                                                                                                         </div>
-                                                                                                                        <div class="col-1 d-flex justify-content-start">
+                                                                                                                        <div
+                                                                                                                            class="col-1 d-flex justify-content-start mb-2
+                                                                                                                            ${document.body.clientWidth > 768 ? '' : 'px-0'}"
+                                                                                                                        >
                                                                                                                             <i
                                                                                                                                 class="fa-regular fa-trash fs-5 cursor_pointer"
                                                                                                                                 onclick="${gvc.event(() => {

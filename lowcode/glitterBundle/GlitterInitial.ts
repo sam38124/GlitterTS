@@ -123,10 +123,10 @@ function traverseHTML(element: any, document: any) {
             }
 
             try {
-                if (document.querySelector(`[gvc-id="${id}"]`) as any) {
+                if (document.querySelector(`[gvc-id="${id}"]`)) {
                     glitter.elementCallback[id].doc = document;
                     glitter.elementCallback[id].rendered = true;
-                    if (!(document.querySelector(`[gvc-id="${id}"]`) as any).wasRender) {
+                    if (!document.querySelector(`[gvc-id="${id}"]`).wasRender) {
                         let view = glitter.elementCallback[id].getView();
                         if (typeof view === 'string') {
                             const html = glitter.renderView.replaceGlobalValue(view);
@@ -147,29 +147,29 @@ function traverseHTML(element: any, document: any) {
                                 notifyLifeCycle();
                             });
                         }
-                    } else if ((document.querySelector(`[gvc-id="${id}"]`) as any).onResumeEvent) {
+                    } else if (document.querySelector(`[gvc-id="${id}"]`).onResumeEvent) {
                         setTimeout(() => {
-                            (document.querySelector(`[gvc-id="${id}"]`) as any).onResumeEvent();
+                            document.querySelector(`[gvc-id="${id}"]`).onResumeEvent();
                         });
                     }
-                    if (document.querySelector(`[gvc-id="${id}"]`) as any) {
-                        (document.querySelector(`[gvc-id="${id}"]`) as any).recreateView = () => {
-                            if ((document.querySelector(`[gvc-id="${id}"]`) as any) !== null) {
-                                (document.querySelector(`[gvc-id="${id}"]`) as any).wasRecreate = true;
-                                (document.querySelector(`[gvc-id="${id}"]`) as any).wasRender = false;
-                                const height = (document.querySelector(`[gvc-id="${id}"]`) as any).offsetHeight;
+                    if (document.querySelector(`[gvc-id="${id}"]`)) {
+                        document.querySelector(`[gvc-id="${id}"]`).recreateView = () => {
+                            if (document.querySelector(`[gvc-id="${id}"]`) !== null) {
+                                document.querySelector(`[gvc-id="${id}"]`).wasRecreate = true;
+                                document.querySelector(`[gvc-id="${id}"]`).wasRender = false;
+                                const height = document.querySelector(`[gvc-id="${id}"]`).offsetHeight;
                                 if (height) {
                                     document.querySelector(`[gvc-id="${id}"]`).style.height = height + 'px';
                                 }
                                 renderBindView();
                                 setTimeout(() => {
-                                    if (document.querySelector(`[gvc-id="${id}"]`).style.height === height + 'px') {
+                                    if (document.querySelector(`[gvc-id="${id}"]`) !== null && document.querySelector(`[gvc-id="${id}"]`).style.height === height + 'px') {
                                         document.querySelector(`[gvc-id="${id}"]`).style.height = 'auto';
                                     }
                                 }, 10);
                             }
                         };
-                        (document.querySelector(`[gvc-id="${id}"]`) as any).wasRender = true;
+                        document.querySelector(`[gvc-id="${id}"]`).wasRender = true;
                     }
                 }
             } catch (e) {

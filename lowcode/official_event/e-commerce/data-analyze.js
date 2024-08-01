@@ -37,7 +37,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                     });
                 },
                 event: () => {
-                    return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
+                    return new Promise((resolve) => __awaiter(void 0, void 0, void 0, function* () {
                         ApiShop.ecDataAnalyze(object.typeArray).then((res) => __awaiter(void 0, void 0, void 0, function* () {
                             resolve(res.result ? res.response : {});
                         }));

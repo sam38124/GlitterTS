@@ -23,7 +23,7 @@ export class BgProduct {
                     background-position: center center;
                 }
             `);
-            return html `<div class="bg-white shadow rounded-3" style="min-width: 400px; width: 600px; overflow-y: auto;">
+            return html `<div class="bg-white shadow rounded-3" style="overflow-y: auto;${document.body.clientWidth > 768 ? 'min-width: 400px; width: 600px;' : 'min-width: 92.5vw;'}">
                 ${obj.gvc.bindView({
                 bind: vm.id,
                 view: () => {
@@ -182,7 +182,7 @@ export class BgProduct {
                     background-position: center center;
                 }
             `);
-            return html `<div class="bg-white shadow rounded-3" style="min-width: 400px; width: 600px; overflow-y: auto;">
+            return html `<div class="bg-white shadow rounded-3" style="overflow-y: auto;${document.body.clientWidth > 768 ? 'min-width: 400px; width: 600px;' : 'min-width: 92.5vw;'}">
                 ${obj.gvc.bindView({
                 bind: vm.id,
                 view: () => {

@@ -384,7 +384,7 @@ export class UserList {
                                             return '';
                                         },
                                     }),
-                                ].join()
+                                ].join('')
                             )}
                         `,
                         BgWidget.getContainerWidth()

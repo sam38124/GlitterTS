@@ -560,7 +560,6 @@ export class BgNotify {
                                                                     <div>${filterList[0]}</div>
                                                                     <div style="display: flex;">
                                                                         <div class="me-2">${filterList[2]}</div>
-                                                                        ${filterList[3]}
                                                                     </div>
                                                                 </div>
                                                                 <div style="display: flex; margin-top: 8px;">${filterList[1]}</div>
@@ -726,6 +725,7 @@ export class BgNotify {
                           ].join('')
                         : ''}
                 </div>
+                ${BgWidget.mbContainer(18)}
                 ${BgWidget.container(
                     obj.gvc.bindView(() => {
                         const bi = obj.gvc.glitter.getUUID();
@@ -854,7 +854,9 @@ export class BgNotify {
                             },
                             divCreate: {},
                         };
-                    })
+                    }),
+                    BgWidget.getContainerWidth(),
+                    'padding: 0 !important; margin: 0 !important;'
                 )}
                 ${BgWidget.mb240()}
                 <div class="update-bar-container">
@@ -1331,6 +1333,7 @@ export class BgNotify {
                     ${BgWidget.title('手動寄件')}
                     <div class="flex-fill"></div>
                 </div>
+                ${BgWidget.mbContainer(18)}
                 ${BgWidget.container(
                     gvc.bindView(() => {
                         return {
@@ -1648,7 +1651,9 @@ export class BgNotify {
                             },
                             divCreate: {},
                         };
-                    })
+                    }),
+                    BgWidget.getContainerWidth(),
+                    'padding: 0 !important; margin: 0 !important;'
                 )}
                 ${BgWidget.mb240()}
                 <div class="update-bar-container">
