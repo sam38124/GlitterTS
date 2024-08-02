@@ -1534,7 +1534,7 @@ export class ShoppingProductSetting {
         }
 
         document.querySelector('.pd-w-c')!.scrollTop = 0;
-        return html` <div class="d-flex" style="font-size: 16px;color:#393939;font-weight: 400;position: relative;padding-bottom: ${obj.single ? `0px` : `80px`};">
+        return html` <div class="d-flex" style="font-size: 16px;color:#393939;font-weight: 400;position: relative;padding:0;padding-bottom: ${obj.single ? `0px` : `80px`};">
             ${BgWidget.container(
                 html`
                     <div class="d-flex w-100 align-items-center mb-3 ${obj.single ? `d-none` : ``}">
@@ -1877,7 +1877,6 @@ export class ShoppingProductSetting {
                                     </div>
                                 </div>
                             `)}
-                            ${BgWidget.mbContainer(240)}
                         </div>
                         <div class="${obj.single ? `d-none` : ``}" style="min-width:300px; max-width:100%;">
                             ${BgWidget.mainCardMbp0(html`
@@ -1935,10 +1934,7 @@ export class ShoppingProductSetting {
                 obj.single ? 674 : 944,
                 obj.single ? `padding:0px;margin:0px;` : ``
             )}
-            <div
-                class="${obj.single ? `d-none` : ``}"
-                style="width: 100%;padding: 14px 16px;background: #FFF;box-shadow: 0px 1px 10px 0px rgba(0, 0, 0, 0.15);display: flex;justify-content: end;position: fixed;bottom: 0;right: 0;gap:14px;"
-            >
+            <div class="update-bar-container ${obj.single ? `d-none` : ``}">
                 ${BgWidget.cancel(
                     obj.gvc.event(() => {
                         checkStore(
@@ -1949,7 +1945,8 @@ export class ShoppingProductSetting {
                                       obj.vm.type = 'replace';
                                   }
                         );
-                    })
+                    }),
+                    '11'
                 )}
                 ${BgWidget.save(
                     obj.gvc.event(() => {
@@ -2020,14 +2017,12 @@ export class ShoppingProductSetting {
             obj.vm.replaceData = postMD;
         }
         const html = String.raw;
-        let oneSpecViewID = ['oneSpec', 'oneShipment', 'oneSetSku'];
         const gvc = obj.gvc;
         const seoID = gvc.glitter.getUUID();
         const variantsViewID = gvc.glitter.getUUID();
         let createPage: any = {
             page: 'add',
         };
-        let variantListCheck = false;
         let selectFunRow = false;
 
         const saasConfig: {
@@ -3805,33 +3800,33 @@ ${postMD.seo.content ?? ''}</textarea
                             `,
                             944
                         ),
-                        html` <div
-                            style="width: 100%;padding: 14px 16px;background: #FFF;box-shadow: 0px 1px 10px 0px rgba(0, 0, 0, 0.15);display: flex;justify-content: end;position: fixed;bottom: 0;right: 0;z-index:1;gap:14px;"
-                        >
-                            ${BgWidget.danger(
-                                obj.gvc.event(() => {
-                                    const dialog = new ShareDialog(obj.gvc.glitter);
-                                    dialog.checkYesOrNot({
-                                        text: '是否確認刪除商品?',
-                                        callback: (response) => {
-                                            if (response) {
-                                                dialog.dataLoading({ visible: true });
-                                                ApiShop.delete({
-                                                    id: postMD.id!,
-                                                }).then((res) => {
-                                                    dialog.dataLoading({ visible: false });
-                                                    if (res.result) {
-                                                        obj.vm.type = 'list';
-                                                    } else {
-                                                        dialog.errorMessage({ text: '刪除失敗' });
-                                                    }
-                                                });
-                                            }
-                                        },
-                                    });
-                                }),
-                                '刪除商品'
-                            )}
+                        html` <div class="update-bar-container">
+                            ${obj.type === 'replace'
+                                ? BgWidget.danger(
+                                      obj.gvc.event(() => {
+                                          const dialog = new ShareDialog(obj.gvc.glitter);
+                                          dialog.checkYesOrNot({
+                                              text: '是否確認刪除商品?',
+                                              callback: (response) => {
+                                                  if (response) {
+                                                      dialog.dataLoading({ visible: true });
+                                                      ApiShop.delete({
+                                                          id: postMD.id!,
+                                                      }).then((res) => {
+                                                          dialog.dataLoading({ visible: false });
+                                                          if (res.result) {
+                                                              obj.vm.type = 'list';
+                                                          } else {
+                                                              dialog.errorMessage({ text: '刪除失敗' });
+                                                          }
+                                                      });
+                                                  }
+                                              },
+                                          });
+                                      }),
+                                      '刪除商品'
+                                  )
+                                : ''}
                             ${BgWidget.cancel(
                                 obj.gvc.event(() => {
                                     obj.vm.type = 'list';
