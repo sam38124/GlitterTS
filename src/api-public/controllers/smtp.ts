@@ -20,6 +20,7 @@ router.get('/', async (req: express.Request, resp: express.Response) => {
                     search: req.query.search ? `${req.query.search}` : '',
                     status: req.query.status !== undefined ? `${req.query.status}` : '',
                     searchType: req.query.searchType ? `${req.query.searchType}` : '',
+                    mailType: req.query.mailType ? `${req.query.mailType}` : '',
                 })
             );
         } else {

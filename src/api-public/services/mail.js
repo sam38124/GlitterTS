@@ -50,10 +50,11 @@ class Mail {
                     break;
             }
             if (query.status) {
-                whereList.push(`(status = ${query.status})`);
+                whereList.push(`(status in (${query.status}))`);
             }
             if (query.mailType) {
-                whereList.push(`(JSON_EXTRACT(content, '$.type') = '${query.mailType}')`);
+                const maiTypeString = query.mailType.replace(/[^,]+/g, "'$&'");
+                whereList.push(`(JSON_EXTRACT(content, '$.type') in (${maiTypeString}))`);
             }
             const whereSQL = `(tag = 'sendMail' OR tag = 'sendMailBySchedule') AND ${whereList.join(' AND ')}`;
             const emails = await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_triggers

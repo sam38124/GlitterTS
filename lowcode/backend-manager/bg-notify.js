@@ -488,6 +488,7 @@ export class BgNotify {
                                                 searchType: (_b = vm.queryType) !== null && _b !== void 0 ? _b : 'email',
                                                 sendTime: undefined,
                                                 status: vm.filter.status,
+                                                mailType: vm.filter.mailType,
                                             }).then((data) => {
                                                 if (data.result) {
                                                     vmi.pageSize = Math.ceil(data.response.total / limit);

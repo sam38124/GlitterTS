@@ -586,6 +586,7 @@ export class BgNotify {
                                                                 searchType: vm.queryType ?? 'email',
                                                                 sendTime: undefined,
                                                                 status: vm.filter.status,
+                                                                mailType: vm.filter.mailType,
                                                             }).then((data) => {
                                                                 if (data.result) {
                                                                     vmi.pageSize = Math.ceil(data.response.total / limit);

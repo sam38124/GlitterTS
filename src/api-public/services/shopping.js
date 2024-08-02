@@ -18,7 +18,6 @@ const custom_code_js_1 = require("../services/custom-code.js");
 const moment_1 = __importDefault(require("moment"));
 const notify_js_1 = require("./notify.js");
 const auto_send_email_js_1 = require("./auto-send-email.js");
-const mail_js_1 = require("../services/mail.js");
 class Shopping {
     constructor(app, token) {
         this.app = app;
@@ -789,7 +788,6 @@ class Shopping {
     }
     async putOrder(data) {
         try {
-            const mailClass = new mail_js_1.Mail(this.app);
             const update = {};
             if (data.status !== undefined) {
                 update.status = data.status;
@@ -801,18 +799,21 @@ class Shopping {
                     `, [data.id]);
             await database_js_1.default.query(`UPDATE \`${this.app}\`.t_checkout SET ? WHERE id = ?
                 `, [update, data.id]);
-            if (origin[0].orderData.progress !== 'shipping' && update.orderData.progress === 'shipping') {
-                await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-shipment', data.orderData.orderID, data.orderData.email);
-            }
-            if (origin[0].orderData.progress !== 'arrived' && update.orderData.progress === 'arrived') {
-                await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-shipment-arrival', data.orderData.orderID, data.orderData.email);
-            }
-            if (origin[0].status === 0 && update.status === 1) {
-                new notify_js_1.ManagerNotify(this.app).checkout({
-                    orderData: JSON.parse(update.orderData),
-                    status: 1,
-                });
-                await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-payment-successful', data.orderData.orderID, data.orderData.email);
+            if (update.orderData && JSON.parse(update.orderData)) {
+                const updateProgress = JSON.parse(update.orderData).progress;
+                if (origin[0].orderData.progress !== 'shipping' && updateProgress === 'shipping') {
+                    await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-shipment', data.orderData.orderID, data.orderData.email);
+                }
+                if (origin[0].orderData.progress !== 'arrived' && updateProgress === 'arrived') {
+                    await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-shipment-arrival', data.orderData.orderID, data.orderData.email);
+                }
+                if (origin[0].status === 0 && update.status === 1) {
+                    new notify_js_1.ManagerNotify(this.app).checkout({
+                        orderData: JSON.parse(update.orderData),
+                        status: 1,
+                    });
+                    await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-payment-successful', data.orderData.orderID, data.orderData.email);
+                }
             }
             return {
                 result: 'success',

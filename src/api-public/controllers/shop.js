@@ -116,7 +116,7 @@ router.post('/checkout', async (req, resp) => {
                 }
             })(),
             custom_form_format: req.body.custom_form_format,
-            custom_form_data: req.body.custom_form_data
+            custom_form_data: req.body.custom_form_data,
         }));
     }
     catch (err) {

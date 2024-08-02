@@ -255,6 +255,7 @@ export class FilterOptions {
 
     static emailFilterFrame = {
         status: [],
+        mailType: [],
     };
 
     static emailSelect = [
@@ -282,6 +283,20 @@ export class FilterOptions {
             data: [
                 { key: '0', name: '尚未寄送' },
                 { key: '1', name: '已寄送' },
+            ],
+        },
+        {
+            key: 'mailType',
+            type: 'multi_checkbox',
+            name: '寄件類型',
+            data: [
+                { key: 'auto-email-payment-successful', name: '訂單付款成功' },
+                { key: 'auto-email-order-create', name: '訂單成立' },
+                { key: 'proof-purchase', name: '訂單待核款' },
+                // { key: 'auto-email-order-cancel-success', name: '取消訂單成功' },
+                // { key: 'auto-email-order-cancel-false', name: '取消訂單失敗' },
+                { key: 'auto-email-birthday', name: '生日祝福' },
+                { key: 'get-customer-message', name: '客服訊息' },
             ],
         },
     ];

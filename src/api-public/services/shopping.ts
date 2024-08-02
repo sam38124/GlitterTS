@@ -13,7 +13,6 @@ import { CustomCode } from '../services/custom-code.js';
 import moment from 'moment';
 import { ManagerNotify } from './notify.js';
 import { AutoSendEmail } from './auto-send-email.js';
-import { Mail } from '../services/mail.js';
 
 interface VoucherData {
     id: number;
@@ -83,6 +82,7 @@ type Collection = {
 
 export class Shopping {
     public app: string;
+
     public token?: IToken;
 
     constructor(app: string, token?: IToken) {
@@ -1112,7 +1112,6 @@ export class Shopping {
 
     public async putOrder(data: { id: string; orderData: any; status: any }) {
         try {
-            const mailClass = new Mail(this.app);
             const update: any = {};
             if (data.status !== undefined) {
                 update.status = data.status;
@@ -1133,23 +1132,26 @@ export class Shopping {
                 [update, data.id]
             );
 
-            // 商品出貨信件通知（消費者）
-            if (origin[0].orderData.progress !== 'shipping' && update.orderData.progress === 'shipping') {
-                await AutoSendEmail.customerOrder(this.app, 'auto-email-shipment', data.orderData.orderID, data.orderData.email);
-            }
+            if (update.orderData && JSON.parse(update.orderData)) {
+                // 商品出貨信件通知（消費者）
+                const updateProgress = JSON.parse(update.orderData).progress;
+                if (origin[0].orderData.progress !== 'shipping' && updateProgress === 'shipping') {
+                    await AutoSendEmail.customerOrder(this.app, 'auto-email-shipment', data.orderData.orderID, data.orderData.email);
+                }
 
-            // 商品到貨信件通知（消費者）
-            if (origin[0].orderData.progress !== 'arrived' && update.orderData.progress === 'arrived') {
-                await AutoSendEmail.customerOrder(this.app, 'auto-email-shipment-arrival', data.orderData.orderID, data.orderData.email);
-            }
+                // 商品到貨信件通知（消費者）
+                if (origin[0].orderData.progress !== 'arrived' && updateProgress === 'arrived') {
+                    await AutoSendEmail.customerOrder(this.app, 'auto-email-shipment-arrival', data.orderData.orderID, data.orderData.email);
+                }
 
-            // 訂單已付款信件通知（管理員, 消費者）
-            if (origin[0].status === 0 && update.status === 1) {
-                new ManagerNotify(this.app).checkout({
-                    orderData: JSON.parse(update.orderData),
-                    status: 1,
-                });
-                await AutoSendEmail.customerOrder(this.app, 'auto-email-payment-successful', data.orderData.orderID, data.orderData.email);
+                // 訂單已付款信件通知（管理員, 消費者）
+                if (origin[0].status === 0 && update.status === 1) {
+                    new ManagerNotify(this.app).checkout({
+                        orderData: JSON.parse(update.orderData),
+                        status: 1,
+                    });
+                    await AutoSendEmail.customerOrder(this.app, 'auto-email-payment-successful', data.orderData.orderID, data.orderData.email);
+                }
             }
 
             return {
@@ -1641,7 +1643,7 @@ export class Shopping {
             };
         } catch (e) {
             console.error(e);
-            throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
+            throw exception.BadRequestError('BAD_REQUEST', 'getOrderToDay Error:' + e, null);
         }
     }
 
@@ -2067,7 +2069,7 @@ export class Shopping {
             return { result: true };
         } catch (e) {
             console.error(e);
-            throw exception.BadRequestError('BAD_REQUEST', 'getCollectionProducts Error:' + e, null);
+            throw exception.BadRequestError('BAD_REQUEST', 'putCollection Error:' + e, null);
         }
     }
 
@@ -2103,6 +2105,7 @@ export class Shopping {
             throw exception.BadRequestError('BAD_REQUEST', 'postProduct Error:' + e, null);
         }
     }
+
     //輸入collection , 根據/的分層 整理好分類的分層並更新
     async updateCollectionFromUpdateProduct(collection: string[]) {
         //有新類別要處理
@@ -2165,6 +2168,7 @@ export class Shopping {
                                     WHERE \`key\` = 'collection';`;
         await db.execute(update_col_sql, [config.value]);
     }
+
     async postMulProduct(content: any) {
         try {
             if (content.collection.length > 0) {
@@ -2195,7 +2199,7 @@ export class Shopping {
             return insertIDStart;
         } catch (e) {
             console.error(e);
-            throw exception.BadRequestError('BAD_REQUEST', 'postProduct Error:' + e, null);
+            throw exception.BadRequestError('BAD_REQUEST', 'postMulProduct Error:' + e, null);
         }
     }
 
@@ -2226,7 +2230,7 @@ export class Shopping {
             return content.insertId;
         } catch (e) {
             console.error(e);
-            throw exception.BadRequestError('BAD_REQUEST', 'postProduct Error:' + e, null);
+            throw exception.BadRequestError('BAD_REQUEST', 'putProduct Error:' + e, null);
         }
     }
 
