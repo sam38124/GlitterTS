@@ -602,6 +602,7 @@ export class MenusSetting {
                                     callback: (text) => {
                                         data.title = text;
                                     },
+                                    style: 'font-size: 14px;',
                                 }),
                                 BgWidget.linkList({
                                     gvc: gvc,

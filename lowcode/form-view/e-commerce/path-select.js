@@ -5,7 +5,6 @@ export class PathSelect {
         var _a, _b;
         obj.title = (_a = obj.title) !== null && _a !== void 0 ? _a : '';
         const html = String.raw;
-        const appName = window.appName;
         const vm = {
             id: obj.gvc.glitter.getUUID(),
             loading: true,
@@ -17,6 +16,7 @@ export class PathSelect {
         };
         const dropMenu = {
             id: obj.gvc.glitter.getUUID(),
+            elementClass: this.randomString(5),
             elementWidth: 240,
             loading: true,
             search: '',
@@ -25,7 +25,7 @@ export class PathSelect {
             recentParent: [],
         };
         const setCollectionPath = (target, data) => {
-            data.map((item, index) => {
+            (data || []).map((item, index) => {
                 const { title, array } = item;
                 target.push({ name: title, icon: '', link: `/all-product?collection=${title}` });
                 if (array && array.length > 0) {
@@ -83,9 +83,9 @@ export class PathSelect {
             }
             else {
                 const si = setInterval(() => {
-                    const inputElement = window.document.getElementById('path-input');
+                    const inputElement = obj.gvc.glitter.document.getElementById(dropMenu.elementClass);
                     if (inputElement) {
-                        dropMenu.elementWidth = inputElement.clientWidth - 20;
+                        dropMenu.elementWidth = inputElement.clientWidth;
                         notify();
                         clearInterval(si);
                     }
@@ -97,6 +97,14 @@ export class PathSelect {
             obj.callback(data.link);
             componentFresh();
         };
+        obj.gvc.addStyle(`
+            #${dropMenu.elementClass} {
+                margin-top: 8px;
+                white-space: normal;
+                word-break: break-all;
+            }
+        `);
+        console.log('========= 這是舊的路徑選擇元件 =========');
         return obj.gvc.bindView({
             bind: vm.id,
             view: () => {
@@ -104,34 +112,23 @@ export class PathSelect {
                     return '';
                 }
                 else {
-                    obj.gvc.addStyle(`
-                        .link-item-container {
-                            display: flex;
-                            align-items: center;
-                            font-size: 16px;
-                            font-weight: 500;
-                            gap: 6px;
-                            line-height: 140%;
-                            cursor: default;
-                        }
-                    `);
                     let dataList = JSON.parse(JSON.stringify(dropMenu.recentList));
-                    return html `${obj.title ? html `<div class="tx_normal fw-normal">${obj.title}</div>` : ``}
+                    return html `${obj.title ? html ` <div class="tx_normal fw-normal">${obj.title}</div>` : ``}
                         <div style="position: relative">
                             ${obj.gvc.bindView({
                         bind: linkComp.id,
                         view: () => {
                             var _a, _b;
                             if (linkComp.loading) {
-                                return html `<div
-                                            class="form-control ${linkComp.text.length > 0 ? '' : 'py-2'}"
-                                            id="path-input"
-                                            style="margin-top:8px; white-space: normal; word-break: break-all; ${(_a = obj.style) !== null && _a !== void 0 ? _a : ''}"
+                                return html ` <div
+                                            class="bgw-input border rounded-3"
+                                            style="${linkComp.text.length > 0 ? '' : 'padding: 9.5px 12px;'} ${(_a = obj.style) !== null && _a !== void 0 ? _a : ''}"
+                                            id="${dropMenu.elementClass}"
                                             onclick="${obj.gvc.event(() => {
                                     componentFresh();
                                 })}"
                                         >
-                                            ${linkComp.text.length > 0 ? formatLinkText(linkComp.text) : html `<span style="color: #b4b7c9">${obj.placeHolder}</span>`}
+                                            ${linkComp.text.length > 0 ? formatLinkText(linkComp.text) : html `<span style="color: #777777">${obj.placeHolder}</span>`}
                                         </div>`;
                             }
                             else {
@@ -158,9 +155,9 @@ export class PathSelect {
                                                     value="${linkComp.text}"
                                                     ${obj.readonly ? `readonly` : ``}
                                                 />
-                                                <span class="ms-2"
+                                                <span style="margin: 0 0.75rem"
                                                     ><i
-                                                        class="fa-solid fa-xmark text-dark cursor_pointer"
+                                                        class="fa-solid fa-xmark text-dark cursor_pointer fs-5"
                                                         onclick="${obj.gvc.event(() => {
                                     componentFresh();
                                 })}"
@@ -183,8 +180,8 @@ export class PathSelect {
                                 let h1 = '';
                                 if (dropMenu.prevList.length > 0) {
                                     h1 += html ` <div
-                                                    class="m-3 hoverF2"
-                                                    style="font-size: 16px; font-weight: 500; gap: 6px; line-height: 140%;cursor: pointer;"
+                                                    class="m-3 cursor_pointer"
+                                                    style="font-size: 16px; font-weight: 500; gap: 6px; line-height: 140%;"
                                                     onclick=${obj.gvc.event(() => {
                                         dataList = dropMenu.prevList[dropMenu.prevList.length - 1];
                                         dropMenu.prevList.pop();
@@ -193,7 +190,7 @@ export class PathSelect {
                                         obj.gvc.notifyDataChange(dropMenu.id);
                                     })}
                                                 >
-                                                    <i class="fa-solid fa-chevron-left me-2"></i>
+                                                    <i class="fa-solid fa-chevron-left me-2 hoverF2"></i>
                                                     <span>${dropMenu.recentParent[dropMenu.recentParent.length - 1]}</span>
                                                 </div>
                                                 <input
@@ -220,15 +217,14 @@ export class PathSelect {
                                 }
                                 let h2 = '';
                                 dataList
-                                    .filter((item) => {
-                                    return item.name.includes(dropMenu.search);
+                                    .filter((tag) => {
+                                    return tag.name.includes(dropMenu.search);
                                 })
                                     .map((tag) => {
                                     h2 += html `
-                                                    <div class="m-3" style="display: flex; align-items: center; justify-content: space-between;">
+                                                    <div class="m-2" style="cursor:pointer;display: flex; align-items: center; justify-content: space-between;">
                                                         <div
-                                                            class="link-item-container hoverF2"
-                                                            style="cursor: pointer; text-wrap: wrap;"
+                                                            class="w-100 p-1 link-item-container hoverF2 cursor_pointer text-wrap"
                                                             onclick=${obj.gvc.event(() => {
                                         if (tag.link && tag.link.length > 0) {
                                             callbackEvent(tag);
@@ -244,9 +240,9 @@ export class PathSelect {
                                                             <div style="width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">
                                                                 ${(() => {
                                         if (tag.icon.includes('https://')) {
-                                            return html `<div
+                                            return html ` <div
                                                                             style="
-                                                                                min-width: 25px; min-height: 25px;
+                                                                                width: 25px; height: 25px;
                                                                                 background-image: url('${tag.icon}');
                                                                                 background-position: center;
                                                                                 background-size: cover;
@@ -260,7 +256,7 @@ export class PathSelect {
                                                             ${tag.name}
                                                         </div>
                                                         <div
-                                                            class="hoverF2"
+                                                            class="py-1 px-3 hoverF2 ${tag.items && tag.items.length > 0 ? '' : 'd-none'}"
                                                             onclick=${obj.gvc.event(() => {
                                         dropMenu.prevList.push(dataList);
                                         dropMenu.recentParent.push(tag.name);
@@ -268,13 +264,13 @@ export class PathSelect {
                                         obj.gvc.notifyDataChange(dropMenu.id);
                                     })}
                                                         >
-                                                            <i class="fa-solid fa-chevron-right ${tag.items && tag.items.length > 0 ? '' : 'd-none'}" style="cursor: pointer;"></i>
+                                                            <i class="fa-solid fa-chevron-right cursor_pointer"></i>
                                                         </div>
                                                     </div>
                                                 `;
                                 });
                                 return html `
-                                            <div class="p-2" style="width: ${dropMenu.elementWidth}px">
+                                            <div class="border border-2 rounded-2 p-2" style="width: ${dropMenu.elementWidth}px;">
                                                 ${h1}
                                                 <div style="overflow-y: auto; max-height: 42.5vh;">${h2}</div>
                                             </div>
@@ -282,8 +278,7 @@ export class PathSelect {
                             }
                         },
                         divCreate: {
-                            class: 'border border-2 rounded-3',
-                            style: 'position: absolute; top: 42.5px; left: 0; z-index: 1; background-color: #fff;',
+                            style: 'position: absolute; top: 44px; left: 0; z-index: 1; background-color: #fff;',
                         },
                     })}
                         </div>`;
@@ -298,19 +293,21 @@ export class PathSelect {
                     Promise.all([
                         new Promise((resolve) => {
                             ApiShop.getCollection().then((data) => {
-                                if (data.result && data.response.value.length > 0) {
-                                    setCollectionPath(collectionList, data.response.value);
-                                }
+                                setCollectionPath(collectionList, data.response && data.response.value.length > 0 ? data.response.value : []);
                                 resolve();
                             });
                         }),
                         new Promise((resolve) => {
                             ApiShop.getProduct({ page: 0, limit: 50000, search: '' }).then((data) => {
                                 if (data.result) {
-                                    data.response.data.map((item) => {
+                                    (data.response.data || []).map((item) => {
                                         const { id, title, preview_image } = item.content;
                                         const icon = preview_image && preview_image[0] ? preview_image[0] : '';
-                                        productList.push({ name: title, icon: icon, link: `/products?product_id=${id}` });
+                                        productList.push({
+                                            name: title,
+                                            icon: icon,
+                                            link: `/products?product_id=${id}`,
+                                        });
                                     });
                                     resolve();
                                 }
@@ -332,7 +329,7 @@ export class PathSelect {
                     ]).then(() => {
                         dropMenu.recentList = [
                             { name: '首頁', icon: 'fa-regular fa-house', link: '/index' },
-                            { name: '商品', icon: 'fa-regular fa-tag', link: '/all-product', items: productList },
+                            { name: '所有商品', icon: 'fa-regular fa-tag', link: '/all-product', items: productList },
                             { name: '商品分類', icon: 'fa-regular fa-tags', link: '', items: collectionList },
                             { name: '網誌文章', icon: 'fa-regular fa-newspaper', link: '/blogs', items: acticleList },
                         ].filter((menu) => {
@@ -346,6 +343,13 @@ export class PathSelect {
                 }
             },
         });
+    }
+    static randomString(max) {
+        let possible = 'abcdefghijklmnopqrstuvwxyz0123456789';
+        let text = possible.charAt(Math.floor(Math.random() * (possible.length - 10)));
+        for (let i = 1; i < max; i++)
+            text += possible.charAt(Math.floor(Math.random() * possible.length));
+        return text;
     }
 }
 window.glitter.setModule(import.meta.url, PathSelect);

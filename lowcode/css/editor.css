@@ -648,7 +648,7 @@ ul {
 .link-item-container {
     display: flex;
     align-items: center;
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 500;
     gap: 6px;
     line-height: 140%;
@@ -883,7 +883,6 @@ ul {
 }
 
 .summary-card {
-    position: -webkit-sticky;
     position: sticky;
     top: 24px;
 }

@@ -1681,9 +1681,11 @@ ${obj.gvc.bindView(() => {
                         }
                     })
                     .join('')}
-                ${((obj.array as any).find((dd:any)=>{
-                    return dd.value===obj.def
-                })) ? ``:`<option class="d-none" selected>請選擇項目</option>`}
+                ${(obj.array as any).find((dd: any) => {
+                    return dd.value === obj.def;
+                })
+                    ? ``
+                    : `<option class="d-none" selected>請選擇項目</option>`}
             </select>
         `;
     }
@@ -1842,7 +1844,7 @@ ${obj.gvc.bindView(() => {
                                             gvc.notifyDataChange(id);
                                         })}"
                                     >
-                                        <i class="${isSelect() ? `fa-solid fa-circle-dot` : `fa-regular fa-circle`} me-2" style="color: #000"></i>
+                                        <i class="${isSelect() ? `fa-solid fa-circle-dot` : `fa-regular fa-circle`} me-2" style="color: #393939"></i>
                                         <span style="font-size: 16px; cursor: pointer;">${dd.title}</span>
                                     </div>
                                     ${obj.def === dd.value && dd.innerHtml ? `<div style="margin-top: 8px;">${dd.innerHtml}</div>` : ``}
@@ -1858,7 +1860,7 @@ ${obj.gvc.bindView(() => {
         `;
     }
 
-    public static editerDialog(par: { gvc: GVC; dialog: (gvc: GVC) => string; width?: string; editTitle?: string,callback?:()=>void }) {
+    public static editerDialog(par: { gvc: GVC; dialog: (gvc: GVC) => string; width?: string; editTitle?: string; callback?: () => void }) {
         return html` <button
             type="button"
             class="btn btn-primary-c  w-100"
@@ -1874,8 +1876,7 @@ ${obj.gvc.bindView(() => {
                         </div>`,
                     title: par.editTitle || '',
                 });
-                par.callback && (NormalPageEditor.closeEvent=par.callback)
-                
+                par.callback && (NormalPageEditor.closeEvent = par.callback);
             })}"
         >
             ${par.editTitle}

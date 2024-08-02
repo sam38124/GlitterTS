@@ -266,7 +266,7 @@ export class BgWidget {
         return html ` <div class="main-card ${classString !== null && classString !== void 0 ? classString : ''}" style="${styleString !== null && styleString !== void 0 ? styleString : ''}">${htmlString !== null && htmlString !== void 0 ? htmlString : ''}</div>`;
     }
     static mainCardMbp0(htmlString, classString, styleString) {
-        return html ` <div class="main-card ${classString !== null && classString !== void 0 ? classString : ''}  " style="${document.body.clientWidth < 800 ? `border-radius: 0px;` : ``}${styleString !== null && styleString !== void 0 ? styleString : ''} ">${htmlString !== null && htmlString !== void 0 ? htmlString : ''}</div>`;
+        return html ` <div class="main-card ${classString !== null && classString !== void 0 ? classString : ''}" style="${styleString !== null && styleString !== void 0 ? styleString : ''}">${htmlString !== null && htmlString !== void 0 ? htmlString : ''}</div>`;
     }
     static container(htmlString, width, style) {
         return html ` <div
@@ -533,7 +533,6 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
     static linkList(obj) {
         var _a, _b;
         obj.title = (_a = obj.title) !== null && _a !== void 0 ? _a : '';
-        const appName = window.parent.appName;
         const vm = {
             id: obj.gvc.glitter.getUUID(),
             loading: true,
@@ -545,6 +544,8 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         };
         const dropMenu = {
             id: obj.gvc.glitter.getUUID(),
+            elementClass: this.randomString(5),
+            elementWidth: 240,
             loading: true,
             search: '',
             prevList: [],
@@ -554,7 +555,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         const setCollectionPath = (target, data) => {
             (data || []).map((item, index) => {
                 const { title, array } = item;
-                target.push({ name: title, icon: '', link: `./?collection=${title}&page=all-product` });
+                target.push({ name: title, icon: '', link: `/all-product?collection=${title}` });
                 if (array && array.length > 0) {
                     target[index].items = [];
                     setCollectionPath(target[index].items, array);
@@ -578,9 +579,9 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         const formatLinkHTML = (icon, pathList) => {
             let pathHTML = '';
             pathList.map((path, index) => {
-                pathHTML += html `<span class="mx-1">${path}</span>${index === pathList.length - 1 ? '' : html `<i class="fa-solid fa-chevron-right"></i>`}`;
+                pathHTML += html `<span class="mx-1" style="font-size: 14px;">${path}</span>${index === pathList.length - 1 ? '' : html `<i class="fa-solid fa-chevron-right"></i>`}`;
             });
-            return html ` <div style="display: flex; flex-wrap: wrap; align-items: center; font-size: 16px; font-weight: 500; gap: 6px; line-height: 140%;cursor: default;">
+            return html ` <div style="display: flex; flex-wrap: wrap; align-items: center; font-size: 14px; font-weight: 500; gap: 6px; line-height: 140%;cursor: default;">
                 <div style="width: 28px;height: 28px;display: flex; align-items: center; justify-content:center;">
                     <i class="${icon.length > 0 ? icon : 'fa-regular fa-image'}"></i>
                 </div>
@@ -599,16 +600,39 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             return text;
         };
         const componentFresh = () => {
+            const notify = () => {
+                obj.gvc.notifyDataChange(dropMenu.id);
+                obj.gvc.notifyDataChange(linkComp.id);
+            };
             linkComp.loading = !linkComp.loading;
             dropMenu.loading = !dropMenu.loading;
-            obj.gvc.notifyDataChange(dropMenu.id);
-            obj.gvc.notifyDataChange(linkComp.id);
+            if (dropMenu.loading) {
+                notify();
+            }
+            else {
+                const si = setInterval(() => {
+                    const inputElement = obj.gvc.glitter.document.getElementById(dropMenu.elementClass);
+                    if (inputElement) {
+                        dropMenu.elementWidth = inputElement.clientWidth;
+                        notify();
+                        clearInterval(si);
+                    }
+                }, 50);
+            }
         };
         const callbackEvent = (data) => {
             linkComp.text = data.link;
             obj.callback(data.link);
             componentFresh();
         };
+        obj.gvc.addStyle(`
+            #${dropMenu.elementClass} {
+                font-size: 14px;
+                margin-top: 8px;
+                white-space: normal;
+                word-break: break-all;
+            }
+        `);
         return obj.gvc.bindView({
             bind: vm.id,
             view: () => {
@@ -625,26 +649,28 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                             var _a, _b;
                             if (linkComp.loading) {
                                 return html ` <div
-                                            class="form-control"
-                                            style="${(_a = obj.style) !== null && _a !== void 0 ? _a : ''} margin-top:8px;"
+                                            class="bgw-input border rounded-3"
+                                            style="${linkComp.text.length > 0 ? '' : 'padding: 9.5px 12px;'} ${(_a = obj.style) !== null && _a !== void 0 ? _a : ''}"
+                                            id="${dropMenu.elementClass}"
                                             onclick="${obj.gvc.event(() => {
                                     componentFresh();
                                 })}"
                                         >
-                                            ${linkComp.text.length > 0 ? formatLinkText(linkComp.text) : `<span style="color: #b4b7c9">${obj.placeHolder}</span>`}
+                                            ${linkComp.text.length > 0 ? formatLinkText(linkComp.text) : html `<span style="color: #777777;">${obj.placeHolder}</span>`}
                                         </div>`;
                             }
                             else {
                                 return html `
-                                            <input
-                                                class="form-control"
-                                                style="${(_b = obj.style) !== null && _b !== void 0 ? _b : ''} margin-top:8px;"
-                                                type="text"
-                                                placeholder="${obj.placeHolder}"
-                                                onchange="${obj.gvc.event((e) => {
+                                            <div class="d-flex align-items-center" style="margin-top: 8px;">
+                                                <input
+                                                    class="form-control"
+                                                    style="${(_b = obj.style) !== null && _b !== void 0 ? _b : ''}"
+                                                    type="text"
+                                                    placeholder="${obj.placeHolder}"
+                                                    onchange="${obj.gvc.event((e) => {
                                     callbackEvent({ link: e.value });
                                 })}"
-                                                oninput="${obj.gvc.event((e) => {
+                                                    oninput="${obj.gvc.event((e) => {
                                     if (obj.pattern) {
                                         const value = e.value;
                                         const regex = new RegExp(`[^${obj.pattern}]`, 'g');
@@ -654,9 +680,18 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                         }
                                     }
                                 })}"
-                                                value="${linkComp.text}"
-                                                ${obj.readonly ? `readonly` : ``}
-                                            />
+                                                    value="${linkComp.text}"
+                                                    ${obj.readonly ? `readonly` : ``}
+                                                />
+                                                <span style="margin: 0 0.75rem"
+                                                    ><i
+                                                        class="fa-solid fa-xmark text-dark cursor_pointer fs-5"
+                                                        onclick="${obj.gvc.event(() => {
+                                    componentFresh();
+                                })}"
+                                                    ></i
+                                                ></span>
+                                            </div>
                                         `;
                             }
                         },
@@ -673,8 +708,8 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                 let h1 = '';
                                 if (dropMenu.prevList.length > 0) {
                                     h1 += html ` <div
-                                                    class="m-3"
-                                                    style="font-size: 16px; font-weight: 500; gap: 6px; line-height: 140%;cursor: pointer;"
+                                                    class="m-3 cursor_pointer"
+                                                    style="font-size: 16px; font-weight: 500; gap: 6px; line-height: 140%;"
                                                     onclick=${obj.gvc.event(() => {
                                         dataList = dropMenu.prevList[dropMenu.prevList.length - 1];
                                         dropMenu.prevList.pop();
@@ -710,17 +745,24 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                 }
                                 let h2 = '';
                                 dataList
-                                    .filter((item) => {
-                                    return item.name.includes(dropMenu.search);
+                                    .filter((tag) => {
+                                    return tag.name.includes(dropMenu.search);
                                 })
                                     .map((tag) => {
                                     h2 += html `
-                                                    <div class="m-3" style="cursor:pointer;display: flex; align-items: center; justify-content: space-between;">
+                                                    <div class="m-2" style="cursor:pointer;display: flex; align-items: center; justify-content: space-between;">
                                                         <div
-                                                            class="link-item-container ${tag.link && tag.link.length > 0 ? 'hoverF2' : ''}"
-                                                            style="cursor: pointer;"
+                                                            class="w-100 p-1 link-item-container hoverF2 cursor_pointer text-wrap"
                                                             onclick=${obj.gvc.event(() => {
-                                        tag.link && tag.link.length > 0 && callbackEvent(tag);
+                                        if (tag.link && tag.link.length > 0) {
+                                            callbackEvent(tag);
+                                        }
+                                        else {
+                                            dropMenu.prevList.push(dataList);
+                                            dropMenu.recentParent.push(tag.name);
+                                            tag.items && (dataList = tag.items);
+                                            obj.gvc.notifyDataChange(dropMenu.id);
+                                        }
                                     })}
                                                         >
                                                             <div style="width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">
@@ -742,7 +784,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                                             ${tag.name}
                                                         </div>
                                                         <div
-                                                            class="hoverF2 pe-2"
+                                                            class="py-1 px-3 hoverF2 ${tag.items && tag.items.length > 0 ? '' : 'd-none'}"
                                                             onclick=${obj.gvc.event(() => {
                                         dropMenu.prevList.push(dataList);
                                         dropMenu.recentParent.push(tag.name);
@@ -750,20 +792,22 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                         obj.gvc.notifyDataChange(dropMenu.id);
                                     })}
                                                         >
-                                                            <i class="fa-solid fa-chevron-right ${tag.items && tag.items.length > 0 ? '' : 'd-none'}" style="cursor: pointer;"></i>
+                                                            <i class="fa-solid fa-chevron-right cursor_pointer"></i>
                                                         </div>
                                                     </div>
                                                 `;
                                 });
                                 return html `
-                                            <div class="border border-2 rounded-2 p-2" style="width: 310px;">
+                                            <div class="border border-2 rounded-2 p-2" style="width: ${dropMenu.elementWidth}px;">
                                                 ${h1}
                                                 <div style="overflow-y: auto; max-height: 42.5vh;">${h2}</div>
                                             </div>
                                         `;
                             }
                         },
-                        divCreate: { style: 'position: absolute; top: 42.5px; left: 0; z-index: 1; background-color: #fff;' },
+                        divCreate: {
+                            style: 'position: absolute; top: 44px; left: 0; z-index: 1; background-color: #fff;',
+                        },
                     })}
                         </div>`;
                 }
@@ -790,7 +834,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                         productList.push({
                                             name: title,
                                             icon: icon,
-                                            link: `./product_detail?product_id=${id}`,
+                                            link: `/products?product_id=${id}`,
                                         });
                                     });
                                     resolve();
@@ -803,7 +847,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                     data.response.data.map((item) => {
                                         const { name, tag } = item.content;
                                         if (name) {
-                                            acticleList.push({ name: name, icon: '', link: `./article?article=${tag}` });
+                                            acticleList.push({ name: name, icon: '', link: `/pages/${tag}` });
                                         }
                                     });
                                 }
@@ -812,16 +856,10 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                         }),
                     ]).then(() => {
                         dropMenu.recentList = [
-                            { name: '首頁', icon: 'fa-regular fa-house', link: './index' },
-                            { name: '商品', icon: 'fa-regular fa-tag', link: './all-product', items: productList },
+                            { name: '首頁', icon: 'fa-regular fa-house', link: '/index' },
+                            { name: '所有商品', icon: 'fa-regular fa-tag', link: '/all-product', items: productList },
                             { name: '商品分類', icon: 'fa-regular fa-tags', link: '', items: collectionList },
-                            {
-                                name: '網誌文章',
-                                icon: 'fa-regular fa-newspaper',
-                                link: './blog_list',
-                                items: acticleList,
-                            },
-                            { name: '關於我們', icon: 'fa-regular fa-user-group', link: './aboutus' },
+                            { name: '網誌文章', icon: 'fa-regular fa-newspaper', link: '/blogs', items: acticleList },
                         ].filter((menu) => {
                             if (menu.items === undefined)
                                 return true;
@@ -850,7 +888,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         var _a;
         return html ` <button class="btn btn-gray" type="button" onclick="${event}">
             <i class="${obj && obj.icon && obj.icon.length > 0 ? obj.icon : 'd-none'}" style="color: #393939"></i>
-            <span class="tx_700" style="${(_a = obj === null || obj === void 0 ? void 0 : obj.textStyle) !== null && _a !== void 0 ? _a : ''}">${text}</span>
+            ${text.length > 0 ? html `<span class="tx_700" style="${(_a = obj === null || obj === void 0 ? void 0 : obj.textStyle) !== null && _a !== void 0 ? _a : ''}">${text}</span>` : ''}
         </button>`;
     }
     static darkButton(text, event, obj) {
@@ -873,7 +911,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         </button>`;
     }
     static switchButton(gvc, def, callback) {
-        return html ` <div class="form-check form-switch m-0" style="margin-top: 10px; cursor: pointer;">
+        return html ` <div class="form-check form-switch m-0 cursor_pointer" style="margin-top: 10px;">
             <input
                 class="form-check-input"
                 type="checkbox"
@@ -888,7 +926,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         var _a, _b;
         return html ` <div style="display: flex; align-items: center;">
             <div class="tx_normal me-2">${(_a = text.left) !== null && _a !== void 0 ? _a : ''}</div>
-            <div class="form-check form-switch m-0" style="margin-top: 10px; cursor: pointer; display: flex; align-items: center;">
+            <div class="form-check form-switch m-0 cursor_pointer" style="margin-top: 10px; display: flex; align-items: center;">
                 <input
                     class="form-check-input"
                     type="checkbox"
@@ -974,7 +1012,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                     obj.gvc.notifyDataChange(vm.id);
                 })}"
                     >
-                        <div style="font-size: 15px; cursor: pointer; color: #000;">
+                        <div style="font-size: 15px; cursor: pointer; color: #393939;">
                             ${defLine.length > 0
                     ? defLine
                         .map((item) => {
@@ -1343,7 +1381,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             checkboxHTML += html `
                 <div class="form-check">
                     <input
-                        class="form-check-input ${randomString}"
+                        class="form-check-input ${randomString} cursor_pointer"
                         style="margin-top: 0.35rem;"
                         type="checkbox"
                         id="${id}_${item.key}"
@@ -1369,7 +1407,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             })}"
                         ${def.includes(item.key) ? 'checked' : ''}
                     />
-                    <label class="form-check-label" for="${id}_${item.key}" style="font-size: 16px; color: #393939;">${item.name}</label>
+                    <label class="form-check-label cursor_pointer" for="${id}_${item.key}" style="font-size: 16px; color: #393939;">${item.name}</label>
                 </div>
             `;
         });

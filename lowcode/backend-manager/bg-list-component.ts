@@ -202,7 +202,7 @@ export class BgListComponent {
                         gvc.addStyle(`
                             .accordion-button:not(.collapsed)::after {
                                 box-shadow: none !important;
-                                color: #000 !important;
+                                color: #393939 !important;
                                 background-color: #fff !important;
                                 background-image: url(${BgWidget.arrowDownDataImage('#000')}) !important;
                             }

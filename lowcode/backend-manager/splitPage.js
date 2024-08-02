@@ -154,14 +154,14 @@ export class PageSplit {
                     border-radius: 7px 0px 0px 7px;
                     border: 1px solid #d8d8d8;
                     background: #fff;
-                    color: #000;
+                    color: #393939;
                 }
 
                 .page-link-next {
                     border-radius: 0px 7px 7px 0px;
                     border: 1px solid #d8d8d8;
                     background: #fff;
-                    color: #000;
+                    color: #393939;
                 }
 
                 .page-link-active {

@@ -1,6 +1,6 @@
-import { BgWidget } from "../../backend-manager/bg-widget.js";
-import { ShareDialog } from "../../glitterBundle/dialog/ShareDialog.js";
-import { EditorElem } from "../../glitterBundle/plugins/editor-elem.js";
+import { BgWidget } from '../../backend-manager/bg-widget.js';
+import { ShareDialog } from '../../glitterBundle/dialog/ShareDialog.js';
+import { EditorElem } from '../../glitterBundle/plugins/editor-elem.js';
 export class FormModule {
     static editor(gvc, data, title, update) {
         const html = String.raw;
@@ -8,25 +8,28 @@ export class FormModule {
             {
                 icon: '<i class="fa-solid fa-text me-3"></i>',
                 title: `輸入框`,
-                key: "input"
-            }, {
+                key: 'input',
+            },
+            {
                 icon: `<i class="fa-regular fa-square-chevron-down me-3"></i>`,
                 title: `下拉選單`,
-                key: "form-select"
-            }, {
+                key: 'form-select',
+            },
+            {
                 icon: `<i class="fa-regular fa-circle-dot me-3"></i>`,
                 title: `單選`,
-                key: "check_box"
-            }, {
+                key: 'check_box',
+            },
+            {
                 icon: `<i class="fa-solid fa-square-check me-3"></i>`,
                 title: `多選`,
-                key: "mutiple_select"
+                key: 'mutiple_select',
             },
         ];
         const vm = {
             id: gvc.glitter.getUUID(),
             add_btn: false,
-            data: data
+            data: data,
         };
         return [
             title,
@@ -35,282 +38,279 @@ export class FormModule {
                     {
                         src: `https://raw.githack.com/SortableJS/Sortable/master/Sortable.js`,
                     },
-                ], () => {
-                }, () => {
-                });
+                ], () => { }, () => { });
                 return {
                     bind: vm.id,
                     view: () => {
-                        return vm.data.map((dd, index) => {
+                        return vm.data
+                            .map((dd, index) => {
                             const opc = option.find((d1) => {
                                 return d1.key === dd.page;
                             });
-                            return `<li class="w-100 border rounded-3   mb-2" style="overflow: hidden;"
->
-  <div class="d-flex align-items-center w-100 py-2" style="padding-left: 20px; padding-right: 20px;background: #F7F7F7;cursor: pointer;overflow: hidden;" onclick="${gvc.event(() => {
+                            return html `<li class="w-100 border rounded-3   mb-2" style="overflow: hidden;">
+                                    <div
+                                        class="d-flex align-items-center w-100 py-2"
+                                        style="padding-left: 20px; padding-right: 20px;background: #F7F7F7;cursor: pointer;overflow: hidden;"
+                                        onclick="${gvc.event(() => {
                                 dd.toggle = !dd.toggle;
                                 gvc.notifyDataChange(vm.id);
-                            })}">
-<i class="fa-sharp fa-solid fa-grip-dots-vertical me-3 dragItem "></i>
-    ${opc.icon}${dd.title || opc.title}
-    <div class="flex-fill"></div>
-    ${dd.toggle ? `<i class="fa-solid fa-angle-up"></i>` : `<i class="fa-solid fa-angle-down"></i>`}
-  </div>
-  ${dd.toggle ? `
-  <div class="w-100 p-3">
-  ${(() => {
-                                var _a, _b;
-                                switch (dd.page) {
-                                    case 'multiple_line_text':
-                                    case 'input':
-                                        return [
-                                            EditorElem.select({
-                                                title: '<div class="tx_normal fw-normal" >資料類型</div>',
-                                                gvc: gvc,
-                                                callback: (value) => {
-                                                    dd.form_config.type = value;
-                                                    if (value === 'textArea') {
-                                                        dd.page = 'multiple_line_text';
-                                                    }
-                                                    else {
-                                                        dd.page = 'input';
-                                                    }
+                            })}"
+                                    >
+                                        <i class="fa-sharp fa-solid fa-grip-dots-vertical me-3 dragItem "></i>
+                                        ${opc.icon}${dd.title || opc.title}
+                                        <div class="flex-fill"></div>
+                                        ${dd.toggle ? `<i class="fa-solid fa-angle-up"></i>` : `<i class="fa-solid fa-angle-down"></i>`}
+                                    </div>
+                                    ${dd.toggle
+                                ? html `
+                                              <div class="w-100 p-3">
+                                                  ${(() => {
+                                    var _a, _b;
+                                    switch (dd.page) {
+                                        case 'multiple_line_text':
+                                        case 'input':
+                                            return [
+                                                EditorElem.select({
+                                                    title: '<div class="tx_normal fw-normal" >資料類型</div>',
+                                                    gvc: gvc,
+                                                    callback: (value) => {
+                                                        dd.form_config.type = value;
+                                                        if (value === 'textArea') {
+                                                            dd.page = 'multiple_line_text';
+                                                        }
+                                                        else {
+                                                            dd.page = 'input';
+                                                        }
+                                                        update && update();
+                                                        gvc.notifyDataChange(vm.id);
+                                                    },
+                                                    def: dd.form_config.type,
+                                                    array: [
+                                                        {
+                                                            key: 'default',
+                                                            name: '單行文字',
+                                                            value: 'text',
+                                                            visible: 'visible',
+                                                        },
+                                                        {
+                                                            key: 'default',
+                                                            name: '多行文字',
+                                                            value: 'textArea',
+                                                            visible: 'visible',
+                                                        },
+                                                        {
+                                                            key: 'default',
+                                                            name: '名稱',
+                                                            value: 'name',
+                                                            visible: 'visible',
+                                                        },
+                                                        {
+                                                            key: 'default',
+                                                            name: '日期',
+                                                            value: 'date',
+                                                            visible: 'visible',
+                                                        },
+                                                        {
+                                                            key: 'default',
+                                                            name: '時間',
+                                                            value: 'time',
+                                                            visible: 'visible',
+                                                        },
+                                                        {
+                                                            key: 'default',
+                                                            name: 'email',
+                                                            value: 'email',
+                                                            visible: 'visible',
+                                                        },
+                                                        {
+                                                            key: 'default',
+                                                            name: '電話',
+                                                            value: 'phone',
+                                                            visible: 'visible',
+                                                        },
+                                                        {
+                                                            key: 'default',
+                                                            name: '顏色',
+                                                            value: 'color',
+                                                            visible: 'visible',
+                                                        },
+                                                        {
+                                                            key: 'default',
+                                                            name: '數字',
+                                                            value: 'number',
+                                                            visible: 'visible',
+                                                        },
+                                                        {
+                                                            key: 'default',
+                                                            name: '地址',
+                                                            value: 'address',
+                                                            visible: 'visible',
+                                                        },
+                                                        {
+                                                            key: 'default',
+                                                            name: '密碼',
+                                                            value: 'password',
+                                                            visible: 'visible',
+                                                        },
+                                                    ].map((dd) => {
+                                                        return {
+                                                            title: dd.name,
+                                                            value: dd.value,
+                                                        };
+                                                    }),
+                                                }),
+                                                BgWidget.editeInput({
+                                                    gvc: gvc,
+                                                    title: '自訂欄位名稱',
+                                                    default: dd.title || '',
+                                                    callback: (text) => {
+                                                        dd.title = text;
+                                                        update && update();
+                                                        gvc.notifyDataChange(vm.id);
+                                                    },
+                                                    placeHolder: '請輸入自訂欄位名稱',
+                                                }),
+                                                BgWidget.editeInput({
+                                                    gvc: gvc,
+                                                    title: '提示文字',
+                                                    default: dd.form_config.place_holder || '',
+                                                    callback: (text) => {
+                                                        dd.form_config.place_holder = text;
+                                                        update && update();
+                                                        gvc.notifyDataChange(vm.id);
+                                                    },
+                                                    placeHolder: '請輸入關於這項欄位的描述或指引',
+                                                }),
+                                                BgWidget.multiCheckboxContainer(gvc, [{ key: 'true', name: '設定為必填項目' }], [`${(_a = dd.require) !== null && _a !== void 0 ? _a : ''}` || 'false'], () => {
+                                                    dd.require = !dd.require;
                                                     update && update();
                                                     gvc.notifyDataChange(vm.id);
-                                                },
-                                                def: dd.form_config.type,
-                                                array: [
-                                                    {
-                                                        "key": "default",
-                                                        "name": "單行文字",
-                                                        "value": "text",
-                                                        "visible": "visible"
+                                                }, false),
+                                                html `<div class="d-flex align-items-center justify-content-end">
+                                                                      ${BgWidget.cancel(gvc.event(() => {
+                                                    const dialog = new ShareDialog(gvc.glitter);
+                                                    dialog.checkYesOrNot({
+                                                        text: '是否確認刪除欄位?',
+                                                        callback: (response) => {
+                                                            if (response) {
+                                                                vm.data.splice(index, 1);
+                                                                update && update();
+                                                                gvc.notifyDataChange(vm.id);
+                                                            }
+                                                        },
+                                                    });
+                                                }), '刪除欄位')}
+                                                                  </div>`,
+                                            ].join('<div class="my-2"></div>');
+                                        case 'form-select':
+                                        case 'check_box':
+                                        case 'mutiple_select':
+                                            return [
+                                                BgWidget.editeInput({
+                                                    gvc: gvc,
+                                                    title: '自訂欄位名稱',
+                                                    default: dd.title || '',
+                                                    callback: (text) => {
+                                                        dd.title = text;
+                                                        update && update();
+                                                        gvc.notifyDataChange(vm.id);
                                                     },
-                                                    {
-                                                        "key": "default",
-                                                        "name": "多行文字",
-                                                        "value": "textArea",
-                                                        "visible": "visible"
-                                                    },
-                                                    {
-                                                        "key": "default",
-                                                        "name": "名稱",
-                                                        "value": "name",
-                                                        "visible": "visible"
-                                                    }, {
-                                                        "key": "default",
-                                                        "name": "日期",
-                                                        "value": "date",
-                                                        "visible": "visible"
-                                                    }, {
-                                                        "key": "default",
-                                                        "name": "時間",
-                                                        "value": "time",
-                                                        "visible": "visible"
-                                                    }, {
-                                                        "key": "default",
-                                                        "name": "email",
-                                                        "value": "email",
-                                                        "visible": "visible"
-                                                    }, {
-                                                        "key": "default",
-                                                        "name": "電話",
-                                                        "value": "phone",
-                                                        "visible": "visible"
-                                                    }, {
-                                                        "key": "default",
-                                                        "name": "顏色",
-                                                        "value": "color",
-                                                        "visible": "visible"
-                                                    }, {
-                                                        "key": "default",
-                                                        "name": "數字",
-                                                        "value": "number",
-                                                        "visible": "visible"
-                                                    }, {
-                                                        "key": "default",
-                                                        "name": "地址",
-                                                        "value": "address",
-                                                        "visible": "visible"
-                                                    }, {
-                                                        "key": "default",
-                                                        "name": "密碼",
-                                                        "value": "password",
-                                                        "visible": "visible"
-                                                    }
-                                                ].map((dd) => {
-                                                    return {
-                                                        title: dd.name,
-                                                        value: dd.value
+                                                    placeHolder: '請輸入自訂欄位名稱',
+                                                }),
+                                                html `
+                                                                      <div class="tx_normal fw-normal mb-2">選項</div>
+                                                                      ${gvc.bindView(() => {
+                                                    const cVm = {
+                                                        id: gvc.glitter.getUUID(),
                                                     };
-                                                })
-                                            }),
-                                            BgWidget.editeInput({
-                                                gvc: gvc,
-                                                title: '自訂欄位名稱',
-                                                default: dd.title || '',
-                                                callback: (text) => {
-                                                    dd.title = text;
-                                                    update && update();
-                                                    gvc.notifyDataChange(vm.id);
-                                                },
-                                                placeHolder: '請輸入自訂欄位名稱',
-                                            }),
-                                            BgWidget.editeInput({
-                                                gvc: gvc,
-                                                title: '提示文字',
-                                                default: dd.form_config.place_holder || '',
-                                                callback: (text) => {
-                                                    dd.form_config.place_holder = text;
-                                                    update && update();
-                                                    gvc.notifyDataChange(vm.id);
-                                                },
-                                                placeHolder: '請輸入關於這項欄位的描述或指引',
-                                            }),
-                                            BgWidget.inlineCheckBox({
-                                                title: '',
-                                                gvc: gvc,
-                                                def: [`${(_a = dd.require) !== null && _a !== void 0 ? _a : ''}` || "false"],
-                                                array: [
-                                                    {
-                                                        title: '設定為必填項目',
-                                                        value: 'true',
-                                                    }
-                                                ],
-                                                callback: (text) => {
+                                                    return {
+                                                        bind: cVm.id,
+                                                        view: () => {
+                                                            return (dd.form_config.option
+                                                                .map((d1, index) => {
+                                                                return html `
+                                                                                                  <div class="d-flex align-items-center mb-2" style="gap: 10px;">
+                                                                                                      <input
+                                                                                                          class="form-control flex-fill"
+                                                                                                          placeholder="請輸入選項內容"
+                                                                                                          value="${d1.name}"
+                                                                                                          onchange="${gvc.event((e, event) => {
+                                                                    d1.value = e.value;
+                                                                    d1.name = e.value;
+                                                                    update && update();
+                                                                    gvc.notifyDataChange(cVm.id);
+                                                                })}"
+                                                                                                      />
+                                                                                                      <i
+                                                                                                          class="fa-solid fa-xmark"
+                                                                                                          style="color:#8d8d8d;cursor: pointer; "
+                                                                                                          onclick="${gvc.event(() => {
+                                                                    dd.form_config.option.splice(index, 1);
+                                                                    update && update();
+                                                                    gvc.notifyDataChange(cVm.id);
+                                                                })}"
+                                                                                                      ></i>
+                                                                                                  </div>
+                                                                                              `;
+                                                            })
+                                                                .join('') +
+                                                                html ` <div
+                                                                                          class=""
+                                                                                          style="width: 100px; height: 34px; padding: 6px 18px;background: #EAEAEA; border-radius: 10px; overflow: hidden; justify-content: center; align-items: center; gap: 8px; display: inline-flex; cursor: pointer;"
+                                                                                          onclick="${gvc.event(() => {
+                                                                    dd.form_config.option.push({
+                                                                        index: 0,
+                                                                        name: '',
+                                                                        value: '',
+                                                                    });
+                                                                    update && update();
+                                                                    gvc.notifyDataChange(cVm.id);
+                                                                })}"
+                                                                                      >
+                                                                                          <div style="color: #393939; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word">
+                                                                                              新增選項
+                                                                                          </div>
+                                                                                      </div>`);
+                                                        },
+                                                    };
+                                                })}
+                                                                  `,
+                                                BgWidget.multiCheckboxContainer(gvc, [{ key: 'true', name: '設定為必填項目' }], [`${(_b = dd.require) !== null && _b !== void 0 ? _b : ''}` || 'false'], () => {
                                                     dd.require = !dd.require;
                                                     update && update();
                                                     gvc.notifyDataChange(vm.id);
-                                                },
-                                                type: 'multiple'
-                                            }),
-                                            `<div class="d-flex align-items-center justify-content-end">
-${BgWidget.cancel(gvc.event(() => {
-                                                const dialog = new ShareDialog(gvc.glitter);
-                                                dialog.checkYesOrNot({
-                                                    text: '是否確認刪除欄位?',
-                                                    callback: (response) => {
-                                                        if (response) {
-                                                            vm.data.splice(index, 1);
-                                                            update && update();
-                                                            gvc.notifyDataChange(vm.id);
-                                                        }
-                                                    }
-                                                });
-                                            }), '刪除欄位')}
-</div>`
-                                        ].join('<div class="my-2"></div>');
-                                    case 'form-select':
-                                    case 'check_box':
-                                    case 'mutiple_select':
-                                        return [
-                                            BgWidget.editeInput({
-                                                gvc: gvc,
-                                                title: '自訂欄位名稱',
-                                                default: dd.title || '',
-                                                callback: (text) => {
-                                                    dd.title = text;
-                                                    update && update();
-                                                    gvc.notifyDataChange(vm.id);
-                                                },
-                                                placeHolder: '請輸入自訂欄位名稱',
-                                            }),
-                                            `
-                                            <div class="tx_normal fw-normal mb-2" >選項</div>
-                                            ${gvc.bindView(() => {
-                                                const cVm = {
-                                                    id: gvc.glitter.getUUID()
-                                                };
-                                                return {
-                                                    bind: cVm.id,
-                                                    view: () => {
-                                                        return dd.form_config.option.map((d1, index) => {
-                                                            return html `
-                                                                <div class="d-flex align-items-center mb-2"
-                                                                     style="gap: 10px;">
-                                                                    <input class="form-control flex-fill"
-                                                                           placeholder="請輸入選項內容"
-                                                                           value="${d1.name}"
-                                                                           onchange="${gvc.event((e, event) => {
-                                                                d1.value = e.value;
-                                                                d1.name = e.value;
+                                                }, false),
+                                                html `<div class="d-flex align-items-center justify-content-end">
+                                                                      ${BgWidget.cancel(gvc.event(() => {
+                                                    const dialog = new ShareDialog(gvc.glitter);
+                                                    dialog.checkYesOrNot({
+                                                        text: '是否確認刪除欄位?',
+                                                        callback: (response) => {
+                                                            if (response) {
+                                                                vm.data.splice(index, 1);
+                                                                gvc.notifyDataChange(vm.id);
                                                                 update && update();
-                                                                gvc.notifyDataChange(cVm.id);
-                                                            })}">
-                                                                    <i class="fa-solid fa-xmark"
-                                                                       style="color:#8d8d8d;cursor: pointer; "
-                                                                       onclick="${gvc.event(() => {
-                                                                dd.form_config.option.splice(index, 1);
-                                                                update && update();
-                                                                gvc.notifyDataChange(cVm.id);
-                                                            })}"></i>
-                                                                </div>
-                                                            `;
-                                                        }).join('') + html `
-                                                            <div class="" style="width: 100px; height: 34px; padding: 6px 18px;background: #EAEAEA; border-radius: 10px; overflow: hidden; justify-content: center; align-items: center; gap: 8px; display: inline-flex;
-cursor: pointer;" onclick="${gvc.event(() => {
-                                                            dd.form_config.option.push({
-                                                                "index": 0,
-                                                                "name": "",
-                                                                "value": ""
-                                                            });
-                                                            update && update();
-                                                            gvc.notifyDataChange(cVm.id);
-                                                        })}">
-                                                                <div style="color: #393939; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word">
-                                                                    新增選項
-                                                                </div>
-                                                            </div>`;
-                                                    }
-                                                };
-                                            })}
-                                            `,
-                                            BgWidget.inlineCheckBox({
-                                                title: '',
-                                                gvc: gvc,
-                                                def: [`${(_b = dd.require) !== null && _b !== void 0 ? _b : ''}` || "false"],
-                                                array: [
-                                                    {
-                                                        title: '設定為必填項目',
-                                                        value: 'true',
-                                                    }
-                                                ],
-                                                callback: (text) => {
-                                                    dd.require = !dd.require;
-                                                    update && update();
-                                                    gvc.notifyDataChange(vm.id);
-                                                },
-                                                type: 'multiple'
-                                            }),
-                                            `<div class="d-flex align-items-center justify-content-end">
-${BgWidget.cancel(gvc.event(() => {
-                                                const dialog = new ShareDialog(gvc.glitter);
-                                                dialog.checkYesOrNot({
-                                                    text: '是否確認刪除欄位?',
-                                                    callback: (response) => {
-                                                        if (response) {
-                                                            vm.data.splice(index, 1);
-                                                            gvc.notifyDataChange(vm.id);
-                                                            update && update();
-                                                        }
-                                                    }
-                                                });
-                                            }), '刪除欄位')}
-</div>`
-                                        ].join('<div class="my-2"></div>');
-                                    default:
-                                        return ``;
-                                }
-                            })()}
-</div>
-  ` : ``}
-</li>`;
-                        }).join('');
+                                                            }
+                                                        },
+                                                    });
+                                                }), '刪除欄位')}
+                                                                  </div>`,
+                                            ].join('<div class="my-2"></div>');
+                                        default:
+                                            return ``;
+                                    }
+                                })()}
+                                              </div>
+                                          `
+                                : ``}
+                                </li>`;
+                        })
+                            .join('');
                     },
                     divCreate: {
                         elem: 'ul',
                         option: [{ key: 'id', value: vm.id }],
-                        class: ``
+                        class: ``,
                     },
                     onCreate: () => {
                         const interval = setInterval(() => {
@@ -326,8 +326,7 @@ ${BgWidget.cancel(gvc.event(() => {
                                         group: gvc.glitter.getUUID(),
                                         animation: 100,
                                         handle: '.dragItem',
-                                        onChange: function (evt) {
-                                        },
+                                        onChange: function (evt) { },
                                         onStart: function (evt) {
                                             startIndex = evt.oldIndex;
                                         },
@@ -336,12 +335,11 @@ ${BgWidget.cancel(gvc.event(() => {
                                         },
                                     });
                                 }
-                                catch (e) {
-                                }
+                                catch (e) { }
                                 clearInterval(interval);
                             }
                         }, 100);
-                    }
+                    },
                 };
             }),
             BgWidget.plus_btn('新增一個欄位', gvc, option.map((dd, index) => {
@@ -349,182 +347,182 @@ ${BgWidget.cancel(gvc.event(() => {
                     switch (dd.key) {
                         case 'input':
                             vm.data.push({
-                                "key": `${new Date().getTime()}`,
-                                "page": "input",
-                                "type": "form_plugin_v2",
-                                "group": "",
-                                "toggle": true,
-                                "title": "",
-                                "appName": "cms_system",
-                                "require": "true",
-                                "readonly": "write",
-                                "formFormat": "{}",
-                                "style_data": {
-                                    "input": {
-                                        "list": [],
-                                        "class": "",
-                                        "style": "",
-                                        "version": "v2"
+                                key: `${new Date().getTime()}`,
+                                page: 'input',
+                                type: 'form_plugin_v2',
+                                group: '',
+                                toggle: true,
+                                title: '',
+                                appName: 'cms_system',
+                                require: 'true',
+                                readonly: 'write',
+                                formFormat: '{}',
+                                style_data: {
+                                    input: {
+                                        list: [],
+                                        class: '',
+                                        style: '',
+                                        version: 'v2',
                                     },
-                                    "label": {
-                                        "list": [],
-                                        "class": "form-label fs-base ",
-                                        "style": "",
-                                        "version": "v2"
+                                    label: {
+                                        list: [],
+                                        class: 'form-label fs-base ',
+                                        style: '',
+                                        version: 'v2',
                                     },
-                                    "container": {
-                                        "list": [],
-                                        "class": "",
-                                        "style": "",
-                                        "version": "v2"
-                                    }
+                                    container: {
+                                        list: [],
+                                        class: '',
+                                        style: '',
+                                        version: 'v2',
+                                    },
                                 },
-                                "form_config": {
-                                    "type": "text",
-                                    "title": "",
-                                    "input_style": {
-                                        "list": [],
-                                        "version": "v2"
+                                form_config: {
+                                    type: 'text',
+                                    title: '',
+                                    input_style: {
+                                        list: [],
+                                        version: 'v2',
                                     },
-                                    "title_style": {
-                                        "list": [],
-                                        "version": "v2"
+                                    title_style: {
+                                        list: [],
+                                        version: 'v2',
                                     },
-                                    "place_holder": ""
+                                    place_holder: '',
                                 },
-                                "col": "12",
-                                "col_sm": "12"
+                                col: '12',
+                                col_sm: '12',
                             });
                             break;
                         case 'multiple_line_text':
                             vm.data.push({
-                                "key": `${new Date().getTime()}`,
-                                "page": "multiple_line_text",
-                                "type": "form_plugin_v2",
-                                "toggle": true,
-                                "group": "",
-                                "title": "",
-                                "appName": "cms_system",
-                                "require": "true",
-                                "readonly": "write",
-                                "formFormat": "{}",
-                                "moduleName": "多行文字區塊",
-                                "style_data": {
-                                    "input": {
-                                        "list": [],
-                                        "class": "",
-                                        "style": "",
-                                        "version": "v2"
+                                key: `${new Date().getTime()}`,
+                                page: 'multiple_line_text',
+                                type: 'form_plugin_v2',
+                                toggle: true,
+                                group: '',
+                                title: '',
+                                appName: 'cms_system',
+                                require: 'true',
+                                readonly: 'write',
+                                formFormat: '{}',
+                                moduleName: '多行文字區塊',
+                                style_data: {
+                                    input: {
+                                        list: [],
+                                        class: '',
+                                        style: '',
+                                        version: 'v2',
                                     },
-                                    "label": {
-                                        "list": [],
-                                        "class": "form-label fs-base ",
-                                        "style": "",
-                                        "version": "v2"
+                                    label: {
+                                        list: [],
+                                        class: 'form-label fs-base ',
+                                        style: '',
+                                        version: 'v2',
                                     },
-                                    "container": {
-                                        "list": [],
-                                        "class": "",
-                                        "style": "",
-                                        "version": "v2"
-                                    }
+                                    container: {
+                                        list: [],
+                                        class: '',
+                                        style: '',
+                                        version: 'v2',
+                                    },
                                 },
-                                "form_config": {
-                                    "type": "name",
-                                    "title": "",
-                                    "place_holder": "",
-                                    "title_style": {},
-                                    "input_style": {}
+                                form_config: {
+                                    type: 'name',
+                                    title: '',
+                                    place_holder: '',
+                                    title_style: {},
+                                    input_style: {},
                                 },
-                                "col": "12",
-                                "col_sm": "12"
+                                col: '12',
+                                col_sm: '12',
                             });
                             break;
                         case 'form-select':
                             vm.data.push({
-                                "key": `${new Date().getTime()}`,
-                                "page": "form-select",
-                                "type": "form_plugin_v2",
-                                "group": "",
-                                "title": "",
-                                "appName": "cms_system",
-                                "require": "true",
-                                "readonly": "write",
-                                "formFormat": "{}",
-                                "moduleName": "下拉選單",
-                                "style_data": {
-                                    "input": { "list": [], "class": "", "style": "", "version": "v2" },
-                                    "label": { "list": [], "class": "form-label fs-base ", "style": "", "version": "v2" },
-                                    "container": { "list": [], "class": "", "style": "", "version": "v2" }
+                                key: `${new Date().getTime()}`,
+                                page: 'form-select',
+                                type: 'form_plugin_v2',
+                                group: '',
+                                title: '',
+                                appName: 'cms_system',
+                                require: 'true',
+                                readonly: 'write',
+                                formFormat: '{}',
+                                moduleName: '下拉選單',
+                                style_data: {
+                                    input: { list: [], class: '', style: '', version: 'v2' },
+                                    label: { list: [], class: 'form-label fs-base ', style: '', version: 'v2' },
+                                    container: { list: [], class: '', style: '', version: 'v2' },
                                 },
-                                "form_config": {
-                                    "type": "name",
-                                    "title": "",
-                                    "place_holder": "",
-                                    "title_style": {},
-                                    "input_style": {},
-                                    "option": []
+                                form_config: {
+                                    type: 'name',
+                                    title: '',
+                                    place_holder: '',
+                                    title_style: {},
+                                    input_style: {},
+                                    option: [],
                                 },
-                                "col": "12",
-                                "col_sm": "12"
+                                col: '12',
+                                col_sm: '12',
                             });
                             break;
-                        case "check_box":
+                        case 'check_box':
                             vm.data.push({
-                                "key": `${new Date().getTime()}`,
-                                "page": "check_box",
-                                "type": "form_plugin_v2",
-                                "group": "",
-                                "title": "",
-                                "appName": "cms_system",
-                                "require": "true",
-                                "readonly": "write",
-                                "formFormat": "{}",
-                                "moduleName": "單選題",
-                                "style_data": {
-                                    "input": { "list": [], "class": "", "style": "", "version": "v2" },
-                                    "label": { "list": [], "class": "form-label fs-base ", "style": "", "version": "v2" },
-                                    "container": { "list": [], "class": "", "style": "", "version": "v2" }
+                                key: `${new Date().getTime()}`,
+                                page: 'check_box',
+                                type: 'form_plugin_v2',
+                                group: '',
+                                title: '',
+                                appName: 'cms_system',
+                                require: 'true',
+                                readonly: 'write',
+                                formFormat: '{}',
+                                moduleName: '單選題',
+                                style_data: {
+                                    input: { list: [], class: '', style: '', version: 'v2' },
+                                    label: { list: [], class: 'form-label fs-base ', style: '', version: 'v2' },
+                                    container: { list: [], class: '', style: '', version: 'v2' },
                                 },
-                                "form_config": {
-                                    "type": "name",
-                                    "title": "",
-                                    "place_holder": "",
-                                    "title_style": {},
-                                    "input_style": {},
-                                    "option": []
+                                form_config: {
+                                    type: 'name',
+                                    title: '',
+                                    place_holder: '',
+                                    title_style: {},
+                                    input_style: {},
+                                    option: [],
                                 },
-                                "col": "12",
-                                "col_sm": "12"
+                                col: '12',
+                                col_sm: '12',
                             });
                             break;
-                        case "mutiple_select":
+                        case 'mutiple_select':
                             vm.data.push({
-                                "key": `${new Date().getTime()}`,
-                                "page": "mutiple_select",
-                                "type": "form_plugin_v2",
-                                "group": "",
-                                "title": "",
-                                "appName": "cms_system",
-                                "require": "true",
-                                "readonly": "write",
-                                "formFormat": "{}",
-                                "moduleName": "多選題",
-                                "style_data": {
-                                    "input": { "list": [], "class": "", "style": "", "version": "v2" },
-                                    "label": { "list": [], "class": "form-label fs-base ", "style": "", "version": "v2" },
-                                    "container": { "list": [], "class": "", "style": "", "version": "v2" }
+                                key: `${new Date().getTime()}`,
+                                page: 'mutiple_select',
+                                type: 'form_plugin_v2',
+                                group: '',
+                                title: '',
+                                appName: 'cms_system',
+                                require: 'true',
+                                readonly: 'write',
+                                formFormat: '{}',
+                                moduleName: '多選題',
+                                style_data: {
+                                    input: { list: [], class: '', style: '', version: 'v2' },
+                                    label: { list: [], class: 'form-label fs-base ', style: '', version: 'v2' },
+                                    container: { list: [], class: '', style: '', version: 'v2' },
                                 },
-                                "form_config": {
-                                    "type": "name",
-                                    "title": "",
-                                    "place_holder": "",
-                                    "title_style": {},
-                                    "input_style": {},
-                                    "option": []
+                                form_config: {
+                                    type: 'name',
+                                    title: '',
+                                    place_holder: '',
+                                    title_style: {},
+                                    input_style: {},
+                                    option: [],
                                 },
-                                "col": "12",
-                                "col_sm": "12"
+                                col: '12',
+                                col_sm: '12',
                             });
                             break;
                     }
@@ -532,7 +530,7 @@ ${BgWidget.cancel(gvc.event(() => {
                     gvc.notifyDataChange(vm.id);
                 };
                 return dd;
-            }))
+            })),
         ].join('<div class="my-3"></div>');
     }
 }
