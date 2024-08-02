@@ -896,3 +896,25 @@ ul {
     background: #fff;
     box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.1);
 }
+
+
+.scale_iframe{
+    transform: scale(0.5) translateX(-50%);
+    transform-origin: 0 0;
+    height:calc(100% + (100% * 1)) !important;
+    position: absolute;
+    left: 50%;
+    top:0px;
+    animation:scale-animation  0.3s ease-out forwards;
+}
+
+/* @keyframes 定義動畫 */
+@keyframes scale-animation {
+    0% {
+        transform: scale(1) translateX(0%);
+    }
+    100% {
+        transform: scale(0.5) translateX(-50%);
+    }
+}
+

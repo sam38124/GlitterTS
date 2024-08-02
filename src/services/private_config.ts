@@ -3,6 +3,7 @@ import db from "../modules/database.js";
 import {saasConfig} from "../config.js";
 import {IToken} from "../models/Auth.js";
 import moment from "moment/moment.js";
+import {Post} from "../api-public/services/post";
 
 export class Private_config {
     public token: IToken;
@@ -14,6 +15,9 @@ export class Private_config {
             throw exception.BadRequestError("Forbidden", "No Permission.", null);
         }
         try {
+            if(config.key==='sql_api_config_post'){
+                Post.lambda_function[config.appName]=undefined
+            }
             await db.execute(`replace
             into \`${saasConfig.SAAS_NAME}\`.private_config (app_name,\`key\`,\`value\`,updated_at)
             values (?,?,?,?)

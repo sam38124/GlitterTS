@@ -141,9 +141,7 @@ export class ColorThemeSelector {
                                         ${globalValue.color_theme
                                             .map((value, index, array) => {
                                             return ColorThemeSelector.line_items(cf, index, value, select, globalValue, id, false);
-                                        }).concat([
-                                            ColorThemeSelector.line_items(cf, `custom-${cf.widget.bundle.form_key}`, {}, select, globalValue, id, true)
-                                        ])
+                                        })
                                             .join('')}
                                     </div>
                                     <div class="w-100 d-flex align-items-center justify-content-center bt_3366BB_no_line"

@@ -8,12 +8,16 @@ const exception_js_1 = __importDefault(require("../modules/exception.js"));
 const database_js_1 = __importDefault(require("../modules/database.js"));
 const config_js_1 = require("../config.js");
 const moment_js_1 = __importDefault(require("moment/moment.js"));
+const post_1 = require("../api-public/services/post");
 class Private_config {
     async setConfig(config) {
         if (!(await this.verifyPermission(config.appName))) {
             throw exception_js_1.default.BadRequestError("Forbidden", "No Permission.", null);
         }
         try {
+            if (config.key === 'sql_api_config_post') {
+                post_1.Post.lambda_function[config.appName] = undefined;
+            }
             await database_js_1.default.execute(`replace
             into \`${config_js_1.saasConfig.SAAS_NAME}\`.private_config (app_name,\`key\`,\`value\`,updated_at)
             values (?,?,?,?)

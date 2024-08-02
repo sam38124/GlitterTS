@@ -75,7 +75,11 @@ export async function initial(serverPort: number) {
         if (process.env.firebase) {
             await Firebase.initial();
         }
-        UpdateScript.run()
+        // UpdateScript.run()
+        if (ConfigSetting.runSchedule) {
+            new Schedule().main();
+            new SystemSchedule().start()
+        }
         WebSocket.start();
         logger.info('[Init]', `Server is listening on port: ${serverPort}`);
         console.log('Starting up the server now.');
@@ -102,11 +106,7 @@ export async function createAPP(dd: any) {
     const html = String.raw;
     Live_source.liveAPP.push(dd.appName);
     //正式區在跑排程
-    if (ConfigSetting.runSchedule) {
-        new Schedule(dd.appName).main();
-        new SystemSchedule().start()
-    }
-
+    Schedule.app.push(dd.appName);
     const file_path = path.resolve(__dirname, '../lowcode');
     return await GlitterUtil.set_frontend_v2(app, [
         {
@@ -188,12 +188,12 @@ export async function createAPP(dd: any) {
 
                         return `${(() => {
                             const d = data.page_config.seo;
-                            
+
                             return html`
                                 <head>
                                     ${(()=>{
-                                        if(req.query.type === 'editor'){
-                                            return  html`<title>SHOPNEX後台系統</title>
+                                if(req.query.type === 'editor'){
+                                    return  html`<title>SHOPNEX後台系統</title>
     <link rel="canonical" href="/index"/>
     <meta name="keywords" content="SHOPNEX,電商平台" />
     <link id="appImage" rel="shortcut icon"
@@ -208,8 +208,8 @@ export async function createAPP(dd: any) {
         content="SHOPNEX電商開店平台，零抽成、免手續費。提供精美模板和豐富插件，操作簡單，3分鐘內快速打造專屬商店。購物車、金物流、SEO行銷、資料分析一站搞定。支援APP上架，並提供100%客製化設計，立即免費體驗30天。" />
     <meta name="og:description"
         content="SHOPNEX電商開店平台，零抽成、免手續費。提供精美模板和豐富插件，操作簡單，3分鐘內快速打造專屬商店。購物車、金物流、SEO行銷、資料分析一站搞定。支援APP上架，並提供100%客製化設計，立即免費體驗30天。" />`
-                                        }else{
-                                          return   html`<title>${d.title ?? '尚未設定標題'}</title>
+                                }else{
+                                    return   html`<title>${d.title ?? '尚未設定標題'}</title>
                                             <link rel="canonical" href="/${link_prefix && `${link_prefix}/`}${data.tag}"/>
                                             <meta name="keywords" content="${d.keywords ?? '尚未設定關鍵字'}"/>
                                             <link id="appImage" rel="shortcut icon" href="${d.logo ?? ''}" type="image/x-icon"/>
@@ -218,31 +218,31 @@ export async function createAPP(dd: any) {
                                             <meta property="og:title" content="${(d.title ?? '').replace(/\n/g, '')}"/>
                                             <meta name="description" content="${(d.content ?? '').replace(/\n/g, '')}"/>
                                             <meta name="og:description" content="${(d.content ?? '').replace(/\n/g, '')}"/>`
-                                        }
-                                    })()}
+                                }
+                            })()}
                                   
                                     ${d.code ?? ''}
                                     ${(() => {
-                                        if (req.query.type === 'editor') {
-                                            return ``;
-                                        } else {
-                                            return `${(data.config.globalStyle ?? [])
-                                                    .map((dd: any) => {
-                                                        try {
-                                                            if (dd.data.elem === 'link') {
-                                                                return `<link type="text/css" rel="stylesheet" href="${
-                                                                        dd.data.attr.find((dd: any) => {
-                                                                            return dd.attr === 'href';
-                                                                        }).value
-                                                                }">`;
-                                                            }
-                                                        } catch (e) {
-                                                            return ``;
-                                                        }
-                                                    })
-                                                    .join('')}`;
-                                        }
-                                    })()}
+                                if (req.query.type === 'editor') {
+                                    return ``;
+                                } else {
+                                    return `${(data.config.globalStyle ?? [])
+                                        .map((dd: any) => {
+                                            try {
+                                                if (dd.data.elem === 'link') {
+                                                    return `<link type="text/css" rel="stylesheet" href="${
+                                                        dd.data.attr.find((dd: any) => {
+                                                            return dd.attr === 'href';
+                                                        }).value
+                                                    }">`;
+                                                }
+                                            } catch (e) {
+                                                return ``;
+                                            }
+                                        })
+                                        .join('')}`;
+                                }
+                            })()}
                                 </head>
                             `;
                         })()}
@@ -341,43 +341,43 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
                         xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
                     ${(
-                            await db.query(
-                                    `select page_config, tag, updated_time
+                    await db.query(
+                        `select page_config, tag, updated_time
                                      from \`${saasConfig.SAAS_NAME}\`.page_config
                                      where appName = ?
                                        and page_config ->>'$.seo.type'='custom'
                                     `,
-                                    [appName]
-                            )
+                        [appName]
                     )
-                            .map((d2: any) => {
-                                return `<url>
+                )
+                    .map((d2: any) => {
+                        return `<url>
 <loc>${`https://${domain}/${d2.tag}`.replace(/ /g, '+')}</loc>
 <lastmod>${moment(new Date(d2.updated_time)).format('YYYY-MM-DD')}</lastmod>
 </url>
 `;
-                            })
-                            .join('')}
+                    })
+                    .join('')}
                     ${article.data
-                            .map((d2: any) => {
-                                if (!d2.content.template) {
-                                    return ``;
-                                }
-                                return `<url>
+                    .map((d2: any) => {
+                        if (!d2.content.template) {
+                            return ``;
+                        }
+                        return `<url>
 <loc>${`https://${domain}/${(d2.content.for_index === 'false') ? `pages` : `blogs`}/${d2.content.tag}`.replace(/ /g, '+')}</loc>
 <lastmod>${moment(new Date(d2.updated_time)).format('YYYY-MM-DD')}</lastmod>
 </url>
 `;
-                            })
-                            .join('')}
+                    })
+                    .join('')}
                     ${(site_map || []).map((d2: any) => {
-                        return `<url>
+                    return `<url>
 <loc>${`https://${domain}/${d2.url}`.replace(/ /g, '+')}</loc>
 <lastmod>${d2.updated_time ? moment(new Date(d2.updated_time)).format('YYYY-MM-DD') : moment(new Date()).format('YYYY-MM-DDTHH:mm:SS+00:00')}</lastmod>
 <changefreq>weekly</changefreq>
 </url>
 `;
-                    })}
+                })}
                 </urlset> `;
                 return xmlFormatter(sitemap, {
                     indentation: '  ', // 使用兩個空格進行縮進
@@ -480,15 +480,15 @@ async function getSeoDetail(appName: string, req: any) {
             const evalString = html`
                 return {
                 execute:(${functionValue
-                        .map((d2) => {
-                            return d2.key;
-                        })
-                        .join(',')})=>{
+                .map((d2) => {
+                    return d2.key;
+                })
+                .join(',')})=>{
                 try {
                 ${sqlData[0].value.value.replace(
-                        /new\s*Promise\s*\(\s*async\s*\(\s*resolve\s*,\s*reject\s*\)\s*=>\s*\{([\s\S]*)\}\s*\)/i,
-                        'new Promise(async (resolve, reject) => { try { $1 } catch (error) { console.log(error);reject(error); } })'
-                )}
+                /new\s*Promise\s*\(\s*async\s*\(\s*resolve\s*,\s*reject\s*\)\s*=>\s*\{([\s\S]*)\}\s*\)/i,
+                'new Promise(async (resolve, reject) => { try { $1 } catch (error) { console.log(error);reject(error); } })'
+            )}
                 }catch (e) { console.log(e) } } }
             `;
             const myFunction = new Function(evalString);
@@ -529,15 +529,15 @@ async function getSeoSiteMap(appName: string, req: any) {
             const evalString = html`
                 return {
                 execute:(${functionValue
-                        .map((d2) => {
-                            return d2.key;
-                        })
-                        .join(',')})=>{
+                .map((d2) => {
+                    return d2.key;
+                })
+                .join(',')})=>{
                 try {
                 ${sqlData[0].value.value.replace(
-                        /new\s*Promise\s*\(\s*async\s*\(\s*resolve\s*,\s*reject\s*\)\s*=>\s*\{([\s\S]*)\}\s*\)/i,
-                        'new Promise(async (resolve, reject) => { try { $1 } catch (error) { console.log(error);reject(error); } })'
-                )}
+                /new\s*Promise\s*\(\s*async\s*\(\s*resolve\s*,\s*reject\s*\)\s*=>\s*\{([\s\S]*)\}\s*\)/i,
+                'new Promise(async (resolve, reject) => { try { $1 } catch (error) { console.log(error);reject(error); } })'
+            )}
                 }catch (e) { console.log(e) } } }
             `;
             const myFunction = new Function(evalString);

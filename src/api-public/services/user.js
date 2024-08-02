@@ -225,8 +225,6 @@ class User {
                 key: 'login_line_setting',
                 user_id: 'manager',
             });
-            console.log(`redirect=>`, redirect);
-            console.log(`lineData=>`, lineData);
             const lineResponse = await new Promise((resolve, reject) => {
                 axios_1.default
                     .request({
@@ -427,7 +425,6 @@ class User {
                  order by id desc`, [])).map((dd) => {
                 return { total_amount: parseInt(`${dd.total}`, 10), date: dd.created_time };
             });
-            console.log(order_list);
             let pass_level = true;
             const member = member_list.map((dd) => {
                 if (dd.condition.type === 'single') {
@@ -523,7 +520,6 @@ class User {
                     }
                 }
             });
-            console.log(member);
             member_update.value = member.reverse();
             member_update.time = new Date();
             await this.setConfig({

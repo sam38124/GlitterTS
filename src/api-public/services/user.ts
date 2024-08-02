@@ -271,8 +271,6 @@ export class User {
                 key: 'login_line_setting',
                 user_id: 'manager',
             });
-            console.log(`redirect=>`, redirect);
-            console.log(`lineData=>`, lineData);
             const lineResponse: any = await new Promise((resolve, reject) => {
                 axios
                     .request({
@@ -517,7 +515,6 @@ export class User {
             ).map((dd: any) => {
                 return { total_amount: parseInt(`${dd.total}`, 10), date: dd.created_time };
             });
-            console.log(order_list);
             // 判斷是否符合上個等級
             let pass_level = true;
             const member = member_list.map(
@@ -627,7 +624,6 @@ export class User {
                     }
                 }
             );
-            console.log(member);
             member_update.value = member.reverse();
             member_update.time = new Date();
             await this.setConfig({

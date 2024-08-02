@@ -30,7 +30,6 @@ exports.Post = void 0;
 const database_1 = __importStar(require("../../modules/database"));
 const exception_1 = __importDefault(require("../../modules/exception"));
 const app_js_1 = require("../../services/app.js");
-const message_js_1 = require("../../firebase/message.js");
 const shopping_js_1 = require("./shopping.js");
 const ut_database_js_1 = require("../utils/ut-database.js");
 const notify_js_1 = require("./notify.js");
@@ -80,6 +79,7 @@ class Post {
             await database_1.default.query(sql, []);
         }
         catch (e) {
+            console.error(e);
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'SqlApi Error:' + e, null);
         }
     }
@@ -89,32 +89,38 @@ class Post {
                 database: this.app,
             }, async (sql) => {
                 var _a, _b;
-                const apConfig = await app_js_1.App.getAdConfig(this.app, 'sql_api_config_post');
-                const sq = apConfig.apiList.find((dd) => {
-                    return dd.route === router && dd.type === type;
-                });
-                if (!sq) {
-                    throw exception_1.default.BadRequestError('BAD_REQUEST', `Router ${router} not exist.`, null);
-                }
                 let user = undefined;
+                if (!Post.lambda_function[this.app]) {
+                    Post.lambda_function[this.app] = await app_js_1.App.getAdConfig(this.app, 'sql_api_config_post');
+                }
                 if (this.token) {
                     user =
                         (_b = (await sql.query(`select *
                                      from t_user
                                      where userID = ${(_a = this.token.userID) !== null && _a !== void 0 ? _a : 0}`, []))[0]) !== null && _b !== void 0 ? _b : user;
                 }
-                const html = String.raw;
-                const myFunction = new Function(html `try { return
-                    ${sq.sql.replace(/new\s*Promise\s*\(\s*async\s*\(\s*resolve\s*,\s*reject\s*\)\s*=>\s*\{([\s\S]*)\}\s*\)/i, 'new Promise(async (resolve, reject) => { try { $1 } catch (error) { console.log(error);reject(error); } })')}
-                    } catch (error) { return 'error'; }`);
-                const sqlType = (() => {
-                    try {
-                        return myFunction();
+                const sqlType = await ((async () => {
+                    const sq = Post.lambda_function[this.app].apiList.find((dd) => {
+                        return dd.route === router && dd.type === type;
+                    });
+                    if (!sq) {
+                        throw exception_1.default.BadRequestError('BAD_REQUEST', `Router ${router} not exist.`, null);
                     }
-                    catch (e) {
-                        throw exception_1.default.BadRequestError('BAD_REQUEST', 'SqlApi Error', null);
-                    }
-                })();
+                    const html = String.raw;
+                    const myFunction = new Function(html `try {
+                            return ${sq.sql.replace(/new\s*Promise\s*\(\s*async\s*\(\s*resolve\s*,\s*reject\s*\)\s*=>\s*\{([\s\S]*)\}\s*\)/i, 'new Promise(async (resolve, reject) => { try { $1 } catch (error) { console.log(error);reject(error); } })')}
+                            } catch (error) {
+                            return 'error';
+                            }`);
+                    return (() => {
+                        try {
+                            return myFunction();
+                        }
+                        catch (e) {
+                            throw exception_1.default.BadRequestError('BAD_REQUEST', e, null);
+                        }
+                    })();
+                })());
                 if (!sqlType) {
                     throw exception_1.default.BadRequestError('BAD_REQUEST', 'SqlApi Error', null);
                 }
@@ -129,7 +135,6 @@ class Post {
                                 query: query,
                                 firebase: {
                                     sendMessage: (message) => {
-                                        (0, message_js_1.sendMessage)(apConfig.firebase, message, this.app);
                                     },
                                 },
                             })
@@ -149,6 +154,7 @@ class Post {
             });
         }
         catch (e) {
+            console.error(e);
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'SqlApi Error:' + e, null);
         }
     }
@@ -315,7 +321,8 @@ class Post {
                                          from \`${this.app}\`.\`t_user\`
                                          where userID = ${dd.userID}`, []))[0]['userData'];
                         }
-                        catch (e) { }
+                        catch (e) {
+                        }
                     }
                     dd.userData = userData[dd.userID];
                 }
@@ -351,6 +358,7 @@ class Post {
 }
 exports.Post = Post;
 Post.postObserverList = [];
+Post.lambda_function = {};
 function generateUserID() {
     let userID = '';
     const characters = '0123456789';

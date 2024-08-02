@@ -1205,7 +1205,7 @@ class Shopping {
         }
         catch (e) {
             console.error(e);
-            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getOrderToDay Error:' + e, null);
         }
     }
     async getRecentActiveUser() {
@@ -1594,7 +1594,7 @@ class Shopping {
         }
         catch (e) {
             console.error(e);
-            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getCollectionProducts Error:' + e, null);
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'putCollection Error:' + e, null);
         }
     }
     checkVariantDataType(variants) {
@@ -1701,7 +1701,7 @@ class Shopping {
         }
         catch (e) {
             console.error(e);
-            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'postProduct Error:' + e, null);
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'postMulProduct Error:' + e, null);
         }
     }
     async processProducts(productArray, insertIDStart) {
@@ -1728,7 +1728,7 @@ class Shopping {
         }
         catch (e) {
             console.error(e);
-            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'postProduct Error:' + e, null);
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'putProduct Error:' + e, null);
         }
     }
     async deleteCollection(dataArray) {

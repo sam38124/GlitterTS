@@ -1,10 +1,9 @@
 export declare class Schedule {
-    app: string;
-    constructor(app: string);
-    perload(): Promise<boolean>;
-    isDatabaseExists(): Promise<boolean>;
-    isDatabasePass(): Promise<boolean>;
-    isTableExists(table: string): Promise<boolean>;
+    static app: string[];
+    perload(app: string): Promise<boolean>;
+    isDatabaseExists(app: string): Promise<boolean>;
+    isDatabasePass(app: string): Promise<boolean>;
+    isTableExists(table: string, app: string): Promise<boolean>;
     refreshMember(sec: number): Promise<void>;
     example(sec: number): Promise<void>;
     birthRebate(sec: number): Promise<void>;

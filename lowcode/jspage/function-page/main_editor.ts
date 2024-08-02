@@ -165,6 +165,20 @@ export class Main_editor {
                                                                                             dd.info.editorEvent();
                                                                                         }
                                                                                     })}"
+                                                                                    onmouseover="${gvc.event(() => {
+                                                                                        if (glitter.share.left_block_hover) {
+                                                                                            return
+                                                                                        }
+                                                                                        dd.info && dd.info.editor_bridge && dd.info.editor_bridge.scrollWithHover();
+                                                                                        // scrollToHover(gvc.glitter.$(`.editor_it_${cf.widget.id}`).get(0));
+                                                                                    })}"
+                                                                                    onmouseout="${gvc.event(() => {
+                                                                                        if (glitter.share.left_block_hover) {
+                                                                                            return
+                                                                                        }
+                                                                                        dd.info && dd.info.editor_bridge && dd.info.editor_bridge.cancelHover();
+                                                                                        // scrollToHover(gvc.glitter.$(`.editor_it_${cf.widget.id}`).get(0));
+                                                                                    })}"
                                                                             >
                                                                                 ${dd.type === 'container'
                                                                                         ? `
@@ -190,18 +204,18 @@ export class Main_editor {
                                                                                 ${dd.icon ? `<img src="${dd.icon}" style="width:18px;height:18px;">` : ``}
                                                                                 <span>${dd.title}</span>
                                                                                 <div class="flex-fill"></div>
-                                                                                <div
+                                                                                ${(dd.info.deletable !== 'false') ? ` <div
                                                                                         class="hoverBtn p-1 child"
                                                                                         onclick="${gvc.event((e, event) => {
-                                                                                            lastClick.zeroing();
-                                                                                            event.stopPropagation();
-                                                                                            glitter.htmlGenerate.deleteWidget(og_array, og_array[index]);
-                                                                                            setPageConfig();
+                                                                                    lastClick.zeroing();
+                                                                                    event.stopPropagation();
+                                                                                    glitter.htmlGenerate.deleteWidget(og_array, og_array[index]);
+                                                                                    setPageConfig();
 
-                                                                                        })}"
+                                                                                })}"
                                                                                 >
                                                                                     <i class="fa-regular fa-trash d-flex align-items-center justify-content-center "></i>
-                                                                                </div>
+                                                                                </div>` : ``}
                                                                                 <div
                                                                                         class="hoverBtn p-1 ${og_array[index].visible ? `child` : ``}"
                                                                                         onclick="${gvc.event((e, event) => {
@@ -230,7 +244,12 @@ export class Main_editor {
                                                                                             aria-hidden="true"
                                                                                     ></i>
                                                                                 </div>
-                                                                                <div class="hoverBtn p-1 dragItem child">
+                                                                                <div class="hoverBtn p-1 dragItem child"
+                                                                                     onmousedown="${gvc.event(() => {
+                                                                                         (Storage.view_type !== 'mobile') && $('#editerCenter iframe').addClass('scale_iframe')
+                                                                                     })}" onmouseup="${gvc.event(() => {
+                                                                                    (Storage.view_type !== 'mobile') && $('#editerCenter iframe').removeClass('scale_iframe')
+                                                                                })}">
                                                                                     <i
                                                                                             class="fa-solid fa-grip-dots-vertical d-flex align-items-center justify-content-center  "
                                                                                             style="width:15px;height:15px;"
@@ -353,16 +372,44 @@ export class Main_editor {
                                                                         handle: '.dragItem',
                                                                         // Called when dragging element changes position
                                                                         onChange: function (evt: any) {
+                                                                            function swapElements(elm1: any, elm2: any) {
+                                                                                var parent1, next1,
+                                                                                    parent2, next2;
+
+                                                                                parent1 = elm1.parentNode;
+                                                                                next1 = elm1.nextSibling;
+                                                                                parent2 = elm2.parentNode;
+                                                                                next2 = elm2.nextSibling;
+
+                                                                                parent1.insertBefore(elm2, next1);
+                                                                                parent2.insertBefore(elm1, next2);
+                                                                            }
+
+                                                                            swapElements(og_array[startIndex].editor_bridge.element().parentNode, og_array[evt.newIndex].editor_bridge.element().parentNode)
                                                                             swapArr(og_array, startIndex, evt.newIndex);
+                                                                            const newIndex = evt.newIndex
+                                                                            setTimeout(() => {
+                                                                                const dd = og_array[newIndex]
+                                                                                dd && dd.editor_bridge && dd.editor_bridge.scrollWithHover()
+                                                                            })
+
+                                                                            // console.log(`evt.newIndex->`,og_array[startIndex].editor_bridge.element().parentNode)
                                                                             startIndex = evt.newIndex;
                                                                         },
                                                                         onEnd: (evt: any) => {
                                                                             setPageConfig();
                                                                             swapArr(og_array, startIndex, evt.newIndex);
-                                                                            gvc.notifyDataChange('showView');
+                                                                            const dd = og_array[evt.newIndex];
+                                                                            dd.info && dd.info.editor_bridge && dd.info.editor_bridge.cancelHover()
+                                                                            // gvc.notifyDataChange('showView');
+                                                                            glitter.share.left_block_hover = false;
+                                                                            (Storage.view_type !== 'mobile') && $('#editerCenter iframe').removeClass('scale_iframe')
                                                                         },
                                                                         onStart: function (evt: any) {
                                                                             startIndex = evt.oldIndex;
+                                                                            glitter.share.left_block_hover = true;
+
+                                                                            (Storage.view_type !== 'mobile') && $('#editerCenter iframe').addClass('scale_iframe')
                                                                         },
                                                                     });
                                                                 } catch (e) {
@@ -827,10 +874,9 @@ export class Main_editor {
                             navigator.clipboard.writeText(JSON.stringify(viewModel.selectItem));
                             dialog.successMessage({text: '複製成功'})
                         }), '複製元件')}
-                        <div class="mx-2"></div>
-                        ${BgWidget.cancel(gvc.event(() => {
+                        ${(viewModel.selectItem.deletable !== 'false') ? ` <div class="mx-2"></div>` + BgWidget.cancel(gvc.event(() => {
                             glitter.htmlGenerate.deleteWidget(glitter.share.editorViewModel.selectContainer, viewModel.selectItem)
-                        }), '刪除元件')}
+                        }), '刪除元件') : ``}
                     </div>
                 </div>
             `,
@@ -895,7 +941,7 @@ export class Main_editor {
                             ? `width: 414px;height: calc(100vh - ${56 + EditorConfig.getPaddingTop(gvc)}px);`
                             : `width: calc(100%);height: calc(100vh - ${56 + EditorConfig.getPaddingTop(gvc)}px);overflow:hidden;`}"
             >
-                <div class="" style="width:100%;height: calc(100%);" id="editerCenter">
+                <div class="position-relative" style="width:100%;height: calc(100%);" id="editerCenter">
                     <iframe class="w-100 h-100  bg-white"
                             src="${gvc.glitter.root_path}${gvc.glitter.getUrlParameter('page')}?type=htmlEditor&appName=${gvc.glitter.getUrlParameter('appName')}"></iframe>
                 </div>

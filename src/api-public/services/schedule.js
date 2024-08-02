@@ -12,68 +12,70 @@ const user_1 = require("./user");
 const shopping_1 = require("./shopping");
 const mail_js_1 = require("../services/mail.js");
 const auto_send_email_js_1 = require("./auto-send-email.js");
+const config_1 = require("../../config");
 class Schedule {
-    constructor(app) {
-        this.app = app;
-    }
-    async perload() {
-        if (!(await this.isDatabasePass()))
+    async perload(app) {
+        if (!(await this.isDatabasePass(app)))
             return false;
-        if (!(await this.isDatabaseExists()))
+        if (!(await this.isDatabaseExists(app)))
             return false;
-        if (!(await this.isTableExists('t_user_public_config')))
+        if (!(await this.isTableExists('t_user_public_config', app)))
             return false;
-        if (!(await this.isTableExists('t_voucher_history')))
+        if (!(await this.isTableExists('t_voucher_history', app)))
             return false;
-        if (!(await this.isTableExists('t_triggers')))
+        if (!(await this.isTableExists('t_triggers', app)))
             return false;
         return true;
     }
-    async isDatabaseExists() {
-        return (await database_1.default.query(`SHOW DATABASES LIKE \'${this.app}\';`, [])).length > 0;
+    async isDatabaseExists(app) {
+        return (await database_1.default.query(`SHOW DATABASES LIKE \'${app}\';`, [])).length > 0;
     }
-    async isDatabasePass() {
+    async isDatabasePass(app) {
         const SQL = `
             SELECT *
-            FROM glitter.app_config
-            WHERE appName = \'${this.app}\'
+            FROM ${config_1.saasConfig.SAAS_NAME}.app_config
+            WHERE appName = \'${app}\'
               AND (refer_app is null OR refer_app = appName);
         `;
         return (await database_1.default.query(SQL, [])).length > 0;
     }
-    async isTableExists(table) {
-        return (await database_1.default.query(`SHOW TABLES IN \`${this.app}\` LIKE \'${table}\';`, [])).length > 0;
+    async isTableExists(table, app) {
+        return (await database_1.default.query(`SHOW TABLES IN \`${app}\` LIKE \'${table}\';`, [])).length > 0;
     }
     async refreshMember(sec) {
         try {
-            if (await this.perload()) {
-                const userClass = new user_1.User(this.app);
-                const member_count = {};
-                for (const user of await database_1.default.query(`select *
-                                                    from \`${this.app}\`.t_user`, [])) {
-                    const member_levels = (await userClass.refreshMember(user)).find((dd) => {
-                        return dd.trigger;
-                    });
-                    if (member_levels) {
-                        member_count[member_levels.id] = member_count[member_levels.id] || 0;
-                        member_count[member_levels.id]++;
+            for (const app of Schedule.app) {
+                if (await this.perload(app)) {
+                    const userClass = new user_1.User(app);
+                    const member_count = {};
+                    for (const user of await database_1.default.query(`select *
+                                                    from \`${app}\`.t_user`, [])) {
+                        const member_levels = (await userClass.refreshMember(user)).find((dd) => {
+                            return dd.trigger;
+                        });
+                        if (member_levels) {
+                            member_count[member_levels.id] = member_count[member_levels.id] || 0;
+                            member_count[member_levels.id]++;
+                        }
                     }
+                    await userClass.setConfig({
+                        key: 'member_levels_count_list',
+                        value: member_count,
+                        user_id: 'manager',
+                    });
                 }
-                await userClass.setConfig({
-                    key: 'member_levels_count_list',
-                    value: member_count,
-                    user_id: 'manager',
-                });
             }
         }
         catch (e) {
-            throw exception_1.default.BadRequestError('BAD_REQUEST', 'refreshMember Error: ' + e, null);
+            console.error('BAD_REQUEST', 'refreshMember Error: ' + e, null);
         }
         setTimeout(() => this.refreshMember(sec), sec * 1000);
     }
     async example(sec) {
         try {
-            if (await this.perload()) {
+            for (const app of Schedule.app) {
+                if (await this.perload(app)) {
+                }
             }
         }
         catch (e) {
@@ -82,128 +84,136 @@ class Schedule {
         setTimeout(() => this.example(sec), sec * 1000);
     }
     async birthRebate(sec) {
-        try {
-            if (await this.perload()) {
-                const rebateClass = new rebate_1.Rebate(this.app);
-                const userClass = new user_1.User(this.app);
-                if (await rebateClass.mainStatus()) {
-                    const getRS = await userClass.getConfig({ key: 'rebate_setting', user_id: 'manager' });
-                    const rgs = getRS[0] && getRS[0].value.birth ? getRS[0].value.birth : {};
-                    if (rgs && rgs.switch) {
-                        async function postUserRebate(id, value) {
-                            const used = await rebateClass.canUseRebate(id, 'birth');
-                            if (used === null || used === void 0 ? void 0 : used.result) {
-                                if (value !== 0) {
-                                    await rebateClass.insertRebate(id, value, '生日禮', {
-                                        type: 'birth',
-                                        deadTime: rgs.unlimited ? undefined : (0, moment_1.default)().add(rgs.date, 'd').format('YYYY-MM-DD HH:mm:ss'),
-                                    });
+        for (const app of Schedule.app) {
+            try {
+                if (await this.perload(app)) {
+                    const rebateClass = new rebate_1.Rebate(app);
+                    const userClass = new user_1.User(app);
+                    if (await rebateClass.mainStatus()) {
+                        const getRS = await userClass.getConfig({ key: 'rebate_setting', user_id: 'manager' });
+                        const rgs = getRS[0] && getRS[0].value.birth ? getRS[0].value.birth : {};
+                        if (rgs && rgs.switch) {
+                            async function postUserRebate(id, value) {
+                                const used = await rebateClass.canUseRebate(id, 'birth');
+                                if (used === null || used === void 0 ? void 0 : used.result) {
+                                    if (value !== 0) {
+                                        await rebateClass.insertRebate(id, value, '生日禮', {
+                                            type: 'birth',
+                                            deadTime: rgs.unlimited ? undefined : (0, moment_1.default)().add(rgs.date, 'd').format('YYYY-MM-DD HH:mm:ss'),
+                                        });
+                                    }
                                 }
                             }
-                        }
-                        const users = await database_1.default.query(`SELECT *
-                             FROM \`${this.app}\`.t_user
+                            const users = await database_1.default.query(`SELECT *
+                             FROM \`${app}\`.t_user
                              WHERE MONTH (JSON_EXTRACT(userData, '$.birth')) = MONTH (CURDATE());`, []);
-                        if (rgs.type === 'base') {
-                            for (const user of users) {
-                                await postUserRebate(user.userID, rgs.value);
+                            if (rgs.type === 'base') {
+                                for (const user of users) {
+                                    await postUserRebate(user.userID, rgs.value);
+                                }
                             }
-                        }
-                        if (rgs.type === 'levels') {
-                            for (const user of users) {
-                                const member = await userClass.refreshMember(user);
-                                const level = member.find((dd) => dd.trigger);
-                                if (!level)
-                                    continue;
-                                const data = rgs.level.find((item) => item.id === level.id);
-                                if (!data)
-                                    continue;
-                                await postUserRebate(user.userID, data.value);
+                            if (rgs.type === 'levels') {
+                                for (const user of users) {
+                                    const member = await userClass.refreshMember(user);
+                                    const level = member.find((dd) => dd.trigger);
+                                    if (!level)
+                                        continue;
+                                    const data = rgs.level.find((item) => item.id === level.id);
+                                    if (!data)
+                                        continue;
+                                    await postUserRebate(user.userID, data.value);
+                                }
                             }
                         }
                     }
                 }
             }
-        }
-        catch (e) {
-            throw exception_1.default.BadRequestError('BAD_REQUEST', 'birthRebate Error: ' + e, null);
+            catch (e) {
+                console.error('BAD_REQUEST', 'birthRebate Error: ' + e, null);
+            }
         }
         setTimeout(() => this.birthRebate(sec), sec * 1000);
     }
     async birthBlessMail(sec) {
-        try {
-            if (await this.perload()) {
-                const mailType = 'auto-email-birthday';
-                const customerMail = await auto_send_email_js_1.AutoSendEmail.getDefCompare(this.app, mailType);
-                if (customerMail.toggle) {
-                    const mailClass = new mail_js_1.Mail(this.app);
-                    const sendRecords = await mailClass.getMail({
-                        type: 'download',
-                        page: 0,
-                        limit: 0,
-                        mailType: mailType,
-                    });
-                    const users = await database_1.default.query(`SELECT *
-                        FROM \`${this.app}\`.t_user
+        for (const app of Schedule.app) {
+            try {
+                if (await this.perload(app)) {
+                    const mailType = 'auto-email-birthday';
+                    const customerMail = await auto_send_email_js_1.AutoSendEmail.getDefCompare(app, mailType);
+                    if (customerMail.toggle) {
+                        const mailClass = new mail_js_1.Mail(app);
+                        const sendRecords = await mailClass.getMail({
+                            type: 'download',
+                            page: 0,
+                            limit: 0,
+                            mailType: mailType,
+                        });
+                        const users = await database_1.default.query(`SELECT *
+                        FROM \`${app}\`.t_user
                         WHERE MONTH (JSON_EXTRACT(userData, '$.birth')) = MONTH (CURDATE());`, []);
-                    const now = new Date();
-                    const oneYearAgo = new Date(now);
-                    oneYearAgo.setFullYear(now.getFullYear() - 1);
-                    const filteredData = sendRecords.data.filter((item) => {
-                        const triggerTime = new Date(item.trigger_time);
-                        return triggerTime > oneYearAgo;
-                    });
-                    let hasBless = [];
-                    filteredData.map((item) => {
-                        hasBless = hasBless.concat(item.content.email);
-                    });
-                    hasBless = [...new Set(hasBless)];
-                    for (const user of users) {
-                        if (!hasBless.includes(user.userData.email)) {
-                            await mailClass.postMail({
-                                name: customerMail.name,
-                                title: customerMail.title.replace(/@\{\{user_name\}\}/g, user.userData.name),
-                                content: customerMail.content.replace(/@\{\{user_name\}\}/g, user.userData.name),
-                                email: [user.userData.email],
-                                type: mailType,
-                            });
+                        const now = new Date();
+                        const oneYearAgo = new Date(now);
+                        oneYearAgo.setFullYear(now.getFullYear() - 1);
+                        const filteredData = sendRecords.data.filter((item) => {
+                            const triggerTime = new Date(item.trigger_time);
+                            return triggerTime > oneYearAgo;
+                        });
+                        let hasBless = [];
+                        filteredData.map((item) => {
+                            hasBless = hasBless.concat(item.content.email);
+                        });
+                        hasBless = [...new Set(hasBless)];
+                        for (const user of users) {
+                            if (!hasBless.includes(user.userData.email)) {
+                                await mailClass.postMail({
+                                    name: customerMail.name,
+                                    title: customerMail.title.replace(/@\{\{user_name\}\}/g, user.userData.name),
+                                    content: customerMail.content.replace(/@\{\{user_name\}\}/g, user.userData.name),
+                                    email: [user.userData.email],
+                                    type: mailType,
+                                });
+                            }
                         }
                     }
                 }
             }
-        }
-        catch (e) {
-            throw exception_1.default.BadRequestError('BAD_REQUEST', 'birthBlessMail Error: ' + e, null);
+            catch (e) {
+                console.error('BAD_REQUEST', 'birthBlessMail Error: ' + e, null);
+            }
         }
         setTimeout(() => this.birthBlessMail(sec), sec * 1000);
     }
     async resetVoucherHistory(sec) {
-        try {
-            if (await this.perload()) {
-                await new shopping_1.Shopping(this.app).resetVoucherHistory();
+        for (const app of Schedule.app) {
+            try {
+                if (await this.perload(app)) {
+                    await new shopping_1.Shopping(app).resetVoucherHistory();
+                }
             }
-        }
-        catch (e) {
-            throw exception_1.default.BadRequestError('BAD_REQUEST', 'resetVoucherHistory Error: ' + e, null);
+            catch (e) {
+                console.error('BAD_REQUEST', 'resetVoucherHistory Error: ' + e, null);
+            }
         }
         setTimeout(() => this.resetVoucherHistory(sec), sec * 1000);
     }
     async autoSendMail(sec) {
-        try {
-            if (await this.perload()) {
-                const emails = await database_1.default.query(`SELECT * FROM \`${this.app}\`.t_triggers
+        for (const app of Schedule.app) {
+            try {
+                if (await this.perload(app)) {
+                    const emails = await database_1.default.query(`SELECT * FROM \`${app}\`.t_triggers
                      WHERE 
                         tag = 'sendMailBySchedule' AND 
                         DATE_FORMAT(trigger_time, '%Y-%m-%d %H:%i') = DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i');`, []);
-                for (const email of emails) {
-                    if (email.status === 0) {
-                        new mail_js_1.Mail(this.app).chunkSendMail(email.content, email.id);
+                    for (const email of emails) {
+                        if (email.status === 0) {
+                            new mail_js_1.Mail(app).chunkSendMail(email.content, email.id);
+                        }
                     }
                 }
             }
-        }
-        catch (e) {
-            throw exception_1.default.BadRequestError('BAD_REQUEST', 'autoSendMail Error: ' + e, null);
+            catch (e) {
+                throw exception_1.default.BadRequestError('BAD_REQUEST', 'autoSendMail Error: ' + e, null);
+            }
         }
         setTimeout(() => this.autoSendMail(sec), sec * 1000);
     }
@@ -228,4 +238,5 @@ class Schedule {
     }
 }
 exports.Schedule = Schedule;
+Schedule.app = [];
 //# sourceMappingURL=schedule.js.map

@@ -727,13 +727,32 @@ ${dd.value === vm.select ? `background:linear-gradient(135deg, #667eea 0%, #764b
                                                                                                             case 'loading':
                                                                                                                 return html ` <div class="px-2">
                                                                                               ${(() => {
-                                                                                                                    var _a, _b;
+                                                                                                                    var _a, _b, _c;
                                                                                                                     const array = [];
                                                                                                                     if (dd.data.elem !== 'style' && dd.data.elem !== 'script') {
                                                                                                                         array.push(EditorElem.select({
+                                                                                                                            title: '開放刪除',
+                                                                                                                            gvc: gvc,
+                                                                                                                            def: (_a = dd.deletable) !== null && _a !== void 0 ? _a : '',
+                                                                                                                            array: [
+                                                                                                                                {
+                                                                                                                                    title: '是',
+                                                                                                                                    value: 'true',
+                                                                                                                                },
+                                                                                                                                {
+                                                                                                                                    title: '否',
+                                                                                                                                    value: 'false',
+                                                                                                                                },
+                                                                                                                            ],
+                                                                                                                            callback: (text) => {
+                                                                                                                                dd.deletable = text;
+                                                                                                                                gvc.notifyDataChange(id);
+                                                                                                                            },
+                                                                                                                        }));
+                                                                                                                        array.push(EditorElem.select({
                                                                                                                             title: '生成方式',
                                                                                                                             gvc: gvc,
-                                                                                                                            def: (_a = dd.gCount) !== null && _a !== void 0 ? _a : 'single',
+                                                                                                                            def: (_b = dd.gCount) !== null && _b !== void 0 ? _b : 'single',
                                                                                                                             array: [
                                                                                                                                 {
                                                                                                                                     title: '靜態',
@@ -751,7 +770,7 @@ ${dd.value === vm.select ? `background:linear-gradient(135deg, #667eea 0%, #764b
                                                                                                                         }));
                                                                                                                     }
                                                                                                                     if (dd.gCount === 'multiple') {
-                                                                                                                        dd.arrayData = (_b = dd.arrayData) !== null && _b !== void 0 ? _b : {};
+                                                                                                                        dd.arrayData = (_c = dd.arrayData) !== null && _c !== void 0 ? _c : {};
                                                                                                                         array.push(TriggerEvent.editer(gvc, dd, dd.arrayData, {
                                                                                                                             hover: false,
                                                                                                                             option: [],
@@ -1327,6 +1346,27 @@ ${obj.gvc.bindView({
         cf.widget.refreshAllParameter.view1 = () => {
             gvc.notifyDataChange(container_id);
         };
+        cf.widget.editor_bridge = undefined;
+        Object.defineProperty(cf.widget, 'editor_bridge', {
+            get: function () {
+                return {
+                    scrollWithHover: () => {
+                        gvc.glitter.$(`.editor_it_${cf.widget.id}`).addClass('editorItemActive');
+                        gvc.glitter.$(`.editor_it_${cf.widget.id}`).get(0).scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'center',
+                        });
+                    },
+                    cancelHover: () => {
+                        gvc.glitter.$(`.editor_it_${cf.widget.id}`).removeClass('editorItemActive');
+                    },
+                    element: () => {
+                        return gvc.glitter.$(`.editor_it_${cf.widget.id}`).get(0);
+                    }
+                };
+            },
+            set(v) { }
+        });
         function getHtml() {
             var _a;
             if ((cf.widget.data.elem === 'link' &&
@@ -1569,7 +1609,26 @@ ${obj.gvc.bindView({
                                                 class: `${(_a = cf.widget.class) !== null && _a !== void 0 ? _a : ''} ${cf.widget.hashTag ? `glitterTag${cf.widget.hashTag}` : ''} 
                                                                                 ${isEditMode() ? `editorParent` : ``}
                                                                 ${gvc.glitter.htmlGenerate.styleEditor(widget, gvc, widget, {}).class()}`,
-                                                option: option,
+                                                option: option.concat((() => {
+                                                    if (root && isEditMode()) {
+                                                        return [{
+                                                                key: 'onmouseover',
+                                                                value: gvc.event((e, event) => {
+                                                                    $(e).children('.editorChild').get(0).style.background = "linear-gradient(143deg, rgba(255, 180, 0, 0.2) -22.7%, rgba(255, 108, 2, 0.2) 114.57%)";
+                                                                })
+                                                            },
+                                                            {
+                                                                key: 'onmouseout',
+                                                                value: gvc.event((e, event) => {
+                                                                    $(e).children('.editorChild').get(0).style.background = "none";
+                                                                })
+                                                            }
+                                                        ];
+                                                    }
+                                                    else {
+                                                        return [];
+                                                    }
+                                                })()),
                                             },
                                             onCreate: () => {
                                                 TriggerEvent.trigger({
@@ -1762,7 +1821,7 @@ ${obj.gvc.bindView({
                             </div>
                             <div
                                 class="position-absolute fs-1 plus_btn"
-                                style="left:50%;transform: translateX(-50%);height:20px;width:20px;top:-40px;z-index:99999;cursor: pointer;pointer-events:all;"
+                                style="left:50%;transform: translateX(-50%);height:20px;width:20px;top:${(Storage.view_type === 'mobile') ? `-30px` : `-40px`};z-index:99999;cursor: pointer;pointer-events:all;"
                                 onmousedown="${cf.gvc.event((e, event) => {
                             HtmlGenerate.block_timer = new Date().getTime();
                             glitter.getModule(new URL('../.././editor/add-component.js', import.meta.url).href, (AddComponent) => {
@@ -1817,7 +1876,7 @@ ${obj.gvc.bindView({
                             </div>
                             <div
                                 class="position-absolute fs-1 plus_btn"
-                                style="left:50%;transform: translateX(-50%);height:20px;width:20px;bottom:20px;z-index:99999;cursor: pointer;pointer-events:all;"
+                                style="left:50%;transform: translateX(-50%);height:20px;width:20px;bottom:${(Storage.view_type === 'mobile') ? `10px` : `20px`};z-index:99999;cursor: pointer;pointer-events:all;"
                                 onmousedown="${cf.gvc.event((e, event) => {
                             HtmlGenerate.block_timer = new Date().getTime();
                             glitter.getModule(new URL('../.././editor/add-component.js', import.meta.url).href, (AddComponent) => {
@@ -1874,10 +1933,9 @@ ${obj.gvc.bindView({
                     divCreate: {
                         class: `editorChild editor_it_${cf.id} ${cf.gvc.glitter.htmlGenerate.hover_items.indexOf(cf.id) !== -1 ? `editorItemActive` : ``}`,
                         style: `z-index: 99999;top:0px;left:0px;`,
+                        option: []
                     },
                     onCreate: () => {
-                        setTimeout(() => {
-                        }, 2000);
                     },
                 };
             }),

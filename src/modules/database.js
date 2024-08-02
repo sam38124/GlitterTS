@@ -100,6 +100,11 @@ const queryLambada = async (cf, fun) => {
         cs[key] = cf[key];
     });
     const sp = promise_1.default.createPool(cs);
+    const connection = await sp.getConnection();
+    if (connection) {
+        await connection.release();
+        logger.info(TAG, 'Pool has been created.');
+    }
     try {
         const data = await fun({
             query(sql, params) {
@@ -117,10 +122,13 @@ const queryLambada = async (cf, fun) => {
                 });
             }
         });
+        connection.release();
         sp.end();
         return data;
     }
     catch (err) {
+        connection.release();
+        sp.end();
         logger.error(TAG, 'Failed to create connection pool for mysql because ' + err);
         throw exception_1.default.ServerError('INTERNAL_SERVER_ERROR', 'Failed to create connection pool.');
     }
