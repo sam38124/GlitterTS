@@ -601,7 +601,7 @@ color:white;
                                             <div
                                                 class="ms-auto me-2 bt_orange"
                                                 onclick="${gvc.event(() => {
-                                                    const url = new URL('', glitter.share.editorViewModel.domain ? `https://${glitter.share.editorViewModel.domain}index` : location.href);
+                                                    const url = new URL('', glitter.share.editorViewModel.domain ? `https://${glitter.share.editorViewModel.domain}/index` : location.href);
                                                     url.searchParams.delete('type');
                                                     url.searchParams.set('page', glitter.getUrlParameter('page'));
                                                     glitter.openNewTab(url.href);
