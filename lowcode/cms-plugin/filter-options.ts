@@ -160,7 +160,7 @@ export class FilterOptions {
             type: 'multi_checkbox',
             name: '退貨狀態',
             data: [
-                { key: '1', name: '申請中' },
+                { key: '1', name: '處理中' },
                 { key: '0', name: '退貨中' },
                 { key: '-1', name: '已退貨' },
             ],

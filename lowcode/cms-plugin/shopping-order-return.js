@@ -198,7 +198,7 @@ export class ShoppingOrderManager {
                                     search: (_a = vm.query) !== null && _a !== void 0 ? _a : '',
                                     searchType: vm.queryType || 'name',
                                     orderString: (_b = vm.orderString) !== null && _b !== void 0 ? _b : '',
-                                    filter: '',
+                                    filter: vm.filter,
                                     archived: (vm.filter_type === 'normal') ? `false` : `true`
                                 }).then((data) => {
                                     vmi.pageSize = Math.ceil(data.response.total / 20);
@@ -257,7 +257,7 @@ export class ShoppingOrderManager {
                                                             case "0":
                                                                 return `<div class="badge" style="font-size: 14px;color:#393939;height: 22px;padding: 4px 6px;border-radius: 7px;background: #FFE9B2;">退貨中</div>`;
                                                             case "-1":
-                                                                return `<div class="badge" style="border-radius: 7px;background: #FFD5D0;height: 22px;padding: 4px 6px;font-size: 14px;color:#393939;">已退貨</div>`;
+                                                                return `<div class="badge" style="border-radius: 7px;background: #D8ECDA;height: 22px;padding: 4px 6px;font-size: 14px;color:#393939;">已退貨</div>`;
                                                             default:
                                                                 return `<div class="badge" style="font-size: 14px;color:#393939;height: 22px;padding: 4px 6px;border-radius: 7px;background: #FFE9B2;">處理中</div>`;
                                                         }
@@ -1342,7 +1342,7 @@ export class ShoppingOrderManager {
                                             class="btn bt_c39"
                                             style="color: #FFF;font-size: 16px;font-weight: 700;padding: 6px 18px;align-items: center;gap: 8px;"
                                             onclick="${gvc.event(() => {
-                        viewModel.searchData.returnProgress = "1";
+                        viewModel.searchData.orderData.returnProgress = "1";
                         ApiShop.postReturnOrder(viewModel.searchData).then(r => {
                             vm.type = 'list';
                         });

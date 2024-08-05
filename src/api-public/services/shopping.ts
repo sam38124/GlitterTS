@@ -874,7 +874,7 @@ export class Shopping {
                         break;
                     case 'name':
                     case 'phone':
-                        querySql.push(`(UPPER(JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.user_info.${query.searchType}')) LIKE ('%${query.search}%')))`);
+                        querySql.push(`(UPPER(JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.customer_info.${query.searchType}')) LIKE ('%${query.search}%')))`);
                         break;
                     default: {
                         querySql.push(
@@ -884,14 +884,11 @@ export class Shopping {
                 }
             }
 
-            //退貨狀態
+            //退貨狀態 處理中:0 退貨中:-1 已退貨:1
             if (query.progress) {
                 let newArray = query.progress.split(',');
                 let temp = '';
-                if (newArray.includes('wait')) {
-                    temp += "JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.progress')) IS NULL OR ";
-                }
-                temp += `JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.progress')) IN (${newArray.map((status) => `"${status}"`).join(',')})`;
+                temp += `JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.returnProgress')) IN (${newArray.map((status) => `"${status}"`).join(',')})`;
                 querySql.push(`(${temp})`);
             }
 
@@ -913,27 +910,18 @@ export class Shopping {
                     case 'created_time_asc':
                         orderString = 'order by created_time asc';
                         break;
-                    case 'order_total_desc':
-                        orderString = "order by CAST(JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.total')) AS SIGNED) desc";
-                        break;
-                    case 'order_total_asc':
-                        orderString = "order by CAST(JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.total')) AS SIGNED) asc";
-                        break;
                 }
             }
             //退貨貨款狀態
             query.status && querySql.push(`status IN (${query.status})`);
             query.email && querySql.push(`email=${db.escape(query.email)}`);
             query.id && querySql.push(`(content->>'$.id'=${query.id})`);
-            if (query.archived === 'true') {
-                querySql.push(`(orderData->>'$.archived'="${query.archived}")`);
-            } else if (query.archived === 'false') {
-                querySql.push(`((orderData->>'$.archived' is null) or (orderData->>'$.archived'!='true'))`);
-            }
+
             let sql = `SELECT *
                        FROM \`${this.app}\`.t_return_order
                        WHERE ${querySql.join(' and ')} ${orderString}`;
             if (query.id) {
+
                 const data = (
                     await db.query(
                         `SELECT *
@@ -946,6 +934,7 @@ export class Shopping {
                     result: !!data,
                 };
             } else {
+                console.log("querySql -- " , querySql)
                 return {
                     data: await db.query(
                         `SELECT *

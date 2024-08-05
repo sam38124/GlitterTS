@@ -186,6 +186,23 @@ export class ApiShop {
         }
         return list;
     }
+    static returnOrderListFilterString(obj) {
+        if (!obj)
+            return [];
+        let list = [];
+        if (obj) {
+            if (obj.created_time && obj.created_time.length > 1 && (obj === null || obj === void 0 ? void 0 : obj.created_time[0].length) > 0 && (obj === null || obj === void 0 ? void 0 : obj.created_time[1].length) > 0) {
+                list.push(`created_time=${obj.created_time[0]},${obj.created_time[1]}`);
+            }
+            if (obj.progress.length > 0) {
+                list.push(`progress=${obj.progress.join(',')}`);
+            }
+            if (obj.refund.length > 0) {
+                list.push(`status=${obj.refund.join(',')}`);
+            }
+        }
+        return list;
+    }
     static getOrder(json) {
         const filterString = this.orderListFilterString(json.filter);
         return BaseApi.create({
@@ -211,7 +228,9 @@ export class ApiShop {
         });
     }
     static getReturnOrder(json) {
-        const filterString = this.orderListFilterString(json.filter);
+        console.log("filterString -- ", json.filter);
+        const filterString = this.returnOrderListFilterString(json.filter);
+        console.log("filterString2 -- ", filterString);
         return BaseApi.create({
             url: getBaseUrl() +
                 `/api-public/v1/ec/returnOrder?${(() => {
@@ -222,7 +241,6 @@ export class ApiShop {
                     json.status && par.push(`status=${json.status}`);
                     json.searchType && par.push(`searchType=${json.searchType}`);
                     json.orderString && par.push(`orderString=${json.orderString}`);
-                    json.archived && par.push(`archived=${json.archived}`);
                     filterString.length > 0 && par.push(filterString.join('&'));
                     return par.join('&');
                 })()}`,
