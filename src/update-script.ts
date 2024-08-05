@@ -505,4 +505,33 @@ export class UpdateScript {
             }
         }
     }
+    public static async migrateFooter(appList: string[]) {
+        const page_list = (await db.query(`SELECT *
+                                           FROM glitter.page_config
+                                           where appName = 't_1719819344426'
+                                             and tag in ('c_header')`, []));
+        page_list.map((d: any) => {
+            Object.keys(d).map((dd) => {
+                if (typeof d[dd] === 'object') {
+                    d[dd] = JSON.stringify(d[dd])
+                }
+            })
+        })
+        for (const appName of appList) {
+            for (const b of page_list) {
+                await db.query(`delete
+                                from glitter.page_config
+                                where appName = ${db.escape(appName)}
+                                  and tag = ?`, [b.tag]);
+                b['appName'] = appName
+                b['id'] = undefined
+                b['created_time'] = new Date()
+                b['updated_time'] = new Date()
+                await db.query(`insert into glitter.page_config
+                                set ?`, [
+                    b
+                ])
+            }
+        }
+    }
 }

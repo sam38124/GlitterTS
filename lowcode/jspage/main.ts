@@ -774,9 +774,6 @@ data.data._style_refer_global = {
             arrayData.container.splice(arrayData.index, 0, cf.data);
         }
         Storage.lastSelect = cf.data.id;
-        cf.data.data._style_refer_global = {
-            index: `0`
-        }
         HtmlGenerate.hover_items = [Storage.lastSelect];
 
         const $ = ((document.querySelector('#editerCenter iframe') as any).contentWindow as any).$;
