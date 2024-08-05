@@ -7,6 +7,7 @@ import { ApiPost } from '../glitter-base/route/post.js';
 import { BgProduct, OptionsItem } from '../backend-manager/bg-product.js';
 import { FilterOptions } from './filter-options.js';
 import { BgListComponent } from '../backend-manager/bg-list-component.js';
+import { Tool } from '../modules/tool.js';
 
 interface variant {
     save_stock?: string;
@@ -1211,7 +1212,7 @@ export class ShoppingProductSetting {
                                                                                                     class="rounded border me-4"
                                                                                                     src="${dd.content.preview_image[0] || 'https://jmva.or.jp/wp-content/uploads/2018/07/noimage.png'}"
                                                                                                     style="width:40px;height:40px;"
-                                                                                                />` + dd.content.title,
+                                                                                                />` + Tool.truncateString(dd.content.title),
                                                                                         },
                                                                                         {
                                                                                             key: '售價',
@@ -1387,7 +1388,6 @@ export class ShoppingProductSetting {
                                                                                                 // BgWidget.selEventButton(
                                                                                                 //     '批量編輯',
                                                                                                 //     gvc.event(() => {
-                                                                                                //         console.log('批量編輯');
                                                                                                 //     })
                                                                                                 // ),
                                                                                                 BgWidget.selEventButton(
@@ -1675,8 +1675,8 @@ export class ShoppingProductSetting {
                                     </div>
                                 </div>
                             `)}
-                            ${BgWidget.mainCardMbp0(html`
-                                ${gvc.bindView(() => {
+                            ${BgWidget.mainCardMbp0(
+                                gvc.bindView(() => {
                                     const vm = {
                                         id: gvc.glitter.getUUID(),
                                     };
@@ -1714,8 +1714,8 @@ export class ShoppingProductSetting {
                                             style: `gap:12px;`,
                                         },
                                     };
-                                })}
-                            `)}
+                                })
+                            )}
                             ${BgWidget.mainCardMbp0(html`
                                 <div class="d-flex flex-column" style="gap:18px;">
                                     <div style="font-weight: 700;">商品材積</div>
@@ -1945,8 +1945,7 @@ export class ShoppingProductSetting {
                                       obj.vm.type = 'replace';
                                   }
                         );
-                    }),
-                    '11'
+                    })
                 )}
                 ${BgWidget.save(
                     obj.gvc.event(() => {
@@ -2193,14 +2192,23 @@ export class ShoppingProductSetting {
             }
         }
 
+        function scrollToSpec() {
+            setTimeout(() => {
+                const element = document.querySelector('.specUnitView');
+                element && element.scrollIntoView({ behavior: 'smooth' });
+            }, 50);
+        }
+
         gvc.addStyle(`
             .specInput:focus {
                 outline: none;
             }
         `);
+
         const vm = {
             id: gvc.glitter.getUUID(),
         };
+
         updateVariants();
         return gvc.bindView(() => {
             return {
@@ -2310,22 +2318,25 @@ export class ShoppingProductSetting {
                                                     })}
                                                 `
                                             ),
-                                            postMD.variants.length === 1
-                                                ? (() => {
-                                                      try {
-                                                          (postMD.variants[0] as any).editable = true;
-                                                          return ShoppingProductSetting.editProductSpec({
-                                                              vm: obj.vm,
-                                                              defData: postMD,
-                                                              gvc: gvc,
-                                                              single: true,
-                                                          });
-                                                      } catch (e) {
-                                                          console.error(e);
-                                                          return '';
-                                                      }
-                                                  })()
-                                                : ``,
+                                            html`<div class="specUnitView px-0">
+                                                ${(() => {
+                                                    if (postMD.variants.length === 1) {
+                                                        try {
+                                                            (postMD.variants[0] as any).editable = true;
+                                                            return ShoppingProductSetting.editProductSpec({
+                                                                vm: obj.vm,
+                                                                defData: postMD,
+                                                                gvc: gvc,
+                                                                single: true,
+                                                            });
+                                                        } catch (e) {
+                                                            console.error(e);
+                                                            return '';
+                                                        }
+                                                    }
+                                                    return '';
+                                                })()}
+                                            </div>`,
                                             BgWidget.mainCardMbp0(
                                                 obj.gvc.bindView(() => {
                                                     const specid = obj.gvc.glitter.getUUID();
@@ -2355,7 +2366,27 @@ export class ShoppingProductSetting {
                                                                         copyable: false,
                                                                         hr: true,
                                                                         minus: false,
-                                                                        refreshComponent: () => {
+                                                                        refreshComponent: (fromIndex, toIndex) => {
+                                                                            postMD.variants.map((item) => {
+                                                                                // 確保索引值在數組範圍內
+                                                                                if (
+                                                                                    fromIndex === undefined ||
+                                                                                    toIndex === undefined ||
+                                                                                    fromIndex < 0 ||
+                                                                                    fromIndex >= item.spec.length ||
+                                                                                    toIndex < 0 ||
+                                                                                    toIndex >= item.spec.length
+                                                                                ) {
+                                                                                    throw new Error('索引超出範圍');
+                                                                                }
+
+                                                                                // 取出元素並插入元素到新位置
+                                                                                let element = item.spec.splice(fromIndex, 1)[0];
+                                                                                item.spec.splice(toIndex, 0, element);
+
+                                                                                return item;
+                                                                            });
+
                                                                             obj.gvc.notifyDataChange([specid, 'productInf']);
                                                                         },
                                                                         array: () => {
@@ -2459,7 +2490,8 @@ export class ShoppingProductSetting {
                                                                                                                     postMD.specs[specIndex] = temp;
                                                                                                                     checkSpecSingle();
                                                                                                                     updateVariants();
-                                                                                                                    gvc.notifyDataChange([specid]);
+                                                                                                                    scrollToSpec();
+                                                                                                                    gvc.notifyDataChange(vm.id);
                                                                                                                 },
                                                                                                             })}
                                                                                                         </div>
@@ -2512,6 +2544,7 @@ export class ShoppingProductSetting {
                                                                                         createPage.page = 'add';
                                                                                         checkSpecSingle();
                                                                                         updateVariants();
+                                                                                        scrollToSpec();
                                                                                         gvc.notifyDataChange([vm.id]);
                                                                                     },
                                                                                 })}
@@ -2528,14 +2561,13 @@ export class ShoppingProductSetting {
                                                 })
                                             ),
                                             postMD.specs.length == 0
-                                                ? ``
+                                                ? ''
                                                 : BgWidget.mainCardMbp0(
                                                       html` <div style="font-size: 16px;font-weight: 700;color:#393939;margin-bottom: 18px;">規格設定</div>` +
                                                           obj.gvc.bindView(() => {
                                                               function getPreviewImage(img?: string) {
                                                                   return img || 'https://nationalityforall.org/wp-content/themes/nfa/dist/images/default_image.jpg';
                                                               }
-
                                                               postMD.specs[0].option = postMD.specs[0].option ?? [];
                                                               return {
                                                                   bind: variantsViewID,
@@ -3088,11 +3120,7 @@ export class ShoppingProductSetting {
                                                                                                                       gvc.glitter.closeDiaLog();
                                                                                                                   })
                                                                                                               )}
-                                                                                                              ${BgWidget.save(
-                                                                                                                  gvc.event(() => {
-                                                                                                                      console.log('將價格套用到所有選取的規格中 的儲存');
-                                                                                                                  })
-                                                                                                              )}
+                                                                                                              ${BgWidget.save(gvc.event(() => {}))}
                                                                                                           </div>
                                                                                                       </div>`;
                                                                                                   }
@@ -3256,6 +3284,44 @@ color: ${selected.length ? `#393939` : `#DDD`};font-size: 18px;
                                                                                           return {
                                                                                               bind: vm.id,
                                                                                               view: () => {
+                                                                                                  function cartesianProductSort(arrays: string[][]): string[][] {
+                                                                                                      const getCombinations = (arrays: string[][], index: number): string[][] => {
+                                                                                                          if (index === arrays.length) {
+                                                                                                              return [[]];
+                                                                                                          }
+
+                                                                                                          const currentArray = arrays[index];
+                                                                                                          const nextCombinations = getCombinations(arrays, index + 1);
+
+                                                                                                          const currentCombinations: string[][] = [];
+                                                                                                          for (const value of currentArray) {
+                                                                                                              for (const combination of nextCombinations) {
+                                                                                                                  currentCombinations.push([value, ...combination]);
+                                                                                                              }
+                                                                                                          }
+
+                                                                                                          return currentCombinations;
+                                                                                                      };
+
+                                                                                                      return getCombinations(arrays, 0);
+                                                                                                  }
+
+                                                                                                  function compareArrays(arr1: string[], arr2: string[]) {
+                                                                                                      // 檢查陣列長度是否相同
+                                                                                                      if (arr1.length !== arr2.length) {
+                                                                                                          return false;
+                                                                                                      }
+
+                                                                                                      // 檢查每個位置上的元素是否相同
+                                                                                                      for (let i = 0; i < arr1.length; i++) {
+                                                                                                          if (arr1[i] !== arr2[i]) {
+                                                                                                              return false;
+                                                                                                          }
+                                                                                                      }
+
+                                                                                                      return true;
+                                                                                                  }
+
                                                                                                   return postMD.specs[0].option
                                                                                                       .map((spec: any) => {
                                                                                                           const viewList = [];
@@ -3273,9 +3339,9 @@ color: ${selected.length ? `#393939` : `#DDD`};font-size: 18px;
                                                                                                               >
                                                                                                                   <i
                                                                                                                       class="${isCheck ? `fa-solid fa-square-check` : `fa-regular fa-square`}"
-                                                                                                                      style="width: 16px;height: 16px;margin-left:19px;margin-right:18px;cursor: pointer;
-color: ${isCheck ? `#393939` : `#DDD`};font-size: 18px;
-"
+                                                                                                                      style="width: 16px;height: 16px;margin-left:19px;margin-right:18px;cursor: pointer;color: ${isCheck
+                                                                                                                          ? `#393939`
+                                                                                                                          : `#DDD`};font-size: 18px;"
                                                                                                                       onclick="${gvc.event(() => {
                                                                                                                           postMD.variants
                                                                                                                               .filter((dd) => {
@@ -3399,6 +3465,18 @@ color: ${isCheck ? `#393939` : `#DDD`};font-size: 18px;
                                                                                                               </div>`);
                                                                                                           }
                                                                                                           if (spec.expand || postMD.specs.length === 1) {
+                                                                                                              postMD.variants = cartesianProductSort(
+                                                                                                                  postMD.specs.map((item) => {
+                                                                                                                      return item.option.map((item2: any) => item2.title);
+                                                                                                                  })
+                                                                                                              )
+                                                                                                                  .map((item) => {
+                                                                                                                      return postMD.variants.find((variant) => {
+                                                                                                                          return compareArrays(variant.spec, item);
+                                                                                                                      });
+                                                                                                                  })
+                                                                                                                  .filter((item) => item !== undefined && item !== null);
+
                                                                                                               viewList.push(
                                                                                                                   postMD.variants
                                                                                                                       .filter((dd) => {
@@ -3430,8 +3508,11 @@ color: ${isCheck ? `#393939` : `#DDD`};font-size: 18px;
                                                                                                                                                   class="${(data as any).checked
                                                                                                                                                       ? `fa-solid fa-square-check`
                                                                                                                                                       : `fa-regular fa-square`}"
-                                                                                                                                                  style="width: 16px;height: 16px;margin-left:19px;margin-right:0px;cursor: pointer;
-color: ${(data as any).checked ? `#393939` : `#DDD`};font-size: 18px;"
+                                                                                                                                                  style="width: 16px;height: 16px;margin-left:19px;margin-right:0px;cursor: pointer;color: ${(
+                                                                                                                                                      data as any
+                                                                                                                                                  ).checked
+                                                                                                                                                      ? `#393939`
+                                                                                                                                                      : `#DDD`};font-size: 18px;"
                                                                                                                                                   onclick="${gvc.event((e, event) => {
                                                                                                                                                       (data as any).checked = !(data as any).checked;
                                                                                                                                                       event.stopPropagation();
@@ -3895,10 +3976,10 @@ ${postMD.seo.content ?? ''}</textarea
                                                 html`
                                                     <div
                                                         class="d-flex align-items-center"
-                                                        style="height: 22px;border-radius: 5px;background: #F2F2F2;display: flex;padding: 1px 6px;justify-content: center;align-items: center;gap: 4px;"
+                                                        style="height: 24px;border-radius: 5px;background: #F2F2F2;display: flex;padding: 1px 6px;justify-content: center;align-items: center;gap: 4px;"
                                                     >
                                                         ${data.title}<i
-                                                            class="fa-solid fa-xmark"
+                                                            class="fa-solid fa-xmark ms-1 fs-5"
                                                             style="font-size: 12px;cursor: pointer;"
                                                             onclick="${gvc.event(() => {
                                                                 temp.option.splice(index, 1);
@@ -3912,6 +3993,7 @@ ${postMD.seo.content ?? ''}</textarea
                                         tempHTML.push(html`<input
                                             id="keep-enter"
                                             class="flex-fill d-flex align-items-center border-0 specInput h-100"
+                                            value=""
                                             placeholder="${temp.option.length > 0 ? '請繼續輸入' : ''}"
                                         />`);
                                         return tempHTML.join('');
@@ -3950,17 +4032,20 @@ ${postMD.seo.content ?? ''}</textarea
                             const input = document.getElementById('keep-enter') as any;
                             keyboard = event.key;
                             if (input && input.value.length > 0 && event.key === 'Enter') {
-                                temp.option.push({
-                                    title: input.value,
-                                });
-                                temp.option = temp.option.reduce((acc: { title: string }[], current: { title: string }) => {
-                                    const isTitleExist = acc.find((item) => item.title === current.title);
-                                    if (!isTitleExist) {
-                                        acc.push(current);
-                                    }
-                                    return acc;
-                                }, []);
-                                gvc.notifyDataChange('specInput');
+                                setTimeout(() => {
+                                    temp.option.push({
+                                        title: input.value,
+                                    });
+                                    input.value = '';
+                                    temp.option = temp.option.reduce((acc: { title: string }[], current: { title: string }) => {
+                                        const isTitleExist = acc.find((item) => item.title === current.title);
+                                        if (!isTitleExist) {
+                                            acc.push(current);
+                                        }
+                                        return acc;
+                                    }, []);
+                                    gvc.notifyDataChange('specInput');
+                                }, 30);
                             }
                         };
 

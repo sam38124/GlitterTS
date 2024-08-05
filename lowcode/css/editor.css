@@ -542,7 +542,7 @@ ul {
 }
 
 .btn-black:hover {
-    background: #646464;
+    background: #646464 !important;
 }
 
 .btn-black-sm {
@@ -894,15 +894,14 @@ ul {
     box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.1);
 }
 
-
-.scale_iframe{
+.scale_iframe {
     transform: scale(0.5) translateX(-50%);
     transform-origin: 0 0;
-    height:calc(100% + (100% * 1)) !important;
+    height: calc(100% + (100% * 1)) !important;
     position: absolute;
     left: 50%;
-    top:0px;
-    animation:scale-animation  0.3s ease-out forwards;
+    top: 0px;
+    animation: scale-animation 0.3s ease-out forwards;
 }
 
 /* @keyframes 定義動畫 */
@@ -914,4 +913,3 @@ ul {
         transform: scale(0.5) translateX(-50%);
     }
 }
-

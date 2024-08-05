@@ -8,6 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { BgWidget } from '../backend-manager/bg-widget.js';
+import { Tool } from '../modules/tool.js';
 import { ApiUser } from '../glitter-base/route/user.js';
 import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
 const html = String.raw;
@@ -42,7 +43,7 @@ export class AutoReply {
                                 },
                                 {
                                     key: '標題',
-                                    value: truncateString(dd.title, 40),
+                                    value: Tool.truncateString(dd.title, 40),
                                 },
                                 {
                                     key: '最後更新時間',
@@ -91,14 +92,6 @@ export class AutoReply {
                                 },
                             ];
                         });
-                    }
-                    function truncateString(str, maxLength) {
-                        if (str.length > maxLength) {
-                            return str.slice(0, maxLength) + '...';
-                        }
-                        else {
-                            return str;
-                        }
                     }
                     return BgWidget.container(html `
                             <div class="d-flex w-100 align-items-center">

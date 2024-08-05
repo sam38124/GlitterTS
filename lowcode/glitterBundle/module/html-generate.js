@@ -1778,6 +1778,9 @@ ${obj.gvc.bindView({
                                         tag: tdata.copy,
                                         list: [],
                                         carryData: {},
+                                        _style_refer_global: {
+                                            index: `0`
+                                        }
                                     },
                                     type: 'component',
                                     class: 'w-100',
@@ -1846,6 +1849,9 @@ ${obj.gvc.bindView({
                                                 tag: tdata.copy,
                                                 list: [],
                                                 carryData: {},
+                                                _style_refer_global: {
+                                                    index: `0`
+                                                }
                                             },
                                             type: 'component',
                                             class: 'w-100',
@@ -1901,6 +1907,9 @@ ${obj.gvc.bindView({
                                                 tag: tdata.copy,
                                                 list: [],
                                                 carryData: {},
+                                                _style_refer_global: {
+                                                    index: `0`
+                                                }
                                             },
                                             type: 'component',
                                             class: 'w-100',

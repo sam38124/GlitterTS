@@ -305,7 +305,10 @@ export class Main_editor {
                                                                                         'refer_app': tdata.copyApp,
                                                                                         "tag": tdata.copy,
                                                                                         "list": [],
-                                                                                        "carryData": {}
+                                                                                        "carryData": {},
+                                                                                        _style_refer_global : {
+                                                                                            index: `0`
+                                                                                        }
                                                                                     },
                                                                                     "type": "component",
                                                                                     "class": "",

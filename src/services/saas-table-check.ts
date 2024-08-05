@@ -144,7 +144,6 @@ export async function compare_sql_table(scheme: string, table: string, sql: stri
         await trans.execute(`DROP TABLE if exists \`${scheme}\`.\`${tempKey}\`;`, []);
         await trans.execute(`CREATE TABLE if not exists \`${scheme}\`.\`${table}\` ${sql}`, []);
         await trans.execute(`CREATE TABLE if not exists \`${scheme}\`.\`${tempKey}\` ${sql}`, []);
-
         const compareStruct = `SELECT COLUMN_NAME,
                                   DATA_TYPE,
                                   CHARACTER_MAXIMUM_LENGTH
