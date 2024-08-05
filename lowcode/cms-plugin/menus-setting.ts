@@ -2,7 +2,7 @@ import { GVC } from '../glitterBundle/GVController.js';
 import { BgWidget } from '../backend-manager/bg-widget.js';
 import { ApiUser } from '../glitter-base/route/user.js';
 import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
-import {EditorElem} from "../glitterBundle/plugins/editor-elem.js";
+import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
 
 const html = String.raw;
 
@@ -409,7 +409,9 @@ export class MenusSetting {
                                                                                                         : `<i class="fa-solid fa-angle-up cl_39"></i>`
                                                                                                     : ``}
                                                                                             </div>
-                                                                                            <div style="justify-content: flex-start; align-items: center; gap: 8px; display: inline-flex;white-space: normal;word-break: break-all;">
+                                                                                            <div
+                                                                                                style="justify-content: flex-start; align-items: center; gap: 8px; display: inline-flex;white-space: normal;word-break: break-all;"
+                                                                                            >
                                                                                                 <div
                                                                                                     style="color: #3366BB; font-size: 14px; font-family: Noto Sans; font-weight: 400; line-height: 14px; word-wrap: break-word"
                                                                                                 >
@@ -595,7 +597,7 @@ export class MenusSetting {
                         bind: id,
                         view: () => {
                             return [
-                                EditorElem.editeText({
+                                EditorElem.editeInput({
                                     gvc: gvc,
                                     title: '選單名稱',
                                     default: data.title || '',
@@ -603,7 +605,6 @@ export class MenusSetting {
                                     callback: (text) => {
                                         data.title = text;
                                     },
-                                    // style: 'font-size: 14px;',
                                 }),
                                 BgWidget.linkList({
                                     gvc: gvc,

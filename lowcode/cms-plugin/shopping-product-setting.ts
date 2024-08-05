@@ -183,7 +183,7 @@ class Excel {
                         productData.status = row[1] == '上架' ? 'active' : 'draft';
                         productData.collection = row[2].split(',') ?? [];
                         const regex = /[\s,\\]+/g;
-                        //去除多餘空白
+                        // 去除多餘空白
                         productData.collection = productData.collection.map((item: string) => item.replace(/\s+/g, ''));
 
                         productData.collection.forEach((row: any) => {
@@ -193,7 +193,7 @@ class Excel {
                                 alert(`第${index + 1}行的類別名稱不可包含空白格與以下符號：「 , 」「 / 」「 \\ 」，並以,區分不同類別`);
                                 return;
                             }
-                            //如果它帶有/ 要自動加上父類
+                            // 若帶有/，要自動加上父類
                             function splitStringIncrementally(input: string): string[] {
                                 const parts = input.split('/');
                                 const result: string[] = [];
@@ -208,9 +208,9 @@ class Excel {
                                 return result;
                             }
                             if (collection.split('/').length > 1) {
-                                //會進來代表有/的內容 需要檢查放進去的collection有沒有父類
-                                //先取得目前分層 例如 貓/貓用品/貓砂/A品牌 會拆分成 貓/貓用品/貓砂 , 貓/貓用品, 貓
-                                //然後把父層自動推進去
+                                // 會進來代表有/的內容 需要檢查放進去的collection有沒有父類
+                                // 先取得目前分層 例如 貓/貓用品/貓砂/A品牌 會拆分成 貓/貓用品/貓砂 , 貓/貓用品, 貓
+                                // 然後把父層自動推進去
                                 let check = splitStringIncrementally(collection);
                                 const newItems = check.filter((item: string) => !productData.collection.includes(item));
                                 addCollection.push(...newItems);
@@ -225,7 +225,7 @@ class Excel {
                         productData.seo.title = row[5] ?? '';
                         productData.seo.content = row[6] ?? '';
                         productData.seo.keywords = row[7] ?? '';
-                        //spec值 merge
+                        // spec值 merge
                         let indices = [8, 10, 12];
                         indices.forEach((index) => {
                             if (row[index]) {
@@ -273,7 +273,6 @@ class Excel {
                     productData.variants.push(JSON.parse(JSON.stringify(variantData)));
                 }
             });
-            //最後一個沒推進去
             postMD.push(productData);
             productData.reverse;
             let passData = {
@@ -314,7 +313,7 @@ class Excel {
         this.worksheet.addRow(this.headers);
     }
 
-    //設定標頭粗體
+    // 設定標頭粗體
     private setHeaderStyle(): void {
         this.worksheet.getRow(1).eachCell((cell: any) => {
             cell.font = { name: 'Microsoft JhengHei', bold: true };
@@ -323,15 +322,15 @@ class Excel {
         });
     }
 
-    //設定行高1.2
+    // 設定行高1.2
     private setRowHeight(): void {
-        this.worksheet.eachRow((row: any, rowNumber: any) => {
-            row.height = 18; //
+        this.worksheet.eachRow((row: any) => {
+            row.height = 18;
         });
     }
 
     private setFontAndAlignmentStyle(): void {
-        this.worksheet.eachRow((row: any, rowNumber: any) => {
+        this.worksheet.eachRow((row: any) => {
             row.eachCell((cell: any) => {
                 cell.font = { name: 'Microsoft JhengHei' };
                 cell.alignment = { vertical: 'middle', horizontal: 'center' };
@@ -339,7 +338,7 @@ class Excel {
         });
     }
 
-    //將內容匯出成excel檔
+    // 將內容匯出成excel檔
     public async exportToExcel(): Promise<void> {
         const buffer = await this.workbook.xlsx.writeBuffer();
         this.saveAsExcelFile(buffer, `example_${new Date().toISOString()}.xlsx`);
@@ -354,7 +353,7 @@ class Excel {
         link.click();
     }
 
-    //透過位元組的大小，判斷內容文字的適合寬度計算
+    // 透過位元組的大小，判斷內容文字的適合寬度計算
     private getByteLength(str: string): number {
         let byteLength = 0;
         for (let i = 0; i < str.length; i++) {
@@ -376,7 +375,7 @@ class Excel {
         return byteLength;
     }
 
-    //調整excel內容的寬度
+    // 調整excel內容的寬度
     private adjustColumnWidths(sheetData: any): void {
         const maxLengths = this.headers.map((header) => this.getByteLength(header));
 
@@ -389,8 +388,7 @@ class Excel {
             });
         });
         this.worksheet.columns = this.headers.map((header, index) => {
-            // 动态计算列宽
-            return { header, width: maxLengths[index] + 2 }; // 给每列增加一些额外的宽度
+            return { header, width: maxLengths[index] + 2 };
         });
     }
 }
@@ -1058,8 +1056,6 @@ export class ShoppingProductSetting {
                                                                                                         exportData.push(JSON.parse(JSON.stringify(rowData)));
                                                                                                     });
                                                                                                 });
-
-                                                                                                //
                                                                                                 excel.exportData(exportData, 'product_export').then((r) => {});
                                                                                             });
                                                                                         }),
@@ -2145,7 +2141,7 @@ export class ShoppingProductSetting {
                 return pass && variant.spec.length === postMD.specs.length;
             });
 
-            //當規格為空時，需補一個進去
+            // 當規格為空時，需補一個進去
             if (postMD.variants.length === 0) {
                 postMD.variants.push({
                     show_understocking: 'true',
@@ -2192,13 +2188,6 @@ export class ShoppingProductSetting {
             }
         }
 
-        function scrollToSpec() {
-            setTimeout(() => {
-                const element = document.querySelector('.specUnitView');
-                element && element.scrollIntoView({ behavior: 'smooth' });
-            }, 50);
-        }
-
         gvc.addStyle(`
             .specInput:focus {
                 outline: none;
@@ -2223,7 +2212,7 @@ export class ShoppingProductSetting {
                                             obj.vm.type = 'list';
                                         })
                                     )}
-                                    <h3 class="mb-0 me-2 tx_title">${obj.type === 'replace' ? postMD.title || '編輯商品' : `新增商品`}</h3>
+                                    <h3 class="mb-0 me-3 tx_title">${obj.type === 'replace' ? postMD.title || '編輯商品' : `新增商品`}</h3>
                                     <div class="flex-fill"></div>
                                     ${BgWidget.grayButton(
                                         document.body.clientWidth > 768 ? '預覽商品' : '預覽',
@@ -2318,25 +2307,23 @@ export class ShoppingProductSetting {
                                                     })}
                                                 `
                                             ),
-                                            html`<div class="specUnitView px-0">
-                                                ${(() => {
-                                                    if (postMD.variants.length === 1) {
-                                                        try {
-                                                            (postMD.variants[0] as any).editable = true;
-                                                            return ShoppingProductSetting.editProductSpec({
-                                                                vm: obj.vm,
-                                                                defData: postMD,
-                                                                gvc: gvc,
-                                                                single: true,
-                                                            });
-                                                        } catch (e) {
-                                                            console.error(e);
-                                                            return '';
-                                                        }
+                                            (() => {
+                                                if (postMD.variants.length === 1) {
+                                                    try {
+                                                        (postMD.variants[0] as any).editable = true;
+                                                        return ShoppingProductSetting.editProductSpec({
+                                                            vm: obj.vm,
+                                                            defData: postMD,
+                                                            gvc: gvc,
+                                                            single: true,
+                                                        });
+                                                    } catch (e) {
+                                                        console.error(e);
+                                                        return '';
                                                     }
-                                                    return '';
-                                                })()}
-                                            </div>`,
+                                                }
+                                                return '';
+                                            })(),
                                             BgWidget.mainCardMbp0(
                                                 obj.gvc.bindView(() => {
                                                     const specid = obj.gvc.glitter.getUUID();
@@ -2490,7 +2477,6 @@ export class ShoppingProductSetting {
                                                                                                                     postMD.specs[specIndex] = temp;
                                                                                                                     checkSpecSingle();
                                                                                                                     updateVariants();
-                                                                                                                    scrollToSpec();
                                                                                                                     gvc.notifyDataChange(vm.id);
                                                                                                                 },
                                                                                                             })}
@@ -2544,7 +2530,6 @@ export class ShoppingProductSetting {
                                                                                         createPage.page = 'add';
                                                                                         checkSpecSingle();
                                                                                         updateVariants();
-                                                                                        scrollToSpec();
                                                                                         gvc.notifyDataChange([vm.id]);
                                                                                     },
                                                                                 })}
@@ -3129,7 +3114,7 @@ export class ShoppingProductSetting {
                                                                                                       <div
                                                                                                           style="display: flex;height: 40px;padding: 8px 17px 8px 18px;align-items: center;justify-content: space-between;gap: 4px;align-self: stretch;border-radius: 10px;background: #F7F7F7;"
                                                                                                       >
-                                                                                                          已選取${selected.length} 項
+                                                                                                          已選取 ${selected.length} 項
                                                                                                           <div
                                                                                                               style="position: relative"
                                                                                                               onclick="${gvc.event(() => {
@@ -3475,7 +3460,7 @@ color: ${selected.length ? `#393939` : `#DDD`};font-size: 18px;
                                                                                                                           return compareArrays(variant.spec, item);
                                                                                                                       });
                                                                                                                   })
-                                                                                                                  .filter((item) => item !== undefined && item !== null);
+                                                                                                                  .filter((item) => item !== undefined) as variant[];
 
                                                                                                               viewList.push(
                                                                                                                   postMD.variants
@@ -3635,7 +3620,6 @@ color: ${selected.length ? `#393939` : `#DDD`};font-size: 18px;
                                                         content: '',
                                                     };
                                                     const id = seoID;
-                                                    let toggle = false;
                                                     return {
                                                         bind: id,
                                                         view: () => {

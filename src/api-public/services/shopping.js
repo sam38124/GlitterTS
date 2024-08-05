@@ -76,8 +76,6 @@ class Shopping {
             const checkouts = await database_js_1.default.query(checkoutSQL, []);
             const itemRecord = [];
             for (const checkout of checkouts) {
-                console.log(1);
-                console.log(checkouts);
                 if (Array.isArray(checkout.lineItems)) {
                     for (const item1 of checkout.lineItems) {
                         const index = itemRecord.findIndex((item2) => item1.id === item2.id);
@@ -1381,8 +1379,6 @@ class Shopping {
             const categories = [];
             const product_list = [];
             for (const checkout of checkouts) {
-                console.log(2);
-                console.log(checkouts);
                 if (Array.isArray(checkout.lineItems)) {
                     for (const item1 of checkout.lineItems) {
                         const index = product_list.findIndex((item2) => item1.title === item2.title);

@@ -1,7 +1,7 @@
 import { PageSplit } from './splitPage.js';
 import { ApiShop } from '../glitter-base/route/shopping.js';
-import { ApiPost } from '../glitter-base/route/post.js';
 import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
+import { Article } from '../glitter-base/route/article.js';
 const html = String.raw;
 export class BgWidget {
     static table(obj) {
@@ -754,7 +754,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                                         <div
                                                             class="w-100 p-1 link-item-container hoverF2 cursor_pointer text-wrap"
                                                             onclick=${obj.gvc.event(() => {
-                                        if (tag.link && tag.link.length > 0) {
+                                        if (tag.link && tag.link.length > 0 && !tag.ignoreFirst) {
                                             callbackEvent(tag);
                                         }
                                         else {
@@ -818,6 +818,9 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                     const acticleList = [];
                     const collectionList = [];
                     const productList = [];
+                    const blockPageList = [];
+                    const hiddenPageList = [];
+                    const oneStoreList = [];
                     Promise.all([
                         new Promise((resolve) => {
                             ApiShop.getCollection().then((data) => {
@@ -842,12 +845,46 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                             });
                         }),
                         new Promise((resolve) => {
-                            ApiPost.getManagerPost({ page: 0, limit: 20, type: 'article' }).then((data) => {
+                            Article.get({
+                                page: 0,
+                                limit: 99999,
+                                status: '1',
+                                for_index: 'true',
+                            }).then((data) => {
                                 if (data.result) {
                                     data.response.data.map((item) => {
                                         const { name, tag } = item.content;
                                         if (name) {
-                                            acticleList.push({ name: name, icon: '', link: `/pages/${tag}` });
+                                            acticleList.push({ name: name, icon: '', link: `/blogs/${tag}` });
+                                        }
+                                    });
+                                }
+                                resolve();
+                            });
+                        }),
+                        new Promise((resolve) => {
+                            Article.get({
+                                page: 0,
+                                limit: 99999,
+                                status: '1',
+                                for_index: 'false',
+                            }).then((data) => {
+                                if (data.result) {
+                                    data.response.data.map((item) => {
+                                        const { name, tag, page_type } = item.content;
+                                        if (name) {
+                                            const tagObj = { name: name, icon: '', link: `/pages/${tag}` };
+                                            switch (page_type) {
+                                                case 'page':
+                                                    blockPageList.push(tagObj);
+                                                    break;
+                                                case 'hidden':
+                                                    hiddenPageList.push(tagObj);
+                                                    break;
+                                                case 'shopping':
+                                                    oneStoreList.push(tagObj);
+                                                    break;
+                                            }
                                         }
                                     });
                                 }
@@ -858,12 +895,15 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                         dropMenu.recentList = [
                             { name: '首頁', icon: 'fa-regular fa-house', link: '/index' },
                             { name: '所有商品', icon: 'fa-regular fa-tag', link: '/all-product', items: productList },
-                            { name: '商品分類', icon: 'fa-regular fa-tags', link: '', items: collectionList },
+                            { name: '商品分類', icon: 'fa-regular fa-tags', link: '', items: collectionList, ignoreFirst: true },
                             { name: '網誌文章', icon: 'fa-regular fa-newspaper', link: '/blogs', items: acticleList },
+                            { name: '分頁列表', icon: 'fa-regular fa-pager', link: '/pages', items: blockPageList, ignoreFirst: true },
+                            { name: '一頁商店', icon: 'fa-regular fa-1', link: '/pages', items: oneStoreList, ignoreFirst: true },
+                            { name: '隱形賣場', icon: 'fa-regular fa-store-lock', link: '/pages', items: hiddenPageList, ignoreFirst: true },
                         ].filter((menu) => {
                             if (menu.items === undefined)
                                 return true;
-                            return menu.items.length > 0 || menu.link.length > 0;
+                            return menu.items.length > 0;
                         });
                         vm.loading = false;
                         obj.gvc.notifyDataChange(vm.id);
