@@ -594,9 +594,6 @@ class Shopping {
             if (query.progress) {
                 let newArray = query.progress.split(',');
                 let temp = '';
-                if (newArray.includes('wait')) {
-                    temp += "JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.returnProgress')) IS NULL OR ";
-                }
                 temp += `JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.returnProgress')) IN (${newArray.map((status) => `"${status}"`).join(',')})`;
                 querySql.push(`(${temp})`);
             }

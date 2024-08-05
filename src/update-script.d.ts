@@ -12,4 +12,5 @@ export declare class UpdateScript {
     static migrateDialog(appList: string[]): Promise<void>;
     static hiddenEditorAble(): Promise<void>;
     static migrateHeader(appList: string[]): Promise<void>;
+    static migrateFooter(appList: string[]): Promise<void>;
 }
