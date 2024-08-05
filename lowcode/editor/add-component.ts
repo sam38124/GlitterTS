@@ -310,7 +310,6 @@ export class AddComponent {
                     share: {},
                 });
                 gvc.glitter.closeDiaLog();
-                // gvc.glitter.htmlGenerate.saveEvent(true)
             };
             $('#addComponentViewHover').removeClass('d-none');
             $('#addComponentView').removeClass('scroll-out');

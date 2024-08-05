@@ -4,11 +4,11 @@ export class UpdateScript {
     public static async run() {
         const migrate_template = (await db.query('SELECT appName FROM glitter.app_config where template_type!=0;', [])).map((dd: any) => {
             return dd.appName
-        }).concat([])
+        }).concat(['shop-template-clothing-v3'])
         // UpdateScript.migrateTermsOfService(['3131_shop', 't_1717152410650', 't_1717141688550', 't_1717129048727', 't_1719819344426'])
         // UpdateScript.migrateHeaderAndFooter(migrate_template)
         // UpdateScript.migrateAccount('shop_template_black_style')
-        // await UpdateScript.migrateLink(migrate_template)
+        await UpdateScript.migrateLink(migrate_template)
         //  await UpdateScript.migrateHeaderAndFooter(migrate_template)
         // migrate_template.map((dd:any)=>{
         //     UpdateScript.migrateAccount(dd)
@@ -20,7 +20,7 @@ export class UpdateScript {
         // t_1719819344426
         // await this.migrateSinglePage(migrate_template.reverse())
         // await this.migrateInitialConfig(migrate_template)
-        await this.migrateHomePageFooter(migrate_template)
+        // await this.migrateHomePageFooter(migrate_template)
     }
 
     public static async migrateHomePageFooter(appList: string[]) {

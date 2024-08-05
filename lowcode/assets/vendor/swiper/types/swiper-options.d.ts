@@ -111,7 +111,7 @@ export interface SwiperOptions {
    *
    * @default null
    *
-   * @note Setting this parameter will make Swiper not responsive
+   * @note.txt Setting this parameter will make Swiper not responsive
    */
   width?: number | null;
 
@@ -121,7 +121,7 @@ export interface SwiperOptions {
    *
    * @default null
    *
-   * @note Setting this parameter will make Swiper not responsive
+   * @note.txt Setting this parameter will make Swiper not responsive
    */
   height?: number | null;
 
@@ -259,14 +259,14 @@ export interface SwiperOptions {
    *
    * @default 0
    *
-   * @note If you use "margin" css property to the elements which go into Swiper in which you pass "spaceBetween" into, navigation might not work properly.
+   * @note.txt If you use "margin" css property to the elements which go into Swiper in which you pass "spaceBetween" into, navigation might not work properly.
    */
   spaceBetween?: number;
 
   /**
    * Number of slides per view (slides visible at the same time on slider's container).
-   * @note If you use it with "auto" value and along with `loop: true` then you need to specify `loopedSlides` parameter with amount of slides to loop (duplicate)
-   * @note `slidesPerView: 'auto'` is currently not compatible with multirow mode, when `grid.rows` > 1
+   * @note.txt If you use it with "auto" value and along with `loop: true` then you need to specify `loopedSlides` parameter with amount of slides to loop (duplicate)
+   * @note.txt `slidesPerView: 'auto'` is currently not compatible with multirow mode, when `grid.rows` > 1
    *
    * @default 1
    */
@@ -275,7 +275,7 @@ export interface SwiperOptions {
   /**
    * If total number of slides less than specified here value, then Swiper will enable `backface-visibility: hidden` on slide elements to reduce visual "flicker" in Safari.
    *
-   * @note It is not recommended to enable it on large amount of slides as it will reduce performance
+   * @note.txt It is not recommended to enable it on large amount of slides as it will reduce performance
    *
    * @default 10
    */
@@ -605,7 +605,7 @@ export interface SwiperOptions {
    *
    * @default false
    *
-   * @note If you use it along with `slidesPerView: 'auto'` then you need to specify `loopedSlides` parameter with amount of slides to loop (duplicate). Should not be used together with `rewind` mode
+   * @note.txt If you use it along with `slidesPerView: 'auto'` then you need to specify `loopedSlides` parameter with amount of slides to loop (duplicate). Should not be used together with `rewind` mode
    */
   loop?: boolean;
 
@@ -614,7 +614,7 @@ export interface SwiperOptions {
    *
    * @default false
    *
-   * @note Should not be used together with `loop` mode
+   * @note.txt Should not be used together with `loop` mode
    */
   rewind?: boolean;
 
@@ -708,7 +708,7 @@ export interface SwiperOptions {
    *
    * @default 'window'
    *
-   * @note Currently in beta and not supported by Swiper Angular, React, Svelte and Vue components
+   * @note.txt Currently in beta and not supported by Swiper Angular, React, Svelte and Vue components
    */
   breakpointsBase?: string;
 
@@ -745,9 +745,9 @@ export interface SwiperOptions {
    *
    * @default 'swiper-slide'
    *
-   * @note By changing classes you will also need to change Swiper's CSS to reflect changed classes
+   * @note.txt By changing classes you will also need to change Swiper's CSS to reflect changed classes
    *
-   * @note Not supported in Swiper Angular/React/Svelte/Vue components
+   * @note.txt Not supported in Swiper Angular/React/Svelte/Vue components
    */
   slideClass?: string;
 
@@ -756,9 +756,9 @@ export interface SwiperOptions {
    *
    * @default 'swiper-slide-active'
    *
-   * @note By changing classes you will also need to change Swiper's CSS to reflect changed classes
+   * @note.txt By changing classes you will also need to change Swiper's CSS to reflect changed classes
    *
-   * @note Not supported in Swiper Angular/React/Svelte/Vue components
+   * @note.txt Not supported in Swiper Angular/React/Svelte/Vue components
    */
   slideActiveClass?: string;
 
@@ -767,9 +767,9 @@ export interface SwiperOptions {
    *
    * @default 'swiper-slide-duplicate-active'
    *
-   * @note By changing classes you will also need to change Swiper's CSS to reflect changed classes
+   * @note.txt By changing classes you will also need to change Swiper's CSS to reflect changed classes
    *
-   * @note Not supported in Swiper Angular/React/Svelte/Vue components
+   * @note.txt Not supported in Swiper Angular/React/Svelte/Vue components
    */
   slideDuplicateActiveClass?: string;
 
@@ -778,9 +778,9 @@ export interface SwiperOptions {
    *
    * @default 'swiper-slide-visible'
    *
-   * @note By changing classes you will also need to change Swiper's CSS to reflect changed classes
+   * @note.txt By changing classes you will also need to change Swiper's CSS to reflect changed classes
    *
-   * @note Not supported in Swiper Angular/React/Svelte/Vue
+   * @note.txt Not supported in Swiper Angular/React/Svelte/Vue
    */
   slideVisibleClass?: string;
 
@@ -789,9 +789,9 @@ export interface SwiperOptions {
    *
    * @default 'swiper-slide-duplicate'
    *
-   * @note By changing classes you will also need to change Swiper's CSS to reflect changed classes
+   * @note.txt By changing classes you will also need to change Swiper's CSS to reflect changed classes
    *
-   * @note Not supported in Swiper Angular/React/Svelte/Vue
+   * @note.txt Not supported in Swiper Angular/React/Svelte/Vue
    */
   slideDuplicateClass?: string;
 
@@ -800,9 +800,9 @@ export interface SwiperOptions {
    *
    * @default 'swiper-slide-next'
    *
-   * @note By changing classes you will also need to change Swiper's CSS to reflect changed classes
+   * @note.txt By changing classes you will also need to change Swiper's CSS to reflect changed classes
    *
-   * @note Not supported in Swiper Angular/React/Svelte/Vue
+   * @note.txt Not supported in Swiper Angular/React/Svelte/Vue
    */
   slideNextClass?: string;
 
@@ -811,9 +811,9 @@ export interface SwiperOptions {
    *
    * @default 'swiper-slide-duplicate-next'
    *
-   * @note By changing classes you will also need to change Swiper's CSS to reflect changed classes
+   * @note.txt By changing classes you will also need to change Swiper's CSS to reflect changed classes
    *
-   * @note Not supported in Swiper Angular/React/Svelte/Vue
+   * @note.txt Not supported in Swiper Angular/React/Svelte/Vue
    */
   slideDuplicateNextClass?: string;
 
@@ -822,9 +822,9 @@ export interface SwiperOptions {
    *
    * @default 'swiper-slide-prev'
    *
-   * @note By changing classes you will also need to change Swiper's CSS to reflect changed classes
+   * @note.txt By changing classes you will also need to change Swiper's CSS to reflect changed classes
    *
-   * @note Not supported in Swiper Angular/React/Svelte/Vue
+   * @note.txt Not supported in Swiper Angular/React/Svelte/Vue
    */
   slidePrevClass?: string;
 
@@ -833,9 +833,9 @@ export interface SwiperOptions {
    *
    * @default 'swiper-slide-duplicate-prev'
    *
-   * @note By changing classes you will also need to change Swiper's CSS to reflect changed classes
+   * @note.txt By changing classes you will also need to change Swiper's CSS to reflect changed classes
    *
-   * @note Not supported in Swiper Angular/React/Svelte/Vue
+   * @note.txt Not supported in Swiper Angular/React/Svelte/Vue
    */
   slideDuplicatePrevClass?: string;
 
@@ -844,9 +844,9 @@ export interface SwiperOptions {
    *
    * @default 'swiper-slide-invisible-blank'
    *
-   * @note By changing classes you will also need to change Swiper's CSS to reflect changed classes
+   * @note.txt By changing classes you will also need to change Swiper's CSS to reflect changed classes
    *
-   * @note Not supported in Swiper Angular/React/Svelte/Vue
+   * @note.txt Not supported in Swiper Angular/React/Svelte/Vue
    */
   slideBlankClass?: string;
 
@@ -855,9 +855,9 @@ export interface SwiperOptions {
    *
    * @default 'swiper-wrapper'
    *
-   * @note By changing classes you will also need to change Swiper's CSS to reflect changed classes
+   * @note.txt By changing classes you will also need to change Swiper's CSS to reflect changed classes
    *
-   * @note Not supported in Swiper Angular/React/Svelte/Vue
+   * @note.txt Not supported in Swiper Angular/React/Svelte/Vue
    *
    */
   wrapperClass?: string;

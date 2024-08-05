@@ -16,7 +16,8 @@ export class GlobalWidget {
                     var _a;
                     GlobalWidget.glitter_view_type = (_a = GlobalWidget.glitter_view_type) !== null && _a !== void 0 ? _a : ViewType.def;
                     return html `
-                        <h3 class="my-auto tx_title me-2 ms-2" style="white-space: nowrap;font-size: 16px;">元件顯示樣式</h3>
+                        <h3 class="my-auto tx_title me-2 ms-2" style="white-space: nowrap;font-size: 16px;">
+                            元件顯示樣式</h3>
                         <div style="background:#f1f1f1;border-radius:10px;"
                              class="d-flex align-items-center justify-content-center p-1 ">
                             ${[
@@ -26,31 +27,31 @@ export class GlobalWidget {
                     ].map((dd) => {
                         if (dd.type === GlobalWidget.glitter_view_type) {
                             return html `
-                                                <div
-                                                        class="d-flex align-items-center justify-content-center bg-white"
-                                                        style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
-                                                        data-bs-toggle="tooltip" data-bs-placement="top"
-                                                        data-bs-custom-class="custom-tooltip"
-                                                        data-bs-title="${dd.title}">
-                                                    <i class="${dd.icon}"></i>
-                                                </div>`;
+                                        <div
+                                                class="d-flex align-items-center justify-content-center bg-white"
+                                                style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
+                                                data-bs-toggle="tooltip" data-bs-placement="top"
+                                                data-bs-custom-class="custom-tooltip"
+                                                data-bs-title="${dd.title}">
+                                            <i class="${dd.icon}"></i>
+                                        </div>`;
                         }
                         else {
                             return html `
-                                                <div
-                                                        class="d-flex align-items-center justify-content-center"
-                                                        style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
-                                                        onclick="${gvc.event(() => {
+                                        <div
+                                                class="d-flex align-items-center justify-content-center"
+                                                style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
+                                                onclick="${gvc.event(() => {
                                 GlobalWidget.glitter_view_type = dd.type;
                                 refresh(dd.type);
                                 gvc.notifyDataChange(id);
                             })}"
-                                                        data-bs-toggle="tooltip" data-bs-placement="top"
-                                                        data-bs-custom-class="custom-tooltip"
-                                                        data-bs-title="${dd.title}"
-                                                >
-                                                    <i class="${dd.icon}"></i>
-                                                </div>`;
+                                                data-bs-toggle="tooltip" data-bs-placement="top"
+                                                data-bs-custom-class="custom-tooltip"
+                                                data-bs-title="${dd.title}"
+                                        >
+                                            <i class="${dd.icon}"></i>
+                                        </div>`;
                         }
                     })
                         .join('')}
@@ -151,7 +152,9 @@ export class GlobalWidget {
             const id = obj.gvc.glitter.getUUID();
             GlobalWidget.initialShowCaseData({ widget: obj.widget, gvc: obj.gvc });
             function selector(widget, key) {
-                return `<div class="border-bottom mx-n2" style="padding-top: 18px;padding-bottom: 18px;padding-left: 18px;padding-right: 18px;">${[
+                return html `
+                    <div class="border-bottom mx-n2"
+                         style="padding: 18px;">${[
                     `<div class="d-flex align-content-center" style="gap:10px;">
 <h3 class="my-auto tx_title fw-normal" style="white-space: nowrap;font-size: 16px;">在${(() => {
                         if (GlobalWidget.glitter_view_type === ViewType.mobile) {
@@ -198,7 +201,8 @@ ${GlobalWidget.switchButton(obj.gvc, obj.widget[key].refer !== 'hide', (bool) =>
                                 }
                             })];
                     }
-                })()).join('<div class="my-3"></div>')}</div>`;
+                })()).join('<div class="my-3"></div>')}
+                    </div>`;
             }
             return obj.gvc.bindView(() => {
                 return {

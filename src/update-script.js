@@ -9,8 +9,8 @@ class UpdateScript {
     static async run() {
         const migrate_template = (await database_1.default.query('SELECT appName FROM glitter.app_config where template_type!=0;', [])).map((dd) => {
             return dd.appName;
-        }).concat([]);
-        await this.migrateHomePageFooter(migrate_template);
+        }).concat(['shop-template-clothing-v3']);
+        await UpdateScript.migrateLink(migrate_template);
     }
     static async migrateHomePageFooter(appList) {
         for (const b of appList) {

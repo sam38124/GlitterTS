@@ -28,7 +28,7 @@ export interface SwiperEvents {
   // CORE_EVENTS_START
   /**
    * Fired right after Swiper initialization.
-   * @note Note that with `swiper.on('init')` syntax it will
+   * @note.txt Note that with `swiper.on('init')` syntax it will
    * work only in case you set `init: false` parameter.
    *
    * @example

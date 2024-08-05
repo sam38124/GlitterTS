@@ -54,7 +54,7 @@ export class Entry {
         }
         window.renderClock = (_a = window.renderClock) !== null && _a !== void 0 ? _a : clockF();
         console.log(`Entry-time:`, window.renderClock.stop());
-        glitter.share.editerVersion = "V_9.8.9";
+        glitter.share.editerVersion = "V_9.9.1";
         glitter.share.start = (new Date());
         const vm = {
             appConfig: [],
@@ -398,7 +398,7 @@ export class Entry {
     }
     static resourceInitial(glitter, vm, callback) {
         window.glitterInitialHelper.getPlugin((dd) => {
-            var _a, _b, _c;
+            var _a, _b, _c, _d;
             console.log(`getPlugin-time:`, window.renderClock.stop());
             window.saasConfig.appConfig = dd.response.data;
             GlobalUser.language = GlobalUser.language || navigator.language;
@@ -408,13 +408,15 @@ export class Entry {
             glitter.share.globalStyle = {};
             const config = glitter.share.appConfigresponse.response.data;
             config.color_theme = (_a = config.color_theme) !== null && _a !== void 0 ? _a : [];
-            config.globalValue = (_b = config.globalValue) !== null && _b !== void 0 ? _b : [];
-            config.globalStyleTag = (_c = config.globalStyleTag) !== null && _c !== void 0 ? _c : [];
+            config.container_theme = (_b = config.container_theme) !== null && _b !== void 0 ? _b : [];
+            config.globalValue = (_c = config.globalValue) !== null && _c !== void 0 ? _c : [];
+            config.globalStyleTag = (_d = config.globalStyleTag) !== null && _d !== void 0 ? _d : [];
             config.color_theme.map((dd, index) => {
                 EditorConfig.color_setting_config.map((d2) => {
                     glitter.share.globalValue[`theme_color.${index}.${d2.key}`] = dd[d2.key];
                 });
             });
+            glitter.share.global_container_theme = config.container_theme;
             function loopCheckGlobalValue(array, tag) {
                 try {
                     array.map((dd) => {

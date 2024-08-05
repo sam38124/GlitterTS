@@ -12,6 +12,7 @@ import { NormalPageEditor } from '../../editor/normal-page-editor.js';
 import { StyleEditor } from '../plugins/style-editor.js';
 import * as module from 'module';
 import { component } from '../../official_view_component/official/component.js';
+import {ShareDialog} from "../dialog/ShareDialog.js";
 
 export interface HtmlJson {
     route: string;
@@ -1785,9 +1786,6 @@ ${e.line}
 
                         function getHtml() {
                             return new Promise(async (resolve, reject) => {
-                                if (cf.widget.data.elem === 'header') {
-                                    console.log(`Header-render-onCreate-time:`, (window as any).renderClock.stop());
-                                }
                                 cf.widget.refreshComponentParameter!.view1 = () => {
                                     gvc.notifyDataChange(container_id);
                                 };
@@ -2133,7 +2131,6 @@ ${e.line}
         while (!glitter.share.editorViewModel) {
             glitter = (window.parent as any).glitter;
         }
-
         function active() {
             try {
                 Storage.page_setting_item = 'layout';
@@ -2182,6 +2179,7 @@ ${e.line}
                             style="background: lightgrey;color: #393939;cursor: pointer;min-height: 250px;left: 0px;top:0px;width: 100%;height: 100%;"
                             onmousedown="${gvc.event(() => {
                                 glitter.getModule(new URL(gvc.glitter.root_path + 'editor/add-component.js').href, (AddComponent: any) => {
+                                    glitter.share.editorViewModel.selectContainer=widget.data.setting
                                     AddComponent.toggle(true);
                                     AddComponent.addWidget = (gvc: GVC, cf: any) => {
                                         (window.parent  as any).glitter.share.editorViewModel.selectContainer = widget.data.setting;
@@ -2220,6 +2218,7 @@ ${e.line}
                                         });
                                         cf.gvc.glitter.document.querySelector('#' + addID).remove();
                                     };
+
                                 });
                             })}"
                         >
@@ -2377,32 +2376,41 @@ ${e.line}
         ].join('');
     }
 
-    public static deleteWidget(container_items: any, item: any) {
-        let glitter = (window as any).glitter;
-        while (!glitter.share.editorViewModel) {
-            glitter = (window.parent as any).glitter;
-        }
-        const gvc = glitter.pageConfig[0].gvc;
-        const document = glitter.document;
-        const container = (document.querySelector('#editerCenter iframe') as any).contentWindow.glitter.$(`.editor_it_${item.id}`).parent().parent().get(0);
-        for (let a = 0; a < container_items.length; a++) {
-            if (container_items[a] == item) {
-                container_items.splice(a, 1);
-            }
-        }
-        if ((document.querySelector('#editerCenter iframe') as any).contentWindow.document.querySelector(`.editor_it_${item.id}`)) {
-            (document.querySelector('#editerCenter iframe') as any).contentWindow.glitter.$(`.editor_it_${item.id}`).parent().remove();
-        }
-        if (container_items.length === 0) {
-            if (!(container as any).className.includes('editor_it_MainView')) {
-                container.recreateView();
-            } else {
-                glitter.share.editorViewModel.data.config = [];
-                gvc.notifyDataChange(['HtmlEditorContainer']);
-            }
-        }
-        glitter.share.editorViewModel.selectItem = undefined;
-        gvc.notifyDataChange(['right_NAV', 'MainEditorLeft']);
+    public static deleteWidget(container_items: any, item: any,callback:()=>void) {
+        const dialog = new ShareDialog((window as any).glitter);
+        dialog.checkYesOrNot({
+            callback:(response)=>{
+                if(response){
+                    let glitter = (window as any).glitter;
+                    while (!glitter.share.editorViewModel) {
+                        glitter = (window.parent as any).glitter;
+                    }
+                    const gvc = glitter.pageConfig[0].gvc;
+                    const document = glitter.document;
+                    const container = (document.querySelector('#editerCenter iframe') as any).contentWindow.glitter.$(`.editor_it_${item.id}`).parent().parent().get(0);
+                    for (let a = 0; a < container_items.length; a++) {
+                        if (container_items[a] == item) {
+                            container_items.splice(a, 1);
+                        }
+                    }
+                    if ((document.querySelector('#editerCenter iframe') as any).contentWindow.document.querySelector(`.editor_it_${item.id}`)) {
+                        (document.querySelector('#editerCenter iframe') as any).contentWindow.glitter.$(`.editor_it_${item.id}`).parent().remove();
+                    }
+                    if (container_items.length === 0) {
+                        if (!(container as any).className.includes('editor_it_MainView')) {
+                            container.recreateView();
+                        } else {
+                            glitter.share.editorViewModel.data.config = [];
+                            gvc.notifyDataChange(['HtmlEditorContainer']);
+                        }
+                    }
+                    glitter.share.editorViewModel.selectItem = undefined;
+                    gvc.notifyDataChange(['right_NAV', 'MainEditorLeft']);
+                    callback()
+                }
+            },
+            text:'是否確認刪除此元件?'
+        })
     }
 
     public static preloadEvent(data: any) {

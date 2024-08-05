@@ -18,6 +18,7 @@ import { GlobalEvent } from '../api/global-event.js';
 import { NormalPageEditor } from '../../editor/normal-page-editor.js';
 import { StyleEditor } from '../plugins/style-editor.js';
 import { component } from '../../official_view_component/official/component.js';
+import { ShareDialog } from "../dialog/ShareDialog.js";
 const html = String.raw;
 export class HtmlGenerate {
     constructor(container, hoverInitial = [], subData, root) {
@@ -1396,9 +1397,6 @@ ${obj.gvc.bindView({
                         };
                         function getHtml() {
                             return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
-                                if (cf.widget.data.elem === 'header') {
-                                    console.log(`Header-render-onCreate-time:`, window.renderClock.stop());
-                                }
                                 cf.widget.refreshComponentParameter.view1 = () => {
                                     gvc.notifyDataChange(container_id);
                                 };
@@ -1759,6 +1757,7 @@ ${obj.gvc.bindView({
                             style="background: lightgrey;color: #393939;cursor: pointer;min-height: 250px;left: 0px;top:0px;width: 100%;height: 100%;"
                             onmousedown="${gvc.event(() => {
                         glitter.getModule(new URL(gvc.glitter.root_path + 'editor/add-component.js').href, (AddComponent) => {
+                            glitter.share.editorViewModel.selectContainer = widget.data.setting;
                             AddComponent.toggle(true);
                             AddComponent.addWidget = (gvc, cf) => {
                                 window.parent.glitter.share.editorViewModel.selectContainer = widget.data.setting;
@@ -1941,33 +1940,42 @@ ${obj.gvc.bindView({
             }),
         ].join('');
     }
-    static deleteWidget(container_items, item) {
-        let glitter = window.glitter;
-        while (!glitter.share.editorViewModel) {
-            glitter = window.parent.glitter;
-        }
-        const gvc = glitter.pageConfig[0].gvc;
-        const document = glitter.document;
-        const container = document.querySelector('#editerCenter iframe').contentWindow.glitter.$(`.editor_it_${item.id}`).parent().parent().get(0);
-        for (let a = 0; a < container_items.length; a++) {
-            if (container_items[a] == item) {
-                container_items.splice(a, 1);
-            }
-        }
-        if (document.querySelector('#editerCenter iframe').contentWindow.document.querySelector(`.editor_it_${item.id}`)) {
-            document.querySelector('#editerCenter iframe').contentWindow.glitter.$(`.editor_it_${item.id}`).parent().remove();
-        }
-        if (container_items.length === 0) {
-            if (!container.className.includes('editor_it_MainView')) {
-                container.recreateView();
-            }
-            else {
-                glitter.share.editorViewModel.data.config = [];
-                gvc.notifyDataChange(['HtmlEditorContainer']);
-            }
-        }
-        glitter.share.editorViewModel.selectItem = undefined;
-        gvc.notifyDataChange(['right_NAV', 'MainEditorLeft']);
+    static deleteWidget(container_items, item, callback) {
+        const dialog = new ShareDialog(window.glitter);
+        dialog.checkYesOrNot({
+            callback: (response) => {
+                if (response) {
+                    let glitter = window.glitter;
+                    while (!glitter.share.editorViewModel) {
+                        glitter = window.parent.glitter;
+                    }
+                    const gvc = glitter.pageConfig[0].gvc;
+                    const document = glitter.document;
+                    const container = document.querySelector('#editerCenter iframe').contentWindow.glitter.$(`.editor_it_${item.id}`).parent().parent().get(0);
+                    for (let a = 0; a < container_items.length; a++) {
+                        if (container_items[a] == item) {
+                            container_items.splice(a, 1);
+                        }
+                    }
+                    if (document.querySelector('#editerCenter iframe').contentWindow.document.querySelector(`.editor_it_${item.id}`)) {
+                        document.querySelector('#editerCenter iframe').contentWindow.glitter.$(`.editor_it_${item.id}`).parent().remove();
+                    }
+                    if (container_items.length === 0) {
+                        if (!container.className.includes('editor_it_MainView')) {
+                            container.recreateView();
+                        }
+                        else {
+                            glitter.share.editorViewModel.data.config = [];
+                            gvc.notifyDataChange(['HtmlEditorContainer']);
+                        }
+                    }
+                    glitter.share.editorViewModel.selectItem = undefined;
+                    gvc.notifyDataChange(['right_NAV', 'MainEditorLeft']);
+                    callback();
+                }
+            },
+            text: '是否確認刪除此元件?'
+        });
     }
     static preloadEvent(data) {
         setTimeout(() => {

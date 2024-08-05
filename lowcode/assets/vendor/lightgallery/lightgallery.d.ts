@@ -59,7 +59,7 @@ export declare class LightGallery {
      * Update slides dynamically.
      * Add, edit or delete slides dynamically when lightGallery is opened.
      * Modify the current gallery items and pass it via updateSlides method
-     * @note
+     * @note.txt
      * - Do not mutate existing lightGallery items directly.
      * - Always pass new list of gallery items
      * - You need to take care of thumbnails outside the gallery if any

@@ -646,7 +646,7 @@ export class ShoppingDiscountSetting {
                                                                                                                         return {
                                                                                                                             key: item.id,
                                                                                                                             value: item.tag_name,
-                                                                                                                            // note: '人數'
+                                                                                                                            // note.txt: '人數'
                                                                                                                         };
                                                                                                                     }
                                                                                                                 );

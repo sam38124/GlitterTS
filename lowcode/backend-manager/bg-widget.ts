@@ -452,7 +452,7 @@ export class BgWidget {
         callback: (key: string) => void,
         style?: string
     ) {
-        return html` <div style="justify-content: flex-start; align-items: flex-start; gap: 22px; display: inline-flex;cursor: pointer;margin-top: 24px;margin-bottom: 24px; ${style ?? ''}">
+        return html`<div style="justify-content: flex-start; align-items: flex-start; gap: 22px; display: inline-flex;cursor: pointer;margin-top: 24px;margin-bottom: 24px; ${style ?? ''}">
             ${data
                 .map((dd) => {
                     if (select === dd.key) {
@@ -479,6 +479,8 @@ export class BgWidget {
                 .join('')}
         </div>`;
     }
+
+
 
     static goBack(event: string) {
         return html` <div class="d-flex align-items-center justify-content-center" style="width: 5px; height: 11px; cursor:pointer; margin-right: 10px;" onclick="${event}">

@@ -333,7 +333,7 @@ export class BgWidget {
         return html `<h3 class="my-auto tx_title " style="white-space: nowrap;font-size: 14px;font-weight: 400;">${title}</h3>`;
     }
     static tab(data, gvc, select, callback, style) {
-        return html ` <div style="justify-content: flex-start; align-items: flex-start; gap: 22px; display: inline-flex;cursor: pointer;margin-top: 24px;margin-bottom: 24px; ${style !== null && style !== void 0 ? style : ''}">
+        return html `<div style="justify-content: flex-start; align-items: flex-start; gap: 22px; display: inline-flex;cursor: pointer;margin-top: 24px;margin-bottom: 24px; ${style !== null && style !== void 0 ? style : ''}">
             ${data
             .map((dd) => {
             if (select === dd.key) {

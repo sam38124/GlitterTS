@@ -103,10 +103,10 @@ interface SwiperProps extends SwiperOptions {
    * Event will be fired on zoom change
    */
   onZoomChange?: (swiper: SwiperClass, scale: number, imageEl: HTMLElement, slideEl: HTMLElement) => void;
-  
+
   /**
    * Fired right after Swiper initialization.
-   * @note Note that with `swiper.on('init')` syntax it will
+   * @note.txt Note that with `swiper.on('init')` syntax it will
    * work only in case you set `init: false` parameter.
    *
    * @example
@@ -413,7 +413,7 @@ interface SwiperProps extends SwiperOptions {
    * Event will be fired when swiper is unlocked (when `watchOverflow` enabled)
    */
   onUnlock?: (swiper: SwiperClass) => void;
-  
+
 }
 
 interface SlideData {

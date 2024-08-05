@@ -54,7 +54,7 @@ export class Entry {
         }
         (window as any).renderClock = (window as any).renderClock ?? clockF();
         console.log(`Entry-time:`, (window as any).renderClock.stop());
-        glitter.share.editerVersion = "V_9.8.9";
+        glitter.share.editerVersion = "V_9.9.1";
         glitter.share.start = (new Date());
         const vm: {
             appConfig: any;
@@ -462,6 +462,7 @@ export class Entry {
             glitter.share.globalStyle = {};
             const config = glitter.share.appConfigresponse.response.data;
             config.color_theme = config.color_theme ?? [];
+            config.container_theme= config.container_theme??[]
             config.globalValue = config.globalValue ?? [];
             config.globalStyleTag = config.globalStyleTag ?? [];
             config.color_theme.map((dd: any, index: number) => {
@@ -469,7 +470,7 @@ export class Entry {
                     glitter.share.globalValue[`theme_color.${index}.${d2.key}`] = dd[d2.key];
                 });
             });
-
+            glitter.share.global_container_theme=config.container_theme
             function loopCheckGlobalValue(array: any, tag: string) {
                 try {
                     array.map((dd: any) => {

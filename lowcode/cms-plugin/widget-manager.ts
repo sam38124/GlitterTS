@@ -30,7 +30,7 @@ export class WidgetManager {
                             <div class="d-flex w-100 align-items-start flex-column">
                                 ${BgWidget.title('元件樣式')}
                                 <div class="flex-fill"></div>
-                                ${BgWidget.hint_title('請選擇一個符合您需求的元件樣式')}
+                                ${BgWidget.hint_title('全館 (首頁,隱形賣場,一頁式網頁) 的標頭將預設為以下樣式')}
                             </div>
                             ${BgWidget.container(
                                 [

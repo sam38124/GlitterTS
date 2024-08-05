@@ -144,9 +144,10 @@ function chunkArray(array, groupSize) {
 async function compare_sql_table(scheme, table, sql) {
     try {
         const tempKey = 'tempcompare' + table;
-        await database_1.default.execute(`DROP TABLE if exists \`${scheme}\`.\`${tempKey}\`;`, []);
-        await database_1.default.execute(`CREATE TABLE if not exists \`${scheme}\`.\`${table}\` ${sql}`, []);
-        await database_1.default.execute(`CREATE TABLE if not exists \`${scheme}\`.\`${tempKey}\` ${sql}`, []);
+        const trans = await database_1.default.Transaction.build();
+        await trans.execute(`DROP TABLE if exists \`${scheme}\`.\`${tempKey}\`;`, []);
+        await trans.execute(`CREATE TABLE if not exists \`${scheme}\`.\`${table}\` ${sql}`, []);
+        await trans.execute(`CREATE TABLE if not exists \`${scheme}\`.\`${tempKey}\` ${sql}`, []);
         const compareStruct = `SELECT COLUMN_NAME,
                                   DATA_TYPE,
                                   CHARACTER_MAXIMUM_LENGTH
@@ -166,14 +167,12 @@ async function compare_sql_table(scheme, table, sql) {
             return await compare_sql_table(scheme, table, sql);
         }
         if (!(JSON.stringify(older) == JSON.stringify(newest)) || !(JSON.stringify(older2) == JSON.stringify(newest2))) {
-            console.log(`not-equal1->${JSON.stringify(older)}->${JSON.stringify(newest)}`);
-            console.log(`not-equal2->${JSON.stringify(older2)}->${JSON.stringify(newest2)}`);
             older = older.filter((dd) => {
                 return newest.find((d2) => {
                     return dd.COLUMN_NAME === d2.COLUMN_NAME;
                 });
             });
-            await database_1.default.execute(`INSERT INTO \`${scheme}\`.\`${tempKey}\` (${older
+            await trans.execute(`INSERT INTO \`${scheme}\`.\`${tempKey}\` (${older
                 .map((dd) => {
                 return `\`${dd.COLUMN_NAME}\``;
             })
@@ -185,14 +184,14 @@ async function compare_sql_table(scheme, table, sql) {
                 .join(',')}
                                    FROM \`${scheme}\`.\`${table}\`
         `, []);
-            await database_1.default.execute(`
+            await trans.execute(`
         CREATE TABLE  \`${scheme}_recover\`.\`${table}_${new Date().getTime()}\` AS SELECT * FROM \`${scheme}\`.\`${table}\`;
         `, []);
-            await database_1.default.execute(`DROP TABLE \`${scheme}\`.\`${table}\`;`, []);
+            await trans.execute(`DROP TABLE \`${scheme}\`.\`${table}\`;`, []);
             let fal = 0;
             async function loopToAlter() {
                 try {
-                    await database_1.default.execute(`ALTER TABLE \`${scheme}\`.${tempKey} RENAME TO \`${scheme}\`.\`${table}\`;`, []);
+                    await trans.execute(`ALTER TABLE \`${scheme}\`.${tempKey} RENAME TO \`${scheme}\`.\`${table}\`;`, []);
                     await new Promise((resolve, reject) => {
                         setTimeout(() => {
                             resolve(true);
@@ -208,7 +207,9 @@ async function compare_sql_table(scheme, table, sql) {
             }
             await loopToAlter();
         }
-        await database_1.default.execute(`DROP TABLE if exists \`${scheme}\`.\`${tempKey}\`;`, []);
+        await trans.execute(`DROP TABLE if exists \`${scheme}\`.\`${tempKey}\`;`, []);
+        await trans.commit();
+        await trans.release();
         return true;
     }
     catch (e) {

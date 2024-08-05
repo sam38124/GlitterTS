@@ -430,10 +430,15 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                                 hint: '頁面編輯',
                                             },
                                             {
-                                                src: `fa-sharp fa-regular fa-palette`,
+                                                src: `fa-sharp fa-regular fa-globe`,
                                                 index: 'color',
-                                                hint: '配色設定',
+                                                hint: '全局樣式'
                                             },
+                                            {
+                                                src: `fa-regular fa-grid-2`,
+                                                index: 'widget',
+                                                hint: '設計元件'
+                                            }
                                         ]
                                             .map((da) => {
                                             return html `<i
@@ -654,6 +659,9 @@ function initialEditor(gvc, viewModel) {
         viewModel.selectContainer.push(data);
         Storage.lastSelect = data.id;
         HtmlGenerate.hover_items = [Storage.lastSelect];
+        data.data._style_refer_global = {
+            index: `0`
+        };
         if (viewModel.selectContainer.length === 1) {
             viewModel.selectContainer.container_config.getElement().recreateView();
         }
@@ -677,7 +685,7 @@ function initialEditor(gvc, viewModel) {
                 scroll_to_hover: true,
                 glitter: glitter,
             });
-        }, 50);
+        }, 100);
         AddComponent.toggle(false);
     };
     glitter.share.addWithIndex = (cf) => {
@@ -694,6 +702,9 @@ function initialEditor(gvc, viewModel) {
             arrayData.container.splice(arrayData.index, 0, cf.data);
         }
         Storage.lastSelect = cf.data.id;
+        cf.data.data._style_refer_global = {
+            index: `0`
+        };
         HtmlGenerate.hover_items = [Storage.lastSelect];
         const $ = document.querySelector('#editerCenter iframe').contentWindow.$;
         $(HtmlGenerate.renderWidgetSingle({
