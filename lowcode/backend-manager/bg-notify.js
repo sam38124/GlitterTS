@@ -19,6 +19,7 @@ import { FilterOptions } from '../cms-plugin/filter-options.js';
 import { ShoppingDiscountSetting } from '../cms-plugin/shopping-discount-setting.js';
 import { ApiSmtp } from '../glitter-base/route/smtp.js';
 import { BgListComponent } from './bg-list-component.js';
+import { Tool } from '../modules/tool.js';
 const html = String.raw;
 const inputStyle = 'font-size: 16px; height:40px; width:300px;';
 export class BgNotify {
@@ -502,7 +503,7 @@ export class BgNotify {
                                                                 },
                                                                 {
                                                                     key: '標題',
-                                                                    value: html `<span class="fs-7">${truncateString(`[${dd.content.name}] ${dd.content.title}`, 25)}</span>`,
+                                                                    value: html `<span class="fs-7">${Tool.truncateString(`[${dd.content.name}] ${dd.content.title}`, 25)}</span>`,
                                                                 },
                                                                 {
                                                                     key: '收件群組',
@@ -516,7 +517,7 @@ export class BgNotify {
                                                                         for (const group of dd.content.sendGroup) {
                                                                             const tagLength = tagList.join('').length;
                                                                             if (tagLength + group.length > lengthLimit) {
-                                                                                tagList.push(truncateString(group, tagLength));
+                                                                                tagList.push(Tool.truncateString(group, tagLength));
                                                                                 break;
                                                                             }
                                                                             else {
@@ -1758,7 +1759,7 @@ export class BgNotify {
                                 },
                                 {
                                     key: '訂閱Token',
-                                    value: `<span class="fs-7">${truncateString(dd.deviceToken, 80)}</span>`,
+                                    value: `<span class="fs-7">${Tool.truncateString(dd.deviceToken, 40)}</span>`,
                                 },
                             ];
                         });
@@ -1948,7 +1949,7 @@ export class BgNotify {
                                                 },
                                                 {
                                                     key: '推播內文',
-                                                    value: `<span class="fs-7">${truncateString(dd.content.content.replace(/<[^>]*>/g, ''), 30)}</span>`,
+                                                    value: `<span class="fs-7">${Tool.truncateString(dd.content.content.replace(/<[^>]*>/g, ''), 30)}</span>`,
                                                 },
                                                 {
                                                     key: '發送推播',
@@ -2226,7 +2227,7 @@ export class BgNotify {
                                 },
                                 {
                                     key: '內文',
-                                    value: `<span class="fs-7">${truncateString((_a = dd.content.content) !== null && _a !== void 0 ? _a : '', 30)}</span>`,
+                                    value: `<span class="fs-7">${Tool.truncateString((_a = dd.content.content) !== null && _a !== void 0 ? _a : '', 30)}</span>`,
                                 },
                             ];
                         });
@@ -2953,13 +2954,5 @@ function defaultEmailText() {
     [你的公司或社群名稱]
     [聯絡電子郵件]
     [聯絡電話]`.replace(/\n/g, `<br>`);
-}
-function truncateString(str, maxLength) {
-    if (str.length > maxLength) {
-        return str.slice(0, maxLength) + '...';
-    }
-    else {
-        return str;
-    }
 }
 window.glitter.setModule(import.meta.url, BgNotify);

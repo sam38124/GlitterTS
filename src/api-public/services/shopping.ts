@@ -173,12 +173,14 @@ export class Shopping {
             const itemRecord: { id: number; count: number }[] = [];
 
             for (const checkout of checkouts) {
-                for (const item1 of checkout.lineItems) {
-                    const index = itemRecord.findIndex((item2) => item1.id === item2.id);
-                    if (index === -1) {
-                        itemRecord.push({ id: parseInt(`${item1.id}`, 10), count: item1.count });
-                    } else {
-                        itemRecord[index].count += item1.count;
+                if (Array.isArray(checkout.lineItems)) {
+                    for (const item1 of checkout.lineItems) {
+                        const index = itemRecord.findIndex((item2) => item1.id === item2.id);
+                        if (index === -1) {
+                            itemRecord.push({ id: parseInt(`${item1.id}`, 10), count: item1.count });
+                        } else {
+                            itemRecord[index].count += item1.count;
+                        }
                     }
                 }
             }
@@ -1900,12 +1902,14 @@ export class Shopping {
             const product_list: { title: string; count: number }[] = [];
 
             for (const checkout of checkouts) {
-                for (const item1 of checkout.lineItems) {
-                    const index = product_list.findIndex((item2) => item1.title === item2.title);
-                    if (index === -1) {
-                        product_list.push({ title: item1.title, count: item1.count });
-                    } else {
-                        product_list[index].count += item1.count;
+                if (Array.isArray(checkout.lineItems)) {
+                    for (const item1 of checkout.lineItems) {
+                        const index = product_list.findIndex((item2) => item1.title === item2.title);
+                        if (index === -1) {
+                            product_list.push({ title: item1.title, count: item1.count });
+                        } else {
+                            product_list[index].count += item1.count;
+                        }
                     }
                 }
             }

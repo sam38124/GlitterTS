@@ -15,6 +15,7 @@ import { ApiPost } from '../glitter-base/route/post.js';
 import { BgProduct } from '../backend-manager/bg-product.js';
 import { FilterOptions } from './filter-options.js';
 import { BgListComponent } from '../backend-manager/bg-list-component.js';
+import { Tool } from '../modules/tool.js';
 class Excel {
     constructor(gvc, headers, lineName) {
         this.gvc = gvc;
@@ -1021,7 +1022,7 @@ export class ShoppingProductSetting {
                                                                                                     class="rounded border me-4"
                                                                                                     src="${dd.content.preview_image[0] || 'https://jmva.or.jp/wp-content/uploads/2018/07/noimage.png'}"
                                                                                                     style="width:40px;height:40px;"
-                                                                                                />` + dd.content.title,
+                                                                                                />` + Tool.truncateString(dd.content.title),
                                                                         },
                                                                         {
                                                                             key: '售價',
@@ -1438,8 +1439,7 @@ export class ShoppingProductSetting {
                                     </div>
                                 </div>
                             `)}
-                            ${BgWidget.mainCardMbp0(html `
-                                ${gvc.bindView(() => {
+                            ${BgWidget.mainCardMbp0(gvc.bindView(() => {
             const vm = {
                 id: gvc.glitter.getUUID(),
             };
@@ -1470,8 +1470,7 @@ export class ShoppingProductSetting {
                     style: `gap:12px;`,
                 },
             };
-        })}
-                            `)}
+        }))}
                             ${BgWidget.mainCardMbp0(html `
                                 <div class="d-flex flex-column" style="gap:18px;">
                                     <div style="font-weight: 700;">商品材積</div>
@@ -1696,7 +1695,7 @@ export class ShoppingProductSetting {
                     variant = orignData;
                     obj.vm.type = 'replace';
                 });
-        }), '11')}
+        }))}
                 ${BgWidget.save(obj.gvc.event(() => {
             postMD.variants.map((data, index) => {
                 if (data.editable) {
@@ -1896,6 +1895,12 @@ export class ShoppingProductSetting {
                     postMD.specs = Array.from(uniqueTitlesMap, ([title, option]) => ({ title, option }));
                 }
             }
+            function setScrollTop() {
+                setTimeout(() => {
+                    const element = document.querySelector('.specUnitView');
+                    element && element.scrollIntoView({ behavior: 'smooth' });
+                }, 50);
+            }
             gvc.addStyle(`
             .specInput:focus {
                 outline: none;
@@ -1903,6 +1908,7 @@ export class ShoppingProductSetting {
         `);
             const vm = {
                 id: gvc.glitter.getUUID(),
+                last_scroll: 0,
             };
             updateVariants();
             return gvc.bindView(() => {
@@ -2000,8 +2006,9 @@ export class ShoppingProductSetting {
                                     };
                                 })}
                                                 `),
-                                postMD.variants.length === 1
-                                    ? (() => {
+                                html `<div class="specUnitView px-0">
+                                                ${(() => {
+                                    if (postMD.variants.length === 1) {
                                         try {
                                             postMD.variants[0].editable = true;
                                             return ShoppingProductSetting.editProductSpec({
@@ -2015,8 +2022,10 @@ export class ShoppingProductSetting {
                                             console.error(e);
                                             return '';
                                         }
-                                    })()
-                                    : ``,
+                                    }
+                                    return '';
+                                })()}
+                                            </div>`,
                                 BgWidget.mainCardMbp0(obj.gvc.bindView(() => {
                                     const specid = obj.gvc.glitter.getUUID();
                                     return {
@@ -2045,7 +2054,21 @@ export class ShoppingProductSetting {
                                                     copyable: false,
                                                     hr: true,
                                                     minus: false,
-                                                    refreshComponent: () => {
+                                                    refreshComponent: (fromIndex, toIndex) => {
+                                                        postMD.variants.map((item) => {
+                                                            if (fromIndex === undefined ||
+                                                                toIndex === undefined ||
+                                                                fromIndex < 0 ||
+                                                                fromIndex >= item.spec.length ||
+                                                                toIndex < 0 ||
+                                                                toIndex >= item.spec.length) {
+                                                                throw new Error('索引超出範圍');
+                                                            }
+                                                            let element = item.spec.splice(fromIndex, 1)[0];
+                                                            item.spec.splice(toIndex, 0, element);
+                                                            console.log(item);
+                                                            return item;
+                                                        });
                                                         obj.gvc.notifyDataChange([specid, 'productInf']);
                                                     },
                                                     array: () => {
@@ -2148,7 +2171,8 @@ export class ShoppingProductSetting {
                                                                                 postMD.specs[specIndex] = temp;
                                                                                 checkSpecSingle();
                                                                                 updateVariants();
-                                                                                gvc.notifyDataChange([specid]);
+                                                                                setScrollTop();
+                                                                                gvc.notifyDataChange(vm.id);
                                                                             },
                                                                         })}
                                                                                                         </div>
@@ -2202,6 +2226,7 @@ export class ShoppingProductSetting {
                                                         createPage.page = 'add';
                                                         checkSpecSingle();
                                                         updateVariants();
+                                                        setScrollTop();
                                                         gvc.notifyDataChange([vm.id]);
                                                     },
                                                 })}
@@ -2216,7 +2241,7 @@ export class ShoppingProductSetting {
                                     };
                                 })),
                                 postMD.specs.length == 0
-                                    ? ``
+                                    ? ''
                                     : BgWidget.mainCardMbp0(html ` <div style="font-size: 16px;font-weight: 700;color:#393939;margin-bottom: 18px;">規格設定</div>` +
                                         obj.gvc.bindView(() => {
                                             var _a;
@@ -2900,11 +2925,15 @@ color: ${selected.length ? `#393939` : `#DDD`};font-size: 18px;
                                                                         return {
                                                                             bind: vm.id,
                                                                             view: () => {
+                                                                                console.log('postMD.variants');
+                                                                                console.log(postMD.variants);
                                                                                 return postMD.specs[0].option
                                                                                     .map((spec) => {
                                                                                     var _a;
                                                                                     const viewList = [];
                                                                                     spec.expand = (_a = spec.expand) !== null && _a !== void 0 ? _a : true;
+                                                                                    console.log('spec');
+                                                                                    console.log(spec);
                                                                                     if (postMD.specs.length > 1) {
                                                                                         let isCheck = !postMD.variants
                                                                                             .filter((dd) => {
@@ -2918,9 +2947,9 @@ color: ${selected.length ? `#393939` : `#DDD`};font-size: 18px;
                                                                                                               >
                                                                                                                   <i
                                                                                                                       class="${isCheck ? `fa-solid fa-square-check` : `fa-regular fa-square`}"
-                                                                                                                      style="width: 16px;height: 16px;margin-left:19px;margin-right:18px;cursor: pointer;
-color: ${isCheck ? `#393939` : `#DDD`};font-size: 18px;
-"
+                                                                                                                      style="width: 16px;height: 16px;margin-left:19px;margin-right:18px;cursor: pointer;color: ${isCheck
+                                                                                            ? `#393939`
+                                                                                            : `#DDD`};font-size: 18px;"
                                                                                                                       onclick="${gvc.event(() => {
                                                                                             postMD.variants
                                                                                                 .filter((dd) => {
@@ -3043,6 +3072,43 @@ color: ${isCheck ? `#393939` : `#DDD`};font-size: 18px;
                                                                                                               </div>`);
                                                                                     }
                                                                                     if (spec.expand || postMD.specs.length === 1) {
+                                                                                        function cartesianProductSort(arrays) {
+                                                                                            const getCombinations = (arrays, index) => {
+                                                                                                if (index === arrays.length) {
+                                                                                                    return [[]];
+                                                                                                }
+                                                                                                const currentArray = arrays[index];
+                                                                                                const nextCombinations = getCombinations(arrays, index + 1);
+                                                                                                const currentCombinations = [];
+                                                                                                for (const value of currentArray) {
+                                                                                                    for (const combination of nextCombinations) {
+                                                                                                        currentCombinations.push([value, ...combination]);
+                                                                                                    }
+                                                                                                }
+                                                                                                return currentCombinations;
+                                                                                            };
+                                                                                            return getCombinations(arrays, 0);
+                                                                                        }
+                                                                                        function compareArrays(arr1, arr2) {
+                                                                                            if (arr1.length !== arr2.length) {
+                                                                                                return false;
+                                                                                            }
+                                                                                            for (let i = 0; i < arr1.length; i++) {
+                                                                                                if (arr1[i] !== arr2[i]) {
+                                                                                                    return false;
+                                                                                                }
+                                                                                            }
+                                                                                            return true;
+                                                                                        }
+                                                                                        postMD.variants = cartesianProductSort(postMD.specs.map((item) => {
+                                                                                            return item.option.map((item2) => item2.title);
+                                                                                        }))
+                                                                                            .map((item) => {
+                                                                                            return postMD.variants.find((variant) => {
+                                                                                                return compareArrays(variant.spec, item);
+                                                                                            });
+                                                                                        })
+                                                                                            .filter((item) => item !== undefined && item !== null);
                                                                                         viewList.push(postMD.variants
                                                                                             .filter((dd) => {
                                                                                             return dd.spec[0] === spec.title;
@@ -3073,8 +3139,9 @@ color: ${isCheck ? `#393939` : `#DDD`};font-size: 18px;
                                                                                                                                                   class="${data.checked
                                                                                                         ? `fa-solid fa-square-check`
                                                                                                         : `fa-regular fa-square`}"
-                                                                                                                                                  style="width: 16px;height: 16px;margin-left:19px;margin-right:0px;cursor: pointer;
-color: ${data.checked ? `#393939` : `#DDD`};font-size: 18px;"
+                                                                                                                                                  style="width: 16px;height: 16px;margin-left:19px;margin-right:0px;cursor: pointer;color: ${data.checked
+                                                                                                        ? `#393939`
+                                                                                                        : `#DDD`};font-size: 18px;"
                                                                                                                                                   onclick="${gvc.event((e, event) => {
                                                                                                         data.checked = !data.checked;
                                                                                                         event.stopPropagation();
@@ -3490,10 +3557,10 @@ ${(_c = postMD.seo.content) !== null && _c !== void 0 ? _c : ''}</textarea
                             tempHTML.push(html `
                                                     <div
                                                         class="d-flex align-items-center"
-                                                        style="height: 22px;border-radius: 5px;background: #F2F2F2;display: flex;padding: 1px 6px;justify-content: center;align-items: center;gap: 4px;"
+                                                        style="height: 24px;border-radius: 5px;background: #F2F2F2;display: flex;padding: 1px 6px;justify-content: center;align-items: center;gap: 4px;"
                                                     >
                                                         ${data.title}<i
-                                                            class="fa-solid fa-xmark"
+                                                            class="fa-solid fa-xmark ms-1 fs-5"
                                                             style="font-size: 12px;cursor: pointer;"
                                                             onclick="${gvc.event(() => {
                                 temp.option.splice(index, 1);
@@ -3506,6 +3573,7 @@ ${(_c = postMD.seo.content) !== null && _c !== void 0 ? _c : ''}</textarea
                         tempHTML.push(html `<input
                                             id="keep-enter"
                                             class="flex-fill d-flex align-items-center border-0 specInput h-100"
+                                            value=""
                                             placeholder="${temp.option.length > 0 ? '請繼續輸入' : ''}"
                                         />`);
                         return tempHTML.join('');
@@ -3542,17 +3610,20 @@ ${(_c = postMD.seo.content) !== null && _c !== void 0 ? _c : ''}</textarea
                         const input = document.getElementById('keep-enter');
                         keyboard = event.key;
                         if (input && input.value.length > 0 && event.key === 'Enter') {
-                            temp.option.push({
-                                title: input.value,
-                            });
-                            temp.option = temp.option.reduce((acc, current) => {
-                                const isTitleExist = acc.find((item) => item.title === current.title);
-                                if (!isTitleExist) {
-                                    acc.push(current);
-                                }
-                                return acc;
-                            }, []);
-                            gvc.notifyDataChange('specInput');
+                            setTimeout(() => {
+                                temp.option.push({
+                                    title: input.value,
+                                });
+                                input.value = '';
+                                temp.option = temp.option.reduce((acc, current) => {
+                                    const isTitleExist = acc.find((item) => item.title === current.title);
+                                    if (!isTitleExist) {
+                                        acc.push(current);
+                                    }
+                                    return acc;
+                                }, []);
+                                gvc.notifyDataChange('specInput');
+                            }, 30);
                         }
                     };
                     document.addEventListener('keydown', gvc.glitter.share.keyDownEvent);

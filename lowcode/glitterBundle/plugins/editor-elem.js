@@ -1875,7 +1875,7 @@ ${obj.gvc.bindView(() => {
                 ], () => { }, () => { });
                 if (obj.hoverGray) {
                     gvc.addStyle(`
-                            #${parId} :hover{
+                            #${parId} :hover :not(.btn-black, .tx_700_white){
                                 background-color:#F7F7F7;
                             }
                             #${parId} :hover .option{
@@ -2101,7 +2101,7 @@ ${obj.gvc.bindView(() => {
                                             },
                                             onEnd: (evt) => {
                                                 swapArr(obj.originalArray, startIndex, evt.newIndex);
-                                                obj.refreshComponent();
+                                                obj.refreshComponent(evt.oldIndex, evt.newIndex);
                                             },
                                         });
                                     }
