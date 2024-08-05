@@ -345,6 +345,62 @@ router.delete('/order', async (req, resp) => {
         return response_1.default.fail(resp, err);
     }
 });
+router.get('/returnOrder', async (req, resp) => {
+    var _a, _b;
+    try {
+        if (await ut_permission_1.UtPermission.isManager(req)) {
+            return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).getReturnOrder({
+                page: ((_a = req.query.page) !== null && _a !== void 0 ? _a : 0),
+                limit: ((_b = req.query.limit) !== null && _b !== void 0 ? _b : 50),
+                search: req.query.search,
+                id: req.query.id,
+                email: req.query.email,
+                status: req.query.status,
+                searchType: req.query.searchType,
+                progress: req.query.progress,
+                created_time: req.query.created_time,
+                orderString: req.query.orderString,
+                archived: req.query.archived,
+            }));
+        }
+        else {
+            throw exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null);
+        }
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.put('/returnOrder', async (req, resp) => {
+    try {
+        if (await ut_permission_1.UtPermission.isManager(req)) {
+            return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).putReturnOrder({
+                id: req.body.data.id,
+                orderData: req.body.data,
+                status: req.body.data.status || "0",
+            }));
+        }
+        else {
+            throw exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null);
+        }
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.post('/returnOrder', async (req, resp) => {
+    try {
+        if (await ut_permission_1.UtPermission.isManager(req)) {
+            return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).createReturnOrder(req.body));
+        }
+        else {
+            return response_1.default.fail(resp, exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null));
+        }
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
 router.get('/voucher', async (req, resp) => {
     var _a, _b;
     try {

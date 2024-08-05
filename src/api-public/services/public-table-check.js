@@ -365,6 +365,23 @@ class ApiPublic {
   PRIMARY KEY (\`id\`),
   INDEX \`index2\` (\`user_id\` ASC) VISIBLE);`,
                 },
+                {
+                    scheme: appName,
+                    table: 't_return_order',
+                    sql: `(
+  \`id\` int NOT NULL AUTO_INCREMENT,
+  \`return_order_id\` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  \`order_id\` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  \`status\` int NOT NULL DEFAULT '0',
+  \`email\` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  \`orderData\` json DEFAULT NULL,
+  \`created_time\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (\`id\`),
+  UNIQUE KEY \`return_order_id_UNIQUE\` (\`return_order_id\`),
+  KEY \`index3\` (\`email\`),
+  KEY \`index4\` (\`created_time\`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+                },
             ];
             for (const b of chunkArray(sqlArray, groupSize)) {
                 let check = b.length;

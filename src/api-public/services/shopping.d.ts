@@ -113,6 +113,7 @@ export declare class Shopping {
     }): Promise<{
         result: boolean;
     }>;
+    private generateOrderID;
     toCheckout(data: {
         lineItems: {
             id: string;
@@ -197,6 +198,86 @@ export declare class Shopping {
         is_free?: undefined;
         return_url?: undefined;
         off_line?: undefined;
+    }>;
+    getReturnOrder(query: {
+        page: number;
+        limit: number;
+        id?: string;
+        search?: string;
+        email?: string;
+        status?: string;
+        searchType?: string;
+        progress?: string;
+        created_time?: string;
+        orderString?: string;
+        archived?: string;
+    }): Promise<{
+        data: any;
+        result: boolean;
+        total?: undefined;
+    } | {
+        data: any;
+        total: any;
+        result?: undefined;
+    }>;
+    createReturnOrder(data: any): Promise<any>;
+    putReturnOrder(data: {
+        id: string;
+        orderData: {
+            id: number;
+            cart_token: string;
+            status: number;
+            email: string;
+            orderData: {
+                email: string;
+                total: number;
+                lineItems: {
+                    id: number;
+                    spec: string[];
+                    count: string;
+                    sale_price: number;
+                }[];
+                user_info: {
+                    name: string;
+                    email: string;
+                    phone: string;
+                    address: string;
+                };
+            };
+            created_time: string;
+            progress: 'finish' | 'wait' | 'shipping';
+        };
+        status: any;
+    }): Promise<{
+        result: string;
+        orderData: {
+            id: string;
+            orderData: {
+                id: number;
+                cart_token: string;
+                status: number;
+                email: string;
+                orderData: {
+                    email: string;
+                    total: number;
+                    lineItems: {
+                        id: number;
+                        spec: string[];
+                        count: string;
+                        sale_price: number;
+                    }[];
+                    user_info: {
+                        name: string;
+                        email: string;
+                        phone: string;
+                        address: string;
+                    };
+                };
+                created_time: string;
+                progress: 'finish' | 'wait' | 'shipping';
+            };
+            status: any;
+        };
     }>;
     formatUseRebate(total: number, useRebate: number): Promise<{
         point: number;

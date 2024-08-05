@@ -111,7 +111,6 @@ export class BgListComponent {
         const menu = glitter.share.NormalPageEditor;
         const vmShow = { id: gvc.glitter.getUUID() };
         menu.closeEvent = () => gvc.notifyDataChange(this.vm.id);
-
         return menu.toggle({
             visible: true,
             title: '篩選',
@@ -134,6 +133,7 @@ export class BgListComponent {
                                                 contentHTML += BgWidget.multiCheckboxContainer(gvc, item.data, this.vm.filter[item.key], (value) => {
                                                     this.vm.filter[item.key] = value;
                                                 });
+                                                
                                                 break;
                                             case 'radio_and_input':
                                                 contentHTML += BgWidget.radioInputContainer(gvc, item.data, this.vm.filter[item.key], (value) => {
@@ -141,7 +141,7 @@ export class BgListComponent {
                                                 });
                                                 break;
                                         }
-
+                                        
                                         return html`<!-- Item -->
                                             <div class="accordion-item border-0 rounded-3 mb-3">
                                                 <h3 class="accordion-header" id="heading${item.key}">

@@ -13,6 +13,7 @@ import { User } from '../services/user.js';
 import { Post } from '../services/post.js';
 import { Shopping } from '../services/shopping';
 import { Rebate, IRebateSearch } from '../services/rebate';
+import {log} from "winston";
 
 const router: express.Router = express.Router();
 
@@ -371,6 +372,82 @@ router.delete('/order', async (req: express.Request, resp: express.Response) => 
             );
         } else {
             throw exception.BadRequestError('BAD_REQUEST', 'No permission.', null);
+        }
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+//退貨訂單
+router.get('/returnOrder', async (req: express.Request, resp: express.Response) => {
+    try {
+        if (await UtPermission.isManager(req)) {
+            //管理員
+            return response.succ(
+                resp,
+                await new Shopping(req.get('g-app') as string, req.body.token).getReturnOrder({
+                    page: (req.query.page ?? 0) as number,
+                    limit: (req.query.limit ?? 50) as number,
+                    search: req.query.search as string,
+                    id: req.query.id as string,
+                    email: req.query.email as string,
+                    status: req.query.status as string,
+                    searchType: req.query.searchType as string,
+                    progress: req.query.progress as string,
+                    created_time: req.query.created_time as string,
+                    orderString: req.query.orderString as string,
+                    archived: req.query.archived as string,
+                })
+            );
+        } else {
+            throw exception.BadRequestError('BAD_REQUEST', 'No permission.', null);
+        }
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+router.put('/returnOrder', async (req: express.Request, resp: express.Response) => {
+    try {
+        if (await UtPermission.isManager(req)) {
+            //管理員
+            return response.succ(resp, await new Shopping(req.get('g-app') as string, req.body.token).putReturnOrder({
+                id: req.body.data.id,
+                orderData: req.body.data,
+                status: req.body.data.status || "0",
+            }));
+            // return response.succ(
+            //     resp,
+            //     await new Shopping(req.get('g-app') as string, req.body.token).getReturnOrder({
+            //         page: (req.query.page ?? 0) as number,
+            //         limit: (req.query.limit ?? 50) as number,
+            //         search: req.query.search as string,
+            //         id: req.query.id as string,
+            //         email: req.query.email as string,
+            //         status: req.query.status as string,
+            //         searchType: req.query.searchType as string,
+            //         progress: req.query.progress as string,
+            //         created_time: req.query.created_time as string,
+            //         orderString: req.query.orderString as string,
+            //         archived: req.query.archived as string,
+            //     })
+            // );
+        } else {
+            throw exception.BadRequestError('BAD_REQUEST', 'No permission.', null);
+        }
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+router.post('/returnOrder', async (req: express.Request, resp: express.Response) => {
+    try {
+        if (await UtPermission.isManager(req)) {
+            return response.succ(
+                resp,
+                await new Shopping(req.get('g-app') as string, req.body.token).createReturnOrder(
+                    req.body
+                )
+            );
+        } else {
+            return response.fail(resp, exception.BadRequestError('BAD_REQUEST', 'No permission.', null));
         }
     } catch (err) {
         return response.fail(resp, err);

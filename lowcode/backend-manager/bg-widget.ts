@@ -1666,10 +1666,11 @@ ${obj.default ?? ''}</textarea
                 background-position: center center;
             }
         `);
-
         data.map((item) => {
+
             checkboxHTML += html`
                 <div class="form-check">
+                    
                     <input
                             class="form-check-input ${randomString}"
                             style="margin-top: 0.35rem;"
@@ -1681,6 +1682,7 @@ ${obj.default ?? ''}</textarea
                                     return;
                                 }
                             })}"
+                            
                             onchange="${gvc.event((e, ev) => {
                                 if (single) {
                                     callback([item.key]);
@@ -1693,12 +1695,17 @@ ${obj.default ?? ''}</textarea
                                     callback(def);
                                 }
                             })}"
-                            ${def.includes(item.key) ? 'checked' : ''}
+                           
+                            ${def&&def.includes(item.key) ? 'checked' : ''}
+                           
                     />
+                    
                     <label class="form-check-label" for="${id}_${item.key}"
                            style="font-size: 16px; color: #393939;">${item.name}</label>
+                  
                 </div>
             `;
+
         });
 
         return html`

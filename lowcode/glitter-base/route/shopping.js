@@ -210,6 +210,42 @@ export class ApiShop {
             },
         });
     }
+    static getReturnOrder(json) {
+        const filterString = this.orderListFilterString(json.filter);
+        return BaseApi.create({
+            url: getBaseUrl() +
+                `/api-public/v1/ec/returnOrder?${(() => {
+                    let par = [`limit=${json.limit}`, `page=${json.page}`];
+                    json.search && par.push(`search=${json.search}`);
+                    json.id && par.push(`id=${json.id}`);
+                    json.email && par.push(`email=${json.email}`);
+                    json.status && par.push(`status=${json.status}`);
+                    json.searchType && par.push(`searchType=${json.searchType}`);
+                    json.orderString && par.push(`orderString=${json.orderString}`);
+                    json.archived && par.push(`archived=${json.archived}`);
+                    filterString.length > 0 && par.push(filterString.join('&'));
+                    return par.join('&');
+                })()}`,
+            type: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: json.data_from === 'user' ? GlobalUser.token : getConfig().config.token,
+            },
+        });
+    }
+    static searchOrderExist(orderId) {
+        return BaseApi.create({
+            url: getBaseUrl() +
+                `/api-public/v1/ec/order/search`,
+            type: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: GlobalUser.token,
+            },
+        });
+    }
     static getVoucher(json) {
         return BaseApi.create({
             url: getBaseUrl() +
@@ -557,6 +593,30 @@ export class ApiShop {
                 Authorization: cf.token || getConfig().config.token,
             },
             data: JSON.stringify(cf.data),
+        });
+    }
+    static postReturnOrder(passData) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/ec/returnOrder/`,
+            type: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: getConfig().config.token,
+            },
+            data: JSON.stringify(passData),
+        });
+    }
+    static putReturnOrder(passData) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/ec/returnOrder/`,
+            type: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: getConfig().config.token,
+            },
+            data: JSON.stringify(passData),
         });
     }
 }

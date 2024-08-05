@@ -557,6 +557,7 @@ export class ShoppingOrderManager {
                             gvc: gvc,
                         });
                     }
+                    console.log(orderData);
                     return BgWidget.container(html `
                             <div class="d-flex flex-column" style="">
                                 ${BgWidget.container(html `
@@ -1211,7 +1212,7 @@ export class ShoppingOrderManager {
                             child_vm.userID = userData.userID;
                             child_vm.type = 'user';
                         })}">
-                                                                                ${(_c = (_b = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _b === void 0 ? void 0 : _b.name) !== null && _c !== void 0 ? _c : "訪客"}
+                                                                                ${(_c = (_b = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _b === void 0 ? void 0 : _b.name) !== null && _c !== void 0 ? _c : orderData.orderData.customer_info.name}
                                                                                 ${(() => {
                             if (userDataLoading) {
                                 return `<div style="border-radius: 7px;background: #EAEAEA;padding: 4px 6px;color:#393939;font-weight: 700;">讀取中</div>`;
@@ -1233,11 +1234,11 @@ export class ShoppingOrderManager {
                                                                             </div>
                                                                             <div class=""
                                                                                  style="color: #393939;font-weight: 400;">
-                                                                                ${(_f = (_e = (_d = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _d === void 0 ? void 0 : _d.phone) !== null && _e !== void 0 ? _e : orderData.orderData.user_info.phone) !== null && _f !== void 0 ? _f : "此會員未填手機"}
+                                                                                ${(_f = (_e = (_d = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _d === void 0 ? void 0 : _d.phone) !== null && _e !== void 0 ? _e : orderData.orderData.customer_info.phone) !== null && _f !== void 0 ? _f : "此會員未填手機"}
                                                                             </div>
                                                                             <div class=""
                                                                                  style="color: #393939;font-weight: 400;">
-                                                                                ${(_h = (_g = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _g === void 0 ? void 0 : _g.email) !== null && _h !== void 0 ? _h : orderData.orderData.user_info.email}
+                                                                                ${(_h = (_g = userData === null || userData === void 0 ? void 0 : userData.userData) === null || _g === void 0 ? void 0 : _g.email) !== null && _h !== void 0 ? _h : orderData.orderData.customer_info.email}
                                                                             </div>
                                                                         </div>`,
                         html `
@@ -1350,7 +1351,7 @@ export class ShoppingOrderManager {
                                 var _a;
                                 return html `
                                                                     <div class="d-flex align-items-center ">
-                                                                        <div class="fw-bold fs-6">用戶備註
+                                                                        <div class="" style="font-size: 16px;font-weight: 700;">用戶備註
                                                                         </div>
                                                                         <div class="flex-fill"></div>
                                                                         <i

@@ -214,6 +214,9 @@ class Shopping {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'GetProduct Error:' + e, null);
         }
     }
+    generateOrderID() {
+        return `${new Date().getTime()}`;
+    }
     async toCheckout(data, type = 'add', replace_order_id) {
         var _a, _b, _c, _d;
         try {
@@ -314,7 +317,7 @@ class Shopping {
                 shipment_fee: 0,
                 rebate: 0,
                 use_rebate: data.use_rebate || 0,
-                orderID: `${new Date().getTime()}`,
+                orderID: this.generateOrderID(),
                 shipment_support: shipment_setting.support,
                 shipment_info: shipment_setting.info,
                 use_wallet: 0,
@@ -565,6 +568,113 @@ class Shopping {
         catch (e) {
             console.error(e);
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ToCheckout Error:' + e, null);
+        }
+    }
+    async getReturnOrder(query) {
+        try {
+            let querySql = ['1=1'];
+            let orderString = 'order by id desc';
+            if (query.search && query.searchType) {
+                switch (query.searchType) {
+                    case 'order_id':
+                    case 'return_order_id':
+                        querySql.push(`(${query.searchType} like '%${query.search}%')`);
+                        break;
+                    case 'name':
+                    case 'phone':
+                        querySql.push(`(UPPER(JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.user_info.${query.searchType}')) LIKE ('%${query.search}%')))`);
+                        break;
+                    default: {
+                        querySql.push(`JSON_CONTAINS_PATH(orderData, 'one', '$.lineItems[*].title') AND JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.lineItems[*].${query.searchType}')) REGEXP '${query.search}'`);
+                    }
+                }
+            }
+            if (query.progress) {
+                let newArray = query.progress.split(',');
+                let temp = '';
+                if (newArray.includes('wait')) {
+                    temp += "JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.progress')) IS NULL OR ";
+                }
+                temp += `JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.progress')) IN (${newArray.map((status) => `"${status}"`).join(',')})`;
+                querySql.push(`(${temp})`);
+            }
+            if (query.created_time) {
+                const created_time = query.created_time.split(',');
+                if (created_time.length > 1) {
+                    querySql.push(`
+                        (created_time BETWEEN ${database_js_1.default.escape(`${created_time[0]} 00:00:00`)} 
+                        AND ${database_js_1.default.escape(`${created_time[1]} 23:59:59`)})
+                    `);
+                }
+            }
+            if (query.orderString) {
+                switch (query.orderString) {
+                    case 'created_time_desc':
+                        orderString = 'order by created_time desc';
+                        break;
+                    case 'created_time_asc':
+                        orderString = 'order by created_time asc';
+                        break;
+                    case 'order_total_desc':
+                        orderString = "order by CAST(JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.total')) AS SIGNED) desc";
+                        break;
+                    case 'order_total_asc':
+                        orderString = "order by CAST(JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.total')) AS SIGNED) asc";
+                        break;
+                }
+            }
+            query.status && querySql.push(`status IN (${query.status})`);
+            query.email && querySql.push(`email=${database_js_1.default.escape(query.email)}`);
+            query.id && querySql.push(`(content->>'$.id'=${query.id})`);
+            if (query.archived === 'true') {
+                querySql.push(`(orderData->>'$.archived'="${query.archived}")`);
+            }
+            else if (query.archived === 'false') {
+                querySql.push(`((orderData->>'$.archived' is null) or (orderData->>'$.archived'!='true'))`);
+            }
+            let sql = `SELECT *
+                       FROM \`${this.app}\`.t_return_order
+                       WHERE ${querySql.join(' and ')} ${orderString}`;
+            if (query.id) {
+                const data = (await database_js_1.default.query(`SELECT *
+                         FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}`, []))[0];
+                return {
+                    data: data,
+                    result: !!data,
+                };
+            }
+            else {
+                return {
+                    data: await database_js_1.default.query(`SELECT *
+                         FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}`, []),
+                    total: (await database_js_1.default.query(`SELECT count(1)
+                             FROM (${sql}) as subqyery`, []))[0]['count(1)'],
+                };
+            }
+        }
+        catch (e) {
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'GetProduct Error:' + e, null);
+        }
+    }
+    async createReturnOrder(data) {
+        let returnOrderID = this.generateOrderID();
+        let orderID = data.cart_token;
+        let email = data.email;
+        return await database_js_1.default.execute(`INSERT INTO \`${this.app}\`.t_return_order (order_id, return_order_id, email, orderData)
+                     values (?, ?, ?, ?)`, [orderID, returnOrderID, email, data.orderData]);
+    }
+    async putReturnOrder(data) {
+        try {
+            await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_return_order\`
+                 set ?
+                 WHERE id = ?`, [{ status: data.status, orderData: JSON.stringify(data.orderData.orderData) }, data.id]);
+            return {
+                result: 'success',
+                orderData: data,
+            };
+        }
+        catch (e) {
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'putOrder Error:' + e, null);
         }
     }
     async formatUseRebate(total, useRebate) {

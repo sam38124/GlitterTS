@@ -733,6 +733,7 @@ export class ShoppingOrderManager {
                             gvc: gvc,
                         });
                     }
+                    console.log(orderData)
                     return BgWidget.container(
                         html`
                             <div class="d-flex flex-column" style="">
@@ -1397,7 +1398,7 @@ export class ShoppingOrderManager {
                                                                                      child_vm.userID = userData.userID
                                                                                      child_vm.type = 'user'
                                                                                  })}">
-                                                                                ${userData?.userData?.name ?? "訪客"}
+                                                                                ${userData?.userData?.name ?? orderData.orderData.customer_info.name}
                                                                                 ${(() => {
                                                                                     if (userDataLoading){
                                                                                         return `<div style="border-radius: 7px;background: #EAEAEA;padding: 4px 6px;color:#393939;font-weight: 700;">讀取中</div>`
@@ -1420,11 +1421,11 @@ export class ShoppingOrderManager {
                                                                             </div>
                                                                             <div class=""
                                                                                  style="color: #393939;font-weight: 400;">
-                                                                                ${userData?.userData?.phone ?? orderData.orderData.user_info.phone ?? "此會員未填手機"}
+                                                                                ${userData?.userData?.phone ?? orderData.orderData.customer_info.phone ?? "此會員未填手機"}
                                                                             </div>
                                                                             <div class=""
                                                                                  style="color: #393939;font-weight: 400;">
-                                                                                ${userData?.userData?.email ?? orderData.orderData.user_info.email}
+                                                                                ${userData?.userData?.email ?? orderData.orderData.customer_info.email}
                                                                             </div>
                                                                         </div>`,
                                                                     html`
@@ -1539,7 +1540,7 @@ export class ShoppingOrderManager {
                                                             view: () => {
                                                                 return html`
                                                                     <div class="d-flex align-items-center ">
-                                                                        <div class="fw-bold fs-6">用戶備註
+                                                                        <div class="" style="font-size: 16px;font-weight: 700;">用戶備註
                                                                         </div>
                                                                         <div class="flex-fill"></div>
                                                                         <i

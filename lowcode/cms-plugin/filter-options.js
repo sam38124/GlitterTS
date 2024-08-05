@@ -86,6 +86,11 @@ FilterOptions.orderFilterFrame = {
     shipment: [],
     created_time: ['', ''],
 };
+FilterOptions.returnOrderFilterFrame = {
+    progress: [],
+    refund: [],
+    created_time: ['', ''],
+};
 FilterOptions.orderFunnel = [
     {
         key: 'orderStatus',
@@ -145,11 +150,48 @@ FilterOptions.orderFunnel = [
         },
     },
 ];
+FilterOptions.returnOrderFunnel = [
+    {
+        key: 'progress',
+        type: 'multi_checkbox',
+        name: '退貨狀態',
+        data: [
+            { key: '1', name: '申請中' },
+            { key: '0', name: '退貨中' },
+            { key: '-1', name: '已退貨' },
+        ],
+    },
+    {
+        key: 'refund',
+        type: 'multi_checkbox',
+        name: '退款狀態',
+        data: [
+            { key: '1', name: '已退款' },
+            { key: '0', name: '退款中' },
+        ],
+    },
+    {
+        key: 'created_time',
+        type: 'during',
+        name: '申請日期',
+        data: {
+            centerText: '至',
+            list: [
+                { key: 'start', type: 'date', placeHolder: '請選擇開始時間' },
+                { key: 'end', type: 'date', placeHolder: '請選擇結束時間' },
+            ],
+        },
+    },
+];
 FilterOptions.orderOrderBy = [
     { key: 'created_time_desc', value: '訂單時間新 > 舊' },
     { key: 'created_time_asc', value: '訂單時間舊 > 新' },
     { key: 'order_total_desc', value: '訂單金額高 > 低' },
     { key: 'order_total_asc', value: '訂單金額低 > 高' },
+];
+FilterOptions.returnOrderOrderBy = [
+    { key: 'created_time_desc', value: '訂單時間新 > 舊' },
+    { key: 'created_time_asc', value: '訂單時間舊 > 新' },
 ];
 FilterOptions.orderSelect = [
     { key: 'cart_token', value: '訂單編號' },
@@ -158,6 +200,12 @@ FilterOptions.orderSelect = [
     { key: 'title', value: '商品名稱' },
     { key: 'sku', value: '商品編號' },
     { key: 'invoice_number', value: '發票號碼' },
+];
+FilterOptions.returnOrderSelect = [
+    { key: 'order_id', value: '訂單編號' },
+    { key: 'return_order_id', value: '退貨單編號' },
+    { key: 'name', value: '退貨人名稱' },
+    { key: 'phone', value: '退貨人電話' },
 ];
 FilterOptions.productFilterFrame = {
     status: [],
