@@ -1,25 +1,30 @@
 import { GVC } from '../glitterBundle/GVController.js';
 import { BgWidget } from '../backend-manager/bg-widget.js';
 import { ApiUser } from '../glitter-base/route/user.js';
+import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
 import { UserList } from './user-list.js';
+import { BgNotify } from '../backend-manager/bg-notify.js';
+
+type RegisterTag = 'registered' | 'notRegistered';
 
 export class MemberTypeList {
     public static main(gvc: GVC, widget: any) {
         const html = String.raw;
         const glitter = gvc.glitter;
-
         const vm: {
             id: string;
-            type: 'groupList' | 'list' | 'replace';
+            type: 'groupList' | 'list' | 'replace' | 'subscriber';
             index: number;
             group: { type: string; title: string };
             dataList: any;
+            tabs: { title: string; key: string }[];
         } = {
             id: glitter.getUUID(),
             type: 'groupList',
             group: { type: '', title: '' },
             index: 0,
             dataList: [],
+            tabs: [],
         };
         let vmi: any = undefined;
 
@@ -43,7 +48,11 @@ export class MemberTypeList {
                             value: BgWidget.grayButton(
                                 '查閱名單',
                                 gvc.event(() => {
-                                    vm.type = 'list';
+                                    if (dd.type === 'subscriber') {
+                                        vm.type = 'subscriber';
+                                    } else {
+                                        vm.type = 'list';
+                                    }
                                     vm.group = dd;
                                     gvc.notifyDataChange(vm.id);
                                 }),
@@ -86,6 +95,13 @@ export class MemberTypeList {
                             `,
                             BgWidget.getContainerWidth()
                         );
+                    } else if (vm.type === 'subscriber') {
+                        return MemberTypeList.subscriberView(gvc, {
+                            group: vm.group,
+                            backButtonEvent: gvc.event(() => {
+                                vm.type = 'groupList';
+                            }),
+                        });
                     } else {
                         return UserList.main(gvc, {
                             group: vm.group,
@@ -100,6 +116,117 @@ export class MemberTypeList {
                     style: `max-width:100%;width:960px;`,
                 },
             };
+        });
+    }
+
+    public static subscriberView(gvc: GVC, obj: { group: { type: string; title: string }; backButtonEvent: string }) {
+        const html = String.raw;
+        const glitter = gvc.glitter;
+        const dialog = new ShareDialog(glitter);
+        const vm: {
+            id: string;
+            type: RegisterTag;
+        } = {
+            id: glitter.getUUID(),
+            type: 'registered',
+        };
+        return gvc.bindView({
+            bind: vm.id,
+            view: () => {
+                return BgWidget.container(
+                    [
+                        html`<div class="d-flex w-100 align-items-center">
+                            ${BgWidget.goBack(obj.backButtonEvent) + BgWidget.title(obj.group.title)}
+                            <div class="flex-fill"></div>
+                            ${BgWidget.darkButton(
+                                '新增',
+                                gvc.event(() => {
+                                    gvc.glitter.innerDialog((gvc2) => {
+                                        let mail = '';
+                                        let tag = '';
+                                        return html`<div class="modal-content bg-white rounded-3 p-2" style="max-width:90%; width:400px;">
+                                            <div class="border-bottom ms-1 my-2 pb-2">
+                                                <span class="tx_700">新增推播信箱</span>
+                                            </div>
+                                            <div class="px-1 mb-1">
+                                                ${BgWidget.editeInput({
+                                                    gvc: gvc,
+                                                    title: '信箱',
+                                                    default: '',
+                                                    placeHolder: '請輸入信箱',
+                                                    callback: (text) => {
+                                                        mail = text;
+                                                    },
+                                                })}
+                                                ${BgWidget.editeInput({
+                                                    gvc: gvc,
+                                                    title: '標籤',
+                                                    default: '',
+                                                    placeHolder: '請輸入標籤',
+                                                    callback: (text) => {
+                                                        tag = text;
+                                                    },
+                                                })}
+                                            </div>
+                                            <div class="modal-footer mb-0 pt-1 pb-0">
+                                                ${BgWidget.cancel(
+                                                    gvc.event(() => {
+                                                        gvc2.closeDialog();
+                                                    })
+                                                )}
+                                                ${BgWidget.save(
+                                                    gvc.event(() => {
+                                                        dialog.dataLoading({ visible: true });
+                                                        ApiUser.subScribe(mail, tag).then((response) => {
+                                                            dialog.dataLoading({ visible: false });
+                                                            if (response.result) {
+                                                                dialog.successMessage({ text: '新增成功' });
+                                                                gvc.notifyDataChange(vm.id);
+                                                                gvc2.closeDialog();
+                                                            } else {
+                                                                dialog.errorMessage({ text: '發生錯誤' });
+                                                            }
+                                                        });
+                                                    })
+                                                )}
+                                            </div>
+                                        </div>`;
+                                    }, 'add');
+                                })
+                            )}
+                        </div>`,
+                        BgWidget.tab(
+                            [
+                                { title: '已註冊', key: 'registered' },
+                                { title: '未註冊', key: 'notRegistered' },
+                            ],
+                            gvc,
+                            vm.type,
+                            (text) => {
+                                vm.type = text as RegisterTag;
+                                gvc.notifyDataChange(vm.id);
+                            },
+                            'margin-bottom: 0;'
+                        ),
+                        vm.type === 'registered'
+                            ? UserList.main(gvc, {
+                                  group: obj.group,
+                                  backButtonEvent: obj.backButtonEvent,
+                                  hiddenHeader: true,
+                              })
+                            : BgNotify.email(
+                                  gvc,
+                                  'list',
+                                  () => {
+                                      return obj.backButtonEvent;
+                                  },
+                                  {
+                                      hiddenHeader: true,
+                                  }
+                              ),
+                    ].join('')
+                );
+            },
         });
     }
 }

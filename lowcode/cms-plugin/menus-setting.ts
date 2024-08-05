@@ -2,6 +2,7 @@ import { GVC } from '../glitterBundle/GVController.js';
 import { BgWidget } from '../backend-manager/bg-widget.js';
 import { ApiUser } from '../glitter-base/route/user.js';
 import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
+import {EditorElem} from "../glitterBundle/plugins/editor-elem.js";
 
 const html = String.raw;
 
@@ -394,11 +395,11 @@ export class MenusSetting {
                                                                                             style="cursor: pointer;width:25px;height: 25px;"
                                                                                         ></i>
                                                                                         <div
-                                                                                            style="flex-direction: column; justify-content: center; align-items: flex-start; gap: 2px; display: inline-flex"
+                                                                                            style="flex-direction: column; justify-content: center; align-items: flex-start; gap: 2px; display: inline-flex;white-space: normal;word-break: break-all;"
                                                                                         >
                                                                                             <div style="justify-content: flex-start; align-items: center; gap: 8px; display: inline-flex">
                                                                                                 <div
-                                                                                                    style="color: #393939; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word"
+                                                                                                    style="color: #393939; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-break: break-all;"
                                                                                                 >
                                                                                                     ${dd.title}
                                                                                                 </div>
@@ -408,7 +409,7 @@ export class MenusSetting {
                                                                                                         : `<i class="fa-solid fa-angle-up cl_39"></i>`
                                                                                                     : ``}
                                                                                             </div>
-                                                                                            <div style="justify-content: flex-start; align-items: center; gap: 8px; display: inline-flex">
+                                                                                            <div style="justify-content: flex-start; align-items: center; gap: 8px; display: inline-flex;white-space: normal;word-break: break-all;">
                                                                                                 <div
                                                                                                     style="color: #3366BB; font-size: 14px; font-family: Noto Sans; font-weight: 400; line-height: 14px; word-wrap: break-word"
                                                                                                 >
@@ -580,7 +581,7 @@ export class MenusSetting {
         const rightMenu = (window.parent as any).glitter.share.NormalPageEditor;
 
         rightMenu.closeEvent = () => {
-            if (data.title.length > 0 && data.link.length > 0) {
+            if (data.title.length > 0 || data.link.length > 0) {
                 save(data);
             }
         };
@@ -594,7 +595,7 @@ export class MenusSetting {
                         bind: id,
                         view: () => {
                             return [
-                                BgWidget.editeInput({
+                                EditorElem.editeText({
                                     gvc: gvc,
                                     title: '選單名稱',
                                     default: data.title || '',
@@ -602,6 +603,7 @@ export class MenusSetting {
                                     callback: (text) => {
                                         data.title = text;
                                     },
+                                    // style: 'font-size: 14px;',
                                 }),
                                 BgWidget.linkList({
                                     gvc: gvc,

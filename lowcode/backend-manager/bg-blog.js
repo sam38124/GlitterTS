@@ -20,7 +20,7 @@ import { BgProduct } from './bg-product.js';
 const html = String.raw;
 export class BgBlog {
     static contentManager(gvc, type = 'list', callback = () => {
-    }, is_page, widget) {
+    }, is_page, widget, page_tab) {
         const html = String.raw;
         const glitter = gvc.glitter;
         const vm = {
@@ -111,7 +111,16 @@ export class BgBlog {
                     if (vm.type === 'list') {
                         return BgWidget.container(html `
                                 <div class="d-flex w-100 align-items-center mb-3 ${type === 'select' ? `d-none` : ``}">
-                                    ${BgWidget.title(is_page ? '頁面管理' : '網誌文章')}
+                                    ${BgWidget.title(is_page ? (() => {
+                            switch (page_tab) {
+                                case "hidden":
+                                    return '隱形賣場';
+                                case "page":
+                                    return '自訂頁面';
+                                case "shopping":
+                                    return '一頁商店';
+                            }
+                        })() : '網誌文章')}
                                     <div class="flex-fill"></div>
                                     <div style="display: flex; gap: 12px;">
                                         ${is_page
@@ -136,6 +145,7 @@ export class BgBlog {
                                     search: vm.query || undefined,
                                     for_index: is_page ? `false` : `true`,
                                     status: '0,1',
+                                    page_type: page_tab
                                 }).then((data) => {
                                     vmi.pageSize = Math.ceil(data.response.total / 20);
                                     vm.dataList = data.response.data;
@@ -237,6 +247,7 @@ export class BgBlog {
                             vm: vm,
                             is_page: is_page,
                             widget: widget,
+                            page_tab: page_tab
                         });
                     }
                     else if (vm.type == 'collection') {
@@ -256,13 +267,14 @@ export class BgBlog {
                             vm: vm,
                             is_page: is_page,
                             widget: widget,
+                            page_tab: page_tab
                         });
                     }
                 },
             };
         });
     }
-    static template_select(gvc, callback) {
+    static template_select(gvc, callback, page_tab) {
         let vm = {
             search: '',
         };
@@ -297,7 +309,17 @@ ${[`<div class="my-3"></div>`,
                                 page: '0',
                                 limit: '3000',
                                 type: 'page',
-                                tag: '',
+                                tag: (() => {
+                                    switch (page_tab) {
+                                        case "shopping":
+                                        case "hidden":
+                                            return `一頁購物`;
+                                        case "page":
+                                            return `關於我們,聯絡我們`;
+                                        default:
+                                            return ``;
+                                    }
+                                })(),
                                 search: vm.search,
                             }).then((res) => {
                                 data = res;
@@ -427,7 +449,7 @@ function editor(cf) {
     else {
         vm.data.content.generator = 'rich_text';
     }
-    vm.data.content.page_type = vm.data.content.page_type || 'page';
+    vm.data.content.page_type = vm.data.content.page_type || cf.page_tab;
     let cVm = {
         id: gvc.glitter.getUUID(),
         type: 'detail',
@@ -459,9 +481,9 @@ function editor(cf) {
                             },
                         }), BgWidget.getContainerWidth());
                     case "detail":
-                        return detail(gvc, cf, vm, cVm);
+                        return detail(gvc, cf, vm, cVm, cf.page_tab);
                     case "template":
-                        return template_select(gvc, cf, vm, cVm);
+                        return template_select(gvc, cf, vm, cVm, cf.page_tab);
                     default:
                         return ``;
                 }
@@ -470,14 +492,31 @@ function editor(cf) {
         };
     }), BgWidget.getContainerWidth());
 }
-function detail(gvc, cf, vm, cVm) {
+function detail(gvc, cf, vm, cVm, page_tab) {
     vm.data.content.tag = vm.data.content.tag || `${new Date().getTime()}`;
+    if (!vm.data.id && cf.is_page) {
+        setTimeout(() => {
+            cVm.type = 'template';
+            vm.data.content.template = 'article';
+            gvc.notifyDataChange(cVm.id);
+        }, 100);
+        return ``;
+    }
     return html `
         <div class="d-flex w-100 align-items-center mb-3 ">
             ${BgWidget.goBack(gvc.event(() => {
         vm.type = 'list';
     }))}
-            ${BgWidget.title(cf.is_page ? '編輯頁面' : '編輯網誌')}
+            ${BgWidget.title(cf.is_page ? (() => {
+        switch (page_tab) {
+            case "hidden":
+                return '隱形賣場';
+            case "page":
+                return '自訂頁面';
+            case "shopping":
+                return '一頁商店';
+        }
+    })() : '編輯網誌')}
             <div class="flex-fill"></div>
           <div class="d-flex ${(cf.is_page) ? `` : `d-none`}">
               ${BgWidget.grayButton('套用模板', gvc.event(() => {
@@ -726,7 +765,7 @@ function detail(gvc, cf, vm, cVm) {
                                                                 return BgBlog.template_select(gvc, (cf) => {
                                                                     vm.data.content.config = cf;
                                                                     rightMenu.toggle({ visible: false });
-                                                                });
+                                                                }, page_tab);
                                                             },
                                                             divCreate: {},
                                                         };
@@ -941,20 +980,8 @@ function detail(gvc, cf, vm, cVm) {
                             BgWidget.mainCard([
                                 BgWidget.title_16('賣場商品'),
                                 `<div style="height: 10px;"></div>`,
-                                html `
-                                                                    ${EditorElem.radio({
-                                    gvc: gvc,
-                                    title: '',
-                                    def: vm.data.content.relative,
-                                    array: productForList,
-                                    callback: (text) => {
-                                        vm.data.content.relative = text;
-                                        gvc.notifyDataChange(id);
-                                    },
-                                    oneLine: true,
-                                })}
-                                                                `,
                                 html `${(() => {
+                                    vm.data.content.relative = 'product';
                                     switch (vm.data.content.relative) {
                                         case 'collection':
                                             return gvc.bindView(() => {
@@ -1046,7 +1073,7 @@ function detail(gvc, cf, vm, cVm) {
                                                                                             <div class="d-flex flex-column p-2"
                                                                                                  style="gap: 18px;">
                                                                                                 <div
-                                                                                                        class="d-flex align-items-center gray-bottom-line-18"
+                                                                                                        class="d-flex align-items-center gray-bottom-line-18 d-none"
                                                                                                         style="gap: 24px; justify-content: space-between;"
                                                                                                 >
                                                                                                     <div class="form-check-label c_updown_label">
@@ -1068,14 +1095,14 @@ function detail(gvc, cf, vm, cVm) {
                                                             });
                                                         }), { textStyle: 'font-weight: 400;' })}
                                                                                                 </div>
-                                                                                                ${gvc.map(subVM.dataList.map((opt, index) => {
+                                                                                                ${subVM.dataList.map((opt, index) => {
                                                             return html `
-                                                                                                                <div
-                                                                                                                        class="d-flex align-items-center form-check-label c_updown_label gap-3"
-                                                                                                                >
-                                                                                                                    <span class="tx_normal">${index + 1} .</span>
-                                                                                                                    <div
-                                                                                                                            style="
+                                                                                                        <div
+                                                                                                                class="d-flex align-items-center form-check-label c_updown_label gap-3"
+                                                                                                        >
+                                                                                                            <span class="tx_normal">${index + 1} .</span>
+                                                                                                            <div
+                                                                                                                    style="
                                                                                                     width: 40px;
                                                                                                     height: 40px;
                                                                                                     border-radius: 5px;
@@ -1084,20 +1111,53 @@ function detail(gvc, cf, vm, cVm) {
                                                                                                     background-position: center center;
                                                                                                     background-size: contain;
                                                                                                 "
-                                                                                                                    ></div>
-                                                                                                                    <div class="tx_normal ${opt.note ? 'mb-1' : ''}">
-                                                                                                                        ${opt.value}
-                                                                                                                    </div>
-                                                                                                                    ${opt.note ? html `
+                                                                                                            ></div>
+                                                                                                            <div class="tx_normal ${opt.note ? 'mb-1' : ''}">
+                                                                                                                ${opt.value}
+                                                                                                            </div>
+                                                                                                            ${opt.note ? html `
                                                                                                                         <div class="tx_gray_12">
                                                                                                                             ${opt.note}
                                                                                                                         </div> ` : ''}
-                                                                                                                </div>`;
-                                                        }))}
+                                                                                                        </div>`;
+                                                        }).join('') || `<div class="w-100 d-flex align-content-center justify-content-center">尚未加入任何賣場商品</div>`}
                                                                                             </div>
                                                                                         `;
                                                     },
                                                     onCreate: () => {
+                                                        vm.data.content.relative_data = (() => {
+                                                            const product_list = [];
+                                                            function loop(data) {
+                                                                data.map((dd) => {
+                                                                    if (Array.isArray(dd)) {
+                                                                        loop(dd);
+                                                                    }
+                                                                    else if (typeof dd === 'object') {
+                                                                        function loopObj(dd) {
+                                                                            Object.keys(dd).map((d1) => {
+                                                                                if (d1 === 'product_list') {
+                                                                                    for (const b of dd[d1]) {
+                                                                                        if (!product_list.find((d1) => { return d1 === b; })) {
+                                                                                            product_list.push(b);
+                                                                                        }
+                                                                                    }
+                                                                                }
+                                                                                else if (Array.isArray(dd[d1])) {
+                                                                                    loop(dd[d1]);
+                                                                                }
+                                                                                else if (typeof dd[d1] === 'object') {
+                                                                                    loopObj(dd[d1]);
+                                                                                }
+                                                                            });
+                                                                        }
+                                                                        loopObj(dd);
+                                                                    }
+                                                                });
+                                                            }
+                                                            loop(vm.data.content.config);
+                                                            console.log(product_list);
+                                                            return product_list;
+                                                        })();
                                                         if (subVM.loading) {
                                                             if (vm.data.content.relative_data.length === 0) {
                                                                 setTimeout(() => {
@@ -1244,36 +1304,6 @@ function detail(gvc, cf, vm, cVm) {
                         }
                         return filter_result;
                     }),
-                    (() => {
-                        if (cf.is_page) {
-                            return EditorElem.select({
-                                title: '頁面類型',
-                                gvc: gvc,
-                                def: `${vm.data.content.page_type}`,
-                                array: [
-                                    {
-                                        title: '自訂頁面',
-                                        value: 'page',
-                                    },
-                                    {
-                                        title: '隱形賣場',
-                                        value: 'hidden',
-                                    },
-                                    {
-                                        title: '一頁商店',
-                                        value: 'shopping',
-                                    },
-                                ],
-                                callback: (text) => {
-                                    vm.data.content.page_type = text;
-                                    gvc.notifyDataChange(cVm.id);
-                                },
-                            });
-                        }
-                        else {
-                            return ``;
-                        }
-                    })(),
                     EditorElem.editeInput({
                         gvc: gvc,
                         title: '作者名稱',
@@ -1483,6 +1513,7 @@ function saveData(gvc, cf, vm, cVm, silence) {
                                 title: '新增成功',
                             });
                         }
+                        cVm.type = 'detail';
                         gvc.notifyDataChange(cVm.id);
                     }
                     else {
@@ -1938,19 +1969,22 @@ function setCollection(cf) {
         };
     });
 }
-function template_select(gvc, cf, vm, cVm) {
+function template_select(gvc, cf, vm, cVm, page_type) {
     return BgBlog.template_select(gvc, (c2) => {
         if (c2) {
             vm.data.content.config = c2;
-            cVm.type = 'detail';
             saveData(gvc, cf, vm, cVm, false).then(() => {
-                gvc.notifyDataChange(cVm.id);
+                cVm.type = 'detail';
             });
+        }
+        else if (!vm.data.id) {
+            vm.type = 'list';
+            gvc.notifyDataChange(cVm.id);
         }
         else {
             cVm.type = 'detail';
             gvc.notifyDataChange(cVm.id);
         }
-    });
+    }, page_type);
 }
 window.glitter.setModule(import.meta.url, BgBlog);

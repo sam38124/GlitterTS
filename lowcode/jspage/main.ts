@@ -460,15 +460,15 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                                             hint: '頁面編輯',
                                                         },
                                                         {
-                                                            src: `fa-sharp fa-regular fa-palette`,
+                                                            src: `fa-sharp fa-regular fa-globe`,
                                                             index: 'color',
-                                                            hint: '配色設定',
+                                                            hint: '全局樣式'
                                                         },
-                                                        // {
-                                                        //     src: `fa-regular fa-wrench`,
-                                                        //     index: 'widget',
-                                                        //     hint: '元件設定'
-                                                        // },
+                                                        {
+                                                            src: `fa-regular fa-grid-2`,
+                                                            index: 'widget',
+                                                            hint: '設計元件'
+                                                        }
                                                     ]
                                                         .map((da: any) => {
                                                             return html`<i
@@ -729,7 +729,9 @@ function initialEditor(gvc: GVC, viewModel: any) {
         viewModel.selectContainer.push(data);
         Storage.lastSelect = data.id;
         HtmlGenerate.hover_items = [Storage.lastSelect];
-
+data.data._style_refer_global = {
+    index: `0`
+}
         if (viewModel.selectContainer.length === 1) {
             viewModel.selectContainer.container_config.getElement().recreateView();
         } else {
@@ -746,6 +748,7 @@ function initialEditor(gvc: GVC, viewModel: any) {
                 })
             );
         }
+
         setTimeout(() => {
             HtmlGenerate.selectWidget({
                 widget: data,
@@ -754,7 +757,7 @@ function initialEditor(gvc: GVC, viewModel: any) {
                 scroll_to_hover: true,
                 glitter: glitter,
             });
-        }, 50);
+        }, 100);
         AddComponent.toggle(false);
     };
     //添加Component至指定索引
@@ -771,6 +774,9 @@ function initialEditor(gvc: GVC, viewModel: any) {
             arrayData.container.splice(arrayData.index, 0, cf.data);
         }
         Storage.lastSelect = cf.data.id;
+        cf.data.data._style_refer_global = {
+            index: `0`
+        }
         HtmlGenerate.hover_items = [Storage.lastSelect];
 
         const $ = ((document.querySelector('#editerCenter iframe') as any).contentWindow as any).$;

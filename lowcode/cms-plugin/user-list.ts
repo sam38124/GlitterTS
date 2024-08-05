@@ -12,7 +12,7 @@ import { FilterOptions } from './filter-options.js';
 
 const html = String.raw;
 
-interface ViewModel {
+type ViewModel = {
     id: string;
     filterId: string;
     tableId: string;
@@ -23,10 +23,10 @@ interface ViewModel {
     queryType?: string;
     orderString?: string;
     filter?: any;
-}
+};
 
 export class UserList {
-    public static main(gvc: GVC, obj?: { group?: { type: string; title: string }; backButtonEvent?: string }) {
+    public static main(gvc: GVC, obj?: { group?: { type: string; title: string }; backButtonEvent?: string; hiddenHeader?: boolean }) {
         const glitter = gvc.glitter;
 
         const vm: ViewModel = {
@@ -122,27 +122,29 @@ export class UserList {
                 if (vm.type === 'list') {
                     return BgWidget.container(
                         html`
-                            <div class="d-flex w-100 align-items-center">
-                                ${(() => {
-                                    if (obj && obj.group && obj.backButtonEvent) {
-                                        return BgWidget.goBack(obj.backButtonEvent) + BgWidget.title(obj.group.title);
-                                    }
-                                    return BgWidget.title('顧客列表');
-                                })()}
-                                <div class="flex-fill"></div>
-                                <button
-                                    class="btn hoverBtn me-2 px-3 d-none"
-                                    style="height:35px !important;font-size: 14px;color:black;border:1px solid black;"
-                                    onclick="${gvc.event(() => {
-                                        UserList.setUserForm(gvc, () => {
-                                            gvc.notifyDataChange(vm.id);
-                                        });
-                                    })}"
-                                >
-                                    <i class="fa-regular fa-gear me-2 "></i>
-                                    自訂資料
-                                </button>
-                            </div>
+                            ${obj && obj.hiddenHeader
+                                ? ''
+                                : html`<div class="d-flex w-100 align-items-center">
+                                      ${(() => {
+                                          if (obj && obj.group && obj.backButtonEvent) {
+                                              return BgWidget.goBack(obj.backButtonEvent) + BgWidget.title(obj.group.title);
+                                          }
+                                          return BgWidget.title('顧客列表');
+                                      })()}
+                                      <div class="flex-fill"></div>
+                                      <button
+                                          class="btn hoverBtn me-2 px-3 d-none"
+                                          style="height:35px !important;font-size: 14px;color:black;border:1px solid black;"
+                                          onclick="${gvc.event(() => {
+                                              UserList.setUserForm(gvc, () => {
+                                                  gvc.notifyDataChange(vm.id);
+                                              });
+                                          })}"
+                                      >
+                                          <i class="fa-regular fa-gear me-2 "></i>
+                                          自訂資料
+                                      </button>
+                                  </div>`}
                             ${BgWidget.container(
                                 BgWidget.mainCard(
                                     [
@@ -291,7 +293,9 @@ export class UserList {
                                             },
                                         }),
                                     ].join('')
-                                )
+                                ),
+                                undefined,
+                                obj && obj.hiddenHeader ? 'padding: 0' : undefined
                             )}
                         `,
                         BgWidget.getContainerWidth()
@@ -930,11 +934,11 @@ export class UserList {
                                                     dialog.dataLoading({ text: '', visible: false });
                                                     if (response.result) {
                                                         regetData();
-                                                        dialog.successMessage({ text: '更新成功!' });
+                                                        dialog.successMessage({ text: '更新成功' });
                                                         vm.loading = true;
                                                         gvc.notifyDataChange(vm.id);
                                                     } else {
-                                                        dialog.errorMessage({ text: '更新異常!' });
+                                                        dialog.errorMessage({ text: '更新異常' });
                                                     }
                                                 });
                                             })
@@ -1178,7 +1182,9 @@ export class UserList {
                                         })}
                                     `,
                                 })}
-                            `
+                            `,
+                            undefined,
+                            'padding: 0 !important; margin: 0 !important;'
                         );
                     } else if (vm.type == 'replace') {
                         return this.userInformationDetail({

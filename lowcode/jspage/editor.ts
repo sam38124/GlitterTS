@@ -539,7 +539,7 @@ ${glitter.share.editor_vm ? `d-none` : ``}"
                                                         </div>`;
                                                     } else {
                                                         return html` <div
-                                                            class="d-flex align-items-center justify-content-center"
+                                                            class="d-flex align-items-center justify-content-center ci_${dd.type}"
                                                             style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
                                                             onclick="${gvc.event(() => {
                                                                 viewModel.type = dd.type;
@@ -601,7 +601,7 @@ color:white;
                                             <div
                                                 class="ms-auto me-2 bt_orange"
                                                 onclick="${gvc.event(() => {
-                                                    const url = new URL('', glitter.share.editorViewModel.domain ? `https://${glitter.share.editorViewModel.domain}index` : location.href);
+                                                    const url = new URL('', glitter.share.editorViewModel.domain ? `https://${glitter.share.editorViewModel.domain}/index` : location.href);
                                                     url.searchParams.delete('type');
                                                     url.searchParams.set('page', glitter.getUrlParameter('page'));
                                                     glitter.openNewTab(url.href);

@@ -107,10 +107,10 @@ declare class Swiper extends SvelteComponentTyped<
    * Event will be fired on zoom change
    */
   zoomChange: CustomEvent<[swiper: SwiperClass, scale: number, imageEl: HTMLElement, slideEl: HTMLElement]>;
-    
+
   /**
    * Fired right after Swiper initialization.
-   * @note Note that with `swiper.on('init')` syntax it will
+   * @note.txt Note that with `swiper.on('init')` syntax it will
    * work only in case you set `init: false` parameter.
    *
    * @example
@@ -417,7 +417,7 @@ declare class Swiper extends SvelteComponentTyped<
    * Event will be fired when swiper is unlocked (when `watchOverflow` enabled)
    */
   unlock: CustomEvent<[swiper: SwiperClass]>;
-  
+
   },
   {
     default: {

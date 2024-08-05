@@ -1557,9 +1557,11 @@ ${obj.gvc.bindView(() => {
             }
         })
             .join('')}
-                ${(obj.array.find((dd) => {
+                ${obj.array.find((dd) => {
             return dd.value === obj.def;
-        })) ? `` : `<option class="d-none" selected>請選擇項目</option>`}
+        })
+            ? ``
+            : `<option class="d-none" selected>請選擇項目</option>`}
             </select>
         `;
     }
@@ -1702,7 +1704,7 @@ ${obj.gvc.bindView(() => {
                             gvc.notifyDataChange(id);
                         })}"
                                     >
-                                        <i class="${isSelect() ? `fa-solid fa-circle-dot` : `fa-regular fa-circle`} me-2" style="color: #000"></i>
+                                        <i class="${isSelect() ? `fa-solid fa-circle-dot` : `fa-regular fa-circle`} me-2" style="color: #393939"></i>
                                         <span style="font-size: 16px; cursor: pointer;">${dd.title}</span>
                                     </div>
                                     ${obj.def === dd.value && dd.innerHtml ? `<div style="margin-top: 8px;">${dd.innerHtml}</div>` : ``}

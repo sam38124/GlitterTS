@@ -1,5 +1,8 @@
 export declare class UpdateScript {
     static run(): Promise<void>;
+    static migrateHomePageFooter(appList: string[]): Promise<void>;
+    static migrateInitialConfig(appList: string[]): Promise<void>;
+    static migrateSinglePage(appList: string[]): Promise<void>;
     static migrateLink(appList: string[]): Promise<void>;
     static migrateRichText(): Promise<void>;
     static migrateAccount(appName: string): Promise<void>;

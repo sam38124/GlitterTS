@@ -19,12 +19,7 @@ const createPool = async () => {
         supportBigNumbers: true
     });
     try {
-        const connection = await pool.getConnection();
-        if (connection) {
-            await connection.release();
-            logger.info(TAG, 'Pool has been created.');
-            return pool;
-        }
+        return pool;
     } catch (err) {
         logger.error(TAG, 'Failed to create connection pool for mysql because ' + err);
         throw exception.ServerError(
@@ -34,20 +29,28 @@ const createPool = async () => {
     }
 };
 
-const getConnection = async (connPool: null | mysql.Pool): Promise<mysql.PoolConnection> => {
+async function createNewPool(){
     const logger = new Logger();
-    const _pool = connPool || pool;
+    const new_pool:mysql.Pool =  mysql.createPool({
+        connectionLimit: config.DB_CONN_LIMIT,
+        queueLimit: config.DB_QUEUE_LIMIT,
+        host: config.DB_URL,
+        port: config.DB_PORT,
+        user: config.DB_USER,
+        password: config.DB_PWD,
+        supportBigNumbers: true
+    });
     try {
-        const connection = await _pool.getConnection();
-        return connection;
+        logger.info(TAG, 'Pool has been created.');
+        return new_pool;
     } catch (err) {
-        logger.error(TAG, 'Failed to get connection from pool because ' + err);
+        logger.error(TAG, 'Failed to create connection pool for mysql because ' + err);
         throw exception.ServerError(
             'INTERNAL_SERVER_ERROR',
-            'Failed to get connection from pool.'
+            'Failed to create connection pool.'
         );
     }
-};
+}
 
 const execute = async (sql: string, params: any[]): Promise<any> => {
     const logger = new Logger();
@@ -61,7 +64,7 @@ const execute = async (sql: string, params: any[]): Promise<any> => {
     }
     try {
         const connection=await pool.getConnection()
-        const [results] = await (connection).execute(sql, params);
+        const [results] = await pool.execute(sql, params);
         connection.release()
         return results;
     } catch (err) {
@@ -81,8 +84,8 @@ const query = async (sql: string, params: unknown[]): Promise<any> => {
     const TAG = '[Database][Query]';
     try {
         const connection=await pool.getConnection()
-        const [results] = await (connection).query(sql, params);
-        connection.release();
+        const [results] = await pool.query(sql, params);
+        connection.release()
         return results;
     } catch (err) {
         logger.error(TAG, 'Failed to query statement ' + sql + ' because ' + err);
@@ -112,12 +115,12 @@ export const queryLambada = async (cf: {
         cs[key] = (cf as any)[key]
     })
     const sp = mysql.createPool(cs);
+    const connection = await sp.getConnection();
+    if (connection) {
+        await connection.release();
+        logger.info(TAG, 'Pool has been created.');
+    }
     try {
-        const connection = await sp.getConnection();
-        if (connection) {
-            await connection.release();
-            logger.info(TAG, 'Pool has been created.');
-        }
         const data = await fun({
             query(sql: string, params: unknown[]): Promise<any> {
                 return new Promise<any>(async (resolve, reject) => {
@@ -138,6 +141,9 @@ export const queryLambada = async (cf: {
         sp.end()
         return data
     } catch (err) {
+        //Close connection
+        connection.release()
+        sp.end()
         logger.error(TAG, 'Failed to create connection pool for mysql because ' + err);
         throw exception.ServerError(
             'INTERNAL_SERVER_ERROR',
@@ -148,7 +154,8 @@ export const queryLambada = async (cf: {
 
 
 class Transaction {
-    private trans: any;
+    private  pool?: mysql.Pool;
+    private  trans: any;
     connectionId: any;
     private TAG: any;
 
@@ -156,13 +163,14 @@ class Transaction {
         const logger = new Logger();
         const Trans = new Transaction();
         try {
-            Trans.trans = await getConnection(null);
+            Trans.pool = (await createNewPool())!;
+            Trans.trans = await Trans.pool.getConnection()
             Trans.TAG = `[Database][Transaction][CID:${Trans.trans.threadId}]`;
             Trans.trans.beginTransaction();
             return Trans;
         } catch (err) {
             logger.error(Trans.TAG, 'Failed to create transaction when call transaction.init because ' + err);
-            Trans.release();
+            await Trans.release();
             throw exception.ServerError(
                 'INTERNAL_SERVER_ERROR',
                 'Failed to create transaction when connecting database.'
@@ -185,7 +193,6 @@ class Transaction {
             //rollback transaction and release connection when error occurred.
             logger.error(this.TAG, `Failed to execute statement ${sql} from transaction because ${err}`);
             await this.release();
-            this.trans = null;
             throw err;
         }
     }
@@ -194,12 +201,11 @@ class Transaction {
         const logger = new Logger();
         try {
             await this.trans.commit();
-            await this.trans.release();
+            await this.release();
             logger.info(this.TAG, 'Commited successfully');
         } catch (err) {
             logger.error(this.TAG, 'Failed to commit from transaction because ' + err);
-            await this.trans.rollback();
-            await this.trans.destroy();
+            await this.release();
             throw exception.ServerError(
                 'INTERNAL_SERVER_ERROR',
                 'Failed to commit from transaction.'
@@ -211,17 +217,15 @@ class Transaction {
         const logger = new Logger();
         try {
             if (this.trans) {
-                await this.trans.rollback();
-                // 如果transaction已經被rollback且也已release回pool時，會變成一般性的connection(autocommit=1)
-                // 導致其他併發的Promise使用到這個一般性的connection進行execute的動作，造成隱性commit的行為
-                // 為了避免這個狀況，所以當使用者手動釋放transaction時，我們會將它destroy掉，排除隱性commit的可能性
-                await this.trans.rollback();
-                await this.trans.destroy();
+                await this.trans.release()
+                await this.trans.destroy()
                 this.trans = null;
+                await this.pool?.end()
                 logger.info(this.TAG, 'Release successfully');
             }
         } catch (err) {
             logger.error(this.TAG, 'Failed to commit from transaction because ' + err);
+            await this.pool?.end()
             throw exception.ServerError(
                 'INTERNAL_SERVER_ERROR',
                 'Failed to release transaction.'

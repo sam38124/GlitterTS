@@ -9,6 +9,7 @@ import { EditorConfig } from './editor-config.js';
 
 export class Entry {
     public static onCreate(glitter: Glitter) {
+
         glitter.share.reload_code_hash = function () {
             const hashCode = (window as any).preloadData.eval_code_hash || {};
             Object.keys(hashCode).map((dd, index) => {
@@ -53,7 +54,7 @@ export class Entry {
         }
         (window as any).renderClock = (window as any).renderClock ?? clockF();
         console.log(`Entry-time:`, (window as any).renderClock.stop());
-        glitter.share.editerVersion = "V_9.6.1";
+        glitter.share.editerVersion = "V_9.9.1";
         glitter.share.start = (new Date());
         const vm: {
             appConfig: any;
@@ -97,6 +98,7 @@ export class Entry {
                     width: 100%;
                     height: 100%;
                     pointer-events: none;
+                    
                 }
 
                 .editorItemActive {
@@ -108,7 +110,7 @@ export class Entry {
                     width: 100%;
                     height: 100%;
                     position: absolute;
-                    background: linear-gradient(143deg, rgba(255, 180, 0, 0.2) -22.7%, rgba(255, 108, 2, 0.2) 114.57%);
+                   
                 }
 
                 .editorItemActive > .badge_it {
@@ -460,6 +462,7 @@ export class Entry {
             glitter.share.globalStyle = {};
             const config = glitter.share.appConfigresponse.response.data;
             config.color_theme = config.color_theme ?? [];
+            config.container_theme= config.container_theme??[]
             config.globalValue = config.globalValue ?? [];
             config.globalStyleTag = config.globalStyleTag ?? [];
             config.color_theme.map((dd: any, index: number) => {
@@ -467,7 +470,7 @@ export class Entry {
                     glitter.share.globalValue[`theme_color.${index}.${d2.key}`] = dd[d2.key];
                 });
             });
-
+            glitter.share.global_container_theme=config.container_theme
             function loopCheckGlobalValue(array: any, tag: string) {
                 try {
                     array.map((dd: any) => {

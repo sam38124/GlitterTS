@@ -1,6 +1,7 @@
 import {config} from "../config.js";
 import {BaseApi} from "../glitterBundle/api/base.js";
 import {GlobalUser} from "../glitter-base/global/global-user.js";
+import {EditorElem} from "../glitterBundle/plugins/editor-elem";
 
 export class ApiPageConfig {
     constructor() {
@@ -383,3 +384,10 @@ export class ApiPageConfig {
         })
     }
 }
+
+const interval = setInterval(() => {
+    if ((window as any).glitter) {
+        clearInterval(interval);
+        (window as any).glitter.setModule(import.meta.url, ApiPageConfig);
+    }
+}, 100);

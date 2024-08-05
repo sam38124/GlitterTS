@@ -47,6 +47,7 @@ router.get('/manager', async (req: express.Request, resp: express.Response) => {
         } else {
             req.query.for_index && query.push(`((content->>'$.for_index' = 'false'))`);
         }
+        req.query.page_type && query.push(`((content->>'$.page_type' = '${req.query.page_type}'))`);
         req.query.tag && query.push(`(content->>'$.tag' = ${db.escape(req.query.tag)})`);
         req.query.label && query.push(`JSON_CONTAINS(content->'$.collection', '"${req.query.label}"')`);
         if (req.query.status) {

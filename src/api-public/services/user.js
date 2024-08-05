@@ -225,8 +225,6 @@ class User {
                 key: 'login_line_setting',
                 user_id: 'manager',
             });
-            console.log(`redirect=>`, redirect);
-            console.log(`lineData=>`, lineData);
             const lineResponse = await new Promise((resolve, reject) => {
                 axios_1.default
                     .request({
@@ -427,7 +425,6 @@ class User {
                  order by id desc`, [])).map((dd) => {
                 return { total_amount: parseInt(`${dd.total}`, 10), date: dd.created_time };
             });
-            console.log(order_list);
             let pass_level = true;
             const member = member_list.map((dd) => {
                 if (dd.condition.type === 'single') {
@@ -523,7 +520,6 @@ class User {
                     }
                 }
             });
-            console.log(member);
             member_update.value = member.reverse();
             member_update.time = new Date();
             await this.setConfig({
@@ -606,12 +602,25 @@ class User {
         var _a, _b, _c, _d;
         try {
             const querySql = ['1=1'];
+            const noRegisterUsers = [];
             query.page = (_a = query.page) !== null && _a !== void 0 ? _a : 0;
             query.limit = (_b = query.limit) !== null && _b !== void 0 ? _b : 50;
             if (query.groupType) {
                 const getGroup = await this.getUserGroups(query.groupType.split(','), query.groupTag);
                 if (getGroup.result && getGroup.data[0]) {
                     const users = getGroup.data[0].users;
+                    users.map((user, index) => {
+                        if (user.userID === null) {
+                            noRegisterUsers.push({
+                                id: -(index + 1),
+                                userID: -(index + 1),
+                                email: user.email,
+                                account: user.email,
+                                userData: { email: user.email },
+                                status: 1,
+                            });
+                        }
+                    });
                     const ids = query.id
                         ? query.id.split(',').filter((id) => {
                             return users.find((item) => {
@@ -619,7 +628,7 @@ class User {
                             });
                         })
                         : users.map((item) => item.userID);
-                    query.id = ids.join(',');
+                    query.id = ids.filter((id) => id).join(',');
                 }
                 else {
                     query.id = '0,0';
@@ -737,6 +746,9 @@ class User {
                     return dd;
                 }),
                 total: (await database_1.default.query(countSQL, []))[0]['count(1)'],
+                extra: {
+                    noRegisterUsers: noRegisterUsers.length > 0 ? noRegisterUsers : undefined,
+                },
             };
         }
         catch (e) {
@@ -750,7 +762,7 @@ class User {
             if (pass('subscriber')) {
                 const subscriberList = await database_1.default.query(`SELECT DISTINCT u.userID, s.email
                     FROM
-                        \`${this.app}\`.t_subscribe AS s JOIN
+                        \`${this.app}\`.t_subscribe AS s LEFT JOIN
                         \`${this.app}\`.t_user AS u ON s.email = JSON_EXTRACT(u.userData, '$.email');`, []);
                 dataList.push({ type: 'subscriber', title: '電子郵件訂閱者', users: subscriberList });
             }
@@ -869,18 +881,43 @@ class User {
     async getSubScribe(query) {
         var _a, _b;
         try {
+            const querySql = [];
             query.page = (_a = query.page) !== null && _a !== void 0 ? _a : 0;
             query.limit = (_b = query.limit) !== null && _b !== void 0 ? _b : 50;
-            const querySql = [];
-            query.search && querySql.push([`(email LIKE '%${query.search}%') && (tag != ${database_1.default.escape(query.search)})`, `(tag = ${database_1.default.escape(query.search)})`].join(` || `));
-            const data = await new ut_database_js_1.UtDatabase(this.app, `t_subscribe`).querySql(querySql, query);
-            data.data.map((dd) => {
-                dd.pwd = undefined;
-            });
-            return data;
+            if (query.search) {
+                querySql.push([
+                    `(s.email LIKE '%${query.search}%') && (s.tag != ${database_1.default.escape(query.search)})`,
+                    `(s.tag = ${database_1.default.escape(query.search)})
+                        `,
+                ].join(` || `));
+            }
+            if (query.account) {
+                switch (query.account) {
+                    case 'yes':
+                        querySql.push(`(u.account is not null)`);
+                        break;
+                    case 'no':
+                        querySql.push(`(u.account is null)`);
+                        break;
+                }
+            }
+            const subData = await database_1.default.query(`SELECT s.*, u.account FROM
+                    \`${this.app}\`.t_subscribe AS s LEFT JOIN \`${this.app}\`.t_user AS u
+                    ON s.email = u.account
+                    WHERE ${querySql.length > 0 ? querySql.join(' AND ') : '1 = 1'}
+                `, []);
+            const subTotal = await database_1.default.query(`SELECT count(*) as c FROM
+                    \`${this.app}\`.t_subscribe AS s LEFT JOIN \`${this.app}\`.t_user AS u
+                    ON s.email = u.account
+                    WHERE ${querySql.length > 0 ? querySql.join(' AND ') : '1 = 1'}
+                `, []);
+            return {
+                data: subData,
+                total: subTotal[0].c,
+            };
         }
         catch (e) {
-            throw exception_1.default.BadRequestError('BAD_REQUEST', 'Login Error:' + e, null);
+            throw exception_1.default.BadRequestError('BAD_REQUEST', 'getSubScribe Error:' + e, null);
         }
     }
     async getFCM(query) {

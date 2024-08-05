@@ -5,6 +5,8 @@ import { Rebate } from './rebate';
 import { User } from './user';
 import { Shopping } from './shopping';
 import { Mail } from '../services/mail.js';
+import { AutoSendEmail } from './auto-send-email.js';
+import {saasConfig} from "../../config";
 
 type ScheduleItem = {
     second: number;
@@ -14,77 +16,80 @@ type ScheduleItem = {
 };
 
 export class Schedule {
-    app: string;
+    static app: string[]=[];
 
-    constructor(app: string) {
-        this.app = app;
-    }
 
-    async perload() {
-        if (!(await this.isDatabasePass())) return false;
-        if (!(await this.isDatabaseExists())) return false;
-        if (!(await this.isTableExists('t_user_public_config'))) return false;
-        if (!(await this.isTableExists('t_voucher_history'))) return false;
-        if (!(await this.isTableExists('t_triggers'))) return false;
+
+    async perload(app:string) {
+        if (!(await this.isDatabasePass(app))) return false;
+        if (!(await this.isDatabaseExists(app))) return false;
+        if (!(await this.isTableExists('t_user_public_config',app))) return false;
+        if (!(await this.isTableExists('t_voucher_history',app))) return false;
+        if (!(await this.isTableExists('t_triggers',app))) return false;
         return true;
     }
 
-    async isDatabaseExists() {
-        return (await db.query(`SHOW DATABASES LIKE \'${this.app}\';`, [])).length > 0;
+    async isDatabaseExists(app:string) {
+        return (await db.query(`SHOW DATABASES LIKE \'${app}\';`, [])).length > 0;
     }
 
-    async isDatabasePass() {
+    async isDatabasePass(app:string) {
         const SQL = `
             SELECT *
-            FROM glitter.app_config
-            WHERE appName = \'${this.app}\'
+            FROM ${saasConfig.SAAS_NAME}.app_config
+            WHERE appName = \'${app}\'
               AND (refer_app is null OR refer_app = appName);
         `;
         return (await db.query(SQL, [])).length > 0;
     }
 
-    async isTableExists(table: string) {
-        return (await db.query(`SHOW TABLES IN \`${this.app}\` LIKE \'${table}\';`, [])).length > 0;
+    async isTableExists(table: string,app:string) {
+        return (await db.query(`SHOW TABLES IN \`${app}\` LIKE \'${table}\';`, [])).length > 0;
     }
 
     async refreshMember(sec: number) {
         try {
-            console.log(this.app, 'refreshMember');
-            if (await this.perload()) {
-                const userClass = new User(this.app);
-                //紀錄當前分級會員的數量
-                const member_count: any = {};
-                for (const user of await db.query(
-                    `select *
-                                                    from \`${this.app}\`.t_user`,
-                    []
-                )) {
-                    const member_levels = (await userClass.refreshMember(user)).find((dd: any) => {
-                        return dd.trigger;
-                    });
-                    if (member_levels) {
-                        member_count[member_levels.id] = member_count[member_levels.id] || 0;
-                        member_count[member_levels.id]++;
+            for (const app of Schedule.app){
+                if (await this.perload(app)) {
+                    const userClass = new User(app);
+                    //紀錄當前分級會員的數量
+                    const member_count: any = {};
+                    for (const user of await db.query(
+                        `select *
+                                                    from \`${app}\`.t_user`,
+                        []
+                    )) {
+                        const member_levels = (await userClass.refreshMember(user)).find((dd: any) => {
+                            return dd.trigger;
+                        });
+                        if (member_levels) {
+                            member_count[member_levels.id] = member_count[member_levels.id] || 0;
+                            member_count[member_levels.id]++;
+                        }
                     }
+                    await userClass.setConfig({
+                        key: 'member_levels_count_list',
+                        value: member_count,
+                        user_id: 'manager',
+                    });
                 }
-                await userClass.setConfig({
-                    key: 'member_levels_count_list',
-                    value: member_count,
-                    user_id: 'manager',
-                });
             }
+
         } catch (e) {
-            throw exception.BadRequestError('BAD_REQUEST', 'refreshMember Error: ' + e, null);
+            console.error('BAD_REQUEST', 'refreshMember Error: ' + e, null);
         }
         setTimeout(() => this.refreshMember(sec), sec * 1000);
     }
 
     async example(sec: number) {
         try {
-            if (await this.perload()) {
-                // 排程範例
-                // await
+            for (const app of Schedule.app){
+                if (await this.perload(app)) {
+                    // 排程範例
+                    // await
+                }
             }
+
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'Example Error: ' + e, null);
         }
@@ -92,96 +97,167 @@ export class Schedule {
     }
 
     async birthRebate(sec: number) {
-        try {
-            if (await this.perload()) {
-                const rebateClass = new Rebate(this.app);
-                const userClass = new User(this.app);
+        for (const app of Schedule.app) {
+            try {
+                if (await this.perload(app)) {
+                    const rebateClass = new Rebate(app);
+                    const userClass = new User(app);
 
-                if (await rebateClass.mainStatus()) {
-                    const getRS = await userClass.getConfig({ key: 'rebate_setting', user_id: 'manager' });
-                    const rgs = getRS[0] && getRS[0].value.birth ? getRS[0].value.birth : {};
-                    if (rgs && rgs.switch) {
-                        async function postUserRebate(id: number, value: number) {
-                            const used = await rebateClass.canUseRebate(id, 'birth');
-                            if (used?.result) {
-                                if (value !== 0) {
-                                    await rebateClass.insertRebate(id, value, '生日禮', {
-                                        type: 'birth',
-                                        deadTime: rgs.unlimited ? undefined : moment().add(rgs.date, 'd').format('YYYY-MM-DD HH:mm:ss'),
-                                    });
+                    if (await rebateClass.mainStatus()) {
+                        const getRS = await userClass.getConfig({ key: 'rebate_setting', user_id: 'manager' });
+                        const rgs = getRS[0] && getRS[0].value.birth ? getRS[0].value.birth : {};
+                        if (rgs && rgs.switch) {
+                            async function postUserRebate(id: number, value: number) {
+                                const used = await rebateClass.canUseRebate(id, 'birth');
+                                if (used?.result) {
+                                    if (value !== 0) {
+                                        await rebateClass.insertRebate(id, value, '生日禮', {
+                                            type: 'birth',
+                                            deadTime: rgs.unlimited ? undefined : moment().add(rgs.date, 'd').format('YYYY-MM-DD HH:mm:ss'),
+                                        });
+                                    }
                                 }
                             }
-                        }
 
-                        const users = await db.query(
-                            `SELECT *
-                             FROM \`${this.app}\`.t_user
+                            const users = await db.query(
+                                `SELECT *
+                             FROM \`${app}\`.t_user
                              WHERE MONTH (JSON_EXTRACT(userData, '$.birth')) = MONTH (CURDATE());`,
-                            []
-                        );
+                                []
+                            );
 
-                        if (rgs.type === 'base') {
-                            for (const user of users) {
-                                await postUserRebate(user.userID, rgs.value);
+                            if (rgs.type === 'base') {
+                                for (const user of users) {
+                                    await postUserRebate(user.userID, rgs.value);
+                                }
                             }
-                        }
 
-                        if (rgs.type === 'levels') {
-                            for (const user of users) {
-                                const member = await userClass.refreshMember(user);
-                                const level = member.find((dd: any) => dd.trigger);
-                                if (!level) continue;
-                                const data = rgs.level.find((item: { id: string }) => item.id === level.id);
-                                if (!data) continue;
-                                await postUserRebate(user.userID, data.value);
+                            if (rgs.type === 'levels') {
+                                for (const user of users) {
+                                    const member = await userClass.refreshMember(user);
+                                    const level = member.find((dd: any) => dd.trigger);
+                                    if (!level) continue;
+                                    const data = rgs.level.find((item: { id: string }) => item.id === level.id);
+                                    if (!data) continue;
+                                    await postUserRebate(user.userID, data.value);
+                                }
                             }
                         }
                     }
                 }
+            } catch (e) {
+                console.error('BAD_REQUEST', 'birthRebate Error: ' + e, null);
             }
-        } catch (e) {
-            throw exception.BadRequestError('BAD_REQUEST', 'birthRebate Error: ' + e, null);
         }
+
         setTimeout(() => this.birthRebate(sec), sec * 1000);
     }
 
-    async resetVoucherHistory(sec: number) {
-        try {
-            if (await this.perload()) {
-                await new Shopping(this.app).resetVoucherHistory();
+    async birthBlessMail(sec: number) {
+        for (const app of Schedule.app) {
+            try {
+                if (await this.perload(app)) {
+                    const mailType = 'auto-email-birthday';
+                    const customerMail = await AutoSendEmail.getDefCompare(app, mailType);
+                    if (customerMail.toggle) {
+                        // 歷史生日祝福寄件紀錄
+                        const mailClass = new Mail(app);
+                        const sendRecords = await mailClass.getMail({
+                            type: 'download',
+                            page: 0,
+                            limit: 0,
+                            mailType: mailType,
+                        });
+
+                        // 當月生日之顧客
+                        const users = await db.query(
+                            `SELECT *
+                        FROM \`${app}\`.t_user
+                        WHERE MONTH (JSON_EXTRACT(userData, '$.birth')) = MONTH (CURDATE());`,
+                            []
+                        );
+
+                        // 篩選出一年內曾寄信過的顧客
+                        const now = new Date();
+                        const oneYearAgo = new Date(now);
+                        oneYearAgo.setFullYear(now.getFullYear() - 1);
+                        const filteredData = sendRecords.data.filter((item: { trigger_time: string }) => {
+                            const triggerTime = new Date(item.trigger_time);
+                            return triggerTime > oneYearAgo;
+                        });
+
+                        // 一年內曾寄信過的顧客信箱陣列
+                        let hasBless: string[] = [];
+                        filteredData.map((item: { content: { email: string } }) => {
+                            hasBless = hasBless.concat(item.content.email);
+                        });
+                        hasBless = [...new Set(hasBless)];
+
+                        // 進入寄信程序
+                        for (const user of users) {
+                            if (!hasBless.includes(user.userData.email)) {
+                                await mailClass.postMail({
+                                    name: customerMail.name,
+                                    title: customerMail.title.replace(/@\{\{user_name\}\}/g, user.userData.name),
+                                    content: customerMail.content.replace(/@\{\{user_name\}\}/g, user.userData.name),
+                                    email: [user.userData.email],
+                                    type: mailType,
+                                });
+                            }
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error('BAD_REQUEST', 'birthBlessMail Error: ' + e, null);
             }
-        } catch (e) {
-            throw exception.BadRequestError('BAD_REQUEST', 'resetVoucherHistory Error: ' + e, null);
+        }
+
+        setTimeout(() => this.birthBlessMail(sec), sec * 1000);
+    }
+
+    async resetVoucherHistory(sec: number) {
+        for (const app of Schedule.app) {
+            try {
+                if (await this.perload(app)) {
+                    await new Shopping(app).resetVoucherHistory();
+                }
+            } catch (e) {
+                console.error('BAD_REQUEST', 'resetVoucherHistory Error: ' + e, null);
+            }
         }
         setTimeout(() => this.resetVoucherHistory(sec), sec * 1000);
     }
 
     async autoSendMail(sec: number) {
-        try {
-            if (await this.perload()) {
-                const emails = await db.query(
-                    `SELECT * FROM \`${this.app}\`.t_triggers
+        for (const app of Schedule.app) {
+            try {
+                if (await this.perload(app)) {
+                    const emails = await db.query(
+                        `SELECT * FROM \`${app}\`.t_triggers
                      WHERE 
                         tag = 'sendMailBySchedule' AND 
                         DATE_FORMAT(trigger_time, '%Y-%m-%d %H:%i') = DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i');`,
-                    []
-                );
-                for (const email of emails) {
-                    if (email.status === 0) {
-                        new Mail(this.app).chunkSendMail(email.content, email.id);
+                        []
+                    );
+                    for (const email of emails) {
+                        if (email.status === 0) {
+                            new Mail(app).chunkSendMail(email.content, email.id);
+                        }
                     }
                 }
+            } catch (e) {
+                throw exception.BadRequestError('BAD_REQUEST', 'autoSendMail Error: ' + e, null);
             }
-        } catch (e) {
-            throw exception.BadRequestError('BAD_REQUEST', 'autoSendMail Error: ' + e, null);
         }
+
         setTimeout(() => this.autoSendMail(sec), sec * 1000);
     }
 
-    async main() {
+    main() {
         const scheduleList: ScheduleItem[] = [
-            { second: 10, status: false, func: 'example', desc: '排程啟用範例' },
+            // { second: 10, status: false, func: 'example', desc: '排程啟用範例' },
             { second: 3600, status: true, func: 'birthRebate', desc: '生日禮發放購物金' },
+            { second: 3600, status: true, func: 'birthBlessMail', desc: '生日祝福信件' },
             { second: 600, status: true, func: 'refreshMember', desc: '更新會員分級' },
             { second: 30, status: true, func: 'resetVoucherHistory', desc: '未付款歷史優惠券重設' },
             { second: 30, status: true, func: 'autoSendMail', desc: '自動排程寄送信件' },

@@ -5,10 +5,11 @@ export class ApiSmtp {
             url: getBaseUrl() +
                 `/api-public/v1/smtp?${(() => {
                     let par = [`type=list`, `limit=${json.limit}`, `page=${json.page}`];
-                    json.status !== undefined && par.push(`status=${json.status}`);
                     json.search && par.push(`search=${json.search}`);
                     json.searchType && par.push(`searchType=${json.searchType}`);
                     json.sendTime && par.push(`sendDate=${json.sendTime.date}&sendTime=${json.sendTime.time}`);
+                    json.status && par.push(`status=${json.status.join(',')}`);
+                    json.mailType && par.push(`mailType=${json.mailType.join(',')}`);
                     return par.join('&');
                 })()}`,
             type: 'GET',

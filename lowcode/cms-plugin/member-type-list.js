@@ -16,19 +16,21 @@ export class MemberTypeList {
     static main(gvc, widget) {
         const html = String.raw;
         const glitter = gvc.glitter;
-        let callback = (data) => { };
         const vm = {
-            id: gvc.glitter.getUUID(),
+            id: glitter.getUUID(),
             type: 'list',
             index: 0,
             dataList: undefined,
             query: '',
             group: { type: 'level', title: '', tag: '' },
         };
-        const filterID = gvc.glitter.getUUID();
+        const filterID = glitter.getUUID();
         let vmi = undefined;
         function getDatalist() {
-            return vm.dataList.reverse().map((dd, index) => {
+            return vm.dataList
+                .slice()
+                .reverse()
+                .map((dd, index) => {
                 return [
                     {
                         key: EditorElem.checkBoxOnly({
@@ -43,9 +45,6 @@ export class MemberTypeList {
                                 vmi.data = getDatalist();
                                 vmi.callback();
                                 gvc.notifyDataChange(filterID);
-                                callback(vm.dataList.filter((dd) => {
-                                    return dd.checked;
-                                }));
                             },
                         }),
                         value: EditorElem.checkBoxOnly({
@@ -56,9 +55,6 @@ export class MemberTypeList {
                                 vmi.data = getDatalist();
                                 vmi.callback();
                                 gvc.notifyDataChange(filterID);
-                                callback(vm.dataList.filter((dd) => {
-                                    return dd.checked;
-                                }));
                             },
                             style: 'height: 37.5px;',
                         }),
@@ -70,7 +66,7 @@ export class MemberTypeList {
                     {
                         key: '有效期限',
                         value: html `<span class="fs-7"
-                            >${(() => {
+                                >${(() => {
                             const index = [30, 90, 180, 365].findIndex((d1) => {
                                 return parseInt(dd.dead_line.value, 10) === d1;
                             });
@@ -86,7 +82,7 @@ export class MemberTypeList {
                                 return `永久`;
                             }
                         })()}</span
-                        >`,
+                            >`,
                     },
                     {
                         key: '會員名稱',
@@ -156,7 +152,7 @@ export class MemberTypeList {
                                 return {
                                     bind: filterID,
                                     view: () => {
-                                        const dialog = new ShareDialog(gvc.glitter);
+                                        const dialog = new ShareDialog(glitter);
                                         const selCount = vm.dataList.filter((dd) => dd.checked).length;
                                         return BgWidget.selNavbar({
                                             count: selCount,
@@ -251,7 +247,8 @@ export class MemberTypeList {
     static userInformationDetail(cf) {
         const html = String.raw;
         const gvc = cf.gvc;
-        const id = gvc.glitter.getUUID();
+        const glitter = gvc.glitter;
+        const id = glitter.getUUID();
         const vm = {
             data: '',
             original_data: undefined,
@@ -276,7 +273,7 @@ export class MemberTypeList {
                 dead_line: {
                     type: 'noLimit',
                 },
-                id: gvc.glitter.getUUID(),
+                id: glitter.getUUID(),
                 create_date: new Date(),
             };
             vm.original_data.levels.map((dd) => {
@@ -285,7 +282,7 @@ export class MemberTypeList {
             vm.loading = false;
             gvc.notifyDataChange(id);
         });
-        const noteID = gvc.glitter.getUUID();
+        const noteID = glitter.getUUID();
         return gvc.bindView(() => {
             return {
                 bind: id,
@@ -305,7 +302,7 @@ export class MemberTypeList {
                             </div>`,
                         html `<div class="d-flex justify-content-center ${document.body.clientWidth < 768 ? 'flex-column' : ''}" style="gap: 24px">
                                 ${BgWidget.container(gvc.bindView(() => {
-                            const id = gvc.glitter.getUUID();
+                            const id = glitter.getUUID();
                             return {
                                 bind: id,
                                 view: () => {

@@ -60,6 +60,7 @@ const schedule_js_1 = require("./api-public/services/schedule.js");
 const private_config_js_1 = require("./services/private_config.js");
 const moment_js_1 = __importDefault(require("moment/moment.js"));
 const xml_formatter_1 = __importDefault(require("xml-formatter"));
+const system_schedule_1 = require("./services/system-schedule");
 exports.app = (0, express_1.default)();
 const logger = new logger_1.default();
 exports.app.options('/*', (req, res) => {
@@ -93,6 +94,10 @@ async function initial(serverPort) {
         if (process.env.firebase) {
             await firebase_js_1.Firebase.initial();
         }
+        if (config_1.ConfigSetting.runSchedule) {
+            new schedule_js_1.Schedule().main();
+            new system_schedule_1.SystemSchedule().start();
+        }
         web_socket_js_1.WebSocket.start();
         logger.info('[Init]', `Server is listening on port: ${serverPort}`);
         console.log('Starting up the server now.');
@@ -116,9 +121,7 @@ async function createAppRoute() {
 async function createAPP(dd) {
     const html = String.raw;
     live_source_1.Live_source.liveAPP.push(dd.appName);
-    if (config_1.ConfigSetting.runSchedule) {
-        new schedule_js_1.Schedule(dd.appName).main();
-    }
+    schedule_js_1.Schedule.app.push(dd.appName);
     const file_path = path_1.default.resolve(__dirname, '../lowcode');
     return await glitter_util_js_1.GlitterUtil.set_frontend_v2(exports.app, [
         {

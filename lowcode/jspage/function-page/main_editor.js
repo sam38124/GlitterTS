@@ -7,6 +7,7 @@ import { AddComponent } from '../../editor/add-component.js';
 import { EditorConfig } from "../../editor-config.js";
 import { ToolSetting } from "./tool-setting.js";
 import { BgWidget } from "../../backend-manager/bg-widget.js";
+import { CustomStyle } from "../../glitterBundle/html-component/custom-style.js";
 var ViewType;
 (function (ViewType) {
     ViewType["mobile"] = "mobile";
@@ -41,7 +42,7 @@ export class Main_editor {
                         gvc.notifyDataChange('right_NAV');
                     }
                     if (Storage.page_setting_item === 'color') {
-                        return Main_editor.colorSetting(gvc);
+                        return [Main_editor.globalSetting(gvc)].join('');
                     }
                     if (Storage.page_setting_item === 'widget') {
                         return ToolSetting.main(gvc);
@@ -147,6 +148,18 @@ export class Main_editor {
                                                                     dd.info.editorEvent();
                                                                 }
                                                             })}"
+                                                                                    onmouseover="${gvc.event(() => {
+                                                                if (glitter.share.left_block_hover) {
+                                                                    return;
+                                                                }
+                                                                dd.info && dd.info.editor_bridge && dd.info.editor_bridge.scrollWithHover();
+                                                            })}"
+                                                                                    onmouseout="${gvc.event(() => {
+                                                                if (glitter.share.left_block_hover) {
+                                                                    return;
+                                                                }
+                                                                dd.info && dd.info.editor_bridge && dd.info.editor_bridge.cancelHover();
+                                                            })}"
                                                                             >
                                                                                 ${dd.type === 'container'
                                                                 ? `
@@ -170,17 +183,18 @@ export class Main_editor {
                                                                                 ${dd.icon ? `<img src="${dd.icon}" style="width:18px;height:18px;">` : ``}
                                                                                 <span>${dd.title}</span>
                                                                                 <div class="flex-fill"></div>
-                                                                                <div
+                                                                                ${(dd.info.deletable !== 'false') ? ` <div
                                                                                         class="hoverBtn p-1 child"
                                                                                         onclick="${gvc.event((e, event) => {
                                                                 lastClick.zeroing();
                                                                 event.stopPropagation();
-                                                                glitter.htmlGenerate.deleteWidget(og_array, og_array[index]);
-                                                                setPageConfig();
+                                                                glitter.htmlGenerate.deleteWidget(og_array, og_array[index], () => {
+                                                                    setPageConfig();
+                                                                });
                                                             })}"
                                                                                 >
                                                                                     <i class="fa-regular fa-trash d-flex align-items-center justify-content-center "></i>
-                                                                                </div>
+                                                                                </div>` : ``}
                                                                                 <div
                                                                                         class="hoverBtn p-1 ${og_array[index].visible ? `child` : ``}"
                                                                                         onclick="${gvc.event((e, event) => {
@@ -210,7 +224,12 @@ export class Main_editor {
                                                                                             aria-hidden="true"
                                                                                     ></i>
                                                                                 </div>
-                                                                                <div class="hoverBtn p-1 dragItem child">
+                                                                                <div class="hoverBtn p-1 dragItem child"
+                                                                                     onmousedown="${gvc.event(() => {
+                                                                (Storage.view_type !== 'mobile') && $('#editerCenter iframe').addClass('scale_iframe');
+                                                            })}" onmouseup="${gvc.event(() => {
+                                                                (Storage.view_type !== 'mobile') && $('#editerCenter iframe').removeClass('scale_iframe');
+                                                            })}">
                                                                                     <i
                                                                                             class="fa-solid fa-grip-dots-vertical d-flex align-items-center justify-content-center  "
                                                                                             style="width:15px;height:15px;"
@@ -315,16 +334,36 @@ export class Main_editor {
                                                                         animation: 100,
                                                                         handle: '.dragItem',
                                                                         onChange: function (evt) {
+                                                                            function swapElements(elm1, elm2) {
+                                                                                var parent1, next1, parent2, next2;
+                                                                                parent1 = elm1.parentNode;
+                                                                                next1 = elm1.nextSibling;
+                                                                                parent2 = elm2.parentNode;
+                                                                                next2 = elm2.nextSibling;
+                                                                                parent1.insertBefore(elm2, next1);
+                                                                                parent2.insertBefore(elm1, next2);
+                                                                            }
+                                                                            swapElements(og_array[startIndex].editor_bridge.element().parentNode, og_array[evt.newIndex].editor_bridge.element().parentNode);
                                                                             swapArr(og_array, startIndex, evt.newIndex);
+                                                                            const newIndex = evt.newIndex;
+                                                                            setTimeout(() => {
+                                                                                const dd = og_array[newIndex];
+                                                                                dd && dd.editor_bridge && dd.editor_bridge.scrollWithHover();
+                                                                            });
                                                                             startIndex = evt.newIndex;
                                                                         },
                                                                         onEnd: (evt) => {
                                                                             setPageConfig();
                                                                             swapArr(og_array, startIndex, evt.newIndex);
-                                                                            gvc.notifyDataChange('showView');
+                                                                            const dd = og_array[evt.newIndex];
+                                                                            dd.info && dd.info.editor_bridge && dd.info.editor_bridge.cancelHover();
+                                                                            glitter.share.left_block_hover = false;
+                                                                            (Storage.view_type !== 'mobile') && $('#editerCenter iframe').removeClass('scale_iframe');
                                                                         },
                                                                         onStart: function (evt) {
                                                                             startIndex = evt.oldIndex;
+                                                                            glitter.share.left_block_hover = true;
+                                                                            (Storage.view_type !== 'mobile') && $('#editerCenter iframe').addClass('scale_iframe');
                                                                         },
                                                                     });
                                                                 }
@@ -405,10 +444,11 @@ export class Main_editor {
             };
         });
     }
-    static colorSetting(gvc) {
-        var _a;
+    static globalSetting(gvc) {
+        var _a, _b;
         const globalValue = gvc.glitter.share.editorViewModel.appConfig;
         globalValue.color_theme = (_a = globalValue.color_theme) !== null && _a !== void 0 ? _a : [];
+        globalValue.container_theme = (_b = globalValue.container_theme) !== null && _b !== void 0 ? _b : [];
         const vm = {
             type: 'list',
             data: {},
@@ -424,50 +464,36 @@ export class Main_editor {
                         <div class="" style="">
                             ${(() => {
                         if (vm.type === 'list') {
-                            return html `
-                                        <div class="px-3   border-bottom pb-3 fw-bold mt-2 pt-2"
-                                             style="cursor: pointer;color:#393939;">
-                                            <span>配色設定</span>
-                                        </div>
-                                        <div class="row ${(globalValue.color_theme.length === 0) ? `d-none` : ``}"
-                                             style="margin:18px;">
-                                            ${globalValue.color_theme.map((dd, index) => {
-                                return `<div class="col-6 mb-3" style="cursor: pointer;" onclick="${gvc.event(() => {
-                                    vm.type = 'detail';
-                                    vm.data = globalValue.color_theme[index];
-                                    vm.index = index;
-                                    gvc.notifyDataChange(id);
-                                })}">
-                                                ${Main_editor.colorCard(globalValue.color_theme[index])}
-                                                <div class="w-100 t_39_16 mt-2" style="text-align: center;">配色${index + 1}</div>
-                                            </div>`;
-                            }).join('')}
-                                        </div>
-                                        <div style="padding: 0px 24px 24px;${(globalValue.color_theme.length === 0) ? `margin-top:24px;` : ``}">
-                                            <div class="bt_border_editor"
-                                                 onclick="${gvc.event(() => {
-                                vm.data = { id: gvc.glitter.getUUID() };
-                                globalValue.color_theme.push(vm.data);
-                                vm.name = ('配色' + globalValue.color_theme.length);
-                                vm.type = 'detail';
-                                vm.index = globalValue.color_theme.length - 1;
-                                gvc.notifyDataChange(id);
-                            })}">
-                                                新增配色
-                                            </div>
-                                        </div>`;
+                            return [Main_editor.color_list(vm, gvc, id, globalValue),
+                                CustomStyle.globalContainerList(vm, gvc, id, globalValue)
+                            ].join('');
                         }
-                        else {
+                        else if (vm.type === 'color_detail') {
                             return Main_editor.color_detail({
                                 gvc: gvc,
                                 back: () => {
                                     vm.type = 'list';
                                     gvc.notifyDataChange(id);
                                 },
-                                name: `配色${vm.index + 1}`,
+                                name: `調色盤${vm.index + 1}`,
                                 data: vm.data,
                                 index: vm.index
                             });
+                        }
+                        else if (vm.type === 'container_detail') {
+                            return CustomStyle.globalContainerDetail({
+                                gvc: gvc,
+                                back: () => {
+                                    vm.type = 'list';
+                                    gvc.notifyDataChange(id);
+                                },
+                                name: `容器${vm.index + 1}`,
+                                data: vm.data,
+                                index: vm.index
+                            });
+                        }
+                        else {
+                            return ``;
                         }
                     })()}
                         </div>
@@ -478,6 +504,70 @@ export class Main_editor {
                 },
             };
         });
+    }
+    static color_list(vm, gvc, id, globalValue) {
+        return ` <div class="px-3   border-bottom pb-3 fw-bold mt-2 pt-2 d-flex align-content-center"
+                                             style="cursor: pointer;color:#393939;">
+                                            <span><i class="fa-sharp fa-regular fa-palette fs-5 fw-bold me-2 rounded"></i>調色盤樣式</span>
+                                        </div>
+                                        <div class="row ${(globalValue.color_theme.length === 0) ? `d-none` : ``}"
+                                             style="margin:18px;">
+                                            ${globalValue.color_theme.map((dd, index) => {
+            return `<div class="col-6 mb-3" style="cursor: pointer;" onclick="${gvc.event(() => {
+                vm.type = 'color_detail';
+                vm.data = globalValue.color_theme[index];
+                vm.index = index;
+                gvc.notifyDataChange(id);
+            })}">
+                                                ${Main_editor.colorCard(globalValue.color_theme[index])}
+                                                <div class="w-100 t_39_16 mt-2" style="text-align: center;">調色盤${index + 1}</div>
+                                            </div>`;
+        }).join('')}
+                                        </div>
+                                        <div style="padding: 0px 24px 24px;${(globalValue.color_theme.length === 0) ? `margin-top:24px;` : ``}">
+                                            <div class="bt_border_editor"
+                                                 onclick="${gvc.event(() => {
+            vm.data = { id: gvc.glitter.getUUID() };
+            globalValue.color_theme.push(vm.data);
+            vm.name = ('調色盤' + globalValue.color_theme.length);
+            vm.type = 'color_detail';
+            vm.index = globalValue.color_theme.length - 1;
+            gvc.notifyDataChange(id);
+        })}">
+                                                新增配色
+                                            </div>
+                                        </div>`;
+    }
+    static color_detail_custom(vm) {
+        const gvc = vm.gvc;
+        return `<div style="">${EditorConfig.color_setting_config.filter((dd) => {
+            return (!vm.filter) || vm.filter(dd.key);
+        }).map((dd) => {
+            vm.data[dd.key] = vm.data[dd.key] || '#FFFFFF';
+            return EditorElem.colorSelect({
+                title: dd.title,
+                callback: (text) => {
+                    vm.data[dd.key] = text;
+                    gvc.glitter.share.globalValue[`theme_color.${vm.index}.${dd.key}`] = text;
+                    const lastScrollY = document.querySelector('#editerCenter iframe').contentWindow.scrollY;
+                    document.querySelector('#editerCenter  iframe').contentWindow.glitter.share.globalValue = gvc.glitter.share.globalValue;
+                    const element = document.querySelector('#editerCenter iframe').contentWindow.glitter.elementCallback;
+                    Object.keys(element).map((dd) => {
+                        try {
+                            element[dd].updateAttribute();
+                        }
+                        catch (e) {
+                        }
+                    });
+                    if (`${vm.index}` === '0') {
+                        document.querySelector('#editerCenter iframe').contentWindow.document.querySelector('body').style.background = gvc.glitter.share.globalValue[`theme_color.0.background`];
+                    }
+                    vm.back();
+                },
+                gvc: gvc,
+                def: vm.data[dd.key]
+            });
+        }).join('<div style="height: 15px;"></div>')}</div>`;
     }
     static color_detail(vm) {
         var _a;
@@ -490,14 +580,13 @@ export class Main_editor {
                 bind: vId,
                 view: () => {
                     return [
-                        `
- <div class="px-3   border-bottom pb-3 fw-bold mt-2 pt-2" style="cursor: pointer;color:#393939;" onclick="${vm.gvc.event(() => {
+                        `<div class="px-3   border-bottom pb-3 fw-bold mt-2 pt-2" style="cursor: pointer;color:#393939;" onclick="${vm.gvc.event(() => {
                             vm.back();
                         })}">
- <i class="fa-solid fa-angle-left"></i>
+                            <i class="fa-solid fa-angle-left"></i>
                             <span>${vm.name} 編輯</span>
                         </div>
-                                    <div class="border-bottom w-100" style="padding: 24px;width: 100%; justify-content: flex-start; align-items: center; gap: 10px; display: inline-flex">
+                        <div class="border-bottom w-100" style="padding: 24px;width: 100%; justify-content: flex-start; align-items: center; gap: 10px; display: inline-flex">
   <div style="width: 93px;">
   ${Main_editor.colorCard(vm.data)}
 </div>
@@ -506,7 +595,9 @@ export class Main_editor {
   </div>
 </div>
                                     `,
-                        `<div style="padding: 18px 24px 24px;">${EditorConfig.color_setting_config.map((dd) => {
+                        `<div style="padding: 18px 24px 24px;">${EditorConfig.color_setting_config.filter((dd) => {
+                            return (!vm.filter) || vm.filter(dd.key);
+                        }).map((dd) => {
                             vm.data[dd.key] = vm.data[dd.key] || '#FFFFFF';
                             return EditorElem.colorSelect({
                                 title: dd.title,
@@ -534,10 +625,18 @@ export class Main_editor {
                         }).join('<div style="height: 15px;"></div>')}</div>`,
                         `<div style="padding: 0px 24px 24px;"> <div class="bt_border_editor"
                                                  onclick="${gvc.event(() => {
-                            globalValue.color_theme = globalValue.color_theme.filter((dd) => {
-                                return dd !== vm.data;
+                            const dialog = new ShareDialog(gvc.glitter);
+                            dialog.checkYesOrNot({
+                                text: '是否確認刪除配色?',
+                                callback: (response) => {
+                                    if (response) {
+                                        globalValue.color_theme = globalValue.color_theme.filter((dd) => {
+                                            return dd !== vm.data;
+                                        });
+                                        vm.back();
+                                    }
+                                }
                             });
-                            vm.back();
                         })}" >
                                                 刪除配色
                                             </div></div>`
@@ -720,10 +819,10 @@ export class Main_editor {
                 navigator.clipboard.writeText(JSON.stringify(viewModel.selectItem));
                 dialog.successMessage({ text: '複製成功' });
             }), '複製元件')}
-                        <div class="mx-2"></div>
-                        ${BgWidget.cancel(gvc.event(() => {
-                glitter.htmlGenerate.deleteWidget(glitter.share.editorViewModel.selectContainer, viewModel.selectItem);
-            }), '刪除元件')}
+                        ${(viewModel.selectItem.deletable !== 'false') ? ` <div class="mx-2"></div>` + BgWidget.cancel(gvc.event(() => {
+                glitter.htmlGenerate.deleteWidget(glitter.share.editorViewModel.selectContainer, viewModel.selectItem, () => {
+                });
+            }), '刪除元件') : ``}
                     </div>
                 </div>
             `,
@@ -783,7 +882,7 @@ export class Main_editor {
             ? `width: 414px;height: calc(100vh - ${56 + EditorConfig.getPaddingTop(gvc)}px);`
             : `width: calc(100%);height: calc(100vh - ${56 + EditorConfig.getPaddingTop(gvc)}px);overflow:hidden;`}"
             >
-                <div class="" style="width:100%;height: calc(100%);" id="editerCenter">
+                <div class="position-relative" style="width:100%;height: calc(100%);" id="editerCenter">
                     <iframe class="w-100 h-100  bg-white"
                             src="${gvc.glitter.root_path}${gvc.glitter.getUrlParameter('page')}?type=htmlEditor&appName=${gvc.glitter.getUrlParameter('appName')}"></iframe>
                 </div>

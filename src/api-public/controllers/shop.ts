@@ -16,7 +16,6 @@ import { Rebate, IRebateSearch } from '../services/rebate';
 import {log} from "winston";
 
 const router: express.Router = express.Router();
-
 export = router;
 
 // 回饋金
@@ -116,8 +115,8 @@ router.post('/checkout', async (req: express.Request, resp: express.Response) =>
                         return 0;
                     }
                 })(),
-                custom_form_format:req.body.custom_form_format,
-                custom_form_data:req.body.custom_form_data
+                custom_form_format: req.body.custom_form_format,
+                custom_form_data: req.body.custom_form_data,
             })
         );
     } catch (err) {

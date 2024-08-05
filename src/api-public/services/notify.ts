@@ -4,7 +4,8 @@ import { Firebase } from '../../modules/firebase.js';
 import { sendmail } from '../../services/ses.js';
 import process from 'process';
 
-//管理員通知
+const html = String.raw;
+
 export class ManagerNotify {
     public app_name: string;
 
@@ -12,114 +13,25 @@ export class ManagerNotify {
         this.app_name = app_name;
     }
 
+    // 取得商家資料
     public async getSaasAPP() {
         const return_data = (
             await db.query(
-                `select brand, user
-                                             from \`${saasConfig.SAAS_NAME}\`.app_config
-                                             where appName = ?`,
+                `SELECT brand, user FROM \`${saasConfig.SAAS_NAME}\`.app_config
+                WHERE appName = ?`,
                 [this.app_name]
             )
         )[0];
         const account = await db.query(
-            `select account
-                                        from \`${return_data.brand}\`.t_user
-                                        where userID = ?`,
+            `SELECT account FROM \`${return_data.brand}\`.t_user
+            WHERE userID = ?`,
             [return_data.user]
         );
         return_data.account = account[0].account;
         return return_data;
     }
 
-    //新用戶註冊
-    public async userRegister(cf: { user_id: string }) {
-        if (this.app_name === 'shopnex') {
-            this.saasRegister({
-                user_id: cf.user_id,
-            });
-        }
-        const saas = await this.getSaasAPP();
-        const user_data = (
-            await db.query(
-                `select *
-                                           from \`${this.app_name}\`.t_user
-                                           where userID = ?`,
-                [cf.user_id]
-            )
-        )[0];
-        if (await this.checkNotify('register')) {
-            const link = `./index?type=editor&appName=${this.app_name}&function=backend-manger&tab=user_list`;
-            new Firebase(saas.brand).sendMessage({
-                title: `帳號註冊通知`,
-                userID: saas.user,
-                tag: 'register',
-                link: link,
-                body: `新用戶『 ${user_data.userData.name} 』註冊了帳號。`,
-            });
-            await this.sendEmail(saas.account, '帳號註冊通知', `新用戶『 ${user_data.userData.name} 』註冊了帳號。`, link);
-        }
-        return true;
-    }
-
-    //SHOPNEX註冊通知事項
-    public async saasRegister(cf: { user_id: string }) {
-        const link = `https://shopnex.cc/contact-us`;
-        new Firebase(this.app_name).sendMessage({
-            title: `歡迎使用SHOPNEX`,
-            userID: cf.user_id,
-            tag: 'welcome',
-            link: link,
-            body: `歡迎使用SHOPNEX開店平台，立即撥打諮詢電話:0978028730，提供免費諮詢服務。`,
-        });
-    }
-
-    //Checkout and payment success
-    public async checkout(cf: { orderData: any; status: number }) {
-        const saas = await this.getSaasAPP();
-        const link = `./index?type=editor&appName=${this.app_name}&function=backend-manger&tab=order_list`;
-        new Firebase(saas.brand).sendMessage({
-            title: `您有新訂單`,
-            userID: saas.user,
-            tag: 'checkout',
-            link: link,
-            body: `您有一筆新訂單 <br>『 ${cf.orderData.orderID} 』${cf.status ? `已付款` : `尚未付款`}，消費總金額 : ${cf.orderData.total} 。`,
-        });
-    }
-
-    //上傳付款證明.
-    public async uploadProof(cf: { orderData: any; }) {
-        const saas = await this.getSaasAPP();
-        const link = `./index?type=editor&appName=${this.app_name}&function=backend-manger&tab=order_list`;
-        new Firebase(saas.brand).sendMessage({
-            title: `待核款訂單`,
-            userID: saas.user,
-            tag: 'checkout-upload-proof',
-            link: link,
-            body: `顧客已上傳付款證明，您有一筆新增的待核款訂單 『 ${cf.orderData.orderID} 』。`,
-        });
-    }
-
-    //表單提交
-    public async formSubmit(cf: { user_id: string }) {
-        const saas = await this.getSaasAPP();
-        const link = `./index?type=editor&appName=${this.app_name}&function=backend-manger&tab=form_receive`;
-        const user_data = (
-            await db.query(
-                `select *
-                                           from \`${this.app_name}\`.t_user
-                                           where userID = ?`,
-                [cf.user_id]
-            )
-        )[0];
-        new Firebase(saas.brand).sendMessage({
-            title: `您有新表單`,
-            userID: saas.user,
-            tag: 'formSubmit',
-            link: link,
-            body: `收到來自『${user_data.userData.name}』提交的表單。`,
-        });
-    }
-
+    // 商家信件固定格式
     public async sendEmail(email: string, title: string, content: string, href: string) {
         try {
             const html = String.raw;
@@ -342,8 +254,102 @@ export class ManagerNotify {
         } catch (e) {}
     }
 
-    //判斷是否進行推播通知
+    // 判斷是否進行推播通知
     public async checkNotify(tag: string) {
         return true;
+    }
+
+    // SHOPNEX 註冊通知事項
+    public async saasRegister(cf: { user_id: string }) {
+        const link = `https://shopnex.cc/contact-us`;
+        new Firebase(this.app_name).sendMessage({
+            title: `歡迎使用 SHOPNEX`,
+            userID: cf.user_id,
+            tag: 'welcome',
+            link: link,
+            body: `歡迎使用 SHOPNEX 開店平台，立即撥打諮詢電話: 0978028730，提供免費諮詢服務。`,
+        });
+    }
+
+    // 新用戶註冊
+    public async userRegister(cf: { user_id: string }) {
+        if (this.app_name === 'shopnex') {
+            this.saasRegister({
+                user_id: cf.user_id,
+            });
+        }
+        const saas = await this.getSaasAPP();
+        const user_data = (
+            await db.query(
+                `SELECT * FROM \`${this.app_name}\`.t_user
+                WHERE userID = ?`,
+                [cf.user_id]
+            )
+        )[0];
+        if (await this.checkNotify('register')) {
+            const link = `./index?type=editor&appName=${this.app_name}&function=backend-manger&tab=user_list`;
+            const body = html`新用戶『 ${user_data.userData.name} 』註冊了帳號。`;
+            new Firebase(saas.brand).sendMessage({
+                title: `帳號註冊通知`,
+                userID: saas.user,
+                tag: 'register',
+                link: link,
+                body: body,
+            });
+            await this.sendEmail(saas.account, '帳號註冊通知', body, link);
+        }
+        return true;
+    }
+
+    // 待核款訂單
+    public async uploadProof(cf: { orderData: any }) {
+        const saas = await this.getSaasAPP();
+        const link = `./index?type=editor&appName=${this.app_name}&function=backend-manger&tab=order_list`;
+        const body = html`顧客已上傳付款證明，您有一筆新增的待核款訂單，訂單編號 『 ${cf.orderData.orderID} 』。`;
+        new Firebase(saas.brand).sendMessage({
+            title: '待核款訂單',
+            userID: saas.user,
+            tag: 'checkout-upload-proof',
+            link: link,
+            body: body,
+        });
+        await this.sendEmail(saas.account, '您有一筆待核款的訂單', body, link);
+    }
+
+    // 訂單與付款
+    public async checkout(cf: { orderData: any; status: number }) {
+        const saas = await this.getSaasAPP();
+        const link = `./index?type=editor&appName=${this.app_name}&function=backend-manger&tab=order_list`;
+        const body = html`您有一筆新訂單 <br />『 ${cf.orderData.orderID} 』${cf.status ? `已付款` : `尚未付款`}，消費總金額：${parseInt(`${cf.orderData.total}`, 10).toLocaleString()} 。`;
+        new Firebase(saas.brand).sendMessage({
+            title: `您有新訂單`,
+            userID: saas.user,
+            tag: 'checkout',
+            link: link,
+            body: body,
+        });
+        await this.sendEmail(saas.account, '您有一筆新的訂單', body, link);
+    }
+
+    // 表單提交
+    public async formSubmit(cf: { user_id: string }) {
+        const saas = await this.getSaasAPP();
+        const link = `./index?type=editor&appName=${this.app_name}&function=backend-manger&tab=form_receive`;
+        const user_data = (
+            await db.query(
+                `SELECT * FROM \`${this.app_name}\`.t_user
+                    WHERE userID = ?`,
+                [cf.user_id]
+            )
+        )[0];
+        const body = html`收到來自『${user_data.userData.name}』提交的表單。`;
+        new Firebase(saas.brand).sendMessage({
+            title: `您有新表單`,
+            userID: saas.user,
+            tag: 'formSubmit',
+            link: link,
+            body: body,
+        });
+        await this.sendEmail(saas.account, '您收集到一筆新的表單', body, link);
     }
 }

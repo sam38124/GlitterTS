@@ -279,6 +279,7 @@ FilterOptions.stockOrderBy = [
 ];
 FilterOptions.emailFilterFrame = {
     status: [],
+    mailType: [],
 };
 FilterOptions.emailSelect = [
     { key: 'email', value: '顧客信箱' },
@@ -301,6 +302,18 @@ FilterOptions.emailFunnel = [
         data: [
             { key: '0', name: '尚未寄送' },
             { key: '1', name: '已寄送' },
+        ],
+    },
+    {
+        key: 'mailType',
+        type: 'multi_checkbox',
+        name: '寄件類型',
+        data: [
+            { key: 'auto-email-payment-successful', name: '訂單付款成功' },
+            { key: 'auto-email-order-create', name: '訂單成立' },
+            { key: 'proof-purchase', name: '訂單待核款' },
+            { key: 'auto-email-birthday', name: '生日祝福' },
+            { key: 'get-customer-message', name: '客服訊息' },
         ],
     },
 ];

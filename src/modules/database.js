@@ -22,30 +22,33 @@ const createPool = async () => {
         supportBigNumbers: true
     });
     try {
-        const connection = await pool.getConnection();
-        if (connection) {
-            await connection.release();
-            logger.info(TAG, 'Pool has been created.');
-            return pool;
-        }
+        return pool;
     }
     catch (err) {
         logger.error(TAG, 'Failed to create connection pool for mysql because ' + err);
         throw exception_1.default.ServerError('INTERNAL_SERVER_ERROR', 'Failed to create connection pool.');
     }
 };
-const getConnection = async (connPool) => {
+async function createNewPool() {
     const logger = new logger_1.default();
-    const _pool = connPool || pool;
+    const new_pool = promise_1.default.createPool({
+        connectionLimit: config_1.default.DB_CONN_LIMIT,
+        queueLimit: config_1.default.DB_QUEUE_LIMIT,
+        host: config_1.default.DB_URL,
+        port: config_1.default.DB_PORT,
+        user: config_1.default.DB_USER,
+        password: config_1.default.DB_PWD,
+        supportBigNumbers: true
+    });
     try {
-        const connection = await _pool.getConnection();
-        return connection;
+        logger.info(TAG, 'Pool has been created.');
+        return new_pool;
     }
     catch (err) {
-        logger.error(TAG, 'Failed to get connection from pool because ' + err);
-        throw exception_1.default.ServerError('INTERNAL_SERVER_ERROR', 'Failed to get connection from pool.');
+        logger.error(TAG, 'Failed to create connection pool for mysql because ' + err);
+        throw exception_1.default.ServerError('INTERNAL_SERVER_ERROR', 'Failed to create connection pool.');
     }
-};
+}
 const execute = async (sql, params) => {
     const logger = new logger_1.default();
     const TAG = '[Database][Execute]';
@@ -55,7 +58,7 @@ const execute = async (sql, params) => {
     }
     try {
         const connection = await pool.getConnection();
-        const [results] = await (connection).execute(sql, params);
+        const [results] = await pool.execute(sql, params);
         connection.release();
         return results;
     }
@@ -73,7 +76,7 @@ const query = async (sql, params) => {
     const TAG = '[Database][Query]';
     try {
         const connection = await pool.getConnection();
-        const [results] = await (connection).query(sql, params);
+        const [results] = await pool.query(sql, params);
         connection.release();
         return results;
     }
@@ -97,12 +100,12 @@ const queryLambada = async (cf, fun) => {
         cs[key] = cf[key];
     });
     const sp = promise_1.default.createPool(cs);
+    const connection = await sp.getConnection();
+    if (connection) {
+        await connection.release();
+        logger.info(TAG, 'Pool has been created.');
+    }
     try {
-        const connection = await sp.getConnection();
-        if (connection) {
-            await connection.release();
-            logger.info(TAG, 'Pool has been created.');
-        }
         const data = await fun({
             query(sql, params) {
                 return new Promise(async (resolve, reject) => {
@@ -124,6 +127,8 @@ const queryLambada = async (cf, fun) => {
         return data;
     }
     catch (err) {
+        connection.release();
+        sp.end();
         logger.error(TAG, 'Failed to create connection pool for mysql because ' + err);
         throw exception_1.default.ServerError('INTERNAL_SERVER_ERROR', 'Failed to create connection pool.');
     }
@@ -134,14 +139,15 @@ class Transaction {
         const logger = new logger_1.default();
         const Trans = new Transaction();
         try {
-            Trans.trans = await getConnection(null);
+            Trans.pool = (await createNewPool());
+            Trans.trans = await Trans.pool.getConnection();
             Trans.TAG = `[Database][Transaction][CID:${Trans.trans.threadId}]`;
             Trans.trans.beginTransaction();
             return Trans;
         }
         catch (err) {
             logger.error(Trans.TAG, 'Failed to create transaction when call transaction.init because ' + err);
-            Trans.release();
+            await Trans.release();
             throw exception_1.default.ServerError('INTERNAL_SERVER_ERROR', 'Failed to create transaction when connecting database.');
         }
     }
@@ -157,7 +163,6 @@ class Transaction {
         catch (err) {
             logger.error(this.TAG, `Failed to execute statement ${sql} from transaction because ${err}`);
             await this.release();
-            this.trans = null;
             throw err;
         }
     }
@@ -165,29 +170,30 @@ class Transaction {
         const logger = new logger_1.default();
         try {
             await this.trans.commit();
-            await this.trans.release();
+            await this.release();
             logger.info(this.TAG, 'Commited successfully');
         }
         catch (err) {
             logger.error(this.TAG, 'Failed to commit from transaction because ' + err);
-            await this.trans.rollback();
-            await this.trans.destroy();
+            await this.release();
             throw exception_1.default.ServerError('INTERNAL_SERVER_ERROR', 'Failed to commit from transaction.');
         }
     }
     async release() {
+        var _a, _b;
         const logger = new logger_1.default();
         try {
             if (this.trans) {
-                await this.trans.rollback();
-                await this.trans.rollback();
+                await this.trans.release();
                 await this.trans.destroy();
                 this.trans = null;
+                await ((_a = this.pool) === null || _a === void 0 ? void 0 : _a.end());
                 logger.info(this.TAG, 'Release successfully');
             }
         }
         catch (err) {
             logger.error(this.TAG, 'Failed to commit from transaction because ' + err);
+            await ((_b = this.pool) === null || _b === void 0 ? void 0 : _b.end());
             throw exception_1.default.ServerError('INTERNAL_SERVER_ERROR', 'Failed to release transaction.');
         }
     }

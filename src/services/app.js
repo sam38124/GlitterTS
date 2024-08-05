@@ -185,6 +185,14 @@ class App {
                     `, [this.token.userID, cf.appName, 'index', '', '首頁']);
             }
             await trans.commit();
+            const store_information = (await database_1.default.query(`select * from \`${cf.appName}\`.t_user_public_config
+                            where \`key\` = ? `, [`store-information`]))[0];
+            if (store_information) {
+                await database_1.default.query(`delete from \`${cf.appName}\`.t_user_public_config where \`key\` = ? and id>0`, ['store-information']);
+                store_information.value.shop_name = cf.name;
+                store_information.value = JSON.stringify(store_information.value);
+                await database_1.default.query(`insert into  \`${cf.appName}\`.t_user_public_config set ?`, [store_information]);
+            }
             await (0, index_js_1.createAPP)(cf);
             return true;
         }

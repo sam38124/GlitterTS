@@ -6,7 +6,7 @@ export interface GridOptions {
   /**
    * Number of slides rows, for multirow layout
    *
-   * @note `rows` > 1 is currently not compatible with loop mode (`loop: true`)
+   * @note.txt `rows` > 1 is currently not compatible with loop mode (`loop: true`)
    *
    * @default 1
    */

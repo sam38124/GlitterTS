@@ -310,7 +310,6 @@ export class AddComponent {
                     share: {},
                 });
                 gvc.glitter.closeDiaLog();
-                // gvc.glitter.htmlGenerate.saveEvent(true)
             };
             $('#addComponentViewHover').removeClass('d-none');
             $('#addComponentView').removeClass('scroll-out');
@@ -517,6 +516,11 @@ export class AddComponent {
                                                             <div class="row m-0 pt-2 w-100">
                                                                 ${data.response.result.data
                                                                     .sort((a: any, b: any) => {
+                                                                        if(['SY00-內文','SY00-按鈕連結','SY00-圖片元件','SY00-影片方塊','SY00-標題','SY00-商品顯示區塊','SY00-富文本區塊'].find((dd)=>{
+                                                                            return a.template_config.name===dd
+                                                                        })){
+                                                                            return  -1
+                                                                        }
                                                                         const aData = (a.template_config.tag ?? []).find((dd: any) => {
                                                                             return dd === '基本元件';
                                                                         });
@@ -534,7 +538,13 @@ export class AddComponent {
                                                                         } else {
                                                                             return 1;
                                                                         }
-                                                                    })
+                                                                    }).sort((a: any, b: any)=>{
+                                                                            if (a.template_config.name === '空白-嵌入模塊') {
+                                                                                return -1;
+                                                                            } else {
+                                                                                return 1;
+                                                                            }
+                                                                        })
                                                                     .map((dd: any, index: number) => {
                                                                         return html`
                                                                     <div class="col-6 mb-3">

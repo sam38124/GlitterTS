@@ -1,7 +1,7 @@
 'use strict';
 import { Entry } from '../Entry.js';
 import { Glitter } from './Glitter.js';
-import { GVCType } from "./module/PageManager.js";
+import { GVCType } from './module/PageManager.js';
 const glitter = new Glitter(window);
 window.glitter = glitter;
 window.rootGlitter = glitter;
@@ -9,7 +9,7 @@ function listenElementChange(query) {
     const targetElement = document.querySelector(query);
     const observer = new MutationObserver(function (mutationsList) {
         Object.keys(glitter.elementCallback).map((dd) => {
-            if (glitter.elementCallback[dd].rendered && !(glitter.elementCallback[dd].doc.querySelector(`[gvc-id="${dd}"]`))) {
+            if (glitter.elementCallback[dd].rendered && !glitter.elementCallback[dd].doc.querySelector(`[gvc-id="${dd}"]`)) {
                 glitter.elementCallback[dd].rendered = false;
                 glitter.elementCallback[dd].onDestroy();
             }
@@ -24,18 +24,18 @@ function listenElementChange(query) {
     });
     observer.observe(targetElement, { childList: true, subtree: true });
 }
-let scrollInterval = undefined;
 function traverseHTML(element, document) {
     var _a, _b;
     try {
-        if ((element.classList.contains('page-box'))) {
+        if (element.classList.contains('page-box')) {
             const pageConfig = glitter.pageConfig.find((dd) => {
                 return `page${dd.id}` === element.getAttribute('id');
             });
-            if ((window.glitter.share.to_menu) && glitter.pageConfig.filter((dd) => {
-                return dd.type === GVCType.Page;
-            }).length > 1) {
-                element.style.display = "none";
+            if (window.glitter.share.to_menu &&
+                glitter.pageConfig.filter((dd) => {
+                    return dd.type === GVCType.Page;
+                }).length > 1) {
+                element.style.display = 'none';
                 window.glitter.share.time_back = setTimeout(() => {
                     window.history.back();
                 });
@@ -69,18 +69,17 @@ function traverseHTML(element, document) {
                 loop(element);
                 return;
             }
-            (pageConfig) && (pageConfig.initial = true);
+            pageConfig && (pageConfig.initial = true);
         }
     }
-    catch (e) {
-    }
+    catch (e) { }
     let children = element.children;
     if (children && children.length > 0) {
         for (let j = 0; j < children.length; j++) {
             traverseHTML(children[j], document);
         }
     }
-    if (element && element.getAttribute && (element.getAttribute('glem') === 'bindView')) {
+    if (element && element.getAttribute && element.getAttribute('glem') === 'bindView') {
         const id = element.getAttribute('gvc-id');
         glitter.elementCallback[id].element = element;
         glitter.elementCallback[id].first_paint = (_a = glitter.elementCallback[id].first_paint) !== null && _a !== void 0 ? _a : true;
@@ -143,20 +142,22 @@ function traverseHTML(element, document) {
                         });
                     }
                     if (document.querySelector(`[gvc-id="${id}"]`)) {
-                        document.querySelector(`[gvc-id="${id}"]`).recreateView = (() => {
-                            document.querySelector(`[gvc-id="${id}"]`).wasRecreate = true;
-                            document.querySelector(`[gvc-id="${id}"]`).wasRender = false;
-                            const height = document.querySelector(`[gvc-id="${id}"]`).offsetHeight;
-                            if (height) {
-                                document.querySelector(`[gvc-id="${id}"]`).style.height = height + 'px';
-                            }
-                            renderBindView();
-                            setTimeout(() => {
-                                if (document.querySelector(`[gvc-id="${id}"]`).style.height === (height + 'px')) {
-                                    document.querySelector(`[gvc-id="${id}"]`).style.height = 'auto';
+                        document.querySelector(`[gvc-id="${id}"]`).recreateView = () => {
+                            if (document.querySelector(`[gvc-id="${id}"]`) !== null) {
+                                document.querySelector(`[gvc-id="${id}"]`).wasRecreate = true;
+                                document.querySelector(`[gvc-id="${id}"]`).wasRender = false;
+                                const height = document.querySelector(`[gvc-id="${id}"]`).offsetHeight;
+                                if (height) {
+                                    document.querySelector(`[gvc-id="${id}"]`).style.height = height + 'px';
                                 }
-                            }, 10);
-                        });
+                                renderBindView();
+                                setTimeout(() => {
+                                    if (document.querySelector(`[gvc-id="${id}"]`) !== null && document.querySelector(`[gvc-id="${id}"]`).style.height === height + 'px') {
+                                        document.querySelector(`[gvc-id="${id}"]`).style.height = 'auto';
+                                    }
+                                }, 10);
+                            }
+                        };
                         document.querySelector(`[gvc-id="${id}"]`).wasRender = true;
                     }
                 }
@@ -178,10 +179,10 @@ function traverseHTML(element, document) {
         renderBindView();
     }
     else {
-        for (const b of ((_b = element.attributes) !== null && _b !== void 0 ? _b : [])) {
+        for (const b of (_b = element.attributes) !== null && _b !== void 0 ? _b : []) {
             glitter.renderView.replaceAttributeValue({
                 key: b.name,
-                value: b.value
+                value: b.value,
             }, element);
         }
     }
@@ -241,15 +242,14 @@ class GlitterWebComponent extends HTMLElement {
         this.shadowRoot.innerHTML = `<div id="cp-container"></div>`;
     }
     setView(cf) {
-        const html = String.raw;
         this.glitter = cf.gvc.glitter;
         this.listenElementChange();
-        (this.shadowRoot).querySelector('#cp-container').innerHTML = cf.view;
+        this.shadowRoot.querySelector('#cp-container').innerHTML = cf.view;
     }
     addStyleLink(filePath) {
         const link = document.createElement('link');
-        link.type = "text/css";
-        link.rel = "stylesheet";
+        link.type = 'text/css';
+        link.rel = 'stylesheet';
         link.href = filePath;
         this.shadowRoot.appendChild(link);
     }
@@ -265,11 +265,11 @@ class GlitterWebComponent extends HTMLElement {
         this.shadowRoot.appendChild(link);
     }
     listenElementChange() {
-        const glitter = (this.glitter);
+        const glitter = this.glitter;
         const doc = this.shadowRoot;
         const observer = new MutationObserver(function (mutationsList) {
             Object.keys(glitter.elementCallback).map((dd) => {
-                if (glitter.elementCallback[dd].rendered && !(glitter.elementCallback[dd].doc.querySelector(`[gvc-id="${dd}"]`))) {
+                if (glitter.elementCallback[dd].rendered && !glitter.elementCallback[dd].doc.querySelector(`[gvc-id="${dd}"]`)) {
                     glitter.elementCallback[dd].rendered = false;
                     glitter.elementCallback[dd].onDestroy();
                 }
@@ -287,42 +287,8 @@ class GlitterWebComponent extends HTMLElement {
     }
 }
 customElements.define('web-component', GlitterWebComponent);
-window.addEventListener("scroll", function (event) {
+window.addEventListener('scroll', function (event) {
     if (glitter.pageConfig.length - 1 >= 0) {
         glitter.pageConfig[glitter.pageConfig.length - 1].scrollTop = window.scrollY;
     }
 });
-function setStyle(element, document) {
-    setTimeout(() => {
-        var _a;
-        if (element.getAttribute && !document.isCompoment) {
-            const style = element.getAttribute('style');
-            if (style) {
-                const shortCode = `c-${generateShortCode(style)}`;
-                glitter.config.style_list = (_a = glitter.config.style_list) !== null && _a !== void 0 ? _a : {};
-                if (!glitter.config.style_list[shortCode]) {
-                    glitter.config.style_list[shortCode] = true;
-                    const cssText = `.${shortCode}{
-                             ${style}
-                            }`;
-                    glitter.addStyle(cssText);
-                }
-                element.classList.add(shortCode);
-                element.setAttribute('style', '');
-            }
-        }
-    });
-}
-function generateShortCode(str) {
-    const hashCode = hashCodeFromString(str);
-    const shortCode = hashCode % 1000000;
-    return shortCode.toString().padStart(6, '0');
-}
-function hashCodeFromString(str) {
-    let hashCode = 0;
-    for (let i = 0; i < str.length; i++) {
-        hashCode = (hashCode << 5) - hashCode + str.charCodeAt(i);
-        hashCode &= hashCode;
-    }
-    return hashCode;
-}

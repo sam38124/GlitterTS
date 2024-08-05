@@ -1,23 +1,38 @@
 import {EditorElem} from "../plugins/editor-elem.js";
 import {GVC} from "../GVController.js";
+import {identity} from "underscore";
+import {NormalPageEditor} from "../../editor/normal-page-editor.js";
+import {Main_editor} from "../../jspage/function-page/main_editor.js";
+import {ShareDialog} from "../dialog/ShareDialog.js";
+
+const html = String.raw
 
 export class CustomStyle {
-    public static editor(gvc: GVC, widget: any) {
+    public static renderThemeEditor(gvc: GVC, widget: any, callback?: () => void) {
         CustomStyle.initialWidget(widget);
         return [
-            `<div class="alert  alert-secondary p-2 fw-500 mt-2 " style="word-break: break-all;white-space: normal;letter-spacing: 0.5px;">
-                            可輸入純數值 (px) 或附加單位(%,rem,vw,vh,calc,px)。
-</div>`,
             EditorElem.editeInput({
                 gvc: gvc,
-                title: `容器最大寬度 << 不輸入則自適應寬度 >>
+                title: `容器最大寬度
                            
                             `,
                 default: widget.data._max_width,
                 placeHolder: '',
                 callback: (text) => {
-                    widget.data._max_width = text
-                    widget.refreshComponent()
+                    widget.data._max_width = text;
+                    (callback || widget.refreshComponent)()
+                }
+            }),
+            EditorElem.editeInput({
+                gvc: gvc,
+                title: `容器最大高度
+                           
+                            `,
+                default: widget.data._max_height,
+                placeHolder: '',
+                callback: (text) => {
+                    widget.data._max_height = text;
+                    (callback || widget.refreshComponent)()
                 }
             }),
             `<div class="my-2"></div>`,
@@ -38,7 +53,7 @@ export class CustomStyle {
                     }],
                 callback: (text) => {
                     widget.data._display_block = text;
-                    widget.refreshComponent();
+                    (callback || widget.refreshComponent)();
                 }
             }),
             `<div class="my-2"></div>`,
@@ -70,8 +85,8 @@ export class CustomStyle {
                             default: widget.data._padding[dd.key] || '0',
                             placeHolder: '單位px',
                             callback: (text) => {
-                                widget.data._padding[dd.key] = text
-                                widget.refreshComponent()
+                                widget.data._padding[dd.key] = text;
+                                (callback || widget.refreshComponent)()
                             }
                         })
                     }).join('')
@@ -104,8 +119,8 @@ export class CustomStyle {
                             default: widget.data._margin[dd.key] || '0',
                             placeHolder: '單位px',
                             callback: (text) => {
-                                widget.data._margin[dd.key] = text
-                                widget.refreshComponent()
+                                widget.data._margin[dd.key] = text;
+                                (callback || widget.refreshComponent)()
                             }
                         })
                     }).join('')
@@ -120,34 +135,34 @@ export class CustomStyle {
                         EditorElem.editeInput({
                             gvc: gvc,
                             title: '圓角',
-                            type:'number',
+                            type: 'number',
                             default: widget.data._border.radius || '0',
                             placeHolder: '單位px',
                             callback: (text) => {
-                                widget.data._border.radius = text
-                                widget.refreshComponent()
+                                widget.data._border.radius = text;
+                                (callback || widget.refreshComponent)()
                             }
                         }),
                         EditorElem.editeInput({
                             gvc: gvc,
                             title: '邊框寬度',
-                            type:'number',
+                            type: 'number',
                             default: widget.data._border.width || '0',
                             placeHolder: '單位px',
                             callback: (text) => {
-                                widget.data._border.width = text
-                                widget.refreshComponent()
+                                widget.data._border.width = text;
+                                (callback || widget.refreshComponent)()
                             }
                         }),
                         EditorElem.editeInput({
                             gvc: gvc,
                             title: '邊框顏色',
-                            type:'color',
+                            type: 'color',
                             default: widget.data._border.color || '0',
                             placeHolder: '',
                             callback: (text) => {
-                                widget.data._border.color = text
-                                widget.refreshComponent()
+                                widget.data._border.color = text;
+                                (callback || widget.refreshComponent)()
                             }
                         }),
                         EditorElem.editeInput({
@@ -156,19 +171,19 @@ export class CustomStyle {
                             default: widget.data._gap || '',
                             placeHolder: '單位px',
                             callback: (text) => {
-                                widget.data._gap = text
-                                widget.refreshComponent()
+                                widget.data._gap = text;
+                                (callback || widget.refreshComponent)()
                             }
                         }),
                         EditorElem.editeInput({
                             gvc: gvc,
                             title: '背景顏色',
-                            type:'color',
+                            type: 'color',
                             default: widget.data._background || '',
                             placeHolder: '請輸入背景顏色',
                             callback: (text) => {
-                                widget.data._background = text
-                                widget.refreshComponent()
+                                widget.data._background = text;
+                                (callback || widget.refreshComponent)()
                             }
                         }),
                         EditorElem.select({
@@ -188,7 +203,7 @@ export class CustomStyle {
                                 }],
                             callback: (text) => {
                                 widget.data._hor_position = text;
-                                widget.refreshComponent();
+                                (callback || widget.refreshComponent)();
                             }
                         }),
                         EditorElem.select({
@@ -207,37 +222,38 @@ export class CustomStyle {
                             ],
                             callback: (text) => {
                                 widget.data._reverse = text;
-                                widget.refreshComponent()
+
+                                (callback || widget.refreshComponent)()
                             }
                         }),
                         EditorElem.editeInput({
                             gvc: gvc,
                             title: '圖層高度',
-                            type:'number',
+                            type: 'number',
                             default: widget.data._z_index || '0',
                             placeHolder: '請輸入圖層高度',
                             callback: (text) => {
-                                widget.data._z_index = text
-                                widget.refreshComponent()
+                                widget.data._z_index = text;
+                                (callback || widget.refreshComponent)()
                             }
                         }),
 
-                        `<div class="mt-2"></div>`+EditorElem.editerDialog({
-                            gvc:gvc,
-                            dialog:()=>{
-                                return  EditorElem.styleEditor({
+                        `<div class="mt-2"></div>` + EditorElem.editerDialog({
+                            gvc: gvc,
+                            dialog: () => {
+                                return EditorElem.styleEditor({
                                     gvc: gvc,
                                     title: '自訂Style代碼',
-                                    height:400,
+                                    height: 400,
                                     initial: widget.data._style || '',
                                     callback: (text) => {
                                         widget.data._style = text
                                     }
                                 })
                             },
-                            editTitle:'自訂設計代碼',
-                            callback:()=>{
-                                widget.refreshComponent()
+                            editTitle: '自訂設計代碼',
+                            callback: () => {
+                                (callback || widget.refreshComponent)()
                             }
                         })
                     ].join('')
@@ -246,87 +262,391 @@ export class CustomStyle {
         ].join('')
     }
 
-    public static value(gvc: GVC, widget: any){
+    public static editor(gvc: GVC, widget: any, callback?: () => void) {
+        CustomStyle.initialWidget(widget);
+
+        const html = String.raw;
+        return gvc.bindView(() => {
+            const id = gvc.glitter.getUUID()
+
+            return {
+                bind: id,
+                view: () => {
+                    return [
+                        {
+                            title: html`全站統一容器`,
+                            hint: `<span class=""
+                                                  style="color:#8D8D8D;font-size: 13px;white-space: normal;word-break: break-all;line-height: 16px;">選擇一個全站容器，若是進行了修改，全站所有應用此容器的元件將自動更新，方便未來統一管理。</span>`,
+                            value: 'global',
+                        },
+                        {
+                            title: html`自定義容器`,
+                            hint: ` <span class="my-2"
+                                                  style="color:#8D8D8D;font-size: 13px;white-space: normal;word-break: break-all;line-height: 16px;">可以單獨為容器設計樣式，實現獨一無二的設計效果。</span>`,
+                            value: 'custom',
+                        }
+                    ]
+                        .map((dd) => {
+                            return html`
+                                <div>
+                                    ${[
+                                        html`
+                                            <div
+                                                    class="d-flex  cursor_pointer"
+                                                    style="gap:8px;"
+                                                    onclick="${gvc.event(() => {
+                                                        widget.data._style_refer = dd.value
+                                                        if (dd.value === 'global') {
+                                                            widget.data._style_refer_global = {
+                                                                index: gvc.glitter.share.global_container_theme[0] ? 0 : undefined
+                                                            };
+                                                        }
+                                                        (callback || widget.refreshComponent)()
+                                                        gvc.notifyDataChange(id)
+                                                    })}"
+                                            >
+                                                ${widget.data._style_refer === dd.value
+                                                        ? `<i class="fa-sharp fa-solid fa-circle-dot cl_39" style="margin-top: 5px;"></i>`
+                                                        : ` <div class="c_39_checkbox " style="margin-top: 5px;"></div>`}
+                                                <div class="tx_normal fw-normal d-flex flex-column"
+                                                     style="max-width: calc(100% - 40px);white-space: normal;word-break: break-all;overflow: hidden;line-height: 25px;">
+                                                    ${dd.title}
+                                                    ${(widget.data._style_refer === dd.value) ? dd.hint : ``}
+                                                </div>
+                                            </div>`,
+                                        html`
+                                            <div class="d-flex position-relative mt-2"
+                                                 style="">
+                                                <div class="ms-0 border-end position-absolute h-100"
+                                                     style="left: 5px;"></div>
+                                                <div class="flex-fill "
+                                                     style="margin-left:20px;max-width: 100%;">
+                                                    ${(() => {
+                                                        if (widget.data._style_refer !== dd.value) {
+                                                            return ``
+                                                        }
+                                                        if (widget.data._style_refer === 'global') {
+                                                            const globalValue = gvc.glitter.share.editorViewModel.appConfig;
+                                                            globalValue.container_theme = globalValue.container_theme ?? [];
+                                                           
+                                                            return CustomStyle.globalContainerSelect(globalValue, gvc, (widget.data._style_refer_global && widget.data._style_refer_global.index), (index) => {
+                                                                widget.data._style_refer_global = {
+                                                                    index: index
+                                                                };
+                                                                (callback || widget.refreshComponent)();
+
+                                                                gvc.notifyDataChange(id)
+                                                            })
+                                                        } else {
+                                                            return CustomStyle.renderThemeEditor(gvc, widget, callback)
+                                                        }
+
+                                                    })()}
+                                                </div>
+                                            </div>`,
+                                    ].join('')}
+                                </div>`;
+                        })
+                        .join(`<div class="my-2"></div>`)
+                },
+                divCreate: {
+                    class: `pt-2`
+                }
+            }
+        })
+
+    }
+
+    public static value(gvc: GVC, widget: any) {
+        if (widget.data && widget.data._style_refer === 'global' && widget.data._style_refer_global) {
+            const globalValue = gvc.glitter.share.global_container_theme[parseInt(widget.data._style_refer_global.index, 10)]
+            widget = {
+                data: (globalValue && globalValue.data) || {}
+            }
+        }
         CustomStyle.initialWidget(widget)
-         let style_string='';
+
+        let style_string = '';
         ['top', 'bottom', 'left', 'right'].map((dd) => {
-            if(widget.data._padding[dd]){
-                if(!isNaN(widget.data._padding[dd])){
+            if (widget.data._padding[dd]) {
+                if (!isNaN(widget.data._padding[dd])) {
                     (style_string += `padding-${dd}:${widget.data._padding[dd]}px;`)
-                }else{
+                } else {
                     (style_string += `padding-${dd}:${widget.data._padding[dd]};`)
                 }
 
             }
         });
-
-
-        if(widget.data._display_block==='vertical'){
+        if (widget.data._display_block === 'vertical') {
             (style_string += `display: flex;align-items: center;justify-content: center;flex-direction: column;`)
-        }else if(widget.data._display_block==='horizontal'){
+        } else if (widget.data._display_block === 'horizontal') {
             (style_string += `display: flex;align-items: center;justify-content: center;flex-direction: row;`)
         }
-        widget.data._max_width && (style_string += `width:${(isNaN(widget.data._max_width)) ? widget.data._max_width:`${widget.data._max_width}px`};max-width:100%;`)
-        widget.data._border.width &&  (style_string += `border: ${widget.data._border.width}px solid ${widget.data._border.color};`);
-        widget.data._border['radius'] &&  (style_string += `border-radius: ${widget.data._border.radius}px;`);
-        widget.data._border['radius'] &&  ((widget.data._border.radius || '0')>0 && (style_string+='overflow:hidden;'))
-        widget.data._gap && (style_string +=`gap:${widget.data._gap}px;`)
-        widget.data._background && (style_string +=`background:${widget.data._background};`)
-        widget.data._radius && (style_string +=`background:${widget.data._background};`);
-        widget.data._z_index && (style_string+=`z-index:${widget.data._z_index};`);
+        widget.data._max_width && (style_string += `width:${(isNaN(widget.data._max_width)) ? widget.data._max_width : `${widget.data._max_width}px`};max-width:100%;`)
+        widget.data._border.width && (style_string += `border: ${widget.data._border.width}px solid ${widget.data._border.color};`);
+        widget.data._border['radius'] && (style_string += `border-radius: ${widget.data._border.radius}px;`);
+        widget.data._border['radius'] && ((widget.data._border.radius || '0') > 0 && (style_string += 'overflow:hidden;'))
+        widget.data._gap && (style_string += `gap:${widget.data._gap}px;`)
+        widget.data._background && (style_string += `background:${widget.data._background};`)
+        widget.data._radius && (style_string += `background:${widget.data._background};`);
+        widget.data._z_index && (style_string += `z-index:${widget.data._z_index};`);
+        widget.data._max_height && (style_string += `max-height:${(isNaN(widget.data._max_height)) ? widget.data._max_height : `${widget.data._max_height}px`};`)
         switch (widget.data._hor_position) {
             case "left":
-                if(widget.data._display_block==='vertical'){
-                    style_string+=`align-items: start;`
-                }else{
-                    style_string+=`justify-content: start;`
+                if (widget.data._display_block === 'vertical') {
+                    style_string += `align-items: start;`
+                } else {
+                    style_string += `justify-content: start;`
                 }
                 break
             case "right":
-                if(widget.data._display_block==='vertical'){
-                    style_string+=`align-items: end;`
-                }else{
-                    style_string+=`justify-content: end;`
+                if (widget.data._display_block === 'vertical') {
+                    style_string += `align-items: end;`
+                } else {
+                    style_string += `justify-content: end;`
                 }
                 break
             case "center":
-                if(widget.data._max_width){
-                    style_string+=`margin:auto;`
+                if (widget.data._max_width) {
+                    style_string += `margin:auto;`
                 }
                 break
         }
         ['top', 'bottom', 'left', 'right'].map((dd) => {
-            if(widget.data._margin[dd] && (widget.data._margin[dd]!='0')){
-                if(!isNaN(widget.data._margin[dd])){
+            if (widget.data._margin[dd] && (widget.data._margin[dd] != '0')) {
+                if (!isNaN(widget.data._margin[dd])) {
                     (style_string += `margin-${dd}:${widget.data._margin[dd]}px;`)
-                }else{
+                } else {
                     (style_string += `margin-${dd}:${widget.data._margin[dd]};`)
                 }
 
             }
         });
-
-        (widget.data._style) && (style_string+=widget.data._style);
-        (widget.data._reverse === 'true') && (style_string+=((widget.data._display_block==='vertical') ? `flex-direction: column-reverse !important;`:`flex-direction: row-reverse !important;`));
+        (widget.data._style) && (style_string += widget.data._style);
+        (widget.data._reverse === 'true') && (style_string += ((widget.data._display_block === 'vertical') ? `flex-direction: column-reverse !important;` : `flex-direction: row-reverse !important;`));
         return style_string
     }
+
+
     public static initialWidget(widget: any) {
         if (widget.data.onCreateEvent) {
             (widget as any).onCreateEvent = widget.data.onCreateEvent;
             widget.data.onCreateEvent = undefined;
         }
+        if (widget.data._hor_position) {
+            widget.data._style_refer = widget.data._style_refer ?? 'custom'
+        } else {
+            widget.data._style_refer = widget.data._style_refer ?? 'global';
+        }
+
         widget.data.elem = widget.data.elem ?? "div"
         widget.data.inner = widget.data.inner ?? ""
         widget.data.attr = widget.data.attr ?? []
         widget.data._padding = widget.data._padding ?? {}
         widget.data._margin = widget.data._margin ?? {}
-        widget.data._border=widget.data._border || {}
+        widget.data._border = widget.data._border || {}
         widget.data._max_width = widget.data._max_width ?? ''
-        widget.data._gap=widget.data._gap ?? ''
-        widget.data._background=widget.data._background ?? ''
-        widget.data._other=widget.data._other ?? {}
-        widget.data._radius=widget.data._radius ?? ''
-        widget.data._reverse=widget.data._reverse??'false'
-        widget.data._hor_position=widget.data._hor_position ?? 'center'
+        widget.data._gap = widget.data._gap ?? ''
+        widget.data._background = widget.data._background ?? ''
+        widget.data._other = widget.data._other ?? {}
+        widget.data._radius = widget.data._radius ?? ''
+        widget.data._reverse = widget.data._reverse ?? 'false'
+        widget.data._hor_position = widget.data._hor_position ?? 'center'
+    }
+
+    public static globalContainerList(vm: any, gvc: any, id: string, globalValue: any) {
+        return `  <div class="px-3   border-bottom  fw-bold my-2 py-3 d-flex align-content-center border-top"
+                                             style="cursor: pointer;color:#393939;">
+                                            <i class="fa-regular fa-block  fs-5 fw-bold me-2 rounded d-flex align-content-center justify-content-center " style="margin-top: 3px;"></i><div>容器樣式</div>
+                                        </div>
+                                        <div class="row ${(globalValue.container_theme.length === 0) ? `d-none` : ``} p-0"
+                                             style="margin:18px;">
+                                            ${globalValue.container_theme.map((dd: any, index: number) => {
+            return `<div class="col-12 mb-3" style="cursor: pointer;" onclick="${gvc.event(() => {
+                vm.type = 'container_detail'
+                vm.data = globalValue.container_theme[index]
+                vm.index = index
+                gvc.notifyDataChange(id)
+            })}">
+                                               <div class="rounded border p-3 d-flex">
+                                               <div>容器樣式:${index + 1}</div>
+                                               <div class="t"></div>
+</div>
+                                            </div>`
+        }).join('')}
+                                        </div>
+                                        <div style="padding: 0px 24px 24px;${(globalValue.container_theme.length === 0) ? `margin-top:24px;` : ``}">
+                                            <div class="bt_border_editor"
+                                                 onclick="${gvc.event(() => {
+            vm.data = {id: gvc.glitter.getUUID()};
+            globalValue.container_theme.push(vm.data);
+            vm.name = ('容器樣式' + globalValue.container_theme.length);
+            vm.type = 'container_detail'
+            vm.index = globalValue.container_theme.length - 1
+            gvc.notifyDataChange(id)
+        })}">
+                                                新增容器
+                                            </div>
+                                        </div>`
+    }
+
+    public static globalContainerSelect(globalValue: any, gvc: GVC, def: any, callback: (id: string) => void) {
+        return gvc.bindView(() => {
+            const vm = {
+                id: gvc.glitter.getUUID()
+            }
+            if(!globalValue.container_theme.find((dd:any,index:number)=>{
+                return index===parseInt(def, 10)
+            })){
+                if(def!==''){
+                    callback('')
+                }else{
+                    def=''
+                }
+            }
+            return {
+                bind: vm.id,
+                view: () => {
+                    return `<div class="btn-group dropdown w-100">
+<div class="d-flex w-100" style="gap:10px;" data-bs-toggle="dropdown">
+  <button type="button" class="btn btn-outline-secondary dropdown-toggle flex-fill" 
+                        aria-haspopup="true" aria-expanded="false">
+                    ${isNaN(parseInt(def, 10)) ? `選擇容器` : `容器樣式${parseInt(def, 10) + 1}`}
+                </button>
+                <div class="btn btn-outline-secondary btn-sm" style="cursor: pointer;" onclick="${gvc.event((e,event)=>{
+                    event.stopPropagation();
+                    event.preventDefault();
+                    const data=globalValue.container_theme.find((dd:any,ind:number)=>{
+                        return ind===parseInt(def, 10)
+                    })
+                    NormalPageEditor.toggle({
+                        visible: true,
+                        view:  CustomStyle.globalContainerDetail({
+                            gvc: gvc,
+                            back: () => {
+callback(def)
+                            },
+                            name: `容器${parseInt(def, 10)+1}`,
+                            data: data,
+                            index: parseInt(def, 10),
+                            hide_title: true,
+                            hide_delete: true
+                        }),
+                        title: '變更全局容器樣式'
+                    })
+                    })}"><i class="fa-solid fa-pencil"></i></div>
+</div>
+              
+                <div class="dropdown-menu my-1">
+                    ${globalValue.container_theme.map((dd: any, index: number) => {
+                        return `<div class="dropdown-item" style="cursor: pointer;" onclick="${gvc.event(() => {
+                            callback(`${index}`)
+                        })}">
+                                               容器樣式${index + 1}
+                                            </div>`
+                    }).join('')}
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" onclick="${gvc.event(() => {
+                        globalValue.container_theme.push({id: gvc.glitter.getUUID()});
+                        NormalPageEditor.closeEvent = () => {
+                            globalValue.container_theme = globalValue.container_theme.filter((dd: any, index: number) => {
+                                return index < globalValue.container_theme.length-1
+                            })
+                            gvc.notifyDataChange(vm.id)
+                        }
+                        NormalPageEditor.toggle({
+                            visible: true,
+                            view: [
+                                CustomStyle.globalContainerDetail({
+                                    gvc: gvc,
+                                    back: () => {
+
+                                    },
+                                    name: `容器${globalValue.container_theme.length}`,
+                                    data: {id: gvc.glitter.getUUID()},
+                                    index: globalValue.container_theme.length - 1,
+                                    hide_title: true,
+                                    hide_delete: true
+                                }),
+                                `<div class="d-flex align-content-center border justify-content-end p-3">
+<button class="btn btn-black" type="button" onclick="${gvc.event(()=>{
+                                    NormalPageEditor.closeEvent=()=>{}
+                                    NormalPageEditor.toggle({visible:false})
+                                    callback(`${globalValue.container_theme.length - 1}`)
+                                    gvc.notifyDataChange(vm.id)
+                                })}">
+            <span class="tx_700_white">儲存並新增</span>
+        </button>
+</div>`
+                            ].join(''),
+                            title: '新增全局容器'
+                        })
+                    })}">新增容器</a>
+                </div>
+            </div>`
+                }
+            }
+        })
+    }
+
+    public static globalContainerDetail(obj: {
+        gvc: GVC,
+        back: () => void,
+        name: string,
+        data: any,
+        index: number,
+        hide_title?: boolean,
+        hide_delete?: boolean
+    }) {
+        obj.data.data = obj.data.data || {}
+        const html = String.raw
+        const gvc = obj.gvc
+        const globalValue = gvc.glitter.share.editorViewModel.appConfig;
+        return html`
+            <div class="">
+                <div class="${obj.hide_title ? `d-none` : ``} px-3   border-bottom pb-3 fw-bold mt-2 pt-2"
+                     style="cursor: pointer;color:#393939;"
+                     onclick="${gvc.event(() => {
+                         obj.back()
+                     })}">
+                    <i class="fa-solid fa-angle-left"></i>
+                    <span>${obj.name} 編輯</span>
+                </div>
+                <div class="py-2 px-3">
+                    ${CustomStyle.renderThemeEditor(obj.gvc, obj.data, () => {
+                        gvc.glitter.share.global_container_theme=globalValue.container_theme;
+                        const element = (document.querySelector('#editerCenter iframe') as any).contentWindow.glitter.elementCallback;
+                        (document.querySelector('#editerCenter  iframe') as any).contentWindow.glitter.share.global_container_theme = globalValue.container_theme;
+                        Object.keys(element).map((dd) => {
+                            try {
+                                element[dd].updateAttribute()
+                            } catch (e) {
+                            }
+                        });
+                    })}
+                </div>
+                <div class="${obj.hide_delete ? `d-none` : ``}" style="padding: 0px 24px 24px;">
+                    <div class="bt_border_editor"
+                         onclick="${gvc.event(() => {
+                             const dialog = new ShareDialog(gvc.glitter)
+                             dialog.checkYesOrNot({
+                                 text: '是否確認刪除容器?',
+                                 callback: (response) => {
+                                     if (response) {
+                                         globalValue.container_theme = globalValue.container_theme.filter((dd: any) => {
+                                             return dd !== obj.data
+                                         })
+                                         obj.back()
+                                     }
+                                 }
+                             })
+
+
+                         })}">
+                        刪除容器
+                    </div>
+                </div>
+            </div>
+        `
     }
 }

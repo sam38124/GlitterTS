@@ -333,7 +333,7 @@ export class UserList {
                                 return '';
                             },
                         }),
-                    ].join())}
+                    ].join(''))}
                         `, BgWidget.getContainerWidth());
                 }
                 else if (vm.type === 'editSpec') {

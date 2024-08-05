@@ -9,10 +9,184 @@ class UpdateScript {
     static async run() {
         const migrate_template = (await database_1.default.query('SELECT appName FROM glitter.app_config where template_type!=0;', [])).map((dd) => {
             return dd.appName;
-        }).concat('shop-template-clothing-v3');
-        await UpdateScript.migratePages(migrate_template.filter((dd) => {
-            return dd !== 't_1719819344426';
-        }), ['about-us', 'privacy', 'terms']);
+        }).concat(['shop-template-clothing-v3']);
+        await UpdateScript.migrateLink(migrate_template);
+    }
+    static async migrateHomePageFooter(appList) {
+        for (const b of appList) {
+            const homePage = (await database_1.default.query(`select * from glitter.page_config
+                                             where appName = ?
+                                               and tag = ?`, [b, 'index']))[0];
+            homePage.config[0]['deletable'] = 'false';
+            homePage.config[homePage.config.length - 1]['deletable'] = 'false';
+            homePage.created_time = new Date();
+            homePage.config = JSON.stringify(homePage.config);
+            homePage.page_config = JSON.stringify(homePage.page_config);
+            await database_1.default.query(`update glitter.page_config set ? where id=?`, [
+                homePage, homePage.id
+            ]);
+        }
+    }
+    static async migrateInitialConfig(appList) {
+        let private_config = await database_1.default.query(`select *
+                                             from glitter.private_config
+                                             where app_name = ?`, ['t_1719819344426']);
+        let public_config = await database_1.default.query(`select *
+                                            from \`t_1719819344426\`.t_user_public_config`, []);
+        for (const v of appList) {
+            for (const b of private_config) {
+                b.id = undefined;
+                b.app_name = v;
+                b.updated_at = new Date();
+                if (typeof b.value === 'object') {
+                    b.value = JSON.stringify(b.value);
+                }
+                await database_1.default.query(`delete
+                                from glitter.private_config
+                                where app_name = ?
+                                  and \`key\` = ?`, [v, b.key]);
+                await database_1.default.query(`insert into glitter.private_config
+                                set ?`, [
+                    b
+                ]);
+            }
+            for (const b of public_config) {
+                b.id = undefined;
+                b.updated_at = new Date();
+                if (typeof b.value === 'object') {
+                    b.value = JSON.stringify(b.value);
+                }
+                await database_1.default.query(`delete
+                                from \`${v}\`.t_user_public_config
+                                where \`key\` = ?
+                                  and id > 0`, [b.key]);
+                await database_1.default.query(`insert into \`${v}\`.t_user_public_config
+                                set ?`, [
+                    b
+                ]);
+            }
+        }
+    }
+    static async migrateSinglePage(appList) {
+        const cart_footer = {
+            "id": "sdsds5s9s9sasbs8",
+            "js": "./official_view_component/official.js",
+            "css": { "class": {}, "style": {} },
+            "data": {
+                "refer_app": "shop_template_black_style",
+                "tag": "sy01_checkout_detail",
+                "list": [],
+                "carryData": {}
+            },
+            "type": "component",
+            "class": "w-100",
+            "index": 0,
+            "label": "SY01-購物車詳情",
+            "style": "",
+            "bundle": {},
+            "global": [],
+            "toggle": false,
+            "stylist": [],
+            "dataType": "static",
+            "style_from": "code",
+            "classDataType": "static",
+            "preloadEvenet": {},
+            "share": {},
+            "formData": {},
+            "refreshAllParameter": {},
+            "refreshComponentParameter": {},
+            "list": [],
+            "version": "v2",
+            "storage": {},
+            "mobile": { "refer": "def" },
+            "desktop": { "refer": "def" }
+        };
+        let index2 = 0;
+        for (const b of appList) {
+            index2 = index2 + 1;
+            await database_1.default.query(`delete
+                            from glitter.page_config
+                            where appName = ?
+                              and tag = ?`, [b, 'spa']);
+            await database_1.default.query(`delete
+                            from glitter.page_config
+                            where appName = ?
+                              and tag = ?`, [b, 'spa' + index2]);
+            await database_1.default.query(`delete
+                            from glitter.page_config
+                            where appName = ?
+                              and tag = ?`, ['shop_template_black_style', 'spa' + index2]);
+            const image = (await database_1.default.query(`SELECT *
+                                           FROM glitter.app_config
+                                           where appName = ?`, [b]))[0].template_config.image[0];
+            const index = (await database_1.default.query(`select *
+                                           from glitter.page_config
+                                           where appName = ?
+                                             and tag = ?`, [b, 'index']))[0];
+            index.config.splice(index.config.length - 1, 1);
+            index.config.splice(0, 1);
+            index.config.push(cart_footer);
+            index.page_config = {
+                "list": [],
+                "version": "v2",
+                "formData": {},
+                "formFormat": [],
+                "resource_from": "global"
+            };
+            index.template_type = 2;
+            index.group = '一頁商店';
+            index.tag = 'spa' + index2;
+            index.name = `一頁購物-AS${(index2 < 10) ? `0${index2}` : index2}`;
+            index.appName = 'shop_template_black_style';
+            index.template_config = {
+                "tag": ["一頁購物"],
+                "desc": "",
+                "name": `一頁購物-AS${(index2 < 10) ? `0${index2}` : index2}`,
+                "image": [image],
+                "status": "wait",
+                "post_to": "all",
+                "version": "1.0",
+                "created_by": "liondesign.io",
+                "preview_img": image
+            };
+            index.template_config = JSON.stringify(index.template_config);
+            index.config = JSON.stringify(index.config);
+            index.page_config = JSON.stringify(index.page_config);
+            index.id = undefined;
+            await database_1.default.query(`delete
+                            from shop_template_black_style.t_manager_post
+                            where id > 0
+                              and content ->>'$.tag'=?`, [
+                index.tag
+            ]);
+            await database_1.default.query(`insert into shop_template_black_style.t_manager_post
+                            set ?`, [
+                {
+                    userID: index.userID,
+                    content: JSON.stringify({
+                        "seo": {},
+                        "tag": index.tag,
+                        "name": index.name,
+                        "type": "article",
+                        "config": JSON.parse(index.config),
+                        "relative": "collection",
+                        "template": "article",
+                        "for_index": "false",
+                        "generator": "page_editor",
+                        "page_type": "page",
+                        "collection": [],
+                        "relative_data": [],
+                        "with_discount": "false"
+                    })
+                }
+            ]);
+            const data = await database_1.default.query(`insert into glitter.page_config
+                                         set ?`, [index]);
+            await database_1.default.query(`replace
+            into glitter.t_template_tag  (\`type\`,tag,bind) values (?,?,?)`, [
+                'page', '一頁購物', data.insertId
+            ]);
+        }
     }
     static async migrateLink(appList) {
         for (const appName of appList) {

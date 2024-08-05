@@ -157,7 +157,18 @@ export class ApiUser {
         });
     }
 
-    public static getSubScribe(json: { limit: number; page: number; search?: string; id?: string }) {
+    static getFilterString(obj: any): string[] {
+        if (!obj) return [];
+        let list = [] as string[];
+        if (obj) {
+            if (obj.account && obj.account.length > 0) {
+                list.push(`account=${obj.account}`);
+            }
+        }
+        return list;
+    }
+
+    public static getSubScribe(json: { limit: number; page: number; search?: string; id?: string; filter?: any }) {
         return BaseApi.create({
             url:
                 getBaseUrl() +
@@ -165,6 +176,7 @@ export class ApiUser {
                     let par = [`limit=${json.limit}`, `page=${json.page}`];
                     json.search && par.push(`search=${json.search}`);
                     json.id && par.push(`id=${json.id}`);
+                    json.filter && par.push(ApiUser.getFilterString(json.filter).join('&'));
                     return par.join('&');
                 })()}`,
             type: 'GET',
@@ -284,8 +296,16 @@ export class ApiUser {
                 Authorization: getConfig().config.token,
             },
         }).then(async (data) => {
-            const array = data.response.data;
+            if (!data.result) {
+                return {
+                    response: {
+                        data: [],
+                        total: 0,
+                    },
+                };
+            }
 
+            const array = data.response.data;
             if (array.length > 0) {
                 await new Promise((resolve, reject) => {
                     let pass = 0;
@@ -349,6 +369,7 @@ export class ApiUser {
                 response: {
                     data: array,
                     total: data.response.total,
+                    extra: data.response.extra,
                 },
             };
         });

@@ -18,6 +18,7 @@ import { GlobalEvent } from '../api/global-event.js';
 import { NormalPageEditor } from '../../editor/normal-page-editor.js';
 import { StyleEditor } from '../plugins/style-editor.js';
 import { component } from '../../official_view_component/official/component.js';
+import { ShareDialog } from "../dialog/ShareDialog.js";
 const html = String.raw;
 export class HtmlGenerate {
     constructor(container, hoverInitial = [], subData, root) {
@@ -727,13 +728,32 @@ ${dd.value === vm.select ? `background:linear-gradient(135deg, #667eea 0%, #764b
                                                                                                             case 'loading':
                                                                                                                 return html ` <div class="px-2">
                                                                                               ${(() => {
-                                                                                                                    var _a, _b;
+                                                                                                                    var _a, _b, _c;
                                                                                                                     const array = [];
                                                                                                                     if (dd.data.elem !== 'style' && dd.data.elem !== 'script') {
                                                                                                                         array.push(EditorElem.select({
+                                                                                                                            title: '開放刪除',
+                                                                                                                            gvc: gvc,
+                                                                                                                            def: (_a = dd.deletable) !== null && _a !== void 0 ? _a : '',
+                                                                                                                            array: [
+                                                                                                                                {
+                                                                                                                                    title: '是',
+                                                                                                                                    value: 'true',
+                                                                                                                                },
+                                                                                                                                {
+                                                                                                                                    title: '否',
+                                                                                                                                    value: 'false',
+                                                                                                                                },
+                                                                                                                            ],
+                                                                                                                            callback: (text) => {
+                                                                                                                                dd.deletable = text;
+                                                                                                                                gvc.notifyDataChange(id);
+                                                                                                                            },
+                                                                                                                        }));
+                                                                                                                        array.push(EditorElem.select({
                                                                                                                             title: '生成方式',
                                                                                                                             gvc: gvc,
-                                                                                                                            def: (_a = dd.gCount) !== null && _a !== void 0 ? _a : 'single',
+                                                                                                                            def: (_b = dd.gCount) !== null && _b !== void 0 ? _b : 'single',
                                                                                                                             array: [
                                                                                                                                 {
                                                                                                                                     title: '靜態',
@@ -751,7 +771,7 @@ ${dd.value === vm.select ? `background:linear-gradient(135deg, #667eea 0%, #764b
                                                                                                                         }));
                                                                                                                     }
                                                                                                                     if (dd.gCount === 'multiple') {
-                                                                                                                        dd.arrayData = (_b = dd.arrayData) !== null && _b !== void 0 ? _b : {};
+                                                                                                                        dd.arrayData = (_c = dd.arrayData) !== null && _c !== void 0 ? _c : {};
                                                                                                                         array.push(TriggerEvent.editer(gvc, dd, dd.arrayData, {
                                                                                                                             hover: false,
                                                                                                                             option: [],
@@ -1327,6 +1347,27 @@ ${obj.gvc.bindView({
         cf.widget.refreshAllParameter.view1 = () => {
             gvc.notifyDataChange(container_id);
         };
+        cf.widget.editor_bridge = undefined;
+        Object.defineProperty(cf.widget, 'editor_bridge', {
+            get: function () {
+                return {
+                    scrollWithHover: () => {
+                        gvc.glitter.$(`.editor_it_${cf.widget.id}`).addClass('editorItemActive');
+                        gvc.glitter.$(`.editor_it_${cf.widget.id}`).get(0).scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'center',
+                        });
+                    },
+                    cancelHover: () => {
+                        gvc.glitter.$(`.editor_it_${cf.widget.id}`).removeClass('editorItemActive');
+                    },
+                    element: () => {
+                        return gvc.glitter.$(`.editor_it_${cf.widget.id}`).get(0);
+                    }
+                };
+            },
+            set(v) { }
+        });
         function getHtml() {
             var _a;
             if ((cf.widget.data.elem === 'link' &&
@@ -1356,9 +1397,6 @@ ${obj.gvc.bindView({
                         };
                         function getHtml() {
                             return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
-                                if (cf.widget.data.elem === 'header') {
-                                    console.log(`Header-render-onCreate-time:`, window.renderClock.stop());
-                                }
                                 cf.widget.refreshComponentParameter.view1 = () => {
                                     gvc.notifyDataChange(container_id);
                                 };
@@ -1569,7 +1607,26 @@ ${obj.gvc.bindView({
                                                 class: `${(_a = cf.widget.class) !== null && _a !== void 0 ? _a : ''} ${cf.widget.hashTag ? `glitterTag${cf.widget.hashTag}` : ''} 
                                                                                 ${isEditMode() ? `editorParent` : ``}
                                                                 ${gvc.glitter.htmlGenerate.styleEditor(widget, gvc, widget, {}).class()}`,
-                                                option: option,
+                                                option: option.concat((() => {
+                                                    if (root && isEditMode()) {
+                                                        return [{
+                                                                key: 'onmouseover',
+                                                                value: gvc.event((e, event) => {
+                                                                    $(e).children('.editorChild').get(0).style.background = "linear-gradient(143deg, rgba(255, 180, 0, 0.2) -22.7%, rgba(255, 108, 2, 0.2) 114.57%)";
+                                                                })
+                                                            },
+                                                            {
+                                                                key: 'onmouseout',
+                                                                value: gvc.event((e, event) => {
+                                                                    $(e).children('.editorChild').get(0).style.background = "none";
+                                                                })
+                                                            }
+                                                        ];
+                                                    }
+                                                    else {
+                                                        return [];
+                                                    }
+                                                })()),
                                             },
                                             onCreate: () => {
                                                 TriggerEvent.trigger({
@@ -1700,6 +1757,7 @@ ${obj.gvc.bindView({
                             style="background: lightgrey;color: #393939;cursor: pointer;min-height: 250px;left: 0px;top:0px;width: 100%;height: 100%;"
                             onmousedown="${gvc.event(() => {
                         glitter.getModule(new URL(gvc.glitter.root_path + 'editor/add-component.js').href, (AddComponent) => {
+                            glitter.share.editorViewModel.selectContainer = widget.data.setting;
                             AddComponent.toggle(true);
                             AddComponent.addWidget = (gvc, cf) => {
                                 window.parent.glitter.share.editorViewModel.selectContainer = widget.data.setting;
@@ -1762,7 +1820,7 @@ ${obj.gvc.bindView({
                             </div>
                             <div
                                 class="position-absolute fs-1 plus_btn"
-                                style="left:50%;transform: translateX(-50%);height:28px;width:28px;top:-40px;z-index:99999;cursor: pointer;pointer-events:all;"
+                                style="left:50%;transform: translateX(-50%);height:20px;width:20px;top:${(Storage.view_type === 'mobile') ? `-30px` : `-40px`};z-index:99999;cursor: pointer;pointer-events:all;"
                                 onmousedown="${cf.gvc.event((e, event) => {
                             HtmlGenerate.block_timer = new Date().getTime();
                             glitter.getModule(new URL('../.././editor/add-component.js', import.meta.url).href, (AddComponent) => {
@@ -1817,7 +1875,7 @@ ${obj.gvc.bindView({
                             </div>
                             <div
                                 class="position-absolute fs-1 plus_btn"
-                                style="left:50%;transform: translateX(-50%);height:28px;width:28px;bottom:10px;z-index:99999;cursor: pointer;pointer-events:all;"
+                                style="left:50%;transform: translateX(-50%);height:20px;width:20px;bottom:${(Storage.view_type === 'mobile') ? `10px` : `20px`};z-index:99999;cursor: pointer;pointer-events:all;"
                                 onmousedown="${cf.gvc.event((e, event) => {
                             HtmlGenerate.block_timer = new Date().getTime();
                             glitter.getModule(new URL('../.././editor/add-component.js', import.meta.url).href, (AddComponent) => {
@@ -1874,6 +1932,7 @@ ${obj.gvc.bindView({
                     divCreate: {
                         class: `editorChild editor_it_${cf.id} ${cf.gvc.glitter.htmlGenerate.hover_items.indexOf(cf.id) !== -1 ? `editorItemActive` : ``}`,
                         style: `z-index: 99999;top:0px;left:0px;`,
+                        option: []
                     },
                     onCreate: () => {
                     },
@@ -1881,33 +1940,42 @@ ${obj.gvc.bindView({
             }),
         ].join('');
     }
-    static deleteWidget(container_items, item) {
-        let glitter = window.glitter;
-        while (!glitter.share.editorViewModel) {
-            glitter = window.parent.glitter;
-        }
-        const gvc = glitter.pageConfig[0].gvc;
-        const document = glitter.document;
-        const container = document.querySelector('#editerCenter iframe').contentWindow.glitter.$(`.editor_it_${item.id}`).parent().parent().get(0);
-        for (let a = 0; a < container_items.length; a++) {
-            if (container_items[a] == item) {
-                container_items.splice(a, 1);
-            }
-        }
-        if (document.querySelector('#editerCenter iframe').contentWindow.document.querySelector(`.editor_it_${item.id}`)) {
-            document.querySelector('#editerCenter iframe').contentWindow.glitter.$(`.editor_it_${item.id}`).parent().remove();
-        }
-        if (container_items.length === 0) {
-            if (!container.className.includes('editor_it_MainView')) {
-                container.recreateView();
-            }
-            else {
-                glitter.share.editorViewModel.data.config = [];
-                gvc.notifyDataChange(['HtmlEditorContainer']);
-            }
-        }
-        glitter.share.editorViewModel.selectItem = undefined;
-        gvc.notifyDataChange(['right_NAV', 'MainEditorLeft']);
+    static deleteWidget(container_items, item, callback) {
+        const dialog = new ShareDialog(window.glitter);
+        dialog.checkYesOrNot({
+            callback: (response) => {
+                if (response) {
+                    let glitter = window.glitter;
+                    while (!glitter.share.editorViewModel) {
+                        glitter = window.parent.glitter;
+                    }
+                    const gvc = glitter.pageConfig[0].gvc;
+                    const document = glitter.document;
+                    const container = document.querySelector('#editerCenter iframe').contentWindow.glitter.$(`.editor_it_${item.id}`).parent().parent().get(0);
+                    for (let a = 0; a < container_items.length; a++) {
+                        if (container_items[a] == item) {
+                            container_items.splice(a, 1);
+                        }
+                    }
+                    if (document.querySelector('#editerCenter iframe').contentWindow.document.querySelector(`.editor_it_${item.id}`)) {
+                        document.querySelector('#editerCenter iframe').contentWindow.glitter.$(`.editor_it_${item.id}`).parent().remove();
+                    }
+                    if (container_items.length === 0) {
+                        if (!container.className.includes('editor_it_MainView')) {
+                            container.recreateView();
+                        }
+                        else {
+                            glitter.share.editorViewModel.data.config = [];
+                            gvc.notifyDataChange(['HtmlEditorContainer']);
+                        }
+                    }
+                    glitter.share.editorViewModel.selectItem = undefined;
+                    gvc.notifyDataChange(['right_NAV', 'MainEditorLeft']);
+                    callback();
+                }
+            },
+            text: '是否確認刪除此元件?'
+        });
     }
     static preloadEvent(data) {
         setTimeout(() => {

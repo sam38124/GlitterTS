@@ -8,11 +8,10 @@ export declare class Mail {
         type: string;
         page: number;
         limit: number;
-        search: string;
-        searchType: string;
-        sendDate: string;
-        sendTime: string;
-        status: string;
+        search?: string;
+        searchType?: string;
+        mailType?: string;
+        status?: string;
     }): Promise<{
         data: any;
         total: any;

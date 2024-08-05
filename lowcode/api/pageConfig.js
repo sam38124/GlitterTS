@@ -306,3 +306,9 @@ export class ApiPageConfig {
         });
     }
 }
+const interval = setInterval(() => {
+    if (window.glitter) {
+        clearInterval(interval);
+        window.glitter.setModule(import.meta.url, ApiPageConfig);
+    }
+}, 100);

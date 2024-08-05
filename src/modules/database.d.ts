@@ -7,6 +7,7 @@ export declare const queryLambada: (cf: {
     query(sql: string, params: unknown[]): Promise<any>;
 }) => any) => Promise<any>;
 declare class Transaction {
+    private pool?;
     private trans;
     connectionId: any;
     private TAG;
@@ -16,7 +17,7 @@ declare class Transaction {
     release(): Promise<void>;
 }
 declare const _default: {
-    createPool: () => Promise<mysql.Pool | undefined>;
+    createPool: () => Promise<mysql.Pool>;
     execute: (sql: string, params: any[]) => Promise<any>;
     query: (sql: string, params: unknown[]) => Promise<any>;
     Transaction: typeof Transaction;

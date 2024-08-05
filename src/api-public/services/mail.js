@@ -7,6 +7,7 @@ exports.Mail = void 0;
 const exception_js_1 = __importDefault(require("../../modules/exception.js"));
 const database_js_1 = __importDefault(require("../../modules/database.js"));
 const ses_js_1 = require("../../services/ses.js");
+const auto_send_email_js_1 = require("./auto-send-email.js");
 class Mail {
     constructor(app, token) {
         this.app = app;
@@ -36,29 +37,47 @@ class Mail {
     async getMail(query) {
         var _a, _b, _c;
         try {
-            let searchSQL = '';
+            const whereList = ['1 = 1'];
             switch (query.searchType) {
                 case 'email':
-                    searchSQL = ` AND JSON_SEARCH(content->'$.email', 'one', '%${(_a = query.search) !== null && _a !== void 0 ? _a : ''}%', NULL, '$[*]') IS NOT NULL `;
+                    whereList.push(`(JSON_SEARCH(content->'$.email', 'one', '%${(_a = query.search) !== null && _a !== void 0 ? _a : ''}%', NULL, '$[*]') IS NOT NULL)`);
                     break;
                 case 'name':
-                    searchSQL = ` AND UPPER(JSON_EXTRACT(content, '$.name')) LIKE UPPER('%${(_b = query.search) !== null && _b !== void 0 ? _b : ''}%') `;
+                    whereList.push(`(UPPER(JSON_EXTRACT(content, '$.name')) LIKE UPPER('%${(_b = query.search) !== null && _b !== void 0 ? _b : ''}%'))`);
                     break;
                 case 'title':
-                    searchSQL = ` AND UPPER(JSON_EXTRACT(content, '$.title')) LIKE UPPER('%${(_c = query.search) !== null && _c !== void 0 ? _c : ''}%') `;
+                    whereList.push(`(UPPER(JSON_EXTRACT(content, '$.title')) LIKE UPPER('%${(_c = query.search) !== null && _c !== void 0 ? _c : ''}%'))`);
                     break;
             }
-            let statusSQL = '';
             if (query.status) {
-                statusSQL = ` AND status = ${query.status}`;
+                whereList.push(`(status in (${query.status}))`);
             }
-            const whereSQL = `(tag = 'sendMail' OR tag = 'sendMailBySchedule')${searchSQL}${statusSQL}`;
+            if (query.mailType) {
+                const maiTypeString = query.mailType.replace(/[^,]+/g, "'$&'");
+                whereList.push(`(JSON_EXTRACT(content, '$.type') in (${maiTypeString}))`);
+            }
+            const whereSQL = `(tag = 'sendMail' OR tag = 'sendMailBySchedule') AND ${whereList.join(' AND ')}`;
             const emails = await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_triggers
                  WHERE ${whereSQL}
                  ORDER BY id DESC
                  ${query.type === 'download' ? '' : `LIMIT ${query.page * query.limit}, ${query.limit}`};`, []);
             const total = await database_js_1.default.query(`SELECT count(id) as c FROM \`${this.app}\`.t_triggers
                  WHERE ${whereSQL};`, []);
+            let n = 0;
+            await new Promise((resolve) => {
+                for (const email of emails) {
+                    auto_send_email_js_1.AutoSendEmail.getDefCompare(this.app, email.content.type).then((dd) => {
+                        email.content.typeName = dd && dd.tag_name ? dd.tag_name : '手動發送';
+                        n++;
+                    });
+                }
+                const si = setInterval(() => {
+                    if (n === emails.length) {
+                        resolve();
+                        clearInterval(si);
+                    }
+                }, 300);
+            });
             return { data: emails, total: total[0].c };
         }
         catch (e) {

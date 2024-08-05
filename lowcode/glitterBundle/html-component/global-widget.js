@@ -16,7 +16,8 @@ export class GlobalWidget {
                     var _a;
                     GlobalWidget.glitter_view_type = (_a = GlobalWidget.glitter_view_type) !== null && _a !== void 0 ? _a : ViewType.def;
                     return html `
-                        <h3 class="my-auto tx_title me-2" style="white-space: nowrap;font-size: 16px;">元素顯示樣式</h3>
+                        <h3 class="my-auto tx_title me-2 ms-2" style="white-space: nowrap;font-size: 16px;">
+                            元件顯示樣式</h3>
                         <div style="background:#f1f1f1;border-radius:10px;"
                              class="d-flex align-items-center justify-content-center p-1 ">
                             ${[
@@ -26,31 +27,31 @@ export class GlobalWidget {
                     ].map((dd) => {
                         if (dd.type === GlobalWidget.glitter_view_type) {
                             return html `
-                                                <div
-                                                        class="d-flex align-items-center justify-content-center bg-white"
-                                                        style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
-                                                        data-bs-toggle="tooltip" data-bs-placement="top"
-                                                        data-bs-custom-class="custom-tooltip"
-                                                        data-bs-title="${dd.title}">
-                                                    <i class="${dd.icon}"></i>
-                                                </div>`;
+                                        <div
+                                                class="d-flex align-items-center justify-content-center bg-white"
+                                                style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
+                                                data-bs-toggle="tooltip" data-bs-placement="top"
+                                                data-bs-custom-class="custom-tooltip"
+                                                data-bs-title="${dd.title}">
+                                            <i class="${dd.icon}"></i>
+                                        </div>`;
                         }
                         else {
                             return html `
-                                                <div
-                                                        class="d-flex align-items-center justify-content-center"
-                                                        style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
-                                                        onclick="${gvc.event(() => {
+                                        <div
+                                                class="d-flex align-items-center justify-content-center"
+                                                style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
+                                                onclick="${gvc.event(() => {
                                 GlobalWidget.glitter_view_type = dd.type;
                                 refresh(dd.type);
                                 gvc.notifyDataChange(id);
                             })}"
-                                                        data-bs-toggle="tooltip" data-bs-placement="top"
-                                                        data-bs-custom-class="custom-tooltip"
-                                                        data-bs-title="${dd.title}"
-                                                >
-                                                    <i class="${dd.icon}"></i>
-                                                </div>`;
+                                                data-bs-toggle="tooltip" data-bs-placement="top"
+                                                data-bs-custom-class="custom-tooltip"
+                                                data-bs-title="${dd.title}"
+                                        >
+                                            <i class="${dd.icon}"></i>
+                                        </div>`;
                         }
                     })
                         .join('')}
@@ -122,10 +123,26 @@ export class GlobalWidget {
                     return `@{{theme_color.${index}.${key}}}`;
                 };
             }
+            else if (obj.widget[d2].refer === 'hide') {
+                obj.widget[d2] = { refer: 'hide' };
+            }
             else {
                 obj.widget[d2] = { refer: obj.widget[d2].refer };
             }
         });
+    }
+    static switchButton(gvc, def, callback) {
+        return html `
+            <div class="form-check form-switch m-0" style="margin-top: 10px; cursor: pointer;">
+                <input
+                        class="form-check-input"
+                        type="checkbox"
+                        onchange="${gvc.event((e) => {
+            callback(e.checked);
+        })}"
+                        ${def ? `checked` : ``}
+                />
+            </div>`;
     }
     static showCaseEditor(obj) {
         if (GlobalWidget.glitter_view_type === ViewType.def) {
@@ -135,41 +152,84 @@ export class GlobalWidget {
             const id = obj.gvc.glitter.getUUID();
             GlobalWidget.initialShowCaseData({ widget: obj.widget, gvc: obj.gvc });
             function selector(widget, key) {
-                return EditorElem.select({
-                    title: '顯示方式',
-                    gvc: obj.gvc,
-                    def: widget.refer,
-                    array: [
-                        { title: '參照預設', value: "def" },
-                        { title: '自定義', value: "custom" },
-                        { title: '不顯示', value: "hide" }
-                    ],
-                    callback: (text) => {
-                        obj.widget[key].refer = text;
-                        obj.widget.refreshComponent();
+                return html `
+                    <div class="border-bottom mx-n2"
+                         style="padding: 18px;">${[
+                    `<div class="d-flex align-content-center" style="gap:10px;">
+<h3 class="my-auto tx_title fw-normal" style="white-space: nowrap;font-size: 16px;">在${(() => {
+                        if (GlobalWidget.glitter_view_type === ViewType.mobile) {
+                            return `手機`;
+                        }
+                        else {
+                            return `電腦`;
+                        }
+                    })()}版上顯示</h3>
+${GlobalWidget.switchButton(obj.gvc, obj.widget[key].refer !== 'hide', (bool) => {
+                        if (bool) {
+                            obj.widget[key].refer = 'def';
+                        }
+                        else {
+                            obj.widget[key].refer = 'hide';
+                        }
+                        setTimeout(() => {
+                            obj.widget.refreshComponent();
+                        }, 250);
+                    })}
+</div>`
+                ].concat((() => {
+                    if (obj.widget[key].refer === 'hide') {
+                        return [];
                     }
-                });
+                    else {
+                        return [`<div class="fw-bold" style="font-size: 16px;">顯示樣式</div>`,
+                            EditorElem.select({
+                                title: '',
+                                gvc: obj.gvc,
+                                def: widget.refer || 'def',
+                                array: [
+                                    { title: '預設樣式', value: "def" },
+                                    { title: '自定義', value: "custom" }
+                                ],
+                                callback: (text) => {
+                                    obj.widget[key].refer = text;
+                                    if (obj.widget.refreshComponent) {
+                                        obj.widget.refreshComponent();
+                                    }
+                                    else if (obj.widget.refreshAll) {
+                                        obj.widget.refreshAll();
+                                    }
+                                }
+                            })];
+                    }
+                })()).join('<div class="my-3"></div>')}
+                    </div>`;
             }
             return obj.gvc.bindView(() => {
                 return {
                     bind: id,
                     view: () => {
-                        if (GlobalWidget.glitter_view_type === ViewType.mobile) {
-                            const view = [selector(obj.widget.mobile, 'mobile')];
-                            if (obj.widget.mobile.refer === 'custom') {
-                                view.push(obj.view(obj.widget.mobile));
+                        try {
+                            if (GlobalWidget.glitter_view_type === ViewType.mobile) {
+                                const view = [selector(obj.widget.mobile, 'mobile')];
+                                if (obj.widget.mobile.refer === 'custom') {
+                                    view.push(obj.view(obj.widget.mobile));
+                                }
+                                return view.join('');
                             }
-                            return view.join('');
-                        }
-                        else if (GlobalWidget.glitter_view_type === ViewType.desktop) {
-                            const view = [selector(obj.widget.desktop, 'desktop')];
-                            if (obj.widget.desktop.refer === 'custom') {
-                                view.push(obj.view(obj.widget.desktop));
+                            else if (GlobalWidget.glitter_view_type === ViewType.desktop) {
+                                const view = [selector(obj.widget.desktop, 'desktop')];
+                                if (obj.widget.desktop.refer === 'custom') {
+                                    view.push(obj.view(obj.widget.desktop));
+                                }
+                                return view.join('');
                             }
-                            return view.join('');
+                            else {
+                                return obj.view(obj.widget);
+                            }
                         }
-                        else {
-                            return obj.view(obj.widget);
+                        catch (e) {
+                            console.log(e);
+                            return `${e}`;
                         }
                     }
                 };
@@ -178,17 +238,17 @@ export class GlobalWidget {
     }
     static showCaseData(obj) {
         GlobalWidget.initialShowCaseData({ widget: obj.widget, gvc: obj.gvc });
-        if (obj.gvc.glitter.document.body.clientWidth < 800 && obj.widget.mobile.refer === 'custom') {
-            return obj.view(obj.widget.mobile);
-        }
-        else if (obj.gvc.glitter.document.body.clientWidth < 800 && obj.widget.mobile.refer === 'hide') {
+        if (obj.gvc.glitter.document.body.clientWidth < 800 && obj.widget.mobile.refer === 'hide') {
             return ``;
-        }
-        else if (obj.gvc.glitter.document.body.clientWidth >= 800 && obj.widget.desktop.refer === 'custom') {
-            return obj.view(obj.widget.desktop);
         }
         else if (obj.gvc.glitter.document.body.clientWidth >= 800 && obj.widget.desktop.refer === 'hide') {
             return ``;
+        }
+        else if (obj.gvc.glitter.document.body.clientWidth < 800 && obj.widget.mobile.refer === 'custom') {
+            return obj.view(obj.widget.mobile);
+        }
+        else if (obj.gvc.glitter.document.body.clientWidth >= 800 && obj.widget.desktop.refer === 'custom') {
+            return obj.view(obj.widget.desktop);
         }
         else {
             return obj.view(obj.widget);
