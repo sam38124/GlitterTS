@@ -5,7 +5,6 @@ import { ApiShop } from '../glitter-base/route/shopping.js';
 import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
 import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
 import { FilterOptions } from './filter-options.js';
-import { noImageURL } from '../backend-manager/bg-product.js';
 
 type ViewModel = {
     id: string;
@@ -425,7 +424,7 @@ export class ShoppingCollections {
                                                                                             return {
                                                                                                 key: product.content.id + '',
                                                                                                 value: product.content.title,
-                                                                                                image: product.content.preview_image[0] ?? noImageURL,
+                                                                                                image: product.content.preview_image[0] ?? BgWidget.noImageURL,
                                                                                             };
                                                                                         })
                                                                                     );
@@ -454,7 +453,7 @@ export class ShoppingCollections {
                                                                         >
                                                                             <span class="tx_normal">${index + 1}.</span>
                                                                             <div style="line-height: 40px;">
-                                                                                <img class="rounded border me-1" src="${opt.image ?? noImageURL}" style="width:40px; height:40px;" />
+                                                                                <img class="rounded border me-1" src="${opt.image ?? BgWidget.noImageURL}" style="width:40px; height:40px;" />
                                                                             </div>
                                                                             <span class="tx_normal">${opt.value}</span>
                                                                             ${opt.note ? html` <span class="tx_gray_12 ms-2">${opt.note}</span> ` : ''}
@@ -478,7 +477,7 @@ export class ShoppingCollections {
                                                                                 return {
                                                                                     key: product.content.id,
                                                                                     value: product.content.title,
-                                                                                    image: product.content.preview_image[0] ?? noImageURL,
+                                                                                    image: product.content.preview_image[0] ?? BgWidget.noImageURL,
                                                                                 };
                                                                             });
                                                                             pvm.loading = false;
@@ -618,8 +617,13 @@ export class ShoppingCollections {
                                 ${BgWidget.save(
                                     gvc.event(() => {
                                         const regex = /[\s,\/\\]+/g;
+                                        if (vm.data.title === undefined || vm.data.title === '') {
+                                            dialog.infoMessage({ text: '標題不可為空' });
+                                            return;
+                                        }
+
                                         if (regex.test(vm.data.title)) {
-                                            alert('標題不可包含空白格與以下符號：「 , 」「 / 」「 \\ 」');
+                                            dialog.infoMessage({ text: '標題不可包含空白格與以下符號：<br />「 , 」「 / 」「 \\ 」' });
                                             return;
                                         }
 

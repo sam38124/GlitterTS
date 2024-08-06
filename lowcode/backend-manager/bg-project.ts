@@ -10,8 +10,6 @@ import { ApiApp } from '../glitter-base/route/app.js';
 import { FormWidget } from '../official_view_component/official/form.js';
 import { ApiWallet } from '../glitter-base/route/wallet.js';
 import { ApiPageConfig } from '../api/pageConfig.js';
-import { Storage } from '../glitterBundle/helper/storage.js';
-import { EditorConfig } from '../editor-config.js';
 
 const html = String.raw;
 
@@ -1231,7 +1229,7 @@ export class BgProject {
                                                                                         });
                                                                                         (window.parent as any).glitter.openNewTab(dd.response.url);
                                                                                     } else {
-                                                                                        alert('下載失敗!');
+                                                                                        dialog.errorMessage({ text: '下載失敗' });
                                                                                     }
                                                                                 });
                                                                                 event.stopPropagation();
@@ -1707,6 +1705,7 @@ export class BgProject {
         };
 
         function save() {
+            const dialog = new ShareDialog(gvc.glitter);
             if (
                 !(postMD.name && postMD.logo && postMD.bundle_id) ||
                 !((postMD.image['6.7'].length >= 3 && postMD.image['6.5'].length >= 3 && postMD.image['5.5'].length >= 3) || postMD.type === 'android_release') ||
@@ -1715,10 +1714,9 @@ export class BgProject {
                     return (!postMD.market_info as any)[dd];
                 })
             ) {
-                alert('請確實填寫所有內容!');
+                dialog.infoMessage({ text: '請確實填寫所有內容' });
                 return;
             }
-            const dialog = new ShareDialog(gvc.glitter);
             dialog.dataLoading({ text: '提交審核中...', visible: true });
             (editorData ? ApiPost.put : ApiPost.post)({
                 postData: postMD,

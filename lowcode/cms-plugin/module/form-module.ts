@@ -189,17 +189,11 @@ export class FormModule {
                                                                       },
                                                                       placeHolder: '請輸入關於這項欄位的描述或指引',
                                                                   }),
-                                                                  BgWidget.multiCheckboxContainer(
-                                                                      gvc,
-                                                                      [{ key: 'true', name: '設定為必填項目' }],
-                                                                      [`${dd.require ?? ''}` || 'false'],
-                                                                      () => {
-                                                                          dd.require = !dd.require;
-                                                                          update && update();
-                                                                          gvc.notifyDataChange(vm.id);
-                                                                      },
-                                                                      false
-                                                                  ),
+                                                                  BgWidget.multiCheckboxContainer(gvc, [{ key: 'true', name: '設定為必填項目' }], [`${dd.require ?? ''}` || 'false'], () => {
+                                                                      dd.require = !dd.require;
+                                                                      update && update();
+                                                                      gvc.notifyDataChange(vm.id);
+                                                                  }),
                                                                   html`<div class="d-flex align-items-center justify-content-end">
                                                                       ${BgWidget.cancel(
                                                                           gvc.event(() => {
@@ -294,17 +288,11 @@ export class FormModule {
                                                                           };
                                                                       })}
                                                                   `,
-                                                                  BgWidget.multiCheckboxContainer(
-                                                                      gvc,
-                                                                      [{ key: 'true', name: '設定為必填項目' }],
-                                                                      [`${dd.require ?? ''}` || 'false'],
-                                                                      () => {
-                                                                          dd.require = !dd.require;
-                                                                          update && update();
-                                                                          gvc.notifyDataChange(vm.id);
-                                                                      },
-                                                                      false
-                                                                  ),
+                                                                  BgWidget.multiCheckboxContainer(gvc, [{ key: 'true', name: '設定為必填項目' }], [`${dd.require ?? ''}` || 'false'], () => {
+                                                                      dd.require = !dd.require;
+                                                                      update && update();
+                                                                      gvc.notifyDataChange(vm.id);
+                                                                  }),
                                                                   html`<div class="d-flex align-items-center justify-content-end">
                                                                       ${BgWidget.cancel(
                                                                           gvc.event(() => {

@@ -700,7 +700,8 @@ export class BgNotify {
                             placeHolder: '請輸入信件主旨',
                             callback: (text) => {
                                 if (text === 'default') {
-                                    alert('default 為系統預設值，請更改其他信件主旨');
+                                    const dialog = new ShareDialog(gvc.glitter);
+                                    dialog.infoMessage({ text: 'default 為系統預設值，請更改其他信件主旨' });
                                     postData.title = '';
                                     obj.gvc.notifyDataChange(bi);
                                     return;
@@ -1122,7 +1123,8 @@ export class BgNotify {
                         <div class="tx_normal">${postData.userList.length}人</div>
                         ${BgWidget.grayButton('查看名單', gvc.event(() => {
                     if (postData.userList.length === 0) {
-                        alert('目前無預計寄件的顧客');
+                        const dialog = new ShareDialog(gvc.glitter);
+                        dialog.infoMessage({ text: '目前無預計寄件的顧客' });
                         return;
                     }
                     BgWidget.selectDropDialog({
@@ -1225,7 +1227,8 @@ export class BgNotify {
                                             const intFiltter = parseInt(`${value}`, 10);
                                             value = intFiltter > 0 ? intFiltter : 0;
                                             if (isNaN(intFiltter) || intFiltter < 0) {
-                                                alert('請輸入正整數或0');
+                                                const dialog = new ShareDialog(gvc.glitter);
+                                                dialog.infoMessage({ text: '請輸入正整數或0' });
                                                 return;
                                             }
                                         }

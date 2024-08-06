@@ -1,7 +1,7 @@
 import { PageSplit } from './splitPage.js';
 import { ApiShop } from '../glitter-base/route/shopping.js';
-import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
 import { Article } from '../glitter-base/route/article.js';
+import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
 const html = String.raw;
 export class BgWidget {
     static table(obj) {
@@ -263,9 +263,6 @@ export class BgWidget {
         return html ` <div class="${classStyle}">${htmlString}</div>`;
     }
     static mainCard(htmlString, classString, styleString) {
-        return html ` <div class="main-card ${classString !== null && classString !== void 0 ? classString : ''}" style="${styleString !== null && styleString !== void 0 ? styleString : ''}">${htmlString !== null && htmlString !== void 0 ? htmlString : ''}</div>`;
-    }
-    static mainCardMbp0(htmlString, classString, styleString) {
         return html ` <div class="main-card ${classString !== null && classString !== void 0 ? classString : ''}" style="${styleString !== null && styleString !== void 0 ? styleString : ''}">${htmlString !== null && htmlString !== void 0 ? htmlString : ''}</div>`;
     }
     static container(htmlString, width, style) {
@@ -1405,53 +1402,62 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             text += possible.charAt(Math.floor(Math.random() * possible.length));
         return text;
     }
-    static multiCheckboxContainer(gvc, data, def, callback, readonly, single) {
+    static multiCheckboxContainer(gvc, data, def, callback, obj) {
         const id = gvc.glitter.getUUID();
         const randomString = this.randomString(5);
-        let checkboxHTML = '';
+        const viewId = this.randomString(5);
         gvc.addStyle(`
-            .${randomString}:checked[type='checkbox'] {
+            .${randomString}:checked[type='checkbox'],
+            .${randomString}:checked[type='radio']  {
                 border: 2px solid #000;
                 background-color: #fff;
-                background-image: url(${this.checkedDataImage('#000')});
+                background-image: url(${obj && obj.single ? this.dotDataImage('#000') : this.checkedDataImage('#000')});
                 background-position: center center;
             }
         `);
-        data.map((item) => {
-            checkboxHTML += html `
-                <div class="form-check">
-                    <input
-                        class="form-check-input ${randomString} cursor_pointer"
-                        style="margin-top: 0.35rem;"
-                        type="checkbox"
-                        id="${id}_${item.key}"
-                        onclick="${gvc.event((e, ev) => {
-                if (readonly) {
-                    ev.preventDefault();
-                    return;
-                }
-            })}"
-                        onchange="${gvc.event((e, ev) => {
-                if (single) {
-                    callback([item.key]);
-                }
-                else {
-                    if (e.checked) {
-                        def.push(item.key);
-                    }
-                    else {
-                        def = def.filter((d) => d !== item.key);
-                    }
-                    callback(def);
-                }
-            })}"
-                        ${def.includes(item.key) ? 'checked' : ''}
-                    />
-                    <label class="form-check-label cursor_pointer" for="${id}_${item.key}" style="font-size: 16px; color: #393939;">${item.name}</label>
-                </div>
-            `;
+        return gvc.bindView({
+            bind: viewId,
+            view: () => {
+                let checkboxHTML = '';
+                data.map((item) => {
+                    checkboxHTML += html `
+                        <div class="form-check">
+                            <input
+                                class="form-check-input ${randomString} cursor_pointer"
+                                style="margin-top: 0.35rem;"
+                                type="${obj && obj.single ? 'radio' : 'checkbox'}"
+                                id="${id}_${item.key}"
+                                onclick="${gvc.event((e, ev) => {
+                        if (obj && obj.readonly) {
+                            ev.preventDefault();
+                            return;
+                        }
+                    })}"
+                                onchange="${gvc.event((e, ev) => {
+                        if (obj && obj.single) {
+                            def = [item.key];
+                            callback([item.key]);
+                        }
+                        else {
+                            if (e.checked) {
+                                def.push(item.key);
+                            }
+                            else {
+                                def = def.filter((d) => d !== item.key);
+                            }
+                            callback(def);
+                        }
+                        gvc.notifyDataChange(viewId);
+                    })}"
+                                ${def.includes(item.key) ? 'checked' : ''}
+                            />
+                            <label class="form-check-label cursor_pointer" for="${id}_${item.key}" style="font-size: 16px; color: #393939;">${item.name}</label>
+                        </div>
+                    `;
+                });
+                return html ` <div style="width: 100%; display: flex; flex-direction: column; gap: 6px;">${checkboxHTML}</div> `;
+            },
         });
-        return html ` <div style="width: 100%; display: flex; flex-direction: column; gap: 6px;">${checkboxHTML}</div> `;
     }
     static radioInputContainer(gvc, data, def, callback) {
         const id = gvc.glitter.getUUID();
@@ -1688,7 +1694,42 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         })}
         </div>`;
     }
+    static validImageBox(obj) {
+        const imageVM = {
+            id: obj.gvc.glitter.getUUID(),
+            loading: true,
+            url: this.noImageURL,
+        };
+        return obj.gvc.bindView({
+            bind: imageVM.id,
+            view: () => {
+                var _a, _b, _c;
+                return html `<img class="${(_a = obj.class) !== null && _a !== void 0 ? _a : ''}" style="width:${obj.width}px; height:${(_b = obj.height) !== null && _b !== void 0 ? _b : obj.width}px; ${(_c = obj.style) !== null && _c !== void 0 ? _c : ''}" src="${imageVM.url}" />`;
+            },
+            divCreate: {},
+            onCreate: () => {
+                if (imageVM.loading) {
+                    this.isImageUrlValid(obj.image).then((isValid) => {
+                        if (isValid) {
+                            imageVM.url = obj.image;
+                        }
+                        imageVM.loading = false;
+                        obj.gvc.notifyDataChange(imageVM.id);
+                    });
+                }
+            },
+        });
+    }
+    static isImageUrlValid(url) {
+        return new Promise((resolve) => {
+            const img = new Image();
+            img.onload = () => resolve(true);
+            img.onerror = () => resolve(false);
+            img.src = url;
+        });
+    }
 }
+BgWidget.noImageURL = 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg';
 BgWidget.getContainerWidth = (obj) => {
     const width = document.body.clientWidth;
     const rateForWeb = obj && obj.rate && obj.rate.web ? obj.rate.web : 0.79;

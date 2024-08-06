@@ -294,12 +294,12 @@ export class EditorElem {
         });
     }
     static flexMediaManagerV2(obj) {
+        const data = obj.data;
         obj.gvc.addStyle(`
             .p-hover-image:hover {
-                opacity: 1 !important; /* 在父元素悬停时，底层元素可见 */
+                opacity: 1 !important;
             }
         `);
-        const data = obj.data;
         return obj.gvc.bindView(() => {
             obj.gvc.addMtScript([
                 {
@@ -308,14 +308,18 @@ export class EditorElem {
             ], () => { }, () => { });
             const id = obj.gvc.glitter.getUUID();
             const bid = obj.gvc.glitter.getUUID();
+            let loading = true;
             return {
                 bind: id,
                 view: () => {
+                    if (loading) {
+                        return '';
+                    }
                     if (data.length === 0) {
                         return html ` <div class="w-100 d-flex align-items-center justify-content-center fw-bold fs-6 alert m-0 bgf6">尚未新增任何檔案...</div>`;
                     }
                     return html `
-                        <ul id="${bid}" class="d-flex " style="gap:10px;overflow-x: auto;max-width: 700px;">
+                        <ul id="${bid}" class="d-flex" style="gap:10px;overflow-x: auto;max-width: 700px;">
                             ${data
                         .map((dd, index) => {
                         return html ` <li
@@ -349,6 +353,29 @@ export class EditorElem {
                 },
                 divCreate: { class: ``, style: `gap:10px;overflow-x: auto;display: flex;white-space: nowrap; ` },
                 onCreate: () => {
+                    if (loading) {
+                        let n = 0;
+                        for (let index = 0; index < data.length; index++) {
+                            new Promise((resolve) => {
+                                const img = new Image();
+                                img.onload = () => resolve(true);
+                                img.onerror = () => resolve(false);
+                                img.src = data[index];
+                            }).then((isValid) => {
+                                if (!isValid) {
+                                    data[index] = this.noImageURL;
+                                }
+                                n++;
+                            });
+                        }
+                        const si = setInterval(() => {
+                            if (n === data.length) {
+                                loading = false;
+                                obj.gvc.notifyDataChange(id);
+                                clearInterval(si);
+                            }
+                        }, 200);
+                    }
                     const interval = setInterval(() => {
                         if (window.Sortable) {
                             try {
@@ -2337,6 +2364,7 @@ ${obj.gvc.bindView(() => {
         </div>`;
     }
 }
+EditorElem.noImageURL = 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg';
 const interval = setInterval(() => {
     if (window.glitter) {
         clearInterval(interval);

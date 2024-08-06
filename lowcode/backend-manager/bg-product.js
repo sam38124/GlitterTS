@@ -2,7 +2,6 @@ import { BgWidget } from './bg-widget.js';
 import { ApiShop } from '../glitter-base/route/shopping.js';
 import { FilterOptions } from '../cms-plugin/filter-options.js';
 const html = String.raw;
-export const noImageURL = 'https://jmva.or.jp/wp-content/uploads/2018/07/noimage.png';
 export class BgProduct {
     static productsDialog(obj) {
         return obj.gvc.glitter.innerDialog((gvc) => {
@@ -151,7 +150,7 @@ export class BgProduct {
                                 return {
                                     key: product.content.id,
                                     value: product.content.title,
-                                    image: (_a = product.content.preview_image[0]) !== null && _a !== void 0 ? _a : noImageURL,
+                                    image: (_a = product.content.preview_image[0]) !== null && _a !== void 0 ? _a : BgWidget.noImageURL,
                                 };
                             });
                             vm.loading = false;
@@ -290,7 +289,7 @@ BgProduct.getProductOpts = (def) => {
                 return {
                     key: product.content.id,
                     value: product.content.title,
-                    image: (_a = product.content.preview_image[0]) !== null && _a !== void 0 ? _a : noImageURL,
+                    image: (_a = product.content.preview_image[0]) !== null && _a !== void 0 ? _a : BgWidget.noImageURL,
                 };
             }));
         });
@@ -300,7 +299,7 @@ BgProduct.getCollectionAllOpts = (options, callback) => {
     function cc(cols, pre) {
         var _a;
         const str = pre.length > 0 ? pre + ' / ' + cols.title : cols.title;
-        options.push({ key: str, value: BgProduct.replaceAngle(str), image: noImageURL });
+        options.push({ key: str, value: BgProduct.replaceAngle(str), image: BgWidget.noImageURL });
         for (const col of (_a = cols.array) !== null && _a !== void 0 ? _a : []) {
             cc(col, str);
         }
@@ -317,7 +316,7 @@ BgProduct.getCollectiosOpts = (def) => {
     function cc(cols, pre) {
         var _a;
         const str = pre.length > 0 ? pre + ' / ' + cols.title : cols.title;
-        def.includes(str) && opts.push({ key: str, value: BgProduct.replaceAngle(str), image: noImageURL });
+        def.includes(str) && opts.push({ key: str, value: BgProduct.replaceAngle(str), image: BgWidget.noImageURL });
         for (const col of (_a = cols.array) !== null && _a !== void 0 ? _a : []) {
             cc(col, str);
         }

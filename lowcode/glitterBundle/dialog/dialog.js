@@ -2,7 +2,7 @@ import { init } from '../GVController.js';
 init(import.meta.url, (gvc, glitter, gBundle) => {
     return {
         onCreateView: () => {
-            var _a, _b, _c;
+            var _a, _b, _c, _d;
             const html = String.raw;
             gvc.addStyle(`
                 .dialog-box {
@@ -69,12 +69,24 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                             <div class="mt-3 fs-6 fw-500">${(_a = gBundle.obj.text) !== null && _a !== void 0 ? _a : '請稍候...'}</div>
                         </div>
                     </div>`;
+                case 'infoMessage':
+                    return html `
+                        <div class="dialog-box">
+                            <div class="dialog-content position-relative pb-5">
+                                <i class="fa-sharp fa-solid fa-circle-info fs-1"></i>
+                                <div class="my-3 fs-6 fw-500" style="white-space: normal;">${(_b = gBundle.obj.text) !== null && _b !== void 0 ? _b : '系統提示訊息'}</div>
+                                <div class="dialog-absolute" onclick="${gvc.event(() => gvc.closeDialog())}">
+                                    <div class="fs-6 fw-500">確認</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
                 case 'errorMessage':
                     return html `
                         <div class="dialog-box">
                             <div class="dialog-content position-relative pb-5">
                                 <i class="fa-solid fa-triangle-exclamation fs-1"></i>
-                                <div class="my-3 fs-6 fw-500" style="white-space: normal;">${(_b = gBundle.obj.text) !== null && _b !== void 0 ? _b : '發生錯誤'}</div>
+                                <div class="my-3 fs-6 fw-500" style="white-space: normal;">${(_c = gBundle.obj.text) !== null && _c !== void 0 ? _c : '發生錯誤'}</div>
                                 <div class="dialog-absolute" onclick="${gvc.event(() => gvc.closeDialog())}">
                                     <div class="fs-6 fw-500">關閉</div>
                                 </div>
@@ -92,7 +104,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                         >
                             <div class="dialog-content">
                                 <i class="fa-regular fa-circle-check fs-1"></i>
-                                <div class="mt-3 fs-6 fw-500">${(_c = gBundle.obj.text) !== null && _c !== void 0 ? _c : '成功'}</div>
+                                <div class="mt-3 fs-6 fw-500">${(_d = gBundle.obj.text) !== null && _d !== void 0 ? _d : '成功'}</div>
                             </div>
                         </div>
                     `;
