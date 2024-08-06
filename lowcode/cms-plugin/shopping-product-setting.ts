@@ -3450,7 +3450,7 @@ color: ${selected.length ? `#393939` : `#DDD`};font-size: 18px;
                                                                                                               </div>`);
                                                                                                           }
                                                                                                           if (spec.expand || postMD.specs.length === 1) {
-                                                                                                              postMD.variants = cartesianProductSort(
+                                                                                                              (postMD.variants as any) = cartesianProductSort(
                                                                                                                   postMD.specs.map((item) => {
                                                                                                                       return item.option.map((item2: any) => item2.title);
                                                                                                                   })

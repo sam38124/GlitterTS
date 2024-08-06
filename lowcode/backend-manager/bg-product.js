@@ -276,6 +276,10 @@ export class BgProduct {
 }
 BgProduct.getProductOpts = (def) => {
     return new Promise((resolve) => {
+        if (!def || def.length === 0) {
+            resolve([]);
+            return;
+        }
         ApiShop.getProduct({
             page: 0,
             limit: 99999,

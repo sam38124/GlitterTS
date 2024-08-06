@@ -155,7 +155,17 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                                     createOption.childContainer = true;
                                                     createOption.class += ` ${(glitter.htmlGenerate.isEditMode()) ? `${page_request_config.appName}_${page_request_config.tag}` : ``}`;
                                                     createOption.style = (_c = createOption.style) !== null && _c !== void 0 ? _c : '';
-                                                    createOption.style += CustomStyle.value(gvc, widget);
+                                                    createOption.style += (() => {
+                                                        if (gvc.glitter.document.body.clientWidth < 800 && widget.mobile && widget.mobile.refer === 'custom') {
+                                                            return CustomStyle.value(gvc, widget.mobile);
+                                                        }
+                                                        else if (gvc.glitter.document.body.clientWidth >= 800 && widget.desktop && widget.desktop.refer === 'custom') {
+                                                            return CustomStyle.value(gvc, widget.desktop);
+                                                        }
+                                                        else {
+                                                            return CustomStyle.value(gvc, widget);
+                                                        }
+                                                    })();
                                                     return createOption;
                                                 }
                                                 loop(viewConfig);
@@ -198,51 +208,24 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                             }));
                         });
                     }
-                    const comp = false;
-                    if (comp) {
-                        return gvc.bindView(() => {
-                            const id = gvc.glitter.getUUID();
-                            return {
-                                bind: id,
-                                view: () => {
-                                    return ``;
-                                },
-                                divCreate: {
-                                    elem: 'web-component', option: [
-                                        {
-                                            key: 'id', value: id
-                                        }
-                                    ]
-                                },
-                                onCreate: () => __awaiter(void 0, void 0, void 0, function* () {
-                                    const html = yield getData(document.querySelector('#' + id).shadowRoot);
-                                    document.querySelector('#' + id).setView({
-                                        gvc: gvc, view: html, id: id
-                                    });
-                                })
-                            };
-                        });
-                    }
-                    else {
-                        return gvc.bindView(() => {
-                            const tempView = glitter.getUUID();
-                            return {
-                                bind: tempView,
-                                view: () => {
-                                    return ``;
-                                },
-                                divCreate: {
-                                    class: ``
-                                },
-                                onInitial: () => __awaiter(void 0, void 0, void 0, function* () {
-                                    const target = document.querySelector(`[gvc-id="${gvc.id(tempView)}"]`);
-                                    target.outerHTML = (yield getData(gvc.glitter.document));
-                                }),
-                                onDestroy: () => {
-                                },
-                            };
-                        });
-                    }
+                    return gvc.bindView(() => {
+                        const tempView = glitter.getUUID();
+                        return {
+                            bind: tempView,
+                            view: () => {
+                                return ``;
+                            },
+                            divCreate: {
+                                class: ``
+                            },
+                            onInitial: () => __awaiter(void 0, void 0, void 0, function* () {
+                                const target = document.querySelector(`[gvc-id="${gvc.id(tempView)}"]`);
+                                target.outerHTML = (yield getData(gvc.glitter.document));
+                            }),
+                            onDestroy: () => {
+                            },
+                        };
+                    });
                 },
                 editor: () => __awaiter(void 0, void 0, void 0, function* () {
                     const EditorElem = yield new Promise((resolve, reject) => {

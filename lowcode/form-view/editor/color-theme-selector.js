@@ -37,7 +37,7 @@ export class ColorThemeSelector {
                         ]
                             .map((dd) => {
                             return html `
-                                                <div >
+                                                <div>
                                                     ${[
                                 html `
                                                             <div
@@ -191,7 +191,6 @@ export class ColorThemeSelector {
                                         vm.name = ``;
                                         vm.type = 'detail';
                                         vm.index = `custom-${cf.widget.bundle.form_key}`;
-                                        cf.widget.bundle.refresh && cf.widget.bundle.refresh();
                                         return Main_editor.color_detail_custom({
                                             gvc: cf.gvc,
                                             back: () => {

@@ -41,7 +41,7 @@ export class ColorThemeSelector {
                                 ]
                                         .map((dd) => {
                                             return html`
-                                                <div >
+                                                <div>
                                                     ${[
                                                         html`
                                                             <div
@@ -49,10 +49,12 @@ export class ColorThemeSelector {
                                                                     style="gap:8px;"
                                                                     onclick="${cf.gvc.event(() => {
                                                                         const key = ((`${select.id}`.split('-')[0] === 'custom') ? `custom` : `global`)
-                                                                        if(key===dd.value){return}
-                                                                        if(dd.value==='custom'){
+                                                                        if (key === dd.value) {
+                                                                            return
+                                                                        }
+                                                                        if (dd.value === 'custom') {
                                                                             ColorThemeSelector.changeTheme(cf, `custom-${cf.widget.bundle.form_key}`, {}, select, globalValue, id, true)
-                                                                        }else{
+                                                                        } else {
                                                                             ColorThemeSelector.changeTheme(cf, 0, globalValue.color_theme[0], select, globalValue, id, false);
                                                                         }
                                                                         cf.gvc.notifyDataChange(id)
@@ -79,7 +81,7 @@ export class ColorThemeSelector {
                                                                         if (key !== dd.value) {
                                                                             return ``
                                                                         }
-                                                                        if(key==='global'){
+                                                                        if (key === 'global') {
                                                                             return `<div
                                     class="position-relative"
                                     style="width: 100%;  padding: 18px 12px;border-radius: 7px; overflow: hidden; border: 1px #DDDDDD solid; flex-direction: column; justify-content: center; align-items: flex-start; gap: 32px; display: inline-flex"
@@ -123,7 +125,7 @@ export class ColorThemeSelector {
                                                                                             return inf.includes(`.${key}`) || inf.includes(`("${key}`) || inf.includes(`('${key}`) || inf.includes(`['${key}']`) || inf.includes(`["${key}"]`)
                                                                                         },
                                                                                         name: custom ? `自定義配色` : `調色盤${parseInt(select.id, 10) + 1}`,
-                                                                                        data: custom ? select :  globalValue.color_theme[parseInt(select.id, 10)],
+                                                                                        data: custom ? select : globalValue.color_theme[parseInt(select.id, 10)],
                                                                                         index: parseInt(select.id, 10)
                                                                                     }),
                                                                                     title: '顏色編輯',
@@ -185,21 +187,22 @@ export class ColorThemeSelector {
                                     </div>
                                 </div>
                             </div>`
-                                                                        }else{
+                                                                        } else {
                                                                             const vm: any = {};
                                                                             vm.data = cf.widget.bundle.form_data[cf.widget.bundle.form_key];
                                                                             vm.name = ``;
                                                                             vm.type = 'detail';
                                                                             vm.index = `custom-${cf.widget.bundle.form_key}`;
-                                                                            cf.widget.bundle.refresh && cf.widget.bundle.refresh();
-                                                                            return  Main_editor.color_detail_custom({
+                                                                            return Main_editor.color_detail_custom({
                                                                                 gvc: cf.gvc,
                                                                                 back: () => {
                                                                                     cf.widget.bundle.refresh && cf.widget.bundle.refresh();
                                                                                     cf.gvc.notifyDataChange(id);
                                                                                 },
                                                                                 filter: (key) => {
-                                                                                    if (!cf.widget.bundle.root_widget) { return true; }
+                                                                                    if (!cf.widget.bundle.root_widget) {
+                                                                                        return true;
+                                                                                    }
                                                                                     const inf = JSON.stringify(cf.widget.bundle.root_widget).replace(/\s+/g, '');
                                                                                     return inf.includes(`.${key}`) || inf.includes(`("${key}`) || inf.includes(`('${key}`) || inf.includes(`['${key}']`) || inf.includes(`["${key}"]`)
                                                                                 },
@@ -208,7 +211,7 @@ export class ColorThemeSelector {
                                                                                 index: vm.index,
                                                                             })
                                                                         }
-                                                                      
+
                                                                     })()}
                                                                 </div>
                                                             </div>`,

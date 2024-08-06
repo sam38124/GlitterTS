@@ -520,7 +520,7 @@ export class BgWidget {
                                         ${obj.def === dd.value ? `<i class="fa-sharp fa-solid fa-circle-dot cl_39"></i>` : ` <div class="c_39_checkbox"></div>`}
                                         <div class="tx_normal fw-normal">${dd.title}</div>
                                     </div>`,
-                                    obj.def === dd.value
+                                    obj.def === dd.value && dd.innerHtml
                                         ? html` <div class="d-flex position-relative mt-2">
                                               <div class="ms-2 border-end position-absolute h-100" style="left: 0px;"></div>
                                               <div class="flex-fill " style="margin-left:30px;width: 100%;">${dd.innerHtml}</div>

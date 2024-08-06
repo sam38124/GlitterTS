@@ -13,15 +13,17 @@ import { EditorElem } from "../../glitterBundle/plugins/editor-elem.js";
 TriggerEvent.createSingleEvent(import.meta.url, () => {
     return {
         fun: (gvc, widget, object, subData) => {
+            var _a, _b;
+            object.getType = (_a = object.getType) !== null && _a !== void 0 ? _a : "manual";
+            object.count = (_b = object.count) !== null && _b !== void 0 ? _b : {};
             return {
                 editor: () => {
-                    var _a, _b;
-                    object.getType = (_a = object.getType) !== null && _a !== void 0 ? _a : "manual";
+                    var _a;
                     const id = gvc.glitter.getUUID();
                     return EditorElem.select({
                         title: "取得商品方式",
                         gvc: gvc,
-                        def: (_b = object.getType) !== null && _b !== void 0 ? _b : "manual",
+                        def: (_a = object.getType) !== null && _a !== void 0 ? _a : "manual",
                         array: [{ title: '手動輸入', value: 'manual' }, { title: '程式碼帶入', value: 'code' }],
                         callback: (text) => {
                             object.getType = text;
@@ -52,7 +54,11 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                             search: (text, callback) => {
                                                 clearInterval(interval);
                                                 interval = setTimeout(() => {
-                                                    ApiShop.getProduct({ page: 0, limit: 50, search: '' }).then((data) => {
+                                                    ApiShop.getProduct({
+                                                        page: 0,
+                                                        limit: 50,
+                                                        search: ''
+                                                    }).then((data) => {
                                                         callback(data.response.data.map((dd) => {
                                                             return dd.content.title;
                                                         }));
@@ -93,6 +99,10 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                                 hover: false,
                                                 title: "取得商品ID",
                                                 option: []
+                                            }), TriggerEvent.editer(gvc, widget, object.count, {
+                                                hover: false,
+                                                title: "商品數量限制",
+                                                option: []
                                             })].join(`<div class="my-2"></div>`));
                                     }
                                 }));
@@ -107,34 +117,57 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                     return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
                         const data = yield new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
                             if (object.getType == 'code') {
+                                let searchJson = {};
                                 const id = yield TriggerEvent.trigger({
                                     gvc: gvc,
                                     widget: widget,
                                     clickEvent: object.dataFrom,
                                     subData: subData
                                 });
-                                if (object.comefromTp === 'multiple') {
-                                    ApiShop.getProduct({ page: 0, limit: 200, id_list: id }).then((data) => {
-                                        if (data.result && data.response.data) {
+                                const count = yield TriggerEvent.trigger({
+                                    gvc: gvc,
+                                    widget: widget,
+                                    clickEvent: object.count,
+                                    subData: subData
+                                });
+                                switch (id.select) {
+                                    case "collection":
+                                        searchJson = {
+                                            page: 0,
+                                            limit: count || 200,
+                                            collection: id.value.join(','),
+                                            accurate_search_collection: true
+                                        };
+                                        break;
+                                    case "product":
+                                        searchJson = { page: 0, limit: count || 200, id_list: id.value.join(',') };
+                                        break;
+                                    case "all":
+                                        searchJson = { page: 0, limit: count || 200 };
+                                        break;
+                                    default:
+                                        if (object.comefromTp === 'multiple') {
+                                            searchJson = { page: 0, limit: count || 200, id_list: id };
+                                        }
+                                        else {
+                                            searchJson = { page: 0, limit: count || 200, id: id };
+                                        }
+                                }
+                                ApiShop.getProduct(searchJson).then((data) => {
+                                    if (data.result && data.response.data) {
+                                        if (!Array.isArray(data.response.data)) {
+                                            resolve(data.response.data.content);
+                                        }
+                                        else {
                                             resolve(data.response.data.map((dd) => {
                                                 return dd.content;
                                             }));
                                         }
-                                        else {
-                                            resolve('');
-                                        }
-                                    });
-                                }
-                                else {
-                                    ApiShop.getProduct({ page: 0, limit: 50, id: id }).then((data) => {
-                                        if (data.result && data.response.result) {
-                                            resolve(data.response.data.content);
-                                        }
-                                        else {
-                                            resolve('');
-                                        }
-                                    });
-                                }
+                                    }
+                                    else {
+                                        resolve('');
+                                    }
+                                });
                             }
                             else {
                                 ApiShop.getProduct({ page: 0, limit: 50, id: object.id }).then((data) => {

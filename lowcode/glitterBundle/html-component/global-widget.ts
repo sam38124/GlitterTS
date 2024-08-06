@@ -71,7 +71,7 @@ export class GlobalWidget {
         })
     }
 
-    public static initialShowCaseData(obj: {
+    public static  initialShowCaseData(obj: {
         widget: any,
         gvc: GVC
     }) {
