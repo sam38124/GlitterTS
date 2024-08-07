@@ -69,6 +69,18 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                             <div class="mt-3 fs-6 fw-500">${gBundle.obj.text ?? '請稍候...'}</div>
                         </div>
                     </div>`;
+                case 'infoMessage':
+                    return html`
+                        <div class="dialog-box">
+                            <div class="dialog-content position-relative pb-5">
+                                <i class="fa-sharp fa-solid fa-circle-info fs-1"></i>
+                                <div class="my-3 fs-6 fw-500" style="white-space: normal;">${gBundle.obj.text ?? '系統提示訊息'}</div>
+                                <div class="dialog-absolute" onclick="${gvc.event(() => gvc.closeDialog())}">
+                                    <div class="fs-6 fw-500">確認</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
                 case 'errorMessage':
                     return html`
                         <div class="dialog-box">

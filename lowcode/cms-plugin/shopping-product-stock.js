@@ -1,6 +1,5 @@
 import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
 import { BgWidget } from '../backend-manager/bg-widget.js';
-import { noImageURL } from '../backend-manager/bg-product.js';
 import { BgListComponent } from '../backend-manager/bg-list-component.js';
 import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
 import { ApiShop } from '../glitter-base/route/shopping.js';
@@ -69,7 +68,7 @@ export class UserList {
                                 style="
                                     width: 45px; height: 45px;
                                     border-radius: 5px;
-                                    background-image: url('${(_a = dd.product_content.preview_image[0]) !== null && _a !== void 0 ? _a : noImageURL}');
+                                    background-image: url('${(_a = dd.product_content.preview_image[0]) !== null && _a !== void 0 ? _a : BgWidget.noImageURL}');
                                     background-position: center;
                                     background-size: cover;
                                     background-repeat: no-repeat;

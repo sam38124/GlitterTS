@@ -218,7 +218,7 @@ export class ShoppingRebateSetting {
                                                                                 vm.data.register.unlimited = Boolean(list[0] === 'true');
                                                                                 gvc.notifyDataChange(id);
                                                                             },
-                                                                            !vm.data.register.switch
+                                                                            { readonly: !vm.data.register.switch }
                                                                         )}
                                                                     </div>
                                                                 </div>`;
@@ -301,7 +301,7 @@ export class ShoppingRebateSetting {
                                                                                                                                     if (n === -1 || n === index) {
                                                                                                                                         item.id = text;
                                                                                                                                     } else {
-                                                                                                                                        alert('列表存在此會員等級，請重新選擇');
+                                                                                                                                        dialog.infoMessage({ text: '列表存在此會員等級，請重新選擇' });
                                                                                                                                     }
                                                                                                                                     gvc.notifyDataChange(levelVM.id);
                                                                                                                                 },
@@ -420,7 +420,7 @@ export class ShoppingRebateSetting {
                                                                                 vm.data.birth.unlimited = Boolean(list[0] === 'true');
                                                                                 gvc.notifyDataChange(id);
                                                                             },
-                                                                            !vm.data.birth.switch
+                                                                            { readonly: !vm.data.birth.switch }
                                                                         )}
                                                                     </div>
                                                                 </div>`;

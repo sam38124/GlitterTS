@@ -8,7 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
-import { ShareDialog } from '../dialog/ShareDialog.js';
+import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
 import { ApiPost } from '../glitter-base/route/post.js';
 import { ApiShop } from '../glitter-base/route/shopping.js';
 import { BgWidget } from './bg-widget.js';
@@ -351,7 +351,7 @@ export class BgShopping {
                                             return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
                                                 var _a;
                                                 resolve(html `<img
-                                                                                                    src="${dd.preview_image || 'https://jmva.or.jp/wp-content/uploads/2018/07/noimage.png'}"
+                                                                                                    src="${dd.preview_image || BgWidget.noImageURL}"
                                                                                                     class="border rounded"
                                                                                                     style="width:60px;height:60px;"
                                                                                                 />
@@ -1047,7 +1047,8 @@ export class BgShopping {
                                             placeHolder: '',
                                             callback: (text) => {
                                                 if (voucherData.method === 'percent' && parseInt(text, 10) >= 100) {
-                                                    alert('數值不得大於100%');
+                                                    const dialog = new ShareDialog(gvc.glitter);
+                                                    dialog.infoMessage({ text: '數值不得大於100%' });
                                                     gvc.notifyDataChange(id);
                                                 }
                                                 else {
@@ -1584,7 +1585,7 @@ ${EditorElem.editeInput({
                                                     },
                                                     {
                                                         key: '商品',
-                                                        value: `<img class="rounded border me-4 ${dd.content.preview_image[0] ? `` : `d-none`}" alt="" src="${dd.content.preview_image[0] || 'https://jmva.or.jp/wp-content/uploads/2018/07/noimage.png'}" style="width:40px;height:40px;">` + dd.content.title,
+                                                        value: `<img class="rounded border me-4 ${dd.content.preview_image[0] ? `` : `d-none`}" alt="" src="${dd.content.preview_image[0] || BgWidget.noImageURL}" style="width:40px;height:40px;">` + dd.content.title,
                                                     },
                                                     {
                                                         key: '狀態',
@@ -2539,7 +2540,8 @@ ${EditorElem.editeInput({
                                                 obj.gvc.notifyDataChange(id);
                                             }
                                             else {
-                                                alert('無可加入之規格');
+                                                const dialog = new ShareDialog(gvc.glitter);
+                                                dialog.infoMessage({ text: '無可加入之規格' });
                                             }
                                         }),
                                     },
@@ -2686,7 +2688,8 @@ ${EditorElem.editeInput({
                                         if (postMD.collection.find((dd) => {
                                             return dd === indt;
                                         })) {
-                                            alert('已有此標籤。');
+                                            const dialog = new ShareDialog(gvc.glitter);
+                                            dialog.infoMessage({ text: '已存在此標籤' });
                                             return;
                                         }
                                         callback({

@@ -1131,7 +1131,7 @@ export class BgProject {
                                                                     window.parent.glitter.openNewTab(dd.response.url);
                                                                 }
                                                                 else {
-                                                                    alert('下載失敗!');
+                                                                    dialog.errorMessage({ text: '下載失敗' });
                                                                 }
                                                             });
                                                             event.stopPropagation();
@@ -1522,16 +1522,16 @@ export class BgProject {
             status: 'manual',
         };
         function save() {
+            const dialog = new ShareDialog(gvc.glitter);
             if (!(postMD.name && postMD.logo && postMD.bundle_id) ||
                 !((postMD.image['6.7'].length >= 3 && postMD.image['6.5'].length >= 3 && postMD.image['5.5'].length >= 3) || postMD.type === 'android_release') ||
                 !(postMD.image.android.length >= 3 || postMD.type === 'apple_release') ||
                 Object.keys(postMD.market_info).find((dd) => {
                     return (!postMD.market_info)[dd];
                 })) {
-                alert('請確實填寫所有內容!');
+                dialog.infoMessage({ text: '請確實填寫所有內容' });
                 return;
             }
-            const dialog = new ShareDialog(gvc.glitter);
             dialog.dataLoading({ text: '提交審核中...', visible: true });
             (editorData ? ApiPost.put : ApiPost.post)({
                 postData: postMD,

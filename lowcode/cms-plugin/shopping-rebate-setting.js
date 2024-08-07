@@ -170,7 +170,7 @@ export class ShoppingRebateSetting {
                                                                         ${BgWidget.multiCheckboxContainer(gvc, [{ key: 'true', name: '無使用期限' }], vm.data.register.unlimited ? ['true'] : [], (list) => {
                                             vm.data.register.unlimited = Boolean(list[0] === 'true');
                                             gvc.notifyDataChange(id);
-                                        }, !vm.data.register.switch)}
+                                        }, { readonly: !vm.data.register.switch })}
                                                                     </div>
                                                                 </div>`;
                                     },
@@ -250,7 +250,7 @@ export class ShoppingRebateSetting {
                                                                                 item.id = text;
                                                                             }
                                                                             else {
-                                                                                alert('列表存在此會員等級，請重新選擇');
+                                                                                dialog.infoMessage({ text: '列表存在此會員等級，請重新選擇' });
                                                                             }
                                                                             gvc.notifyDataChange(levelVM.id);
                                                                         },
@@ -364,7 +364,7 @@ export class ShoppingRebateSetting {
                                                                         ${BgWidget.multiCheckboxContainer(gvc, [{ key: 'true', name: '無使用期限' }], vm.data.birth.unlimited ? ['true'] : [], (list) => {
                                             vm.data.birth.unlimited = Boolean(list[0] === 'true');
                                             gvc.notifyDataChange(id);
-                                        }, !vm.data.birth.switch)}
+                                        }, { readonly: !vm.data.birth.switch })}
                                                                     </div>
                                                                 </div>`;
                                     },

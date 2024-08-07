@@ -326,12 +326,12 @@ export class ShoppingFinanceSetting {
     }
 
     public static line_pay(gvc: GVC, keyData: any) {
-        const defText = html`<p>您選擇了線下Line Pay付款。請完成付款後，提供證明截圖(左圖)，或是照著(右圖)的流程擷取『付款詳細資訊』並上傳，以便我們核款。&nbsp;</p>
+        const defText = html`<p>您選擇了線下Line Pay付款。請完成付款後，提供證明截圖(圖一)，或是照著(圖二)的流程擷取『付款詳細資訊』並上傳，以便我們核款。&nbsp;</p>
             <p>
-                <br /><img src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1721809235108-6f302dc7696d15557c0f722311f51976.png" class="fr-fic fr-dii" style="width: 181px;" />&nbsp;<img
-                    src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1721809257002-92b58012edbc40f9686217cc95f963e3.png"
+                <br /><img src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722924978722-Frame%205078.png" class="fr-fic fr-dii" style="width: 230px;" />&nbsp;<img
+                    src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722924973580-Frame%205058.png"
                     class="fr-fic fr-dii"
-                    style="width: 427px;"
+                    style="width: 582px;"
                 />
             </p>
             <p>

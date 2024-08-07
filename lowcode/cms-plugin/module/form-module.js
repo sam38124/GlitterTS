@@ -185,7 +185,7 @@ export class FormModule {
                                                     dd.require = !dd.require;
                                                     update && update();
                                                     gvc.notifyDataChange(vm.id);
-                                                }, false),
+                                                }),
                                                 html `<div class="d-flex align-items-center justify-content-end">
                                                                       ${BgWidget.cancel(gvc.event(() => {
                                                     const dialog = new ShareDialog(gvc.glitter);
@@ -279,7 +279,7 @@ export class FormModule {
                                                     dd.require = !dd.require;
                                                     update && update();
                                                     gvc.notifyDataChange(vm.id);
-                                                }, false),
+                                                }),
                                                 html `<div class="d-flex align-items-center justify-content-end">
                                                                       ${BgWidget.cancel(gvc.event(() => {
                                                     const dialog = new ShareDialog(gvc.glitter);

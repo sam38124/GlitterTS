@@ -1,4 +1,5 @@
 import { BgWidget } from './bg-widget.js';
+import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
 const html = String.raw;
 export class BgListComponent {
     constructor(gvc, vm, filterObj) {
@@ -146,13 +147,14 @@ export class BgListComponent {
                             for (const name of Object.keys(this.vm.filter)) {
                                 const obj = items.find((item) => item.key === name);
                                 const during = this.vm.filter[name];
+                                const dialog = new ShareDialog(gvc.glitter);
                                 if (obj && obj.type === 'during') {
                                     if ((during[0].length > 0 && during[1].length === 0) || (during[0].length === 0 && during[1].length > 0)) {
-                                        alert(`${obj.name}欄位，開始日期與結束日期皆為必填`);
+                                        dialog.infoMessage({ text: `${obj.name}欄位，開始日期與結束日期皆為必填` });
                                         return;
                                     }
                                     if (!BgListComponent.duringInputVerify(during)) {
-                                        alert(`${obj.name}欄位，結束日期不得早於開始日期`);
+                                        dialog.infoMessage({ text: `${obj.name}欄位，結束日期不得早於開始日期` });
                                         return;
                                     }
                                 }

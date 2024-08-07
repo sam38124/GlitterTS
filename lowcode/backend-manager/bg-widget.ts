@@ -1,7 +1,7 @@
+import { GVC } from '../glitterBundle/GVController.js';
 import { PageSplit } from './splitPage.js';
 import { ApiShop } from '../glitter-base/route/shopping.js';
-import { ApiPost } from '../glitter-base/route/post.js';
-import { GVC } from '../glitterBundle/GVController.js';
+import { Article } from '../glitter-base/route/article.js';
 import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
 
 const html = String.raw;
@@ -11,6 +11,7 @@ interface MenuItem {
     icon: string;
     link: string;
     items?: MenuItem[];
+    ignoreFirst?: boolean;
 }
 
 interface CollecrtionItem {
@@ -31,6 +32,8 @@ export interface SelEventItem {
 }
 
 export class BgWidget {
+    static noImageURL = 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg';
+
     static getContainerWidth = (obj?: { rate?: { web?: number; pad?: number; phone?: number } }) => {
         const width = document.body.clientWidth;
         const rateForWeb = obj && obj.rate && obj.rate.web ? obj.rate.web : 0.79;
@@ -358,11 +361,6 @@ export class BgWidget {
         return html` <div class="main-card ${classString ?? ''}" style="${styleString ?? ''}">${htmlString ?? ''}</div>`;
     }
 
-    static mainCardMbp0(htmlString: string, classString?: string, styleString?: string) {
-        return html` <div class="main-card ${classString ?? ''}" style="${styleString ?? ''}">${htmlString ?? ''}</div>`;
-        // return html` <div class="main-card ${classString ?? ''}  " style="${document.body.clientWidth < 800 ? `border-radius: 0px;` : ``}${styleString ?? ''} ">${htmlString ?? ''}</div>`;
-    }
-
     static container(htmlString: string, width?: number, style?: string) {
         return html` <div
             class="${document.body.clientWidth < 768 ? 'row col-12 w-100' : ''}"
@@ -480,8 +478,6 @@ export class BgWidget {
         </div>`;
     }
 
-
-
     static goBack(event: string) {
         return html` <div class="d-flex align-items-center justify-content-center" style="width: 5px; height: 11px; cursor:pointer; margin-right: 10px;" onclick="${event}">
             <i class="fa-solid fa-angle-left" style="color: #393939;"></i>
@@ -520,7 +516,7 @@ export class BgWidget {
                                         ${obj.def === dd.value ? `<i class="fa-sharp fa-solid fa-circle-dot cl_39"></i>` : ` <div class="c_39_checkbox"></div>`}
                                         <div class="tx_normal fw-normal">${dd.title}</div>
                                     </div>`,
-                                    obj.def === dd.value
+                                    obj.def === dd.value && dd.innerHtml
                                         ? html` <div class="d-flex position-relative mt-2">
                                               <div class="ms-2 border-end position-absolute h-100" style="left: 0px;"></div>
                                               <div class="flex-fill " style="margin-left:30px;width: 100%;">${dd.innerHtml}</div>
@@ -918,7 +914,7 @@ ${obj.default ?? ''}</textarea
                                                         <div
                                                             class="w-100 p-1 link-item-container hoverF2 cursor_pointer text-wrap"
                                                             onclick=${obj.gvc.event(() => {
-                                                                if (tag.link && tag.link.length > 0) {
+                                                                if (tag.link && tag.link.length > 0 && !tag.ignoreFirst) {
                                                                     callbackEvent(tag);
                                                                 } else {
                                                                     dropMenu.prevList.push(dataList);
@@ -982,6 +978,9 @@ ${obj.default ?? ''}</textarea
                     const acticleList: MenuItem[] = [];
                     const collectionList: MenuItem[] = [];
                     const productList: MenuItem[] = [];
+                    const blockPageList: MenuItem[] = [];
+                    const hiddenPageList: MenuItem[] = [];
+                    const oneStoreList: MenuItem[] = [];
 
                     Promise.all([
                         new Promise<void>((resolve) => {
@@ -1007,12 +1006,46 @@ ${obj.default ?? ''}</textarea
                             });
                         }),
                         new Promise<void>((resolve) => {
-                            ApiPost.getManagerPost({ page: 0, limit: 20, type: 'article' }).then((data) => {
+                            Article.get({
+                                page: 0,
+                                limit: 99999,
+                                status: '1',
+                                for_index: 'true',
+                            }).then((data) => {
                                 if (data.result) {
                                     data.response.data.map((item: { content: { name: string; tag: string } }) => {
                                         const { name, tag } = item.content;
                                         if (name) {
-                                            acticleList.push({ name: name, icon: '', link: `/pages/${tag}` });
+                                            acticleList.push({ name: name, icon: '', link: `/blogs/${tag}` });
+                                        }
+                                    });
+                                }
+                                resolve();
+                            });
+                        }),
+                        new Promise<void>((resolve) => {
+                            Article.get({
+                                page: 0,
+                                limit: 99999,
+                                status: '1',
+                                for_index: 'false',
+                            }).then((data) => {
+                                if (data.result) {
+                                    data.response.data.map((item: { content: { name: string; tag: string; page_type: 'page' | 'hidden' | 'shopping' } }) => {
+                                        const { name, tag, page_type } = item.content;
+                                        if (name) {
+                                            const tagObj = { name: name, icon: '', link: `/pages/${tag}` };
+                                            switch (page_type) {
+                                                case 'page':
+                                                    blockPageList.push(tagObj);
+                                                    break;
+                                                case 'hidden':
+                                                    hiddenPageList.push(tagObj);
+                                                    break;
+                                                case 'shopping':
+                                                    oneStoreList.push(tagObj);
+                                                    break;
+                                            }
                                         }
                                     });
                                 }
@@ -1023,11 +1056,14 @@ ${obj.default ?? ''}</textarea
                         dropMenu.recentList = [
                             { name: '首頁', icon: 'fa-regular fa-house', link: '/index' },
                             { name: '所有商品', icon: 'fa-regular fa-tag', link: '/all-product', items: productList },
-                            { name: '商品分類', icon: 'fa-regular fa-tags', link: '', items: collectionList },
+                            { name: '商品分類', icon: 'fa-regular fa-tags', link: '', items: collectionList, ignoreFirst: true },
                             { name: '網誌文章', icon: 'fa-regular fa-newspaper', link: '/blogs', items: acticleList },
+                            { name: '分頁列表', icon: 'fa-regular fa-pager', link: '/pages', items: blockPageList, ignoreFirst: true },
+                            { name: '一頁商店', icon: 'fa-regular fa-1', link: '/pages', items: oneStoreList, ignoreFirst: true },
+                            { name: '隱形賣場', icon: 'fa-regular fa-store-lock', link: '/pages', items: hiddenPageList, ignoreFirst: true },
                         ].filter((menu) => {
-                            if (menu.items === undefined) return true;
-                            return menu.items.length > 0 || menu.link.length > 0;
+                            if (menu.items === undefined) return true; // 首頁
+                            return menu.items.length > 0;
                         });
                         vm.loading = false;
                         obj.gvc.notifyDataChange(vm.id);
@@ -1590,54 +1626,75 @@ ${obj.default ?? ''}</textarea
         return text;
     }
 
-    static multiCheckboxContainer(gvc: GVC, data: { key: string; name: string }[], def: string[], callback: (value: string[]) => void, readonly?: boolean, single?: boolean) {
+    static multiCheckboxContainer(
+        gvc: GVC,
+        data: {
+            key: string;
+            name: string;
+        }[],
+        def: string[],
+        callback: (value: string[]) => void,
+        obj?: {
+            readonly?: boolean;
+            single?: boolean;
+        }
+    ) {
         const id = gvc.glitter.getUUID();
         const randomString = this.randomString(5);
-        let checkboxHTML = '';
+        const viewId = this.randomString(5);
 
         gvc.addStyle(`
-            .${randomString}:checked[type='checkbox'] {
+            .${randomString}:checked[type='checkbox'],
+            .${randomString}:checked[type='radio']  {
                 border: 2px solid #000;
                 background-color: #fff;
-                background-image: url(${this.checkedDataImage('#000')});
+                background-image: url(${obj && obj.single ? this.dotDataImage('#000') : this.checkedDataImage('#000')});
                 background-position: center center;
             }
         `);
 
-        data.map((item) => {
-            checkboxHTML += html`
-                <div class="form-check">
-                    <input
-                        class="form-check-input ${randomString} cursor_pointer"
-                        style="margin-top: 0.35rem;"
-                        type="checkbox"
-                        id="${id}_${item.key}"
-                        onclick="${gvc.event((e, ev) => {
-                            if (readonly) {
-                                ev.preventDefault();
-                                return;
-                            }
-                        })}"
-                        onchange="${gvc.event((e, ev) => {
-                            if (single) {
-                                callback([item.key]);
-                            } else {
-                                if (e.checked) {
-                                    def.push(item.key);
-                                } else {
-                                    def = def.filter((d) => d !== item.key);
-                                }
-                                callback(def);
-                            }
-                        })}"
-                        ${def.includes(item.key) ? 'checked' : ''}
-                    />
-                    <label class="form-check-label cursor_pointer" for="${id}_${item.key}" style="font-size: 16px; color: #393939;">${item.name}</label>
-                </div>
-            `;
-        });
+        return gvc.bindView({
+            bind: viewId,
+            view: () => {
+                let checkboxHTML = '';
+                data.map((item) => {
+                    checkboxHTML += html`
+                        <div class="form-check">
+                            <input
+                                class="form-check-input ${randomString} cursor_pointer"
+                                style="margin-top: 0.35rem;"
+                                type="${obj && obj.single ? 'radio' : 'checkbox'}"
+                                id="${id}_${item.key}"
+                                onclick="${gvc.event((e, ev) => {
+                                    if (obj && obj.readonly) {
+                                        ev.preventDefault();
+                                        return;
+                                    }
+                                })}"
+                                onchange="${gvc.event((e, ev) => {
+                                    if (obj && obj.single) {
+                                        def = [item.key];
+                                        callback([item.key]);
+                                    } else {
+                                        if (e.checked) {
+                                            def.push(item.key);
+                                        } else {
+                                            def = def.filter((d) => d !== item.key);
+                                        }
+                                        callback(def);
+                                    }
+                                    gvc.notifyDataChange(viewId);
+                                })}"
+                                ${def.includes(item.key) ? 'checked' : ''}
+                            />
+                            <label class="form-check-label cursor_pointer" for="${id}_${item.key}" style="font-size: 16px; color: #393939;">${item.name}</label>
+                        </div>
+                    `;
+                });
 
-        return html` <div style="width: 100%; display: flex; flex-direction: column; gap: 6px;">${checkboxHTML}</div> `;
+                return html` <div style="width: 100%; display: flex; flex-direction: column; gap: 6px;">${checkboxHTML}</div> `;
+            },
+        });
     }
 
     static radioInputContainer(
@@ -1897,6 +1954,41 @@ ${obj.default ?? ''}</textarea
                 },
             })}
         </div>`;
+    }
+
+    static validImageBox(obj: { gvc: GVC; image: string; width: number; height?: number; class?: string; style?: string }) {
+        const imageVM = {
+            id: obj.gvc.glitter.getUUID(),
+            loading: true,
+            url: this.noImageURL,
+        };
+        return obj.gvc.bindView({
+            bind: imageVM.id,
+            view: () => {
+                return html`<img class="${obj.class ?? ''}" style="width:${obj.width}px; height:${obj.height ?? obj.width}px; ${obj.style ?? ''}" src="${imageVM.url}" />`;
+            },
+            divCreate: {},
+            onCreate: () => {
+                if (imageVM.loading) {
+                    this.isImageUrlValid(obj.image).then((isValid) => {
+                        if (isValid) {
+                            imageVM.url = obj.image;
+                        }
+                        imageVM.loading = false;
+                        obj.gvc.notifyDataChange(imageVM.id);
+                    });
+                }
+            },
+        });
+    }
+
+    static isImageUrlValid(url: string): Promise<boolean> {
+        return new Promise((resolve) => {
+            const img = new Image();
+            img.onload = () => resolve(true);
+            img.onerror = () => resolve(false);
+            img.src = url;
+        });
     }
 }
 

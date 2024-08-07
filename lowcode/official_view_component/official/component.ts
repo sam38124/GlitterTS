@@ -143,7 +143,15 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                     createOption.childContainer = true
                                                     createOption.class += ` ${(glitter.htmlGenerate.isEditMode()) ? `${page_request_config.appName}_${page_request_config.tag}` : ``}`;
                                                     createOption.style = createOption.style ?? ''
-                                                    createOption.style += CustomStyle.value(gvc, widget)
+                                                    createOption.style += (()=>{
+                                                       if (gvc.glitter.document.body.clientWidth < 800 && (widget as any).mobile && (widget as any).mobile.refer === 'custom') {
+                                                           return CustomStyle.value(gvc, (widget as any).mobile)
+                                                        } else if (gvc.glitter.document.body.clientWidth >= 800 && (widget as any).desktop && (widget as any).desktop.refer === 'custom') {
+                                                           return CustomStyle.value(gvc, (widget as any).desktop)
+                                                        } else {
+                                                           return CustomStyle.value(gvc, (widget as any))
+                                                        }
+                                                    })()
                                                     return createOption
                                                 }
                                                 loop(viewConfig)
@@ -189,50 +197,24 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                         })
                     }
 
-                    const comp = false
-                    if (comp) {
-                        return gvc.bindView(() => {
-                            const id = gvc.glitter.getUUID()
-                            return {
-                                bind: id,
-                                view: () => {
-                                    return ``
-                                },
-                                divCreate: {
-                                    elem: 'web-component', option: [
-                                        {
-                                            key: 'id', value: id
-                                        }
-                                    ]
-                                },
-                                onCreate: async () => {
-                                    const html = (await getData((document.querySelector('#' + id) as any)!.shadowRoot) as any);
-                                    (document.querySelector('#' + id)! as any).setView({
-                                        gvc: gvc, view: html, id: id
-                                    });
-                                }
-                            }
-                        })
-                    } else {
-                        return gvc.bindView(() => {
-                            const tempView = glitter.getUUID()
-                            return {
-                                bind: tempView,
-                                view: () => {
-                                    return ``
-                                },
-                                divCreate: {
-                                    class: ``
-                                },
-                                onInitial: async () => {
-                                    const target = document.querySelector(`[gvc-id="${gvc.id(tempView)}"]`)
-                                    target!.outerHTML = (await getData(gvc.glitter.document) as any)
-                                },
-                                onDestroy: () => {
-                                },
-                            }
-                        })
-                    }
+                    return gvc.bindView(() => {
+                        const tempView = glitter.getUUID()
+                        return {
+                            bind: tempView,
+                            view: () => {
+                                return ``
+                            },
+                            divCreate: {
+                                class: ``
+                            },
+                            onInitial: async () => {
+                                const target = document.querySelector(`[gvc-id="${gvc.id(tempView)}"]`)
+                                target!.outerHTML = (await getData(gvc.glitter.document) as any)
+                            },
+                            onDestroy: () => {
+                            },
+                        }
+                    })
                 },
                 editor: async () => {
                     const EditorElem: any = await new Promise((resolve, reject) => {

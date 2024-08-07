@@ -8,6 +8,8 @@ import { NormalPageEditor } from '../../editor/normal-page-editor.js';
 const html = String.raw;
 
 export class EditorElem {
+    static noImageURL = 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg';
+
     public static uploadImage(obj: { title: string; gvc: GVC; def: string; callback: (data: string) => void }) {
         const glitter = (window as any).glitter;
         const $ = glitter.$;
@@ -92,7 +94,7 @@ export class EditorElem {
                 view: () => {
                     if (obj.def && obj.def.length > 0) {
                         return html`<div class="uimg-container">
-                            <img class="uimg-image" src="${obj.def}" />
+                            <img class="uimg-image"${obj.def}" />
                             <div
                                 class="uimg-shadow"
                                 onmouseover="${gvc.event((e) => {
@@ -298,12 +300,12 @@ export class EditorElem {
     }
 
     public static flexMediaManagerV2(obj: { gvc: GVC; data: string[] }) {
+        const data = obj.data;
         obj.gvc.addStyle(`
             .p-hover-image:hover {
-                opacity: 1 !important; /* 在父元素悬停时，底层元素可见 */
+                opacity: 1 !important;
             }
         `);
-        const data = obj.data;
         return obj.gvc.bindView(() => {
             obj.gvc.addMtScript(
                 [
@@ -316,14 +318,18 @@ export class EditorElem {
             );
             const id = obj.gvc.glitter.getUUID();
             const bid = obj.gvc.glitter.getUUID();
+            let loading = true;
             return {
                 bind: id,
                 view: () => {
+                    if (loading) {
+                        return '';
+                    }
                     if (data.length === 0) {
                         return html` <div class="w-100 d-flex align-items-center justify-content-center fw-bold fs-6 alert m-0 bgf6">尚未新增任何檔案...</div>`;
                     }
                     return html`
-                        <ul id="${bid}" class="d-flex " style="gap:10px;overflow-x: auto;max-width: 700px;">
+                        <ul id="${bid}" class="d-flex" style="gap:10px;overflow-x: auto;max-width: 700px;">
                             ${data
                                 .map((dd, index) => {
                                     return html` <li
@@ -357,6 +363,29 @@ export class EditorElem {
                 },
                 divCreate: { class: ``, style: `gap:10px;overflow-x: auto;display: flex;white-space: nowrap; ` },
                 onCreate: () => {
+                    if (loading) {
+                        let n = 0;
+                        for (let index = 0; index < data.length; index++) {
+                            new Promise((resolve) => {
+                                const img = new Image();
+                                img.onload = () => resolve(true);
+                                img.onerror = () => resolve(false);
+                                img.src = data[index];
+                            }).then((isValid) => {
+                                if (!isValid) {
+                                    data[index] = this.noImageURL;
+                                }
+                                n++;
+                            });
+                        }
+                        const si = setInterval(() => {
+                            if (n === data.length) {
+                                loading = false;
+                                obj.gvc.notifyDataChange(id);
+                                clearInterval(si);
+                            }
+                        }, 200);
+                    }
                     const interval = setInterval(() => {
                         if ((window as any).Sortable) {
                             try {
@@ -481,7 +510,7 @@ export class EditorElem {
                         return html` <iframe
                             id="${frameID}"
                             class="w-100 h-100 border rounded-3"
-                            src="${domain}/browser-amd-editor/component.html?height=${height}&link=${location.origin}&callbackID=${id}"
+                           ${domain}/browser-amd-editor/component.html?height=${height}&link=${location.origin}&callbackID=${id}"
                         ></iframe>`;
                     },
                     divCreate: { class: `w-100 `, style: `height:${height}px;` },
@@ -562,7 +591,7 @@ export class EditorElem {
                             <iframe
                                 id="${frameID}"
                                 class="w-100 h-100 border rounded-3"
-                                src="${domain}/browser-amd-editor/component.html?height=${height}&link=${location.origin}&callbackID=${id}"
+                               ${domain}/browser-amd-editor/component.html?height=${height}&link=${location.origin}&callbackID=${id}"
                             ></iframe>
                         `;
                     },
@@ -620,7 +649,7 @@ export class EditorElem {
         cf.par.map((dd) => {
             href.searchParams.set(dd.key, dd.value);
         });
-        return html` <iframe class="rounded-3" src="${href.href}" style="border: none;width:${cf.width}px;height:${cf.height}px;"></iframe>`;
+        return html` <iframe class="rounded-3"${href.href}" style="border: none;width:${cf.width}px;height:${cf.height}px;"></iframe>`;
     }
 
     public static iframeComponent(cf: { page: string; width: number; height: number; par: { key: string; value: string }[] }) {
@@ -631,7 +660,7 @@ export class EditorElem {
         cf.par.map((dd) => {
             href.searchParams.set(dd.key, dd.value);
         });
-        return html` <iframe class="rounded-3" src="${href.href}" style="border: none;width:${cf.width}px;height:${cf.height}px;"></iframe>`;
+        return html` <iframe class="rounded-3"${href.href}" style="border: none;width:${cf.width}px;height:${cf.height}px;"></iframe>`;
     }
 
     public static codeEditor(obj: { gvc: GVC; height: number; initial: string; title: string; callback: (data: string) => void; structStart?: string; structEnd?: string }) {
@@ -676,7 +705,7 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                             <iframe
                                 id="${frameID}"
                                 class="w-100 h-100 border rounded-3"
-                                src="${domain}/browser-amd-editor/component.html?height=${height}&link=${location.origin}&callbackID=${id}"
+                               ${domain}/browser-amd-editor/component.html?height=${height}&link=${location.origin}&callbackID=${id}"
                             ></iframe>
                         `;
                     },
@@ -746,7 +775,7 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                             <iframe
                                 id="${frameID}"
                                 class="w-100 h-100 border rounded-3"
-                                src="${domain}/browser-amd-editor/component.html?height=${height}&link=${location.origin}&callbackID=${id}"
+                               ${domain}/browser-amd-editor/component.html?height=${height}&link=${location.origin}&callbackID=${id}"
                             ></iframe>
                         `;
                     },
@@ -820,8 +849,45 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
             const id = glitter.getUUID();
             const richID = glitter.getUUID();
             glitter.addMtScript(
-                ['../../jslib/froala.js', '../../jslib/froala/languages/zh_tw.js'].map((dd) => {
-                    return { src: new URL(dd, import.meta.url) };
+                [
+                    `https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js`,
+                        `https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/xml/xml.min.js`,
+                        `https://cdnjs.cloudflare.com/ajax/libs/dompurify/2.2.7/purify.min.js`,
+                    `froala_editor.min.js`,
+                    `plugins/align.min.js`,
+                    `plugins/char_counter.min.js`,
+                    `plugins/code_beautifier.min.js`,
+                    `plugins/code_view.min.js`,
+                    `plugins/colors.min.js`,
+                    `plugins/draggable.min.js`,
+                    `plugins/emoticons.min.js`,
+                    `plugins/entities.min.js`,
+                    `plugins/file.min.js`,
+                    `plugins/font_size.min.js`,
+                    `plugins/font_family.min.js`,
+                    `plugins/fullscreen.min.js`,
+                    `plugins/image.min.js`,
+                    `plugins/image_manager.min.js`,
+                    `plugins/line_breaker.min.js`,
+                    `plugins/inline_style.min.js`,
+                    `plugins/link.min.js`,
+                    `plugins/lists.min.js`,
+                    `plugins/paragraph_format.min.js`,
+                    `plugins/paragraph_style.min.js`,
+                    `plugins/quick_insert.min.js`,
+                    `plugins/quote.min.js`,
+                    `plugins/table.min.js`,
+                    `plugins/save.min.js`,
+                    `plugins/url.min.js`,
+                    `plugins/video.min.js`,
+                    `plugins/help.min.js`,
+                    `plugins/print.min.js`,
+                    `third_party/spell_checker.min.js`,
+                    `plugins/special_characters.min.js`,
+                    `languages/zh_tw.js`,
+                ].map((dd) => {
+                    console.log(new URL(`../../jslib/froala/`+dd, import.meta.url).href)
+                    return { src: dd.includes('http') ? dd:new URL(`../../jslib/froala/`+dd, import.meta.url).href };
                 }),
                 () => {},
                 () => {}
@@ -865,7 +931,7 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                         EditorElem.uploadFileFunction({
                                             gvc: gvc,
                                             callback: (text) => {
-                                                editor.html.insert(`<img src="${text}">`);
+                                                editor.html.insert(`<img${text}">`);
                                             },
                                             file: e[0],
                                         });
@@ -906,7 +972,8 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                                     }).then((res) => {
                                                         dialog.dataLoading({ visible: false });
                                                         if (res.result) {
-                                                            editor.html.insert(`<img src="${data1.fullUrl}">`);
+                                                            editor.html.insert(`<img src="${data1.fullUrl}" style="max-width: 100%;">`);
+                                                            editor.undo.saveStep()
                                                         } else {
                                                             dialog.errorMessage({ text: '上傳失敗' });
                                                         }
@@ -927,7 +994,7 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                     editor.edit.off();
                                     editor.toolbar.disable();
                                 }
-                            }, 100);
+                            }, 1000);
                             clearInterval(interval);
                         }
                     }, 200);

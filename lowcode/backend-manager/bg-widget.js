@@ -1,6 +1,6 @@
 import { PageSplit } from './splitPage.js';
 import { ApiShop } from '../glitter-base/route/shopping.js';
-import { ApiPost } from '../glitter-base/route/post.js';
+import { Article } from '../glitter-base/route/article.js';
 import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
 const html = String.raw;
 export class BgWidget {
@@ -265,9 +265,6 @@ export class BgWidget {
     static mainCard(htmlString, classString, styleString) {
         return html ` <div class="main-card ${classString !== null && classString !== void 0 ? classString : ''}" style="${styleString !== null && styleString !== void 0 ? styleString : ''}">${htmlString !== null && htmlString !== void 0 ? htmlString : ''}</div>`;
     }
-    static mainCardMbp0(htmlString, classString, styleString) {
-        return html ` <div class="main-card ${classString !== null && classString !== void 0 ? classString : ''}" style="${styleString !== null && styleString !== void 0 ? styleString : ''}">${htmlString !== null && htmlString !== void 0 ? htmlString : ''}</div>`;
-    }
     static container(htmlString, width, style) {
         return html ` <div
             class="${document.body.clientWidth < 768 ? 'row col-12 w-100' : ''}"
@@ -389,7 +386,7 @@ export class BgWidget {
                                         ${obj.def === dd.value ? `<i class="fa-sharp fa-solid fa-circle-dot cl_39"></i>` : ` <div class="c_39_checkbox"></div>`}
                                         <div class="tx_normal fw-normal">${dd.title}</div>
                                     </div>`,
-                            obj.def === dd.value
+                            obj.def === dd.value && dd.innerHtml
                                 ? html ` <div class="d-flex position-relative mt-2">
                                               <div class="ms-2 border-end position-absolute h-100" style="left: 0px;"></div>
                                               <div class="flex-fill " style="margin-left:30px;width: 100%;">${dd.innerHtml}</div>
@@ -754,7 +751,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                                         <div
                                                             class="w-100 p-1 link-item-container hoverF2 cursor_pointer text-wrap"
                                                             onclick=${obj.gvc.event(() => {
-                                        if (tag.link && tag.link.length > 0) {
+                                        if (tag.link && tag.link.length > 0 && !tag.ignoreFirst) {
                                             callbackEvent(tag);
                                         }
                                         else {
@@ -818,6 +815,9 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                     const acticleList = [];
                     const collectionList = [];
                     const productList = [];
+                    const blockPageList = [];
+                    const hiddenPageList = [];
+                    const oneStoreList = [];
                     Promise.all([
                         new Promise((resolve) => {
                             ApiShop.getCollection().then((data) => {
@@ -842,12 +842,46 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                             });
                         }),
                         new Promise((resolve) => {
-                            ApiPost.getManagerPost({ page: 0, limit: 20, type: 'article' }).then((data) => {
+                            Article.get({
+                                page: 0,
+                                limit: 99999,
+                                status: '1',
+                                for_index: 'true',
+                            }).then((data) => {
                                 if (data.result) {
                                     data.response.data.map((item) => {
                                         const { name, tag } = item.content;
                                         if (name) {
-                                            acticleList.push({ name: name, icon: '', link: `/pages/${tag}` });
+                                            acticleList.push({ name: name, icon: '', link: `/blogs/${tag}` });
+                                        }
+                                    });
+                                }
+                                resolve();
+                            });
+                        }),
+                        new Promise((resolve) => {
+                            Article.get({
+                                page: 0,
+                                limit: 99999,
+                                status: '1',
+                                for_index: 'false',
+                            }).then((data) => {
+                                if (data.result) {
+                                    data.response.data.map((item) => {
+                                        const { name, tag, page_type } = item.content;
+                                        if (name) {
+                                            const tagObj = { name: name, icon: '', link: `/pages/${tag}` };
+                                            switch (page_type) {
+                                                case 'page':
+                                                    blockPageList.push(tagObj);
+                                                    break;
+                                                case 'hidden':
+                                                    hiddenPageList.push(tagObj);
+                                                    break;
+                                                case 'shopping':
+                                                    oneStoreList.push(tagObj);
+                                                    break;
+                                            }
                                         }
                                     });
                                 }
@@ -858,12 +892,15 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                         dropMenu.recentList = [
                             { name: '首頁', icon: 'fa-regular fa-house', link: '/index' },
                             { name: '所有商品', icon: 'fa-regular fa-tag', link: '/all-product', items: productList },
-                            { name: '商品分類', icon: 'fa-regular fa-tags', link: '', items: collectionList },
+                            { name: '商品分類', icon: 'fa-regular fa-tags', link: '', items: collectionList, ignoreFirst: true },
                             { name: '網誌文章', icon: 'fa-regular fa-newspaper', link: '/blogs', items: acticleList },
+                            { name: '分頁列表', icon: 'fa-regular fa-pager', link: '/pages', items: blockPageList, ignoreFirst: true },
+                            { name: '一頁商店', icon: 'fa-regular fa-1', link: '/pages', items: oneStoreList, ignoreFirst: true },
+                            { name: '隱形賣場', icon: 'fa-regular fa-store-lock', link: '/pages', items: hiddenPageList, ignoreFirst: true },
                         ].filter((menu) => {
                             if (menu.items === undefined)
                                 return true;
-                            return menu.items.length > 0 || menu.link.length > 0;
+                            return menu.items.length > 0;
                         });
                         vm.loading = false;
                         obj.gvc.notifyDataChange(vm.id);
@@ -1365,53 +1402,62 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             text += possible.charAt(Math.floor(Math.random() * possible.length));
         return text;
     }
-    static multiCheckboxContainer(gvc, data, def, callback, readonly, single) {
+    static multiCheckboxContainer(gvc, data, def, callback, obj) {
         const id = gvc.glitter.getUUID();
         const randomString = this.randomString(5);
-        let checkboxHTML = '';
+        const viewId = this.randomString(5);
         gvc.addStyle(`
-            .${randomString}:checked[type='checkbox'] {
+            .${randomString}:checked[type='checkbox'],
+            .${randomString}:checked[type='radio']  {
                 border: 2px solid #000;
                 background-color: #fff;
-                background-image: url(${this.checkedDataImage('#000')});
+                background-image: url(${obj && obj.single ? this.dotDataImage('#000') : this.checkedDataImage('#000')});
                 background-position: center center;
             }
         `);
-        data.map((item) => {
-            checkboxHTML += html `
-                <div class="form-check">
-                    <input
-                        class="form-check-input ${randomString} cursor_pointer"
-                        style="margin-top: 0.35rem;"
-                        type="checkbox"
-                        id="${id}_${item.key}"
-                        onclick="${gvc.event((e, ev) => {
-                if (readonly) {
-                    ev.preventDefault();
-                    return;
-                }
-            })}"
-                        onchange="${gvc.event((e, ev) => {
-                if (single) {
-                    callback([item.key]);
-                }
-                else {
-                    if (e.checked) {
-                        def.push(item.key);
-                    }
-                    else {
-                        def = def.filter((d) => d !== item.key);
-                    }
-                    callback(def);
-                }
-            })}"
-                        ${def.includes(item.key) ? 'checked' : ''}
-                    />
-                    <label class="form-check-label cursor_pointer" for="${id}_${item.key}" style="font-size: 16px; color: #393939;">${item.name}</label>
-                </div>
-            `;
+        return gvc.bindView({
+            bind: viewId,
+            view: () => {
+                let checkboxHTML = '';
+                data.map((item) => {
+                    checkboxHTML += html `
+                        <div class="form-check">
+                            <input
+                                class="form-check-input ${randomString} cursor_pointer"
+                                style="margin-top: 0.35rem;"
+                                type="${obj && obj.single ? 'radio' : 'checkbox'}"
+                                id="${id}_${item.key}"
+                                onclick="${gvc.event((e, ev) => {
+                        if (obj && obj.readonly) {
+                            ev.preventDefault();
+                            return;
+                        }
+                    })}"
+                                onchange="${gvc.event((e, ev) => {
+                        if (obj && obj.single) {
+                            def = [item.key];
+                            callback([item.key]);
+                        }
+                        else {
+                            if (e.checked) {
+                                def.push(item.key);
+                            }
+                            else {
+                                def = def.filter((d) => d !== item.key);
+                            }
+                            callback(def);
+                        }
+                        gvc.notifyDataChange(viewId);
+                    })}"
+                                ${def.includes(item.key) ? 'checked' : ''}
+                            />
+                            <label class="form-check-label cursor_pointer" for="${id}_${item.key}" style="font-size: 16px; color: #393939;">${item.name}</label>
+                        </div>
+                    `;
+                });
+                return html ` <div style="width: 100%; display: flex; flex-direction: column; gap: 6px;">${checkboxHTML}</div> `;
+            },
         });
-        return html ` <div style="width: 100%; display: flex; flex-direction: column; gap: 6px;">${checkboxHTML}</div> `;
     }
     static radioInputContainer(gvc, data, def, callback) {
         const id = gvc.glitter.getUUID();
@@ -1648,7 +1694,42 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         })}
         </div>`;
     }
+    static validImageBox(obj) {
+        const imageVM = {
+            id: obj.gvc.glitter.getUUID(),
+            loading: true,
+            url: this.noImageURL,
+        };
+        return obj.gvc.bindView({
+            bind: imageVM.id,
+            view: () => {
+                var _a, _b, _c;
+                return html `<img class="${(_a = obj.class) !== null && _a !== void 0 ? _a : ''}" style="width:${obj.width}px; height:${(_b = obj.height) !== null && _b !== void 0 ? _b : obj.width}px; ${(_c = obj.style) !== null && _c !== void 0 ? _c : ''}" src="${imageVM.url}" />`;
+            },
+            divCreate: {},
+            onCreate: () => {
+                if (imageVM.loading) {
+                    this.isImageUrlValid(obj.image).then((isValid) => {
+                        if (isValid) {
+                            imageVM.url = obj.image;
+                        }
+                        imageVM.loading = false;
+                        obj.gvc.notifyDataChange(imageVM.id);
+                    });
+                }
+            },
+        });
+    }
+    static isImageUrlValid(url) {
+        return new Promise((resolve) => {
+            const img = new Image();
+            img.onload = () => resolve(true);
+            img.onerror = () => resolve(false);
+            img.src = url;
+        });
+    }
 }
+BgWidget.noImageURL = 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg';
 BgWidget.getContainerWidth = (obj) => {
     const width = document.body.clientWidth;
     const rateForWeb = obj && obj.rate && obj.rate.web ? obj.rate.web : 0.79;

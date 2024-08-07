@@ -807,7 +807,8 @@ export class ShoppingDiscountSetting {
                                                                                         placeHolder: '',
                                                                                         callback: (text) => {
                                                                                             if (voucherData.method === 'percent' && parseInt(text, 10) >= 100) {
-                                                                                                alert('數值不得大於100%');
+                                                                                                const dialog = new ShareDialog(gvc.glitter);
+                                                                                                dialog.infoMessage({ text: '數值不得大於100%' });
                                                                                                 gvc.notifyDataChange(id);
                                                                                             } else {
                                                                                                 voucherData.value = text;
