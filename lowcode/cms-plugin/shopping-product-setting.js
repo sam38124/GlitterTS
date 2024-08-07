@@ -1895,7 +1895,7 @@ export class ShoppingProductSetting {
                     postMD.specs = Array.from(uniqueTitlesMap, ([title, option]) => ({ title, option }));
                 }
             }
-            function setScrollTop() {
+            function scrollToSpec() {
                 setTimeout(() => {
                     const element = document.querySelector('.specUnitView');
                     element && element.scrollIntoView({ behavior: 'smooth' });
@@ -1908,7 +1908,6 @@ export class ShoppingProductSetting {
         `);
             const vm = {
                 id: gvc.glitter.getUUID(),
-                last_scroll: 0,
             };
             updateVariants();
             return gvc.bindView(() => {
@@ -2066,7 +2065,6 @@ export class ShoppingProductSetting {
                                                             }
                                                             let element = item.spec.splice(fromIndex, 1)[0];
                                                             item.spec.splice(toIndex, 0, element);
-                                                            console.log(item);
                                                             return item;
                                                         });
                                                         obj.gvc.notifyDataChange([specid, 'productInf']);
@@ -2171,7 +2169,7 @@ export class ShoppingProductSetting {
                                                                                 postMD.specs[specIndex] = temp;
                                                                                 checkSpecSingle();
                                                                                 updateVariants();
-                                                                                setScrollTop();
+                                                                                scrollToSpec();
                                                                                 gvc.notifyDataChange(vm.id);
                                                                             },
                                                                         })}
@@ -2226,7 +2224,7 @@ export class ShoppingProductSetting {
                                                         createPage.page = 'add';
                                                         checkSpecSingle();
                                                         updateVariants();
-                                                        setScrollTop();
+                                                        scrollToSpec();
                                                         gvc.notifyDataChange([vm.id]);
                                                     },
                                                 })}
@@ -2760,9 +2758,7 @@ export class ShoppingProductSetting {
                                                                                                               ${BgWidget.cancel(gvc.event(() => {
                                                                                         gvc.glitter.closeDiaLog();
                                                                                     }))}
-                                                                                                              ${BgWidget.save(gvc.event(() => {
-                                                                                        console.log('將價格套用到所有選取的規格中 的儲存');
-                                                                                    }))}
+                                                                                                              ${BgWidget.save(gvc.event(() => { }))}
                                                                                                           </div>
                                                                                                       </div>`;
                                                                                 }
@@ -2925,15 +2921,39 @@ color: ${selected.length ? `#393939` : `#DDD`};font-size: 18px;
                                                                         return {
                                                                             bind: vm.id,
                                                                             view: () => {
-                                                                                console.log('postMD.variants');
-                                                                                console.log(postMD.variants);
+                                                                                function cartesianProductSort(arrays) {
+                                                                                    const getCombinations = (arrays, index) => {
+                                                                                        if (index === arrays.length) {
+                                                                                            return [[]];
+                                                                                        }
+                                                                                        const currentArray = arrays[index];
+                                                                                        const nextCombinations = getCombinations(arrays, index + 1);
+                                                                                        const currentCombinations = [];
+                                                                                        for (const value of currentArray) {
+                                                                                            for (const combination of nextCombinations) {
+                                                                                                currentCombinations.push([value, ...combination]);
+                                                                                            }
+                                                                                        }
+                                                                                        return currentCombinations;
+                                                                                    };
+                                                                                    return getCombinations(arrays, 0);
+                                                                                }
+                                                                                function compareArrays(arr1, arr2) {
+                                                                                    if (arr1.length !== arr2.length) {
+                                                                                        return false;
+                                                                                    }
+                                                                                    for (let i = 0; i < arr1.length; i++) {
+                                                                                        if (arr1[i] !== arr2[i]) {
+                                                                                            return false;
+                                                                                        }
+                                                                                    }
+                                                                                    return true;
+                                                                                }
                                                                                 return postMD.specs[0].option
                                                                                     .map((spec) => {
                                                                                     var _a;
                                                                                     const viewList = [];
                                                                                     spec.expand = (_a = spec.expand) !== null && _a !== void 0 ? _a : true;
-                                                                                    console.log('spec');
-                                                                                    console.log(spec);
                                                                                     if (postMD.specs.length > 1) {
                                                                                         let isCheck = !postMD.variants
                                                                                             .filter((dd) => {
@@ -3072,34 +3092,6 @@ color: ${selected.length ? `#393939` : `#DDD`};font-size: 18px;
                                                                                                               </div>`);
                                                                                     }
                                                                                     if (spec.expand || postMD.specs.length === 1) {
-                                                                                        function cartesianProductSort(arrays) {
-                                                                                            const getCombinations = (arrays, index) => {
-                                                                                                if (index === arrays.length) {
-                                                                                                    return [[]];
-                                                                                                }
-                                                                                                const currentArray = arrays[index];
-                                                                                                const nextCombinations = getCombinations(arrays, index + 1);
-                                                                                                const currentCombinations = [];
-                                                                                                for (const value of currentArray) {
-                                                                                                    for (const combination of nextCombinations) {
-                                                                                                        currentCombinations.push([value, ...combination]);
-                                                                                                    }
-                                                                                                }
-                                                                                                return currentCombinations;
-                                                                                            };
-                                                                                            return getCombinations(arrays, 0);
-                                                                                        }
-                                                                                        function compareArrays(arr1, arr2) {
-                                                                                            if (arr1.length !== arr2.length) {
-                                                                                                return false;
-                                                                                            }
-                                                                                            for (let i = 0; i < arr1.length; i++) {
-                                                                                                if (arr1[i] !== arr2[i]) {
-                                                                                                    return false;
-                                                                                                }
-                                                                                            }
-                                                                                            return true;
-                                                                                        }
                                                                                         postMD.variants = cartesianProductSort(postMD.specs.map((item) => {
                                                                                             return item.option.map((item2) => item2.title);
                                                                                         }))

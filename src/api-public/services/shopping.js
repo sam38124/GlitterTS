@@ -76,8 +76,6 @@ class Shopping {
             const checkouts = await database_js_1.default.query(checkoutSQL, []);
             const itemRecord = [];
             for (const checkout of checkouts) {
-                console.log(1);
-                console.log(checkouts);
                 if (Array.isArray(checkout.lineItems)) {
                     for (const item1 of checkout.lineItems) {
                         const index = itemRecord.findIndex((item2) => item1.id === item2.id);
@@ -596,9 +594,6 @@ class Shopping {
             if (query.progress) {
                 let newArray = query.progress.split(',');
                 let temp = '';
-                if (newArray.includes('wait')) {
-                    temp += "JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.returnProgress')) IS NULL OR ";
-                }
                 temp += `JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.returnProgress')) IN (${newArray.map((status) => `"${status}"`).join(',')})`;
                 querySql.push(`(${temp})`);
             }
@@ -621,6 +616,12 @@ class Shopping {
                         break;
                 }
             }
+            if (query.archived === 'true') {
+                querySql.push(`(orderData->>'$.archived'="${query.archived}")`);
+            }
+            else if (query.archived === 'false') {
+                querySql.push(`((orderData->>'$.archived' is null) or (orderData->>'$.archived'!='true'))`);
+            }
             query.status && querySql.push(`status IN (${query.status})`);
             query.email && querySql.push(`email=${database_js_1.default.escape(query.email)}`);
             query.id && querySql.push(`(content->>'$.id'=${query.id})`);
@@ -636,7 +637,6 @@ class Shopping {
                 };
             }
             else {
-                console.log("querySql -- ", querySql);
                 return {
                     data: await database_js_1.default.query(`SELECT *
                          FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}`, []),
@@ -657,10 +657,17 @@ class Shopping {
                      values (?, ?, ?, ?)`, [orderID, returnOrderID, email, data.orderData]);
     }
     async putReturnOrder(data) {
+        if (data.orderData.returnProgress == -1 && data.status == 1) {
+            const userClass = new user_js_1.User(this.app);
+            const rebateClass = new rebate_js_1.Rebate(this.app);
+            const userData = await userClass.getUserData(data.orderData.customer_info.account, 'account');
+            console.log(await rebateClass.insertRebate(userData.id, 0, "測試"));
+            console.log(data.orderData.return_rebate);
+        }
         try {
             await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_return_order\`
                  set ?
-                 WHERE id = ?`, [{ status: data.status, orderData: JSON.stringify(data.orderData.orderData) }, data.id]);
+                 WHERE id = ?`, [{ status: data.status, orderData: JSON.stringify(data.orderData) }, data.id]);
             return {
                 result: 'success',
                 orderData: data,
@@ -1038,6 +1045,28 @@ class Shopping {
             let sql = `SELECT *
                        FROM \`${this.app}\`.t_checkout
                        WHERE ${querySql.join(' and ')} ${orderString}`;
+            if (query.returnSearch == "true") {
+                const data = (await database_js_1.default.query(`SELECT *
+                         FROM \`${this.app}\`.t_checkout
+                         WHERE cart_token = ${query.search}`, []));
+                let returnSql = `SELECT *
+                       FROM \`${this.app}\`.t_return_order
+                       WHERE order_id = ${query.search}`;
+                let returnData = await database_js_1.default.query(returnSql, []);
+                if (returnData.length > 0) {
+                    returnData.forEach((returnOrder) => {
+                        data[0].orderData.lineItems.map((lineItem, index) => {
+                            lineItem.count = lineItem.count - returnOrder.orderData.lineItems[index].return_count;
+                        });
+                        data[0].orderData.rebate += returnOrder.return_rebate;
+                        data[0].orderData.discount += returnOrder.return_discount;
+                    });
+                    data[0].orderData.lineItems = data[0].orderData.lineItems.filter((dd) => {
+                        return dd.count > 0;
+                    });
+                }
+                return data[0];
+            }
             if (query.id) {
                 const data = (await database_js_1.default.query(`SELECT *
                          FROM (${sql}) as subqyery limit ${query.page * query.limit}, ${query.limit}`, []))[0];
@@ -1381,8 +1410,6 @@ class Shopping {
             const categories = [];
             const product_list = [];
             for (const checkout of checkouts) {
-                console.log(2);
-                console.log(checkouts);
                 if (Array.isArray(checkout.lineItems)) {
                     for (const item1 of checkout.lineItems) {
                         const index = product_list.findIndex((item2) => item1.title === item2.title);

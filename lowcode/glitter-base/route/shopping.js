@@ -168,7 +168,7 @@ export class ApiShop {
             return [];
         let list = [];
         if (obj) {
-            if (obj.created_time && obj.created_time.length > 1 && (obj === null || obj === void 0 ? void 0 : obj.created_time[0].length) > 0 && (obj === null || obj === void 0 ? void 0 : obj.created_time[1].length) > 0) {
+            if (obj.created_time.length > 1 && (obj === null || obj === void 0 ? void 0 : obj.created_time[0].length) > 0 && (obj === null || obj === void 0 ? void 0 : obj.created_time[1].length) > 0) {
                 list.push(`created_time=${obj.created_time[0]},${obj.created_time[1]}`);
             }
             if (obj.shipment.length > 0) {
@@ -208,6 +208,7 @@ export class ApiShop {
         return BaseApi.create({
             url: getBaseUrl() +
                 `/api-public/v1/ec/order?${(() => {
+                    var _a;
                     let par = [`limit=${json.limit}`, `page=${json.page}`];
                     json.search && par.push(`search=${json.search}`);
                     json.id && par.push(`id=${json.id}`);
@@ -216,6 +217,7 @@ export class ApiShop {
                     json.searchType && par.push(`searchType=${json.searchType}`);
                     json.orderString && par.push(`orderString=${json.orderString}`);
                     json.archived && par.push(`archived=${json.archived}`);
+                    json.returnSearch && par.push(`returnSearch=${(_a = json.returnSearch) !== null && _a !== void 0 ? _a : 'false'}`);
                     filterString.length > 0 && par.push(filterString.join('&'));
                     return par.join('&');
                 })()}`,
@@ -227,10 +229,8 @@ export class ApiShop {
             },
         });
     }
-    static getReturnOrder(json) {
-        console.log("filterString -- ", json.filter);
+    static getSearchReturnOrder(json) {
         const filterString = this.returnOrderListFilterString(json.filter);
-        console.log("filterString2 -- ", filterString);
         return BaseApi.create({
             url: getBaseUrl() +
                 `/api-public/v1/ec/returnOrder?${(() => {
@@ -241,6 +241,7 @@ export class ApiShop {
                     json.status && par.push(`status=${json.status}`);
                     json.searchType && par.push(`searchType=${json.searchType}`);
                     json.orderString && par.push(`orderString=${json.orderString}`);
+                    json.archived && par.push(`archived=${json.archived}`);
                     filterString.length > 0 && par.push(filterString.join('&'));
                     return par.join('&');
                 })()}`,

@@ -223,59 +223,13 @@ export declare class Shopping {
     createReturnOrder(data: any): Promise<any>;
     putReturnOrder(data: {
         id: string;
-        orderData: {
-            id: number;
-            cart_token: string;
-            status: number;
-            email: string;
-            orderData: {
-                email: string;
-                total: number;
-                lineItems: {
-                    id: number;
-                    spec: string[];
-                    count: string;
-                    sale_price: number;
-                }[];
-                user_info: {
-                    name: string;
-                    email: string;
-                    phone: string;
-                    address: string;
-                };
-            };
-            created_time: string;
-            progress: 'finish' | 'wait' | 'shipping';
-        };
+        orderData: any;
         status: any;
     }): Promise<{
         result: string;
         orderData: {
             id: string;
-            orderData: {
-                id: number;
-                cart_token: string;
-                status: number;
-                email: string;
-                orderData: {
-                    email: string;
-                    total: number;
-                    lineItems: {
-                        id: number;
-                        spec: string[];
-                        count: string;
-                        sale_price: number;
-                    }[];
-                    user_info: {
-                        name: string;
-                        email: string;
-                        phone: string;
-                        address: string;
-                    };
-                };
-                created_time: string;
-                progress: 'finish' | 'wait' | 'shipping';
-            };
+            orderData: any;
             status: any;
         };
     }>;
@@ -334,15 +288,8 @@ export declare class Shopping {
         created_time?: string;
         orderString?: string;
         archived?: string;
-    }): Promise<{
-        data: any;
-        result: boolean;
-        total?: undefined;
-    } | {
-        data: any;
-        total: any;
-        result?: undefined;
-    }>;
+        returnSearch?: string;
+    }): Promise<any>;
     releaseCheckout(status: 1 | 0 | -1, order_id: string): Promise<void>;
     checkVoucherLimited(user_id: number, voucher_id: number): Promise<boolean>;
     insertVoucherHistory(user_id: number, order_id: string, voucher_id: number): Promise<void>;

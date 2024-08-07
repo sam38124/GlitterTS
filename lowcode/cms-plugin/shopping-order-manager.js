@@ -2857,7 +2857,7 @@ ${(() => {
                             break;
                         case 'line':
                             ['image'].map((dd, index) => {
-                                if (orderData.proof_purchase[dd]) {
+                                if (orderData.proof_purchase && orderData.proof_purchase[dd]) {
                                     array.push(`<img src="${orderData.proof_purchase[dd]}" style="width: 300px;cursor: pointer;" onclick="${gvc.event(() => {
                                         window.parent.glitter.openDiaLog(window.parent.glitter.root_path + '/dialog/image-preview.js', 'preview', orderData.proof_purchase[dd]);
                                     })}">`);

@@ -914,6 +914,11 @@ export class Shopping {
                         break;
                 }
             }
+            if (query.archived === 'true') {
+                querySql.push(`(orderData->>'$.archived'="${query.archived}")`);
+            } else if (query.archived === 'false') {
+                querySql.push(`((orderData->>'$.archived' is null) or (orderData->>'$.archived'!='true'))`);
+            }
             //退貨貨款狀態
             query.status && querySql.push(`status IN (${query.status})`);
             query.email && querySql.push(`email=${db.escape(query.email)}`);
@@ -936,7 +941,6 @@ export class Shopping {
                     result: !!data,
                 };
             } else {
-                console.log("querySql -- " , querySql)
                 return {
                     data: await db.query(
                         `SELECT *
@@ -972,40 +976,27 @@ export class Shopping {
 
     public async putReturnOrder(data: {
         id: string;
-        orderData: {
-            id: number;
-            cart_token: string;
-            status: number;
-            email: string;
-            orderData: {
-                email: string;
-                total: number;
-                lineItems: {
-                    id: number;
-                    spec: string[];
-                    count: string;
-                    sale_price: number;
-                }[];
-                user_info: {
-                    name: string;
-                    email: string;
-                    phone: string;
-                    address: string;
-                };
-            };
-            created_time: string;
-            progress: 'finish' | 'wait' | 'shipping';
-        };
+        orderData:any;
         status: any;
     }) {
+        // 當退貨單都結束後，要做的購物金 優惠金和庫存處理
+        if (data.orderData.returnProgress == -1 && data.status == 1){
+            const userClass = new User(this.app);
+            const rebateClass = new Rebate(this.app);
 
+
+            const userData = await userClass.getUserData(data.orderData.customer_info.account, 'account');
+
+            console.log(await rebateClass.insertRebate(userData.id, 0, "測試"))
+            console.log(data.orderData.return_rebate);
+
+        }
         try {
-
             await db.query(
                 `UPDATE \`${this.app}\`.\`t_return_order\`
                  set ?
                  WHERE id = ?`,
-                [{status:data.status , orderData:JSON.stringify(data.orderData.orderData)}, data.id]
+                [{status:data.status , orderData:JSON.stringify(data.orderData)}, data.id]
             );
             return {
                 result: 'success',
@@ -1381,6 +1372,7 @@ export class Shopping {
         created_time?: string;
         orderString?: string;
         archived?: string;
+        returnSearch?:string
     }) {
         try {
             let querySql = ['1=1'];
@@ -1460,14 +1452,50 @@ export class Shopping {
             query.status && querySql.push(`status IN (${query.status})`);
             query.email && querySql.push(`email=${db.escape(query.email)}`);
             query.id && querySql.push(`(content->>'$.id'=${query.id})`);
+
             if (query.archived === 'true') {
                 querySql.push(`(orderData->>'$.archived'="${query.archived}")`);
             } else if (query.archived === 'false') {
                 querySql.push(`((orderData->>'$.archived' is null) or (orderData->>'$.archived'!='true'))`);
             }
+
             let sql = `SELECT *
                        FROM \`${this.app}\`.t_checkout
                        WHERE ${querySql.join(' and ')} ${orderString}`;
+            if (query.returnSearch == "true"){
+                const data = (
+                    await db.query(
+                        `SELECT *
+                         FROM \`${this.app}\`.t_checkout
+                         WHERE cart_token = ${query.search}`,
+                        []
+                    )
+                );
+
+                let returnSql = `SELECT *
+                       FROM \`${this.app}\`.t_return_order
+                       WHERE order_id = ${query.search}`;
+
+                let returnData =  await db.query(
+                    returnSql,
+                    []
+                )
+                if (returnData.length > 0) {
+                    returnData.forEach((returnOrder:any) => {
+                        data[0].orderData.lineItems.map((lineItem:any , index:number) => {
+                            lineItem.count = lineItem.count - returnOrder.orderData.lineItems[index].return_count;
+
+                        })
+                        data[0].orderData.rebate += returnOrder.return_rebate;
+                        data[0].orderData.discount += returnOrder.return_discount;//已經退回的購物金和優惠卷折扣金額
+                    })
+                    data[0].orderData.lineItems = data[0].orderData.lineItems.filter((dd: any) => {
+                        return dd.count > 0;
+                    })
+
+                }
+                return data[0]
+            }
             if (query.id) {
                 const data = (
                     await db.query(

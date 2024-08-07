@@ -282,7 +282,7 @@ export class ShoppingOrderManager {
                             ${BgWidget.table({
                                 gvc: gvc,
                                 getData: (vmi) => {
-                                    ApiShop.getReturnOrder({
+                                    ApiShop.getSearchReturnOrder({
                                         page: vmi.page - 1,
                                         limit: 20,
                                         search: vm.query??'',
@@ -440,9 +440,9 @@ export class ShoppingOrderManager {
                                                                             });
                                                                             for (const b of check) {
                                                                                 b.orderData.archived = (vm.filter_type === 'normal') ? `true` : `false`
-                                                                                await ApiShop.putOrder({
+                                                                                await ApiShop.putReturnOrder({
                                                                                     id: `${b.id}`,
-                                                                                    order_data: b.orderData
+                                                                                    data: b
                                                                                 })
                                                                             }
                                                                             setTimeout(() => {
@@ -1001,7 +1001,7 @@ export class ShoppingOrderManager {
                                                                         des = des ?? ""
 
                                                                         return html`
-                                                                            <div class="d-flex" style="gap: 70px;">
+                                                                            <div class="d-flex" style="gap: 24px;">
                                                                                 <div class="d-flex flex-column justify-content-center "
                                                                                      style="font-size: 16px;font-weight: 400;">
                                                                                     <div style="text-align: right;">
@@ -1012,14 +1012,7 @@ export class ShoppingOrderManager {
                                                                                         ${des}
                                                                                     </div>
                                                                                 </div>
-                                                                                <input style="text-align: right;width: 112px;padding: 9px 11px;border-radius: 10px;border: 1px solid #DDD;"
-                                                                                       type="number" max="0"
-                                                                                       value="${(orderData.orderData as any)[`return_${item[1]}`]}"
-                                                                                       min="${-(orderData.orderData as any)[item[1] ?? 0]}"
-                                                                                       onchange="${gvc.event((e) => {
-                                                                                           (orderData.orderData as any)[`return_${item[1]}`] = Number(e.value);
-                                                                                           gvc.notifyDataChange('checkout')
-                                                                                       })}">
+                                                                                <div class="d-flex align-items-center justify-content-end" style="width:158px;text-align: right;">${(orderData.orderData as any)[`return_${item[1]}`]}</div>
                                                                             </div>
                                                                         `
                                                                     }).join('');
@@ -1043,7 +1036,6 @@ export class ShoppingOrderManager {
                                                         <div style="font-weight: 700;">退貨備註</div>
                                                         <textarea
                                                                 style="height: 102px;border-radius: 10px;border: 1px solid #DDD;padding: 15px;"
-                                                                disabled
                                                             ">${orderData.orderData?.return_order_remark ?? ""}</textarea>
                                                     </div>
                                                 `)}
@@ -1159,37 +1151,30 @@ export class ShoppingOrderManager {
                                 ${BgWidget.mbContainer(240)}
                                 <div class="testLine d-flex align-items-center justify-content-end"
                                      style="gap:14px;max-height:48px; position:fixed;bottom:0;right:0;width: 100%;height:50px;background: #FFF;box-shadow: 0px 1px 10px 0px rgba(0, 0, 0, 0.15);padding: 14px 16px 14px 0;">
-                                    <button style="padding: 6px 18px;border-radius: 10px;border: 1px solid #DDD;background: #FFF;font-size: 16px;font-weight: 700;color:#393939;"
-                                            onclick="${gvc.event(() => {
-                                                vm.type = 'list';
-                                            })}">取消
-                                    </button>
-                                    <button
-                                            class="btn bt_c39"
-                                            style="color: #FFF;font-size: 16px;font-weight: 700;padding: 6px 18px;align-items: center;gap: 8px;"
-                                            onclick="${gvc.event(() => {
-                                                const now = new Date();
-                                                //
-                                                // const dialog = new ShareDialog(gvc.glitter);
-                                                // dialog.dataLoading({text: '上傳中', visible: true});
-                                                let passData = {
-                                                    data: orderData,
-                                                }
-                                                ApiShop.putReturnOrder(passData).then((response) => {
-                                                    let dialog = new ShareDialog(gvc.glitter);
-                                                    dialog.dataLoading({text: '上傳中', visible: false});
-                                                    
-                                                    if (response.result) {
-                                                        dialog.successMessage({text: '更新成功!'});
-                                                        // gvc.notifyDataChange(mainViewID)
-                                                    } else {
-                                                        dialog.errorMessage({text: '更新異常!'});
-                                                    }
-                                                });
-                                            })}"
-                                    >
-                                        送出
-                                    </button>
+                                    ${BgWidget.danger(gvc.event(() => {
+                                        vm.type = 'list';
+                                    }),"作廢")}
+                                    ${BgWidget.cancel(gvc.event(() => {
+                                        vm.type = 'list';
+                                    }))}
+                                    ${BgWidget.save(gvc.event(()=>{
+                                        const now = new Date();
+                                        let passData = {
+                                            status : orderData.status,
+                                            data: orderData.orderData,
+                                        }
+                                        ApiShop.putReturnOrder(passData).then((response) => {
+                                            let dialog = new ShareDialog(gvc.glitter);
+                                            dialog.dataLoading({text: '上傳中', visible: false});
+
+                                            if (response.result) {
+                                                dialog.successMessage({text: '更新成功!'});
+                                                // gvc.notifyDataChange(mainViewID)
+                                            } else {
+                                                dialog.errorMessage({text: '更新異常!'});
+                                            }
+                                        });
+                                    }) , "送出")}
                                 </div>
                             </div>
                         `,
@@ -1206,8 +1191,9 @@ export class ShoppingOrderManager {
 
     public static searchOrder(gvc: GVC, vm: any) {
         let viewModel: any = {
-            searchOrder: "1722101420709",
+            searchOrder: "1721813981129",
             searchData: "",
+            errorReport : ""
         }
         return BgWidget.container(html`
             <!--                                標頭 --- 新增訂單標題和返回  -->
@@ -1236,9 +1222,20 @@ export class ShoppingOrderManager {
                                  limit: 100,
                                  search: viewModel.searchOrder,
                                  searchType: 'cart_token',
-                                 archived: `false`
+                                 archived: `false`,
+                                 returnSearch:'true'
                              }).then((response: any) => {
-                                 viewModel.searchData = response.response.data.find((data: any) => data.cart_token == viewModel.searchOrder)
+                                 if (response.response.length == 0){
+                                     viewModel.errorReport = "查無此訂單";
+                                 }
+                                 console.log(response)
+                                 if (response.response.orderData.lineItems.length > 0){
+                                     viewModel.searchData = response.response
+                                 }else {
+                                     viewModel.errorReport = "此訂單已無商品可退貨";
+                                 }
+                                 
+                                 // viewModel.searchData = response.response.data.find((data: any) => data.cart_token == viewModel.searchOrder)
                                  gvc.notifyDataChange(['notFind', 'orderDetail']);
                              })
                          })}">
@@ -1251,7 +1248,7 @@ export class ShoppingOrderManager {
                             if (viewModel.searchOrder.length > 0 && !viewModel.searchData) {
                                 return html`
                                     <div style="display: flex;padding: 24px 0px;justify-content: center;align-items: center;gap: 10px;align-self: stretch;color:#8D8D8D;">
-                                        查無此訂單
+                                        ${viewModel.errorReport}
                                     </div>
                                 `
                             } else {
@@ -1336,6 +1333,8 @@ export class ShoppingOrderManager {
                                                                 </div>
                                                                 <div class="d-flex " style="gap:4px;">
                                                                     ${(() => {
+                                                                        data.return_count = data.return_count ?? data.count;
+                                                                        
                                                                         if (data.spec.length == 0) {
                                                                             return html`
                                                                                 <div style="border-radius: 7px;background: #EAEAEA;display: flex;height: 22px;padding: 4px 6px;justify-content: center;align-items: center;gap: 10px;color:#393939;font-weight: 400;">
@@ -1344,7 +1343,7 @@ export class ShoppingOrderManager {
                                                                             `
                                                                         }
                                                                         return data.spec.map((spec: string) => {
-                                                                            data.return_count = data.return_count ?? data.count;
+                                                                            
                                                                             return html`
                                                                                 <div style="border-radius: 7px;background: #EAEAEA;display: flex;height: 22px;padding: 4px 6px;justify-content: center;align-items: center;gap: 10px;color:#393939;font-weight: 400;">
                                                                                     ${spec}
@@ -1365,6 +1364,8 @@ export class ShoppingOrderManager {
                                                                         data.return_reason = e.value;
                                                                     })}">
                                                                 ${(() => {
+
+                                                                    console.log(data.return_count , data.sale_price)
                                                                     let options: any = [
                                                                         {
                                                                             value: 'not_as_described',
@@ -1412,8 +1413,12 @@ export class ShoppingOrderManager {
                                                             <input type="number"
                                                                    style="text-align: center;width:94px;border-radius: 10px;border: 1px solid #DDD;display: flex;padding: 9px 18px;"
                                                                    value="${data.return_stock ?? 0}"
-                                                                   max="${data.return_count}" min="0"
+                                                                   max=${data.return_count} min="0"
                                                                    onchange="${gvc.event((e) => {
+                                                                       if (e.value > data.return_count){
+                                                                           console.log("test")
+                                                                           e.value = data.return_count;
+                                                                       }
                                                                        data.return_stock = e.value;
                                                                        gvc.notifyDataChange(`lineItem${index}`)
                                                                    })}">

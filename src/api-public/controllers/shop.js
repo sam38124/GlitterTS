@@ -223,6 +223,7 @@ router.get('/order', async (req, resp) => {
                 created_time: req.query.created_time,
                 orderString: req.query.orderString,
                 archived: req.query.archived,
+                returnSearch: req.query.returnSearch,
             }));
         }
         else if (await ut_permission_1.UtPermission.isAppUser(req)) {
@@ -377,7 +378,7 @@ router.put('/returnOrder', async (req, resp) => {
             return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).putReturnOrder({
                 id: req.body.data.id,
                 orderData: req.body.data,
-                status: req.body.data.status || "0",
+                status: req.body.status || "0",
             }));
         }
         else {
