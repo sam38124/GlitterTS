@@ -375,7 +375,7 @@ export class BgWidget {
                         return html ` <div>
                                 ${[
                             html ` <div
-                                        class="d-flex align-items-center cursor_pointer"
+                                        class="d-flex align-items-center cursor_pointer mb-2"
                                         style="gap:8px;"
                                         onclick="${obj.gvc.event(() => {
                                 obj.def = dd.value;
@@ -1588,7 +1588,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             <div
                 style="display: flex; width: 100%; border-radius: 10px; padding: 0 18px;
                 background: linear-gradient(0deg, #F7F7F7 0%, #F7F7F7 100%), #FFF;
-                ${document.body.clientWidth > 1000 ? 'justify-content: space-between; align-items: center; height: 40px;' : 'justify-content: center; gap: 8px; flex-direction: column; height: 80px;'}"
+                ${document.body.clientWidth > 768 ? 'justify-content: space-between; align-items: center; height: 40px;' : 'justify-content: center; gap: 8px; flex-direction: column; height: 80px;'}"
             >
                 <div style="font-size: 14px; color: #393939; font-weight: 700;">已選取${data.count}項</div>
                 <div style="display: flex; gap: 12px;">${data.buttonList.join('')}</div>
@@ -1619,7 +1619,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             const rect = element === null || element === void 0 ? void 0 : element.getBoundingClientRect();
             if (rect) {
                 vm.top = rect.top + 30;
-                vm.right = document.body.clientWidth > 1000 ? rect.right : 300;
+                vm.right = document.body.clientWidth > 768 ? rect.right : 300;
             }
             obj.gvc.notifyDataChange(vm.id);
         })}"

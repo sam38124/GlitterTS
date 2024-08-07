@@ -1,4 +1,4 @@
-import { EditorElem } from "../plugins/editor-elem.js";
+import { EditorElem } from '../plugins/editor-elem.js';
 var ViewType;
 (function (ViewType) {
     ViewType[ViewType["mobile"] = 0] = "mobile";
@@ -15,40 +15,39 @@ export class GlobalWidget {
                 view: () => {
                     var _a;
                     GlobalWidget.glitter_view_type = (_a = GlobalWidget.glitter_view_type) !== null && _a !== void 0 ? _a : ViewType.def;
-                    return html `
-                        <h3 class="my-auto tx_title me-2 ms-2" style="white-space: nowrap;font-size: 16px;">
-                            元件顯示樣式</h3>
-                        <div style="background:#f1f1f1;border-radius:10px;"
-                             class="d-flex align-items-center justify-content-center p-1 ">
+                    return html ` <h3 class="my-auto tx_title me-2 ms-2" style="white-space: nowrap;font-size: 16px;">元件顯示樣式</h3>
+                        <div style="background:#f1f1f1;border-radius:10px;" class="d-flex align-items-center justify-content-center p-1 ">
                             ${[
                         { icon: 'fa-regular fa-border-all', type: ViewType.def, title: '預設樣式' },
                         { icon: 'fa-regular fa-desktop', type: ViewType.desktop, title: '電腦版' },
                         { icon: 'fa-regular fa-mobile', type: ViewType.mobile, title: '手機版' },
-                    ].map((dd) => {
+                    ]
+                        .map((dd) => {
                         if (dd.type === GlobalWidget.glitter_view_type) {
-                            return html `
-                                        <div
-                                                class="d-flex align-items-center justify-content-center bg-white"
-                                                style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
-                                                data-bs-toggle="tooltip" data-bs-placement="top"
-                                                data-bs-custom-class="custom-tooltip"
-                                                data-bs-title="${dd.title}">
+                            return html ` <div
+                                            class="d-flex align-items-center justify-content-center bg-white"
+                                            style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
+                                            data-bs-toggle="tooltip"
+                                            data-bs-placement="top"
+                                            data-bs-custom-class="custom-tooltip"
+                                            data-bs-title="${dd.title}"
+                                        >
                                             <i class="${dd.icon}"></i>
                                         </div>`;
                         }
                         else {
-                            return html `
-                                        <div
-                                                class="d-flex align-items-center justify-content-center"
-                                                style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
-                                                onclick="${gvc.event(() => {
+                            return html ` <div
+                                            class="d-flex align-items-center justify-content-center"
+                                            style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
+                                            onclick="${gvc.event(() => {
                                 GlobalWidget.glitter_view_type = dd.type;
                                 refresh(dd.type);
                                 gvc.notifyDataChange(id);
                             })}"
-                                                data-bs-toggle="tooltip" data-bs-placement="top"
-                                                data-bs-custom-class="custom-tooltip"
-                                                data-bs-title="${dd.title}"
+                                            data-bs-toggle="tooltip"
+                                            data-bs-placement="top"
+                                            data-bs-custom-class="custom-tooltip"
+                                            data-bs-title="${dd.title}"
                                         >
                                             <i class="${dd.icon}"></i>
                                         </div>`;
@@ -58,12 +57,13 @@ export class GlobalWidget {
                         </div>`;
                 },
                 divCreate: {
-                    class: `d-flex align-items-center border-bottom mx-n2 mt-n2 p-2 `, style: ``
+                    class: `d-flex align-items-center border-bottom mx-n2 mt-n2 p-2 `,
+                    style: ``,
                 },
                 onCreate: () => {
                     $('.tooltip').remove();
                     $('[data-bs-toggle="tooltip"]').tooltip();
-                }
+                },
             };
         });
     }
@@ -85,35 +85,39 @@ export class GlobalWidget {
                 delete obj.widget[d2].storage;
                 delete obj.widget[d2].share;
                 delete obj.widget[d2].bundle;
-                (!obj.widget[d2].formData) && Object.defineProperty(obj.widget[d2], 'formData', {
-                    get: function () {
-                        return obj.widget.formData;
-                    }
-                });
-                (!obj.widget[d2].storage) && Object.defineProperty(obj.widget[d2], 'storage', {
-                    get: function () {
-                        return obj.widget.storage;
-                    },
-                    set(v) {
-                        obj.widget.storage = v;
-                    },
-                });
-                (!obj.widget[d2].share) && Object.defineProperty(obj.widget[d2], 'share', {
-                    get: function () {
-                        return obj.widget.share;
-                    },
-                    set(v) {
-                        obj.widget.share = v;
-                    },
-                });
-                (!obj.widget[d2].bundle) && Object.defineProperty(obj.widget[d2], 'bundle', {
-                    get: function () {
-                        return obj.widget.bundle;
-                    },
-                    set(v) {
-                        obj.widget.bundle = v;
-                    },
-                });
+                !obj.widget[d2].formData &&
+                    Object.defineProperty(obj.widget[d2], 'formData', {
+                        get: function () {
+                            return obj.widget.formData;
+                        },
+                    });
+                !obj.widget[d2].storage &&
+                    Object.defineProperty(obj.widget[d2], 'storage', {
+                        get: function () {
+                            return obj.widget.storage;
+                        },
+                        set(v) {
+                            obj.widget.storage = v;
+                        },
+                    });
+                !obj.widget[d2].share &&
+                    Object.defineProperty(obj.widget[d2], 'share', {
+                        get: function () {
+                            return obj.widget.share;
+                        },
+                        set(v) {
+                            obj.widget.share = v;
+                        },
+                    });
+                !obj.widget[d2].bundle &&
+                    Object.defineProperty(obj.widget[d2], 'bundle', {
+                        get: function () {
+                            return obj.widget.bundle;
+                        },
+                        set(v) {
+                            obj.widget.bundle = v;
+                        },
+                    });
                 obj.widget[d2].editorEvent = obj.widget.editorEvent;
                 obj.widget[d2].global = (_c = obj.widget.global) !== null && _c !== void 0 ? _c : [];
                 obj.widget[d2].global.gvc = obj.gvc;
@@ -132,17 +136,16 @@ export class GlobalWidget {
         });
     }
     static switchButton(gvc, def, callback) {
-        return html `
-            <div class="form-check form-switch m-0" style="margin-top: 10px; cursor: pointer;">
-                <input
-                        class="form-check-input"
-                        type="checkbox"
-                        onchange="${gvc.event((e) => {
+        return html ` <div class="form-check form-switch m-0" style="margin-top: 10px; cursor: pointer;">
+            <input
+                class="form-check-input"
+                type="checkbox"
+                onchange="${gvc.event((e) => {
             callback(e.checked);
         })}"
-                        ${def ? `checked` : ``}
-                />
-            </div>`;
+                ${def ? `checked` : ``}
+            />
+        </div>`;
     }
     static showCaseEditor(obj) {
         if (GlobalWidget.glitter_view_type === ViewType.def) {
@@ -152,9 +155,8 @@ export class GlobalWidget {
             const id = obj.gvc.glitter.getUUID();
             GlobalWidget.initialShowCaseData({ widget: obj.widget, gvc: obj.gvc });
             function selector(widget, key) {
-                return html `
-                    <div class="border-bottom mx-n2"
-                         style="padding: 18px;">${[
+                return html ` <div class="border-bottom mx-n2" style="padding: 18px;">
+                    ${[
                     `<div class="d-flex align-content-center" style="gap:10px;">
 <h3 class="my-auto tx_title fw-normal" style="white-space: nowrap;font-size: 16px;">在${(() => {
                         if (GlobalWidget.glitter_view_type === ViewType.mobile) {
@@ -175,20 +177,22 @@ ${GlobalWidget.switchButton(obj.gvc, obj.widget[key].refer !== 'hide', (bool) =>
                             obj.widget.refreshComponent();
                         }, 250);
                     })}
-</div>`
-                ].concat((() => {
+</div>`,
+                ]
+                    .concat((() => {
                     if (obj.widget[key].refer === 'hide') {
                         return [];
                     }
                     else {
-                        return [`<div class="fw-bold" style="font-size: 16px;">顯示樣式</div>`,
+                        return [
+                            `<div class="fw-bold" style="font-size: 16px;">顯示樣式</div>`,
                             EditorElem.select({
                                 title: '',
                                 gvc: obj.gvc,
                                 def: widget.refer || 'def',
                                 array: [
-                                    { title: '預設樣式', value: "def" },
-                                    { title: '自定義', value: "custom" }
+                                    { title: '預設樣式', value: 'def' },
+                                    { title: '自定義', value: 'custom' },
                                 ],
                                 callback: (text) => {
                                     obj.widget[key].refer = text;
@@ -198,11 +202,13 @@ ${GlobalWidget.switchButton(obj.gvc, obj.widget[key].refer !== 'hide', (bool) =>
                                     else if (obj.widget.refreshAll) {
                                         obj.widget.refreshAll();
                                     }
-                                }
-                            })];
+                                },
+                            }),
+                        ];
                     }
-                })()).join('<div class="my-3"></div>')}
-                    </div>`;
+                })())
+                    .join('<div class="my-3"></div>')}
+                </div>`;
             }
             return obj.gvc.bindView(() => {
                 return {
@@ -231,23 +237,23 @@ ${GlobalWidget.switchButton(obj.gvc, obj.widget[key].refer !== 'hide', (bool) =>
                             console.log(e);
                             return `${e}`;
                         }
-                    }
+                    },
                 };
             });
         }
     }
     static showCaseData(obj) {
         GlobalWidget.initialShowCaseData({ widget: obj.widget, gvc: obj.gvc });
-        if (obj.gvc.glitter.document.body.clientWidth < 800 && obj.widget.mobile.refer === 'hide') {
+        if (obj.gvc.glitter.document.body.clientWidth < 768 && obj.widget.mobile.refer === 'hide') {
             return ``;
         }
-        else if (obj.gvc.glitter.document.body.clientWidth >= 800 && obj.widget.desktop.refer === 'hide') {
+        else if (obj.gvc.glitter.document.body.clientWidth >= 768 && obj.widget.desktop.refer === 'hide') {
             return ``;
         }
-        else if (obj.gvc.glitter.document.body.clientWidth < 800 && obj.widget.mobile.refer === 'custom') {
+        else if (obj.gvc.glitter.document.body.clientWidth < 768 && obj.widget.mobile.refer === 'custom') {
             return obj.view(obj.widget.mobile);
         }
-        else if (obj.gvc.glitter.document.body.clientWidth >= 800 && obj.widget.desktop.refer === 'custom') {
+        else if (obj.gvc.glitter.document.body.clientWidth >= 768 && obj.widget.desktop.refer === 'custom') {
             return obj.view(obj.widget.desktop);
         }
         else {

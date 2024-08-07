@@ -571,7 +571,7 @@ function detail(gvc, cf, vm, cVm, page_tab) {
         </div>
         ${BgWidget.container(html `
                 <div class="d-flex justify-content-center p-0 ${document.body.clientWidth < 768 ? 'flex-column' : ''}" style="gap: 24px">
-                    <div class="d-flex flex-column " style="gap:10px;width: 73.5%;">
+                    <div class="d-flex flex-column " style="gap:10px;${document.body.clientWidth > 768 ? 'width: 73.5%;' : ''}">
                         ${BgWidget.container((() => {
         if (cf.is_page) {
             return gvc.bindView(() => {
@@ -583,9 +583,11 @@ function detail(gvc, cf, vm, cVm, page_tab) {
                     view: () => {
                         return [
                             BgWidget.mainCard((() => {
+                                var _a;
+                                const prefixURL = `https://${window.parent.glitter.share.editorViewModel.domain}/${cf.is_page ? `pages` : `blogs`}/`;
                                 return [
                                     BgWidget.title_16('基本設定'),
-                                    `<div style="height:18px;"></div>`,
+                                    html `<div style="height:18px;"></div>`,
                                     html ` <div style="display:flex; align-items: center; gap: 4px; margin-bottom: 8px;">
                                                                     <div class="tx_normal">網頁啟用</div>
                                                                     ${BgWidget.switchButton(gvc, vm.data.status, (bool) => {
@@ -602,23 +604,27 @@ function detail(gvc, cf, vm, cVm, page_tab) {
                                             vm.data.content.name = text;
                                         },
                                     }),
-                                    `<div class="tx_normal fw-normal mb-2">自訂網址</div>`,
+                                    html `<div class="tx_normal fw-normal mb-2">自訂網址</div>`,
                                     html ` <div
-                                                                    style="  justify-content: flex-start; align-items: center; gap: 18px; display: inline-flex;border:1px solid #EAEAEA;border-radius: 10px;overflow: hidden;"
+                                                                    style="  justify-content: flex-start; align-items: center; display: inline-flex;border:1px solid #EAEAEA;border-radius: 10px;overflow: hidden; ${document
+                                        .body.clientWidth > 768
+                                        ? 'gap: 18px; '
+                                        : 'flex-direction: column; gap: 0px; '}"
                                                                     class="w-100"
                                                                 >
                                                                     <div style="padding: 9px 18px;background: #EAEAEA; justify-content: center; align-items: center; gap: 5px; display: flex">
                                                                         <div
                                                                             style="text-align: right; color: #393939; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word"
                                                                         >
-                                                                            ${(() => {
-                                        return `https://${window.parent.glitter.share.editorViewModel.domain}/${cf.is_page ? `pages` : `blogs`}/`;
-                                    })()}
+                                                                            ${prefixURL}
                                                                         </div>
                                                                     </div>
                                                                     <input
                                                                         class="w-100"
-                                                                        style="border:none;background:none;text-align: start; color: #393939; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word"
+                                                                        style="border:none;background:none;text-align: start; color: #393939; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word; ${document
+                                        .body.clientWidth > 768
+                                        ? ''
+                                        : 'padding: 9px 18px;'}"
                                                                         value="${vm.data.content.tag || ''}"
                                                                         onchange="${gvc.event((e) => {
                                         let text = e.value;
@@ -635,7 +641,13 @@ function detail(gvc, cf, vm, cVm, page_tab) {
                                     })}"
                                                                     />
                                                                 </div>`,
-                                    `<div style="height:18px;"></div>`,
+                                    html ` <div class="mt-2 mb-1">
+                                                                    <span class="tx_normal me-2">網址預覽</span
+                                                                    ><a class="fs-sm fw-500" style="color:#006621;cursor: pointer;overflow-wrap: break-word;"
+                                                                        >${prefixURL + ((_a = vm.data.content.tag) !== null && _a !== void 0 ? _a : '')}</a
+                                                                    >
+                                                                </div>`,
+                                    html `<div style="height:18px;"></div>`,
                                     ...(() => {
                                         if (vm.data.content.page_type !== 'hidden') {
                                             return [
@@ -679,6 +691,9 @@ function detail(gvc, cf, vm, cVm, page_tab) {
                                 ].join('');
                             })()),
                         ].join('');
+                    },
+                    divCreate: {
+                        style: 'padding: 0;',
                     },
                 };
             });
@@ -859,7 +874,7 @@ function detail(gvc, cf, vm, cVm, page_tab) {
                                         })();
                                         return html `<a
                                                                         class="fs-sm fw-500"
-                                                                        style="color:#006621;cursor: pointer;"
+                                                                        style="color:#006621;cursor: pointer;overflow-wrap: break-word;"
                                                                         onclick="${gvc.event(() => {
                                             window.parent.glitter.openNewTab(href);
                                         })}"
@@ -1055,18 +1070,8 @@ function detail(gvc, cf, vm, cVm, page_tab) {
                                                                                         ${subVM.dataList
                                                             .map((opt, index) => {
                                                             return html ` <div class="d-flex align-items-center form-check-label c_updown_label gap-3">
-                                                                                                    <span class="tx_normal">${index + 1} .</span>
-                                                                                                    <div
-                                                                                                        style="
-                                                                                                    width: 40px;
-                                                                                                    height: 40px;
-                                                                                                    border-radius: 5px;
-                                                                                                    background-color: #fff;
-                                                                                                    background-image: url('${opt.image}');
-                                                                                                    background-position: center center;
-                                                                                                    background-size: contain;
-                                                                                                "
-                                                                                                    ></div>
+                                                                                                    <span class="tx_normal" style="min-width: 20px;">${index + 1} .</span>
+                                                                                                    ${BgWidget.validImageBox({ gvc: gvc, image: opt.image, width: 40 })}
                                                                                                     <div class="tx_normal ${opt.note ? 'mb-1' : ''}">${opt.value}</div>
                                                                                                     ${opt.note ? html ` <div class="tx_gray_12">${opt.note}</div> ` : ''}
                                                                                                 </div>`;
@@ -1109,7 +1114,6 @@ function detail(gvc, cf, vm, cVm, page_tab) {
                                                                 });
                                                             }
                                                             loop(vm.data.content.config);
-                                                            console.log(product_list);
                                                             return product_list;
                                                         })();
                                                         if (subVM.loading) {

@@ -46,10 +46,9 @@ class Schedule {
         try {
             for (const app of Schedule.app) {
                 if (await this.perload(app)) {
-                    const userClass = new user_1.User(app);
                     const users = await database_1.default.query(`select * from \`${app}\`.t_user  `, []);
                     for (const user of users) {
-                        await userClass.refreshMember(user);
+                        await new user_1.User(app).refreshMember(user);
                     }
                 }
             }
@@ -207,6 +206,7 @@ class Schedule {
     }
     main() {
         const scheduleList = [
+            { second: 10, status: false, func: 'example', desc: '排程啟用範例' },
             { second: 3600, status: true, func: 'birthRebate', desc: '生日禮發放購物金' },
             { second: 3600, status: true, func: 'birthBlessMail', desc: '生日祝福信件' },
             { second: 600, status: true, func: 'renewMemberLevel', desc: '更新會員分級' },

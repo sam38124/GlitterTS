@@ -273,7 +273,7 @@ export class AddComponent {
 
     public static toggle(visible: boolean) {
         if (visible) {
-            (window as any).glitter.closeDrawer()
+            (window as any).glitter.closeDrawer();
             AddComponent.refresh();
             AddComponent.closeEvent = () => {};
             AddComponent.addWidget = (gvc: GVC, cf: any) => {
@@ -332,7 +332,9 @@ export class AddComponent {
                     AddComponent.toggle(false);
                 })}"
             ></div>
-            <div id="addComponentView" class="position-fixed left-0 top-0 h-100 bg-white shadow-lg " style="width:${document.body.clientWidth < 800 ? `100vw`:`400px`};z-index: 99999;left: -100%;">${AddComponent.view(gvc)}</div>`;
+            <div id="addComponentView" class="position-fixed left-0 top-0 h-100 bg-white shadow-lg " style="width:${document.body.clientWidth < 768 ? `100vw` : `400px`};z-index: 99999;left: -100%;">
+                ${AddComponent.view(gvc)}
+            </div>`;
     }
 
     public static async addModuleView(
@@ -394,24 +396,22 @@ export class AddComponent {
                                         <i class="fa-solid fa-plus"></i>
                                     </div>
                                     <div
-                                            class="bt_ffb40_stroke"
-                                            style="width:50px;"
-                                            onclick="${gvc.event(() => {
-                                                navigator.clipboard.readText().then((clipboardText)=>{
+                                        class="bt_ffb40_stroke"
+                                        style="width:50px;"
+                                        onclick="${gvc.event(() => {
+                                            navigator.clipboard.readText().then((clipboardText) => {
+                                                try {
+                                                    const data = JSON.parse(clipboardText);
+                                                    data.id = gvc.glitter.getUUID();
                                                     try {
-                                                        const data = JSON.parse(clipboardText);
-                                                        data.id=gvc.glitter.getUUID()
-                                                        try {
-                                                            AddComponent.addWidget(gvc,data);
-                                                        }catch (e) {
-                                                            
-                                                        }
-                                                    }catch (e) {
-                                                     const dialog=new ShareDialog(gvc.glitter)
-                                                     dialog.errorMessage({text:'請先選擇元件複製!'})   
-                                                    }
-                                                });
-                                            })}"
+                                                        AddComponent.addWidget(gvc, data);
+                                                    } catch (e) {}
+                                                } catch (e) {
+                                                    const dialog = new ShareDialog(gvc.glitter);
+                                                    dialog.errorMessage({ text: '請先選擇元件複製!' });
+                                                }
+                                            });
+                                        })}"
                                     >
                                         <i class="fa-regular fa-paste"></i>
                                     </div>
@@ -516,10 +516,14 @@ export class AddComponent {
                                                             <div class="row m-0 pt-2 w-100">
                                                                 ${data.response.result.data
                                                                     .sort((a: any, b: any) => {
-                                                                        if(['SY00-內文','SY00-按鈕連結','SY00-圖片元件','SY00-影片方塊','SY00-標題','SY00-商品顯示區塊','SY00-富文本區塊'].find((dd)=>{
-                                                                            return a.template_config.name===dd
-                                                                        })){
-                                                                            return  -1
+                                                                        if (
+                                                                            ['SY00-內文', 'SY00-按鈕連結', 'SY00-圖片元件', 'SY00-影片方塊', 'SY00-標題', 'SY00-商品顯示區塊', 'SY00-富文本區塊'].find(
+                                                                                (dd) => {
+                                                                                    return a.template_config.name === dd;
+                                                                                }
+                                                                            )
+                                                                        ) {
+                                                                            return -1;
                                                                         }
                                                                         const aData = (a.template_config.tag ?? []).find((dd: any) => {
                                                                             return dd === '基本元件';
@@ -538,13 +542,14 @@ export class AddComponent {
                                                                         } else {
                                                                             return 1;
                                                                         }
-                                                                    }).sort((a: any, b: any)=>{
-                                                                            if (a.template_config.name === '空白-嵌入模塊') {
-                                                                                return -1;
-                                                                            } else {
-                                                                                return 1;
-                                                                            }
-                                                                        })
+                                                                    })
+                                                                    .sort((a: any, b: any) => {
+                                                                        if (a.template_config.name === '空白-嵌入模塊') {
+                                                                            return -1;
+                                                                        } else {
+                                                                            return 1;
+                                                                        }
+                                                                    })
                                                                     .map((dd: any, index: number) => {
                                                                         return html`
                                                                     <div class="col-6 mb-3">

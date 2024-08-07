@@ -309,7 +309,9 @@ export class AddComponent {
             AddComponent.toggle(false);
         })}"
             ></div>
-            <div id="addComponentView" class="position-fixed left-0 top-0 h-100 bg-white shadow-lg " style="width:${document.body.clientWidth < 800 ? `100vw` : `400px`};z-index: 99999;left: -100%;">${AddComponent.view(gvc)}</div>`;
+            <div id="addComponentView" class="position-fixed left-0 top-0 h-100 bg-white shadow-lg " style="width:${document.body.clientWidth < 768 ? `100vw` : `400px`};z-index: 99999;left: -100%;">
+                ${AddComponent.view(gvc)}
+            </div>`;
     }
     static addModuleView(gvc, type, callback, withEmpty = false, justGetIframe = false, basic) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -359,9 +361,9 @@ export class AddComponent {
                                         <i class="fa-solid fa-plus"></i>
                                     </div>
                                     <div
-                                            class="bt_ffb40_stroke"
-                                            style="width:50px;"
-                                            onclick="${gvc.event(() => {
+                                        class="bt_ffb40_stroke"
+                                        style="width:50px;"
+                                        onclick="${gvc.event(() => {
                                 navigator.clipboard.readText().then((clipboardText) => {
                                     try {
                                         const data = JSON.parse(clipboardText);
@@ -369,8 +371,7 @@ export class AddComponent {
                                         try {
                                             AddComponent.addWidget(gvc, data);
                                         }
-                                        catch (e) {
-                                        }
+                                        catch (e) { }
                                     }
                                     catch (e) {
                                         const dialog = new ShareDialog(gvc.glitter);
@@ -512,7 +513,8 @@ export class AddComponent {
                                                             else {
                                                                 return 1;
                                                             }
-                                                        }).sort((a, b) => {
+                                                        })
+                                                            .sort((a, b) => {
                                                             if (a.template_config.name === '空白-嵌入模塊') {
                                                                 return -1;
                                                             }

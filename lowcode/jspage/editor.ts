@@ -232,8 +232,8 @@ color: transparent;"
                                         } else {
                                             return html` <div
                                                 class="btn-group "
-                                                style="max-width: ${document.body.clientWidth < 800 ? 150 : 350}px; 
-  min-width: ${document.body.clientWidth < 800 ? 150 : 200}px; 
+                                                style="max-width: ${document.body.clientWidth < 768 ? 150 : 350}px; 
+  min-width: ${document.body.clientWidth < 768 ? 150 : 200}px; 
                                                 ${gvc.glitter.getUrlParameter('function') === 'page-editor' ? `` : `transform: translateX(-15px);`}
                                                "
                                             >
@@ -308,7 +308,7 @@ color: transparent;"
                                                         },
                                                         divCreate: {
                                                             class: 'dropdown-menu',
-                                                            style: `margin-top: 50px;max-height: calc(100vh - 100px);width:${document.body.clientWidth < 800 ? 200 : 260}px;overflow-y: scroll;`,
+                                                            style: `margin-top: 50px;max-height: calc(100vh - 100px);width:${document.body.clientWidth < 768 ? 200 : 260}px;overflow-y: scroll;`,
                                                             option: [{ key: 'id', value: 'topd' }],
                                                         },
                                                         onCreate: () => {
@@ -559,7 +559,7 @@ ${glitter.share.editor_vm ? `d-none` : ``}"
                                         class: `d-none d-sm-block`,
                                     },
                                 })}
-                                ${document.body.clientWidth < 800
+                                ${document.body.clientWidth < 768
                                     ? html`
                                           <button
                                               class="fw-500 btn-black btn-sm"

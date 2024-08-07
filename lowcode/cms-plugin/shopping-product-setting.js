@@ -1251,7 +1251,7 @@ export class ShoppingProductSetting {
                                                         };
                                                     })}
                                                                     `,
-                                                    style: ['', document.body.clientWidth < 800 ? 'min-width: 120vw' : ''],
+                                                    style: ['', document.body.clientWidth < 768 ? 'min-width: 120vw' : ''],
                                                 }),
                                             }),
                                         ].join(''))}
@@ -2901,7 +2901,7 @@ color: ${selected.length ? `#393939` : `#DDD`};font-size: 18px;
                                                                             })}"
                                                                                                       ></i>
                                                                                                       <div style="flex:1 0 0;font-size: 16px;font-weight: 400;">規格</div>
-                                                                                                      ${document.body.clientWidth < 800
+                                                                                                      ${document.body.clientWidth < 768
                                                                                 ? html ` <div style="color:#393939;font-size: 16px;font-weight: 400;" class="me-3">
                                                                                                                 販售價格*
                                                                                                             </div>`
@@ -3021,7 +3021,7 @@ color: ${selected.length ? `#393939` : `#DDD`};font-size: 18px;
                                                                                             },
                                                                                         ]
                                                                                             .filter((dd) => {
-                                                                                            return dd.key === 'sale_price' || document.body.clientWidth > 800;
+                                                                                            return dd.key === 'sale_price' || document.body.clientWidth > 768;
                                                                                         })
                                                                                             .map((dd) => {
                                                                                             let minPrice = Infinity;
@@ -3047,7 +3047,7 @@ color: ${selected.length ? `#393939` : `#DDD`};font-size: 18px;
                                                                                                 .body.clientWidth > 800
                                                                                                 ? `20%;`
                                                                                                 : 'auto;max-width:140px;'}padding-right: ${document.body.clientWidth >
-                                                                                                800
+                                                                                                768
                                                                                                 ? `10px`
                                                                                                 : '0px'};"
                                                                                                                           >
@@ -3121,7 +3121,7 @@ color: ${selected.length ? `#393939` : `#DDD`};font-size: 18px;
                                                                                                                                       >
                                                                                                                                           <div
                                                                                                                                               style="flex:1 0 0;font-size: 16px;font-weight: 400;gap:14px;display: flex;align-items: center;padding-left: ${postMD
-                                                                                                        .specs.length > 1 && document.body.clientWidth > 800
+                                                                                                        .specs.length > 1 && document.body.clientWidth > 768
                                                                                                         ? `32px`
                                                                                                         : `12px`};"
                                                                                                                                               onclick="${gvc.event(() => {
@@ -3155,7 +3155,7 @@ color: ${selected.length ? `#393939` : `#DDD`};font-size: 18px;
                                                                                                                                           ${['sale_price', 'stock']
                                                                                                         .filter((dd) => {
                                                                                                         return (dd === 'sale_price' ||
-                                                                                                            document.body.clientWidth > 800);
+                                                                                                            document.body.clientWidth > 768);
                                                                                                     })
                                                                                                         .map((dd) => {
                                                                                                         var _a;
