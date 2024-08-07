@@ -125,13 +125,25 @@ export class MemberTypeList {
                             gvc: gvc,
                             getData: (vd) => __awaiter(this, void 0, void 0, function* () {
                                 vmi = vd;
-                                const member_levels_count_list = (yield ApiUser.getPublicConfig('member_levels_count_list', 'manager')).response.value || {};
-                                ApiUser.getPublicConfig('member_level_config', 'manager').then((res) => {
+                                Promise.all([
+                                    new Promise((resolve) => {
+                                        ApiUser.getUserGroupList('level').then((res) => {
+                                            resolve(res);
+                                        });
+                                    }),
+                                    new Promise((resolve) => {
+                                        ApiUser.getPublicConfig('member_level_config', 'manager').then((res) => {
+                                            resolve(res);
+                                        });
+                                    }),
+                                ]).then((data) => {
                                     vmi.pageSize = 1;
                                     vm.dataList = (() => {
-                                        if (res.result && res.response.value && res.response.value.levels.length > 0) {
+                                        const [member, res] = data;
+                                        if (member.result && member.response.result && res.result && res.response.value && res.response.value.levels.length > 0) {
                                             return res.response.value.levels.map((data) => {
-                                                data.counts = member_levels_count_list[data.id] || 0;
+                                                const group = member.response.data.find((item) => item.tag === data.id);
+                                                data.counts = group ? group.count : 0;
                                                 return data;
                                             });
                                         }
@@ -415,7 +427,7 @@ export class MemberTypeList {
                                                                     gvc.notifyDataChange(id);
                                                                 },
                                                             }),
-                                                            `<div class="tx_normal" style="color:#8D8D8D;margin-top: 8px;white-space: nowrap;">天內消費</div>`,
+                                                            html `<div class="tx_normal" style="color:#8D8D8D;margin-top: 8px;white-space: nowrap;">天內消費</div>`,
                                                         ].join('');
                                                     }
                                                     else {
@@ -496,9 +508,8 @@ export class MemberTypeList {
                                                         if (![30, 90, 180, 365].find((dd) => {
                                                             return parseInt(vm.data.dead_line.value, 10) === dd;
                                                         })) {
-                                                            map.push(` <div class="flex-fill w-100 mt-n2 d-flex align-items-center"
-                                                                             style="gap:10px;flex: 2;">
-                                                                            ${(() => {
+                                                            map.push(html ` <div class="flex-fill w-100 mt-n2 d-flex align-items-center" style="gap:10px;flex: 2;">
+                                                                                            ${(() => {
                                                                 return [
                                                                     BgWidget.editeInput({
                                                                         gvc: gvc,
@@ -511,10 +522,10 @@ export class MemberTypeList {
                                                                             gvc.notifyDataChange(id);
                                                                         },
                                                                     }),
-                                                                    `<div class="tx_normal" style="color:#8D8D8D;margin-top: 8px;white-space: nowrap;">天</div>`,
+                                                                    html `<div class="tx_normal" style="color:#8D8D8D;margin-top: 8px;white-space: nowrap;">天</div>`,
                                                                 ].join('');
                                                             })()}
-                                                                        </div>`);
+                                                                                        </div>`);
                                                         }
                                                         return map.join('');
                                                     }

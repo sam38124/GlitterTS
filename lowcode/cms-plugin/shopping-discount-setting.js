@@ -625,6 +625,7 @@ export class ShoppingDiscountSetting {
                                                             onCreate: () => {
                                                                 if (levelVM.loading) {
                                                                     ApiUser.getUserGroupList().then((dd) => {
+                                                                        console.log(dd);
                                                                         if (dd.result && dd.response.data) {
                                                                             levelVM.dataList = dd.response.data
                                                                                 .filter((item) => {

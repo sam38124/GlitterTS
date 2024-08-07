@@ -527,17 +527,9 @@ class User {
                 user_id: userData.userID,
                 value: member_update,
             });
-            if (this.app === 'shop-template-clothing-v3') {
-                console.log(1, this.app);
-                console.log(member.slice().reverse());
-            }
             return member.reverse();
         }
         else {
-            if (this.app === 'shop-template-clothing-v3') {
-                console.log(0, this.app);
-                console.log(member_update.value);
-            }
             return member_update.value;
         }
     }
@@ -748,6 +740,10 @@ class User {
                 where: querySql,
                 orderBy: (_d = query.order_string) !== null && _d !== void 0 ? _d : '',
             });
+            console.log((await database_1.default.query(dataSQL, [])).map((dd) => {
+                dd.pwd = undefined;
+                return dd;
+            }));
             return {
                 data: (await database_1.default.query(dataSQL, [])).map((dd) => {
                     dd.pwd = undefined;

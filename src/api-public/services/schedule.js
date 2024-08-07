@@ -42,34 +42,22 @@ class Schedule {
     async isTableExists(table, app) {
         return (await database_1.default.query(`SHOW TABLES IN \`${app}\` LIKE \'${table}\';`, [])).length > 0;
     }
-    async refreshMember(sec) {
+    async renewMemberLevel(sec) {
         try {
             for (const app of Schedule.app) {
                 if (await this.perload(app)) {
                     const userClass = new user_1.User(app);
-                    const member_count = {};
-                    for (const user of await database_1.default.query(`select * from \`${app}\`.t_user
-                        `, [])) {
-                        const member_levels = (await userClass.refreshMember(user)).find((dd) => {
-                            return dd.trigger;
-                        });
-                        if (member_levels) {
-                            member_count[member_levels.id] = member_count[member_levels.id] || 0;
-                            member_count[member_levels.id]++;
-                        }
+                    const users = await database_1.default.query(`select * from \`${app}\`.t_user  `, []);
+                    for (const user of users) {
+                        await userClass.refreshMember(user);
                     }
-                    await userClass.setConfig({
-                        key: 'member_levels_count_list',
-                        value: member_count,
-                        user_id: 'manager',
-                    });
                 }
             }
         }
         catch (e) {
-            console.error('BAD_REQUEST', 'refreshMember Error: ' + e, null);
+            console.error('BAD_REQUEST', 'renewMemberLevel Error: ' + e, null);
         }
-        setTimeout(() => this.refreshMember(sec), sec * 1000);
+        setTimeout(() => this.renewMemberLevel(sec), sec * 1000);
     }
     async example(sec) {
         try {
@@ -221,7 +209,7 @@ class Schedule {
         const scheduleList = [
             { second: 3600, status: true, func: 'birthRebate', desc: '生日禮發放購物金' },
             { second: 3600, status: true, func: 'birthBlessMail', desc: '生日祝福信件' },
-            { second: 600, status: true, func: 'refreshMember', desc: '更新會員分級' },
+            { second: 600, status: true, func: 'renewMemberLevel', desc: '更新會員分級' },
             { second: 30, status: true, func: 'resetVoucherHistory', desc: '未付款歷史優惠券重設' },
             { second: 30, status: true, func: 'autoSendMail', desc: '自動排程寄送信件' },
         ];
