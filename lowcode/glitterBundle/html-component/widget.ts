@@ -33,7 +33,6 @@ export const widgetComponent = {
                                     return widget.data.inner;
                                 }
                             })()
-
                             function getCreateOption() {
                                 let option = widget.data.attr.map((dd: any) => {
                                     if (dd.type === 'par') {
@@ -88,7 +87,17 @@ export const widgetComponent = {
                                     })
                                 }
                                 if (widget.data.elem === 'img') {
-                                    option.push({key: 'src', value: innerText})
+                              //
+                                    //判斷是新版響應式連結
+                                    let rela_link=innerText
+                                    if(innerText.includes(`size1440_s*px$_`)) {
+                                        [150,600,1200,1440].map((dd)=>{
+                                            if(document.body.clientWidth>dd){
+                                                rela_link=innerText.replace('size1440_s*px$_',`size${dd}_s*px$_`)
+                                            }
+                                        })
+                                    }
+                                    option.push({key: 'src', value: rela_link})
                                 } else if (widget.data.elem === 'input') {
                                     option.push({key: 'value', value: innerText})
                                 }
@@ -103,6 +112,9 @@ export const widgetComponent = {
                                 if (widget.type === 'container') {
                                     style_user = CustomStyle.value(gvc, widget)
                                 }
+                                if(widget.data.elem==='img'){
+                                    classList.push(`lazyload`);
+                                }
                                 return {
                                     elem: widget.data.elem,
                                     class: classList.join(' '),
@@ -110,11 +122,9 @@ export const widgetComponent = {
                                     option: option.concat(htmlGenerate.option),
                                 }
                             }
-
                             if (widget.type === 'container') {
                                 const glitter = (window as any).glitter
                                 widget.data.setting.formData = widget.formData;
-
                                 function getView() {
                                     const htmlGenerate = new glitter.htmlGenerate(widget.data.setting, hoverID, subData, rootHtmlGenerate.root);
                                     innerText = '';
@@ -160,7 +170,6 @@ export const widgetComponent = {
                                         editorSection: widget.id
                                     }, getCreateOption)
                                 }
-
                                 widget.data.setting.refresh = (() => {
                                     try {
                                         hoverID = [Storage.lastSelect];
@@ -309,9 +318,14 @@ export const widgetComponent = {
                                     },
                                     divCreate: getCreateOption,
                                     onCreate: () => {
+                                        // console.log(`elementCallback->`,glitter.elementCallback[gvc.id(id)].element)
+                                        // let images = document.querySelectorAll(".branwdo");
+                                        // lazyload(images);
                                         glitter.elementCallback[gvc.id(id)].updateAttribute()
                                         if (widget.data.elem.toLowerCase() === 'textarea') {
                                             autosize(gvc.getBindViewElem(id).get(0))
+                                        }else if(widget.data.elem.toLowerCase() === 'img'){
+                                           const lazy= (window as any).lazyload(document.querySelectorAll(`[gvc-id="${gvc.id(id)}"]`));
                                         }
                                         TriggerEvent.trigger({
                                             gvc,

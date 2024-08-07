@@ -72,7 +72,7 @@ router.post('/upload', async (req: express.Request, resp: express.Response) => {
         const s3bucketName = config.AWS_S3_NAME;
         const userID = ((req.body.token as IToken) ?? {}).userID ?? "guest"
         const name = req.body.fileName
-        const s3path = `file/${userID}/${new Date().getTime() + '-' + name}`;
+        const s3path = `file/${userID}/${name}`;
         const fullUrl = config.AWS_S3_PREFIX_DOMAIN_NAME + s3path;
 
         const params = {

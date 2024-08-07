@@ -8,7 +8,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { TriggerEvent } from "../../glitterBundle/plugins/trigger-event.js";
-import { BaseApi } from "../../glitterBundle/api/base.js";
 import { EditorElem } from "../../glitterBundle/plugins/editor-elem.js";
 TriggerEvent.createSingleEvent(import.meta.url, (glitter) => {
     return {
@@ -83,23 +82,13 @@ TriggerEvent.createSingleEvent(import.meta.url, (glitter) => {
                                     for (const dd of data) {
                                         const file = dd.file;
                                         const res = yield new Promise((resolve, reject) => {
-                                            saasConfig.api.uploadFile(file.name).then((data) => {
-                                                const data1 = data.response;
-                                                BaseApi.create({
-                                                    url: data1.url,
-                                                    type: 'put',
-                                                    data: file,
-                                                    headers: {
-                                                        "Content-Type": data1.type
-                                                    }
-                                                }).then((res) => __awaiter(this, void 0, void 0, function* () {
-                                                    if (res.result) {
-                                                        resolve(data1.fullUrl);
-                                                    }
-                                                    else {
-                                                        resolve(false);
-                                                    }
-                                                }));
+                                            saasConfig.api.uploadFileAll(file).then((res) => {
+                                                if (res.result) {
+                                                    resolve(res.links[0]);
+                                                }
+                                                else {
+                                                    resolve(false);
+                                                }
                                             });
                                         });
                                         if (!res) {

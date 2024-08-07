@@ -1623,25 +1623,25 @@ ${obj.default ?? ''}</textarea
                                 type="${obj && obj.single ? 'radio' : 'checkbox'}"
                                 id="${id}_${item.key}"
                                 onclick="${gvc.event((e, ev) => {
-                                    if (obj && obj.readonly) {
-                                        ev.preventDefault();
-                                        return;
-                                    }
-                                })}"
+                        if (obj && obj.readonly) {
+                            ev.preventDefault();
+                            return;
+                        }
+                    })}"
                                 onchange="${gvc.event((e, ev) => {
-                                    if (obj && obj.single) {
-                                        def = [item.key];
-                                        callback([item.key]);
-                                    } else {
-                                        if (e.checked) {
-                                            def.push(item.key);
-                                        } else {
-                                            def = def.filter((d) => d !== item.key);
-                                        }
-                                        callback(def);
-                                    }
-                                    gvc.notifyDataChange(viewId);
-                                })}"
+                        if (obj && obj.single) {
+                            def = [item.key];
+                            callback([item.key]);
+                        } else {
+                            if (e.checked) {
+                                def.push(item.key);
+                            } else {
+                                def = def.filter((d) => d !== item.key);
+                            }
+                            callback(def);
+                        }
+                        gvc.notifyDataChange(viewId);
+                    })}"
                                 ${def.includes(item.key) ? 'checked' : ''}
                             />
                             <label class="form-check-label cursor_pointer" for="${id}_${item.key}" style="font-size: 16px; color: #393939;">${item.name}</label>
@@ -1653,6 +1653,8 @@ ${obj.default ?? ''}</textarea
             },
         });
     }
+
+
 
     static radioInputContainer(
         gvc: GVC,

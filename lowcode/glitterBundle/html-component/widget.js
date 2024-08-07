@@ -96,7 +96,15 @@ export const widgetComponent = {
                                     });
                                 }
                                 if (widget.data.elem === 'img') {
-                                    option.push({ key: 'src', value: innerText });
+                                    let rela_link = innerText;
+                                    if (innerText.includes(`size1440_s*px$_`)) {
+                                        [150, 600, 1200, 1440].map((dd) => {
+                                            if (document.body.clientWidth > dd) {
+                                                rela_link = innerText.replace('size1440_s*px$_', `size${dd}_s*px$_`);
+                                            }
+                                        });
+                                    }
+                                    option.push({ key: 'src', value: rela_link });
                                 }
                                 else if (widget.data.elem === 'input') {
                                     option.push({ key: 'value', value: innerText });
@@ -111,6 +119,9 @@ export const widgetComponent = {
                                 let style_user = '';
                                 if (widget.type === 'container') {
                                     style_user = CustomStyle.value(gvc, widget);
+                                }
+                                if (widget.data.elem === 'img') {
+                                    classList.push(`lazyload`);
                                 }
                                 return {
                                     elem: widget.data.elem,
@@ -318,6 +329,9 @@ export const widgetComponent = {
                                         glitter.elementCallback[gvc.id(id)].updateAttribute();
                                         if (widget.data.elem.toLowerCase() === 'textarea') {
                                             autosize(gvc.getBindViewElem(id).get(0));
+                                        }
+                                        else if (widget.data.elem.toLowerCase() === 'img') {
+                                            const lazy = window.lazyload(document.querySelectorAll(`[gvc-id="${gvc.id(id)}"]`));
                                         }
                                         TriggerEvent.trigger({
                                             gvc,

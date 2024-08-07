@@ -74,22 +74,12 @@ TriggerEvent.createSingleEvent(import.meta.url, (glitter) => {
                                 for (const dd of data) {
                                     const file = dd.file;
                                     const res = await new Promise((resolve, reject) => {
-                                        saasConfig.api.uploadFile(file.name).then((data: any) => {
-                                            const data1 = data.response;
-                                            BaseApi.create({
-                                                url: data1.url,
-                                                type: 'put',
-                                                data: file,
-                                                headers: {
-                                                    "Content-Type": data1.type
-                                                }
-                                            }).then(async (res) => {
-                                                if (res.result) {
-                                                    resolve(data1.fullUrl);
-                                                } else {
-                                                    resolve(false);
-                                                }
-                                            });
+                                        saasConfig.api.uploadFileAll(file).then((res:any) => {
+                                            if (res.result) {
+                                                resolve(res.links[0]);
+                                            } else {
+                                                resolve(false);
+                                            }
                                         });
                                     });
                                     if (!res) {

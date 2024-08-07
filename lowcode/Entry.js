@@ -54,7 +54,7 @@ export class Entry {
         }
         window.renderClock = (_a = window.renderClock) !== null && _a !== void 0 ? _a : clockF();
         console.log(`Entry-time:`, window.renderClock.stop());
-        glitter.share.editerVersion = "V_9.9.7";
+        glitter.share.editerVersion = "V_10.0.6";
         glitter.share.start = (new Date());
         const vm = {
             appConfig: [],
@@ -282,7 +282,6 @@ export class Entry {
                 }
             }
         `);
-        console.log('timer');
         window.parent.glitter.share.editerGlitter = glitter;
         const clock = glitter.ut.clock();
         function scrollToItem(element) {

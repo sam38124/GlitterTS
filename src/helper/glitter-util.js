@@ -61,7 +61,12 @@ class GlitterUtil {
                     let fullPath = dd.path + "/index.html";
                     const data = fs_1.default.readFileSync(fullPath, 'utf8');
                     resp.header('Content-Type', 'text/html; charset=UTF-8');
-                    return resp.send(data.replace(data.substring(data.indexOf(`<head>`), data.indexOf(`</head>`) + 7), seo));
+                    return resp.send(data.replace(data.substring(data.indexOf(`<head>`), data.indexOf(`</head>`) + 7), `
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-touch-fullscreen" content="yes">
+<meta http-equiv="content-type" content="text/html;charset=UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, user-scalable=1, shrink-to-fit=no">
+                    ` + seo));
                 }
                 else {
                     return resp.sendFile(decodeURI(fileURL));

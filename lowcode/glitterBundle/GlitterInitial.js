@@ -287,8 +287,3 @@ class GlitterWebComponent extends HTMLElement {
     }
 }
 customElements.define('web-component', GlitterWebComponent);
-window.addEventListener('scroll', function (event) {
-    if (glitter.pageConfig.length - 1 >= 0) {
-        glitter.pageConfig[glitter.pageConfig.length - 1].scrollTop = window.scrollY;
-    }
-});

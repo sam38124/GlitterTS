@@ -2307,6 +2307,7 @@ export class ShoppingProductSetting {
                                                                                         obj.gvc.notifyDataChange(id);
                                                                                     },
                                                                                     type: `image/*, video/*`,
+                                                                                    multiple:true
                                                                                 });
                                                                             })}"
                                                                         >

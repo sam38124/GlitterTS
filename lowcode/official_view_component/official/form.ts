@@ -184,6 +184,16 @@ export class FormWidget {
                                                                         obj.refresh()
                                                                     }
                                                                 }),
+                                                                EditorElem.editeInput({
+                                                                    gvc: gvc,
+                                                                    title: '分類標籤',
+                                                                    placeHolder: `請輸入分類標籤`,
+                                                                    default: dd.category,
+                                                                    callback: (text) => {
+                                                                        dd.category = text
+                                                                        obj.refresh()
+                                                                    }
+                                                                }),
                                                                 EditorElem.buttonPrimary('隱藏條件', gvc.event(() => {
                                                                     editor_refer.toggle({
                                                                         visible: true,

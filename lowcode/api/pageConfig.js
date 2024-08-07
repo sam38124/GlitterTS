@@ -1,3 +1,12 @@
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 import { config } from "../config.js";
 import { BaseApi } from "../glitterBundle/api/base.js";
 import { GlobalUser } from "../glitter-base/global/global-user.js";
@@ -303,6 +312,115 @@ export class ApiPageConfig {
             data: JSON.stringify({
                 "fileName": fileName
             })
+        });
+    }
+    static uploadFileAll(files) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (!Array.isArray(files)) {
+                files = [files];
+            }
+            let result = true;
+            let links = [];
+            for (const file of files) {
+                const file_id = window.glitter.getUUID();
+                function getFileName(size) {
+                    let file_name = (file.name ||
+                        `${file_id}.${(() => {
+                            if (file.type === 'image/jpeg') {
+                                return `jpg`;
+                            }
+                            else if (file.type === 'image/png') {
+                                return `png`;
+                            }
+                            else {
+                                return `png`;
+                            }
+                        })()}`).replace(/ /g, '');
+                    if (file.type.startsWith('image')) {
+                        file_name = `${size ? `size${size}_` : ``}s*px$_${file_name}`;
+                    }
+                    return file_name;
+                }
+                if (file.type.startsWith('image/')) {
+                    function loopSize(size) {
+                        return __awaiter(this, void 0, void 0, function* () {
+                            return new Promise((resolve, reject) => {
+                                const reader = new FileReader();
+                                reader.onload = function (e) {
+                                    const img = new Image();
+                                    img.src = URL.createObjectURL(file);
+                                    ;
+                                    img.onload = function () {
+                                        const og_width = img.width;
+                                        const og_height = img.height;
+                                        const canvas = document.createElement('canvas');
+                                        const maxWidth = size;
+                                        const maxHeight = size / og_width * og_height;
+                                        let width = img.width;
+                                        let height = img.height;
+                                        if (width > height) {
+                                            if (width > maxWidth) {
+                                                height *= maxWidth / width;
+                                                width = maxWidth;
+                                            }
+                                        }
+                                        else {
+                                            if (height > maxHeight) {
+                                                width *= maxHeight / height;
+                                                height = maxHeight;
+                                            }
+                                        }
+                                        canvas.width = width;
+                                        canvas.height = height;
+                                        const ctx = canvas.getContext('2d');
+                                        ctx.drawImage(img, 0, 0, width, height);
+                                        canvas.toBlob(function (blob) {
+                                            return __awaiter(this, void 0, void 0, function* () {
+                                                const s3res = (yield ApiPageConfig.uploadFile(getFileName(size))).response;
+                                                const res = yield BaseApi.create({
+                                                    url: s3res.url,
+                                                    type: 'put',
+                                                    data: blob,
+                                                    headers: {
+                                                        'Content-Type': s3res.type,
+                                                    }
+                                                });
+                                                if (size === 1440) {
+                                                    links.push(s3res.fullUrl);
+                                                }
+                                                resolve(res.result);
+                                            });
+                                        }, file.type);
+                                    };
+                                };
+                                reader.readAsDataURL(file);
+                            });
+                        });
+                    }
+                    let chunk_size = [150, 600, 1200, 1440];
+                    let chunk_count = 0;
+                    yield new Promise((resolve, reject) => {
+                        for (const size of chunk_size) {
+                            loopSize(size).then((res) => {
+                                chunk_count++;
+                                result = res && result;
+                                if (chunk_count === chunk_size.length) {
+                                    resolve(true);
+                                }
+                            });
+                        }
+                    });
+                    if (!result) {
+                        return {
+                            result: false
+                        };
+                    }
+                }
+            }
+            return {
+                result: result,
+                links: links
+            };
         });
     }
 }

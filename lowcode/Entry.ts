@@ -54,7 +54,7 @@ export class Entry {
         }
         (window as any).renderClock = (window as any).renderClock ?? clockF();
         console.log(`Entry-time:`, (window as any).renderClock.stop());
-        glitter.share.editerVersion = "V_9.9.7";
+        glitter.share.editerVersion = "V_10.0.6";
         glitter.share.start = (new Date());
         const vm: {
             appConfig: any;
@@ -307,7 +307,6 @@ export class Entry {
                 }
             }
         `);
-        console.log('timer');
         (window.parent as any).glitter.share.editerGlitter = glitter;
         const clock = glitter.ut.clock();
 
