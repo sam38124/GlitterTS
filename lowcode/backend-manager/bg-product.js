@@ -8,21 +8,13 @@ export class BgProduct {
             const vm = {
                 id: obj.gvc.glitter.getUUID(),
                 loading: true,
-                checkClass: BgWidget.randomString(5),
+                checkClass: BgWidget.getCheckedClass(gvc),
                 def: JSON.parse(JSON.stringify(obj.default)),
                 options: [],
                 query: '',
                 orderString: '',
             };
-            obj.gvc.addStyle(`
-                .${vm.checkClass}:checked[type='checkbox'] {
-                    border: 2px solid #000;
-                    background-color: #fff;
-                    background-image: url(${BgWidget.checkedDataImage('#000')});
-                    background-position: center center;
-                }
-            `);
-            return html `<div class="bg-white shadow rounded-3" style="overflow-y: auto;${document.body.clientWidth > 768 ? 'min-width: 400px; width: 600px;' : 'min-width: 92.5vw;'}">
+            return html `<div class="bg-white shadow rounded-3" style="overflow-y: auto;${document.body.clientWidth > 768 ? 'min-width: 400px; width: 600px;' : 'min-width: 90vw; max-width: 92.5vw;'}">
                 ${obj.gvc.bindView({
                 bind: vm.id,
                 view: () => {
@@ -86,17 +78,7 @@ export class BgProduct {
                                                                     ${obj.default.includes(opt.key) ? 'checked' : ''}
                                                                 />
                                                                 <div class="d-flex align-items-center form-check-label c_updown_label cursor_pointer gap-3" onclick="${obj.gvc.event(() => call())}">
-                                                                    <div
-                                                                        style="
-                                                                width: 40px;
-                                                                height: 40px;
-                                                                border-radius: 5px;
-                                                                background-color: #fff;
-                                                                background-image: url('${opt.image}');
-                                                                background-position: center center;
-                                                                background-size: contain;
-                                                            "
-                                                                    ></div>
+                                                                    ${BgWidget.validImageBox({ gvc: gvc, image: opt.image, width: 40 })}
                                                                     <div class="tx_normal ${opt.note ? 'mb-1' : ''}">${opt.value}</div>
                                                                     ${opt.note ? html ` <div class="tx_gray_12">${opt.note}</div> ` : ''}
                                                                 </div>`;
@@ -167,21 +149,13 @@ export class BgProduct {
             const vm = {
                 id: obj.gvc.glitter.getUUID(),
                 loading: true,
-                checkClass: BgWidget.randomString(5),
+                checkClass: BgWidget.getCheckedClass(obj.gvc),
                 def: JSON.parse(JSON.stringify(obj.default)),
                 options: [],
                 query: '',
                 orderString: '',
             };
-            obj.gvc.addStyle(`
-                .${vm.checkClass}:checked[type='checkbox'] {
-                    border: 2px solid #000;
-                    background-color: #fff;
-                    background-image: url(${BgWidget.checkedDataImage('#000')});
-                    background-position: center center;
-                }
-            `);
-            return html `<div class="bg-white shadow rounded-3" style="overflow-y: auto;${document.body.clientWidth > 768 ? 'min-width: 400px; width: 600px;' : 'min-width: 92.5vw;'}">
+            return html `<div class="bg-white shadow rounded-3" style="overflow-y: auto;${document.body.clientWidth > 768 ? 'min-width: 400px; width: 600px;' : 'min-width: 90vw; max-width: 92.5vw;'}">
                 ${obj.gvc.bindView({
                 bind: vm.id,
                 view: () => {

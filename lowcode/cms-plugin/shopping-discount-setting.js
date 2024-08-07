@@ -893,17 +893,7 @@ export class ShoppingDiscountSetting {
                                                                                             ${obj.gvc.map(subVM.dataList.map((opt, index) => {
                                                                         return html `<div class="d-flex align-items-center form-check-label c_updown_label gap-3">
                                                                                                         <span class="tx_normal">${index + 1}.</span>
-                                                                                                        <div
-                                                                                                            style="
-                                                                                                    width: 40px;
-                                                                                                    height: 40px;
-                                                                                                    border-radius: 5px;
-                                                                                                    background-color: #fff;
-                                                                                                    background-image: url('${opt.image}');
-                                                                                                    background-position: center center;
-                                                                                                    background-size: contain;
-                                                                                                "
-                                                                                                        ></div>
+                                                                                                        ${BgWidget.validImageBox({ gvc: gvc, image: opt.image, width: 40 })}
                                                                                                         <div class="tx_normal ${opt.note ? 'mb-1' : ''}">${opt.value}</div>
                                                                                                         ${opt.note ? html ` <div class="tx_gray_12">${opt.note}</div> ` : ''}
                                                                                                     </div>`;

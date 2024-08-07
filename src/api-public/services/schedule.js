@@ -48,8 +48,8 @@ class Schedule {
                 if (await this.perload(app)) {
                     const userClass = new user_1.User(app);
                     const member_count = {};
-                    for (const user of await database_1.default.query(`select *
-                                                    from \`${app}\`.t_user`, [])) {
+                    for (const user of await database_1.default.query(`select * from \`${app}\`.t_user
+                        `, [])) {
                         const member_levels = (await userClass.refreshMember(user)).find((dd) => {
                             return dd.trigger;
                         });
@@ -149,8 +149,8 @@ class Schedule {
                             mailType: mailType,
                         });
                         const users = await database_1.default.query(`SELECT *
-                        FROM \`${app}\`.t_user
-                        WHERE MONTH (JSON_EXTRACT(userData, '$.birth')) = MONTH (CURDATE());`, []);
+                            FROM \`${app}\`.t_user
+                            WHERE MONTH (JSON_EXTRACT(userData, '$.birth')) = MONTH (CURDATE());`, []);
                         const now = new Date();
                         const oneYearAgo = new Date(now);
                         oneYearAgo.setFullYear(now.getFullYear() - 1);

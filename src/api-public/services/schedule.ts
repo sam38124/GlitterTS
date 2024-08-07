@@ -6,7 +6,7 @@ import { User } from './user';
 import { Shopping } from './shopping';
 import { Mail } from '../services/mail.js';
 import { AutoSendEmail } from './auto-send-email.js';
-import {saasConfig} from "../../config";
+import { saasConfig } from '../../config';
 
 type ScheduleItem = {
     second: number;
@@ -16,24 +16,22 @@ type ScheduleItem = {
 };
 
 export class Schedule {
-    static app: string[]=[];
+    static app: string[] = [];
 
-
-
-    async perload(app:string) {
+    async perload(app: string) {
         if (!(await this.isDatabasePass(app))) return false;
         if (!(await this.isDatabaseExists(app))) return false;
-        if (!(await this.isTableExists('t_user_public_config',app))) return false;
-        if (!(await this.isTableExists('t_voucher_history',app))) return false;
-        if (!(await this.isTableExists('t_triggers',app))) return false;
+        if (!(await this.isTableExists('t_user_public_config', app))) return false;
+        if (!(await this.isTableExists('t_voucher_history', app))) return false;
+        if (!(await this.isTableExists('t_triggers', app))) return false;
         return true;
     }
 
-    async isDatabaseExists(app:string) {
+    async isDatabaseExists(app: string) {
         return (await db.query(`SHOW DATABASES LIKE \'${app}\';`, [])).length > 0;
     }
 
-    async isDatabasePass(app:string) {
+    async isDatabasePass(app: string) {
         const SQL = `
             SELECT *
             FROM ${saasConfig.SAAS_NAME}.app_config
@@ -43,20 +41,20 @@ export class Schedule {
         return (await db.query(SQL, [])).length > 0;
     }
 
-    async isTableExists(table: string,app:string) {
+    async isTableExists(table: string, app: string) {
         return (await db.query(`SHOW TABLES IN \`${app}\` LIKE \'${table}\';`, [])).length > 0;
     }
 
     async refreshMember(sec: number) {
         try {
-            for (const app of Schedule.app){
+            for (const app of Schedule.app) {
                 if (await this.perload(app)) {
                     const userClass = new User(app);
                     //紀錄當前分級會員的數量
                     const member_count: any = {};
                     for (const user of await db.query(
-                        `select *
-                                                    from \`${app}\`.t_user`,
+                        `select * from \`${app}\`.t_user
+                        `,
                         []
                     )) {
                         const member_levels = (await userClass.refreshMember(user)).find((dd: any) => {
@@ -74,7 +72,6 @@ export class Schedule {
                     });
                 }
             }
-
         } catch (e) {
             console.error('BAD_REQUEST', 'refreshMember Error: ' + e, null);
         }
@@ -83,13 +80,12 @@ export class Schedule {
 
     async example(sec: number) {
         try {
-            for (const app of Schedule.app){
+            for (const app of Schedule.app) {
                 if (await this.perload(app)) {
                     // 排程範例
                     // await
                 }
             }
-
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'Example Error: ' + e, null);
         }
@@ -172,8 +168,8 @@ export class Schedule {
                         // 當月生日之顧客
                         const users = await db.query(
                             `SELECT *
-                        FROM \`${app}\`.t_user
-                        WHERE MONTH (JSON_EXTRACT(userData, '$.birth')) = MONTH (CURDATE());`,
+                            FROM \`${app}\`.t_user
+                            WHERE MONTH (JSON_EXTRACT(userData, '$.birth')) = MONTH (CURDATE());`,
                             []
                         );
 

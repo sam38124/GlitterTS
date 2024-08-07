@@ -149,17 +149,30 @@ export class UserList {
                                 BgWidget.mainCard(
                                     [
                                         (() => {
-                                            const id = gvc.glitter.getUUID();
+                                            const fvm = {
+                                                id: gvc.glitter.getUUID(),
+                                                loading: true,
+                                                levelList: [] as any,
+                                            };
                                             return gvc.bindView({
-                                                bind: id,
+                                                bind: fvm.id,
                                                 view: () => {
+                                                    if (fvm.loading) {
+                                                        return '';
+                                                    }
+                                                    FilterOptions.userFunnel.map((item) => {
+                                                        if (item.key === 'level') {
+                                                            item.data = fvm.levelList;
+                                                        }
+                                                        return item;
+                                                    });
                                                     const filterList = [
                                                         BgWidget.selectFilter({
                                                             gvc,
                                                             callback: (value: any) => {
                                                                 vm.queryType = value;
                                                                 gvc.notifyDataChange(vm.tableId);
-                                                                gvc.notifyDataChange(id);
+                                                                gvc.notifyDataChange(fvm.id);
                                                             },
                                                             default: vm.queryType || 'name',
                                                             options: FilterOptions.userSelect,
@@ -168,7 +181,7 @@ export class UserList {
                                                             gvc.event((e) => {
                                                                 vm.query = e.value;
                                                                 gvc.notifyDataChange(vm.tableId);
-                                                                gvc.notifyDataChange(id);
+                                                                gvc.notifyDataChange(fvm.id);
                                                             }),
                                                             vm.query || '',
                                                             '搜尋所有用戶'
@@ -182,7 +195,7 @@ export class UserList {
                                                             callback: (value: any) => {
                                                                 vm.orderString = value;
                                                                 gvc.notifyDataChange(vm.tableId);
-                                                                gvc.notifyDataChange(id);
+                                                                gvc.notifyDataChange(fvm.id);
                                                             },
                                                             default: vm.orderString || 'default',
                                                             options: FilterOptions.userOrderBy,
@@ -206,6 +219,26 @@ export class UserList {
                                                         // 電腦版
                                                         return html` <div style="display: flex; align-items: center; gap: 10px;">${filterList.join('')}</div>
                                                             <div>${filterTags}</div>`;
+                                                    }
+                                                },
+                                                onCreate: () => {
+                                                    if (fvm.loading) {
+                                                        new Promise<{ key: string; name: string }[]>((resolve) => {
+                                                            ApiUser.getPublicConfig('member_level_config', 'manager').then((res: any) => {
+                                                                if (res.result && res.response.value && res.response.value.levels.length > 0) {
+                                                                    resolve(
+                                                                        res.response.value.levels.map((data: any) => {
+                                                                            return { key: data.id, name: data.tag_name };
+                                                                        })
+                                                                    );
+                                                                }
+                                                                resolve([]);
+                                                            });
+                                                        }).then((res) => {
+                                                            fvm.levelList = res;
+                                                            fvm.loading = false;
+                                                            gvc.notifyDataChange(fvm.id);
+                                                        });
                                                     }
                                                 },
                                             });

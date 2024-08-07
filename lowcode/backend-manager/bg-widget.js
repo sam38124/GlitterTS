@@ -1016,19 +1016,11 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
     static selectDropList(obj) {
         const vm = {
             id: obj.gvc.glitter.getUUID(),
-            checkClass: this.randomString(5),
+            checkClass: this.getCheckedClass(obj.gvc),
             loading: true,
             show: false,
             def: JSON.parse(JSON.stringify(obj.default)),
         };
-        obj.gvc.addStyle(`
-            .${vm.checkClass}:checked[type='checkbox'] {
-                border: 2px solid #000;
-                background-color: #fff;
-                background-image: url(${this.checkedDataImage('#000')});
-                background-position: center center;
-            }
-        `);
         return obj.gvc.bindView({
             bind: vm.id,
             view: () => {
@@ -1115,7 +1107,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             const vm = {
                 id: obj.gvc.glitter.getUUID(),
                 loading: true,
-                checkClass: this.randomString(5),
+                checkClass: this.getCheckedClass(obj.gvc),
                 def: JSON.parse(JSON.stringify(obj.default)),
                 options: [],
                 query: '',
@@ -1125,14 +1117,6 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                     index: 0,
                 },
             };
-            obj.gvc.addStyle(`
-                .${vm.checkClass}:checked[type='checkbox'] {
-                    border: 2px solid #000;
-                    background-color: #fff;
-                    background-image: url(${this.checkedDataImage('#000')});
-                    background-position: center center;
-                }
-            `);
             return html ` <div class="bg-white shadow rounded-3" style="overflow-y: auto; ${document.body.clientWidth > 768 ? 'min-width: 400px; width: 600px;' : 'min-width: 92.5vw;'}">
                 ${obj.gvc.bindView({
                 bind: vm.id,
@@ -1201,13 +1185,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                                               onclick="${obj.gvc.event(() => call())}"
                                                               ${obj.default.includes(opt.key) ? 'checked' : ''}
                                                           />`}
-                                                    ${opt.image
-                            ? html `
-                                                              <div style="line-height: 40px;">
-                                                                  <img class="rounded border" src="${opt.image}" style="width:40px; height:40px;" />
-                                                              </div>
-                                                          `
-                            : ''}
+                                                    ${opt.image ? BgWidget.validImageBox({ gvc: obj.gvc, image: opt.image, width: 40 }) : ''}
                                                     <div class="form-check-label c_updown_label ${obj.readonly ? '' : 'cursor_pointer'}" onclick="${obj.gvc.event(() => call())}">
                                                         <div class="tx_normal ${opt.note ? 'mb-1' : ''}">${opt.value}</div>
                                                         ${opt.note ? html ` <div class="tx_gray_12">${opt.note}</div> ` : ''}
@@ -1286,19 +1264,11 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
     static updownFilter(obj) {
         const vm = {
             id: obj.gvc.glitter.getUUID(),
-            checkClass: this.randomString(5),
+            checkClass: this.getDotClass(obj.gvc),
             show: false,
             top: 0,
             right: 0,
         };
-        obj.gvc.addStyle(`
-            .${vm.checkClass}:checked[type='radio'] {
-                border: 2px solid #000;
-                background-color: #fff;
-                background-image: url(${this.dotDataImage('#000')});
-                background-position: center center;
-            }
-        `);
         return html ` <div
                 class="c_updown"
                 onclick="${obj.gvc.event((e) => {
@@ -1404,17 +1374,8 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
     }
     static multiCheckboxContainer(gvc, data, def, callback, obj) {
         const id = gvc.glitter.getUUID();
-        const randomString = this.randomString(5);
+        const randomString = obj && obj.single ? this.getDotClass(gvc) : this.getCheckedClass(gvc);
         const viewId = this.randomString(5);
-        gvc.addStyle(`
-            .${randomString}:checked[type='checkbox'],
-            .${randomString}:checked[type='radio']  {
-                border: 2px solid #000;
-                background-color: #fff;
-                background-image: url(${obj && obj.single ? this.dotDataImage('#000') : this.checkedDataImage('#000')});
-                background-position: center center;
-            }
-        `);
         return gvc.bindView({
             bind: viewId,
             view: () => {
@@ -1461,16 +1422,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
     }
     static radioInputContainer(gvc, data, def, callback) {
         const id = gvc.glitter.getUUID();
-        const randomString = this.randomString(5);
-        gvc.addStyle(`
-            .${randomString}:checked[type='radio'] {
-                margin-right: 4px;
-                border: 2px solid #000;
-                background-color: #fff;
-                background-image: url(${this.dotDataImage('#000')});
-                background-position: center center;
-            }
-        `);
+        const randomString = this.getDotClass(gvc);
         return gvc.bindView({
             bind: id,
             view: () => {
@@ -1695,16 +1647,26 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         </div>`;
     }
     static validImageBox(obj) {
+        var _a, _b;
         const imageVM = {
             id: obj.gvc.glitter.getUUID(),
+            class: this.randomString(6),
             loading: true,
             url: this.noImageURL,
         };
+        obj.gvc.addStyle(`
+            .${imageVM.class} {
+                min-width: ${obj.width}px;
+                min-height: ${(_a = obj.height) !== null && _a !== void 0 ? _a : obj.width}px;
+                max-width: ${obj.width}px;
+                max-height: ${(_b = obj.height) !== null && _b !== void 0 ? _b : obj.width}px;
+            }
+        `);
         return obj.gvc.bindView({
             bind: imageVM.id,
             view: () => {
-                var _a, _b, _c;
-                return html `<img class="${(_a = obj.class) !== null && _a !== void 0 ? _a : ''}" style="width:${obj.width}px; height:${(_b = obj.height) !== null && _b !== void 0 ? _b : obj.width}px; ${(_c = obj.style) !== null && _c !== void 0 ? _c : ''}" src="${imageVM.url}" />`;
+                var _a, _b;
+                return html `<img class="${imageVM.class} ${(_a = obj.class) !== null && _a !== void 0 ? _a : ''}" style="${(_b = obj.style) !== null && _b !== void 0 ? _b : ''}" src="${imageVM.url}" />`;
             },
             divCreate: {},
             onCreate: () => {
@@ -1727,6 +1689,39 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             img.onerror = () => resolve(false);
             img.src = url;
         });
+    }
+    static getCheckedClass(gvc, color) {
+        const className = this.randomString(5);
+        gvc.addStyle(`
+            .${className} {
+                min-width: 1rem;
+                min-height: 1rem;
+            }
+            .${className}:checked[type='checkbox'] {
+                border: 2px solid #000;
+                background-color: #fff;
+                background-image: url(${this.checkedDataImage(color !== null && color !== void 0 ? color : '#000')});
+                background-position: center center;
+            }
+        `);
+        return className;
+    }
+    static getDotClass(gvc, color) {
+        const className = this.randomString(5);
+        gvc.addStyle(`
+            .${className} {
+                min-width: 1rem;
+                min-height: 1rem;
+                margin-right: 4px;
+            }
+            .${className}:checked[type='radio'] {
+                border: 2px solid #000;
+                background-color: #fff;
+                background-image: url(${this.dotDataImage(color !== null && color !== void 0 ? color : '#000')});
+                background-position: center center;
+            }
+        `);
+        return className;
     }
 }
 BgWidget.noImageURL = 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg';
