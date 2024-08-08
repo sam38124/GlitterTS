@@ -10,12 +10,20 @@ import {CustomStyle} from "../../glitterBundle/html-component/custom-style.js";
 
 export const component = Plugin.createComponent(import.meta.url, (glitter: Glitter, editMode: boolean) => {
     return {
-        render: (gvc: GVC, widget: HtmlJson, setting: HtmlJson[], hoverID: string[], subData, htmlGenerate, doc) => {
+        render: (gvc: GVC, widget: any, setting: HtmlJson[], hoverID: string[], subData, htmlGenerate, doc) => {
             const document = doc || (window.document);
             widget.data.list = widget.data.list ?? []
             widget.storage = widget.storage ?? {};
             widget.storage.updateFormData = widget.storage.updateFormData ?? ((page_config: any) => {
-            })
+            });
+            ['mobile', 'desktop'].map((dd) => {
+                widget[dd] = widget[dd] ?? {};
+                (widget[dd].refer !== 'custom' && widget[dd].refer !== 'hide') && (widget[dd].refer = 'custom');
+                widget[`${dd}_editable`] = widget[`${dd}_editable`] ?? [];
+                widget[dd].data = widget[dd].data ?? {};
+                widget[dd].data.refer_app = widget.data.refer_app;
+            });
+
             let viewConfig: any = undefined
             const html = String.raw;
             const view_container_id = widget.id
@@ -96,40 +104,53 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                             glitter.htmlGenerate.renameWidgetID(dd)
                                         })
 
-                                        let formData = JSON.parse(JSON.stringify(data.page_config.formData))
-                                        if ((widget.data.refer_app)) {
-                                            GlobalWidget.initialShowCaseData({
-                                                widget: widget,
-                                                gvc: gvc
-                                            });
-
-                                            formData = JSON.parse(JSON.stringify((widget.data.refer_form_data || data.page_config.formData)))
-                                            if (gvc.glitter.document.body.clientWidth < 800 && (widget as any).mobile.refer === 'hide') {
-                                                resolve(`
+                                        function getFormData(ref: any) {
+                                            let formData = JSON.parse(JSON.stringify(ref || {}))
+                                            if ((widget.data.refer_app)) {
+                                                GlobalWidget.initialShowCaseData({
+                                                    widget: widget,
+                                                    gvc: gvc
+                                                });
+                                                if (gvc.glitter.document.body.clientWidth < 800 && (widget as any).mobile.refer === 'hide') {
+                                                    resolve(`
                                                 <!-- tag=${tag} -->
                                                 `)
-                                                return
-                                            } else if (gvc.glitter.document.body.clientWidth >= 800 && (widget as any).desktop.refer === 'hide') {
-                                                resolve(`
+                                                    return
+                                                } else if (gvc.glitter.document.body.clientWidth >= 800 && (widget as any).desktop.refer === 'hide') {
+                                                    resolve(`
                                                 <!-- tag=${tag} -->
                                                 `)
-                                                return
-                                            } else if (gvc.glitter.document.body.clientWidth < 800 && (widget as any).mobile.refer === 'custom') {
-                                                ((widget as any)[`mobile_editable`] ?? []).map((dd: any) => {
-                                                    formData[dd] = ((widget as any).mobile.data.refer_form_data || data.page_config.formData)[dd]
-                                                });
-                                                // data.page_config.formData = (widget.data.refer_form_data || data.page_config.formData)
-                                            } else if (gvc.glitter.document.body.clientWidth >= 800 && (widget as any).desktop.refer === 'custom') {
-                                                ((widget as any)[`desktop_editable`] ?? []).map((dd: any) => {
-                                                    formData[dd] = ((widget as any).desktop.data.refer_form_data || data.page_config.formData)[dd]
-                                                });
-                                                // data.page_config.formData = ((widget as any).desktop.data.refer_form_data || data.page_config.formData);
+                                                    return
+                                                } else if (gvc.glitter.document.body.clientWidth < 800 && (widget as any).mobile.refer === 'custom') {
+                                                    ((widget as any)[`mobile_editable`] ?? []).map((dd: any) => {
+                                                        formData[dd] = JSON.parse(JSON.stringify(((widget as any).mobile.data.refer_form_data || data.page_config.formData)[dd] || {}))
+                                                    });
+                                                    // data.page_config.formData = (widget.data.refer_form_data || data.page_config.formData)
+                                                } else if (gvc.glitter.document.body.clientWidth >= 800 && (widget as any).desktop.refer === 'custom') {
+                                                    ((widget as any)[`desktop_editable`] ?? []).map((dd: any) => {
+                                                        formData[dd] = JSON.parse(JSON.stringify(((widget as any).desktop.data.refer_form_data || data.page_config.formData)[dd] || {}))
+                                                    });
+                                                    // data.page_config.formData = ((widget as any).desktop.data.refer_form_data || data.page_config.formData);
+                                                }
                                             }
+                                            return formData;
                                         }
 
-                                        data.config.formData = formData;
+
+                                        data.config.formData = getFormData((widget.data.refer_app) ? (widget.data.refer_form_data || data.page_config.formData) : data.page_config.formData);
                                         viewConfig = data.config;
                                         const id = gvc.glitter.getUUID()
+
+                                        function updatePageConfig(formData: any, type: any) {
+                                            if (type === 'mobile' || type === 'desktop') {
+                                                (widget as any)[type].data.refer_form_data = formData;
+                                                viewConfig.formData = getFormData((widget.data.refer_app) ? (widget.data.refer_form_data || data.page_config.formData) : data.page_config.formData);
+                                            } else {
+                                                viewConfig.formData=formData
+                                            }
+
+                                            document.querySelector(`[gvc-id="${gvc.id(id)}"]`).outerHTML = getView()
+                                        }
 
                                         function getView() {
                                             function loop(array: any) {
@@ -176,26 +197,14 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                 },
                                                 onCreate: () => {
                                                     if (glitter.htmlGenerate.isEditMode()) {
-                                                        gvc.getBindViewElem(id).get(0).updatePageConfig = (formData: any) => {
-                                                            viewConfig.formData = formData
-                                                            document.querySelector(`[gvc-id="${gvc.id(id)}"]`).outerHTML = getView()
-                                                        }
+                                                        gvc.getBindViewElem(id).get(0).updatePageConfig = updatePageConfig
                                                     }
                                                 },
                                                 document: document
                                             }, getCreateOption)
                                         }
 
-
-                                        widget.storage.updatePageConfig = (formData: any) => {
-                                            try {
-                                                console.log(`updatePageConfig->`, formData)
-                                                viewConfig.formData = formData
-                                                document.querySelector(`[gvc-id="${gvc.id(id)}"]`).outerHTML = getView()
-                                            } catch (e) {
-
-                                            }
-                                        }
+                                        widget.storage.updatePageConfig = updatePageConfig
                                         resolve(`
                                                 <!-- tag=${tag} -->
                                               ${getView()}
@@ -523,21 +532,21 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                     <select class="form-control form-select"
                                                             style="border-top-right-radius: 0;border-bottom-right-radius: 0;"
                                                             onchange="${gvc.event((e, event) => {
-                                                selectTag = e.value;
-                                                gvc.notifyDataChange(id)
-                                            })}">${
-                                                valueArray.map((dd) => {
-                                                    return `<option value="${dd.tag}" ${(dd.tag === selectTag) ? `selected` : ''} >${dd.title}</option>`
-                                                })
-                                            }</select>
+                                                                selectTag = e.value;
+                                                                gvc.notifyDataChange(id)
+                                                            })}">${
+                                                            valueArray.map((dd) => {
+                                                                return `<option value="${dd.tag}" ${(dd.tag === selectTag) ? `selected` : ''} >${dd.title}</option>`
+                                                            })
+                                                    }</select>
                                                     <div class="hoverBtn ms-auto d-flex align-items-center justify-content-center   border "
                                                          style="height:44px;width:44px;cursor:pointer;color:#151515;border-left: none;border-radius: 0px 10px 10px 0px;"
                                                          data-bs-toggle="tooltip" data-bs-placement="top"
                                                          data-bs-custom-class="custom-tooltip"
                                                          data-bs-title="跳轉至模塊" onclick="${gvc.event(() => {
-                                                glitter.setUrlParameter('page', selectTag)
-                                                glitter.share.reloadEditor()
-                                            })}">
+                                                        glitter.setUrlParameter('page', selectTag)
+                                                        glitter.share.reloadEditor()
+                                                    })}">
                                                         <i class="fa-regular fa-eye"></i>
                                                     </div>
                                                 </div>
@@ -572,7 +581,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                             let html = ''
                                                             let spiltCount = 0
 
-                                                            function appendHtml(pageData: any, widget: any, initial: boolean, id: string, parent_array: any) {
+                                                            function appendHtml(pageData: any, widget: any, initial: boolean, p_id: string, parent_array: any) {
                                                                 const vm = {
                                                                     id: gvc.glitter.getUUID()
                                                                 }
@@ -601,6 +610,11 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
 
                                                                     html += gvc.bindView(() => {
                                                                         const id = gvc.glitter.getUUID()
+
+                                                                        function refreshLeftBar() {
+                                                                            gvc.notifyDataChange(id)
+                                                                        }
+
                                                                         const vm: {
                                                                             id: string,
                                                                             page: 'setting' | 'editor'
@@ -608,13 +622,6 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                                             id: gvc.glitter.getUUID(),
                                                                             page: 'editor'
                                                                         };
-                                                                        ['mobile', 'desktop'].map((dd) => {
-                                                                            widget[dd] = widget[dd] ?? {};
-                                                                            (widget[dd].refer !== 'custom') && (widget[dd].refer = 'custom');
-                                                                            widget[`${dd}_editable`] = widget[`${dd}_editable`] ?? [];
-                                                                            widget[dd].data = widget[dd].data ?? {};
-                                                                            widget[dd].data.refer_app = widget.data.refer_app;
-                                                                        });
 
                                                                         return {
                                                                             bind: id,
@@ -630,10 +637,10 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                                                                             class="px-3   border-bottom pb-3 fw-bold mt-n3 mb-2 pt-3 hoverF2 d-flex align-items-center"
                                                                                                             style="cursor: pointer;color:#393939;border-radius: 0px;gap:10px;"
                                                                                                             onclick="${gvc.event(() => {
-                                                                                                    Storage.lastSelect = '';
-                                                                                                    gvc.glitter.share.editorViewModel.selectItem = undefined;
-                                                                                                    gvc.glitter.share.selectEditorItem();
-                                                                                                })}"
+                                                                                                                Storage.lastSelect = '';
+                                                                                                                gvc.glitter.share.editorViewModel.selectItem = undefined;
+                                                                                                                gvc.glitter.share.selectEditorItem();
+                                                                                                            })}"
                                                                                                     >
                                                                                                         <i class="fa-solid fa-chevron-left"></i>
                                                                                                         <span style="max-width: calc(100% - 50px);text-overflow: ellipsis;white-space: nowrap;overflow: hidden;">${widget.label}</span>
@@ -641,9 +648,9 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                                                                     </div>
                                                                                                     <div class="ps-2">
                                                                                                         ${GlobalWidget.showCaseBar(gvc, widget, () => {
-                                                                                                    vm.page = 'editor'
-                                                                                                    gvc.notifyDataChange(id)
-                                                                                                })}
+                                                                                                            vm.page = 'editor'
+                                                                                                            gvc.notifyDataChange(id)
+                                                                                                        })}
                                                                                                     </div>`
                                                                                             case "setting":
                                                                                                 return html`
@@ -651,9 +658,9 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                                                                             class="px-3   border-bottom pb-3 fw-bold mt-n3  pt-3 hoverF2 d-flex align-items-center"
                                                                                                             style="cursor: pointer;color:#393939;border-radius: 0px;gap:10px;"
                                                                                                             onclick="${gvc.event(() => {
-                                                                                                    vm.page = 'editor'
-                                                                                                    gvc.notifyDataChange(id)
-                                                                                                })}"
+                                                                                                                vm.page = 'editor'
+                                                                                                                gvc.notifyDataChange(id)
+                                                                                                            })}"
                                                                                                     >
                                                                                                         <i class="fa-solid fa-chevron-left"></i>
                                                                                                         <span style="max-width: calc(100% - 50px);text-overflow: ellipsis;white-space: nowrap;overflow: hidden;">設定</span>
@@ -707,14 +714,14 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                                                                             let refer_form: any = getReferForm(widget);
 
                                                                                                             function refresh(widget: any, device: 'mobile' | 'desktop' | 'def') {
-                                                                                                                let refer_form: any = ((widget.data.refer_app)) ? ((widget.data.refer_form_data || page_config.formData) || {}) : page_config.formData;
+
                                                                                                                 if (widget.data.refer_app) {
                                                                                                                     widget.data.refer_form_data = refer_form;
-                                                                                                                    if (pageData.id !== id) {
+                                                                                                                    if (pageData.id !== p_id) {
                                                                                                                         glitter.share.editorViewModel.saveArray[pageData.id] = (() => {
                                                                                                                             return new Promise(async (resolve, reject) => {
                                                                                                                                 await ApiPageConfig.setPage({
-                                                                                                                                    id: id as any,
+                                                                                                                                    id: p_id as any,
                                                                                                                                     appName: (window as any).appName,
                                                                                                                                     tag: (parent_array).tag,
                                                                                                                                     config: parent_array
@@ -730,7 +737,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                                                                                     }
                                                                                                                     if (!widget.storage) {
                                                                                                                         try {
-                                                                                                                            const doc: any = (((document.querySelector('#editerCenter iframe') as any)!.contentWindow as any).document).querySelectorAll(`.${widget.data.refer_app}_${widget.data.tag}`)!;
+                                                                                                                            const doc: any = (((document.querySelector('#editerCenter iframe') as any)!.contentWindow as any).document).querySelectorAll(`.${oWidget.data.refer_app}_${oWidget.data.tag}`)!;
                                                                                                                             if (doc) {
                                                                                                                                 for (const b of doc) {
                                                                                                                                     b.updatePageConfig(refer_form, device)
@@ -811,90 +818,51 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                                                                                 if (vm.page === 'editor') {
 
                                                                                                                     return [
-                                                                                                                        type === 'def' ? `` : gvc.bindView(() => {
-                                                                                                                            const id = gvc.glitter.getUUID()
-                                                                                                                            return {
-                                                                                                                                bind: id,
-                                                                                                                                view: () => {
-                                                                                                                                    try {
-                                                                                                                                        return html`
-                                                                                                                                            <h3 class="my-auto tx_title fw-normal d-flex"
-                                                                                                                                                style="white-space: nowrap;font-size: 16px;">
-                                                                                                                                                    在${(() => {
-                                                                                                                                            if (type === "mobile") {
-                                                                                                                                                return `手機`
-                                                                                                                                            } else {
-                                                                                                                                                return `電腦`
-                                                                                                                                            }
-                                                                                                                                        })()}
-                                                                                                                                                    版上${(widget.refer === 'hide') ? `不` : ``}
-                                                                                                                                                顯示</h3>
-                                                                                                                                            ${GlobalWidget.switchButton(gvc, widget.refer !== 'hide', (bool) => {
-                                                                                                                                            // vm.data.main = bool;
-                                                                                                                                            if (bool) {
-                                                                                                                                                widget.refer = 'def'
-                                                                                                                                            } else {
-                                                                                                                                                widget.refer = 'hide'
-                                                                                                                                            }
-                                                                                                                                            gvc.notifyDataChange(id)
-                                                                                                                                        })}`
-                                                                                                                                    } catch (e) {
-                                                                                                                                        console.log(`error`, e)
-                                                                                                                                        return `${e}`
-                                                                                                                                    }
-
-                                                                                                                                },
-                                                                                                                                divCreate: {
-                                                                                                                                    class: `d-flex align-content-center my-2 mx-3 mt-3`,
-                                                                                                                                    style: `gap:10px;`
-                                                                                                                                }
-                                                                                                                            }
-                                                                                                                        }),
                                                                                                                         type === 'def' ? `` : html`
                                                                                                                             <div class="my-2 mx-3 "
                                                                                                                                  style=" height: 40px; padding: 6px 18px;background: #393939; border-radius: 10px; overflow: hidden;
 width: calc(100% - 30px);
 justify-content: center; align-items: center; gap: 8px; display: inline-flex;cursor: pointer;"
                                                                                                                                  onclick="${gvc.event(() => {
-                                                                                                                            const cGvc = gvc
-                                                                                                                            EditorElem.openEditorDialog(gvc, (gvc: GVC) => {
+                                                                                                                                     const cGvc = gvc
+                                                                                                                                     EditorElem.openEditorDialog(gvc, (gvc: GVC) => {
 
-                                                                                                                                return html`
+                                                                                                                                         return html`
                                                                                                                                              <div class="p-3">
                                                                                                                                                  ${[
-                                                                                                                                    BgWidget.multiCheckboxContainer(
-                                                                                                                                        gvc,
-                                                                                                                                        page_config.formFormat.map((dd: any) => {
-                                                                                                                                            return {
-                                                                                                                                                key: dd.key,
-                                                                                                                                                name: dd.title
-                                                                                                                                            }
-                                                                                                                                        }).concat({
-                                                                                                                                            key: '_container_margin',
-                                                                                                                                            name: '容器間距'
-                                                                                                                                        }),
-                                                                                                                                        oWidget[`${type}_editable`] || [],
-                                                                                                                                        (select: any) => {
-                                                                                                                                            oWidget[`${type}_editable`] = select
-                                                                                                                                        }
-                                                                                                                                    ),
-                                                                                                                                    html`
+                                                                                                                                                     BgWidget.multiCheckboxContainer(
+                                                                                                                                                             gvc,
+                                                                                                                                                             page_config.formFormat.map((dd: any) => {
+                                                                                                                                                                 return {
+                                                                                                                                                                     key: dd.key,
+                                                                                                                                                                     name: dd.title
+                                                                                                                                                                 }
+                                                                                                                                                             }).concat({
+                                                                                                                                                                 key: '_container_margin',
+                                                                                                                                                                 name: '容器間距'
+                                                                                                                                                             }),
+                                                                                                                                                             oWidget[`${type}_editable`] || [],
+                                                                                                                                                             (select: any) => {
+                                                                                                                                                                 console.log(select)
+                                                                                                                                                                 oWidget[`${type}_editable`] = select
+                                                                                                                                                             }, {}
+                                                                                                                                                     ),
+                                                                                                                                                     html`
                                                                                                                                                          <div class="d-flex justify-content-end"
                                                                                                                                                               style="gap:10px;">
                                                                                                                                                              ${BgWidget.cancel(gvc.event(() => {
-                                                                                                                                        gvc.closeDialog()
-                                                                                                                                    }))}
+                                                                                                                                                                 gvc.closeDialog()
+                                                                                                                                                             }))}
                                                                                                                                                              ${BgWidget.save(gvc.event(() => {
-                                                                                                                                        refresh(oWidget, type)
-                                                                                                                                        cGvc.notifyDataChange(id)
-                                                                                                                                        gvc.closeDialog()
-                                                                                                                                    }), '完成')}
+                                                                                                                                                                 refreshLeftBar()
+                                                                                                                                                                 gvc.closeDialog()
+                                                                                                                                                             }), '完成')}
                                                                                                                                                          </div>`
-                                                                                                                                ].join('')}
+                                                                                                                                                 ].join('')}
                                                                                                                                              </div>`
-                                                                                                                            }, () => {
-                                                                                                                            }, 569, '設置自定義選項')
-                                                                                                                        })}">
+                                                                                                                                     }, () => {
+                                                                                                                                     }, 569, '設置自定義選項')
+                                                                                                                                 })}">
                                                                                                                                 <div style="color: white; font-size: 16px; font-family: Noto Sans; font-weight: 700; word-wrap: break-word">
                                                                                                                                     設置自定義選項
                                                                                                                                 </div>
@@ -924,9 +892,9 @@ border-top: 1px solid #DDD;
 font-style: normal;
 gap:10px;
 font-weight: 700;" onclick="${gvc.event(() => {
-                                                                                                                            vm.page = 'setting'
-                                                                                                                            gvc.notifyDataChange(id)
-                                                                                                                        })}">
+                                                                                                                                vm.page = 'setting'
+                                                                                                                                gvc.notifyDataChange(id)
+                                                                                                                            })}">
                                                                                                                                 設定
                                                                                                                                 <i class="fa-solid fa-angle-right"></i>
                                                                                                                             </div>`
@@ -947,9 +915,9 @@ font-weight: 700;" onclick="${gvc.event(() => {
                                                                                                                                     const array_string = [html`
                                                                                                                                         <div class="hoverF2 d-flex align-items-center p-3"
                                                                                                                                              onclick="${gvc.event(() => {
-                                                                                                                                        vm_c.toggle = !vm_c.toggle
-                                                                                                                                        gvc.notifyDataChange(vm_c.id)
-                                                                                                                                    })}">
+                                                                                                                                                 vm_c.toggle = !vm_c.toggle
+                                                                                                                                                 gvc.notifyDataChange(vm_c.id)
+                                                                                                                                             })}">
 <span class="fw-500"
       style="max-width: calc(100% - 50px);text-overflow: ellipsis;white-space: nowrap;overflow: hidden;">${dd.title}</span>
                                                                                                                                             <div class="flex-fill"></div>
@@ -1018,7 +986,6 @@ font-weight: 700;" onclick="${gvc.event(() => {
                                                                                         },
                                                                                         custom_edit: true,
                                                                                         toggle_visible: (bool) => {
-                                                                                            alert(bool)
                                                                                             if (bool) {
                                                                                                 $((document.querySelector('#editerCenter  iframe') as any).contentWindow.document.querySelector('.' + view_container_id)).show()
                                                                                             } else {
@@ -1105,9 +1072,9 @@ font-weight: 700;" onclick="${gvc.event(() => {
                                         <div class="${Storage.select_function === 'user-editor' ? `d-none` : ``} mx-0 d-flex  px-3 hi fw-bold d-flex align-items-center shadow border-bottom  py-2 bgf6 "
                                              style="color:black;cursor: pointer;font-size:15px;"
                                              onclick="${gvc.event(() => {
-                                        toggle = !toggle
-                                        gvc.notifyDataChange(id)
-                                    })}">
+                                                 toggle = !toggle
+                                                 gvc.notifyDataChange(id)
+                                             })}">
                                             內容編輯
                                             <div class="flex-fill"></div>
                                             ${toggle ? ` <i class="fa-solid fa-chevron-up d-flex align-items-center justify-content-center me-2"
@@ -1135,9 +1102,9 @@ font-weight: 700;" onclick="${gvc.event(() => {
                                         <div class="${Storage.select_function === 'user-editor' ? `d-none` : ``} mx-0 d-flex   border-top px-3 hi fw-bold d-flex align-items-center shadow border-bottom  py-2 bgf6"
                                              style="color:black;cursor: pointer;font-size:15px;"
                                              onclick="${gvc.event(() => {
-                                        toggle = !toggle
-                                        gvc.notifyDataChange(id)
-                                    })}">
+                                                 toggle = !toggle
+                                                 gvc.notifyDataChange(id)
+                                             })}">
                                             模塊進階設定
                                             <div class="flex-fill"></div>
                                             ${toggle ? ` <i class="fa-solid fa-chevron-up d-flex align-items-center justify-content-center me-2"

@@ -503,43 +503,53 @@ export class Main_editor {
                     `;
                 },
                 divCreate: {
-                    class: `border-bottom`,
+                    class: ``,
                 },
             };
         });
     }
     static color_list(vm, gvc, id, globalValue) {
-        return ` <div class="px-3   border-bottom pb-3 fw-bold mt-2 pt-2 d-flex align-content-center"
-                                             style="cursor: pointer;color:#393939;">
-                                            <span><i class="fa-sharp fa-regular fa-palette fs-5 fw-bold me-2 rounded"></i>調色盤樣式</span>
-                                        </div>
-                                        <div class="row ${(globalValue.color_theme.length === 0) ? `d-none` : ``}"
+        return gvc.bindView(() => {
+            const id = gvc.glitter.getUUID();
+            const vm_c = {
+                toggle: false
+            };
+            return {
+                bind: id,
+                view: () => {
+                    const array = [`<div class="hoverF2 d-flex align-items-center p-3"
+                 onclick="${gvc.event(() => {
+                            vm_c.toggle = !vm_c.toggle;
+                            gvc.notifyDataChange(id);
+                        })}">
+<span class="fw-500"
+      style="max-width: calc(100% - 50px);text-overflow: ellipsis;white-space: nowrap;overflow: hidden;">調色盤樣式</span>
+                <div class="flex-fill"></div>
+                ${vm_c.toggle ? ` <i class="fa-solid fa-chevron-down"></i>` : ` <i class="fa-solid fa-chevron-right"></i>`}
+            </div>`];
+                    if (vm_c.toggle) {
+                        array.push(`<div class="row ${(globalValue.color_theme.length === 0) ? `d-none` : ``}"
                                              style="margin:18px;">
                                             ${globalValue.color_theme.map((dd, index) => {
-            return `<div class="col-6 mb-3" style="cursor: pointer;" onclick="${gvc.event(() => {
-                vm.type = 'color_detail';
-                vm.data = globalValue.color_theme[index];
-                vm.index = index;
-                gvc.notifyDataChange(id);
-            })}">
+                            return `<div class="col-6 mb-3" style="cursor: pointer;" onclick="${gvc.event(() => {
+                                vm.type = 'color_detail';
+                                vm.data = globalValue.color_theme[index];
+                                vm.index = index;
+                                gvc.notifyDataChange(id);
+                            })}">
                                                 ${Main_editor.colorCard(globalValue.color_theme[index])}
                                                 <div class="w-100 t_39_16 mt-2" style="text-align: center;">調色盤${index + 1}</div>
                                             </div>`;
-        }).join('')}
-                                        </div>
-                                        <div style="padding: 0px 24px 24px;${(globalValue.color_theme.length === 0) ? `margin-top:24px;` : ``}">
-                                            <div class="bt_border_editor"
-                                                 onclick="${gvc.event(() => {
-            vm.data = { id: gvc.glitter.getUUID() };
-            globalValue.color_theme.push(vm.data);
-            vm.name = ('調色盤' + globalValue.color_theme.length);
-            vm.type = 'color_detail';
-            vm.index = globalValue.color_theme.length - 1;
-            gvc.notifyDataChange(id);
-        })}">
-                                                新增配色
-                                            </div>
-                                        </div>`;
+                        }).join('')}
+                                        </div>`);
+                    }
+                    return array.join('');
+                },
+                divCreate: {
+                    class: `  border-bottom    w-100`
+                }
+            };
+        });
     }
     static color_detail_custom(vm) {
         const gvc = vm.gvc;

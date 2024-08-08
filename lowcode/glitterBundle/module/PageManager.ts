@@ -187,9 +187,10 @@ export class PageManager {
                         })
                         glitter.pageConfig.push(pageConfig)
                         glitter.defaultSetting.pageLoading();
-                        if((window as any).gtag && !GVC.initial){
+                        if((window as any).gtag && GVC.initial){
                             (window as any).gtag('event', 'page_view', {'page_title': document.title, page_location: document.location.href});
                         }
+                        GVC.initial=true
                         gvFunction({
                             pageConfig:pageConfig,
                             c_type:'home'

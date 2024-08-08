@@ -29,7 +29,7 @@ class LifeCycle {
 }
 
 export class GVC {
-    public static initial = true
+    public static initial = false
 
     public get glitter() {
         return (window as any).glitter as Glitter

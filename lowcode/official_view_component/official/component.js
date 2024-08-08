@@ -22,6 +22,14 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
             widget.storage = (_b = widget.storage) !== null && _b !== void 0 ? _b : {};
             widget.storage.updateFormData = (_c = widget.storage.updateFormData) !== null && _c !== void 0 ? _c : ((page_config) => {
             });
+            ['mobile', 'desktop'].map((dd) => {
+                var _a, _b, _c;
+                widget[dd] = (_a = widget[dd]) !== null && _a !== void 0 ? _a : {};
+                (widget[dd].refer !== 'custom' && widget[dd].refer !== 'hide') && (widget[dd].refer = 'custom');
+                widget[`${dd}_editable`] = (_b = widget[`${dd}_editable`]) !== null && _b !== void 0 ? _b : [];
+                widget[dd].data = (_c = widget[dd].data) !== null && _c !== void 0 ? _c : {};
+                widget[dd].data.refer_app = widget.data.refer_app;
+            });
             let viewConfig = undefined;
             const html = String.raw;
             const view_container_id = widget.id;
@@ -102,45 +110,58 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                             appName: window.appName
                                         };
                                         (window.glitterInitialHelper).getPageData(page_request_config, (d2) => {
-                                            var _a, _b, _c;
+                                            var _a;
                                             data = d2.response.result[0];
                                             data.config = (_a = data.config) !== null && _a !== void 0 ? _a : [];
                                             data.config.map((dd) => {
                                                 glitter.htmlGenerate.renameWidgetID(dd);
                                             });
-                                            let formData = JSON.parse(JSON.stringify(data.page_config.formData));
-                                            if ((widget.data.refer_app)) {
-                                                GlobalWidget.initialShowCaseData({
-                                                    widget: widget,
-                                                    gvc: gvc
-                                                });
-                                                formData = JSON.parse(JSON.stringify((widget.data.refer_form_data || data.page_config.formData)));
-                                                if (gvc.glitter.document.body.clientWidth < 800 && widget.mobile.refer === 'hide') {
-                                                    resolve(`
+                                            function getFormData(ref) {
+                                                var _a, _b;
+                                                let formData = JSON.parse(JSON.stringify(ref || {}));
+                                                if ((widget.data.refer_app)) {
+                                                    GlobalWidget.initialShowCaseData({
+                                                        widget: widget,
+                                                        gvc: gvc
+                                                    });
+                                                    if (gvc.glitter.document.body.clientWidth < 800 && widget.mobile.refer === 'hide') {
+                                                        resolve(`
                                                 <!-- tag=${tag} -->
                                                 `);
-                                                    return;
-                                                }
-                                                else if (gvc.glitter.document.body.clientWidth >= 800 && widget.desktop.refer === 'hide') {
-                                                    resolve(`
+                                                        return;
+                                                    }
+                                                    else if (gvc.glitter.document.body.clientWidth >= 800 && widget.desktop.refer === 'hide') {
+                                                        resolve(`
                                                 <!-- tag=${tag} -->
                                                 `);
-                                                    return;
+                                                        return;
+                                                    }
+                                                    else if (gvc.glitter.document.body.clientWidth < 800 && widget.mobile.refer === 'custom') {
+                                                        ((_a = widget[`mobile_editable`]) !== null && _a !== void 0 ? _a : []).map((dd) => {
+                                                            formData[dd] = JSON.parse(JSON.stringify((widget.mobile.data.refer_form_data || data.page_config.formData)[dd] || {}));
+                                                        });
+                                                    }
+                                                    else if (gvc.glitter.document.body.clientWidth >= 800 && widget.desktop.refer === 'custom') {
+                                                        ((_b = widget[`desktop_editable`]) !== null && _b !== void 0 ? _b : []).map((dd) => {
+                                                            formData[dd] = JSON.parse(JSON.stringify((widget.desktop.data.refer_form_data || data.page_config.formData)[dd] || {}));
+                                                        });
+                                                    }
                                                 }
-                                                else if (gvc.glitter.document.body.clientWidth < 800 && widget.mobile.refer === 'custom') {
-                                                    ((_b = widget[`mobile_editable`]) !== null && _b !== void 0 ? _b : []).map((dd) => {
-                                                        formData[dd] = (widget.mobile.data.refer_form_data || data.page_config.formData)[dd];
-                                                    });
-                                                }
-                                                else if (gvc.glitter.document.body.clientWidth >= 800 && widget.desktop.refer === 'custom') {
-                                                    ((_c = widget[`desktop_editable`]) !== null && _c !== void 0 ? _c : []).map((dd) => {
-                                                        formData[dd] = (widget.desktop.data.refer_form_data || data.page_config.formData)[dd];
-                                                    });
-                                                }
+                                                return formData;
                                             }
-                                            data.config.formData = formData;
+                                            data.config.formData = getFormData((widget.data.refer_app) ? (widget.data.refer_form_data || data.page_config.formData) : data.page_config.formData);
                                             viewConfig = data.config;
                                             const id = gvc.glitter.getUUID();
+                                            function updatePageConfig(formData, type) {
+                                                if (type === 'mobile' || type === 'desktop') {
+                                                    widget[type].data.refer_form_data = formData;
+                                                    viewConfig.formData = getFormData((widget.data.refer_app) ? (widget.data.refer_form_data || data.page_config.formData) : data.page_config.formData);
+                                                }
+                                                else {
+                                                    viewConfig.formData = formData;
+                                                }
+                                                document.querySelector(`[gvc-id="${gvc.id(id)}"]`).outerHTML = getView();
+                                            }
                                             function getView() {
                                                 function loop(array) {
                                                     array.map((dd) => {
@@ -186,24 +207,13 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                                     },
                                                     onCreate: () => {
                                                         if (glitter.htmlGenerate.isEditMode()) {
-                                                            gvc.getBindViewElem(id).get(0).updatePageConfig = (formData) => {
-                                                                viewConfig.formData = formData;
-                                                                document.querySelector(`[gvc-id="${gvc.id(id)}"]`).outerHTML = getView();
-                                                            };
+                                                            gvc.getBindViewElem(id).get(0).updatePageConfig = updatePageConfig;
                                                         }
                                                     },
                                                     document: document
                                                 }, getCreateOption);
                                             }
-                                            widget.storage.updatePageConfig = (formData) => {
-                                                try {
-                                                    console.log(`updatePageConfig->`, formData);
-                                                    viewConfig.formData = formData;
-                                                    document.querySelector(`[gvc-id="${gvc.id(id)}"]`).outerHTML = getView();
-                                                }
-                                                catch (e) {
-                                                }
-                                            };
+                                            widget.storage.updatePageConfig = updatePageConfig;
                                             resolve(`
                                                 <!-- tag=${tag} -->
                                               ${getView()}
@@ -571,7 +581,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                                             } : selectTag);
                                                             let html = '';
                                                             let spiltCount = 0;
-                                                            function appendHtml(pageData, widget, initial, id, parent_array) {
+                                                            function appendHtml(pageData, widget, initial, p_id, parent_array) {
                                                                 const vm = {
                                                                     id: gvc.glitter.getUUID()
                                                                 };
@@ -596,18 +606,13 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                                                     page_config.formData = page_config.formData || {};
                                                                     html += gvc.bindView(() => {
                                                                         const id = gvc.glitter.getUUID();
+                                                                        function refreshLeftBar() {
+                                                                            gvc.notifyDataChange(id);
+                                                                        }
                                                                         const vm = {
                                                                             id: gvc.glitter.getUUID(),
                                                                             page: 'editor'
                                                                         };
-                                                                        ['mobile', 'desktop'].map((dd) => {
-                                                                            var _a, _b, _c;
-                                                                            widget[dd] = (_a = widget[dd]) !== null && _a !== void 0 ? _a : {};
-                                                                            (widget[dd].refer !== 'custom') && (widget[dd].refer = 'custom');
-                                                                            widget[`${dd}_editable`] = (_b = widget[`${dd}_editable`]) !== null && _b !== void 0 ? _b : [];
-                                                                            widget[dd].data = (_c = widget[dd].data) !== null && _c !== void 0 ? _c : {};
-                                                                            widget[dd].data.refer_app = widget.data.refer_app;
-                                                                        });
                                                                         return {
                                                                             bind: id,
                                                                             view: () => {
@@ -698,14 +703,13 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                                                                                         view: () => __awaiter(this, void 0, void 0, function* () {
                                                                                                             let refer_form = getReferForm(widget);
                                                                                                             function refresh(widget, device) {
-                                                                                                                let refer_form = ((widget.data.refer_app)) ? ((widget.data.refer_form_data || page_config.formData) || {}) : page_config.formData;
                                                                                                                 if (widget.data.refer_app) {
                                                                                                                     widget.data.refer_form_data = refer_form;
-                                                                                                                    if (pageData.id !== id) {
+                                                                                                                    if (pageData.id !== p_id) {
                                                                                                                         glitter.share.editorViewModel.saveArray[pageData.id] = (() => {
                                                                                                                             return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
                                                                                                                                 yield ApiPageConfig.setPage({
-                                                                                                                                    id: id,
+                                                                                                                                    id: p_id,
                                                                                                                                     appName: window.appName,
                                                                                                                                     tag: (parent_array).tag,
                                                                                                                                     config: parent_array
@@ -721,7 +725,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                                                                                                     }
                                                                                                                     if (!widget.storage) {
                                                                                                                         try {
-                                                                                                                            const doc = (document.querySelector('#editerCenter iframe').contentWindow.document).querySelectorAll(`.${widget.data.refer_app}_${widget.data.tag}`);
+                                                                                                                            const doc = (document.querySelector('#editerCenter iframe').contentWindow.document).querySelectorAll(`.${oWidget.data.refer_app}_${oWidget.data.tag}`);
                                                                                                                             if (doc) {
                                                                                                                                 for (const b of doc) {
                                                                                                                                     b.updatePageConfig(refer_form, device);
@@ -803,46 +807,6 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                                                                                             try {
                                                                                                                 if (vm.page === 'editor') {
                                                                                                                     return [
-                                                                                                                        type === 'def' ? `` : gvc.bindView(() => {
-                                                                                                                            const id = gvc.glitter.getUUID();
-                                                                                                                            return {
-                                                                                                                                bind: id,
-                                                                                                                                view: () => {
-                                                                                                                                    try {
-                                                                                                                                        return html `
-                                                                                                                                            <h3 class="my-auto tx_title fw-normal d-flex"
-                                                                                                                                                style="white-space: nowrap;font-size: 16px;">
-                                                                                                                                                    在${(() => {
-                                                                                                                                            if (type === "mobile") {
-                                                                                                                                                return `手機`;
-                                                                                                                                            }
-                                                                                                                                            else {
-                                                                                                                                                return `電腦`;
-                                                                                                                                            }
-                                                                                                                                        })()}
-                                                                                                                                                    版上${(widget.refer === 'hide') ? `不` : ``}
-                                                                                                                                                顯示</h3>
-                                                                                                                                            ${GlobalWidget.switchButton(gvc, widget.refer !== 'hide', (bool) => {
-                                                                                                                                            if (bool) {
-                                                                                                                                                widget.refer = 'def';
-                                                                                                                                            }
-                                                                                                                                            else {
-                                                                                                                                                widget.refer = 'hide';
-                                                                                                                                            }
-                                                                                                                                            gvc.notifyDataChange(id);
-                                                                                                                                        })}`;
-                                                                                                                                    }
-                                                                                                                                    catch (e) {
-                                                                                                                                        console.log(`error`, e);
-                                                                                                                                        return `${e}`;
-                                                                                                                                    }
-                                                                                                                                },
-                                                                                                                                divCreate: {
-                                                                                                                                    class: `d-flex align-content-center my-2 mx-3 mt-3`,
-                                                                                                                                    style: `gap:10px;`
-                                                                                                                                }
-                                                                                                                            };
-                                                                                                                        }),
                                                                                                                         type === 'def' ? `` : html `
                                                                                                                             <div class="my-2 mx-3 "
                                                                                                                                  style=" height: 40px; padding: 6px 18px;background: #393939; border-radius: 10px; overflow: hidden;
@@ -863,8 +827,9 @@ justify-content: center; align-items: center; gap: 8px; display: inline-flex;cur
                                                                                                                                         key: '_container_margin',
                                                                                                                                         name: '容器間距'
                                                                                                                                     }), oWidget[`${type}_editable`] || [], (select) => {
+                                                                                                                                        console.log(select);
                                                                                                                                         oWidget[`${type}_editable`] = select;
-                                                                                                                                    }),
+                                                                                                                                    }, {}),
                                                                                                                                     html `
                                                                                                                                                          <div class="d-flex justify-content-end"
                                                                                                                                                               style="gap:10px;">
@@ -872,8 +837,7 @@ justify-content: center; align-items: center; gap: 8px; display: inline-flex;cur
                                                                                                                                         gvc.closeDialog();
                                                                                                                                     }))}
                                                                                                                                                              ${BgWidget.save(gvc.event(() => {
-                                                                                                                                        refresh(oWidget, type);
-                                                                                                                                        cGvc.notifyDataChange(id);
+                                                                                                                                        refreshLeftBar();
                                                                                                                                         gvc.closeDialog();
                                                                                                                                     }), '完成')}
                                                                                                                                                          </div>`
@@ -1003,7 +967,6 @@ font-weight: 700;" onclick="${gvc.event(() => {
                                                                                         },
                                                                                         custom_edit: true,
                                                                                         toggle_visible: (bool) => {
-                                                                                            alert(bool);
                                                                                             if (bool) {
                                                                                                 $(document.querySelector('#editerCenter  iframe').contentWindow.document.querySelector('.' + view_container_id)).show();
                                                                                             }

@@ -120,9 +120,6 @@ export const widgetComponent = {
                                 if (widget.type === 'container') {
                                     style_user = CustomStyle.value(gvc, widget);
                                 }
-                                if (widget.data.elem === 'img') {
-                                    classList.push(`lazyload`);
-                                }
                                 return {
                                     elem: widget.data.elem,
                                     class: classList.join(' '),
@@ -330,9 +327,6 @@ export const widgetComponent = {
                                         if (widget.data.elem.toLowerCase() === 'textarea') {
                                             autosize(gvc.getBindViewElem(id).get(0));
                                         }
-                                        else if (widget.data.elem.toLowerCase() === 'img') {
-                                            const lazy = window.lazyload(document.querySelectorAll(`[gvc-id="${gvc.id(id)}"]`));
-                                        }
                                         TriggerEvent.trigger({
                                             gvc,
                                             widget: widget,
@@ -384,6 +378,19 @@ export const widgetComponent = {
                             bind: id,
                             view: () => {
                                 return [
+                                    `<div
+                                                                                                            class="px-3 mx-n2   border-bottom pb-3 fw-bold mt-n3 mb-2 pt-3 hoverF2 d-flex align-items-center"
+                                                                                                            style="cursor: pointer;color:#393939;border-radius: 0px;gap:10px;"
+                                                                                                            onclick="${gvc.event(() => {
+                                        Storage.lastSelect = '';
+                                        gvc.glitter.share.editorViewModel.selectItem = undefined;
+                                        gvc.glitter.share.selectEditorItem();
+                                    })}"
+                                                                                                    >
+                                                                                                        <i class="fa-solid fa-chevron-left"></i>
+                                                                                                        <span style="max-width: calc(100% - 50px);text-overflow: ellipsis;white-space: nowrap;overflow: hidden;">${widget.label}</span>
+                                                                                                        <div class="flex-fill"></div>
+                                                                                                    </div>`,
                                     GlobalWidget.showCaseBar(gvc, widget, () => {
                                         gvc.notifyDataChange(id);
                                     }),

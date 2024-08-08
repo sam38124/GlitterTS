@@ -675,39 +675,62 @@ background: #F7F7F7;">${CustomStyle.renderMarginEditor(gvc, widget, callback)}
         widget.data._hor_position = (_p = widget.data._hor_position) !== null && _p !== void 0 ? _p : 'center';
     }
     static globalContainerList(vm, gvc, id, globalValue) {
-        return `  <div class="px-3   border-bottom  fw-bold my-2 py-3 d-flex align-content-center border-top"
-                                             style="cursor: pointer;color:#393939;">
-                                            <i class="fa-regular fa-block  fs-5 fw-bold me-2 rounded d-flex align-content-center justify-content-center " style="margin-top: 3px;"></i><div>容器樣式</div>
-                                        </div>
-                                        <div class="row ${(globalValue.container_theme.length === 0) ? `d-none` : ``} p-0"
+        return gvc.bindView(() => {
+            const id = gvc.glitter.getUUID();
+            const vm_c = {
+                toggle: false
+            };
+            return {
+                bind: id,
+                view: () => {
+                    const array = [`<div class="hoverF2 d-flex align-items-center p-3"
+                 onclick="${gvc.event(() => {
+                            vm_c.toggle = !vm_c.toggle;
+                            gvc.notifyDataChange(id);
+                        })}">
+<span class="fw-500"
+      style="max-width: calc(100% - 50px);text-overflow: ellipsis;white-space: nowrap;overflow: hidden;">容器樣式</span>
+                <div class="flex-fill"></div>
+                ${vm_c.toggle ? ` <i class="fa-solid fa-chevron-down"></i>` : ` <i class="fa-solid fa-chevron-right"></i>`}
+            </div>`];
+                    if (vm_c.toggle) {
+                        array.push(` <div class="row ${(globalValue.container_theme.length === 0) ? `d-none` : ``} p-0"
                                              style="margin: 18px 18px 0px;">
                                             ${globalValue.container_theme.map((dd, index) => {
-            return `<div class="col-12 mb-3" style="cursor: pointer;" onclick="${gvc.event(() => {
-                vm.type = 'container_detail';
-                vm.data = globalValue.container_theme[index];
-                vm.index = index;
-                gvc.notifyDataChange(id);
-            })}">
+                            return `<div class="col-12 mb-3" style="cursor: pointer;" onclick="${gvc.event(() => {
+                                vm.type = 'container_detail';
+                                vm.data = globalValue.container_theme[index];
+                                vm.index = index;
+                                gvc.notifyDataChange(id);
+                            })}">
                                                <div class="rounded border p-3 d-flex">
                                                <div>間距樣式:${index + 1}</div>
                                                <div class="t"></div>
 </div>
                                             </div>`;
-        }).join('')}
+                        }).join('')}
                                         </div>
                                         <div style="padding: 0px 24px 24px;${(globalValue.container_theme.length === 0) ? `margin-top:24px;` : ``}">
                                             <div class="bt_border_editor"
                                                  onclick="${gvc.event(() => {
-            vm.data = { id: gvc.glitter.getUUID() };
-            globalValue.container_theme.push(vm.data);
-            vm.name = ('間距樣式' + globalValue.container_theme.length);
-            vm.type = 'container_detail';
-            vm.index = globalValue.container_theme.length - 1;
-            gvc.notifyDataChange(id);
-        })}">
+                            vm.data = { id: gvc.glitter.getUUID() };
+                            globalValue.container_theme.push(vm.data);
+                            vm.name = ('間距樣式' + globalValue.container_theme.length);
+                            vm.type = 'container_detail';
+                            vm.index = globalValue.container_theme.length - 1;
+                            gvc.notifyDataChange(id);
+                        })}">
                                                 新增間距
                                             </div>
-                                        </div>`;
+                                        </div>`);
+                    }
+                    return array.join('');
+                },
+                divCreate: {
+                    class: `border-bottom    w-100`
+                }
+            };
+        });
     }
     static globalContainerSelect(globalValue, gvc, def, callback) {
         return gvc.bindView(() => {

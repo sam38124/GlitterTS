@@ -379,7 +379,7 @@ export class GVC {
         return html;
     }
 }
-GVC.initial = true;
+GVC.initial = false;
 export function init(metaURL, fun) {
     var _a;
     GVC.glitter.share.GVControllerList = (_a = GVC.glitter.share.GVControllerList) !== null && _a !== void 0 ? _a : {};

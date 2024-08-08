@@ -160,38 +160,7 @@ ${ dd.hint&&dd.toggle ? BgWidget.hint_title(dd.hint) : ``}
                                                                                 <button class="btn btn-sm btn-secondary"
                                                                                         style="height: 28px;"
                                                                                         onclick="${gvc.event(() => {
-                                                                    vm.edit_view = html`
-                                                                                                <div class="pe-3   border-bottom pb-3 fw-bold mt-2 pt-3 mx-n2 d-flex align-items-center"
-                                                                                                     style="cursor: pointer;color:#393939;">
-                                                                                                    <i class="fa-sharp fa-solid fa-angle-left d-flex align-items-center justify-content-center"
-                                                                                                       style="cursor: pointer;width: 40px;height: 30px;"
-                                                                                                       onclick="${gvc.event(() => {
-                                                                        vm.function = 'list'
-                                                                        gvc.notifyDataChange(vm.id)
-                                                                    })}"></i>
-                                                                                                    <span>${refer_widget.template_config.name}</span>
-                                                                                                    <div class="flex-fill"></div>
-                                                                                                    ${BgWidget.darkButton('儲存變更', gvc.event(() => {
-                                                                                                        const dialog=new ShareDialog(gvc.glitter)
-                                                                                                        dialog.dataLoading({visible:true})
-                                                                                                        ApiPageConfig.setPage({
-                                                                                                            id: widget.id,
-                                                                                                            appName: widget.appName,
-                                                                                                            tag: widget.tag,
-                                                                                                            name: widget.name,
-                                                                                                            config: widget.config,
-                                                                                                            group: widget.group,
-                                                                                                            page_config: widget.page_config,
-                                                                                                            page_type:widget.page_type,
-                                                                                                            preview_image: widget.preview_image,
-                                                                                                            favorite: widget.favorite,
-                                                                                                        }).then((api) => {
-                                                                                                            dialog.dataLoading({visible:false})
-                                                                                                            location.reload()
-                                                                                                        })
-                                                                    }), {size: 'sm'})}
-                                                                                                </div>
-                                                                                            ` + htmlGenerate.editor(gvc, {
+                                                                    vm.edit_view = html`` + htmlGenerate.editor(gvc, {
                                                                         return_: false,
                                                                         refreshAll: () => {
                                                                             alert('ref')

@@ -157,7 +157,7 @@ export class GlobalWidget {
             </div>`;
     }
     static showCaseEditor(obj) {
-        if (['mobile', 'desktop'].includes(obj.gvc.glitter.getCookieByName('ViewType'))) {
+        if (['mobile', 'desktop'].includes(obj.gvc.glitter.getCookieByName('ViewType')) && GlobalWidget.glitter_view_type !== 'def') {
             GlobalWidget.glitter_view_type = obj.gvc.glitter.getCookieByName('ViewType');
         }
         if (GlobalWidget.glitter_view_type === 'def') {
@@ -168,12 +168,9 @@ export class GlobalWidget {
             const gvc = obj.gvc;
             GlobalWidget.initialShowCaseData({ widget: obj.widget, gvc: obj.gvc });
             function selector(widget, key) {
-                if (obj.custom_edit) {
-                    return ``;
-                }
                 return html `
-                    <div class="border-bottom mx-n2"
-                         style="padding: 18px;">${[
+                    <div class=" mx-n2"
+                         style="padding: 18px 18px 10px;">${[
                     obj.gvc.bindView(() => {
                         const id = gvc.glitter.getUUID();
                         return {
@@ -212,7 +209,7 @@ ${GlobalWidget.switchButton(obj.gvc, obj.widget[key].refer !== 'hide', (bool) =>
                     }
                     else {
                         if (obj.custom_edit) {
-                            return ``;
+                            return [];
                         }
                         else {
                             return [

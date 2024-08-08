@@ -175,7 +175,7 @@ export class GlobalWidget {
         custom_edit?:boolean,
         toggle_visible?:(result:boolean)=>void
     }) {
-        if(['mobile','desktop'].includes(obj.gvc.glitter.getCookieByName('ViewType'))){
+        if(['mobile','desktop'].includes(obj.gvc.glitter.getCookieByName('ViewType')) && GlobalWidget.glitter_view_type!=='def'){
             GlobalWidget.glitter_view_type=obj.gvc.glitter.getCookieByName('ViewType')
         }
         if (GlobalWidget.glitter_view_type === 'def') {
@@ -186,78 +186,75 @@ export class GlobalWidget {
             GlobalWidget.initialShowCaseData({widget: obj.widget, gvc: obj.gvc})
 
             function selector(widget: any, key: string) {
-                if(obj.custom_edit){
-                    return  ``
-                }
                 return html`
-                    <div class="border-bottom mx-n2"
-                         style="padding: 18px;">${
-                    [
-                        obj.gvc.bindView(()=>{
-                            const id=gvc.glitter.getUUID()
-                            return {
-                                bind:id,
-                                view:()=>{
-                                    return `<h3 class="my-auto tx_title fw-normal" style="white-space: nowrap;font-size: 16px;">在${(() => {
-                                        if (GlobalWidget.glitter_view_type === "mobile") {
-                                            return `手機`
-                                        } else {
-                                            return `電腦`
-                                        }
-                                    })()}版上${(obj.widget[key].refer === 'hide')?`不`:``}顯示</h3>
+                    <div class=" mx-n2"
+                         style="padding: 18px 18px 10px;">${
+                            [
+                                obj.gvc.bindView(() => {
+                                    const id = gvc.glitter.getUUID()
+                                    return {
+                                        bind: id,
+                                        view: () => {
+                                            return `<h3 class="my-auto tx_title fw-normal" style="white-space: nowrap;font-size: 16px;">在${(() => {
+                                                if (GlobalWidget.glitter_view_type === "mobile") {
+                                                    return `手機`
+                                                } else {
+                                                    return `電腦`
+                                                }
+                                            })()}版上${(obj.widget[key].refer === 'hide') ? `不` : ``}顯示</h3>
 ${GlobalWidget.switchButton(obj.gvc, obj.widget[key].refer !== 'hide', (bool) => {
-                                        // vm.data.main = bool;
-                                        if (bool) {
-                                            obj.widget[key].refer = 'def'
-                                        } else {
-                                            obj.widget[key].refer = 'hide'
+                                                // vm.data.main = bool;
+                                                if (bool) {
+                                                    obj.widget[key].refer = 'def'
+                                                } else {
+                                                    obj.widget[key].refer = 'hide'
+                                                }
+                                                obj.toggle_visible && obj.toggle_visible(bool);
+                                                gvc.notifyDataChange(id)
+                                                setTimeout(() => {
+                                                    obj.widget.refreshComponent()
+                                                }, 250)
+                                            })}`
+                                        },
+                                        divCreate: {
+                                            class: `d-flex align-content-center`, style: `gap:10px;`
                                         }
-                                        obj.toggle_visible && obj.toggle_visible(bool);
-                                        gvc.notifyDataChange(id)
-                                        setTimeout(() => {
-                                            obj.widget.refreshComponent()
-                                        }, 250)
-                                    })}`
-                                },
-                                divCreate:{
-                                    class:`d-flex align-content-center`,style:`gap:10px;`
+                                    }
+                                })
+                            ].concat((() => {
+                                if (obj.widget[key].refer === 'hide') {
+                                    return []
+                                } else {
+                                    if (obj.custom_edit) {
+                                        return []
+                                    } else {
+                                        return [
+                                            `<div class="fw-bold" style="font-size: 16px;">顯示樣式</div>`,
+                                            EditorElem.select({
+                                                title: '',
+                                                gvc: obj.gvc,
+                                                def: widget.refer || 'def',
+                                                array: [
+                                                    {title: '預設樣式', value: "def"},
+                                                    {title: '自定義', value: "custom"}
+                                                ],
+                                                callback: (text) => {
+                                                    obj.widget[key].refer = text;
+                                                    // obj.gvc.notifyDataChange(id)
+                                                    if (obj.widget.refreshComponent) {
+                                                        obj.widget.refreshComponent()
+                                                    } else if (obj.widget.refreshAll) {
+                                                        obj.widget.refreshAll()
+                                                    }
+                                                }
+                                            })
+                                        ]
+                                    }
+
+
                                 }
-                            }
-                        })
-                    ].concat((() => {
-                        if (obj.widget[key].refer === 'hide') {
-                            return []
-                        } else {
-                            if(obj.custom_edit){
-                                return ``
-                            }else{
-                                return [
-                                    `<div class="fw-bold" style="font-size: 16px;">顯示樣式</div>`,
-                                    EditorElem.select({
-                                        title: '',
-                                        gvc: obj.gvc,
-                                        def: widget.refer || 'def',
-                                        array: [
-                                            {title: '預設樣式', value: "def"},
-                                            {title: '自定義', value: "custom"}
-                                        ],
-                                        callback: (text) => {
-                                            obj.widget[key].refer = text;
-                                            // obj.gvc.notifyDataChange(id)
-                                            if (obj.widget.refreshComponent) {
-                                                obj.widget.refreshComponent()
-                                            } else if (obj.widget.refreshAll) {
-                                                obj.widget.refreshAll()
-                                            }
-                                        }
-                                    })
-                                ]
-                            }
-
-
-                        }
-                    })()).join('<div class="my-3"></div>')
-                }
+                            })()).join('<div class="my-3"></div>')
+                    }
                     </div>`
             }
 
