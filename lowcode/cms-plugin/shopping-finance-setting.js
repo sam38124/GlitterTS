@@ -286,7 +286,7 @@ export class ShoppingFinanceSetting {
                         },
                     };
                 })}
-                        ${BgWidget.mb240()}
+                        ${BgWidget.mbContainer(240)}
                         <div class="update-bar-container">
                             ${BgWidget.save(gvc.event(() => {
                     save(() => {
@@ -567,7 +567,7 @@ export class ShoppingFinanceSetting {
                         yield widget.event('success', { title: '儲存成功' });
                     })), '儲存')}
                             </div>
-                            ${BgWidget.mb240()}
+                            ${BgWidget.mbContainer(240)}
                         `, BgWidget.getContainerWidth(), 'justify-content: center;');
                 },
                 divCreate: {
@@ -784,7 +784,7 @@ export class ShoppingFinanceSetting {
                             },
                         };
                     }),
-                    BgWidget.mb240(),
+                    BgWidget.mbContainer(240),
                     html ` <div class="update-bar-container">
                                     ${BgWidget.save(gvc.event(() => {
                         save(() => {

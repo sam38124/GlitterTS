@@ -734,7 +734,7 @@ export class BgNotify {
                 divCreate: {},
             };
         }), BgWidget.getContainerWidth(), 'padding: 0 !important; margin: 0 !important;')}
-                ${BgWidget.mb240()}
+                ${BgWidget.mbContainer(240)}
                 <div class="update-bar-container">
                     ${obj.type === 'replace' && !obj.readonly
             ? BgWidget.danger(obj.gvc.event(() => {
@@ -1495,7 +1495,7 @@ export class BgNotify {
                 divCreate: {},
             };
         }), BgWidget.getContainerWidth(), 'padding: 0 !important; margin: 0 !important;')}
-                ${BgWidget.mb240()}
+                ${BgWidget.mbContainer(240)}
                 <div class="update-bar-container">
                     ${BgWidget.save(gvc.event(() => {
             function isLater(dateTimeObj) {

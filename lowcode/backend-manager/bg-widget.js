@@ -2,6 +2,7 @@ import { PageSplit } from './splitPage.js';
 import { ApiShop } from '../glitter-base/route/shopping.js';
 import { Article } from '../glitter-base/route/article.js';
 import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
+import { Tool } from '../modules/tool.js';
 const html = String.raw;
 export class BgWidget {
     static table(obj) {
@@ -541,7 +542,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         };
         const dropMenu = {
             id: obj.gvc.glitter.getUUID(),
-            elementClass: this.randomString(5),
+            elementClass: Tool.randomString(5),
             elementWidth: 240,
             loading: true,
             search: '',
@@ -1365,17 +1366,10 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         }
         return '';
     }
-    static randomString(max) {
-        let possible = 'abcdefghijklmnopqrstuvwxyz0123456789';
-        let text = possible.charAt(Math.floor(Math.random() * (possible.length - 10)));
-        for (let i = 1; i < max; i++)
-            text += possible.charAt(Math.floor(Math.random() * possible.length));
-        return text;
-    }
     static multiCheckboxContainer(gvc, data, def, callback, obj) {
         const id = gvc.glitter.getUUID();
         const randomString = obj && obj.single ? this.getDotClass(gvc) : this.getCheckedClass(gvc);
-        const viewId = this.randomString(5);
+        const viewId = Tool.randomString(5);
         return gvc.bindView({
             bind: viewId,
             view: () => {
@@ -1605,7 +1599,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
     static selEventDropmenu(obj) {
         const vm = {
             id: obj.gvc.glitter.getUUID(),
-            checkClass: this.randomString(5),
+            checkClass: Tool.randomString(5),
             show: false,
             top: 0,
             right: 0,
@@ -1650,7 +1644,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         var _a, _b;
         const imageVM = {
             id: obj.gvc.glitter.getUUID(),
-            class: this.randomString(6),
+            class: Tool.randomString(6),
             loading: true,
             url: this.noImageURL,
         };
@@ -1691,7 +1685,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         });
     }
     static getCheckedClass(gvc, color) {
-        const className = this.randomString(5);
+        const className = Tool.randomString(5);
         gvc.addStyle(`
             .${className} {
                 min-width: 1rem;
@@ -1707,7 +1701,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         return className;
     }
     static getDotClass(gvc, color) {
-        const className = this.randomString(5);
+        const className = Tool.randomString(5);
         gvc.addStyle(`
             .${className} {
                 min-width: 1rem;

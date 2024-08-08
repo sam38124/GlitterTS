@@ -38,12 +38,12 @@ export class ShoppingShipmentSetting {
                 }
             });
         }
-        return BgWidget.container(html `
-                <div class="d-flex w-100 align-items-center">
-                    ${BgWidget.title(`運費設定`)}
-                    <div class="flex-fill"></div>
-                </div>
-                ${gvc.bindView(() => {
+        return (BgWidget.container(html `
+                    <div class="d-flex w-100 align-items-center">
+                        ${BgWidget.title(`運費設定`)}
+                        <div class="flex-fill"></div>
+                    </div>
+                    ${gvc.bindView(() => {
             const id = gvc.glitter.getUUID();
             return {
                 bind: id,
@@ -75,52 +75,52 @@ export class ShoppingShipmentSetting {
                             view: () => {
                                 return BgWidget.container([
                                     BgWidget.container(html `
-                                                            ${BgWidget.mainCard(html `
-                                                                <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 18px;">
-                                                                    <div style="font-size: 16px;font-weight: 700;">整份訂單依「材積」計算</div>
-                                                                    <div style="display: flex;flex-direction: column;align-items: center;gap: 8px;align-self: stretch;">
-                                                                        <div style="display: flex;align-items: flex-start;gap: 12px;align-self: stretch;font-size: 16px;font-weight: 400;">
-                                                                            <div style="width: 60%">材積區間</div>
-                                                                            <div style="width: 40%">運費</div>
-                                                                        </div>
-                                                                        <div style="display: flex;flex-direction: column;align-items: center;gap: 18px;align-self: stretch;gap:8px;">
-                                                                            ${(() => {
+                                                                ${BgWidget.mainCard(html `
+                                                                    <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 18px;">
+                                                                        <div style="font-size: 16px;font-weight: 700;">整份訂單依「材積」計算</div>
+                                                                        <div style="display: flex;flex-direction: column;align-items: center;gap: 8px;align-self: stretch;">
+                                                                            <div style="display: flex;align-items: flex-start;gap: 12px;align-self: stretch;font-size: 16px;font-weight: 400;">
+                                                                                <div style="width: 60%">材積區間</div>
+                                                                                <div style="width: 40%">運費</div>
+                                                                            </div>
+                                                                            <div style="display: flex;flex-direction: column;align-items: center;gap: 18px;align-self: stretch;gap:8px;">
+                                                                                ${(() => {
                                         let temp = ``;
                                         shipmentArray.volume.map((data, index) => {
                                             var _a, _b;
                                             temp += html `
-                                                                                        <div class="d-flex w-100 position-relative align-items-center" style="gap: 18px">
-                                                                                            <div class="flex-fill position-relative" style="width: 60%">
-                                                                                                <input
-                                                                                                    class="w-100"
-                                                                                                    style="padding: 9px 18px;border-radius: 10px;height:40px;border: 1px solid #DDD;"
-                                                                                                    type="number"
-                                                                                                    placeholder="0"
-                                                                                                    onchange="${gvc.event((e) => {
+                                                                                            <div class="d-flex w-100 position-relative align-items-center" style="gap: 18px">
+                                                                                                <div class="flex-fill position-relative" style="width: 60%">
+                                                                                                    <input
+                                                                                                        class="w-100"
+                                                                                                        style="padding: 9px 18px;border-radius: 10px;height:40px;border: 1px solid #DDD;"
+                                                                                                        type="number"
+                                                                                                        placeholder="0"
+                                                                                                        onchange="${gvc.event((e) => {
                                                 data.key = e.value;
                                                 gvc.notifyDataChange(id);
                                             })}"
-                                                                                                    value="${(_a = data.key) !== null && _a !== void 0 ? _a : ''}"
-                                                                                                />
-                                                                                                <div style="color: #8D8D8D;position: absolute;top:9px;right:18px;">公分(含)以上</div>
-                                                                                            </div>
-                                                                                            <div class="flex-fill position-relative" style="width: 35%">
-                                                                                                <input
-                                                                                                    class="w-100"
-                                                                                                    style="padding: 9px 18px;border-radius: 10px;height:40px;border: 1px solid #DDD;"
-                                                                                                    type="number"
-                                                                                                    placeholder="0"
-                                                                                                    onchange="${gvc.event((e) => {
+                                                                                                        value="${(_a = data.key) !== null && _a !== void 0 ? _a : ''}"
+                                                                                                    />
+                                                                                                    <div style="color: #8D8D8D;position: absolute;top:9px;right:18px;">公分(含)以上</div>
+                                                                                                </div>
+                                                                                                <div class="flex-fill position-relative" style="width: 35%">
+                                                                                                    <input
+                                                                                                        class="w-100"
+                                                                                                        style="padding: 9px 18px;border-radius: 10px;height:40px;border: 1px solid #DDD;"
+                                                                                                        type="number"
+                                                                                                        placeholder="0"
+                                                                                                        onchange="${gvc.event((e) => {
                                                 data.value = e.value;
                                                 gvc.notifyDataChange(id);
                                             })}"
-                                                                                                    value="${(_b = data.value) !== null && _b !== void 0 ? _b : ''}"
-                                                                                                />
-                                                                                                <div style="color: #8D8D8D;position: absolute;top:9px;right:18px;">元</div>
-                                                                                            </div>
-                                                                                            <div
-                                                                                                style="cursor: pointer; width: auto;"
-                                                                                                onclick="${gvc.event(() => {
+                                                                                                        value="${(_b = data.value) !== null && _b !== void 0 ? _b : ''}"
+                                                                                                    />
+                                                                                                    <div style="color: #8D8D8D;position: absolute;top:9px;right:18px;">元</div>
+                                                                                                </div>
+                                                                                                <div
+                                                                                                    style="cursor: pointer; width: auto;"
+                                                                                                    onclick="${gvc.event(() => {
                                                 dialog.checkYesOrNot({
                                                     text: '是否要刪除',
                                                     callback: (response) => {
@@ -131,105 +131,111 @@ export class ShoppingShipmentSetting {
                                                     },
                                                 });
                                             })}"
-                                                                                            >
-                                                                                                <i class="fa-duotone fa-xmark"></i>
+                                                                                                >
+                                                                                                    <i class="fa-duotone fa-xmark"></i>
+                                                                                                </div>
                                                                                             </div>
-                                                                                        </div>
-                                                                                    `;
+                                                                                        `;
                                         });
                                         return temp;
                                     })()}
+                                                                            </div>
                                                                         </div>
-                                                                    </div>
-                                                                    <div
-                                                                        class="w-100 d-flex align-items-center justify-content-center cursor_pointer"
-                                                                        style="color: #36B; font-size: 16px; font-weight: 400;"
-                                                                        onclick="${gvc.event(() => {
+                                                                        <div
+                                                                            class="w-100 d-flex align-items-center justify-content-center cursor_pointer"
+                                                                            style="color: #36B; font-size: 16px; font-weight: 400;"
+                                                                            onclick="${gvc.event(() => {
                                         shipmentArray.volume.push({ key: 0, value: 0 });
                                         gvc.notifyDataChange('addShipment');
                                     })}"
-                                                                    >
-                                                                        <div>新增一個區間</div>
-                                                                        <div>
-                                                                            <i class="fa-solid fa-plus ps-2" style="font-size: 16px; height: 14px; width: 14px;"></i>
+                                                                        >
+                                                                            <div>新增一個區間</div>
+                                                                            <div>
+                                                                                <i class="fa-solid fa-plus ps-2" style="font-size: 16px; height: 14px; width: 14px;"></i>
+                                                                            </div>
                                                                         </div>
-                                                                    </div>
-                                                                    <div
-                                                                        style="display: flex;align-items: center;gap: 6px;align-self: stretch;font-size: 16px;cursor: pointer;"
-                                                                        onclick="${gvc.event(() => {
+                                                                        <div
+                                                                            style="display: flex;align-items: center;gap: 6px;align-self: stretch;font-size: 16px;cursor: pointer;"
+                                                                            onclick="${gvc.event(() => {
                                         shipmentArray.selectCalc = 'volume';
                                         gvc.notifyDataChange(id);
                                     })}"
-                                                                    >
-                                                                        ${(() => {
+                                                                        >
+                                                                            ${(() => {
                                         if (shipmentArray.selectCalc == 'volume') {
                                             return html `
-                                                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                                                                        <rect width="16" height="16" rx="3" fill="#393939" />
-                                                                                        <path d="M4.5 8.5L7 11L11.5 5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                                                                                    </svg>
-                                                                                    新增商品時將套用此運費計算方式
-                                                                                `;
+                                                                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                                                            <rect width="16" height="16" rx="3" fill="#393939" />
+                                                                                            <path
+                                                                                                d="M4.5 8.5L7 11L11.5 5"
+                                                                                                stroke="white"
+                                                                                                stroke-width="2"
+                                                                                                stroke-linecap="round"
+                                                                                                stroke-linejoin="round"
+                                                                                            />
+                                                                                        </svg>
+                                                                                        新增商品時將套用此運費計算方式
+                                                                                    `;
                                         }
                                         else {
                                             return html `
-                                                                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                                        <rect x="0.5" y="0.5" width="15" height="15" rx="2.5" stroke="#DDDDDD" />
-                                                                                    </svg>
-                                                                                    新增商品時將套用此運費計算方式
-                                                                                `;
+                                                                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                                                            <rect x="0.5" y="0.5" width="15" height="15" rx="2.5" stroke="#DDDDDD" />
+                                                                                        </svg>
+                                                                                        新增商品時將套用此運費計算方式
+                                                                                    `;
                                         }
                                     })()}
-                                                                    </div>
-                                                                </div>
-                                                            `)}
-                                                            <div style="margin-bottom: 24px;"></div>
-                                                            ${BgWidget.mainCard(html `
-                                                                <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 18px;">
-                                                                    <div style="font-size: 16px;font-weight: 700;">整份訂單依「重量」計算</div>
-                                                                    <div style="display: flex;flex-direction: column;align-items: center;gap: 8px;align-self: stretch;">
-                                                                        <div style="display: flex;align-items: flex-start;gap: 12px;align-self: stretch;font-size: 16px;font-weight: 400;">
-                                                                            <div style="width: 60%">重量區間</div>
-                                                                            <div style="width: 40%">運費</div>
                                                                         </div>
-                                                                        <div style="display: flex;flex-direction: column;align-items: center;gap: 18px;align-self: stretch;gap:8px;">
-                                                                            ${(() => {
+                                                                    </div>
+                                                                `)}
+                                                                <div style="margin-bottom: 24px;"></div>
+                                                                ${BgWidget.mainCard(html `
+                                                                    <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 18px;">
+                                                                        <div style="font-size: 16px;font-weight: 700;">整份訂單依「重量」計算</div>
+                                                                        <div style="display: flex;flex-direction: column;align-items: center;gap: 8px;align-self: stretch;">
+                                                                            <div style="display: flex;align-items: flex-start;gap: 12px;align-self: stretch;font-size: 16px;font-weight: 400;">
+                                                                                <div style="width: 60%">重量區間</div>
+                                                                                <div style="width: 40%">運費</div>
+                                                                            </div>
+                                                                            <div style="display: flex;flex-direction: column;align-items: center;gap: 18px;align-self: stretch;gap:8px;">
+                                                                                ${(() => {
                                         let temp = ``;
                                         shipmentArray.weight.map((data, index) => {
                                             var _a, _b;
                                             temp += html `
-                                                                                        <div class="d-flex w-100 align-items-center" style="position:relative; gap:18px">
-                                                                                            <div class="flex-fill position-relative" style="width: 60%">
-                                                                                                <input
-                                                                                                    class="w-100"
-                                                                                                    style="padding: 9px 18px;border-radius: 10px;height:40px;border: 1px solid #DDD;"
-                                                                                                    type="number"
-                                                                                                    placeholder="0"
-                                                                                                    onchange="${gvc.event((e) => {
+                                                                                            <div class="d-flex w-100 align-items-center" style="position:relative; gap:18px">
+                                                                                                <div class="flex-fill position-relative" style="width: 60%">
+                                                                                                    <input
+                                                                                                        class="w-100"
+                                                                                                        style="padding: 9px 18px;border-radius: 10px;height:40px;border: 1px solid #DDD;"
+                                                                                                        type="number"
+                                                                                                        placeholder="0"
+                                                                                                        onchange="${gvc.event((e) => {
                                                 data.key = e.value;
                                                 gvc.notifyDataChange(id);
                                             })}"
-                                                                                                    value="${(_a = data.key) !== null && _a !== void 0 ? _a : ''}"
-                                                                                                />
-                                                                                                <div style="color: #8D8D8D;position: absolute;top:9px;right:18px;">公斤(含)以上</div>
-                                                                                            </div>
-                                                                                            <div class="flex-fill position-relative" style="width: 35%">
-                                                                                                <input
-                                                                                                    class="w-100"
-                                                                                                    style="padding: 9px 18px;border-radius: 10px;height:40px;border: 1px solid #DDD;"
-                                                                                                    type="number"
-                                                                                                    placeholder="0"
-                                                                                                    onchange="${gvc.event((e) => {
+                                                                                                        value="${(_a = data.key) !== null && _a !== void 0 ? _a : ''}"
+                                                                                                    />
+                                                                                                    <div style="color: #8D8D8D;position: absolute;top:9px;right:18px;">公斤(含)以上</div>
+                                                                                                </div>
+                                                                                                <div class="flex-fill position-relative" style="width: 35%">
+                                                                                                    <input
+                                                                                                        class="w-100"
+                                                                                                        style="padding: 9px 18px;border-radius: 10px;height:40px;border: 1px solid #DDD;"
+                                                                                                        type="number"
+                                                                                                        placeholder="0"
+                                                                                                        onchange="${gvc.event((e) => {
                                                 data.value = e.value;
                                                 gvc.notifyDataChange(id);
                                             })}"
-                                                                                                    value="${(_b = data.value) !== null && _b !== void 0 ? _b : ''}"
-                                                                                                />
-                                                                                                <div style="color: #8D8D8D;position: absolute;top:9px;right:18px;">元</div>
-                                                                                            </div>
-                                                                                            <div
-                                                                                                style="cursor: pointer; width: auto"
-                                                                                                onclick="${gvc.event(() => {
+                                                                                                        value="${(_b = data.value) !== null && _b !== void 0 ? _b : ''}"
+                                                                                                    />
+                                                                                                    <div style="color: #8D8D8D;position: absolute;top:9px;right:18px;">元</div>
+                                                                                                </div>
+                                                                                                <div
+                                                                                                    style="cursor: pointer; width: auto"
+                                                                                                    onclick="${gvc.event(() => {
                                                 dialog.checkYesOrNot({
                                                     text: '是否要刪除',
                                                     callback: (response) => {
@@ -240,120 +246,126 @@ export class ShoppingShipmentSetting {
                                                     },
                                                 });
                                             })}"
-                                                                                            >
-                                                                                                <i class="fa-duotone fa-xmark"></i>
+                                                                                                >
+                                                                                                    <i class="fa-duotone fa-xmark"></i>
+                                                                                                </div>
                                                                                             </div>
-                                                                                        </div>
-                                                                                    `;
+                                                                                        `;
                                         });
                                         return temp;
                                     })()}
+                                                                            </div>
                                                                         </div>
-                                                                    </div>
-                                                                    <div
-                                                                        class="w-100 d-flex align-items-center justify-content-center cursor_pointer"
-                                                                        style="color: #36B; font-size: 16px; font-weight: 400;"
-                                                                        onclick="${gvc.event(() => {
+                                                                        <div
+                                                                            class="w-100 d-flex align-items-center justify-content-center cursor_pointer"
+                                                                            style="color: #36B; font-size: 16px; font-weight: 400;"
+                                                                            onclick="${gvc.event(() => {
                                         shipmentArray.weight.push({ key: 0, value: 0 });
                                         gvc.notifyDataChange('addShipment');
                                     })}"
-                                                                    >
-                                                                        <div>新增一個區間</div>
-                                                                        <div>
-                                                                            <i class="fa-solid fa-plus ps-2" style="font-size: 16px; height: 14px; width: 14px;"></i>
+                                                                        >
+                                                                            <div>新增一個區間</div>
+                                                                            <div>
+                                                                                <i class="fa-solid fa-plus ps-2" style="font-size: 16px; height: 14px; width: 14px;"></i>
+                                                                            </div>
                                                                         </div>
-                                                                    </div>
-                                                                    <div
-                                                                        style="display: flex;align-items: center;gap: 6px;align-self: stretch;font-size: 16px;cursor: pointer;"
-                                                                        onclick="${gvc.event(() => {
+                                                                        <div
+                                                                            style="display: flex;align-items: center;gap: 6px;align-self: stretch;font-size: 16px;cursor: pointer;"
+                                                                            onclick="${gvc.event(() => {
                                         shipmentArray.selectCalc = 'weight';
                                         gvc.notifyDataChange(id);
                                     })}"
-                                                                    >
-                                                                        ${(() => {
+                                                                        >
+                                                                            ${(() => {
                                         if (shipmentArray.selectCalc == 'weight') {
                                             return html `
-                                                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                                                                        <rect width="16" height="16" rx="3" fill="#393939" />
-                                                                                        <path d="M4.5 8.5L7 11L11.5 5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                                                                                    </svg>
-                                                                                    新增商品時將套用此運費計算方式
-                                                                                `;
+                                                                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                                                            <rect width="16" height="16" rx="3" fill="#393939" />
+                                                                                            <path
+                                                                                                d="M4.5 8.5L7 11L11.5 5"
+                                                                                                stroke="white"
+                                                                                                stroke-width="2"
+                                                                                                stroke-linecap="round"
+                                                                                                stroke-linejoin="round"
+                                                                                            />
+                                                                                        </svg>
+                                                                                        新增商品時將套用此運費計算方式
+                                                                                    `;
                                         }
                                         else {
                                             return html `
-                                                                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                                        <rect x="0.5" y="0.5" width="15" height="15" rx="2.5" stroke="#DDDDDD" />
-                                                                                    </svg>
-                                                                                    新增商品時將套用此運費計算方式
-                                                                                `;
+                                                                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                                                            <rect x="0.5" y="0.5" width="15" height="15" rx="2.5" stroke="#DDDDDD" />
+                                                                                        </svg>
+                                                                                        新增商品時將套用此運費計算方式
+                                                                                    `;
                                         }
                                     })()}
-                                                                    </div>
-                                                                </div>
-                                                            `)}
-                                                        `, undefined, 'padding: 0; margin: 0 !important; width: 73.5%;'),
-                                    BgWidget.container(html `
-                                                            ${BgWidget.mainCard(html `
-                                                                    <div style="gap: 18px;display: flex;flex-direction: column;">
-                                                                        <div style="font-size: 16px;font-weight: 700;">摘要</div>
-                                                                        <div style="font-size: 16px;font-weight: 400;">
-                                                                            預設運費設定: 依${shipmentArray.selectCalc == 'weight' ? '重量' : '材積'}計算
                                                                         </div>
-                                                                        <div style="width:100%;height:1px;background-color: #DDD"></div>
-                                                                        <div style="display: flex;flex-direction: column;gap: 12px;">
-                                                                            <div style="color:#393939;font-weight: 400;font-size: 16px;">依材積計算:</div>
-                                                                            <div
-                                                                                style="border-radius: 10px;border: 1px solid #DDD;color: #393939;font-weight: 400;font-size: 14px;padding: 20px;gap:12px;"
-                                                                            >
-                                                                                ${(() => {
+                                                                    </div>
+                                                                `)}
+                                                            `, undefined, 'padding: 0; margin: 0 !important; width: 73.5%;'),
+                                    BgWidget.container(html `
+                                                                ${BgWidget.mainCard(html `
+                                                                        <div style="gap: 18px;display: flex;flex-direction: column;">
+                                                                            <div style="font-size: 16px;font-weight: 700;">摘要</div>
+                                                                            <div style="font-size: 16px;font-weight: 400;">
+                                                                                預設運費設定: 依${shipmentArray.selectCalc == 'weight' ? '重量' : '材積'}計算
+                                                                            </div>
+                                                                            <div style="width:100%;height:1px;background-color: #DDD"></div>
+                                                                            <div style="display: flex;flex-direction: column;gap: 12px;">
+                                                                                <div style="color:#393939;font-weight: 400;font-size: 16px;">依材積計算:</div>
+                                                                                <div
+                                                                                    style="border-radius: 10px;border: 1px solid #DDD;color: #393939;font-weight: 400;font-size: 14px;padding: 20px;gap:12px;"
+                                                                                >
+                                                                                    ${(() => {
                                         let returnHTML = ``;
                                         shipmentArray.volume.map((data) => {
                                             returnHTML += html `
-                                                                                            <div class="">
-                                                                                                <span style="font-size: 24px;">${data.key}</span>
-                                                                                                公分(含)以上,運費
-                                                                                                <span style="font-size: 24px;">${data.value}</span>
-                                                                                                元
-                                                                                            </div>
-                                                                                        `;
+                                                                                                <div class="">
+                                                                                                    <span style="font-size: 24px;">${data.key}</span>
+                                                                                                    公分(含)以上,運費
+                                                                                                    <span style="font-size: 24px;">${data.value}</span>
+                                                                                                    元
+                                                                                                </div>
+                                                                                            `;
                                         });
                                         return returnHTML;
                                     })()}
+                                                                                </div>
                                                                             </div>
-                                                                        </div>
-                                                                        <div style="display: flex;flex-direction: column;gap: 12px;">
-                                                                            <div style="color:#393939;font-weight: 400;font-size: 16px;">依重量計算:</div>
-                                                                            <div style="border-radius: 10px;border: 1px solid #DDD;color: #393939;font-weight: 400;font-size: 14px;padding: 20px;">
-                                                                                ${(() => {
+                                                                            <div style="display: flex;flex-direction: column;gap: 12px;">
+                                                                                <div style="color:#393939;font-weight: 400;font-size: 16px;">依重量計算:</div>
+                                                                                <div style="border-radius: 10px;border: 1px solid #DDD;color: #393939;font-weight: 400;font-size: 14px;padding: 20px;">
+                                                                                    ${(() => {
                                         let returnHTML = ``;
                                         shipmentArray.weight.map((data) => {
                                             returnHTML += html `
-                                                                                            <div class="">
-                                                                                                <span style="font-size: 24px;">${data.key}</span>
-                                                                                                公斤(含)以上,運費
-                                                                                                <span style="font-size: 24px;">${data.value}</span>
-                                                                                                元
-                                                                                            </div>
-                                                                                        `;
+                                                                                                <div class="">
+                                                                                                    <span style="font-size: 24px;">${data.key}</span>
+                                                                                                    公斤(含)以上,運費
+                                                                                                    <span style="font-size: 24px;">${data.value}</span>
+                                                                                                    元
+                                                                                                </div>
+                                                                                            `;
                                         });
                                         return returnHTML;
                                     })()}
+                                                                                </div>
                                                                             </div>
                                                                         </div>
-                                                                    </div>
-                                                                `, 'summary-card')}
-                                                        `, undefined, 'padding: 0; margin: 0 !important; width: 26.5%; min-width:300px;'),
-                                    BgWidget.mb240(),
+                                                                    `, 'summary-card')}
+                                                            `, undefined, 'padding: 0; margin: 0 !important; width: 26.5%; min-width:300px;'),
+                                    BgWidget.mbContainer(240),
                                     html ` <div class="update-bar-container">
-                                                        ${BgWidget.save(gvc.event(() => {
+                                                            ${BgWidget.save(gvc.event(() => {
                                         save(() => {
                                             dialog.successMessage({
                                                 text: '設定成功',
                                             });
                                         });
                                     }))}
-                                                    </div>`,
+                                                        </div>`,
                                 ].join(''), undefined, `
                                                     gap: 24px;
                                                     color: #393939;
@@ -365,7 +377,7 @@ export class ShoppingShipmentSetting {
                             divCreate: { class: `w-100`, style: `` },
                         }));
                         resolve(html ` <div style="width:900px; max-width:100%;">
-                                    ${BgWidget.card([
+                                        ${BgWidget.card([
                             html ` <div class="alert alert-info">總運費金額為 = 基本運費 + ( 商品運費權重*每單位費用 )</div>`,
                             EditorElem.editeInput({
                                 gvc: gvc,
@@ -386,13 +398,13 @@ export class ShoppingShipmentSetting {
                                 placeHolder: '請輸入每單位費用',
                             }),
                         ].join('<div class="my-2"></div>'))}
-                                </div>`);
+                                    </div>`);
                     }));
                 },
                 divCreate: { class: `d-flex flex-column flex-column-reverse flex-md-row`, style: `gap:10px; padding: 0;` },
             };
         })}
-            `, 900) + BgWidget.mb240();
+                `, 900) + BgWidget.mbContainer(240));
     }
 }
 window.glitter.setModule(import.meta.url, ShoppingShipmentSetting);

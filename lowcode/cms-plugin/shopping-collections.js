@@ -498,7 +498,7 @@ export class ShoppingCollections {
                             })()),
                         ].join(html `<div style="margin-top: 24px;"></div>`), undefined, 'padding: 0 ; margin: 0 !important; width: 26.5%;')}
                             </div>`,
-                        BgWidget.mb240(),
+                        BgWidget.mbContainer(240),
                         html ` <div class="update-bar-container">
                                 ${obj.type === 'replace'
                             ? BgWidget.redButton('刪除類別', gvc.event(() => {

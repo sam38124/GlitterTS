@@ -573,7 +573,7 @@ export class MemberTypeList {
                             };
                         }), undefined, 'padding: 0; margin: 0 !important; width: 35%;')}
                             </div>`,
-                        BgWidget.mb240(),
+                        BgWidget.mbContainer(240),
                         html ` <div class="update-bar-container">
                                 ${BgWidget.cancel(gvc.event(() => {
                             cf.callback();

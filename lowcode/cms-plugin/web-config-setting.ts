@@ -468,7 +468,7 @@ export class WebConfigSetting {
                                     }
                                 })()
                             ),
-                            BgWidget.mb240(),
+                            BgWidget.mbContainer(240),
                             html` <div class="update-bar-container">
                                 ${BgWidget.save(
                                     gvc.event(() => {

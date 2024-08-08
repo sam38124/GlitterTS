@@ -1,6 +1,7 @@
 import { GVC } from '../../glitterBundle/GVController.js';
 import { ApiShop } from '../../glitter-base/route/shopping.js';
 import { ApiPost } from '../../glitter-base/route/post.js';
+import { Tool } from '../../modules/tool.js';
 
 interface MenuItem {
     name: string;
@@ -29,7 +30,7 @@ export class PathSelect {
         };
         const dropMenu = {
             id: obj.gvc.glitter.getUUID(),
-            elementClass: this.randomString(5),
+            elementClass: Tool.randomString(5),
             elementWidth: 240,
             loading: true,
             search: '',

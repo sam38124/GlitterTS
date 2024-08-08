@@ -868,7 +868,7 @@ export class UserList {
                                     };
                                 }), undefined, 'padding: 0 !important; margin: 0 !important; width: 26.5%;')}
                                     </div>`,
-                                BgWidget.mb240(),
+                                BgWidget.mbContainer(240),
                                 html ` <div class="update-bar-container">
                                         ${BgWidget.cancel(gvc.event(() => cf.callback()))}
                                         ${BgWidget.save(gvc.event(() => {

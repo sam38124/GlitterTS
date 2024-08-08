@@ -603,7 +603,7 @@ export class ShoppingRebateSetting {
                                         )}
                                     </div>`,
                                     // 空白容器
-                                    BgWidget.mb240(),
+                                    BgWidget.mbContainer(240),
                                     // 儲存資料
                                     html`<div class="update-bar-container">
                                         ${BgWidget.cancel(

@@ -371,7 +371,7 @@ export class FormSetting {
                     try {
                         return [
                             html ` <div class="d-flex w-100 align-items-center mb-3 ">
-                                ${BgWidget.goBack(gvc.event(() => {
+                                    ${BgWidget.goBack(gvc.event(() => {
                                 if (viewType === 'preview') {
                                     viewType = 'editor';
                                     gvc.notifyDataChange(id);
@@ -380,9 +380,9 @@ export class FormSetting {
                                     cf.vm.type = 'list';
                                 }
                             }))}
-                                ${BgWidget.title(`表單內容`)}
-                                <div class="flex-fill"></div>
-                            </div>`,
+                                    ${BgWidget.title(`表單內容`)}
+                                    <div class="flex-fill"></div>
+                                </div>`,
                             BgWidget.mainCard((() => {
                                 return FormWidget.editorView({
                                     gvc: gvc,
@@ -553,7 +553,7 @@ export class FormSetting {
                                 ].join('');
                             }
                         })()),
-                        html `${BgWidget.mb240()}
+                        html `${BgWidget.mbContainer(240)}
                                 <div class="update-bar-container">
                                     ${BgWidget.save(gvc.event(() => {
                             if (!postMd.form_title) {

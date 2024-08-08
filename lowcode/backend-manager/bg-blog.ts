@@ -1495,7 +1495,7 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any, page_tab: 'page' | 'hidden
             undefined,
             'padding: 0 !important;'
         )}
-        ${BgWidget.mb240()}
+        ${BgWidget.mbContainer(240)}
         <div class="update-bar-container">
             ${vm.data.id
                 ? BgWidget.redButton(

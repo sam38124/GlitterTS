@@ -3,6 +3,7 @@ import { PageSplit } from './splitPage.js';
 import { ApiShop } from '../glitter-base/route/shopping.js';
 import { Article } from '../glitter-base/route/article.js';
 import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
+import { Tool } from '../modules/tool.js';
 
 const html = String.raw;
 
@@ -694,7 +695,7 @@ ${obj.default ?? ''}</textarea
         };
         const dropMenu = {
             id: obj.gvc.glitter.getUUID(),
-            elementClass: this.randomString(5),
+            elementClass: Tool.randomString(5),
             elementWidth: 240,
             loading: true,
             search: '',
@@ -1586,13 +1587,6 @@ ${obj.default ?? ''}</textarea
         return '';
     }
 
-    static randomString(max: number) {
-        let possible = 'abcdefghijklmnopqrstuvwxyz0123456789';
-        let text = possible.charAt(Math.floor(Math.random() * (possible.length - 10)));
-        for (let i = 1; i < max; i++) text += possible.charAt(Math.floor(Math.random() * possible.length));
-        return text;
-    }
-
     static multiCheckboxContainer(
         gvc: GVC,
         data: {
@@ -1608,7 +1602,7 @@ ${obj.default ?? ''}</textarea
     ) {
         const id = gvc.glitter.getUUID();
         const randomString = obj && obj.single ? this.getDotClass(gvc) : this.getCheckedClass(gvc);
-        const viewId = this.randomString(5);
+        const viewId = Tool.randomString(5);
 
         return gvc.bindView({
             bind: viewId,
@@ -1623,25 +1617,25 @@ ${obj.default ?? ''}</textarea
                                 type="${obj && obj.single ? 'radio' : 'checkbox'}"
                                 id="${id}_${item.key}"
                                 onclick="${gvc.event((e, ev) => {
-                        if (obj && obj.readonly) {
-                            ev.preventDefault();
-                            return;
-                        }
-                    })}"
+                                    if (obj && obj.readonly) {
+                                        ev.preventDefault();
+                                        return;
+                                    }
+                                })}"
                                 onchange="${gvc.event((e, ev) => {
-                        if (obj && obj.single) {
-                            def = [item.key];
-                            callback([item.key]);
-                        } else {
-                            if (e.checked) {
-                                def.push(item.key);
-                            } else {
-                                def = def.filter((d) => d !== item.key);
-                            }
-                            callback(def);
-                        }
-                        gvc.notifyDataChange(viewId);
-                    })}"
+                                    if (obj && obj.single) {
+                                        def = [item.key];
+                                        callback([item.key]);
+                                    } else {
+                                        if (e.checked) {
+                                            def.push(item.key);
+                                        } else {
+                                            def = def.filter((d) => d !== item.key);
+                                        }
+                                        callback(def);
+                                    }
+                                    gvc.notifyDataChange(viewId);
+                                })}"
                                 ${def.includes(item.key) ? 'checked' : ''}
                             />
                             <label class="form-check-label cursor_pointer" for="${id}_${item.key}" style="font-size: 16px; color: #393939;">${item.name}</label>
@@ -1653,8 +1647,6 @@ ${obj.default ?? ''}</textarea
             },
         });
     }
-
-
 
     static radioInputContainer(
         gvc: GVC,
@@ -1858,7 +1850,7 @@ ${obj.default ?? ''}</textarea
     static selEventDropmenu(obj: { gvc: GVC; options: SelEventItem[]; text: string }) {
         const vm = {
             id: obj.gvc.glitter.getUUID(),
-            checkClass: this.randomString(5),
+            checkClass: Tool.randomString(5),
             show: false,
             top: 0,
             right: 0,
@@ -1908,7 +1900,7 @@ ${obj.default ?? ''}</textarea
     static validImageBox(obj: { gvc: GVC; image: string; width: number; height?: number; class?: string; style?: string }) {
         const imageVM = {
             id: obj.gvc.glitter.getUUID(),
-            class: this.randomString(6),
+            class: Tool.randomString(6),
             loading: true,
             url: this.noImageURL,
         };
@@ -1950,7 +1942,7 @@ ${obj.default ?? ''}</textarea
     }
 
     static getCheckedClass(gvc: GVC, color?: string) {
-        const className = this.randomString(5);
+        const className = Tool.randomString(5);
         gvc.addStyle(`
             .${className} {
                 min-width: 1rem;
@@ -1967,7 +1959,7 @@ ${obj.default ?? ''}</textarea
     }
 
     static getDotClass(gvc: GVC, color?: string) {
-        const className = this.randomString(5);
+        const className = Tool.randomString(5);
         gvc.addStyle(`
             .${className} {
                 min-width: 1rem;

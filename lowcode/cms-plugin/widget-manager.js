@@ -1,5 +1,5 @@
 import { EditorConfig } from '../editor-config.js';
-import { BgWidget } from "../backend-manager/bg-widget.js";
+import { BgWidget } from '../backend-manager/bg-widget.js';
 export class WidgetManager {
     static main(gvc, widget) {
         const html = String.raw;
@@ -31,26 +31,28 @@ export class WidgetManager {
                                                 title: '標頭樣式一',
                                                 img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1720714686605-Screenshot2024-07-12at12.17.52 AM.jpg',
                                                 app: '',
-                                                tag: ''
+                                                tag: '',
                                             },
                                             {
                                                 title: '標頭樣式二',
                                                 img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1720714686605-Screenshot2024-07-12at12.17.52 AM.jpg',
                                                 app: '',
-                                                tag: ''
-                                            }, {
+                                                tag: '',
+                                            },
+                                            {
                                                 title: '標頭樣式三',
                                                 img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1720714686605-Screenshot2024-07-12at12.17.52 AM.jpg',
                                                 app: '',
-                                                tag: ''
+                                                tag: '',
                                             },
                                             {
                                                 title: '標頭樣式四',
                                                 img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1720714686605-Screenshot2024-07-12at12.17.52 AM.jpg',
                                                 app: '',
-                                                tag: ''
-                                            }
-                                        ].map((dd, index) => {
+                                                tag: '',
+                                            },
+                                        ]
+                                            .map((dd, index) => {
                                             return `<div class="p-2" style="width: 25%;min-width: 25%;"><div class="d-flex flex-column" style="gap:10px;justify-content: center;">
 <div class="rounded-3 shadow-sm" style="width: 100%;padding-bottom: 110%;background-image: url('${dd.img}');background-size: cover;background-repeat: no-repeat;background-position: center;"></div>
 <div class="w-100 d-flex align-items-center justify-content-center">
@@ -59,15 +61,17 @@ export class WidgetManager {
 </div>
 
 </div>`;
-                                        }).join('');
+                                        })
+                                            .join('');
                                     },
                                     divCreate: {
-                                        class: `d-flex m-0 mx-n2`, style: 'overflow-x:auto;'
+                                        class: `d-flex m-0 mx-n2`,
+                                        style: 'overflow-x:auto;',
                                     },
                                 };
                             }),
                         ].join('')),
-                        BgWidget.mb240(),
+                        BgWidget.mbContainer(240),
                     ].join('<div style="margin-top: 24px;"></div>'))}
                         `, BgWidget.getContainerWidth());
                 },

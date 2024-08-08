@@ -1361,7 +1361,7 @@ function detail(gvc, cf, vm, cVm, page_tab) {
     })), undefined, 'padding: 0 !important; margin: 0 !important; width: 26.5%;')}
                 </div>
             `, undefined, 'padding: 0 !important;')}
-        ${BgWidget.mb240()}
+        ${BgWidget.mbContainer(240)}
         <div class="update-bar-container">
             ${vm.data.id
         ? BgWidget.redButton(`刪除${cf.is_page ? '頁面' : '網誌'}`, gvc.event(() => {

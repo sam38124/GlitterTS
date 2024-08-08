@@ -26,4 +26,19 @@ export class Tool {
 
         return truncated;
     }
+
+    static randomString(max: number) {
+        let possible = 'abcdefghijklmnopqrstuvwxyz0123456789';
+        let text = possible.charAt(Math.floor(Math.random() * (possible.length - 10)));
+        for (let i = 1; i < max; i++) text += possible.charAt(Math.floor(Math.random() * possible.length));
+        return text;
+    }
+
+    static isURL = (str_url: string) => {
+        try {
+            return Boolean(new URL(str_url));
+        } catch (e) {
+            return false;
+        }
+    };
 }
