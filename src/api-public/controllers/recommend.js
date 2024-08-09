@@ -11,8 +11,34 @@ const router = express_1.default.Router();
 router.get('/list', async (req, resp) => {
     try {
         if (await ut_permission_js_1.UtPermission.isManager(req)) {
-            console.log('re list');
             return response_1.default.succ(resp, await new recommend_1.Recommend(req.get('g-app'), req.body.token).getList());
+        }
+        else {
+            return response_1.default.fail(resp, exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null));
+        }
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.post('/list', async (req, resp) => {
+    try {
+        if (await ut_permission_js_1.UtPermission.isManager(req)) {
+            return response_1.default.succ(resp, await new recommend_1.Recommend(req.get('g-app'), req.body.token).postList(req.body));
+        }
+        else {
+            return response_1.default.fail(resp, exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null));
+        }
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.put('/list/:id', async (req, resp) => {
+    try {
+        if (await ut_permission_js_1.UtPermission.isManager(req)) {
+            console.log(req.params);
+            return response_1.default.succ(resp, await new recommend_1.Recommend(req.get('g-app'), req.body.token).putList(req.params.id, req.body));
         }
         else {
             return response_1.default.fail(resp, exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null));

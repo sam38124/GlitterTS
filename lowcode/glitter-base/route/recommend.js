@@ -21,7 +21,7 @@ export class ApiRecommend {
     static postList(cf) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/recommend/list`,
-            type: 'GET',
+            type: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'g-app': getConfig().config.appName,
@@ -32,8 +32,8 @@ export class ApiRecommend {
     }
     static putList(cf) {
         return BaseApi.create({
-            url: getBaseUrl() + `/api-public/v1/recommend/list`,
-            type: 'GET',
+            url: getBaseUrl() + `/api-public/v1/recommend/list/${cf.id}`,
+            type: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
                 'g-app': getConfig().config.appName,

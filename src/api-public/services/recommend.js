@@ -23,33 +23,40 @@ class Recommend {
     }
     async postList(data) {
         try {
-            const links = await database_1.default.query(`INSERT INTO \`${this.app}\`.t_recommend_links SET ?`, [
-                {
-                    code: data.code,
-                    content: data,
-                },
-            ]);
-            return { data: links };
+            console.log(data);
+            const getLinks = await database_1.default.query(`SELECT * FROM \`${this.app}\`.t_recommend_links WHERE code = ?;
+            `, [data.code]);
+            if (getLinks.length === 0) {
+                const links = await database_1.default.query(`INSERT INTO \`${this.app}\`.t_recommend_links SET ?`, [
+                    {
+                        code: data.code,
+                        content: JSON.stringify(data),
+                    },
+                ]);
+                return { result: true, data: links };
+            }
+            return { result: false };
         }
         catch (error) {
             throw exception_1.default.BadRequestError('ERROR', 'Recommend getList Error: ' + error, null);
         }
     }
-    async putList(data) {
+    async putList(id, data) {
         try {
-            const getLinks = await database_1.default.query(`SELECT * FROM \`${this.app}\`.t_recommend_links WHERE code = ?;
-            `, [data.code]);
+            const getLinks = await database_1.default.query(`SELECT * FROM \`${this.app}\`.t_recommend_links WHERE code = ? AND id <> ?;
+            `, [data.code, id]);
+            console.log(id, data);
             if (getLinks.length === 0) {
                 const links = await database_1.default.query(`UPDATE \`${this.app}\`.t_recommend_links SET ? WHERE (id = ?);`, [
                     {
                         code: data.code,
-                        content: data,
+                        content: JSON.stringify(data),
                     },
-                    data.id,
+                    id,
                 ]);
-                return { data: links };
+                return { result: true, data: links };
             }
-            return { data: false };
+            return { result: false };
         }
         catch (error) {
             throw exception_1.default.BadRequestError('ERROR', 'Recommend getList Error: ' + error, null);

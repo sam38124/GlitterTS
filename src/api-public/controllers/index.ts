@@ -3,7 +3,6 @@ import response from '../../modules/response';
 import jwt from 'jsonwebtoken';
 import redis from '../../modules/redis';
 import db from '../../modules/database';
-import path from 'path';
 import { config, saasConfig } from '../../config';
 const router: express.Router = express.Router();
 import Logger from '../../modules/logger';

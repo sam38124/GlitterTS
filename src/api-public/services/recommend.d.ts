@@ -7,9 +7,17 @@ export declare class Recommend {
         data: any;
     }>;
     postList(data: any): Promise<{
+        result: boolean;
         data: any;
+    } | {
+        result: boolean;
+        data?: undefined;
     }>;
-    putList(data: any): Promise<{
+    putList(id: string, data: any): Promise<{
+        result: boolean;
         data: any;
+    } | {
+        result: boolean;
+        data?: undefined;
     }>;
 }

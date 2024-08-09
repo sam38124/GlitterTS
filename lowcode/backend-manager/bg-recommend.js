@@ -30,7 +30,8 @@ export class BgRecommend {
         function getDatalist() {
             const prefixURL = `https://${window.parent.glitter.share.editorViewModel.domain}`;
             return vm.dataList.map((dd, index) => {
-                var _a;
+                var _a, _b;
+                console.log(dd);
                 return [
                     {
                         key: EditorElem.checkBoxOnly({
@@ -61,31 +62,31 @@ export class BgRecommend {
                     },
                     {
                         key: '分銷連結名稱',
-                        value: `<span class="fs-7">${dd.title}</span>`,
+                        value: `<span class="fs-7">${dd.content.title}</span>`,
                     },
                     {
                         key: '連結網址',
-                        value: `<span class="fs-7">${prefixURL + ((_a = dd.link) !== null && _a !== void 0 ? _a : '')}</span>`,
+                        value: `<span class="fs-7">${prefixURL + ((_a = dd.content.link) !== null && _a !== void 0 ? _a : '')}</span>`,
                     },
                     {
                         key: '總金額',
-                        value: `<span class="fs-7">${dd.total_price.toLocaleString()}</span>`,
+                        value: `<span class="fs-7">${dd.total_price ? dd.total_price.toLocaleString() : 0}</span>`,
                     },
                     {
                         key: '曝光量',
-                        value: `<span class="fs-7">${dd.exposure.toLocaleString()}</span>`,
+                        value: `<span class="fs-7">${dd.exposure ? dd.exposure.toLocaleString() : 0}</span>`,
                     },
                     {
                         key: '下單數',
-                        value: `<span class="fs-7">${dd.orders.toLocaleString()}</span>`,
+                        value: `<span class="fs-7">${dd.orders ? dd.orders.toLocaleString() : 0}</span>`,
                     },
                     {
                         key: '轉換率',
-                        value: `<span class="fs-7">${dd.conversion_rate}%</span>`,
+                        value: `<span class="fs-7">${(_b = dd.conversion_rate) !== null && _b !== void 0 ? _b : 0}%</span>`,
                     },
                     {
                         key: '分潤獎金',
-                        value: `<span class="fs-7">${dd.sharing_bonus.toLocaleString()}</span>`,
+                        value: `<span class="fs-7">${dd.sharing_bonus ? dd.sharing_bonus.toLocaleString() : 0}</span>`,
                     },
                 ];
             });
@@ -115,29 +116,9 @@ export class BgRecommend {
                                 }).then((data) => {
                                     console.log(data);
                                     vmi.pageSize = 1;
-                                    vm.dataList = [
-                                        {
-                                            title: '與YT貓皇的貓跳台合作，給貓咪最好的跳台！',
-                                            link: '/pages/oneyone',
-                                            total_price: 3100,
-                                            exposure: 200,
-                                            orders: 26,
-                                            conversion_rate: 70,
-                                            sharing_bonus: 234,
-                                            code: 'XY0001',
-                                            condition: 1200,
-                                            share_type: 'fix',
-                                            share_value: 100,
-                                            voucher_status: 'no',
-                                            recommend_status: 'old',
-                                            recommend_user_id: '123',
-                                            recommend_medium: [],
-                                            startDate: '2024-08-09',
-                                            startTime: '16:00',
-                                            endDate: '2024-08-17',
-                                            endTime: '16:00',
-                                        },
-                                    ];
+                                    vm.dataList = data.response.data.map((item) => {
+                                        return item;
+                                    });
                                     vmi.data = getDatalist();
                                     vmi.loading = false;
                                     vmi.callback();
@@ -244,7 +225,7 @@ export class BgRecommend {
             id: glitter.getUUID(),
             previewId: glitter.getUUID(),
             noteId: glitter.getUUID(),
-            data: cf.data,
+            data: cf.data.content,
             original_data: undefined,
             loading: false,
         };
@@ -598,6 +579,36 @@ export class BgRecommend {
                         }))}
                                 ${BgWidget.save(gvc.event(() => {
                             console.log(vm.data);
+                            dialog.dataLoading({ visible: true });
+                            if (cf.data.id === undefined) {
+                                ApiRecommend.postList({
+                                    data: vm.data,
+                                }).then((data) => {
+                                    dialog.dataLoading({ visible: false });
+                                    if (data.result) {
+                                        cf.callback();
+                                        dialog.successMessage({ text: '儲存成功' });
+                                    }
+                                    else {
+                                        dialog.errorMessage({ text: '儲存失敗' });
+                                    }
+                                });
+                            }
+                            else {
+                                ApiRecommend.putList({
+                                    id: cf.data.id,
+                                    data: vm.data,
+                                }).then((data) => {
+                                    dialog.dataLoading({ visible: false });
+                                    if (data.result) {
+                                        cf.callback();
+                                        dialog.successMessage({ text: '儲存成功' });
+                                    }
+                                    else {
+                                        dialog.errorMessage({ text: '儲存失敗' });
+                                    }
+                                });
+                            }
                         }))}
                             </div>`,
                     ].join('<div class="my-2"></div>'), BgWidget.getContainerWidth(), 'position: relative');
