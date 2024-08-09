@@ -1,18 +1,17 @@
 import db from '../modules/database';
-import {saasConfig} from "../config";
-
+import { saasConfig } from '../config';
 
 export const SaasScheme = {
     createScheme: async () => {
-        const sql = String.raw
-        await db.query(`SET GLOBAL max_prepared_stmt_count = 163820`,[]);
-        await db.execute(`CREATE SCHEMA if not exists \`${saasConfig.SAAS_NAME}_recover\` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci ;`, [])
-        await db.execute(`CREATE SCHEMA if not exists \`${saasConfig.SAAS_NAME}\` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci ;`, [])
-        const sqlArray: { scheme?: string; table: string; sql: string }[]=[
+        const sql = String.raw;
+        await db.query(`SET GLOBAL max_prepared_stmt_count = 163820`, []);
+        await db.execute(`CREATE SCHEMA if not exists \`${saasConfig.SAAS_NAME}_recover\` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci ;`, []);
+        await db.execute(`CREATE SCHEMA if not exists \`${saasConfig.SAAS_NAME}\` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci ;`, []);
+        const sqlArray: { scheme?: string; table: string; sql: string }[] = [
             {
-                scheme:saasConfig.SAAS_NAME as string,
-                table:'page_config',
-                sql:`(
+                scheme: saasConfig.SAAS_NAME as string,
+                table: 'page_config',
+                sql: `(
   \`id\` int NOT NULL AUTO_INCREMENT,
   \`userID\` varchar(45) NOT NULL,
   \`appName\` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -33,12 +32,12 @@ export const SaasScheme = {
   KEY \`app_index\` (\`userID\`,\`appName\`),
   KEY \`index4\` (\`page_type\`),
   KEY \`index5\` (\`favorite\`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci`
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci`,
             },
             {
-                scheme:saasConfig.SAAS_NAME as string,
-                table:'app_config',
-                sql:`(
+                scheme: saasConfig.SAAS_NAME as string,
+                table: 'app_config',
+                sql: `(
   \`id\` int NOT NULL AUTO_INCREMENT,
   \`domain\` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   \`user\` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -61,12 +60,12 @@ export const SaasScheme = {
   KEY \`find_user\` (\`user\`),
     KEY \`find_plan\` (\`plan\`)
 ) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-`
+`,
             },
             {
-                scheme:saasConfig.SAAS_NAME as string,
-                table:'private_config',
-                sql:`(
+                scheme: saasConfig.SAAS_NAME as string,
+                table: 'private_config',
+                sql: `(
   \`id\` int NOT NULL AUTO_INCREMENT,
   \`app_name\` varchar(45) COLLATE utf8mb4_unicode_ci NOT NULL,
   \`key\` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -75,12 +74,12 @@ export const SaasScheme = {
   PRIMARY KEY (\`id\`),
   UNIQUE KEY \`index2\` (\`app_name\`,\`key\`),
   KEY \`index3\` (\`key\`)
-) ENGINE=InnoDB AUTO_INCREMENT=242 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
+) ENGINE=InnoDB AUTO_INCREMENT=242 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
             },
             {
-                scheme:saasConfig.SAAS_NAME as string,
-                table:'official_component',
-                sql:`(
+                scheme: saasConfig.SAAS_NAME as string,
+                table: 'official_component',
+                sql: `(
   \`id\` int NOT NULL AUTO_INCREMENT,
   \`key\` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
   \`group\` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -91,27 +90,27 @@ export const SaasScheme = {
   KEY \`index4\` (\`app_name\`),
   KEY \`index2\` (\`key\`),
   KEY \`index3\` (\`group\`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
             },
             {
-                scheme:saasConfig.SAAS_NAME as string,
-                table:'t_template_tag',
-                sql:`(
+                scheme: saasConfig.SAAS_NAME as string,
+                table: 't_template_tag',
+                sql: `(
   \`id\` int NOT NULL AUTO_INCREMENT,
   \`type\` varchar(45) COLLATE utf8mb4_unicode_ci NOT NULL,
   \`tag\` varchar(45) COLLATE utf8mb4_unicode_ci NOT NULL,
   \`bind\` varchar(45) COLLATE utf8mb4_unicode_ci NOT NULL,
   PRIMARY KEY (\`id\`),
   UNIQUE KEY \`index2\` (\`type\`,\`bind\`,\`tag\`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
-            }
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+            },
         ];
         const groupSize = 5;
         for (const b of chunkArray(sqlArray, groupSize)) {
             let check = b.length;
             await new Promise((resolve) => {
                 for (const d of b) {
-                    function try_execute(){
+                    function try_execute() {
                         try {
                             compare_sql_table(d.scheme, d.table, d.sql).then(() => {
                                 check--;
@@ -119,16 +118,16 @@ export const SaasScheme = {
                                     resolve(true);
                                 }
                             });
-                        }catch (e) {
-                            try_execute()
+                        } catch (e) {
+                            try_execute();
                         }
                     }
-                    try_execute()
+                    try_execute();
                 }
             });
         }
-    }
-}
+    },
+};
 function chunkArray(array: any, groupSize: number) {
     const result = [];
     for (let i = 0; i < array.length; i += groupSize) {
@@ -140,7 +139,7 @@ function chunkArray(array: any, groupSize: number) {
 export async function compare_sql_table(scheme: string, table: string, sql: string): Promise<any> {
     try {
         const tempKey = 'tempcompare' + table;
-        const trans=await db.Transaction.build()
+        const trans = await db.Transaction.build();
         await trans.execute(`DROP TABLE if exists \`${scheme}\`.\`${tempKey}\`;`, []);
         await trans.execute(`CREATE TABLE if not exists \`${scheme}\`.\`${table}\` ${sql}`, []);
         await trans.execute(`CREATE TABLE if not exists \`${scheme}\`.\`${tempKey}\` ${sql}`, []);
@@ -159,8 +158,8 @@ export async function compare_sql_table(scheme: string, table: string, sql: stri
         const newest = await db.query(compareStruct, [tempKey, scheme]);
         const older2 = await db.query(compareStruct2, [table, scheme]);
         const newest2 = await db.query(compareStruct2, [tempKey, scheme]);
-        if((newest2.length===0) || (newest.length===0)){
-            return await compare_sql_table(scheme,table,sql)
+        if (newest2.length === 0 || newest.length === 0) {
+            return await compare_sql_table(scheme, table, sql);
         }
         if (!(JSON.stringify(older) == JSON.stringify(newest)) || !(JSON.stringify(older2) == JSON.stringify(newest2))) {
             older = older.filter((dd: any) => {
@@ -175,43 +174,45 @@ export async function compare_sql_table(scheme: string, table: string, sql: stri
                     })
                     .join(',')})
                                    SELECT ${older
-                    .map((dd: any) => {
-                        return `\`${dd.COLUMN_NAME}\``;
-                    })
-                    .join(',')}
+                                       .map((dd: any) => {
+                                           return `\`${dd.COLUMN_NAME}\``;
+                                       })
+                                       .join(',')}
                                    FROM \`${scheme}\`.\`${table}\`
         `,
                 []
             );
-            await trans.execute(`
+            await trans.execute(
+                `
         CREATE TABLE  \`${scheme}_recover\`.\`${table}_${new Date().getTime()}\` AS SELECT * FROM \`${scheme}\`.\`${table}\`;
-        `,[])
+        `,
+                []
+            );
             await trans.execute(`DROP TABLE \`${scheme}\`.\`${table}\`;`, []);
-            let fal=0
-            async function loopToAlter(){
+            let fal = 0;
+            async function loopToAlter() {
                 try {
                     await trans.execute(`ALTER TABLE \`${scheme}\`.${tempKey} RENAME TO \`${scheme}\`.\`${table}\`;`, []);
-                    await new Promise((resolve, reject)=>{setTimeout(()=>{
-                        resolve(true)
-                    },1000)})
-                }catch (e) {
-                    fal++
-                    if(fal<5){
-                        await loopToAlter()
+                    await new Promise((resolve, reject) => {
+                        setTimeout(() => {
+                            resolve(true);
+                        }, 1000);
+                    });
+                } catch (e) {
+                    fal++;
+                    if (fal < 5) {
+                        await loopToAlter();
                     }
-
                 }
             }
-           await loopToAlter()
+            await loopToAlter();
         }
         await trans.execute(`DROP TABLE if exists \`${scheme}\`.\`${tempKey}\`;`, []);
-        await trans.commit()
-        await trans.release()
-        return  true
-    }catch (e) {
-        console.log(e)
-        return  false
+        await trans.commit();
+        await trans.release();
+        return true;
+    } catch (e) {
+        console.log(e);
+        return false;
     }
-
 }
-

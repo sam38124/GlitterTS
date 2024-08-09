@@ -37,7 +37,7 @@ exports.SaasScheme = {
   KEY \`app_index\` (\`userID\`,\`appName\`),
   KEY \`index4\` (\`page_type\`),
   KEY \`index5\` (\`favorite\`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci`
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci`,
             },
             {
                 scheme: config_1.saasConfig.SAAS_NAME,
@@ -65,7 +65,7 @@ exports.SaasScheme = {
   KEY \`find_user\` (\`user\`),
     KEY \`find_plan\` (\`plan\`)
 ) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-`
+`,
             },
             {
                 scheme: config_1.saasConfig.SAAS_NAME,
@@ -79,7 +79,7 @@ exports.SaasScheme = {
   PRIMARY KEY (\`id\`),
   UNIQUE KEY \`index2\` (\`app_name\`,\`key\`),
   KEY \`index3\` (\`key\`)
-) ENGINE=InnoDB AUTO_INCREMENT=242 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
+) ENGINE=InnoDB AUTO_INCREMENT=242 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
             },
             {
                 scheme: config_1.saasConfig.SAAS_NAME,
@@ -95,7 +95,7 @@ exports.SaasScheme = {
   KEY \`index4\` (\`app_name\`),
   KEY \`index2\` (\`key\`),
   KEY \`index3\` (\`group\`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
             },
             {
                 scheme: config_1.saasConfig.SAAS_NAME,
@@ -107,8 +107,8 @@ exports.SaasScheme = {
   \`bind\` varchar(45) COLLATE utf8mb4_unicode_ci NOT NULL,
   PRIMARY KEY (\`id\`),
   UNIQUE KEY \`index2\` (\`type\`,\`bind\`,\`tag\`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
-            }
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+            },
         ];
         const groupSize = 5;
         for (const b of chunkArray(sqlArray, groupSize)) {
@@ -132,7 +132,7 @@ exports.SaasScheme = {
                 }
             });
         }
-    }
+    },
 };
 function chunkArray(array, groupSize) {
     const result = [];
@@ -163,7 +163,7 @@ async function compare_sql_table(scheme, table, sql) {
         const newest = await database_1.default.query(compareStruct, [tempKey, scheme]);
         const older2 = await database_1.default.query(compareStruct2, [table, scheme]);
         const newest2 = await database_1.default.query(compareStruct2, [tempKey, scheme]);
-        if ((newest2.length === 0) || (newest.length === 0)) {
+        if (newest2.length === 0 || newest.length === 0) {
             return await compare_sql_table(scheme, table, sql);
         }
         if (!(JSON.stringify(older) == JSON.stringify(newest)) || !(JSON.stringify(older2) == JSON.stringify(newest2))) {
