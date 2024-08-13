@@ -677,6 +677,7 @@ function initialEditor(gvc, viewModel) {
                 root: viewModel.selectContainer.container_config.root,
             }));
         }
+        viewModel.selectContainer.rerenderReplaceElem && viewModel.selectContainer.rerenderReplaceElem();
         setTimeout(() => {
             HtmlGenerate.selectWidget({
                 widget: data,
@@ -714,6 +715,7 @@ function initialEditor(gvc, viewModel) {
             sub_data: arrayData.container.container_config.sub_data,
             root: arrayData.container.container_config.root,
         }))[cf.direction === 1 ? 'insertAfter' : 'insertBefore']($(`.editor_it_${cf.index}`).parent());
+        viewModel.selectContainer.rerenderReplaceElem && viewModel.selectContainer.rerenderReplaceElem();
         setTimeout(() => {
             HtmlGenerate.selectWidget({
                 widget: cf.data,

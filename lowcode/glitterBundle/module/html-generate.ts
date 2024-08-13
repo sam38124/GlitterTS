@@ -184,6 +184,7 @@ export class HtmlGenerate {
     }
 
     public static checkEventStore(glitter: Glitter, src: string) {
+        glitter.share.componentData = glitter.share.componentData ?? {};
         let key = glitter.htmlGenerate.resourceHook(src);
         return glitter.share.componentData[key];
     }
@@ -881,6 +882,7 @@ ${obj.gvc.bindView({
                                             if (option && option.is_page) {
                                                 console.log(`start-loop-widget-time:`, (window as any).renderClock.stop());
                                             }
+
                                             resolve(
                                                 container
                                                     .map((widget, index) => {
@@ -939,7 +941,8 @@ ${obj.gvc.bindView({
                                                             root: root,
                                                             sub_data: subData,
                                                         });
-                                                    })
+                                                    }).
+                                                    concat((container as any).replace_elem)
                                                     .join('')
                                             );
                                         }).then((html) => {
@@ -2179,6 +2182,7 @@ ${e.line}
         const widget = glitter.share.findWidgetIndex(cf.id).widget;
         return [
             (() => {
+                return  ``
                 if (widget && widget.type === 'container' && widget.data.setting && widget.data.setting.length === 0) {
                     const addID = gvc.glitter.getUUID();
                     return html` <div class="${addID}" style="min-height: 250px;"></div>
@@ -2423,6 +2427,67 @@ ${e.line}
                             glitter.share.editorViewModel.data.config = [];
                             gvc.notifyDataChange(['HtmlEditorContainer']);
                         }
+                    }
+                    if(container_items.rerenderReplaceElem){
+                        container_items.rerenderReplaceElem()
+                        // .append(`<div
+                        //                             class="d-flex align-items-center justify-content-center flex-column rounded-3 w-100 py-3"
+                        //                             id="${id}"
+                        //                             style="background: lightgrey;color: #393939;cursor: pointer;min-height: 100px;left: 0px;top:0px;width: 100%;height: 100%;"
+                        //                             onmousedown="${gvc.event(() => {
+                        //     glitter.getModule(new URL(gvc.glitter.root_path + 'editor/add-component.js').href, (AddComponent: any) => {
+                        //         glitter.share.editorViewModel.selectContainer = widget.data.setting;
+                        //         AddComponent.toggle(true);
+                        //         AddComponent.addWidget = (gvc: GVC, cf: any) => {
+                        //             (window.parent as any).glitter.share.editorViewModel.selectContainer = widget.data.setting;
+                        //             (window.parent as any).glitter.share.addComponent(cf);
+                        //             AddComponent.toggle(false);
+                        //             document.querySelector('#' +id).remove();
+                        //         };
+                        //         AddComponent.addEvent = (gvc: GVC, tdata: any) => {
+                        //             (window.parent as any).glitter.share.editorViewModel.selectContainer = widget.data.setting;
+                        //             (window.parent as any).glitter.share.addComponent({
+                        //                 id: gvc.glitter.getUUID(),
+                        //                 js: './official_view_component/official.js',
+                        //                 css: {
+                        //                     class: {},
+                        //                     style: {},
+                        //                 },
+                        //                 data: {
+                        //                     refer_app: tdata.copyApp,
+                        //                     tag: tdata.copy,
+                        //                     list: [],
+                        //                     carryData: {},
+                        //                     _style_refer_global: {
+                        //                         index: `0`,
+                        //                     },
+                        //                 },
+                        //                 type: 'component',
+                        //                 class: 'w-100',
+                        //                 index: 0,
+                        //                 label: tdata.title,
+                        //                 style: '',
+                        //                 bundle: {},
+                        //                 global: [],
+                        //                 toggle: false,
+                        //                 stylist: [],
+                        //                 dataType: 'static',
+                        //                 style_from: 'code',
+                        //                 classDataType: 'static',
+                        //                 preloadEvenet: {},
+                        //                 share: {},
+                        //             });
+                        //             AddComponent.toggle(false);
+                        //             console.log(` gvc.glitter.document.querySelector('#${id}').remove();`)
+                        //             document.querySelector('#' +id).remove();
+                        //         };
+                        //     });
+                        // })}"
+                        //                     >
+                        //                         <i class="fa-regular fa-circle-plus text-black"
+                        //                            style="font-size: 60px;"></i>
+                        //                         <span class="fw-500 fs-5 mt-3">添加元件</span>
+                        //                     </div>`)
                     }
                     glitter.share.editorViewModel.selectItem = undefined;
                     gvc.notifyDataChange(['right_NAV', 'MainEditorLeft']);

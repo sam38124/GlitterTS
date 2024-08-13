@@ -296,7 +296,8 @@ export class HtmlGenerate {
                                                     root: root,
                                                     sub_data: subData,
                                                 });
-                                            })
+                                            }).
+                                                concat(container.replace_elem)
                                                 .join(''));
                                         })).then((html) => {
                                             if (option && option.is_page) {
@@ -1049,6 +1050,8 @@ ${e.line}
         return js;
     }
     static checkEventStore(glitter, src) {
+        var _a;
+        glitter.share.componentData = (_a = glitter.share.componentData) !== null && _a !== void 0 ? _a : {};
         let key = glitter.htmlGenerate.resourceHook(src);
         return glitter.share.componentData[key];
     }
@@ -1753,6 +1756,7 @@ ${obj.gvc.bindView({
         const widget = glitter.share.findWidgetIndex(cf.id).widget;
         return [
             (() => {
+                return ``;
                 if (widget && widget.type === 'container' && widget.data.setting && widget.data.setting.length === 0) {
                     const addID = gvc.glitter.getUUID();
                     return html ` <div class="${addID}" style="min-height: 250px;"></div>
@@ -1985,6 +1989,9 @@ ${obj.gvc.bindView({
                             glitter.share.editorViewModel.data.config = [];
                             gvc.notifyDataChange(['HtmlEditorContainer']);
                         }
+                    }
+                    if (container_items.rerenderReplaceElem) {
+                        container_items.rerenderReplaceElem();
                     }
                     glitter.share.editorViewModel.selectItem = undefined;
                     gvc.notifyDataChange(['right_NAV', 'MainEditorLeft']);

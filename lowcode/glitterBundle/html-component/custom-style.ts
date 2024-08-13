@@ -592,15 +592,27 @@ background: #F7F7F7;">${CustomStyle.renderMarginEditor(gvc, widget, callback)}
     }
 
     public static value(gvc: GVC, widget: any) {
+        let style_string = '';
+        if(widget.data._layout === 'grid'){
+            (style_string += `display: grid; gap: ${(isNaN(widget.data._gap_x)) ? widget.data._gap_x : `${widget.data._gap_x}px`} ${(isNaN(widget.data._gap_y)) ? widget.data._gap_y : `${widget.data._gap_y}px`}; 
+            grid-template-columns: repeat(${widget.data._x_count}, 1fr); grid-template-rows: repeat(${widget.data._y_count}, 1fr);`);
+            style_string+=`grid-template-columns: ${(()=>{
+                let view=[]
+                for(let a=0;a<parseInt(widget.data._x_count,10);a++){
+                    view.push(`calc((100% / ${parseInt(widget.data._x_count,10)}) - ((${(isNaN(widget.data._gap_y)) ? widget.data._gap_y : `${widget.data._gap_y}px`})/${parseInt(widget.data._x_count,10)}))`)
+                }
+                return view.join(' ')
+            })()};`
+        }
         if (widget.data && widget.data._style_refer === 'global' && widget.data._style_refer_global) {
             const globalValue = gvc.glitter.share.global_container_theme[parseInt(widget.data._style_refer_global.index, 10)]
+
             widget = {
                 data: (globalValue && globalValue.data) || {}
             }
-        }
-        CustomStyle.initialWidget(widget)
 
-        let style_string = '';
+        }
+        CustomStyle.initialWidget(widget);
         ['top', 'bottom', 'left', 'right'].map((dd) => {
             if (widget.data._padding[dd]) {
                 if (!isNaN(widget.data._padding[dd])) {

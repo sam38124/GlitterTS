@@ -131,9 +131,9 @@ export const widgetComponent = {
                                 const glitter = window.glitter;
                                 widget.data.setting.formData = widget.formData;
                                 function getView() {
-                                    const htmlGenerate = new glitter.htmlGenerate(widget.data.setting, hoverID, subData, rootHtmlGenerate.root);
+                                    const chtmlGenerate = new glitter.htmlGenerate(widget.data.setting, hoverID, subData, rootHtmlGenerate.root);
                                     innerText = '';
-                                    return htmlGenerate.render(gvc, {
+                                    return chtmlGenerate.render(gvc, {
                                         containerID: id,
                                         tag: widget.tag,
                                         onCreate: () => {
@@ -152,6 +152,72 @@ export const widgetComponent = {
                                                     subData: subData
                                                 });
                                             };
+                                            if (widget.data._layout === 'grid' && ((gvc.glitter.window.parent.editerData !== undefined) || (gvc.glitter.window.editerData !== undefined)) && htmlGenerate.root) {
+                                                const html = String.raw;
+                                                const tempID = gvc.glitter.getUUID();
+                                                function rerenderReplaceElem() {
+                                                    gvc.glitter.$('.' + tempID).remove();
+                                                    widget.data.setting.need_count = parseInt(widget.data._x_count, 10) * parseInt(widget.data._y_count, 10);
+                                                    for (let b = widget.data.setting.length; b < widget.data.setting.need_count; b++) {
+                                                        gvc.glitter.$(`.editor_it_${id}`).append(html `<div
+                                                                        class="d-flex align-items-center justify-content-center flex-column rounded-3 w-100 py-3 ${tempID}"
+                                                                        style="background: lightgrey;color: #393939;cursor: pointer;min-height: 100px;left: 0px;top:0px;width: 100%;height: 100%;"
+                                                                        onmousedown="${gvc.event(() => {
+                                                            glitter.getModule(new URL(gvc.glitter.root_path + 'editor/add-component.js').href, (AddComponent) => {
+                                                                glitter.share.editorViewModel.selectContainer = widget.data.setting;
+                                                                AddComponent.toggle(true);
+                                                                AddComponent.addWidget = (gvc, cf) => {
+                                                                    window.parent.glitter.share.editorViewModel.selectContainer = widget.data.setting;
+                                                                    window.parent.glitter.share.addComponent(cf);
+                                                                    AddComponent.toggle(false);
+                                                                };
+                                                                AddComponent.addEvent = (gvc, tdata) => {
+                                                                    window.parent.glitter.share.editorViewModel.selectContainer = widget.data.setting;
+                                                                    window.parent.glitter.share.addComponent({
+                                                                        id: gvc.glitter.getUUID(),
+                                                                        js: './official_view_component/official.js',
+                                                                        css: {
+                                                                            class: {},
+                                                                            style: {},
+                                                                        },
+                                                                        data: {
+                                                                            refer_app: tdata.copyApp,
+                                                                            tag: tdata.copy,
+                                                                            list: [],
+                                                                            carryData: {},
+                                                                            _style_refer_global: {
+                                                                                index: `0`,
+                                                                            },
+                                                                        },
+                                                                        type: 'component',
+                                                                        class: 'w-100',
+                                                                        index: 0,
+                                                                        label: tdata.title,
+                                                                        style: '',
+                                                                        bundle: {},
+                                                                        global: [],
+                                                                        toggle: false,
+                                                                        stylist: [],
+                                                                        dataType: 'static',
+                                                                        style_from: 'code',
+                                                                        classDataType: 'static',
+                                                                        preloadEvenet: {},
+                                                                        share: {},
+                                                                    });
+                                                                    AddComponent.toggle(false);
+                                                                };
+                                                            });
+                                                        })}"
+                                                                >
+                                                                    <i class="fa-regular fa-circle-plus text-black"
+                                                                       style="font-size: 60px;"></i>
+                                                                    <span class="fw-500 fs-5 mt-3">添加元件</span>
+                                                                </div>`);
+                                                    }
+                                                }
+                                                widget.data.setting.rerenderReplaceElem = rerenderReplaceElem;
+                                                rerenderReplaceElem();
+                                            }
                                         },
                                         onDestroy: () => {
                                             TriggerEvent.trigger({
@@ -290,7 +356,9 @@ export const widgetComponent = {
                                 ${dd.name}
                             </option>
 `;
-                                                        }).join('') + `<option class="d-none" ${(data.find((dd) => { return `${dd.value}` === `${selectItem}`; })) ? `` : `selected`}>請選擇</option>`);
+                                                        }).join('') + `<option class="d-none" ${(data.find((dd) => {
+                                                            return `${dd.value}` === `${selectItem}`;
+                                                        })) ? `` : `selected`}>請選擇</option>`);
                                                     }
                                                     else {
                                                         resolve(widget.data.selectList.map((dd) => {
@@ -307,6 +375,7 @@ export const widgetComponent = {
                                                 }));
                                             case 'img':
                                             case 'input':
+                                            case 'textArea':
                                                 break;
                                             default:
                                                 view.push(innerText);
@@ -325,7 +394,12 @@ export const widgetComponent = {
                                     onCreate: () => {
                                         glitter.elementCallback[gvc.id(id)].updateAttribute();
                                         if (widget.data.elem.toLowerCase() === 'textarea') {
-                                            autosize(gvc.getBindViewElem(id).get(0));
+                                            const textArea = gvc.getBindViewElem(id).get(0);
+                                            textArea.textContent = innerText;
+                                            setTimeout(() => {
+                                                textArea.style.height = textArea.scrollHeight + 'px';
+                                                autosize(textArea);
+                                            }, 100);
                                         }
                                         TriggerEvent.trigger({
                                             gvc,
@@ -398,9 +472,53 @@ export const widgetComponent = {
                                         gvc: gvc,
                                         widget: widget,
                                         view: (widget) => {
-                                            return CustomStyle.editor(gvc, widget);
+                                            let array = [];
+                                            if (widget.data._layout === 'grid') {
+                                                array = array.concat([EditorElem.editeInput({
+                                                        gvc: gvc,
+                                                        title: `X軸數量`,
+                                                        default: widget.data._x_count,
+                                                        placeHolder: '請輸入X軸數量',
+                                                        callback: (text) => {
+                                                            widget.data._x_count = text;
+                                                            widget.refreshComponent();
+                                                        }
+                                                    }),
+                                                    EditorElem.editeInput({
+                                                        gvc: gvc,
+                                                        title: `Y軸數量`,
+                                                        default: widget.data._y_count,
+                                                        placeHolder: '請輸入Y軸數量',
+                                                        callback: (text) => {
+                                                            widget.data._y_count = text;
+                                                            widget.refreshComponent();
+                                                        }
+                                                    }),
+                                                    EditorElem.editeInput({
+                                                        gvc: gvc,
+                                                        title: `X軸間距`,
+                                                        default: widget.data._gap_x,
+                                                        placeHolder: '請輸入X軸間距',
+                                                        callback: (text) => {
+                                                            widget.data._gap_x = text;
+                                                            widget.refreshComponent();
+                                                        }
+                                                    }),
+                                                    EditorElem.editeInput({
+                                                        gvc: gvc,
+                                                        title: `Y軸間距`,
+                                                        default: widget.data._gap_y,
+                                                        placeHolder: '請輸入Y軸間距',
+                                                        callback: (text) => {
+                                                            widget.data._gap_y = text;
+                                                            widget.refreshComponent();
+                                                        }
+                                                    }),]);
+                                            }
+                                            array.push(CustomStyle.editorMargin(gvc, widget));
+                                            return array.join('');
                                         }
-                                    }),
+                                    })
                                 ].join('');
                             }
                         };

@@ -251,7 +251,8 @@ window.appName='${appName}';
 window.glitterBase='${brandAndMemberType.brand}';
 window.memberType='${brandAndMemberType.memberType}';
 window.glitterBackend='${config.domain}';
-window.preloadData=${JSON.stringify(preload)};
+window.preloadData=${JSON.stringify(preload).replace(/<\/script>/g,'sdjuescript_prepand').replace(/<script>/g,'sdjuescript_prefix')};
+window.preloadData=JSON.parse(JSON.stringify(window.preloadData).replace(/sdjuescript_prepand/g,'</s'+'cript>').replace(/sdjuescript_prefix/g,'<s'+'cript>'))
 window.glitter_page='${req.query.page}';
 </script>
 ${[

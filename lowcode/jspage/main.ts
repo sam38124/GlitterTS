@@ -748,7 +748,7 @@ data.data._style_refer_global = {
                 })
             );
         }
-
+        viewModel.selectContainer.rerenderReplaceElem && viewModel.selectContainer.rerenderReplaceElem()
         setTimeout(() => {
             HtmlGenerate.selectWidget({
                 widget: data,
@@ -757,6 +757,7 @@ data.data._style_refer_global = {
                 scroll_to_hover: true,
                 glitter: glitter,
             });
+
         }, 100);
         AddComponent.toggle(false);
     };
@@ -790,6 +791,7 @@ data.data._style_refer_global = {
                 root: arrayData.container.container_config.root,
             })
         )[cf.direction === 1 ? 'insertAfter' : 'insertBefore']($(`.editor_it_${cf.index}`).parent());
+        viewModel.selectContainer.rerenderReplaceElem && viewModel.selectContainer.rerenderReplaceElem();
         setTimeout(() => {
             HtmlGenerate.selectWidget({
                 widget: cf.data,
