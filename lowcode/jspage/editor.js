@@ -34,7 +34,6 @@ export var ViewType;
 })(ViewType || (ViewType = {}));
 export class Editor {
     constructor(gvc, data) {
-        var _a;
         const size = document.body.offsetWidth;
         const glitter = gvc.glitter;
         const $ = gvc.glitter.$;
@@ -59,9 +58,6 @@ export class Editor {
                 white-space: nowrap;
             }
         `);
-        const viewModel = {
-            type: (_a = Storage.view_type) !== null && _a !== void 0 ? _a : ViewType.col3,
-        };
         function goBack() {
             if (glitter.share.editor_vm) {
                 glitter.share.editor_vm.close();
@@ -491,13 +487,12 @@ ${glitter.share.editor_vm ? `d-none` : ``}"
                                 ${gvc.bindView({
                 bind: `showViewIcon`,
                 view: () => {
-                    glitter.setCookie('ViewType', viewModel.type);
                     return html ` <div style="background:#f1f1f1;border-radius:10px;" class="d-flex align-items-center justify-content-center p-1 ">
                                             ${[
                         ...(() => {
                             if (Storage.select_function === 'user-editor') {
-                                if (viewModel.type === ViewType.col3) {
-                                    viewModel.type = ViewType.desktop;
+                                if (Storage.view_type === ViewType.col3) {
+                                    Storage.view_type = ViewType.desktop;
                                 }
                                 return [];
                             }
@@ -515,7 +510,7 @@ ${glitter.share.editor_vm ? `d-none` : ``}"
                         { icon: 'fa-solid fa-expand', type: ViewType.fullScreen },
                     ]
                         .map((dd) => {
-                        if (dd.type === viewModel.type) {
+                        if (dd.type === Storage.view_type) {
                             return html ` <div
                                                             class="d-flex align-items-center justify-content-center bg-white"
                                                             style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
@@ -528,8 +523,7 @@ ${glitter.share.editor_vm ? `d-none` : ``}"
                                                             class="d-flex align-items-center justify-content-center ci_${dd.type}"
                                                             style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
                                                             onclick="${gvc.event(() => {
-                                viewModel.type = dd.type;
-                                glitter.setCookie('ViewType', viewModel.type);
+                                Storage.view_type = dd.type;
                                 gvc.notifyDataChange('HtmlEditorContainer');
                             })}"
                                                         >
@@ -701,7 +695,7 @@ color:white;
                     ${EditorConfig.paymentInfo(gvc)}
                     <aside
                         id="componentsNav"
-                        class="${viewModel.type === ViewType.fullScreen ? `d-none` : ``} offcanvas offcanvas-start offcanvas-expand-lg position-fixed top-0 start-0 vh-100 bg-light overflow-hidden"
+                        class="${Storage.view_type === ViewType.fullScreen ? `d-none` : ``} offcanvas offcanvas-start offcanvas-expand-lg position-fixed top-0 start-0 vh-100 bg-light overflow-hidden"
                         style="${size < 800 ? `width: 0px;` : Storage.select_function === 'user-editor' ? `width: 365px;` : `width: 284px;`}z-index:10 !important;"
                     >
                         <div class="offcanvas-header d-none d-lg-flex justify-content-start border-bottom px-0 ${Storage.select_function === 'user-editor' ? `border-end` : ``}" style="height: 56px;">
@@ -729,36 +723,38 @@ color:white;
                         </div>
                         ${left}
                     </aside>
-                    <main
-                        class="docs-container"
-                        style="padding-top: ${EditorConfig.getPaddingTop(gvc) + 56}px;
-                          padding-right:${(viewModel.type === ViewType.col3 || viewModel.type === ViewType.mobile) &&
-                Storage.select_function !== 'backend-manger' &&
-                Storage.select_function !== 'server-manager'
-                ? `290`
-                : `0`}px;${viewModel.type === ViewType.fullScreen
-                ? `padding-left:0px;`
-                : `
+                    ${gvc.bindView(() => {
+                return {
+                    bind: `docs-container`,
+                    view: () => {
+                        return gvc.bindView({
+                            bind: `showView`,
+                            view: () => {
+                                return Main_editor.center(gvc);
+                            }
+                        });
+                    },
+                    divCreate: () => {
+                        return {
+                            elem: 'main',
+                            class: `docs-container`,
+                            style: `padding-top: ${EditorConfig.getPaddingTop(gvc) + 56}px;
+                          padding-right:${(Storage.view_type === ViewType.col3 || Storage.view_type === ViewType.mobile) &&
+                                Storage.select_function !== 'backend-manger' &&
+                                Storage.select_function !== 'server-manager'
+                                ? `290`
+                                : `0`}px;${Storage.view_type === ViewType.fullScreen
+                                ? `padding-left:0px;`
+                                : `
                           padding-left:${size < 800 ? `0px;` : Storage.select_function === 'user-editor' ? `365px;` : `284px;`}
                           ${Storage.select_function === 'page-editor' ? `overflow:hidden;` : ``}
-                          `}"
-                    >
-                        ${gvc.bindView({
-                dataList: [{ obj: viewModel, key: 'type' }],
-                bind: `showView`,
-                view: () => {
-                    var _a;
-                    let selectPosition = (_a = glitter.getUrlParameter('editorPosition')) !== null && _a !== void 0 ? _a : '0';
-                    switch (selectPosition) {
-                        default:
-                            return Main_editor.center(viewModel, gvc);
-                    }
-                },
-                divCreate: {},
+                          `}`
+                        };
+                    },
+                };
             })}
-                    </main>
                     ${(() => {
-                if ((viewModel.type === ViewType.col3 || viewModel.type === ViewType.mobile) &&
+                if ((Storage.view_type === ViewType.col3 || Storage.view_type === ViewType.mobile) &&
                     Storage.select_function !== 'backend-manger' &&
                     Storage.select_function !== 'server-manager' &&
                     Storage.select_function !== 'user-editor') {

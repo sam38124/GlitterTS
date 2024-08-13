@@ -192,7 +192,6 @@ export class PageManager {
     static setAnimation(page) {
         const glitter = Glitter.glitter;
         function closePreviousPage() {
-            console.log(`closePreviousPage`);
             if (page.type === GVCType.Page) {
                 glitter.pageConfig.map((a) => {
                     if (a.id !== page.id && a.type !== GVCType.Dialog) {
@@ -225,7 +224,6 @@ export class PageManager {
             if (['home', 'page'].find((dd) => {
                 return dd === type;
             })) {
-                console.log(`pushState->${search}`);
                 window.history.pushState({}, glitter.document.title, search);
                 glitter.pageConfig[glitter.pageConfig.length - 1].search = search;
             }

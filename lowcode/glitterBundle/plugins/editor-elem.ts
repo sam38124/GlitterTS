@@ -1846,6 +1846,7 @@ ${obj.gvc.bindView(() => {
         style?: string;
         class?: string;
         readonly?: boolean;
+        place_holger?:string
     }) {
         return html`
             ${obj.title ? EditorElem.h3(obj.title) : ``}
@@ -1879,7 +1880,7 @@ ${obj.gvc.bindView(() => {
                     return dd.value === obj.def;
                 })
                         ? ``
-                        : `<option class="d-none" selected>請選擇項目</option>`}
+                        : `<option class="d-none" selected>${obj.place_holger  || `請選擇項目`}</option>`}
             </select>
         `;
     }

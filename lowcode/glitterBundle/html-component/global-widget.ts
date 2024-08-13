@@ -1,10 +1,11 @@
 import {GVC} from "../GVController.js";
 import {EditorElem} from "../plugins/editor-elem.js";
+import {Storage} from "../helper/storage.js";
 
 enum ViewType {
-    mobile='mobile',
-    desktop='desktop',
-    def='def'
+    mobile = 'mobile',
+    desktop = 'desktop',
+    def = 'def'
 }
 
 const html = String.raw
@@ -16,8 +17,8 @@ export class GlobalWidget {
     public static glitter_view_type = 'def'
 
     public static showCaseBar(gvc: GVC, widget: any, refresh: (data: string) => void) {
-        if(['mobile','desktop'].includes(gvc.glitter.getCookieByName('ViewType')) && GlobalWidget.glitter_view_type!=='def'){
-            GlobalWidget.glitter_view_type=gvc.glitter.getCookieByName('ViewType')
+        if (['mobile', 'desktop'].includes(gvc.glitter.getCookieByName('ViewType')) && GlobalWidget.glitter_view_type !== 'def') {
+            GlobalWidget.glitter_view_type = gvc.glitter.getCookieByName('ViewType')
         }
         return gvc.bindView(() => {
             const id = gvc.glitter.getUUID()
@@ -31,13 +32,13 @@ export class GlobalWidget {
                         <div style="background:#f1f1f1;border-radius:10px;"
                              class="d-flex align-items-center justify-content-center p-1 ">
                             ${[
-                        {icon: 'fa-regular fa-border-all', type: 'def', title: '預設樣式'},
-                        {icon: 'fa-regular fa-desktop', type: "desktop", title: '電腦版'},
-                        {icon: 'fa-regular fa-mobile', type: "mobile", title: '手機版'},
-                    ].map((dd) => {
+                                {icon: 'fa-regular fa-border-all', type: 'def', title: '預設樣式'},
+                                {icon: 'fa-regular fa-desktop', type: "desktop", title: '電腦版'},
+                                {icon: 'fa-regular fa-mobile', type: "mobile", title: '手機版'},
+                            ].map((dd) => {
 
-                        if (dd.type === GlobalWidget.glitter_view_type) {
-                            return html`
+                                if (dd.type === GlobalWidget.glitter_view_type) {
+                                    return html`
                                         <div
                                                 class="d-flex align-items-center justify-content-center bg-white"
                                                 style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
@@ -46,31 +47,30 @@ export class GlobalWidget {
                                                 data-bs-title="${dd.title}">
                                             <i class="${dd.icon}"></i>
                                         </div>`;
-                        } else {
-                            return html`
+                                } else {
+                                    return html`
                                         <div
                                                 class="d-flex align-items-center justify-content-center"
                                                 style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
                                                 onclick="${gvc.event(() => {
-                                GlobalWidget.glitter_view_type = dd.type;
-                                refresh(dd.type as any);
-                                if(dd.type!=='def'){
-                                    gvc.glitter.setCookie('ViewType', dd.type);
-                                    gvc.recreateView();
-                                }else{
-                                    gvc.glitter.setCookie('ViewType', 'desktop');
-                                    gvc.recreateView();
-                                }
-                            })}"
+                                                    GlobalWidget.glitter_view_type = dd.type;
+                                                    if (dd.type !== 'def') {
+                                                        Storage.view_type = dd.type as any
+                                                    } else {
+                                                        Storage.view_type = 'desktop'
+                                                    }
+                                                    refresh(dd.type as any);
+                                                    gvc.notifyDataChange(['docs-container', id])
+                                                })}"
                                                 data-bs-toggle="tooltip" data-bs-placement="top"
                                                 data-bs-custom-class="custom-tooltip"
                                                 data-bs-title="${dd.title}"
                                         >
                                             <i class="${dd.icon}"></i>
                                         </div>`;
-                        }
-                    })
-                        .join('')}
+                                }
+                            })
+                                    .join('')}
                         </div>`
                 },
                 divCreate: {
@@ -161,8 +161,8 @@ export class GlobalWidget {
                         class="form-check-input"
                         type="checkbox"
                         onchange="${gvc.event((e) => {
-            callback(e.checked);
-        })}"
+                            callback(e.checked);
+                        })}"
                         ${def ? `checked` : ``}
                 />
             </div>`;
@@ -171,18 +171,18 @@ export class GlobalWidget {
     public static showCaseEditor(obj: {
         gvc: GVC,
         widget: any,
-        view: (widget: any,type:any) => string,
-        custom_edit?:boolean,
-        toggle_visible?:(result:boolean)=>void
+        view: (widget: any, type: any) => string,
+        custom_edit?: boolean,
+        toggle_visible?: (result: boolean) => void
     }) {
-        if(['mobile','desktop'].includes(obj.gvc.glitter.getCookieByName('ViewType')) && GlobalWidget.glitter_view_type!=='def'){
-            GlobalWidget.glitter_view_type=obj.gvc.glitter.getCookieByName('ViewType')
+        if (['mobile', 'desktop'].includes(obj.gvc.glitter.getCookieByName('ViewType')) && GlobalWidget.glitter_view_type !== 'def') {
+            GlobalWidget.glitter_view_type = obj.gvc.glitter.getCookieByName('ViewType')
         }
         if (GlobalWidget.glitter_view_type === 'def') {
-            return obj.view(obj.widget,'def')
+            return obj.view(obj.widget, 'def')
         } else {
             const id = obj.gvc.glitter.getUUID()
-            const gvc= obj.gvc;
+            const gvc = obj.gvc;
             GlobalWidget.initialShowCaseData({widget: obj.widget, gvc: obj.gvc})
 
             function selector(widget: any, key: string) {
@@ -267,17 +267,17 @@ ${GlobalWidget.switchButton(obj.gvc, obj.widget[key].refer !== 'hide', (bool) =>
                                 if (GlobalWidget.glitter_view_type === 'mobile') {
                                     const view = [selector(obj.widget.mobile, 'mobile')]
                                     if (obj.widget.mobile.refer === 'custom') {
-                                        view.push(obj.view(obj.widget.mobile,'mobile'))
+                                        view.push(obj.view(obj.widget.mobile, 'mobile'))
                                     }
                                     return view.join('')
                                 } else if (GlobalWidget.glitter_view_type === 'desktop') {
                                     const view = [selector(obj.widget.desktop, 'desktop')]
                                     if (obj.widget.desktop.refer === 'custom') {
-                                        view.push(obj.view(obj.widget.desktop,'desktop'))
+                                        view.push(obj.view(obj.widget.desktop, 'desktop'))
                                     }
                                     return view.join('')
                                 } else {
-                                    return obj.view(obj.widget,'deg')
+                                    return obj.view(obj.widget, 'deg')
                                 }
                             } catch (e) {
                                 console.log(e)

@@ -124,9 +124,6 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                     }
                     return new Promise(async (resolve, reject) => {
                         console.log(`Render-time:`, (window as any).renderClock.stop());
-                        console.log(`gBundle`, gBundle)
-                        console.log(`gBundle.config-->`, gBundle.config);
-                        console.log(`gBundle.page_config-->`, gBundle.page_config);
                         (gBundle.config.formData = gBundle.page_config.formData)
                         if (gBundle.page_config.template) {
                             (window as any).glitterInitialHelper.getPageData(gBundle.page_config.template, (data: any) => {
@@ -185,7 +182,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                             })
                         } else {
                             function editorView() {
-                                console.log(`gBundle.editMode.render->`,gBundle.editMode.render)
+                                // console.log(`gBundle.editMode.render->`,gBundle.editMode.render)
                                 return gBundle.editMode.render(gvc, {
                                     class: ``,
                                     style: ``,

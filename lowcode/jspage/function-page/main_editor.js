@@ -468,7 +468,8 @@ export class Main_editor {
                             ${(() => {
                         if (vm.type === 'list') {
                             return [Main_editor.color_list(vm, gvc, id, globalValue),
-                                CustomStyle.globalContainerList(vm, gvc, id, globalValue)
+                                CustomStyle.globalContainerList(vm, gvc, id, globalValue),
+                                Main_editor.fonts_list(vm, gvc, id, globalValue)
                             ].join('');
                         }
                         else if (vm.type === 'color_detail') {
@@ -510,17 +511,17 @@ export class Main_editor {
     }
     static color_list(vm, gvc, id, globalValue) {
         return gvc.bindView(() => {
-            const id = gvc.glitter.getUUID();
             const vm_c = {
-                toggle: false
+                toggle: false,
+                id: gvc.glitter.getUUID()
             };
             return {
-                bind: id,
+                bind: vm_c.id,
                 view: () => {
                     const array = [`<div class="hoverF2 d-flex align-items-center p-3"
                  onclick="${gvc.event(() => {
                             vm_c.toggle = !vm_c.toggle;
-                            gvc.notifyDataChange(id);
+                            gvc.notifyDataChange(vm_c.id);
                         })}">
 <span class="fw-500"
       style="max-width: calc(100% - 50px);text-overflow: ellipsis;white-space: nowrap;overflow: hidden;">調色盤樣式</span>
@@ -542,11 +543,41 @@ export class Main_editor {
                                             </div>`;
                         }).join('')}
                                         </div>`);
+                        array.push(`<div style="padding: 0px 24px 24px;${(globalValue.color_theme.length === 0) ? `margin-top:24px;` : ``}">
+                                            <div class="bt_border_editor"
+                                                 onclick="${gvc.event(() => {
+                            vm.data = { id: gvc.glitter.getUUID() };
+                            globalValue.color_theme.push(vm.data);
+                            vm.name = ('調色盤' + globalValue.color_theme.length);
+                            vm.type = 'color_detail';
+                            vm.index = globalValue.color_theme.length - 1;
+                            gvc.notifyDataChange(id);
+                        })}">
+                                                新增配色
+                                            </div>
+                                        </div>`);
                     }
                     return array.join('');
                 },
                 divCreate: {
                     class: `  border-bottom    w-100`
+                }
+            };
+        });
+    }
+    static fonts_list(vm, gvc, id, globalValue) {
+        return gvc.bindView(() => {
+            return {
+                bind: gvc.glitter.getUUID(),
+                view: () => {
+                    return new Promise((resolve, reject) => {
+                        gvc.glitter.getModule(`${gvc.glitter.root_path}/setting/fonts-config.js`, (FontsConfig) => {
+                            resolve(FontsConfig.fontsSettingView(gvc, globalValue));
+                        });
+                    });
+                },
+                divCreate: {
+                    class: `w-100`
                 }
             };
         });
@@ -868,21 +899,26 @@ export class Main_editor {
             }),
         ].join('');
     }
-    static center(viewModel, gvc) {
-        return html `
-            <div
-                    class="${viewModel.type === ViewType.mobile && (Storage.select_function === 'page-editor' || Storage.select_function === 'user-editor')
-            ? `d-flex align-items-center justify-content-center flex-column mx-auto`
-            : `d-flex align-items-center justify-content-center flex-column`}"
-                    style="${viewModel.type === ViewType.mobile && (Storage.select_function === 'page-editor' || Storage.select_function === 'user-editor')
-            ? `width: 414px;height: calc(100vh - ${56 + EditorConfig.getPaddingTop(gvc)}px);`
-            : `width: calc(100%);height: calc(100vh - ${56 + EditorConfig.getPaddingTop(gvc)}px);overflow:hidden;`}"
-            >
-                <div class="position-relative" style="width:100%;height: calc(100%);" id="editerCenter">
+    static center(gvc) {
+        return gvc.bindView(() => {
+            return {
+                bind: 'iframe_center',
+                view: () => {
+                    return `<div class="position-relative" style="width:100%;height: calc(100%);" id="editerCenter">
                     <iframe class="w-100 h-100  bg-white"
                             src="${gvc.glitter.root_path}${gvc.glitter.getUrlParameter('page')}?type=htmlEditor&appName=${gvc.glitter.getUrlParameter('appName')}"></iframe>
-                </div>
-            </div>`;
+                </div>`;
+                },
+                divCreate: () => {
+                    return {
+                        class: Storage.view_type === ViewType.mobile && (Storage.select_function === 'page-editor' || Storage.select_function === 'user-editor')
+                            ? `d-flex align-items-center justify-content-center flex-column mx-auto` : `d-flex align-items-center justify-content-center flex-column`,
+                        style: Storage.view_type === ViewType.mobile && (Storage.select_function === 'page-editor' || Storage.select_function === 'user-editor')
+                            ? `width: 414px;height: calc(100vh - ${56 + EditorConfig.getPaddingTop(gvc)}px);` : `width: calc(100%);height: calc(100vh - ${56 + EditorConfig.getPaddingTop(gvc)}px);overflow:hidden;`
+                    };
+                }
+            };
+        });
     }
     static pageAndComponent(option) {
         const data = option.data;

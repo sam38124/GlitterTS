@@ -125,8 +125,8 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                 with_hide_index:object.with_hide_index as string
                             }).then((data) => {
                                 data.response.data.pageSize = Math.ceil(data.response.total / parseInt(limit as any, 10))
-                                if (parseInt(page as string, 10) <= data.response.data.pageSize) {
-                                    page = 0
+                                if (parseInt(page as string, 10) >= data.response.data.pageSize) {
+                                    page = data.response.data.pageSize-1
                                 }
                                 data.response.data.pageIndex = page
                                 resolve(data.response.data)

@@ -676,17 +676,17 @@ background: #F7F7F7;">${CustomStyle.renderMarginEditor(gvc, widget, callback)}
     }
     static globalContainerList(vm, gvc, id, globalValue) {
         return gvc.bindView(() => {
-            const id = gvc.glitter.getUUID();
             const vm_c = {
-                toggle: false
+                toggle: false,
+                id: gvc.glitter.getUUID()
             };
             return {
-                bind: id,
+                bind: vm_c.id,
                 view: () => {
                     const array = [`<div class="hoverF2 d-flex align-items-center p-3"
                  onclick="${gvc.event(() => {
                             vm_c.toggle = !vm_c.toggle;
-                            gvc.notifyDataChange(id);
+                            gvc.notifyDataChange(vm_c.id);
                         })}">
 <span class="fw-500"
       style="max-width: calc(100% - 50px);text-overflow: ellipsis;white-space: nowrap;overflow: hidden;">容器樣式</span>

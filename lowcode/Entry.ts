@@ -54,7 +54,7 @@ export class Entry {
         }
         (window as any).renderClock = (window as any).renderClock ?? clockF();
         console.log(`Entry-time:`, (window as any).renderClock.stop());
-        glitter.share.editerVersion = "V_10.1.5";
+        glitter.share.editerVersion = "V_10.2.4";
         glitter.share.start = (new Date());
         const vm: {
             appConfig: any;
@@ -462,6 +462,7 @@ export class Entry {
             const config = glitter.share.appConfigresponse.response.data;
             config.color_theme = config.color_theme ?? [];
             config.container_theme= config.container_theme??[]
+            config.font_theme=config.font_theme??[]
             config.globalValue = config.globalValue ?? [];
             config.globalStyleTag = config.globalStyleTag ?? [];
             config.color_theme.map((dd: any, index: number) => {
@@ -469,7 +470,23 @@ export class Entry {
                     glitter.share.globalValue[`theme_color.${index}.${d2.key}`] = dd[d2.key];
                 });
             });
+            glitter.share.font_theme=config.font_theme
             glitter.share.global_container_theme=config.container_theme
+            glitter.share.initial_fonts=[]
+            if(glitter.share.font_theme[0]){
+                glitter.addStyle(`
+@charset "UTF-8";
+${glitter.share.font_theme.map((dd:any)=>{
+                    glitter.share.initial_fonts.push(dd.value);
+    return `@import url('https://fonts.googleapis.com/css2?family=${dd.value}&display=swap');`
+                }).join('\n')}
+body {
+    font-family: "${glitter.share.font_theme[0].value}" !important;
+    font-optical-sizing: auto;
+    font-style: normal;
+    color: #393939;
+}`)
+            }
             function loopCheckGlobalValue(array: any, tag: string) {
                 try {
                     array.map((dd: any) => {

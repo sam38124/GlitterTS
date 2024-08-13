@@ -10,9 +10,15 @@ export class PageSplit {
         const html = String.raw;
         this.pageSplit = (countPage: number, nowPage: number, callback: (p: number) => void, gotoInput?: boolean) => {
             const generator = (n: number) => {
-                return html`<li class="page-item">
-                    <a class="page-link" style="cursor:pointer" onclick="${gvc.event(() => callback(n))}">${n}</a>
-                </li>`;
+                return ` <div  class="d-flex align-items-center justify-content-center fw-500" style="width:36px;height: 36px;border-radius: 100%;${
+                    (()=>{
+                        if(glitter.share.globalValue['theme_color.0.solid-button-bg']){
+                            return `color:${glitter.share.globalValue['theme_color.0.title']};   `
+                        }else{
+                            return  `color:black;`
+                        }
+                    })()
+                };cursor: pointer;" onclick="${gvc.event(() => callback(n))}">${n}</div>`
             };
 
             let vm = {
@@ -32,18 +38,15 @@ export class PageSplit {
                         return html`
                             <nav class="d-flex my-3 justify-content-center">
                                 <ul class="pagination pagination-rounded mb-0">
-                                    <li class="page-item">
+                                    <div class="page-item d-flex align-items-center justify-content-center ${(nowPage - 1)>0 ? '':'d-none'}" style="height: 36px;width: 36px;cursor: pointer;">
                                         <a
-                                            class="page-link"
-                                            aria-label="Previous"
-                                            style="cursor:pointer"
                                             onclick="${gvc.event(() => {
                                                 nowPage - 1 > 0 && callback(nowPage - 1);
-                                            })}"
+                                            })}" style=""
                                         >
                                             <span aria-hidden="true">&laquo;</span>
                                         </a>
-                                    </li>
+                                    </div>
                                     ${glitter.print(() => {
                                         if (nowPage - 2 > 0) {
                                             return generator(nowPage - 2) + generator(nowPage - 1);
@@ -53,7 +56,17 @@ export class PageSplit {
                                             return ``;
                                         }
                                     })}
-                                    <li class="page-item active" style="border-radius: 100%"><a class="page-link">${nowPage}</a></li>
+                                    <div  class="d-flex align-items-center justify-content-center fw-500" style="width:36px;height: 36px;border-radius: 100%;${
+                                            (()=>{
+                                                if(glitter.share.globalValue['theme_color.0.solid-button-bg']){
+                                                    return `background:${glitter.share.globalValue['theme_color.0.solid-button-bg']};
+                                                    color:${glitter.share.globalValue['theme_color.0.solid-button-text']};`
+                                                }else{
+                                                    return  ``
+                                                }
+                                            })()
+                                    };cursor: pointer;">${nowPage}</div>
+                                  
                                     ${glitter.print(() => {
                                         if (nowPage + 2 <= countPage) {
                                             return generator(nowPage + 1) + generator(nowPage + 2);
@@ -63,18 +76,15 @@ export class PageSplit {
                                             return ``;
                                         }
                                     })}
-                                    <li class="page-item">
+                                    <div class="page-item d-flex align-items-center justify-content-center ${(nowPage + 1 <= countPage) ? '':'d-none'}" style="height: 36px;width: 36px;cursor: pointer;">
                                         <a
-                                            class="page-link"
-                                            aria-label="Next"
-                                            style="cursor:pointer"
-                                            onclick="${gvc.event(() => {
-                                                nowPage + 1 <= countPage && callback(nowPage + 1);
-                                            })}"
+                                                onclick="${gvc.event(() => {
+                                                    nowPage + 1 <= countPage && callback(nowPage + 1);
+                                                })}" style=""
                                         >
                                             <span aria-hidden="true">&raquo;</span>
                                         </a>
-                                    </li>
+                                    </div>
                                 </ul>
                             </nav>
                             ${glitter.print(() => {

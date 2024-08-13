@@ -36,6 +36,8 @@ export const array_item = Plugin.createComponent(import.meta.url, (glitter, edit
                     };
                     function getData() {
                         views = '';
+                        vm.loading = true;
+                        gvc.notifyDataChange(id);
                         new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
                             let view = [];
                             let createOption = () => {
@@ -135,7 +137,7 @@ export const array_item = Plugin.createComponent(import.meta.url, (glitter, edit
                             bind: id,
                             view: () => {
                                 if (vm.loading) {
-                                    return component.render(gvc, widget.data.loading, setting, hoverID, subData).view() || `<span>loading...</span>`;
+                                    return `<div class="w-100 d-flex align-items-center justify-content-center p-3"><div class="spinner-border "></div></div>`;
                                 }
                                 else if (views) {
                                     return (views +

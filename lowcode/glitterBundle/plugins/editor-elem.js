@@ -1657,7 +1657,7 @@ ${obj.gvc.bindView(() => {
             return dd.value === obj.def;
         })
             ? ``
-            : `<option class="d-none" selected>請選擇項目</option>`}
+            : `<option class="d-none" selected>${obj.place_holger || `請選擇項目`}</option>`}
             </select>
         `;
     }

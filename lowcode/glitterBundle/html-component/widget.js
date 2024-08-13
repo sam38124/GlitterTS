@@ -98,8 +98,8 @@ export const widgetComponent = {
                                 if (widget.data.elem === 'img') {
                                     let rela_link = innerText;
                                     if (innerText.includes(`size1440_s*px$_`)) {
-                                        [150, 600, 1200, 1440].map((dd) => {
-                                            if (document.body.clientWidth > dd) {
+                                        [150, 600, 1200, 1440].reverse().map((dd) => {
+                                            if (document.body.clientWidth < dd) {
                                                 rela_link = innerText.replace('size1440_s*px$_', `size${dd}_s*px$_`);
                                             }
                                         });

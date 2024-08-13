@@ -603,14 +603,6 @@ export class UserList {
                                                                                 gvc.notifyDataChange(id);
                                                                             })
                                                                         )}
-                                                                        ${BgWidget.grayButton(
-                                                                            '自訂資料',
-                                                                            gvc.event(() => {
-                                                                                UserList.setUserForm(gvc, () => {
-                                                                                    gvc.notifyDataChange(id);
-                                                                                });
-                                                                            })
-                                                                        )}
                                                                     </div>
                                                                 </div>` +
                                                                     gvc.bindView(() => {

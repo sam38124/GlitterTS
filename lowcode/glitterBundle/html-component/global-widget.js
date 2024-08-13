@@ -1,4 +1,5 @@
 import { EditorElem } from "../plugins/editor-elem.js";
+import { Storage } from "../helper/storage.js";
 var ViewType;
 (function (ViewType) {
     ViewType["mobile"] = "mobile";
@@ -48,15 +49,14 @@ export class GlobalWidget {
                                                 style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
                                                 onclick="${gvc.event(() => {
                                 GlobalWidget.glitter_view_type = dd.type;
-                                refresh(dd.type);
                                 if (dd.type !== 'def') {
-                                    gvc.glitter.setCookie('ViewType', dd.type);
-                                    gvc.recreateView();
+                                    Storage.view_type = dd.type;
                                 }
                                 else {
-                                    gvc.glitter.setCookie('ViewType', 'desktop');
-                                    gvc.recreateView();
+                                    Storage.view_type = 'desktop';
                                 }
+                                refresh(dd.type);
+                                gvc.notifyDataChange(['docs-container', id]);
                             })}"
                                                 data-bs-toggle="tooltip" data-bs-placement="top"
                                                 data-bs-custom-class="custom-tooltip"

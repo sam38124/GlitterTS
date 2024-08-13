@@ -146,4 +146,5 @@ export class EditorConfig {
             dead_line: config.dead_line,
         };
     }
+
 }
