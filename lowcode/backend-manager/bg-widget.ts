@@ -682,7 +682,19 @@ ${obj.default ?? ''}</textarea
         </div>`;
     }
 
-    static linkList(obj: { gvc: GVC; title: string; default: string; placeHolder: string; callback: (path: string) => void; style?: string; readonly?: boolean; pattern?: string }) {
+    static linkList(obj: {
+        gvc: GVC;
+        title: string;
+        default: string;
+        placeHolder: string;
+        callback: (path: string) => void;
+        style?: string;
+        readonly?: boolean;
+        pattern?: string;
+        filter?: {
+            page?: string[];
+        };
+    }) {
         obj.title = obj.title ?? '';
         const vm = {
             id: obj.gvc.glitter.getUUID(),
@@ -1071,8 +1083,17 @@ ${obj.default ?? ''}</textarea
                         }),
                     ]).then(() => {
                         dropMenu.recentList = [
-                            { name: '首頁', icon: 'fa-regular fa-house', link: '/index' },
-                            { name: '所有商品', icon: 'fa-regular fa-tag', link: '/all-product', items: productList },
+                            {
+                                name: '首頁',
+                                icon: 'fa-regular fa-house',
+                                link: '/index',
+                            },
+                            {
+                                name: '所有商品',
+                                icon: 'fa-regular fa-tag',
+                                link: '/all-product',
+                                items: productList,
+                            },
                             {
                                 name: '商品分類',
                                 icon: 'fa-regular fa-tags',
@@ -1080,7 +1101,12 @@ ${obj.default ?? ''}</textarea
                                 items: collectionList,
                                 ignoreFirst: true,
                             },
-                            { name: '網誌文章', icon: 'fa-regular fa-newspaper', link: '/blogs', items: acticleList },
+                            {
+                                name: '網誌文章',
+                                icon: 'fa-regular fa-newspaper',
+                                link: '/blogs',
+                                items: acticleList,
+                            },
                             {
                                 name: '分頁列表',
                                 icon: 'fa-regular fa-pager',
@@ -1089,21 +1115,26 @@ ${obj.default ?? ''}</textarea
                                 ignoreFirst: true,
                             },
                             {
-                                name: '一頁商店',
-                                icon: 'fa-regular fa-1',
-                                link: '/pages',
-                                items: oneStoreList,
-                                ignoreFirst: true,
-                            },
-                            {
                                 name: '隱形賣場',
-                                icon: 'fa-regular fa-store-lock',
+                                icon: 'fa-sharp fa-regular fa-face-dotted',
                                 link: '/pages',
                                 items: hiddenPageList,
                                 ignoreFirst: true,
                             },
+                            {
+                                name: '一頁商店',
+                                icon: 'fa-regular fa-page',
+                                link: '/pages',
+                                items: oneStoreList,
+                                ignoreFirst: true,
+                            },
                         ].filter((menu) => {
-                            if (menu.items === undefined) return true; // 首頁
+                            if (obj.filter && obj.filter.page && obj.filter.page.length > 0 && !obj.filter.page.includes(menu.name)) {
+                                return false; // 篩選不需顯示的連結頁面
+                            }
+                            if (menu.items === undefined) {
+                                return true; // 首頁
+                            }
                             return menu.items.length > 0;
                         });
                         vm.loading = false;
@@ -1678,7 +1709,8 @@ ${obj.default ?? ''}</textarea
         }
     ) {
         const id = gvc.glitter.getUUID();
-        const randomString = obj && obj.single ? this.getWhiteDotClass(gvc) : this.getCheckedClass(gvc);
+        const inputColor = obj && obj.readonly ? '#808080' : undefined;
+        const randomString = obj && obj.single ? this.getWhiteDotClass(gvc, inputColor) : this.getCheckedClass(gvc, inputColor);
         const viewId = Tool.randomString(5);
 
         return gvc.bindView({
@@ -1690,8 +1722,9 @@ ${obj.default ?? ''}</textarea
                         <div>
                             <div
                                 class="form-check"
-                                onclick="${gvc.event(() => {
+                                onclick="${gvc.event((e, evt) => {
                                     if (obj && obj.readonly) {
+                                        evt.preventDefault();
                                         return;
                                     }
                                     if (obj && obj.single) {
@@ -1703,6 +1736,7 @@ ${obj.default ?? ''}</textarea
                                         } else {
                                             def = def.filter((d) => d !== item.key);
                                         }
+                                        def = def.filter((d) => data.map((item2) => item2.key).includes(d));
                                         callback(def);
                                     }
                                     gvc.notifyDataChange(viewId);
@@ -2033,7 +2067,7 @@ ${obj.default ?? ''}</textarea
                 min-height: 1rem;
             }
             .${className}:checked[type='checkbox'] {
-                border: 2px solid #000;
+                border: 2px solid ${color ?? '#000'};
                 background-color: #fff;
                 background-image: url(${this.checkedDataImage(color ?? '#000')});
                 background-position: center center;

@@ -77,7 +77,7 @@ export class ShoppingShipmentSetting {
                                     BgWidget.container(html `
                                                                 ${BgWidget.mainCard(html `
                                                                     <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 18px;">
-                                                                        <div style="font-size: 16px;font-weight: 700;">整份訂單依「材積」計算</div>
+                                                                        <div style="font-size: 16px;font-weight: 700;">整份訂單的「總材積」計算</div>
                                                                         <div style="display: flex;flex-direction: column;align-items: center;gap: 8px;align-self: stretch;">
                                                                             <div style="display: flex;align-items: flex-start;gap: 12px;align-self: stretch;font-size: 16px;font-weight: 400;">
                                                                                 <div style="width: 60%">材積區間</div>
@@ -89,7 +89,10 @@ export class ShoppingShipmentSetting {
                                         shipmentArray.volume.map((data, index) => {
                                             var _a, _b;
                                             temp += html `
-                                                                                            <div class="d-flex w-100 position-relative align-items-center" style="gap: 18px">
+                                                                                            <div
+                                                                                                class="d-flex w-100 position-relative align-items-center"
+                                                                                                style="gap: ${document.body.clientWidth > 768 ? 18 : 6}px"
+                                                                                            >
                                                                                                 <div class="flex-fill position-relative" style="width: 60%">
                                                                                                     <input
                                                                                                         class="w-100"
@@ -102,7 +105,7 @@ export class ShoppingShipmentSetting {
                                             })}"
                                                                                                         value="${(_a = data.key) !== null && _a !== void 0 ? _a : ''}"
                                                                                                     />
-                                                                                                    <div style="color: #8D8D8D;position: absolute;top:9px;right:18px;">公分(含)以上</div>
+                                                                                                    <div style="color: #8D8D8D;position: absolute;top:9px;right:18px;">立方公分(含)以上</div>
                                                                                                 </div>
                                                                                                 <div class="flex-fill position-relative" style="width: 35%">
                                                                                                     <input
@@ -192,7 +195,7 @@ export class ShoppingShipmentSetting {
                                                                 <div style="margin-bottom: 24px;"></div>
                                                                 ${BgWidget.mainCard(html `
                                                                     <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 18px;">
-                                                                        <div style="font-size: 16px;font-weight: 700;">整份訂單依「重量」計算</div>
+                                                                        <div style="font-size: 16px;font-weight: 700;">整份訂單的「總重量」計算</div>
                                                                         <div style="display: flex;flex-direction: column;align-items: center;gap: 8px;align-self: stretch;">
                                                                             <div style="display: flex;align-items: flex-start;gap: 12px;align-self: stretch;font-size: 16px;font-weight: 400;">
                                                                                 <div style="width: 60%">重量區間</div>
@@ -204,7 +207,10 @@ export class ShoppingShipmentSetting {
                                         shipmentArray.weight.map((data, index) => {
                                             var _a, _b;
                                             temp += html `
-                                                                                            <div class="d-flex w-100 align-items-center" style="position:relative; gap:18px">
+                                                                                            <div
+                                                                                                class="d-flex w-100 align-items-center"
+                                                                                                style="position:relative; gap: ${document.body.clientWidth > 768 ? 18 : 6}px"
+                                                                                            >
                                                                                                 <div class="flex-fill position-relative" style="width: 60%">
                                                                                                     <input
                                                                                                         class="w-100"
@@ -324,7 +330,7 @@ export class ShoppingShipmentSetting {
                                             returnHTML += html `
                                                                                                 <div class="">
                                                                                                     <span style="font-size: 24px;">${data.key}</span>
-                                                                                                    公分(含)以上,運費
+                                                                                                    立方公分(含)以上,運費
                                                                                                     <span style="font-size: 24px;">${data.value}</span>
                                                                                                     元
                                                                                                 </div>

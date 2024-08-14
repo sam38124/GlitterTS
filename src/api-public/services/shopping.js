@@ -18,6 +18,7 @@ const custom_code_js_1 = require("../services/custom-code.js");
 const moment_1 = __importDefault(require("moment"));
 const notify_js_1 = require("./notify.js");
 const auto_send_email_js_1 = require("./auto-send-email.js");
+const recommend_1 = require("./recommend");
 class Shopping {
     constructor(app, token) {
         this.app = app;
@@ -368,20 +369,22 @@ class Shopping {
                                 b.sale_price = variant.sale_price;
                                 b.collection = pd['collection'];
                                 b.sku = variant.sku;
-                                b.shipment_fee = (() => {
-                                    if (!variant.shipment_type || variant.shipment_type === 'none') {
+                                b.shipment_obj = {
+                                    type: variant.shipment_type,
+                                    value: (() => {
+                                        if (!variant.shipment_type || variant.shipment_type === 'none') {
+                                            return 0;
+                                        }
+                                        if (variant.shipment_type === 'volume') {
+                                            return b.count * variant.v_length * variant.v_width * variant.v_height;
+                                        }
+                                        if (variant.shipment_type === 'weight') {
+                                            return b.count * variant.weight;
+                                        }
                                         return 0;
-                                    }
-                                    if (variant.shipment_type === 'volume') {
-                                        return calculateShipment(shipment.volume, b.count * variant.v_length * variant.v_width * variant.v_height);
-                                    }
-                                    if (variant.shipment_type === 'weight') {
-                                        return calculateShipment(shipment.weight, b.count * variant.weight);
-                                    }
-                                    return 0;
-                                })();
+                                    })(),
+                                };
                                 variant.shipment_weight = parseInt(variant.shipment_weight || 0);
-                                carData.shipment_fee += b.shipment_fee;
                                 carData.lineItems.push(b);
                                 if (type !== 'manual') {
                                     carData.total += variant.sale_price * b.count;
@@ -412,6 +415,19 @@ class Shopping {
                 }
                 catch (e) { }
             }
+            carData.shipment_fee = (() => {
+                let total_volume = 0;
+                let total_weight = 0;
+                carData.lineItems.map((item) => {
+                    if (item.shipment_obj.type === 'volume') {
+                        total_volume += item.shipment_obj.value;
+                    }
+                    if (item.shipment_obj.type === 'weight') {
+                        total_weight += item.shipment_obj.value;
+                    }
+                });
+                return calculateShipment(shipment.volume, total_volume) + calculateShipment(shipment.weight, total_weight);
+            })();
             carData.total += carData.shipment_fee;
             const f_rebate = await this.formatUseRebate(carData.total, carData.use_rebate);
             carData.useRebateInfo = f_rebate;
@@ -419,6 +435,24 @@ class Shopping {
             carData.total -= carData.use_rebate;
             carData.code = data.code;
             carData.voucherList = [];
+            function checkDuring(jsonData) {
+                const now = new Date();
+                const currentDateTime = now.getTime();
+                const startDateTime = new Date(`${jsonData.startDate}T${jsonData.startTime}`).getTime();
+                const endDateTime = jsonData.endDate === undefined ? true : new Date(`${jsonData.endDate}T${jsonData.endTime}`).getTime();
+                return currentDateTime >= startDateTime && (endDateTime || currentDateTime <= endDateTime);
+            }
+            console.log(`data.distribution_code: ${data.distribution_code}`);
+            if (data.distribution_code) {
+                const linkList = await new recommend_1.Recommend(this.app, this.token).getLinkList({ code: data.distribution_code });
+                if (linkList.data.length > 0) {
+                    const content = linkList.data[0].content;
+                    if (checkDuring(content)) {
+                        carData.distribution_id = content.voucher;
+                    }
+                }
+            }
+            console.log(`carData.distribution_id: ${carData.distribution_id}`);
             if (type !== 'manual' && type !== 'manual-preview') {
                 await this.checkVoucher(carData);
             }
@@ -659,7 +693,7 @@ class Shopping {
             const userClass = new user_js_1.User(this.app);
             const rebateClass = new rebate_js_1.Rebate(this.app);
             const userData = await userClass.getUserData(data.orderData.customer_info.account, 'account');
-            console.log(await rebateClass.insertRebate(userData.id, 0, "測試"));
+            console.log(await rebateClass.insertRebate(userData.id, 0, '測試'));
             console.log(data.orderData.return_rebate);
         }
         try {
@@ -786,10 +820,19 @@ class Shopping {
             }
         })
             .filter((dd) => {
-            return dd.trigger === 'auto' || dd.code === `${cart.code}`;
+            return dd.trigger === 'auto' || dd.code === `${cart.code}` || (dd.trigger === 'distribution' && cart.distribution_id === dd.id);
         })
             .filter((dd) => {
-            return dd.rule === 'min_count' ? cart.lineItems.length >= parseInt(`${dd.ruleValue}`, 10) : cart.total >= parseInt(`${dd.ruleValue}`, 10);
+            const ruleValue = parseInt(`${dd.ruleValue}`, 10);
+            if (dd.rule === 'min_count') {
+                return cart.lineItems.length >= ruleValue;
+            }
+            let subtotal = 0;
+            cart.lineItems.map((item) => {
+                subtotal += item.count * item.sale_price;
+            });
+            console.log(`subtotal: ${subtotal}`);
+            return subtotal >= ruleValue;
         })
             .filter((dd) => {
             if (dd.target === 'customer') {
@@ -1043,10 +1086,10 @@ class Shopping {
             let sql = `SELECT *
                        FROM \`${this.app}\`.t_checkout
                        WHERE ${querySql.join(' and ')} ${orderString}`;
-            if (query.returnSearch == "true") {
-                const data = (await database_js_1.default.query(`SELECT *
+            if (query.returnSearch == 'true') {
+                const data = await database_js_1.default.query(`SELECT *
                          FROM \`${this.app}\`.t_checkout
-                         WHERE cart_token = ${query.search}`, []));
+                         WHERE cart_token = ${query.search}`, []);
                 let returnSql = `SELECT *
                        FROM \`${this.app}\`.t_return_order
                        WHERE order_id = ${query.search}`;

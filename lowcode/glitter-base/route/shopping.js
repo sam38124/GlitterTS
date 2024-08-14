@@ -255,8 +255,7 @@ export class ApiShop {
     }
     static searchOrderExist(orderId) {
         return BaseApi.create({
-            url: getBaseUrl() +
-                `/api-public/v1/ec/order/search`,
+            url: getBaseUrl() + `/api-public/v1/ec/order/search`,
             type: 'GET',
             headers: {
                 'Content-Type': 'application/json',

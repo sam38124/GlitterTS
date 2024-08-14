@@ -3,21 +3,57 @@ export declare class Recommend {
     app: string;
     token?: IToken;
     constructor(app: string, token?: IToken);
-    getList(): Promise<{
+    getLinkList(obj?: {
+        code?: string;
+    }): Promise<{
         data: any;
     }>;
-    postList(data: any): Promise<{
+    postLink(data: any): Promise<{
         result: boolean;
-        data: any;
+        message: string;
+        data?: undefined;
     } | {
         result: boolean;
-        data?: undefined;
+        data: any;
+        message?: undefined;
     }>;
-    putList(id: string, data: any): Promise<{
+    putLink(id: string, data: any): Promise<{
         result: boolean;
-        data: any;
+        message: string;
+        data?: undefined;
     } | {
         result: boolean;
+        data: any;
+        message?: undefined;
+    }>;
+    toggleLink(id: string): Promise<{
+        result: boolean;
+        message: string;
         data?: undefined;
+    } | {
+        result: boolean;
+        data: any;
+        message?: undefined;
+    }>;
+    getUserList(): Promise<{
+        data: any;
+    }>;
+    postUser(data: any): Promise<{
+        result: boolean;
+        message: string;
+        data?: undefined;
+    } | {
+        result: boolean;
+        data: any;
+        message?: undefined;
+    }>;
+    putUser(id: string, data: any): Promise<{
+        result: boolean;
+        message: string;
+        data?: undefined;
+    } | {
+        result: boolean;
+        data: any;
+        message?: undefined;
     }>;
 }

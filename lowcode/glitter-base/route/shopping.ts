@@ -194,7 +194,6 @@ export class ApiShop {
         if (!obj) return [];
         let list = [] as string[];
         if (obj) {
-
             if (obj.created_time.length > 1 && obj?.created_time[0].length > 0 && obj?.created_time[1].length > 0) {
                 list.push(`created_time=${obj.created_time[0]},${obj.created_time[1]}`);
             }
@@ -246,7 +245,7 @@ export class ApiShop {
         orderString?: string;
         filter?: any;
         archived?: string;
-        returnSearch?:'true';
+        returnSearch?: 'true';
     }) {
         const filterString = this.orderListFilterString(json.filter);
 
@@ -262,7 +261,7 @@ export class ApiShop {
                     json.searchType && par.push(`searchType=${json.searchType}`);
                     json.orderString && par.push(`orderString=${json.orderString}`);
                     json.archived && par.push(`archived=${json.archived}`);
-                    json.returnSearch && par.push(`returnSearch=${json.returnSearch??'false'}`);
+                    json.returnSearch && par.push(`returnSearch=${json.returnSearch ?? 'false'}`);
                     filterString.length > 0 && par.push(filterString.join('&'));
                     return par.join('&');
                 })()}`,
@@ -316,14 +315,12 @@ export class ApiShop {
 
     static searchOrderExist(orderId: string) {
         return BaseApi.create({
-            url:
-                getBaseUrl() +
-                `/api-public/v1/ec/order/search`,
+            url: getBaseUrl() + `/api-public/v1/ec/order/search`,
             type: 'GET',
             headers: {
                 'Content-Type': 'application/json',
                 'g-app': getConfig().config.appName,
-                Authorization: GlobalUser.token ,
+                Authorization: GlobalUser.token,
             },
         });
     }
@@ -505,8 +502,9 @@ export class ApiShop {
         };
         code?: string;
         use_rebate?: number;
-        custom_form_format?:any,
-        custom_form_data?:any
+        custom_form_format?: any;
+        custom_form_data?: any;
+        distribution_code?: string;
     }) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/checkout`,
@@ -528,6 +526,7 @@ export class ApiShop {
         }[];
         code?: string;
         use_rebate?: number;
+        distribution_code?: string;
     }) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/checkout/preview`,

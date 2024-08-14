@@ -117,6 +117,7 @@ router.post('/checkout', async (req, resp) => {
             })(),
             custom_form_format: req.body.custom_form_format,
             custom_form_data: req.body.custom_form_data,
+            distribution_code: req.body.distribution_code,
         }));
     }
     catch (err) {
@@ -149,6 +150,7 @@ router.post('/checkout/preview', async (req, resp) => {
                     return 0;
                 }
             })(),
+            distribution_code: req.body.distribution_code,
         }, 'preview'));
     }
     catch (err) {
@@ -378,7 +380,7 @@ router.put('/returnOrder', async (req, resp) => {
             return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).putReturnOrder({
                 id: req.body.data.id,
                 orderData: req.body.data,
-                status: req.body.status || "0",
+                status: req.body.status || '0',
             }));
         }
         else {

@@ -8,7 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { TriggerEvent } from '../../glitterBundle/plugins/trigger-event.js';
-import { ApiShop } from "../../glitter-base/route/shopping.js";
+import { ApiShop } from '../../glitter-base/route/shopping.js';
 TriggerEvent.createSingleEvent(import.meta.url, () => {
     return {
         fun: (gvc, widget, object, subData, element) => {
@@ -22,18 +22,18 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                         TriggerEvent.editer(gvc, widget, object.code, {
                             hover: false,
                             option: [],
-                            title: '優惠券來源'
+                            title: '優惠券來源',
                         }),
                         TriggerEvent.editer(gvc, widget, object.success, {
                             hover: false,
                             option: [],
-                            title: '優惠券新增成功'
+                            title: '優惠券新增成功',
                         }),
                         TriggerEvent.editer(gvc, widget, object.error, {
                             hover: false,
                             option: [],
-                            title: '優惠券新增失敗'
-                        })
+                            title: '優惠券新增失敗',
+                        }),
                     ].join(`<div class="my-2"></div>`);
                 },
                 event: () => {
@@ -42,12 +42,15 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                             gvc: gvc,
                             widget: widget,
                             clickEvent: object.code,
-                            element: element
-                        })) || (yield ApiShop.getVoucherCode()) || '';
+                            element: element,
+                        })) ||
+                            (yield ApiShop.getVoucherCode()) ||
+                            '';
                         ApiShop.getCart().then((res) => __awaiter(void 0, void 0, void 0, function* () {
+                            var _a;
                             const cartData = {
                                 line_items: [],
-                                total: 0
+                                total: 0,
                             };
                             for (const b of Object.keys(res)) {
                                 cartData.line_items.push({
@@ -55,27 +58,30 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                     count: res[b],
                                     spec: b.split('-').filter((dd, index) => {
                                         return index !== 0;
-                                    })
+                                    }),
                                 });
                             }
+                            const distributionCode = (_a = localStorage.getItem('distributionCode')) !== null && _a !== void 0 ? _a : '';
                             ApiShop.getCheckout({
                                 line_items: cartData.line_items.map((dd) => {
                                     return {
                                         id: dd.id,
                                         spec: dd.spec,
-                                        count: dd.count
+                                        count: dd.count,
                                     };
                                 }),
-                                code: code
+                                code: code,
+                                distribution_code: distributionCode,
                             }).then((res) => __awaiter(void 0, void 0, void 0, function* () {
-                                if (res.result && res.response.data.voucherList.find((dd) => {
-                                    return code && (dd.code === code);
-                                })) {
+                                if (res.result &&
+                                    res.response.data.voucherList.find((dd) => {
+                                        return code && dd.code === code;
+                                    })) {
                                     yield ApiShop.setVoucherCode(code);
                                     yield TriggerEvent.trigger({
                                         gvc: gvc,
                                         widget: widget,
-                                        clickEvent: object.success
+                                        clickEvent: object.success,
                                     });
                                 }
                                 else {
@@ -83,7 +89,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                     yield TriggerEvent.trigger({
                                         gvc: gvc,
                                         widget: widget,
-                                        clickEvent: object.error
+                                        clickEvent: object.error,
                                     });
                                 }
                                 resolve(res.response.data);

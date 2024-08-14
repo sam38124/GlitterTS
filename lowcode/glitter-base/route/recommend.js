@@ -18,7 +18,7 @@ export class ApiRecommend {
             },
         });
     }
-    static postList(cf) {
+    static postListData(cf) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/recommend/list`,
             type: 'POST',
@@ -30,9 +30,55 @@ export class ApiRecommend {
             data: JSON.stringify(cf.data),
         });
     }
-    static putList(cf) {
+    static putListData(cf) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/recommend/list/${cf.id}`,
+            type: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: cf.token || getConfig().config.token,
+            },
+            data: JSON.stringify(cf.data),
+        });
+    }
+    static toggleListData(cf) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/recommend/list/toggle/${cf.id}`,
+            type: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: cf.token || getConfig().config.token,
+            },
+        });
+    }
+    static getUsers(cf) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/recommend/user`,
+            type: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: cf.token || getConfig().config.token,
+            },
+        });
+    }
+    static postUserData(cf) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/recommend/user`,
+            type: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: cf.token || getConfig().config.token,
+            },
+            data: JSON.stringify(cf.data),
+        });
+    }
+    static putUserData(cf) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/recommend/user/${cf.id}`,
             type: 'PUT',
             headers: {
                 'Content-Type': 'application/json',

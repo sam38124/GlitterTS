@@ -891,8 +891,17 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                         }),
                     ]).then(() => {
                         dropMenu.recentList = [
-                            { name: '首頁', icon: 'fa-regular fa-house', link: '/index' },
-                            { name: '所有商品', icon: 'fa-regular fa-tag', link: '/all-product', items: productList },
+                            {
+                                name: '首頁',
+                                icon: 'fa-regular fa-house',
+                                link: '/index',
+                            },
+                            {
+                                name: '所有商品',
+                                icon: 'fa-regular fa-tag',
+                                link: '/all-product',
+                                items: productList,
+                            },
                             {
                                 name: '商品分類',
                                 icon: 'fa-regular fa-tags',
@@ -900,7 +909,12 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                 items: collectionList,
                                 ignoreFirst: true,
                             },
-                            { name: '網誌文章', icon: 'fa-regular fa-newspaper', link: '/blogs', items: acticleList },
+                            {
+                                name: '網誌文章',
+                                icon: 'fa-regular fa-newspaper',
+                                link: '/blogs',
+                                items: acticleList,
+                            },
                             {
                                 name: '分頁列表',
                                 icon: 'fa-regular fa-pager',
@@ -909,22 +923,26 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                 ignoreFirst: true,
                             },
                             {
-                                name: '一頁商店',
-                                icon: 'fa-regular fa-1',
-                                link: '/pages',
-                                items: oneStoreList,
-                                ignoreFirst: true,
-                            },
-                            {
                                 name: '隱形賣場',
-                                icon: 'fa-regular fa-store-lock',
+                                icon: 'fa-sharp fa-regular fa-face-dotted',
                                 link: '/pages',
                                 items: hiddenPageList,
                                 ignoreFirst: true,
                             },
+                            {
+                                name: '一頁商店',
+                                icon: 'fa-regular fa-page',
+                                link: '/pages',
+                                items: oneStoreList,
+                                ignoreFirst: true,
+                            },
                         ].filter((menu) => {
-                            if (menu.items === undefined)
+                            if (obj.filter && obj.filter.page && obj.filter.page.length > 0 && !obj.filter.page.includes(menu.name)) {
+                                return false;
+                            }
+                            if (menu.items === undefined) {
                                 return true;
+                            }
                             return menu.items.length > 0;
                         });
                         vm.loading = false;
@@ -1402,7 +1420,8 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
     }
     static multiCheckboxContainer(gvc, data, def, callback, obj) {
         const id = gvc.glitter.getUUID();
-        const randomString = obj && obj.single ? this.getWhiteDotClass(gvc) : this.getCheckedClass(gvc);
+        const inputColor = obj && obj.readonly ? '#808080' : undefined;
+        const randomString = obj && obj.single ? this.getWhiteDotClass(gvc, inputColor) : this.getCheckedClass(gvc, inputColor);
         const viewId = Tool.randomString(5);
         return gvc.bindView({
             bind: viewId,
@@ -1413,8 +1432,9 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                         <div>
                             <div
                                 class="form-check"
-                                onclick="${gvc.event(() => {
+                                onclick="${gvc.event((e, evt) => {
                         if (obj && obj.readonly) {
+                            evt.preventDefault();
                             return;
                         }
                         if (obj && obj.single) {
@@ -1428,6 +1448,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                             else {
                                 def = def.filter((d) => d !== item.key);
                             }
+                            def = def.filter((d) => data.map((item2) => item2.key).includes(d));
                             callback(def);
                         }
                         gvc.notifyDataChange(viewId);
@@ -1733,7 +1754,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                 min-height: 1rem;
             }
             .${className}:checked[type='checkbox'] {
-                border: 2px solid #000;
+                border: 2px solid ${color !== null && color !== void 0 ? color : '#000'};
                 background-color: #fff;
                 background-image: url(${this.checkedDataImage(color !== null && color !== void 0 ? color : '#000')});
                 background-position: center center;

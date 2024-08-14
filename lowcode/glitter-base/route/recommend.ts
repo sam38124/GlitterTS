@@ -1,4 +1,3 @@
-import { GlobalUser } from '../global/global-user.js';
 import { BaseApi } from '../../glitterBundle/api/base.js';
 
 function getConfig() {
@@ -23,7 +22,7 @@ export class ApiRecommend {
         });
     }
 
-    public static postList(cf: { data: any; token?: string }) {
+    public static postListData(cf: { data: any; token?: string }) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/recommend/list`,
             type: 'POST',
@@ -36,9 +35,59 @@ export class ApiRecommend {
         });
     }
 
-    public static putList(cf: { id: number; data: any; token?: string }) {
+    public static putListData(cf: { id: number; data: any; token?: string }) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/recommend/list/${cf.id}`,
+            type: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: cf.token || getConfig().config.token,
+            },
+            data: JSON.stringify(cf.data),
+        });
+    }
+
+    public static toggleListData(cf: { id: number; token?: string }) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/recommend/list/toggle/${cf.id}`,
+            type: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: cf.token || getConfig().config.token,
+            },
+        });
+    }
+
+    public static getUsers(cf: { data: any; token?: string }) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/recommend/user`,
+            type: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: cf.token || getConfig().config.token,
+            },
+        });
+    }
+
+    public static postUserData(cf: { data: any; token?: string }) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/recommend/user`,
+            type: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: cf.token || getConfig().config.token,
+            },
+            data: JSON.stringify(cf.data),
+        });
+    }
+
+    public static putUserData(cf: { id: number; data: any; token?: string }) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/recommend/user/${cf.id}`,
             type: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
