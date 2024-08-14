@@ -359,7 +359,6 @@ export class FilterOptions {
         { key: 'name', value: '推薦人名稱' },
         { key: 'email', value: '推薦人信箱' },
         { key: 'phone', value: '推薦人電話' },
-        // { key: 'code', value: '推薦碼' },
     ];
 
     static recommendUserOrderBy = [

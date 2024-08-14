@@ -12,11 +12,14 @@ export class Recommend {
         this.token = token;
     }
 
-    async getLinkList(obj?: { code?: string }) {
+    async getLinkList(obj?: { code?: string; status?: boolean }) {
         try {
             let search = ['1=1'];
             if (obj?.code) {
-                search.push(`code = "${obj.code}"`);
+                search.push(`(code = "${obj.code}")`);
+            }
+            if (obj?.status) {
+                search.push(`(JSON_EXTRACT(content, '$.status') = ${obj.status})`);
             }
 
             const links = await db.query(
@@ -46,6 +49,7 @@ export class Recommend {
                 if (!register.result) {
                     return { result: false, message: '信箱已被建立' };
                 }
+                data.recommend_user.id = register.data.insertId;
             }
             const links = await db.query(`INSERT INTO \`${this.app}\`.t_recommend_links SET ?`, [
                 {
@@ -104,6 +108,24 @@ export class Recommend {
             return { result: true, data: links };
         } catch (error) {
             throw exception.BadRequestError('ERROR', 'Recommend toggleLink Error: ' + error, null);
+        }
+    }
+
+    async deleteLink(data: any) {
+        try {
+            data.token && delete data.token;
+            if (data.id && data.id.length > 0) {
+                const links = await db.query(
+                    `DELETE FROM \`${this.app}\`.t_recommend_links 
+                    WHERE id in (${data.id.join(',')});
+                `,
+                    []
+                );
+                return { result: true, data: links };
+            }
+            return { result: false, message: '刪除失敗' };
+        } catch (error) {
+            throw exception.BadRequestError('ERROR', 'Recommend putUser Error: ' + error, null);
         }
     }
 
@@ -182,6 +204,7 @@ export class Recommend {
     async postUser(data: any) {
         try {
             data.token && delete data.token;
+            data.id !== undefined && delete data.id;
             const getUsers = await db.query(
                 `SELECT * FROM \`${this.app}\`.t_recommend_users WHERE email = ?;
             `,
@@ -221,6 +244,29 @@ export class Recommend {
                 id,
             ]);
             return { result: true, data: user };
+        } catch (error) {
+            throw exception.BadRequestError('ERROR', 'Recommend putUser Error: ' + error, null);
+        }
+    }
+
+    async deleteUser(data: any) {
+        try {
+            data.token && delete data.token;
+            if (data.id && data.id.length > 0) {
+                await db.query(
+                    `DELETE FROM \`${this.app}\`.t_recommend_links 
+                    WHERE JSON_EXTRACT(content, '$.recommend_user.id') in (${data.id.join(',')});
+                `,
+                    []
+                );
+                const user = await db.query(
+                    `DELETE FROM \`${this.app}\`.t_recommend_users WHERE (id in (${data.id.join(',')}));
+                    `,
+                    []
+                );
+                return { result: true, data: user };
+            }
+            return { result: false, message: '刪除失敗' };
         } catch (error) {
             throw exception.BadRequestError('ERROR', 'Recommend putUser Error: ' + error, null);
         }

@@ -35,6 +35,7 @@ export class BgRecommend {
             const prefixURL = `https://${window.parent.glitter.share.editorViewModel.domain}`;
             return vm.dataList.map((dd) => {
                 var _a, _b, _c;
+                const url = prefixURL + ((_a = dd.content.link) !== null && _a !== void 0 ? _a : '');
                 return [
                     {
                         key: EditorElem.checkBoxOnly({
@@ -69,7 +70,32 @@ export class BgRecommend {
                     },
                     {
                         key: '連結網址',
-                        value: `<span class="fs-7">${prefixURL + ((_a = dd.content.link) !== null && _a !== void 0 ? _a : '')}</span>`,
+                        value: gvc.bindView((() => {
+                            const id = glitter.getUUID();
+                            return {
+                                bind: id,
+                                view: () => {
+                                    return html `<span
+                                            style="color: #4D86DB;"
+                                            onclick="${gvc.event(() => {
+                                        glitter.openNewTab(url);
+                                    })}"
+                                        >
+                                            ${url}
+                                        </span>`;
+                                },
+                                divCreate: {
+                                    option: [
+                                        {
+                                            key: 'onclick',
+                                            value: gvc.event((e, event) => {
+                                                event.stopPropagation();
+                                            }),
+                                        },
+                                    ],
+                                },
+                            };
+                        })()),
                     },
                     {
                         key: '總金額',
@@ -191,7 +217,23 @@ export class BgRecommend {
                                         const selCount = vm.dataList.filter((dd) => dd.checked).length;
                                         return BgWidget.selNavbar({
                                             count: selCount,
-                                            buttonList: [],
+                                            buttonList: [
+                                                BgWidget.selEventButton('批量移除', gvc.event(() => {
+                                                    this.deleteLink({
+                                                        gvc: gvc,
+                                                        ids: vm.dataList
+                                                            .filter((dd) => {
+                                                            return dd.checked;
+                                                        })
+                                                            .map((dd) => {
+                                                            return dd.id;
+                                                        }),
+                                                        callback: () => {
+                                                            gvc.notifyDataChange(vm.id);
+                                                        },
+                                                    });
+                                                })),
+                                            ],
                                         });
                                     },
                                     divCreate: () => {
@@ -447,7 +489,23 @@ export class BgRecommend {
                                                     const selCount = vm.dataList.filter((dd) => dd.checked).length;
                                                     return BgWidget.selNavbar({
                                                         count: selCount,
-                                                        buttonList: [],
+                                                        buttonList: [
+                                                            BgWidget.selEventButton('批量移除', gvc.event(() => {
+                                                                this.deleteUser({
+                                                                    gvc: gvc,
+                                                                    ids: vm.dataList
+                                                                        .filter((dd) => {
+                                                                        return dd.checked;
+                                                                    })
+                                                                        .map((dd) => {
+                                                                        return dd.id;
+                                                                    }),
+                                                                    callback: () => {
+                                                                        gvc.notifyDataChange(vm.id);
+                                                                    },
+                                                                });
+                                                            })),
+                                                        ],
                                                     });
                                                 },
                                                 divCreate: () => {
@@ -1079,6 +1137,17 @@ export class BgRecommend {
                             </div>`,
                         BgWidget.mbContainer(240),
                         html ` <div class="update-bar-container">
+                                ${cf.data.id
+                            ? BgWidget.danger(gvc.event(() => {
+                                this.deleteLink({
+                                    gvc: gvc,
+                                    ids: [cf.data.id],
+                                    callback: () => {
+                                        cf.callback();
+                                    },
+                                });
+                            }))
+                            : ''}
                                 ${BgWidget.cancel(gvc.event(() => {
                             cf.callback();
                         }))}
@@ -1297,14 +1366,25 @@ export class BgRecommend {
                             </div>`,
                         BgWidget.mbContainer(240),
                         html ` <div class="update-bar-container">
+                                ${vm.readonly
+                            ? BgWidget.danger(gvc.event(() => {
+                                this.deleteUser({
+                                    gvc: gvc,
+                                    ids: [cf.data.id],
+                                    callback: () => {
+                                        cf.callback();
+                                    },
+                                });
+                            }), '刪除')
+                            : ''}
                                 ${BgWidget.cancel(gvc.event(() => {
                             cf.callback();
                         }))}
                                 ${BgWidget.save(gvc.event(() => {
                             const valids = [
-                                { key: 'name', text: '推薦人姓名不得為空白' },
-                                { key: 'email', text: '推薦人信箱不得為空白' },
-                                { key: 'phone', text: '推薦人電話不得為空白' },
+                                { key: 'name', text: '姓名不得為空白' },
+                                { key: 'email', text: '信箱不得為空白' },
+                                { key: 'phone', text: '電話不得為空白' },
                             ];
                             for (const v of valids) {
                                 if (vm.data[v.key] === undefined || vm.data[v.key].length === 0 || vm.data[v.key] === null) {
@@ -1380,6 +1460,66 @@ export class BgRecommend {
                     }
                 },
             };
+        });
+    }
+    static deleteLink(obj) {
+        const dialog = new ShareDialog(obj.gvc.glitter);
+        dialog.checkYesOrNot({
+            text: '是否確認刪除所選項目？',
+            callback: (response) => {
+                if (response) {
+                    dialog.dataLoading({ visible: true });
+                    ApiRecommend.deleteLinkData({
+                        token: window.parent.config.token,
+                        data: { id: obj.ids },
+                    }).then((data) => {
+                        var _a;
+                        dialog.dataLoading({ visible: false });
+                        if (data.result) {
+                            if (data.response.result) {
+                                dialog.successMessage({ text: '刪除成功' });
+                                obj.callback();
+                            }
+                            else {
+                                dialog.errorMessage({ text: (_a = data.response.message) !== null && _a !== void 0 ? _a : '刪除失敗' });
+                            }
+                        }
+                        else {
+                            dialog.errorMessage({ text: '刪除失敗' });
+                        }
+                    });
+                }
+            },
+        });
+    }
+    static deleteUser(obj) {
+        const dialog = new ShareDialog(obj.gvc.glitter);
+        dialog.checkYesOrNot({
+            text: '若刪除推薦人，也將同時刪除與此推薦人相關的分銷連結，<br />是否確認刪除所選項目？',
+            callback: (response) => {
+                if (response) {
+                    dialog.dataLoading({ visible: true });
+                    ApiRecommend.deleteUserData({
+                        token: window.parent.config.token,
+                        data: { id: obj.ids },
+                    }).then((data) => {
+                        var _a;
+                        dialog.dataLoading({ visible: false });
+                        if (data.result) {
+                            if (data.response.result) {
+                                dialog.successMessage({ text: '刪除成功' });
+                                obj.callback();
+                            }
+                            else {
+                                dialog.errorMessage({ text: (_a = data.response.message) !== null && _a !== void 0 ? _a : '刪除失敗' });
+                            }
+                        }
+                        else {
+                            dialog.errorMessage({ text: '刪除失敗' });
+                        }
+                    });
+                }
+            },
         });
     }
 }

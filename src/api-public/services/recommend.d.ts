@@ -5,6 +5,7 @@ export declare class Recommend {
     constructor(app: string, token?: IToken);
     getLinkList(obj?: {
         code?: string;
+        status?: boolean;
     }): Promise<{
         data: any;
     }>;
@@ -35,6 +36,15 @@ export declare class Recommend {
         data: any;
         message?: undefined;
     }>;
+    deleteLink(data: any): Promise<{
+        result: boolean;
+        data: any;
+        message?: undefined;
+    } | {
+        result: boolean;
+        message: string;
+        data?: undefined;
+    }>;
     getUserList(query: {
         limit: number;
         page: number;
@@ -62,5 +72,14 @@ export declare class Recommend {
         result: boolean;
         data: any;
         message?: undefined;
+    }>;
+    deleteUser(data: any): Promise<{
+        result: boolean;
+        data: any;
+        message?: undefined;
+    } | {
+        result: boolean;
+        message: string;
+        data?: undefined;
     }>;
 }

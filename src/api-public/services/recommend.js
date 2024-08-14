@@ -15,7 +15,10 @@ class Recommend {
         try {
             let search = ['1=1'];
             if (obj === null || obj === void 0 ? void 0 : obj.code) {
-                search.push(`code = "${obj.code}"`);
+                search.push(`(code = "${obj.code}")`);
+            }
+            if (obj === null || obj === void 0 ? void 0 : obj.status) {
+                search.push(`(JSON_EXTRACT(content, '$.status') = ${obj.status})`);
             }
             const links = await database_1.default.query(`SELECT * FROM \`${this.app}\`.t_recommend_links WHERE ${search.join(' AND ')};
             `, []);
@@ -38,6 +41,7 @@ class Recommend {
                 if (!register.result) {
                     return { result: false, message: '信箱已被建立' };
                 }
+                data.recommend_user.id = register.data.insertId;
             }
             const links = await database_1.default.query(`INSERT INTO \`${this.app}\`.t_recommend_links SET ?`, [
                 {
@@ -93,10 +97,24 @@ class Recommend {
             throw exception_1.default.BadRequestError('ERROR', 'Recommend toggleLink Error: ' + error, null);
         }
     }
+    async deleteLink(data) {
+        try {
+            data.token && delete data.token;
+            if (data.id && data.id.length > 0) {
+                const links = await database_1.default.query(`DELETE FROM \`${this.app}\`.t_recommend_links 
+                    WHERE id in (${data.id.join(',')});
+                `, []);
+                return { result: true, data: links };
+            }
+            return { result: false, message: '刪除失敗' };
+        }
+        catch (error) {
+            throw exception_1.default.BadRequestError('ERROR', 'Recommend putUser Error: ' + error, null);
+        }
+    }
     async getUserList(query) {
         var _a, _b;
         try {
-            console.log(query);
             query.page = (_a = query.page) !== null && _a !== void 0 ? _a : 0;
             query.limit = (_b = query.limit) !== null && _b !== void 0 ? _b : 50;
             let search = ['1=1'];
@@ -140,7 +158,6 @@ class Recommend {
             `, []);
             const total = await database_1.default.query(`SELECT count(id) as c FROM \`${this.app}\`.t_recommend_users
                 WHERE ${search.join(' AND ')}
-                ORDER BY ${orderBy}
             `, []);
             return {
                 data: data,
@@ -154,6 +171,7 @@ class Recommend {
     async postUser(data) {
         try {
             data.token && delete data.token;
+            data.id !== undefined && delete data.id;
             const getUsers = await database_1.default.query(`SELECT * FROM \`${this.app}\`.t_recommend_users WHERE email = ?;
             `, [data.email]);
             if (getUsers.length > 0) {
@@ -187,6 +205,23 @@ class Recommend {
                 id,
             ]);
             return { result: true, data: user };
+        }
+        catch (error) {
+            throw exception_1.default.BadRequestError('ERROR', 'Recommend putUser Error: ' + error, null);
+        }
+    }
+    async deleteUser(data) {
+        try {
+            data.token && delete data.token;
+            if (data.id && data.id.length > 0) {
+                await database_1.default.query(`DELETE FROM \`${this.app}\`.t_recommend_links 
+                    WHERE JSON_EXTRACT(content, '$.recommend_user.id') in (${data.id.join(',')});
+                `, []);
+                const user = await database_1.default.query(`DELETE FROM \`${this.app}\`.t_recommend_users WHERE (id in (${data.id.join(',')}));
+                    `, []);
+                return { result: true, data: user };
+            }
+            return { result: false, message: '刪除失敗' };
         }
         catch (error) {
             throw exception_1.default.BadRequestError('ERROR', 'Recommend putUser Error: ' + error, null);

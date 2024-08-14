@@ -700,7 +700,10 @@ export class Shopping {
 
             // 判斷是否有分銷連結
             if (data.distribution_code) {
-                const linkList = await new Recommend(this.app, this.token).getLinkList({ code: data.distribution_code });
+                const linkList = await new Recommend(this.app, this.token).getLinkList({
+                    code: data.distribution_code,
+                    status: true,
+                });
                 if (linkList.data.length > 0) {
                     const content = linkList.data[0].content;
                     if (checkDuring(content)) {
@@ -863,7 +866,7 @@ export class Shopping {
                     })
                 )[0].value;
                 // 線下付款
-                if ((carData.customer_info.payment_select !=='ecPay') && (carData.customer_info.payment_select !=='newWebPay')) {
+                if (carData.customer_info.payment_select !== 'ecPay' && carData.customer_info.payment_select !== 'newWebPay') {
                     carData.method = 'off_line';
                     // 訂單成立信件通知
                     new ManagerNotify(this.app).checkout({

@@ -60,6 +60,19 @@ router.post('/list/toggle/:id', async (req, resp) => {
         return response_1.default.fail(resp, err);
     }
 });
+router.delete('/list', async (req, resp) => {
+    try {
+        if (await ut_permission_js_1.UtPermission.isManager(req)) {
+            return response_1.default.succ(resp, await new recommend_1.Recommend(req.get('g-app'), req.body.token).deleteLink(req.body));
+        }
+        else {
+            return response_1.default.fail(resp, exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null));
+        }
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
 router.get('/user', async (req, resp) => {
     try {
         if (await ut_permission_js_1.UtPermission.isManager(req)) {
@@ -96,6 +109,19 @@ router.put('/user/:id', async (req, resp) => {
     try {
         if (await ut_permission_js_1.UtPermission.isManager(req)) {
             return response_1.default.succ(resp, await new recommend_1.Recommend(req.get('g-app'), req.body.token).putUser(req.params.id, req.body));
+        }
+        else {
+            return response_1.default.fail(resp, exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null));
+        }
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.delete('/user', async (req, resp) => {
+    try {
+        if (await ut_permission_js_1.UtPermission.isManager(req)) {
+            return response_1.default.succ(resp, await new recommend_1.Recommend(req.get('g-app'), req.body.token).deleteUser(req.body));
         }
         else {
             return response_1.default.fail(resp, exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null));

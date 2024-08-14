@@ -443,7 +443,10 @@ class Shopping {
                 return currentDateTime >= startDateTime && (endDateTime || currentDateTime <= endDateTime);
             }
             if (data.distribution_code) {
-                const linkList = await new recommend_1.Recommend(this.app, this.token).getLinkList({ code: data.distribution_code });
+                const linkList = await new recommend_1.Recommend(this.app, this.token).getLinkList({
+                    code: data.distribution_code,
+                    status: true,
+                });
                 if (linkList.data.length > 0) {
                     const content = linkList.data[0].content;
                     if (checkDuring(content)) {
@@ -567,7 +570,7 @@ class Shopping {
                     appName: this.app,
                     key: 'glitter_finance',
                 }))[0].value;
-                if ((carData.customer_info.payment_select !== 'ecPay') && (carData.customer_info.payment_select !== 'newWebPay')) {
+                if (carData.customer_info.payment_select !== 'ecPay' && carData.customer_info.payment_select !== 'newWebPay') {
                     carData.method = 'off_line';
                     new notify_js_1.ManagerNotify(this.app).checkout({
                         orderData: carData,

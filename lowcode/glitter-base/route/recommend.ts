@@ -60,6 +60,19 @@ export class ApiRecommend {
         });
     }
 
+    public static deleteLinkData(cf: { data: { id: number[] }; token?: string }) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/recommend/list`,
+            type: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: cf.token || getConfig().config.token,
+            },
+            data: JSON.stringify(cf.data),
+        });
+    }
+
     public static getUsers(json: { data: any; limit: number; page: number; type?: string; token?: string; search?: string; searchType?: string; orderBy?: string }) {
         return BaseApi.create({
             url:
@@ -97,6 +110,19 @@ export class ApiRecommend {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/recommend/user/${cf.id}`,
             type: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: cf.token || getConfig().config.token,
+            },
+            data: JSON.stringify(cf.data),
+        });
+    }
+
+    public static deleteUserData(cf: { data: { id: number[] }; token?: string }) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/recommend/user`,
+            type: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
                 'g-app': getConfig().config.appName,
