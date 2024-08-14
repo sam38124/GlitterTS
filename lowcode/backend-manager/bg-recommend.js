@@ -10,9 +10,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
 import { BgWidget } from '../backend-manager/bg-widget.js';
 import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
-import { ApiUser } from '../glitter-base/route/user.js';
 import { ApiShop } from '../glitter-base/route/shopping.js';
 import { ApiRecommend } from '../glitter-base/route/recommend.js';
+import { FilterOptions } from '../cms-plugin/filter-options.js';
+import { BgListComponent } from '../backend-manager/bg-list-component.js';
 export class BgRecommend {
     static main(gvc, widget) {
         const html = String.raw;
@@ -92,7 +93,7 @@ export class BgRecommend {
                     },
                     {
                         key: '推薦人',
-                        value: html `<span class="fs-7">${getRecommender(vm.users, dd.content.recommend_user.id)}</span>`,
+                        value: html `<span class="fs-7">${getRecommender(vm.users, dd.content.recommend_user)}</span>`,
                     },
                     {
                         key: '期限',
@@ -174,7 +175,7 @@ export class BgRecommend {
                             style: [
                                 '',
                                 'min-width: 150px; max-width: 200px; white-space: normal !important;',
-                                'min-width: 150px; max-width: 200px; white-space: normal !important; overflow-wrap: break-word;',
+                                'min-width: 220px; max-width: 250px; white-space: normal !important; overflow-wrap: break-word;',
                                 ...new Array(5).fill('min-width: 70px;'),
                                 ...new Array(3).fill('min-width: 100px;'),
                             ],
@@ -190,39 +191,7 @@ export class BgRecommend {
                                         const selCount = vm.dataList.filter((dd) => dd.checked).length;
                                         return BgWidget.selNavbar({
                                             count: selCount,
-                                            buttonList: [
-                                                BgWidget.selEventButton('批量移除', gvc.event(() => {
-                                                    dialog.checkYesOrNot({
-                                                        text: '是否確認刪除所選項目？',
-                                                        callback: (response) => {
-                                                            if (response) {
-                                                                widget.event('loading', {
-                                                                    title: '設定中...',
-                                                                });
-                                                                ApiUser.setPublicConfig({
-                                                                    key: 'member_level_config',
-                                                                    user_id: 'manager',
-                                                                    value: {
-                                                                        levels: vm.dataList.filter((dd) => {
-                                                                            return !dd.checked;
-                                                                        }),
-                                                                    },
-                                                                }).then(() => {
-                                                                    setTimeout(() => {
-                                                                        widget.event('loading', {
-                                                                            visible: false,
-                                                                        });
-                                                                        widget.event('success', {
-                                                                            title: '設定成功',
-                                                                        });
-                                                                        gvc.notifyDataChange(vm.id);
-                                                                    }, 500);
-                                                                });
-                                                            }
-                                                        },
-                                                    });
-                                                })),
-                                            ],
+                                            buttonList: [],
                                         });
                                     },
                                     divCreate: () => {
@@ -270,6 +239,8 @@ export class BgRecommend {
                         new Promise((resolve) => {
                             ApiRecommend.getUsers({
                                 data: {},
+                                page: 0,
+                                limit: 99999,
                                 token: window.parent.config.token,
                             }).then((data) => {
                                 if (data.result) {
@@ -294,13 +265,19 @@ export class BgRecommend {
         const glitter = gvc.glitter;
         const vm = {
             id: glitter.getUUID(),
+            tableId: glitter.getUUID(),
             type: 'list',
             editData: {},
             dataList: undefined,
             query: '',
+            queryType: 'name',
             group: { type: 'level', title: '', tag: '' },
+            filter: {},
+            orderString: 'name',
         };
         const filterID = glitter.getUUID();
+        const ListComp = new BgListComponent(gvc, vm, FilterOptions.recommendUserFilterFrame);
+        vm.filter = ListComp.getFilterObject();
         let vmi = undefined;
         function getDatalist() {
             return vm.dataList.map((dd) => {
@@ -371,86 +348,126 @@ export class BgRecommend {
                             gvc.notifyDataChange(vm.id);
                         }))}
                                 </div>
-                                ${BgWidget.container(BgWidget.mainCard(BgWidget.tableV2({
-                            gvc: gvc,
-                            getData: (vd) => __awaiter(this, void 0, void 0, function* () {
-                                vmi = vd;
-                                ApiRecommend.getUsers({
-                                    data: {},
-                                    token: window.parent.config.token,
-                                }).then((data) => {
-                                    vmi.pageSize = 1;
-                                    vm.dataList = data.response.data.map((item) => {
-                                        return item;
-                                    });
-                                    vmi.data = getDatalist();
-                                    vmi.loading = false;
-                                    vmi.callback();
-                                });
-                            }),
-                            rowClick: (data, index) => {
-                                vm.editData = vm.dataList[index];
-                                vm.type = 'replace';
-                            },
-                            filter: html `
-                                                ${gvc.bindView(() => {
-                                return {
-                                    bind: filterID,
-                                    view: () => {
-                                        const dialog = new ShareDialog(glitter);
-                                        const selCount = vm.dataList.filter((dd) => dd.checked).length;
-                                        return BgWidget.selNavbar({
-                                            count: selCount,
-                                            buttonList: [
-                                                BgWidget.selEventButton('批量移除', gvc.event(() => {
-                                                    dialog.checkYesOrNot({
-                                                        text: '是否確認刪除所選項目？',
-                                                        callback: (response) => {
-                                                            if (response) {
-                                                                widget.event('loading', {
-                                                                    title: '設定中...',
-                                                                });
-                                                                ApiUser.setPublicConfig({
-                                                                    key: 'member_level_config',
-                                                                    user_id: 'manager',
-                                                                    value: {
-                                                                        levels: vm.dataList.filter((dd) => {
-                                                                            return !dd.checked;
-                                                                        }),
-                                                                    },
-                                                                }).then(() => {
-                                                                    setTimeout(() => {
-                                                                        widget.event('loading', {
-                                                                            visible: false,
-                                                                        });
-                                                                        widget.event('success', {
-                                                                            title: '設定成功',
-                                                                        });
-                                                                        gvc.notifyDataChange(vm.id);
-                                                                    }, 500);
-                                                                });
-                                                            }
-                                                        },
-                                                    });
-                                                })),
-                                            ],
-                                        });
-                                    },
-                                    divCreate: () => {
-                                        return {
-                                            class: `d-flex align-items-center p-2 py-3 ${!vm.dataList ||
-                                                !vm.dataList.find((dd) => {
-                                                    return dd.checked;
-                                                })
-                                                ? `d-none`
-                                                : ``}`,
-                                            style: ``,
-                                        };
-                                    },
+                                ${BgWidget.container(BgWidget.mainCard([
+                            (() => {
+                                const fvm = {
+                                    id: gvc.glitter.getUUID(),
+                                    loading: true,
+                                    levelList: [],
                                 };
-                            })}
-                                            `,
-                        })))}
+                                return gvc.bindView({
+                                    bind: fvm.id,
+                                    view: () => {
+                                        if (fvm.loading) {
+                                            return '';
+                                        }
+                                        const filterList = [
+                                            BgWidget.selectFilter({
+                                                gvc,
+                                                callback: (value) => {
+                                                    vm.queryType = value;
+                                                    gvc.notifyDataChange(vm.tableId);
+                                                    gvc.notifyDataChange(fvm.id);
+                                                },
+                                                default: vm.queryType || 'name',
+                                                options: FilterOptions.recommendUserSelect,
+                                            }),
+                                            BgWidget.searchFilter(gvc.event((e) => {
+                                                vm.query = e.value;
+                                                gvc.notifyDataChange(vm.tableId);
+                                                gvc.notifyDataChange(fvm.id);
+                                            }), vm.query || '', '搜尋推薦人'),
+                                            BgWidget.updownFilter({
+                                                gvc,
+                                                callback: (value) => {
+                                                    vm.orderString = value;
+                                                    gvc.notifyDataChange(vm.tableId);
+                                                    gvc.notifyDataChange(fvm.id);
+                                                },
+                                                default: vm.orderString || 'name',
+                                                options: FilterOptions.recommendUserOrderBy,
+                                            }),
+                                        ];
+                                        if (document.body.clientWidth < 768) {
+                                            return html ` <div style="display: flex; align-items: center; gap: 10px; width: 100%; justify-content: space-between">
+                                                                    <div>${filterList[0]}</div>
+                                                                    <div style="display: flex;">
+                                                                        <div class="me-2">${filterList[2]}</div>
+                                                                    </div>
+                                                                </div>
+                                                                <div style="display: flex; margin-top: 8px;">${filterList[1]}</div>`;
+                                        }
+                                        else {
+                                            return html ` <div style="display: flex; align-items: center; gap: 10px;">${filterList.join('')}</div>`;
+                                        }
+                                    },
+                                    onCreate: () => {
+                                        if (fvm.loading) {
+                                            setTimeout(() => {
+                                                fvm.loading = false;
+                                                gvc.notifyDataChange(fvm.id);
+                                            }, 100);
+                                        }
+                                    },
+                                });
+                            })(),
+                            gvc.bindView({
+                                bind: vm.tableId,
+                                view: () => {
+                                    return BgWidget.tableV2({
+                                        gvc: gvc,
+                                        getData: (vd) => __awaiter(this, void 0, void 0, function* () {
+                                            vmi = vd;
+                                            ApiRecommend.getUsers({
+                                                data: {},
+                                                limit: 15,
+                                                page: vmi.page - 1,
+                                                token: window.parent.config.token,
+                                                search: vm.query,
+                                                searchType: vm.queryType,
+                                                orderBy: vm.orderString,
+                                            }).then((data) => {
+                                                vmi.pageSize = Math.ceil(data.response.total / 15);
+                                                vm.dataList = data.response.data;
+                                                vmi.data = getDatalist();
+                                                vmi.loading = false;
+                                                vmi.callback();
+                                            });
+                                        }),
+                                        rowClick: (data, index) => {
+                                            vm.editData = vm.dataList[index];
+                                            vm.type = 'replace';
+                                        },
+                                        filter: html `
+                                                            ${gvc.bindView(() => {
+                                            return {
+                                                bind: filterID,
+                                                view: () => {
+                                                    const dialog = new ShareDialog(glitter);
+                                                    const selCount = vm.dataList.filter((dd) => dd.checked).length;
+                                                    return BgWidget.selNavbar({
+                                                        count: selCount,
+                                                        buttonList: [],
+                                                    });
+                                                },
+                                                divCreate: () => {
+                                                    return {
+                                                        class: `d-flex align-items-center p-2 py-3 ${!vm.dataList ||
+                                                            !vm.dataList.find((dd) => {
+                                                                return dd.checked;
+                                                            })
+                                                            ? `d-none`
+                                                            : ``}`,
+                                                        style: ``,
+                                                    };
+                                                },
+                                            };
+                                        })}
+                                                        `,
+                                    });
+                                },
+                            }),
+                        ].join('')))}
                             `, BgWidget.getContainerWidth());
                     }
                     else if (vm.type === 'add') {
@@ -1031,7 +1048,7 @@ export class BgRecommend {
                                                 }
                                             })(),
                                             `推薦人: ${vm.data.recommend_user.id
-                                                ? getRecommender(vm.users, vm.data.recommend_user.id)
+                                                ? getRecommender(vm.users, vm.data.recommend_user)
                                                 : vm.data.recommend_user.name.length > 0
                                                     ? vm.data.recommend_user.name
                                                     : '尚未選擇推薦人'}`,
@@ -1156,6 +1173,8 @@ export class BgRecommend {
                             new Promise((resolve) => {
                                 ApiRecommend.getUsers({
                                     data: {},
+                                    page: 0,
+                                    limit: 99999,
                                     token: window.parent.config.token,
                                 }).then((data) => {
                                     if (data.result) {
@@ -1383,8 +1402,11 @@ function checkPhonePattern(input) {
     const phonePattern = /^09\d{8}$/;
     return phonePattern.test(input);
 }
-function getRecommender(userList, id) {
-    const user = userList.find((u) => u.id === id);
+function getRecommender(userList, data) {
+    if (data.name && data.name.length > 0) {
+        return data.name;
+    }
+    const user = userList.find((u) => u.id === data.id);
     return user ? user.content.name : '';
 }
 window.glitter.setModule(import.meta.url, BgRecommend);

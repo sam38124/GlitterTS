@@ -107,14 +107,73 @@ export class Recommend {
         }
     }
 
-    async getUserList() {
+    async getUserList(query: { limit: number; page: number; search?: string; searchType?: string; orderBy?: string }) {
         try {
-            const users = await db.query(
-                `SELECT * FROM \`${this.app}\`.t_recommend_users;
+            query.page = query.page ?? 0;
+            query.limit = query.limit ?? 50;
+
+            let search = ['1=1'];
+            if (query.search) {
+                switch (query.searchType) {
+                    case 'phone':
+                        search.push(`(JSON_EXTRACT(content, '$.phone') like '%${query.search}%')`);
+                        break;
+                    case 'name':
+                        search.push(`(JSON_EXTRACT(content, '$.name') like '%${query.search}%')`);
+                        break;
+                    case 'email':
+                    default:
+                        search.push(`(email like '%${query.search}%')`);
+                        break;
+                }
+            }
+
+            const recommendUserOrderBy = [
+                { key: 'name', value: '推薦人名稱' },
+                { key: 'created_time_desc', value: '註冊時間新 > 舊' },
+                { key: 'created_time_asc', value: '註冊時間舊 > 新' },
+                // { key: 'order_total_desc', value: '總金額高 > 低' },
+                // { key: 'order_total_asc', value: '總金額低 > 高' },
+                // { key: 'share_value_desc', value: '分潤獎金多 > 少' },
+                // { key: 'share_value_asc', value: '分潤獎金少 > 多' },
+                // { key: 'conversion_rate_desc', value: '轉換率高 > 低' },
+                // { key: 'conversion_rate_asc', value: '轉換率低 > 高' },
+            ];
+
+            let orderBy = 'id DESC';
+            if (query.orderBy) {
+                orderBy = (() => {
+                    switch (query.orderBy) {
+                        case 'name':
+                            return `JSON_EXTRACT(content, '$.name')`;
+                        case 'created_time_asc':
+                            return `id`;
+                        case 'created_time_desc':
+                        default:
+                            return `id DESC`;
+                    }
+                })();
+            }
+
+            const data = await db.query(
+                `SELECT * FROM \`${this.app}\`.t_recommend_users
+                WHERE ${search.join(' AND ')}
+                ORDER BY ${orderBy}
+                ${query.page !== undefined && query.limit !== undefined ? `LIMIT ${query.page * query.limit}, ${query.limit}` : ''};
             `,
                 []
             );
-            return { data: users };
+            const total = await db.query(
+                `SELECT count(id) as c FROM \`${this.app}\`.t_recommend_users
+                WHERE ${search.join(' AND ')}
+            `,
+                []
+            );
+
+            return {
+                data: data,
+                total: total[0].c,
+            };
         } catch (error) {
             throw exception.BadRequestError('ERROR', 'Recommend getUserList Error: ' + error, null);
         }

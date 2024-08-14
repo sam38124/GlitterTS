@@ -93,11 +93,59 @@ class Recommend {
             throw exception_1.default.BadRequestError('ERROR', 'Recommend toggleLink Error: ' + error, null);
         }
     }
-    async getUserList() {
+    async getUserList(query) {
+        var _a, _b;
         try {
-            const users = await database_1.default.query(`SELECT * FROM \`${this.app}\`.t_recommend_users;
+            console.log(query);
+            query.page = (_a = query.page) !== null && _a !== void 0 ? _a : 0;
+            query.limit = (_b = query.limit) !== null && _b !== void 0 ? _b : 50;
+            let search = ['1=1'];
+            if (query.search) {
+                switch (query.searchType) {
+                    case 'phone':
+                        search.push(`(JSON_EXTRACT(content, '$.phone') like '%${query.search}%')`);
+                        break;
+                    case 'name':
+                        search.push(`(JSON_EXTRACT(content, '$.name') like '%${query.search}%')`);
+                        break;
+                    case 'email':
+                    default:
+                        search.push(`(email like '%${query.search}%')`);
+                        break;
+                }
+            }
+            const recommendUserOrderBy = [
+                { key: 'name', value: '推薦人名稱' },
+                { key: 'created_time_desc', value: '註冊時間新 > 舊' },
+                { key: 'created_time_asc', value: '註冊時間舊 > 新' },
+            ];
+            let orderBy = 'id DESC';
+            if (query.orderBy) {
+                orderBy = (() => {
+                    switch (query.orderBy) {
+                        case 'name':
+                            return `JSON_EXTRACT(content, '$.name')`;
+                        case 'created_time_asc':
+                            return `id`;
+                        case 'created_time_desc':
+                        default:
+                            return `id DESC`;
+                    }
+                })();
+            }
+            const data = await database_1.default.query(`SELECT * FROM \`${this.app}\`.t_recommend_users
+                WHERE ${search.join(' AND ')}
+                ORDER BY ${orderBy}
+                ${query.page !== undefined && query.limit !== undefined ? `LIMIT ${query.page * query.limit}, ${query.limit}` : ''};
             `, []);
-            return { data: users };
+            const total = await database_1.default.query(`SELECT count(id) as c FROM \`${this.app}\`.t_recommend_users
+                WHERE ${search.join(' AND ')}
+                ORDER BY ${orderBy}
+            `, []);
+            return {
+                data: data,
+                total: total[0].c,
+            };
         }
         catch (error) {
             throw exception_1.default.BadRequestError('ERROR', 'Recommend getUserList Error: ' + error, null);

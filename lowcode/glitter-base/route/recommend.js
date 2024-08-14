@@ -53,14 +53,21 @@ export class ApiRecommend {
             },
         });
     }
-    static getUsers(cf) {
+    static getUsers(json) {
         return BaseApi.create({
-            url: getBaseUrl() + `/api-public/v1/recommend/user`,
+            url: getBaseUrl() +
+                `/api-public/v1/recommend/user?${(() => {
+                    let par = [`limit=${json.limit}`, `page=${json.page}`];
+                    json.search && par.push(`search=${json.search}`);
+                    json.searchType && par.push(`searchType=${json.searchType}`);
+                    json.orderBy && par.push(`orderBy=${json.orderBy}`);
+                    return par.join('&');
+                })()}`,
             type: 'GET',
             headers: {
                 'Content-Type': 'application/json',
                 'g-app': getConfig().config.appName,
-                Authorization: cf.token || getConfig().config.token,
+                Authorization: json.token || getConfig().config.token,
             },
         });
     }

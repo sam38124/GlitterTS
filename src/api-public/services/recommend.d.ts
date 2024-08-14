@@ -35,8 +35,15 @@ export declare class Recommend {
         data: any;
         message?: undefined;
     }>;
-    getUserList(): Promise<{
+    getUserList(query: {
+        limit: number;
+        page: number;
+        search?: string;
+        searchType?: string;
+        orderBy?: string;
+    }): Promise<{
         data: any;
+        total: any;
     }>;
     postUser(data: any): Promise<{
         result: boolean;

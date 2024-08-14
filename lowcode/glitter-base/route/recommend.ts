@@ -60,14 +60,22 @@ export class ApiRecommend {
         });
     }
 
-    public static getUsers(cf: { data: any; token?: string }) {
+    public static getUsers(json: { data: any; limit: number; page: number; type?: string; token?: string; search?: string; searchType?: string; orderBy?: string }) {
         return BaseApi.create({
-            url: getBaseUrl() + `/api-public/v1/recommend/user`,
+            url:
+                getBaseUrl() +
+                `/api-public/v1/recommend/user?${(() => {
+                    let par = [`limit=${json.limit}`, `page=${json.page}`];
+                    json.search && par.push(`search=${json.search}`);
+                    json.searchType && par.push(`searchType=${json.searchType}`);
+                    json.orderBy && par.push(`orderBy=${json.orderBy}`);
+                    return par.join('&');
+                })()}`,
             type: 'GET',
             headers: {
                 'Content-Type': 'application/json',
                 'g-app': getConfig().config.appName,
-                Authorization: cf.token || getConfig().config.token,
+                Authorization: json.token || getConfig().config.token,
             },
         });
     }

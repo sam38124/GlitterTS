@@ -59,7 +59,16 @@ router.post('/list/toggle/:id', async (req: express.Request, resp: express.Respo
 router.get('/user', async (req: express.Request, resp: express.Response) => {
     try {
         if (await UtPermission.isManager(req)) {
-            return response.succ(resp, await new Recommend(req.get('g-app') as string, req.body.token).getUserList());
+            return response.succ(
+                resp,
+                await new Recommend(req.get('g-app') as string, req.body.token).getUserList({
+                    limit: req.query.limit ? parseInt(`${req.query.limit}`, 10) : 0,
+                    page: req.query.page ? parseInt(`${req.query.page}`, 10) : 50,
+                    search: req.query.search ? `${req.query.search}` : undefined,
+                    searchType: req.query.searchType ? `${req.query.searchType}` : undefined,
+                    orderBy: req.query.orderBy ? `${req.query.orderBy}` : undefined,
+                })
+            );
         } else {
             return response.fail(resp, exception.BadRequestError('BAD_REQUEST', 'No permission.', null));
         }
