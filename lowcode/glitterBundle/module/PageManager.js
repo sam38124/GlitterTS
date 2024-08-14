@@ -192,6 +192,7 @@ export class PageManager {
     static setAnimation(page) {
         const glitter = Glitter.glitter;
         function closePreviousPage() {
+            console.log(`closePreviousPage`);
             if (page.type === GVCType.Page) {
                 glitter.pageConfig.map((a) => {
                     if (a.id !== page.id && a.type !== GVCType.Dialog) {

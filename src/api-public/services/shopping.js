@@ -442,7 +442,6 @@ class Shopping {
                 const endDateTime = jsonData.endDate === undefined ? true : new Date(`${jsonData.endDate}T${jsonData.endTime}`).getTime();
                 return currentDateTime >= startDateTime && (endDateTime || currentDateTime <= endDateTime);
             }
-            console.log(`data.distribution_code: ${data.distribution_code}`);
             if (data.distribution_code) {
                 const linkList = await new recommend_1.Recommend(this.app, this.token).getLinkList({ code: data.distribution_code });
                 if (linkList.data.length > 0) {
@@ -452,7 +451,6 @@ class Shopping {
                     }
                 }
             }
-            console.log(`carData.distribution_id: ${carData.distribution_id}`);
             if (type !== 'manual' && type !== 'manual-preview') {
                 await this.checkVoucher(carData);
             }
@@ -831,7 +829,6 @@ class Shopping {
             cart.lineItems.map((item) => {
                 subtotal += item.count * item.sale_price;
             });
-            console.log(`subtotal: ${subtotal}`);
             return subtotal >= ruleValue;
         })
             .filter((dd) => {
