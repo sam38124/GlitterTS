@@ -850,12 +850,7 @@ background: #F7F7F7;">${CustomStyle.renderMarginEditor(gvc, widget, callback)}
             if (!globalValue.container_theme.find((dd, index) => {
                 return index === parseInt(def, 10);
             })) {
-                if (def !== '') {
-                    callback('');
-                }
-                else {
-                    def = '';
-                }
+                def = '';
             }
             return {
                 bind: vm.id,

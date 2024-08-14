@@ -54,7 +54,7 @@ export class Entry {
         }
         window.renderClock = (_a = window.renderClock) !== null && _a !== void 0 ? _a : clockF();
         console.log(`Entry-time:`, window.renderClock.stop());
-        glitter.share.editerVersion = "V_10.3.1";
+        glitter.share.editerVersion = "V_10.4.5";
         glitter.share.start = (new Date());
         const vm = {
             appConfig: [],
@@ -325,8 +325,12 @@ export class Entry {
         glitter.htmlGenerate.setHome({
             app_config: vm.appConfig,
             page_config: (_a = window.parent.page_config) !== null && _a !== void 0 ? _a : {},
-            config: window.parent.editerData.setting,
-            editMode: window.parent.editerData,
+            get config() {
+                return window.parent.editerData.setting;
+            },
+            get editMode() {
+                return window.parent.editerData;
+            },
             data: {},
             tag: window.parent.glitter.getUrlParameter('page'),
         });

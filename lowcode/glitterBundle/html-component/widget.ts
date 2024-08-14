@@ -1,5 +1,4 @@
 import {HtmlJson, Plugin} from "../plugins/plugin-creater.js";
-import {Glitter} from "../Glitter.js";
 import {GVC} from "../GVController.js";
 import {TriggerEvent} from "../plugins/trigger-event.js";
 import {EditorElem} from "../plugins/editor-elem.js";
@@ -10,7 +9,6 @@ import {Storage} from "../helper/storage.js";
 import {NormalPageEditor} from "../../editor/normal-page-editor.js";
 import {GlobalWidget} from "./global-widget.js";
 import {CustomStyle} from "./custom-style.js";
-import {HtmlGenerate} from "../module/html-generate";
 
 export const widgetComponent = {
     render: (gvc: GVC, widget: HtmlJson, setting: any, hoverID: string[], sub: any, htmlGenerate: any, document?: any) => {
@@ -132,13 +130,6 @@ export const widgetComponent = {
                                         containerID: id,
                                         tag: (widget as any).tag,
                                         onCreate: () => {
-                                            TriggerEvent.trigger({
-                                                gvc,
-                                                widget: widget as any,
-                                                clickEvent: (widget as any).onCreateEvent,
-                                                subData: subData,
-                                                element: gvc.getBindViewElem(id).get(0)
-                                            })
                                             gvc.glitter.document.querySelector(`[gvc-id="${gvc.id(id)}"]`).onResumeEvent = () => {
                                                 TriggerEvent.trigger({
                                                     gvc,
@@ -147,75 +138,84 @@ export const widgetComponent = {
                                                     subData: subData
                                                 })
                                             }
-                                            if (widget.data._layout === 'grid' && (((gvc.glitter.window.parent as any).editerData !== undefined) || ((gvc.glitter.window as any).editerData !== undefined)) && htmlGenerate.root) {
-                                                const html = String.raw
-                                                const tempID=gvc.glitter.getUUID()
-                                                function rerenderReplaceElem(){
-                                                    gvc.glitter.$('.'+tempID).remove();
-                                                    widget.data.setting.need_count=parseInt(widget.data._x_count, 10) * parseInt(widget.data._y_count, 10)
-                                                    for(let b=widget.data.setting.length;b<widget.data.setting.need_count;b++){
-                                                        gvc.glitter.$(`.editor_it_${id}`).append(
-                                                            html`<div
+                                            setTimeout(()=>{
+                                                if (widget.data._layout === 'grid' && (((gvc.glitter.window.parent as any).editerData !== undefined) || ((gvc.glitter.window as any).editerData !== undefined)) && htmlGenerate.root) {
+                                                    const html = String.raw
+                                                    const tempID=gvc.glitter.getUUID()
+                                                    function rerenderReplaceElem(){
+                                                        gvc.glitter.$('.'+tempID).remove();
+                                                        widget.data.setting.need_count=parseInt(widget.data._x_count, 10) * parseInt(widget.data._y_count, 10)
+                                                        for(let b=widget.data.setting.length;b<widget.data.setting.need_count;b++){
+                                                            gvc.glitter.$(`.editor_it_${id}`).append(
+                                                                html`<div
                                                                         class="d-flex align-items-center justify-content-center flex-column rounded-3 w-100 py-3 ${tempID}"
                                                                         style="background: lightgrey;color: #393939;cursor: pointer;min-height: 100px;left: 0px;top:0px;width: 100%;height: 100%;"
                                                                         onmousedown="${gvc.event(() => {
-                                                                glitter.getModule(new URL(gvc.glitter.root_path + 'editor/add-component.js').href, (AddComponent: any) => {
-                                                                    glitter.share.editorViewModel.selectContainer = widget.data.setting;
-                                                                    AddComponent.toggle(true);
-                                                                    AddComponent.addWidget = (gvc: GVC, cf: any) => {
-                                                                        (window.parent as any).glitter.share.editorViewModel.selectContainer = widget.data.setting;
-                                                                        (window.parent as any).glitter.share.addComponent(cf);
-                                                                        AddComponent.toggle(false);
-                                                                    };
-                                                                    AddComponent.addEvent = (gvc: GVC, tdata: any) => {
-                                                                        (window.parent as any).glitter.share.editorViewModel.selectContainer = widget.data.setting;
-                                                                        (window.parent as any).glitter.share.addComponent({
-                                                                            id: gvc.glitter.getUUID(),
-                                                                            js: './official_view_component/official.js',
-                                                                            css: {
-                                                                                class: {},
-                                                                                style: {},
-                                                                            },
-                                                                            data: {
-                                                                                refer_app: tdata.copyApp,
-                                                                                tag: tdata.copy,
-                                                                                list: [],
-                                                                                carryData: {},
-                                                                                _style_refer_global: {
-                                                                                    index: `0`,
+                                                                    glitter.getModule(new URL(gvc.glitter.root_path + 'editor/add-component.js').href, (AddComponent: any) => {
+                                                                        glitter.share.editorViewModel.selectContainer = widget.data.setting;
+                                                                        AddComponent.toggle(true);
+                                                                        AddComponent.addWidget = (gvc: GVC, cf: any) => {
+                                                                            (window.parent as any).glitter.share.editorViewModel.selectContainer = widget.data.setting;
+                                                                            (window.parent as any).glitter.share.addComponent(cf);
+                                                                            AddComponent.toggle(false);
+                                                                        };
+                                                                        AddComponent.addEvent = (gvc: GVC, tdata: any) => {
+                                                                            (window.parent as any).glitter.share.editorViewModel.selectContainer = widget.data.setting;
+                                                                            (window.parent as any).glitter.share.addComponent({
+                                                                                id: gvc.glitter.getUUID(),
+                                                                                js: './official_view_component/official.js',
+                                                                                css: {
+                                                                                    class: {},
+                                                                                    style: {},
                                                                                 },
-                                                                            },
-                                                                            type: 'component',
-                                                                            class: 'w-100',
-                                                                            index: 0,
-                                                                            label: tdata.title,
-                                                                            style: '',
-                                                                            bundle: {},
-                                                                            global: [],
-                                                                            toggle: false,
-                                                                            stylist: [],
-                                                                            dataType: 'static',
-                                                                            style_from: 'code',
-                                                                            classDataType: 'static',
-                                                                            preloadEvenet: {},
-                                                                            share: {},
-                                                                        });
-                                                                        AddComponent.toggle(false);
-                                                                    };
-                                                                });
-                                                            })}"
+                                                                                data: {
+                                                                                    refer_app: tdata.copyApp,
+                                                                                    tag: tdata.copy,
+                                                                                    list: [],
+                                                                                    carryData: {},
+                                                                                    _style_refer_global: {
+                                                                                        index: `0`,
+                                                                                    },
+                                                                                },
+                                                                                type: 'component',
+                                                                                class: 'w-100',
+                                                                                index: 0,
+                                                                                label: tdata.title,
+                                                                                style: '',
+                                                                                bundle: {},
+                                                                                global: [],
+                                                                                toggle: false,
+                                                                                stylist: [],
+                                                                                dataType: 'static',
+                                                                                style_from: 'code',
+                                                                                classDataType: 'static',
+                                                                                preloadEvenet: {},
+                                                                                share: {},
+                                                                            });
+                                                                            AddComponent.toggle(false);
+                                                                        };
+                                                                    });
+                                                                })}"
                                                                 >
                                                                     <i class="fa-regular fa-circle-plus text-black"
                                                                        style="font-size: 60px;"></i>
                                                                     <span class="fw-500 fs-5 mt-3">添加元件</span>
                                                                 </div>`
-                                                        );
+                                                            );
 
+                                                        }
                                                     }
+                                                    widget.data.setting.rerenderReplaceElem=rerenderReplaceElem
+                                                    rerenderReplaceElem()
                                                 }
-                                                widget.data.setting.rerenderReplaceElem=rerenderReplaceElem
-                                                rerenderReplaceElem()
-                                            }
+                                            },200)
+                                            TriggerEvent.trigger({
+                                                gvc,
+                                                widget: widget as any,
+                                                clickEvent: (widget as any).onCreateEvent,
+                                                subData: subData,
+                                                element: gvc.getBindViewElem(id).get(0)
+                                            })
                                         },
                                         onDestroy: () => {
                                             TriggerEvent.trigger({
@@ -447,6 +447,7 @@ export const widgetComponent = {
 
             },
             editor: () => {
+
                 if (widget.type === 'container' && Storage.select_function === 'user-editor' || localStorage.getItem('uasi') === 'user_editor') {
                     return gvc.bindView(() => {
                         const id = gvc.glitter.getUUID()

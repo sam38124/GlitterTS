@@ -17,7 +17,6 @@ import { SetGlobalValue } from '../editor/set-global-value.js';
 import { PageCodeSetting } from '../editor/page-code-setting.js';
 import { NormalPageEditor } from '../editor/normal-page-editor.js';
 import { EditorConfig } from '../editor-config.js';
-import { HtmlGenerate } from '../glitterBundle/module/html-generate.js';
 import { all } from 'underscore/index.js';
 import { BgCustomerMessage } from '../backend-manager/bg-customer-message.js';
 
@@ -415,7 +414,8 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
             localStorage.setItem('rightSelect', 'module');
             glitter.share.selectEditorItemTimer && clearInterval(glitter.share.selectEditorItemTimer);
             glitter.share.selectEditorItemTimer = setTimeout(() => {
-                gvc.notifyDataChange(['MainEditorLeft', 'right_NAV']);
+                // gvc.notifyDataChange(['MainEditorLeft', 'right_NAV']);
+                gvc.notifyDataChange(['MainEditorLeft','right_NAV']);
             }, 10);
             // gvc.notifyDataChange('htmlGenerate')
         };
@@ -728,7 +728,7 @@ function initialEditor(gvc: GVC, viewModel: any) {
         data.js = data.js.replace(url.href, './');
         viewModel.selectContainer.push(data);
         Storage.lastSelect = data.id;
-        HtmlGenerate.hover_items = [Storage.lastSelect];
+        glitter.htmlGenerate.hover_items = [Storage.lastSelect];
 data.data._style_refer_global = {
     index: `0`
 }
@@ -736,7 +736,7 @@ data.data._style_refer_global = {
             viewModel.selectContainer.container_config.getElement().recreateView();
         } else {
             $(viewModel.selectContainer.container_config.getElement()).append(
-                HtmlGenerate.renderWidgetSingle({
+                glitter.htmlGenerate.renderWidgetSingle({
                     widget: data,
                     gvc: viewModel.selectContainer.container_config.gvc,
                     option: viewModel.selectContainer.container_config.option,
@@ -748,18 +748,17 @@ data.data._style_refer_global = {
                 })
             );
         }
-        viewModel.selectContainer.rerenderReplaceElem && viewModel.selectContainer.rerenderReplaceElem()
-        setTimeout(() => {
-            HtmlGenerate.selectWidget({
+        setTimeout(()=>{
+            glitter.htmlGenerate.selectWidget({
                 widget: data,
                 widgetComponentID: data.id,
                 gvc: viewModel.selectContainer.container_config.gvc,
                 scroll_to_hover: true,
                 glitter: glitter,
             });
-
-        }, 100);
+        },100)
         AddComponent.toggle(false);
+        viewModel.selectContainer && viewModel.selectContainer.rerenderReplaceElem && viewModel.selectContainer.rerenderReplaceElem()
     };
     //添加Component至指定索引
     glitter.share.addWithIndex = (cf: { data: any; index: string; direction: number }) => {
@@ -775,12 +774,10 @@ data.data._style_refer_global = {
             arrayData.container.splice(arrayData.index, 0, cf.data);
         }
         Storage.lastSelect = cf.data.id;
-        HtmlGenerate.hover_items = [Storage.lastSelect];
-
+        glitter.htmlGenerate.hover_items = [Storage.lastSelect];
         const $ = ((document.querySelector('#editerCenter iframe') as any).contentWindow as any).$;
-
         $(
-            HtmlGenerate.renderWidgetSingle({
+            glitter.htmlGenerate.renderWidgetSingle({
                 widget: cf.data,
                 gvc: arrayData.container.container_config.gvc,
                 option: arrayData.container.container_config.option,
@@ -791,16 +788,18 @@ data.data._style_refer_global = {
                 root: arrayData.container.container_config.root,
             })
         )[cf.direction === 1 ? 'insertAfter' : 'insertBefore']($(`.editor_it_${cf.index}`).parent());
-        viewModel.selectContainer.rerenderReplaceElem && viewModel.selectContainer.rerenderReplaceElem();
-        setTimeout(() => {
-            HtmlGenerate.selectWidget({
+        //
+        setTimeout(()=>{
+           glitter.htmlGenerate.selectWidget({
                 widget: cf.data,
                 widgetComponentID: cf.data.id,
                 gvc: arrayData.container.container_config.gvc,
                 scroll_to_hover: true,
                 glitter: glitter,
             });
-        }, 50);
+        },50)
+        AddComponent.toggle(false);
+        viewModel.selectContainer && viewModel.selectContainer.rerenderReplaceElem && viewModel.selectContainer.rerenderReplaceElem();
     };
     //部落格編輯模式
     if (glitter.getUrlParameter('blogEditor') === 'true') {

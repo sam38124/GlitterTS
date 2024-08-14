@@ -67,28 +67,21 @@ export class ShoppingFinanceSetting {
                                         view: () => {
                                             return html `
                                                             <div class="c_card d-flex flex-column" style="gap:18px;">
-                                                                <div class="tx_normal fw-bold">金流選擇</div>
+                                                                <div class="tx_normal fw-bold">線上金流</div>
                                                                 ${[
                                                 {
-                                                    title: html ` <div class="d-flex flex-column">
+                                                    title: html `<div class="d-flex flex-column">
                                                                             藍新金流
                                                                             <span class="" style="color:#8D8D8D;font-size: 12px;">透過藍新服務商串接線上付款功能</span>
                                                                         </div>`,
                                                     value: 'newWebPay',
                                                 },
                                                 {
-                                                    title: html ` <div class="d-flex flex-column">
+                                                    title: html `<div class="d-flex flex-column">
                                                                             綠界金流
                                                                             <span class="" style="color:#8D8D8D;font-size: 12px;">透過綠界服務商串接線上付款功能</span>
                                                                         </div>`,
                                                     value: 'ecPay',
-                                                },
-                                                {
-                                                    title: html ` <div class="d-flex flex-column">
-                                                                            線下付款
-                                                                            <span class="" style="color:#8D8D8D;font-size: 12px;">不執行線上付款，由店家自行與消費者商議付款方式</span>
-                                                                        </div>`,
-                                                    value: 'off_line',
                                                 },
                                             ]
                                                 .map((dd) => {
@@ -106,6 +99,10 @@ export class ShoppingFinanceSetting {
                                                             else {
                                                                 keyData.ActionURL = 'https://payment-stage.ecpay.com.tw/Cashier/AioCheckOut/V5';
                                                             }
+                                                            gvc.notifyDataChange(id);
+                                                        }
+                                                        else {
+                                                            keyData.TYPE = 'off_line';
                                                             gvc.notifyDataChange(id);
                                                         }
                                                     })}"
@@ -269,6 +266,42 @@ export class ShoppingFinanceSetting {
                                                                         </div>`;
                                             })
                                                 .join('')}
+                                                                <div class="my-3 border-bottom"></div>
+                                                                <div class="tx_normal fw-bold">線下付款</div>
+                                                                ${[
+                                                BgWidget.inlineCheckBox({
+                                                    title: '付款方式(多選)',
+                                                    gvc: gvc,
+                                                    def: ['atm', 'line', 'cash_on_delivery'].filter((dd) => {
+                                                        return keyData.off_line_support[dd];
+                                                    }),
+                                                    array: [
+                                                        {
+                                                            title: 'ATM銀行轉帳',
+                                                            value: 'atm',
+                                                        },
+                                                        {
+                                                            title: 'LINE Pay',
+                                                            value: 'line',
+                                                        },
+                                                        {
+                                                            title: '貨到付款',
+                                                            value: 'cash_on_delivery',
+                                                        },
+                                                    ],
+                                                    callback: (array) => {
+                                                        ['atm', 'line', 'cash_on_delivery'].map((dd) => {
+                                                            keyData.off_line_support[dd] = !!array.find((d1) => {
+                                                                return d1 === dd;
+                                                            });
+                                                        });
+                                                    },
+                                                    type: 'multiple',
+                                                }),
+                                                `<div class="my-1 w-100 border-bottom"></div>`,
+                                                ShoppingFinanceSetting.atm(gvc, keyData),
+                                                ShoppingFinanceSetting.line_pay(gvc, keyData),
+                                            ].join('')}
                                                             </div>
                                                         `;
                                         },

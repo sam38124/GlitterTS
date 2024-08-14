@@ -58,7 +58,6 @@ const html = String.raw;
 
 export class HtmlGenerate {
     public static share: any = {};
-
     public static isEditMode = isEditMode;
 
     public static resourceHook: (src: string) => string = (src) => {
@@ -2139,7 +2138,7 @@ ${e.line}
         const widgetComponentID = cf.widgetComponentID;
         const event = cf.event;
         let glitter = (window as any).glitter;
-        while (!glitter.share.editorViewModel) {
+        if (!glitter.share.editorViewModel) {
             glitter = (window.parent as any).glitter;
         }
         function active() {
@@ -2183,65 +2182,6 @@ ${e.line}
         return [
             (() => {
                 return  ``
-                if (widget && widget.type === 'container' && widget.data.setting && widget.data.setting.length === 0) {
-                    const addID = gvc.glitter.getUUID();
-                    return html` <div class="${addID}" style="min-height: 250px;"></div>
-                        <div
-                            class="d-flex align-items-center justify-content-center flex-column rounded-3 position-absolute ${addID}"
-                            style="background: lightgrey;color: #393939;cursor: pointer;min-height: 250px;left: 0px;top:0px;width: 100%;height: 100%;"
-                            onmousedown="${gvc.event(() => {
-                                glitter.getModule(new URL(gvc.glitter.root_path + 'editor/add-component.js').href, (AddComponent: any) => {
-                                    glitter.share.editorViewModel.selectContainer = widget.data.setting;
-                                    AddComponent.toggle(true);
-                                    AddComponent.addWidget = (gvc: GVC, cf: any) => {
-                                        (window.parent as any).glitter.share.editorViewModel.selectContainer = widget.data.setting;
-                                        (window.parent as any).glitter.share.addComponent(cf);
-                                        cf.gvc.glitter.document.querySelector('#' + addID).remove();
-                                    };
-                                    AddComponent.addEvent = (gvc: GVC, tdata: any) => {
-                                        (window.parent as any).glitter.share.editorViewModel.selectContainer = widget.data.setting;
-                                        (window.parent as any).glitter.share.addComponent({
-                                            id: gvc.glitter.getUUID(),
-                                            js: './official_view_component/official.js',
-                                            css: {
-                                                class: {},
-                                                style: {},
-                                            },
-                                            data: {
-                                                refer_app: tdata.copyApp,
-                                                tag: tdata.copy,
-                                                list: [],
-                                                carryData: {},
-                                                _style_refer_global: {
-                                                    index: `0`,
-                                                },
-                                            },
-                                            type: 'component',
-                                            class: 'w-100',
-                                            index: 0,
-                                            label: tdata.title,
-                                            style: '',
-                                            bundle: {},
-                                            global: [],
-                                            toggle: false,
-                                            stylist: [],
-                                            dataType: 'static',
-                                            style_from: 'code',
-                                            classDataType: 'static',
-                                            preloadEvenet: {},
-                                            share: {},
-                                        });
-                                        cf.gvc.glitter.document.querySelector('#' + addID).remove();
-                                    };
-                                });
-                            })}"
-                        >
-                            <i class="fa-regular fa-circle-plus text-black" style="font-size: 80px;"></i>
-                            <span class="fw-500 fs-5 mt-3">添加元件</span>
-                        </div>`;
-                } else {
-                    return ``;
-                }
             })(),
             cf.gvc.bindView(() => {
                 const id = cf.gvc.glitter.getUUID();

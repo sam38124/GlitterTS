@@ -111,7 +111,10 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                     class: ``,
                     style: ``,
                     app_config: gBundle.app_config,
-                    page_config: gBundle.page_config
+                    page_config: gBundle.page_config,
+                    onCreate:()=>{
+                        console.log(`createRender`)
+                    }
                 }))
             } else {
                 vm.loading = false

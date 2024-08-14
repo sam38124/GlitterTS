@@ -440,9 +440,6 @@ export class Main_editor {
                 },
                 divCreate: { class: `swiper-slide h-100 position-relative` },
                 onCreate: () => {
-                    const htmlGenerate = new gvc.glitter.htmlGenerate(viewModel.data.config, [Storage.lastSelect], undefined, true);
-                    window.editerData = htmlGenerate;
-                    window.page_config = viewModel.data.page_config;
                 },
             };
         });

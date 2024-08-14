@@ -9,7 +9,6 @@ import { EditorConfig } from './editor-config.js';
 
 export class Entry {
     public static onCreate(glitter: Glitter) {
-
         glitter.share.reload_code_hash = function () {
             const hashCode = (window as any).preloadData.eval_code_hash || {};
             Object.keys(hashCode).map((dd, index) => {
@@ -54,7 +53,7 @@ export class Entry {
         }
         (window as any).renderClock = (window as any).renderClock ?? clockF();
         console.log(`Entry-time:`, (window as any).renderClock.stop());
-        glitter.share.editerVersion = "V_10.3.1";
+        glitter.share.editerVersion = "V_10.4.5";
         glitter.share.start = (new Date());
         const vm: {
             appConfig: any;
@@ -140,6 +139,7 @@ export class Entry {
                 // 頁面編輯器
                 Entry.toBackendEditor(glitter, () => {});
             } else if (glitter.getUrlParameter('type') === 'htmlEditor') {
+
                 // Iframe預覽區塊
                 Entry.toHtmlEditor(glitter, vm, () => {
                     Entry.checkIframe(glitter);
@@ -365,8 +365,12 @@ export class Entry {
         glitter.htmlGenerate.setHome({
             app_config: vm.appConfig,
             page_config: (window.parent as any).page_config ?? {},
-            config: (window.parent as any).editerData.setting,
-            editMode: (window.parent as any).editerData,
+            get config(){
+                return (window.parent as any).editerData.setting
+            },
+            get editMode(){
+                return (window.parent as any).editerData
+            },
             data: {},
             tag: (window.parent as any).glitter.getUrlParameter('page'),
         });

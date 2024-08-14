@@ -429,11 +429,9 @@ class Shopping {
             carData.payment_setting = {
                 TYPE: keyData.TYPE,
             };
-            if (keyData.TYPE === 'off_line') {
-                carData.off_line_support = keyData.off_line_support;
-                carData.payment_info_line_pay = keyData.payment_info_line_pay;
-                carData.payment_info_atm = keyData.payment_info_atm;
-            }
+            carData.off_line_support = keyData.off_line_support;
+            carData.payment_info_line_pay = keyData.payment_info_line_pay;
+            carData.payment_info_atm = keyData.payment_info_atm;
             if (type === 'preview' || type === 'manual-preview')
                 return { data: carData };
             if (type !== 'manual') {
@@ -537,13 +535,13 @@ class Shopping {
                     appName: this.app,
                     key: 'glitter_finance',
                 }))[0].value;
-                if (keyData.TYPE === 'off_line') {
+                if ((carData.customer_info.payment_select !== 'ecPay') && (carData.customer_info.payment_select !== 'newWebPay')) {
+                    carData.method = 'off_line';
                     new notify_js_1.ManagerNotify(this.app).checkout({
                         orderData: carData,
                         status: 0,
                     });
                     await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-order-create', carData.orderID, carData.email);
-                    carData.method = 'off_line';
                     await database_js_1.default.execute(`INSERT INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
                          values (?, ?, ?, ?)`, [carData.orderID, 0, carData.email, carData]);
                     return {

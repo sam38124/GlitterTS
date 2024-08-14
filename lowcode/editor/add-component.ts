@@ -635,6 +635,7 @@ export class AddComponent {
                                                                                                 formData: {},
                                                                                             };
                                                                                             config.label = `網格容器`;
+                                                                                            // callback(dd)
                                                                                             AddComponent.addWidget(gvc, config);
                                                                                         }else{
                                                                                            callback(dd)

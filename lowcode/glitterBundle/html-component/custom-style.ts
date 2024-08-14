@@ -564,7 +564,6 @@ export class CustomStyle {
                                                                     index: index
                                                                 };
                                                                 (callback || widget.refreshComponent)();
-
                                                                 gvc.notifyDataChange(id)
                                                             })
                                                         } else {
@@ -867,11 +866,7 @@ background: #F7F7F7;">${CustomStyle.renderMarginEditor(gvc, widget, callback)}
             if (!globalValue.container_theme.find((dd: any, index: number) => {
                 return index === parseInt(def, 10)
             })) {
-                if (def !== '') {
-                    callback('')
-                } else {
-                    def = ''
-                }
+                def = ''
             }
             return {
                 bind: vm.id,

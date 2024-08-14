@@ -674,11 +674,9 @@ export class Shopping {
             (carData as any).payment_setting = {
                 TYPE: keyData.TYPE,
             };
-            if (keyData.TYPE === 'off_line') {
-                (carData as any).off_line_support = keyData.off_line_support;
-                (carData as any).payment_info_line_pay = keyData.payment_info_line_pay;
-                (carData as any).payment_info_atm = keyData.payment_info_atm;
-            }
+            (carData as any).off_line_support = keyData.off_line_support;
+            (carData as any).payment_info_line_pay = keyData.payment_info_line_pay;
+            (carData as any).payment_info_atm = keyData.payment_info_atm;
             if (type === 'preview' || type === 'manual-preview') return { data: carData };
             // ================================ Add DOWN ================================
             // 手動結帳地方判定
@@ -813,7 +811,8 @@ export class Shopping {
                     })
                 )[0].value;
                 // 線下付款
-                if (keyData.TYPE === 'off_line') {
+                if ((carData.customer_info.payment_select !=='ecPay') && (carData.customer_info.payment_select !=='newWebPay')) {
+                    carData.method = 'off_line';
                     // 訂單成立信件通知
                     new ManagerNotify(this.app).checkout({
                         orderData: carData,
@@ -821,7 +820,6 @@ export class Shopping {
                     });
                     await AutoSendEmail.customerOrder(this.app, 'auto-email-order-create', carData.orderID, carData.email);
 
-                    carData.method = 'off_line';
                     await db.execute(
                         `INSERT INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
                          values (?, ?, ?, ?)`,
