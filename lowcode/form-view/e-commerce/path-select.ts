@@ -13,6 +13,7 @@ interface MenuItem {
 interface CollecrtionItem {
     title: string;
     array?: CollecrtionItem[];
+    code: string;
 }
 
 export class PathSelect {
@@ -42,8 +43,8 @@ export class PathSelect {
         // 遞迴類別資料的物件
         const setCollectionPath = (target: MenuItem[], data: CollecrtionItem[]) => {
             (data || []).map((item, index) => {
-                const { title, array } = item;
-                target.push({ name: title, icon: '', link: `/all-product?collection=${title}` });
+                const { title, array, code } = item;
+                target.push({ name: title, icon: '', link: `/all-product?collection=${code}` });
                 if (array && array.length > 0) {
                     target[index].items = [];
                     setCollectionPath(target[index].items as MenuItem[], array);
