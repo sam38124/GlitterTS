@@ -721,7 +721,7 @@ ${obj.default ?? ''}</textarea
         const setCollectionPath = (target: MenuItem[], data: CollecrtionItem[]) => {
             (data || []).map((item, index) => {
                 const { title, array, code } = item;
-                target.push({ name: title, icon: '', link: `/all-product?collection=${code}` });
+                target.push({ name: title, icon: '', link: `/collections/${code}` });
                 if (array && array.length > 0) {
                     target[index].items = [];
                     setCollectionPath(target[index].items as MenuItem[], array);

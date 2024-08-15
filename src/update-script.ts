@@ -6,9 +6,9 @@ export class UpdateScript {
             return dd.appName
         }).concat(['shop-template-clothing-v3'])
         // UpdateScript.migrateTermsOfService(['3131_shop', 't_1717152410650', 't_1717141688550', 't_1717129048727', 't_1719819344426'])
-        // UpdateScript.migrateHeaderAndFooterAndCollection(migrate_template.filter((dd:any)=>{
-        //     return dd !=='t_1719819344426'
-        // }))
+        UpdateScript.migrateHeaderAndFooterAndCollection(migrate_template.filter((dd:any)=>{
+            return dd !=='t_1719819344426'
+        }))
         // UpdateScript.migrateAccount('shop_template_black_style')
         // await UpdateScript.migrateLink(migrate_template)
         //  await UpdateScript.migrateHeaderAndFooter(migrate_template)
@@ -21,9 +21,9 @@ export class UpdateScript {
         // }),['about-us','privacy','terms','sample1','sample2','sample3'])
         // t_1719819344426
         // await this.migrateSinglePage(migrate_template.reverse())
-        await this.migrateInitialConfig(migrate_template.filter((dd:any)=>{
-            return dd !=='t_1719819344426'
-        }))
+        // await this.migrateInitialConfig(migrate_template.filter((dd:any)=>{
+        //     return dd !=='t_1719819344426'
+        // }))
         // await this.migrateHomePageFooter(migrate_template)
     }
 
@@ -362,7 +362,7 @@ export class UpdateScript {
 
     public static async migrateHeaderAndFooterAndCollection(appList: string[]) {
         const rebate_page = (await db.query(`SELECT *
-                                             FROM shop_template_black_style.t_user_public_config
+                                             FROM t_1719819344426.t_user_public_config
                                              where \`key\` in ('menu-setting', 'footer-setting','blog_collection');`, []));
         for (const b of appList) {
             for (const c of rebate_page) {

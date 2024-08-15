@@ -553,7 +553,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         const setCollectionPath = (target, data) => {
             (data || []).map((item, index) => {
                 const { title, array, code } = item;
-                target.push({ name: title, icon: '', link: `/all-product?collection=${code}` });
+                target.push({ name: title, icon: '', link: `/collections/${code}` });
                 if (array && array.length > 0) {
                     target[index].items = [];
                     setCollectionPath(target[index].items, array);
