@@ -185,7 +185,6 @@ export class GlobalWidget {
                                     }
                                 })()}版上${(obj.widget[key].refer === 'hide') ? `不` : ``}顯示</h3>
 ${GlobalWidget.switchButton(obj.gvc, obj.widget[key].refer !== 'hide', (bool) => {
-                                    alert('s');
                                     if (bool) {
                                         obj.widget[key].refer = 'def';
                                     }

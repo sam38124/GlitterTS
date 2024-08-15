@@ -189,7 +189,6 @@ export class ApiPageConfig {
         favorite?: number,
         preview_image?: string
     }) {
-        console.log(`setPage->`, data)
         return BaseApi.create({
             "url": config.url + `/api/v1/template`,
             "type": "PUT",
@@ -385,7 +384,7 @@ export class ApiPageConfig {
             })
         })
     }
-    public static async uploadFileAll(files:File | File[]){
+    public static async uploadFileAll(files:File | File[],type:'blob'|'file'='file'){
         if(!Array.isArray(files)){files=[files]}
         let result=true
         let links:string[]=[]
@@ -418,7 +417,7 @@ export class ApiPageConfig {
                        const reader = new FileReader();
                        reader.onload = function(e) {
                            const img = new Image();
-                           img.src = URL.createObjectURL(file);;
+                           img.src = URL.createObjectURL(file);
                            img.onload =  function() {
                                // 获取图像宽度和高度
                                const og_width = img.width;

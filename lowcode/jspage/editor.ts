@@ -467,9 +467,8 @@ color: transparent;"
                                     }
                                 })()}
                                 <div
-                                    class="d-none d-sm-flex align-items-center justify-content-center hoverBtn ms-1 me-2 border bg-white
-${glitter.share.editorViewModel.homePage === glitter.getUrlParameter('page') ? `d-none` : ``}
-${glitter.share.editor_vm ? `d-none` : ``}
+                                    class=" align-items-center justify-content-center hoverBtn ms-1 me-2 border bg-white
+${glitter.getUrlParameter('tab')==='page_manager' ? `d-none` : `${glitter.share.editorViewModel.homePage === glitter.getUrlParameter('page') ? `d-none` : `d-none d-sm-flex`}`}
 "
                                     style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
                                     data-bs-toggle="tooltip"
@@ -485,8 +484,8 @@ ${glitter.share.editor_vm ? `d-none` : ``}
                                     <i class="fa-regular fa-house"></i>
                                 </div>
                                 <div
-                                    class="d-none d-sm-flex align-items-center justify-content-center hoverBtn me-2 border
-${glitter.share.editor_vm ? `d-none` : ``}"
+                                    class=" align-items-center justify-content-center hoverBtn me-2 border
+${glitter.getUrlParameter('tab')==='page_manager' ? `d-none` : `d-none d-sm-flex`}"
                                     style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
                                     data-bs-toggle="tooltip"
                                     data-bs-placement="top"
@@ -552,7 +551,7 @@ ${glitter.share.editor_vm ? `d-none` : ``}"
                                         </div>`;
                                     },
                                     divCreate: {
-                                        class: `d-none d-sm-block`,
+                                        class: ` d-none d-sm-block`,
                                     },
                                 })}
                                 ${document.body.clientWidth < 768

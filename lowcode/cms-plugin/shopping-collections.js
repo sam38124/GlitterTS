@@ -137,7 +137,10 @@ export class ShoppingCollections {
                                         ApiShop.getCollection().then((data) => {
                                             if (data.result && data.response.value.length > 0) {
                                                 vm.allParents = ['(無)'].concat(data.response.value.map((item) => item.title));
-                                                const collections = updateCollections({ products, collections: data.response.value });
+                                                const collections = updateCollections({
+                                                    products,
+                                                    collections: data.response.value
+                                                });
                                                 function getDatalist() {
                                                     return collections.map((dd) => {
                                                         return [
@@ -169,18 +172,20 @@ export class ShoppingCollections {
                                                             {
                                                                 key: '標題',
                                                                 value: html `<span class="fs-7"
-                                                                                    >${(() => {
+                                                                                        >${(() => {
                                                                     if (dd.parentTitles && dd.parentTitles.length > 0) {
-                                                                        return html `<i class="fa-solid fa-arrow-turn-down-right me-2"></i>${dd.parentTitles.join(' / ')} /
+                                                                        return html `<i
+                                                                                                        class="fa-solid fa-arrow-turn-down-right me-2"></i>${dd.parentTitles.join(' / ')} /
                                                                                                 ${dd.title}`;
                                                                     }
                                                                     return dd.title;
                                                                 })()}</span
-                                                                                >`,
+                                                                                        >`,
                                                             },
                                                             {
                                                                 key: '商品數量',
-                                                                value: html `<span class="fs-7">${dd.product_id ? dd.product_id.length : 0}</span>`,
+                                                                value: html `<span
+                                                                                                class="fs-7">${dd.product_id ? dd.product_id.length : 0}</span>`,
                                                             },
                                                         ];
                                                     });
@@ -294,17 +299,22 @@ export class ShoppingCollections {
                 bind: viewID,
                 view: () => {
                     var _a, _b, _c;
+                    const prefixURL = `https://${window.parent.glitter.share.editorViewModel.domain}/collections/`;
                     return BgWidget.container([
-                        html `<div class="d-flex w-100 align-items-center">
-                                ${BgWidget.goBack(gvc.event(() => {
+                        html `
+                                <div class="d-flex w-100 align-items-center">
+                                    ${BgWidget.goBack(gvc.event(() => {
                             vm.type = 'list';
                         }))}
-                                ${BgWidget.title(obj.type === 'add' ? '新增類別' : '編輯類別')}
-                            </div>`,
-                        html `<div class="d-flex justify-content-center ${document.body.clientWidth < 768 ? 'flex-column' : ''}" style="gap: 24px">
-                                ${BgWidget.container([
-                            BgWidget.mainCard(html ` <div class="tx_700" style="margin-bottom: 18px">分類標題</div>
-                                            ${EditorElem.editeInput({
+                                    ${BgWidget.title(obj.type === 'add' ? '新增類別' : '編輯類別')}
+                                </div>`,
+                        html `
+                                <div class="d-flex justify-content-center ${document.body.clientWidth < 768 ? 'flex-column' : ''}"
+                                     style="gap: 24px">
+                                    ${BgWidget.container([
+                            BgWidget.mainCard(html `
+                                                    <div class="tx_700" style="margin-bottom: 18px">分類標題</div>
+                                                    ${EditorElem.editeInput({
                                 gvc: gvc,
                                 title: '',
                                 default: vm.data.title,
@@ -313,19 +323,68 @@ export class ShoppingCollections {
                                     vm.data.title = text;
                                 },
                             })}`),
-                            BgWidget.mainCard(html ` <div class="tx_700">類別代號</div>
-                                            <div style="margin: 4px 0 8px;">${BgWidget.grayNote('是一段唯一的識別碼，用於連結網址的代號，僅限使用中英文數字', 'font-size: 14px;')}</div>
-                                            ${EditorElem.editeInput({
-                                gvc: gvc,
-                                title: '',
-                                default: vm.data.code,
-                                placeHolder: '請輸入類別代號',
-                                callback: (text) => {
-                                    vm.data.code = text;
-                                },
-                            })}`),
-                            BgWidget.mainCard(html ` <div class="tx_700" style="margin-bottom: 18px">商品</div>
-                                            ${(() => {
+                            gvc.bindView(() => {
+                                const viewID = gvc.glitter.getUUID();
+                                return {
+                                    bind: viewID,
+                                    view: () => {
+                                        var _a;
+                                        return BgWidget.mainCard([html `
+                                                    <div class="tx_normal fw-normal mb-2">連結網址</div>`,
+                                            html `
+                                                        <div
+                                                                style="  justify-content: flex-start; align-items: center; display: inline-flex;border:1px solid #EAEAEA;border-radius: 10px;overflow: hidden; ${document
+                                                .body.clientWidth > 768
+                                                ? 'gap: 18px; '
+                                                : 'flex-direction: column; gap: 0px; '}"
+                                                                class="w-100"
+                                                        >
+                                                            <div style="padding: 9px 18px;background: #EAEAEA; justify-content: center; align-items: center; gap: 5px; display: flex">
+                                                                <div
+                                                                        style="text-align: right; color: #393939; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word"
+                                                                >
+                                                                    ${prefixURL}
+                                                                </div>
+                                                            </div>
+                                                            <input
+                                                                    class="w-100"
+                                                                    style="border:none;background:none;text-align: start; color: #393939; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word; ${document
+                                                .body.clientWidth > 768
+                                                ? ''
+                                                : 'padding: 9px 18px;'}"
+                                                                    value="${vm.data.code || ''}"
+                                                                    onchange="${gvc.event((e) => {
+                                                let text = e.value;
+                                                const regex = /^[\u4e00-\u9fa5a-zA-Z0-9-]+$/;
+                                                if (!regex.test(text)) {
+                                                    const dialog = new ShareDialog(gvc.glitter);
+                                                    dialog.infoMessage({ text: '連結僅限使用中英文數字與連接號' });
+                                                }
+                                                else {
+                                                    vm.data.code = text;
+                                                }
+                                                gvc.notifyDataChange(viewID);
+                                            })}"
+                                                            />
+                                                        </div>`,
+                                            html `
+                                                        <div class="mt-2 mb-1">
+                                                                    <span class="tx_normal me-2">網址預覽</span
+                                                                    ><a class="fs-sm fw-500"
+                                                                        style="color:#006621;cursor: pointer;overflow-wrap: break-word;"
+                                                                        onclick="${gvc.event(() => {
+                                                var _a;
+                                                (window.parent).open(prefixURL + ((_a = vm.data.code) !== null && _a !== void 0 ? _a : ''));
+                                            })}">${prefixURL + ((_a = vm.data.code) !== null && _a !== void 0 ? _a : '')}</a
+                                                        >
+                                                        </div>`].join(''));
+                                    },
+                                    divCreate: {}
+                                };
+                            }),
+                            BgWidget.mainCard(html `
+                                                    <div class="tx_700" style="margin-bottom: 18px">商品</div>
+                                                    ${(() => {
                                 const pvm = {
                                     id: gvc.glitter.getUUID(),
                                     loading: true,
@@ -333,12 +392,13 @@ export class ShoppingCollections {
                                     productList: [],
                                 };
                                 return html `
-                                                    <div class="d-flex flex-column p-2" style="gap: 18px;">
-                                                        <div class="d-flex align-items-center gray-bottom-line-18" style="justify-content: space-between;">
-                                                            <div class="form-check-label c_updown_label">
-                                                                <div class="tx_normal">商品名稱</div>
-                                                            </div>
-                                                            ${BgWidget.grayButton('選擇商品', gvc.event(() => {
+                                                            <div class="d-flex flex-column p-2" style="gap: 18px;">
+                                                                <div class="d-flex align-items-center gray-bottom-line-18"
+                                                                     style="justify-content: space-between;">
+                                                                    <div class="form-check-label c_updown_label">
+                                                                        <div class="tx_normal">商品名稱</div>
+                                                                    </div>
+                                                                    ${BgWidget.grayButton('選擇商品', gvc.event(() => {
                                     BgWidget.selectDropDialog({
                                         gvc: gvc,
                                         title: '搜尋商品',
@@ -381,8 +441,8 @@ export class ShoppingCollections {
                                         style: 'width: 100%; background-position-x: 97.5%;',
                                     });
                                 }))}
-                                                        </div>
-                                                        ${gvc.bindView({
+                                                                </div>
+                                                                ${gvc.bindView({
                                     bind: pvm.id,
                                     view: () => {
                                         if (pvm.loading) {
@@ -393,17 +453,22 @@ export class ShoppingCollections {
                                         }
                                         return gvc.map(pvm.productList.map((opt, index) => {
                                             var _a;
-                                            return html `<div
-                                                                            class="form-check-label c_updown_label"
-                                                                            style="display: flex; align-items: center; min-height: 56px; gap: 8px;"
-                                                                        >
-                                                                            <span class="tx_normal">${index + 1}.</span>
-                                                                            <div style="line-height: 40px;">
-                                                                                <img class="rounded border me-1" src="${(_a = opt.image) !== null && _a !== void 0 ? _a : BgWidget.noImageURL}" style="width:40px; height:40px;" />
-                                                                            </div>
-                                                                            <span class="tx_normal">${opt.value}</span>
-                                                                            ${opt.note ? html ` <span class="tx_gray_12 ms-2">${opt.note}</span> ` : ''}
-                                                                        </div>`;
+                                            return html `
+                                                                                        <div
+                                                                                                class="form-check-label c_updown_label"
+                                                                                                style="display: flex; align-items: center; min-height: 56px; gap: 8px;"
+                                                                                        >
+                                                                                            <span class="tx_normal">${index + 1}
+                                                                                                .</span>
+                                                                                            <div style="line-height: 40px;">
+                                                                                                <img class="rounded border me-1"
+                                                                                                     src="${(_a = opt.image) !== null && _a !== void 0 ? _a : BgWidget.noImageURL}"
+                                                                                                     style="width:40px; height:40px;"/>
+                                                                                            </div>
+                                                                                            <span class="tx_normal">${opt.value}</span>
+                                                                                            ${opt.note ? html ` <span
+                                                                                                    class="tx_gray_12 ms-2">${opt.note}</span> ` : ''}
+                                                                                        </div>`;
                                         }));
                                     },
                                     onCreate: () => {
@@ -434,12 +499,15 @@ export class ShoppingCollections {
                                         }
                                     },
                                 })}
-                                                    </div>
-                                                `;
+                                                            </div>
+                                                        `;
                             })()}`),
                             BgWidget.mainCard([
-                                html ` <div class="tx_700" style="margin-bottom: 18px">SEO 標題</div>
-                                                    ${EditorElem.editeInput({
+                                html `
+                                                                <div class="tx_700" style="margin-bottom: 18px">SEO
+                                                                    標題
+                                                                </div>
+                                                                ${EditorElem.editeInput({
                                     gvc: gvc,
                                     title: '',
                                     default: (_a = vm.data.seo_title) !== null && _a !== void 0 ? _a : '',
@@ -449,8 +517,11 @@ export class ShoppingCollections {
                                     },
                                 })}`,
                                 ,
-                                html ` <div class="tx_700" style="margin-bottom: 18px">SEO 描述</div>
-                                                    ${EditorElem.editeText({
+                                html `
+                                                                <div class="tx_700" style="margin-bottom: 18px">SEO
+                                                                    描述
+                                                                </div>
+                                                                ${EditorElem.editeText({
                                     gvc: gvc,
                                     title: '',
                                     default: (_b = vm.data.seo_content) !== null && _b !== void 0 ? _b : '',
@@ -460,8 +531,11 @@ export class ShoppingCollections {
                                     },
                                 })}`,
                                 ,
-                                html ` <div class="tx_700" style="margin-bottom: 18px">SEO 圖片</div>
-                                                    ${EditorElem.uploadImageContainer({
+                                html `
+                                                                <div class="tx_700" style="margin-bottom: 18px">SEO
+                                                                    圖片
+                                                                </div>
+                                                                ${EditorElem.uploadImageContainer({
                                     gvc: gvc,
                                     title: '',
                                     def: (_c = vm.data.seo_image) !== null && _c !== void 0 ? _c : '',
@@ -471,13 +545,17 @@ export class ShoppingCollections {
                                 })}`,
                                 ,
                             ].join(BgWidget.mbContainer(18))),
-                        ].join(html `<div style="margin-top: 24px;"></div>`), undefined, 'padding: 0 ; margin: 0 !important; width: 68.5%;')}
-                                ${BgWidget.container([
+                        ].join(html `
+                                                <div style="margin-top: 24px;"></div>`), undefined, 'padding: 0 ; margin: 0 !important; width: 68.5%;')}
+                                    ${BgWidget.container([
                             BgWidget.mainCard((() => {
                                 var _a;
                                 if ((vm.data.allCollections && vm.data.allCollections.length > 0 && vm.data.parentTitles && vm.data.parentTitles.length > 0) || vm.type === 'add') {
-                                    return html ` <div class="tx_700" style="margin-bottom: 18px">父層</div>
-                                                        ${BgWidget.select({
+                                    return html `
+                                                                    <div class="tx_700" style="margin-bottom: 18px">
+                                                                        父層
+                                                                    </div>
+                                                                    ${BgWidget.select({
                                         gvc: gvc,
                                         callback: (text) => {
                                             vm.data.parentTitles[0] = text;
@@ -491,30 +569,34 @@ export class ShoppingCollections {
                                 }
                                 const id = gvc.glitter.getUUID();
                                 return html `
-                                                    <div class="tx_700" style="margin-bottom: 18px">子分類</div>
-                                                    ${gvc.bindView({
+                                                                <div class="tx_700" style="margin-bottom: 18px">子分類
+                                                                </div>
+                                                                ${gvc.bindView({
                                     bind: id,
                                     view: () => {
                                         return gvc.map(vm.data.subCollections.map((item) => {
-                                            return html `<div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
-                                                                        ${item}<i
-                                                                            class="fa-regular fa-trash cursor_pointer"
-                                                                            onclick="${gvc.event(() => {
+                                            return html `
+                                                                                        <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
+                                                                                            ${item}<i
+                                                                                                class="fa-regular fa-trash cursor_pointer"
+                                                                                                onclick="${gvc.event(() => {
                                                 vm.data.subCollections = vm.data.subCollections.filter((sub) => item !== sub);
                                                 gvc.notifyDataChange(id);
                                             })}"
-                                                                        ></i>
-                                                                    </div>`;
+                                                                                        ></i>
+                                                                                        </div>`;
                                         }));
                                     },
                                 })}
-                                                `;
+                                                            `;
                             })()),
-                        ].join(html `<div style="margin-top: 24px;"></div>`), undefined, 'padding: 0 ; margin: 0 !important; width: 26.5%;')}
-                            </div>`,
+                        ].join(html `
+                                                <div style="margin-top: 24px;"></div>`), undefined, 'padding: 0 ; margin: 0 !important; width: 26.5%;')}
+                                </div>`,
                         BgWidget.mbContainer(240),
-                        html ` <div class="update-bar-container">
-                                ${obj.type === 'replace'
+                        html `
+                                <div class="update-bar-container">
+                                    ${obj.type === 'replace'
                             ? BgWidget.redButton('刪除類別', gvc.event(() => {
                                 dialog.checkYesOrNot({
                                     text: '確定要刪除商品類別嗎？<br/>（若此類別包含子類別，也將一併刪除）',
@@ -539,13 +621,17 @@ export class ShoppingCollections {
                                 });
                             }))
                             : ''}
-                                ${BgWidget.cancel(gvc.event(() => {
+                                    ${BgWidget.cancel(gvc.event(() => {
                             vm.type = 'list';
                         }))}
-                                ${BgWidget.save(gvc.event(() => {
+                                    ${BgWidget.save(gvc.event(() => {
                             const regexTitle = /[\s,\/\\]+/g;
                             if (vm.data.title === undefined || vm.data.title === '') {
                                 dialog.infoMessage({ text: '標題不可為空' });
+                                return;
+                            }
+                            if (!vm.data.code) {
+                                dialog.infoMessage({ text: '請輸入分類連結' });
                                 return;
                             }
                             if (regexTitle.test(vm.data.title)) {
@@ -554,7 +640,7 @@ export class ShoppingCollections {
                             }
                             const regexCode = /^[\u4e00-\u9fa5a-zA-Z0-9]+$/;
                             if (!regexCode.test(vm.data.code)) {
-                                dialog.infoMessage({ text: '代碼僅限使用中英文數字' });
+                                dialog.infoMessage({ text: '連結僅限使用中英文數字與連接號' });
                                 return;
                             }
                             dialog.dataLoading({ visible: true });
@@ -577,8 +663,9 @@ export class ShoppingCollections {
                                 }
                             });
                         }))}
-                            </div>`,
-                    ].join(html `<div style="margin-top: 24px;"></div>`), BgWidget.getContainerWidth());
+                                </div>`,
+                    ].join(html `
+                            <div style="margin-top: 24px;"></div>`), BgWidget.getContainerWidth());
                 },
             };
         });

@@ -152,7 +152,6 @@ export class ApiPageConfig {
         });
     }
     static setPage(data) {
-        console.log(`setPage->`, data);
         return BaseApi.create({
             "url": config.url + `/api/v1/template`,
             "type": "PUT",
@@ -314,7 +313,7 @@ export class ApiPageConfig {
             })
         });
     }
-    static uploadFileAll(files) {
+    static uploadFileAll(files, type = 'file') {
         return __awaiter(this, void 0, void 0, function* () {
             if (!Array.isArray(files)) {
                 files = [files];
@@ -349,7 +348,6 @@ export class ApiPageConfig {
                                 reader.onload = function (e) {
                                     const img = new Image();
                                     img.src = URL.createObjectURL(file);
-                                    ;
                                     img.onload = function () {
                                         const og_width = img.width;
                                         const og_height = img.height;

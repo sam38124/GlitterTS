@@ -595,7 +595,6 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                                 const oWidget = widget
                                                                 initialReferData(widget)
                                                                 const page_config = pageData.page_config;
-
                                                                 function getReferForm(widget: any, type: string) {
                                                                     if ((widget.data.refer_app)) {
                                                                         widget.data.refer_form_data = widget.data.refer_form_data || (oWidget.data.refer_form_data && JSON.parse(JSON.stringify(oWidget.data.refer_form_data))) || JSON.parse(JSON.stringify(page_config.formData))
@@ -1107,10 +1106,14 @@ font-weight: 700;" onclick="${gvc.event(() => {
                                                                             tag: dd.data.tag,
                                                                             appName: dd.data.refer_app
                                                                         } : dd.data.tag);
-                                                                        appendHtml(pageData, dd, false, (dd.data.refer_app) ? id : pageData.id, parent_config);
-                                                                        if (!dd.data.refer_app) {
-                                                                            pageData.config.tag = pageData.tag;
-                                                                            await loop(pageData.config ?? [], pageData.id, pageData.config);
+                                                                        if(!pageData.template_config || !pageData.template_config.tag || (!pageData.template_config.tag.find((dd:any)=>{
+                                                                            return dd==="商品卡片"
+                                                                        }))){
+                                                                            appendHtml(pageData, dd, false, (dd.data.refer_app) ? id : pageData.id, parent_config);
+                                                                            if (!dd.data.refer_app) {
+                                                                                pageData.config.tag = pageData.tag;
+                                                                                await loop(pageData.config ?? [], pageData.id, pageData.config);
+                                                                            }
                                                                         }
                                                                     }
                                                                 }

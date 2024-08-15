@@ -10,7 +10,9 @@ class UpdateScript {
         const migrate_template = (await database_1.default.query('SELECT appName FROM glitter.app_config where template_type!=0;', [])).map((dd) => {
             return dd.appName;
         }).concat(['shop-template-clothing-v3']);
-        await UpdateScript.migrateLink(migrate_template);
+        UpdateScript.migrateHeaderAndFooterAndCollection(migrate_template.filter((dd) => {
+            return dd !== 't_1719819344426';
+        }));
     }
     static async migrateHomePageFooter(appList) {
         for (const b of appList) {
@@ -315,14 +317,14 @@ class UpdateScript {
             ]);
         }
     }
-    static async migrateHeaderAndFooter(appList) {
+    static async migrateHeaderAndFooterAndCollection(appList) {
         const rebate_page = (await database_1.default.query(`SELECT *
                                              FROM shop_template_black_style.t_user_public_config
-                                             where \`key\` in ('menu-setting', 'footer-setting');`, []));
+                                             where \`key\` in ('menu-setting', 'footer-setting','blog_collection');`, []));
         for (const b of appList) {
             for (const c of rebate_page) {
                 if (typeof c.value !== 'string') {
-                    c.value = JSON.stringify(c);
+                    c.value = JSON.stringify(c.value);
                 }
                 (await database_1.default.query(`replace
                 into \`${b}\`.t_user_public_config set ?`, [

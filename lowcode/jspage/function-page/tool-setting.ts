@@ -41,7 +41,7 @@ export class ToolSetting {
                 bind: vm.id,
                 view: () => {
                     if (vm.function === 'edit') {
-                        return `<div class="px-2">${vm.edit_view}</div>`
+                        return `<div class="px-2 pt-3">${vm.edit_view}</div>`
                     }
                     return BgWidget.container(
                         html`
@@ -96,8 +96,12 @@ ${ dd.hint&&dd.toggle ? BgWidget.hint_title(dd.hint) : ``}
                                                                             type: 'template',
                                                                             tag: 'footer'
                                                                         })).response.result[0]
-                                                                    }else{
-                                                                        return  {}
+                                                                    }else  if(dd.tag==='商品卡片'){
+                                                                        return (await ApiPageConfig.getPage({
+                                                                            appName: (window as any).appName,
+                                                                            type: 'template',
+                                                                            tag: 'product_widget'
+                                                                        })).response.result[0]
                                                                     }
                                                                 })();
                                                                 //主元件
@@ -114,6 +118,17 @@ ${ dd.hint&&dd.toggle ? BgWidget.hint_title(dd.hint) : ``}
                                                                             type: 'template',
                                                                             tag: widget.config[0].data.tag
                                                                         })).response.result[0]
+                                                                    }else  if(dd.tag==='商品卡片'){
+                                                                        try {
+                                                                            return (await ApiPageConfig.getPage({
+                                                                                appName: widget.config[0].data.refer_app,
+                                                                                type: 'template',
+                                                                                tag: widget.config[0].data.tag
+                                                                            })).response.result[0]
+                                                                        }catch (e) {
+                                                                            return {}
+                                                                        }
+                                                                      
                                                                     }else{
                                                                         return  {}
                                                                     }
@@ -126,6 +141,8 @@ ${ dd.hint&&dd.toggle ? BgWidget.hint_title(dd.hint) : ``}
                                                                                 return 'c_header'
                                                                             case '頁腳元件':
                                                                                 return 'footer'
+                                                                            case '商品卡片':
+                                                                                return `product_widget`
                                                                             default:
                                                                                 return gvc.glitter.getUUID()
                                                                         }
@@ -136,11 +153,16 @@ ${ dd.hint&&dd.toggle ? BgWidget.hint_title(dd.hint) : ``}
                                                                 const widget_edited = find_showed_widget.widget || widget.config[0]
                                                                 const htmlGenerate = new gvc.glitter.htmlGenerate(widget_container, [], undefined, true);
                                                                 gvc.glitter.share.editorViewModel.selectItem = widget_edited;
-                                                                module_list = module_list.filter((dd: any) => {
-                                                                    return (dd.appName !== widget.config[0].data.refer_app) || (dd.tag !== widget.config[0].data.tag)
-                                                                })
-                                                                console.log(`find_showed_widget.widget->`,find_showed_widget.widget)
-                                                                setting_view += html`
+                                                                try {
+                                                                    module_list = module_list.filter((dd: any) => {
+                                                                        return (dd.appName !== widget.config[0].data.refer_app) || (dd.tag !== widget.config[0].data.tag)
+                                                                    })   
+                                                                }catch (e) {
+                                                                    module_list=[]
+                                                                }
+                                                              
+try {
+    setting_view += html`
                                                                 <div class="p-2 col-6 " style="">
                                                                     <div class="w-100 p-2 rounded-3"
                                                                          style="border: 1px solid #393939;background: #F7F7F7;">
@@ -150,9 +172,9 @@ ${ dd.hint&&dd.toggle ? BgWidget.hint_title(dd.hint) : ``}
                                                                                  style="overflow: hidden;">
                                                                                 <img class="w-100 "
                                                                                      src="${
-                                                                        refer_widget.template_config.image[0] ??
-                                                                        'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713445383494-未命名(1080x1080像素).jpg'
-                                                                }"></img>
+            refer_widget.template_config.image[0] ??
+            'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713445383494-未命名(1080x1080像素).jpg'
+    }"></img>
                                                                             </div>
 
                                                                             <div class="position-absolute w-100 h-100  align-items-center justify-content-center rounded fs-6 flex-column"
@@ -160,18 +182,32 @@ ${ dd.hint&&dd.toggle ? BgWidget.hint_title(dd.hint) : ``}
                                                                                 <button class="btn btn-sm btn-secondary"
                                                                                         style="height: 28px;"
                                                                                         onclick="${gvc.event(() => {
-                                                                    vm.edit_view = html`` + htmlGenerate.editor(gvc, {
-                                                                        return_: false,
-                                                                        refreshAll: () => {
-                                                                            alert('ref')
-                                                                        },
-                                                                        setting: [widget_edited],
-                                                                        deleteEvent: () => {
-                                                                        }
-                                                                    })
-                                                                    vm.function = 'edit'
-                                                                    gvc.notifyDataChange(vm.id)
-                                                                })}">設定
+
+
+        if(dd.tag==='商品卡片'){
+            gvc.glitter.share.edit_ittt=widget;
+            gvc.glitter.share.editorViewModel.saveArray[widget.id] = (() => {
+                return ApiPageConfig.setPage({
+                    id: widget.id,
+                    appName: widget.appName,
+                    tag: widget.tag,
+                    config: widget.config,
+                })
+            });
+        }
+
+        vm.edit_view = html`` + htmlGenerate.editor(gvc, {
+            return_: false,
+            refreshAll: () => {
+                alert('ref')
+            },
+            setting: [widget_edited],
+            deleteEvent: () => {
+            }
+        })
+        vm.function = 'edit'
+        gvc.notifyDataChange(vm.id)
+    })}">設定
                                                                                 </button>
                                                                             </div>
                                                                         </div>
@@ -180,6 +216,10 @@ ${ dd.hint&&dd.toggle ? BgWidget.hint_title(dd.hint) : ``}
                                                                             <i class="fa-sharp fa-solid fa-circle-dot"></i> ${refer_widget.template_config.name}</h3>
                                                                     </div>
                                                                 </div>`
+}catch (e) {
+    
+}
+                                                              
                                                                 return [setting_view].concat(module_list.map((dd: any, index: number) => {
                                                                     return `<div class="p-2 col-6 " onclick="${gvc.event(()=>{
                                                                         const dialog=new ShareDialog(gvc.glitter)

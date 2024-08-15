@@ -598,7 +598,7 @@ background: #F7F7F7;">${CustomStyle.renderMarginEditor(gvc, widget, callback)}
             style_string+=`grid-template-columns: ${(()=>{
                 let view=[]
                 for(let a=0;a<parseInt(widget.data._x_count,10);a++){
-                    view.push(`calc((100% / ${parseInt(widget.data._x_count,10)}) - ((${(isNaN(widget.data._gap_y)) ? widget.data._gap_y : `${widget.data._gap_y}px`})/${parseInt(widget.data._x_count,10)}))`)
+                    view.push(`calc((100% / ${parseInt(widget.data._x_count,10)}) - ((${(isNaN(widget.data._gap_y)) ? widget.data._gap_y : `${widget.data._gap_y}px`})*${((parseInt(widget.data._x_count,10)-1) / (parseInt(widget.data._x_count,10))).toFixed(1)}))`)
                 }
                 return view.join(' ')
             })()};`

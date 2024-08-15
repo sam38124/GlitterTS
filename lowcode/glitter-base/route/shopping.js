@@ -160,6 +160,7 @@ export class ApiShop {
             headers: {
                 'Content-Type': 'application/json',
                 'g-app': encodeURIComponent(getConfig().config.appName),
+                Authorization: GlobalUser.token,
             },
         });
     }

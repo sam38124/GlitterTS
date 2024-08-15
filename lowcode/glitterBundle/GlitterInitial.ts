@@ -57,15 +57,9 @@ function traverseHTML(element: any, document: any) {
             if (pageConfig && pageConfig.initial) {
                 const scroll_top = pageConfig.scrollTop;
                 (document.querySelector('html') as any).scrollTop = scroll_top;
-                let count = 0;
-                const loopScroll = setInterval(() => {
-                    count++;
-                    if (count < 100) {
-                        (document.querySelector('html') as any).scrollTop = scroll_top;
-                    } else {
-                        clearInterval(loopScroll);
-                    }
-                });
+                const loopScroll = setTimeout(() => {
+                    (document.querySelector('html') as any).scrollTop = scroll_top;
+                },100);
 
                 function loop(element: any) {
                     if (element && element.onResumeEvent) {

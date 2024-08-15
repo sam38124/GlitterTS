@@ -108,7 +108,7 @@ export const widgetComponent = {
                                 classList.push(glitter.htmlGenerate.styleEditor(widget.data, gvc, widget as any, subData).class())
                                 widget.hashTag && classList.push(`glitterTag${widget.hashTag}`);
                                 let style_user = ''
-                                if (widget.type === 'container') {
+                                if (widget.type === 'container' && widget.data._layout === 'grid') {
                                     style_user = CustomStyle.value(gvc, widget)
                                 }
                                 return {
