@@ -11,7 +11,11 @@ const router = express_1.default.Router();
 router.get('/list', async (req, resp) => {
     try {
         if (await ut_permission_js_1.UtPermission.isManager(req)) {
-            return response_1.default.succ(resp, await new recommend_1.Recommend(req.get('g-app'), req.body.token).getLinkList());
+            return response_1.default.succ(resp, await new recommend_1.Recommend(req.get('g-app'), req.body.token).getLinkList({
+                user_id: req.query.user_id ? `${req.query.user_id}` : undefined,
+                page: req.query.page ? parseInt(`${req.query.page}`, 10) : 0,
+                limit: req.query.limit ? parseInt(`${req.query.limit}`, 10) : 0,
+            }));
         }
         else {
             return response_1.default.fail(resp, exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null));

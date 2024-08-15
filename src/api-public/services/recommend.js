@@ -11,18 +11,27 @@ class Recommend {
         this.app = app;
         this.token = token;
     }
-    async getLinkList(obj) {
+    async getLinkList(query) {
+        var _a, _b;
         try {
+            query.page = (_a = query.page) !== null && _a !== void 0 ? _a : 0;
+            query.limit = (_b = query.limit) !== null && _b !== void 0 ? _b : 50;
             let search = ['1=1'];
-            if (obj === null || obj === void 0 ? void 0 : obj.code) {
-                search.push(`(code = "${obj.code}")`);
+            if (query === null || query === void 0 ? void 0 : query.code) {
+                search.push(`(code = "${query.code}")`);
             }
-            if (obj === null || obj === void 0 ? void 0 : obj.status) {
-                search.push(`(JSON_EXTRACT(content, '$.status') = ${obj.status})`);
+            if (query === null || query === void 0 ? void 0 : query.status) {
+                search.push(`(JSON_EXTRACT(content, '$.status') = ${query.status})`);
             }
-            const links = await database_1.default.query(`SELECT * FROM \`${this.app}\`.t_recommend_links WHERE ${search.join(' AND ')};
+            if (query === null || query === void 0 ? void 0 : query.user_id) {
+                search.push(`(JSON_EXTRACT(content, '$.recommend_user.id') = ${query.user_id})`);
+            }
+            const links = await database_1.default.query(`SELECT * FROM \`${this.app}\`.t_recommend_links WHERE ${search.join(' AND ')}
+                ${query.page !== undefined && query.limit !== undefined ? `LIMIT ${query.page * query.limit}, ${query.limit}` : ''};
             `, []);
-            return { data: links };
+            const total = await database_1.default.query(`SELECT count(*) as c FROM \`${this.app}\`.t_recommend_links WHERE ${search.join(' AND ')};
+            `, []);
+            return { data: links, total: total[0].c };
         }
         catch (error) {
             throw exception_1.default.BadRequestError('ERROR', 'Recommend getLinkList Error: ' + error, null);
@@ -132,11 +141,6 @@ class Recommend {
                         break;
                 }
             }
-            const recommendUserOrderBy = [
-                { key: 'name', value: '推薦人名稱' },
-                { key: 'created_time_desc', value: '註冊時間新 > 舊' },
-                { key: 'created_time_asc', value: '註冊時間舊 > 新' },
-            ];
             let orderBy = 'id DESC';
             if (query.orderBy) {
                 orderBy = (() => {
@@ -144,8 +148,9 @@ class Recommend {
                         case 'name':
                             return `JSON_EXTRACT(content, '$.name')`;
                         case 'created_time_asc':
-                            return `id`;
+                            return `created_time`;
                         case 'created_time_desc':
+                            return `created_time DESC`;
                         default:
                             return `id DESC`;
                     }
@@ -159,6 +164,26 @@ class Recommend {
             const total = await database_1.default.query(`SELECT count(id) as c FROM \`${this.app}\`.t_recommend_users
                 WHERE ${search.join(' AND ')}
             `, []);
+            console.log(data);
+            let n = 0;
+            await new Promise((resolve, reject) => {
+                console.log(data.length);
+                const si = setInterval(() => {
+                    if (n === data.length) {
+                        resolve();
+                        clearInterval(si);
+                    }
+                }, 100);
+                data.map(async (user) => {
+                    console.log(user);
+                    const links = await database_1.default.query(`SELECT count(id) as c FROM \`${this.app}\`.t_recommend_links
+                        WHERE (JSON_EXTRACT(content, '$.recommend_user.id') = ${user.id});
+                        `, []);
+                    user.orders = links.length > 0 ? links[0].c : 0;
+                    n++;
+                });
+            });
+            console.log(data);
             return {
                 data: data,
                 total: total[0].c,

@@ -242,7 +242,7 @@ export class BgWidget {
             </button>
         `;
     }
-    static danger(event, text = '取消') {
+    static danger(event, text = '刪除') {
         return html `
             <button class="btn btn-red" type="button" onclick="${event}">
                 <span class="text-white tx_700">${text}</span>
@@ -1795,6 +1795,17 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             }
         `);
         return className;
+    }
+    static summaryHTML(stringArray) {
+        return stringArray
+            .map((list) => {
+            return list
+                .map((item) => {
+                return html `<div class="tx_normal" style="overflow-wrap: break-word;">${item}</div>`;
+            })
+                .join(this.mbContainer(8));
+        })
+            .join(this.horizontalLine());
     }
 }
 BgWidget.noImageURL = 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg';

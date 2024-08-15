@@ -10,14 +10,20 @@ function getBaseUrl() {
 }
 
 export class ApiRecommend {
-    public static getList(cf: { data: any; token?: string }) {
+    public static getList(json: { data: any; limit: number; page: number; user_id?: number; token?: string }) {
         return BaseApi.create({
-            url: getBaseUrl() + `/api-public/v1/recommend/list`,
+            url:
+                getBaseUrl() +
+                `/api-public/v1/recommend/list?${(() => {
+                    let par = [`limit=${json.limit}`, `page=${json.page}`];
+                    json.user_id && par.push(`user_id=${json.user_id}`);
+                    return par.join('&');
+                })()}`,
             type: 'GET',
             headers: {
                 'Content-Type': 'application/json',
                 'g-app': getConfig().config.appName,
-                Authorization: cf.token || getConfig().config.token,
+                Authorization: json.token || getConfig().config.token,
             },
         });
     }

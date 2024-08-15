@@ -324,6 +324,7 @@ FilterOptions.recommendUserSelect = [
     { key: 'phone', value: '推薦人電話' },
 ];
 FilterOptions.recommendUserOrderBy = [
+    { key: 'default', value: '預設' },
     { key: 'name', value: '推薦人名稱' },
     { key: 'created_time_desc', value: '註冊時間新 > 舊' },
     { key: 'created_time_asc', value: '註冊時間舊 > 新' },

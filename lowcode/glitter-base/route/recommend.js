@@ -7,14 +7,19 @@ function getBaseUrl() {
     return getConfig().config.url;
 }
 export class ApiRecommend {
-    static getList(cf) {
+    static getList(json) {
         return BaseApi.create({
-            url: getBaseUrl() + `/api-public/v1/recommend/list`,
+            url: getBaseUrl() +
+                `/api-public/v1/recommend/list?${(() => {
+                    let par = [`limit=${json.limit}`, `page=${json.page}`];
+                    json.user_id && par.push(`user_id=${json.user_id}`);
+                    return par.join('&');
+                })()}`,
             type: 'GET',
             headers: {
                 'Content-Type': 'application/json',
                 'g-app': getConfig().config.appName,
-                Authorization: cf.token || getConfig().config.token,
+                Authorization: json.token || getConfig().config.token,
             },
         });
     }

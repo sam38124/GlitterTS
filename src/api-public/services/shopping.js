@@ -444,6 +444,8 @@ class Shopping {
             }
             if (data.distribution_code) {
                 const linkList = await new recommend_1.Recommend(this.app, this.token).getLinkList({
+                    page: 0,
+                    limit: 99999,
                     code: data.distribution_code,
                     status: true,
                 });

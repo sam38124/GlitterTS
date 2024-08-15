@@ -3,11 +3,15 @@ export declare class Recommend {
     app: string;
     token?: IToken;
     constructor(app: string, token?: IToken);
-    getLinkList(obj?: {
+    getLinkList(query: {
         code?: string;
         status?: boolean;
+        page: number;
+        limit: number;
+        user_id?: string;
     }): Promise<{
         data: any;
+        total: any;
     }>;
     postLink(data: any): Promise<{
         result: boolean;

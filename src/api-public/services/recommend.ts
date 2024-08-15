@@ -12,22 +12,36 @@ export class Recommend {
         this.token = token;
     }
 
-    async getLinkList(obj?: { code?: string; status?: boolean }) {
+    async getLinkList(query: { code?: string; status?: boolean; page: number; limit: number; user_id?: string }) {
         try {
+            query.page = query.page ?? 0;
+            query.limit = query.limit ?? 50;
+
             let search = ['1=1'];
-            if (obj?.code) {
-                search.push(`(code = "${obj.code}")`);
+            if (query?.code) {
+                search.push(`(code = "${query.code}")`);
             }
-            if (obj?.status) {
-                search.push(`(JSON_EXTRACT(content, '$.status') = ${obj.status})`);
+            if (query?.status) {
+                search.push(`(JSON_EXTRACT(content, '$.status') = ${query.status})`);
+            }
+            if (query?.user_id) {
+                search.push(`(JSON_EXTRACT(content, '$.recommend_user.id') = ${query.user_id})`);
             }
 
             const links = await db.query(
-                `SELECT * FROM \`${this.app}\`.t_recommend_links WHERE ${search.join(' AND ')};
+                `SELECT * FROM \`${this.app}\`.t_recommend_links WHERE ${search.join(' AND ')}
+                ${query.page !== undefined && query.limit !== undefined ? `LIMIT ${query.page * query.limit}, ${query.limit}` : ''};
             `,
                 []
             );
-            return { data: links };
+
+            const total = await db.query(
+                `SELECT count(*) as c FROM \`${this.app}\`.t_recommend_links WHERE ${search.join(' AND ')};
+            `,
+                []
+            );
+
+            return { data: links, total: total[0].c };
         } catch (error) {
             throw exception.BadRequestError('ERROR', 'Recommend getLinkList Error: ' + error, null);
         }
@@ -150,18 +164,6 @@ export class Recommend {
                 }
             }
 
-            const recommendUserOrderBy = [
-                { key: 'name', value: '推薦人名稱' },
-                { key: 'created_time_desc', value: '註冊時間新 > 舊' },
-                { key: 'created_time_asc', value: '註冊時間舊 > 新' },
-                // { key: 'order_total_desc', value: '總金額高 > 低' },
-                // { key: 'order_total_asc', value: '總金額低 > 高' },
-                // { key: 'share_value_desc', value: '分潤獎金多 > 少' },
-                // { key: 'share_value_asc', value: '分潤獎金少 > 多' },
-                // { key: 'conversion_rate_desc', value: '轉換率高 > 低' },
-                // { key: 'conversion_rate_asc', value: '轉換率低 > 高' },
-            ];
-
             let orderBy = 'id DESC';
             if (query.orderBy) {
                 orderBy = (() => {
@@ -169,8 +171,9 @@ export class Recommend {
                         case 'name':
                             return `JSON_EXTRACT(content, '$.name')`;
                         case 'created_time_asc':
-                            return `id`;
+                            return `created_time`;
                         case 'created_time_desc':
+                            return `created_time DESC`;
                         default:
                             return `id DESC`;
                     }
@@ -191,6 +194,26 @@ export class Recommend {
             `,
                 []
             );
+
+            let n = 0;
+            await new Promise<void>((resolve) => {
+                const si = setInterval(() => {
+                    if (n === data.length) {
+                        resolve();
+                        clearInterval(si);
+                    }
+                }, 100);
+                data.map(async (user: any) => {
+                    const links = await db.query(
+                        `SELECT count(id) as c FROM \`${this.app}\`.t_recommend_links
+                        WHERE (JSON_EXTRACT(content, '$.recommend_user.id') = ${user.id});
+                        `,
+                        []
+                    );
+                    user.orders = links.length > 0 ? links[0].c : 0;
+                    n++;
+                });
+            });
 
             return {
                 data: data,

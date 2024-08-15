@@ -370,7 +370,8 @@ export class Rebate {
                     delete proof.setCreatedAt;
                 }
                 await db.execute(insertSQL, [user_id, amount, amount, note, proof ?? {}, nowTime, nowTime, deadTime]);
-            } else {
+            }
+            if (amount < 0) {
                 await this.updateOldestRebate(user_id, amount);
                 await db.execute(insertSQL, [user_id, amount, 0, note, proof && proof.type ? { type: proof.type } : {}, nowTime, nowTime, null]);
             }

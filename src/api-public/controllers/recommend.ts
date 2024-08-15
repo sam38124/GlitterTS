@@ -11,7 +11,14 @@ export = router;
 router.get('/list', async (req: express.Request, resp: express.Response) => {
     try {
         if (await UtPermission.isManager(req)) {
-            return response.succ(resp, await new Recommend(req.get('g-app') as string, req.body.token).getLinkList());
+            return response.succ(
+                resp,
+                await new Recommend(req.get('g-app') as string, req.body.token).getLinkList({
+                    user_id: req.query.user_id ? `${req.query.user_id}` : undefined,
+                    page: req.query.page ? parseInt(`${req.query.page}`, 10) : 0,
+                    limit: req.query.limit ? parseInt(`${req.query.limit}`, 10) : 0,
+                })
+            );
         } else {
             return response.fail(resp, exception.BadRequestError('BAD_REQUEST', 'No permission.', null));
         }

@@ -701,6 +701,8 @@ export class Shopping {
             // 判斷是否有分銷連結
             if (data.distribution_code) {
                 const linkList = await new Recommend(this.app, this.token).getLinkList({
+                    page: 0,
+                    limit: 99999,
                     code: data.distribution_code,
                     status: true,
                 });

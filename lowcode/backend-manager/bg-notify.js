@@ -759,7 +759,7 @@ export class BgNotify {
                         }
                     },
                 });
-            }), '刪除')
+            }))
             : ''}
                     ${BgWidget.cancel(gvc.event(() => {
             vm.type = 'list';

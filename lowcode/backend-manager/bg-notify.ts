@@ -886,8 +886,7 @@ export class BgNotify {
                                           }
                                       },
                                   });
-                              }),
-                              '刪除'
+                              })
                           )
                         : ''}
                     ${BgWidget.cancel(

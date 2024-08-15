@@ -333,7 +333,7 @@ export class BgWidget {
         `;
     }
 
-    static danger(event: string, text: string = '取消') {
+    static danger(event: string, text: string = '刪除') {
         return html`
             <button class="btn btn-red" type="button" onclick="${event}">
                 <span class="text-white tx_700">${text}</span>
@@ -2110,6 +2110,18 @@ ${obj.default ?? ''}</textarea
             }
         `);
         return className;
+    }
+
+    static summaryHTML(stringArray: string[][]) {
+        return stringArray
+            .map((list) => {
+                return list
+                    .map((item) => {
+                        return html`<div class="tx_normal" style="overflow-wrap: break-word;">${item}</div>`;
+                    })
+                    .join(this.mbContainer(8));
+            })
+            .join(this.horizontalLine());
     }
 }
 
