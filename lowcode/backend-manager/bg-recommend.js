@@ -340,7 +340,6 @@ export class BgRecommend {
         function getDatalist() {
             return vm.dataList.map((dd) => {
                 var _a;
-                console.log(dd);
                 return [
                     {
                         key: EditorElem.checkBoxOnly({

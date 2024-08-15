@@ -164,10 +164,8 @@ class Recommend {
             const total = await database_1.default.query(`SELECT count(id) as c FROM \`${this.app}\`.t_recommend_users
                 WHERE ${search.join(' AND ')}
             `, []);
-            console.log(data);
             let n = 0;
-            await new Promise((resolve, reject) => {
-                console.log(data.length);
+            await new Promise((resolve) => {
                 const si = setInterval(() => {
                     if (n === data.length) {
                         resolve();
@@ -175,7 +173,6 @@ class Recommend {
                     }
                 }, 100);
                 data.map(async (user) => {
-                    console.log(user);
                     const links = await database_1.default.query(`SELECT count(id) as c FROM \`${this.app}\`.t_recommend_links
                         WHERE (JSON_EXTRACT(content, '$.recommend_user.id') = ${user.id});
                         `, []);
@@ -183,7 +180,6 @@ class Recommend {
                     n++;
                 });
             });
-            console.log(data);
             return {
                 data: data,
                 total: total[0].c,

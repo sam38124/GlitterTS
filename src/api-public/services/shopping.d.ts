@@ -46,6 +46,7 @@ type Collection = {
     seo_title: string;
     seo_content: string;
     seo_image: string;
+    code: string;
 };
 export declare class Shopping {
     app: string;

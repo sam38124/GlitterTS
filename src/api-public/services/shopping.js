@@ -1642,8 +1642,38 @@ class Shopping {
                     }
                 }
             }
+            function findCodePath(items, inputCode, path = []) {
+                for (const item of items) {
+                    const currentPath = [...path, item];
+                    if (item.code === inputCode) {
+                        return currentPath;
+                    }
+                    if (item.array.length > 0) {
+                        const result = findCodePath(item.array, inputCode, currentPath);
+                        if (result.length > 0) {
+                            return result;
+                        }
+                    }
+                }
+                return [];
+            }
+            let isUsedCode = false;
+            const codeResult = findCodePath(config.value, replace.code);
+            if (codeResult.length === 1) {
+                isUsedCode = codeResult[0].title !== original.title;
+            }
+            if (codeResult.length === 2) {
+                isUsedCode = codeResult[0].title !== original.parentTitles[0] || codeResult[1].title !== original.title;
+            }
+            if (isUsedCode) {
+                return {
+                    result: false,
+                    message: `類別代號「${replace.code}」已被使用`,
+                };
+            }
             const formatData = {
                 array: [],
+                code: replace.code,
                 title: replace.title,
                 seo_title: replace.seo_title,
                 seo_content: replace.seo_content,
@@ -1664,7 +1694,12 @@ class Shopping {
                 const parentIndex = config.value.findIndex((col) => {
                     return col.title === original.title;
                 });
-                config.value[parentIndex] = Object.assign(Object.assign({}, formatData), { array: replace.subCollections.map((col) => ({ array: [], title: col })) });
+                config.value[parentIndex] = Object.assign(Object.assign({}, formatData), { array: replace.subCollections.map((col) => {
+                        const sub = config.value[parentIndex].array.find((item) => {
+                            return item.title === col;
+                        });
+                        return { array: [], title: col, code: sub ? sub.code : '' };
+                    }) });
             }
             else {
                 const oTitle = (_c = original.parentTitles[0]) !== null && _c !== void 0 ? _c : '';

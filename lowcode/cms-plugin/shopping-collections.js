@@ -20,6 +20,7 @@ export class ShoppingCollections {
                 seo_title: '',
                 seo_content: '',
                 seo_image: '',
+                code: '',
                 checked: false,
             },
             dataList: undefined,
@@ -51,7 +52,7 @@ export class ShoppingCollections {
             const flattenCollections = (collections, parentTitles = [], topLevelCollections = []) => {
                 let flattened = [];
                 collections.forEach((col) => {
-                    const { title, array, product_id, seo_title, seo_content, seo_image } = col;
+                    const { title, array, product_id, seo_title, seo_content, seo_image, code } = col;
                     const flattenedCol = {
                         title,
                         array: [],
@@ -63,6 +64,7 @@ export class ShoppingCollections {
                         seo_title: seo_title,
                         seo_content: seo_content,
                         seo_image: seo_image,
+                        code: code,
                     };
                     if (flattenedCol.title.includes(vm.query) ||
                         flattenedCol.parentTitles.find((title) => {
@@ -117,6 +119,7 @@ export class ShoppingCollections {
                                 seo_title: '',
                                 seo_content: '',
                                 seo_image: '',
+                                code: '',
                                 allCollections: vm.allParents,
                             };
                             vm.type = 'add';
@@ -308,6 +311,17 @@ export class ShoppingCollections {
                                 placeHolder: '請輸入分類名稱',
                                 callback: (text) => {
                                     vm.data.title = text;
+                                },
+                            })}`),
+                            BgWidget.mainCard(html ` <div class="tx_700">類別代號</div>
+                                            <div style="margin: 4px 0 8px;">${BgWidget.grayNote('是一段唯一的識別碼，用於連結網址的代號，僅限使用中英文數字', 'font-size: 14px;')}</div>
+                                            ${EditorElem.editeInput({
+                                gvc: gvc,
+                                title: '',
+                                default: vm.data.code,
+                                placeHolder: '請輸入類別代號',
+                                callback: (text) => {
+                                    vm.data.code = text;
                                 },
                             })}`),
                             BgWidget.mainCard(html ` <div class="tx_700" style="margin-bottom: 18px">商品</div>
@@ -529,13 +543,18 @@ export class ShoppingCollections {
                             vm.type = 'list';
                         }))}
                                 ${BgWidget.save(gvc.event(() => {
-                            const regex = /[\s,\/\\]+/g;
+                            const regexTitle = /[\s,\/\\]+/g;
                             if (vm.data.title === undefined || vm.data.title === '') {
                                 dialog.infoMessage({ text: '標題不可為空' });
                                 return;
                             }
-                            if (regex.test(vm.data.title)) {
+                            if (regexTitle.test(vm.data.title)) {
                                 dialog.infoMessage({ text: '標題不可包含空白格與以下符號：<br />「 , 」「 / 」「 \\ 」' });
+                                return;
+                            }
+                            const regexCode = /^[\u4e00-\u9fa5a-zA-Z0-9]+$/;
+                            if (!regexCode.test(vm.data.code)) {
+                                dialog.infoMessage({ text: '代碼僅限使用中英文數字' });
                                 return;
                             }
                             dialog.dataLoading({ visible: true });
