@@ -715,7 +715,7 @@ export class AddComponent {
                                                         style="height: 28px;width: 75px;gap:5px;"
                                                         onclick="${gvc.event(() => {
                 const dialog = new ShareDialog(gvc.glitter);
-                if (withEmpty && index === 0) {
+                if (withEmpty && index === 0 && dd.template_config.name.includes('空白')) {
                     AddComponent.redefinePage(gvc, (data) => {
                         const tdata = {
                             appName: window.appName,

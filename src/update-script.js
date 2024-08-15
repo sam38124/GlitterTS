@@ -10,7 +10,7 @@ class UpdateScript {
         const migrate_template = (await database_1.default.query('SELECT appName FROM glitter.app_config where template_type!=0;', [])).map((dd) => {
             return dd.appName;
         }).concat(['shop-template-clothing-v3']);
-        UpdateScript.migrateHeaderAndFooterAndCollection(migrate_template.filter((dd) => {
+        await this.migrateInitialConfig(migrate_template.filter((dd) => {
             return dd !== 't_1719819344426';
         }));
     }
@@ -35,6 +35,8 @@ class UpdateScript {
                                              where app_name = ?`, ['t_1719819344426']);
         let public_config = await database_1.default.query(`select *
                                             from \`t_1719819344426\`.t_user_public_config`, []);
+        let pb_config2 = await database_1.default.query(`select *
+                                            from \`t_1719819344426\`.public_config`, []);
         for (const v of appList) {
             for (const b of private_config) {
                 b.id = undefined;
@@ -63,6 +65,21 @@ class UpdateScript {
                                 where \`key\` = ?
                                   and id > 0`, [b.key]);
                 await database_1.default.query(`insert into \`${v}\`.t_user_public_config
+                                set ?`, [
+                    b
+                ]);
+            }
+            for (const b of pb_config2) {
+                b.id = undefined;
+                b.updated_at = new Date();
+                if (typeof b.value === 'object') {
+                    b.value = JSON.stringify(b.value);
+                }
+                await database_1.default.query(`delete
+                                from \`${v}\`.public_config
+                                where \`key\` = ?
+                                  and id > 0`, [b.key]);
+                await database_1.default.query(`insert into \`${v}\`.public_config
                                 set ?`, [
                     b
                 ]);

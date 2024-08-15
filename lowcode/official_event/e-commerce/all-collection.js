@@ -28,7 +28,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                     }
                                 });
                             }
-                            loopCValue(res.response.value, '');
+                            loopCValue(res.response.value || [], '');
                             resolve(res.response.value);
                         });
                     }));

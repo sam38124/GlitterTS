@@ -6,9 +6,9 @@ export class UpdateScript {
             return dd.appName
         }).concat(['shop-template-clothing-v3'])
         // UpdateScript.migrateTermsOfService(['3131_shop', 't_1717152410650', 't_1717141688550', 't_1717129048727', 't_1719819344426'])
-        UpdateScript.migrateHeaderAndFooterAndCollection(migrate_template.filter((dd:any)=>{
-            return dd !=='t_1719819344426'
-        }))
+        // UpdateScript.migrateHeaderAndFooterAndCollection(migrate_template.filter((dd:any)=>{
+        //     return dd !=='t_1719819344426'
+        // }))
         // UpdateScript.migrateAccount('shop_template_black_style')
         // await UpdateScript.migrateLink(migrate_template)
         //  await UpdateScript.migrateHeaderAndFooter(migrate_template)
@@ -21,7 +21,9 @@ export class UpdateScript {
         // }),['about-us','privacy','terms','sample1','sample2','sample3'])
         // t_1719819344426
         // await this.migrateSinglePage(migrate_template.reverse())
-        // await this.migrateInitialConfig(migrate_template)
+        await this.migrateInitialConfig(migrate_template.filter((dd:any)=>{
+            return dd !=='t_1719819344426'
+        }))
         // await this.migrateHomePageFooter(migrate_template)
     }
 
@@ -50,6 +52,9 @@ export class UpdateScript {
         //覆蓋公開配置檔案
         let public_config = await db.query(`select *
                                             from \`t_1719819344426\`.t_user_public_config`, []);
+        //覆蓋公開配置檔案2
+        let pb_config2 = await db.query(`select *
+                                            from \`t_1719819344426\`.public_config`, []);
         for (const v of appList) {
             for (const b of private_config) {
                 b.id = undefined
@@ -78,6 +83,21 @@ export class UpdateScript {
                                 where \`key\` = ?
                                   and id > 0`, [b.key])
                 await db.query(`insert into \`${v}\`.t_user_public_config
+                                set ?`, [
+                    b
+                ])
+            }
+            for (const b of pb_config2) {
+                b.id = undefined
+                b.updated_at = new Date()
+                if (typeof b.value === 'object') {
+                    b.value = JSON.stringify(b.value)
+                }
+                await db.query(`delete
+                                from \`${v}\`.public_config
+                                where \`key\` = ?
+                                  and id > 0`, [b.key])
+                await db.query(`insert into \`${v}\`.public_config
                                 set ?`, [
                     b
                 ])

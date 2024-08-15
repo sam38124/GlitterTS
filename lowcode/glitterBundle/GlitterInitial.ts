@@ -56,11 +56,11 @@ function traverseHTML(element: any, document: any) {
             (window as any).glitter.share.to_menu = false;
             if (pageConfig && pageConfig.initial) {
                 const scroll_top = pageConfig.scrollTop;
-                (document.querySelector('html') as any).scrollTop = scroll_top;
-                const loopScroll = setTimeout(() => {
-                    (document.querySelector('html') as any).scrollTop = scroll_top;
-                },100);
-
+                [0,100,200,300,400,500,600,700].map((dd)=>{
+                   setTimeout(() => {
+                        (document.querySelector('html') as any).scrollTop = scroll_top;
+                    },dd);
+                })
                 function loop(element: any) {
                     if (element && element.onResumeEvent) {
                         element && element.onResumeEvent && element.onResumeEvent();

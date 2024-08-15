@@ -42,6 +42,34 @@ class Shopping {
                 }
             }
             query.id && querySql.push(`(content->>'$.id' = ${query.id})`);
+            if (query.collection) {
+                const collection_cf = (await database_js_1.default.query(`SELECT *
+                                                       FROM \`${this.app}\`.public_config
+                                                       where \`key\` = 'collection';`, []))[0]['value'];
+                query.collection = decodeURI(query.collection);
+                query.collection = query.collection
+                    .split(',').map((dd) => {
+                    function loop(array, prefix) {
+                        const find = array.find((d1) => { return d1.code === dd; });
+                        if (find) {
+                            prefix.push(find.title);
+                            dd = prefix.join(' / ');
+                            query.accurate_search_collection = true;
+                        }
+                        else {
+                            array.map((d1) => {
+                                if (d1.array) {
+                                    let prefix_i = JSON.parse(JSON.stringify(prefix));
+                                    prefix_i.push(d1.title);
+                                    loop(d1.array, prefix_i);
+                                }
+                            });
+                        }
+                    }
+                    loop(collection_cf, []);
+                    return dd;
+                }).join(',');
+            }
             query.collection &&
                 querySql.push(`(${query.collection
                     .split(',')
@@ -150,9 +178,9 @@ class Shopping {
         else {
             return {
                 data: (await database_js_1.default.query(`SELECT *
-                     FROM (${sql}) as subqyery
-                         limit ${query.page * query.limit}
-                        , ${query.limit}`, [])).map((dd) => {
+                         FROM (${sql}) as subqyery
+                             limit ${query.page * query.limit}
+                            , ${query.limit}`, [])).map((dd) => {
                     dd.content.id = dd.id;
                     return dd;
                 }),
@@ -164,8 +192,8 @@ class Shopping {
     async querySqlByVariants(querySql, query) {
         let sql = `SELECT v.id,
                           v.product_id,
-                          v.content                                            as variant_content,
-                          p.content                                            as product_content,
+                          v.content as                                            variant_content,
+                          p.content as                                            product_content,
                           CAST(JSON_EXTRACT(v.content, '$.stock') AS UNSIGNED) as stock
                    FROM \`${this.app}\`.t_variants AS v
                             JOIN
@@ -223,11 +251,15 @@ class Shopping {
         var _a, _b, _c, _d;
         try {
             if (replace_order_id) {
-                const orderData = (await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_checkout
-                        WHERE cart_token = ? AND status = 0;`, [replace_order_id]))[0];
+                const orderData = (await database_js_1.default.query(`SELECT *
+                         FROM \`${this.app}\`.t_checkout
+                         WHERE cart_token = ?
+                           AND status = 0;`, [replace_order_id]))[0];
                 if (orderData) {
-                    await database_js_1.default.query(`DELETE FROM \`${this.app}\`.t_checkout
-                        WHERE cart_token = ? AND status = 0;`, [replace_order_id]);
+                    await database_js_1.default.query(`DELETE
+                         FROM \`${this.app}\`.t_checkout
+                         WHERE cart_token = ?
+                           AND status = 0;`, [replace_order_id]);
                     data.lineItems = orderData.orderData.lineItems;
                     data.email = orderData.email;
                     data.user_info = orderData.orderData.user_info;
@@ -413,7 +445,8 @@ class Shopping {
                         }
                     }
                 }
-                catch (e) { }
+                catch (e) {
+                }
             }
             carData.shipment_fee = (() => {
                 let total_volume = 0;
@@ -689,7 +722,7 @@ class Shopping {
         let orderID = data.cart_token;
         let email = data.email;
         return await database_js_1.default.execute(`INSERT INTO \`${this.app}\`.t_return_order (order_id, return_order_id, email, orderData)
-                     values (?, ?, ?, ?)`, [orderID, returnOrderID, email, data.orderData]);
+             values (?, ?, ?, ?)`, [orderID, returnOrderID, email, data.orderData]);
     }
     async putReturnOrder(data) {
         if (data.orderData.returnProgress == -1 && data.status == 1) {
@@ -948,9 +981,13 @@ class Shopping {
             if (data.orderData) {
                 update.orderData = JSON.stringify(data.orderData);
             }
-            const origin = await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_checkout WHERE id = ?;
-                    `, [data.id]);
-            await database_js_1.default.query(`UPDATE \`${this.app}\`.t_checkout SET ? WHERE id = ?
+            const origin = await database_js_1.default.query(`SELECT *
+                 FROM \`${this.app}\`.t_checkout
+                 WHERE id = ?;
+                `, [data.id]);
+            await database_js_1.default.query(`UPDATE \`${this.app}\`.t_checkout
+                 SET ?
+                 WHERE id = ?
                 `, [update, data.id]);
             if (update.orderData && JSON.parse(update.orderData)) {
                 const updateProgress = JSON.parse(update.orderData).progress;
@@ -992,11 +1029,15 @@ class Shopping {
     }
     async proofPurchase(order_id, text) {
         try {
-            const orderData = (await database_js_1.default.query(`select orderData from \`${this.app}\`.t_checkout where cart_token=?`, [order_id]))[0]['orderData'];
+            const orderData = (await database_js_1.default.query(`select orderData
+                                               from \`${this.app}\`.t_checkout
+                                               where cart_token = ?`, [order_id]))[0]['orderData'];
             orderData.proof_purchase = text;
             new notify_js_1.ManagerNotify(this.app).uploadProof({ orderData: orderData });
             await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'proof-purchase', order_id, orderData.email);
-            await database_js_1.default.query(`update \`${this.app}\`.t_checkout set orderData=? where cart_token=?`, [JSON.stringify(orderData), order_id]);
+            await database_js_1.default.query(`update \`${this.app}\`.t_checkout
+                            set orderData=?
+                            where cart_token = ?`, [JSON.stringify(orderData), order_id]);
             return {
                 result: true,
             };
@@ -1090,11 +1131,11 @@ class Shopping {
                        WHERE ${querySql.join(' and ')} ${orderString}`;
             if (query.returnSearch == 'true') {
                 const data = await database_js_1.default.query(`SELECT *
-                         FROM \`${this.app}\`.t_checkout
-                         WHERE cart_token = ${query.search}`, []);
+                     FROM \`${this.app}\`.t_checkout
+                     WHERE cart_token = ${query.search}`, []);
                 let returnSql = `SELECT *
-                       FROM \`${this.app}\`.t_return_order
-                       WHERE order_id = ${query.search}`;
+                                 FROM \`${this.app}\`.t_return_order
+                                 WHERE order_id = ${query.search}`;
                 let returnData = await database_js_1.default.query(returnSql, []);
                 if (returnData.length > 0) {
                     returnData.forEach((returnOrder) => {
@@ -1842,8 +1883,8 @@ class Shopping {
     async updateCollectionFromUpdateProduct(collection) {
         var _a;
         let config = (_a = (await database_js_1.default.query(`SELECT *
-                         FROM \`${this.app}\`.public_config
-                         WHERE \`key\` = 'collection';`, []))[0]) !== null && _a !== void 0 ? _a : {};
+                     FROM \`${this.app}\`.public_config
+                     WHERE \`key\` = 'collection';`, []))[0]) !== null && _a !== void 0 ? _a : {};
         config.value = config.value || [];
         function findRepeatCollection(data, fatherTitle = '') {
             let returnArray = [`${fatherTitle ? `${fatherTitle}/` : ``}${data.title}`];
@@ -1884,8 +1925,8 @@ class Shopping {
         const categoryTree = buildCategoryTree(nonCommonElements);
         config.value.push(...categoryTree);
         const update_col_sql = `UPDATE \`${this.app}\`.public_config
-                                    SET value = ?
-                                    WHERE \`key\` = 'collection';`;
+                                SET value = ?
+                                WHERE \`key\` = 'collection';`;
         await database_js_1.default.execute(update_col_sql, [config.value]);
     }
     async postMulProduct(content) {
@@ -1898,8 +1939,8 @@ class Shopping {
             productArray.forEach((product, index) => {
                 product.type = 'product';
             });
-            const data = await database_js_1.default.query(`INSERT INTO \`${this.app}\`.\`t_manager_post\` (userID , content)
-                VALUES ?`, [
+            const data = await database_js_1.default.query(`INSERT INTO \`${this.app}\`.\`t_manager_post\` (userID, content)
+                 VALUES ?`, [
                 productArray.map((product) => {
                     var _a;
                     product.type = 'product';
@@ -2028,7 +2069,7 @@ class Shopping {
     containsTagSQL(name) {
         return `SELECT *
                 FROM \`${this.app}\`.t_manager_post
-                WHERE JSON_CONTAINS(content -> '$.collection', '"${name}"');`;
+                WHERE JSON_CONTAINS(content ->> '$.collection', '"${name}"');`;
     }
     async updateProductCollection(content, id) {
         try {

@@ -347,7 +347,7 @@ export class ShoppingCollections {
                                                                 </div>
                                                             </div>
                                                             <input
-                                                                    class="w-100"
+                                                                    class="flex-fill"
                                                                     style="border:none;background:none;text-align: start; color: #393939; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word; ${document
                                                 .body.clientWidth > 768
                                                 ? ''

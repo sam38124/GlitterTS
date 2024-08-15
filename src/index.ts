@@ -123,7 +123,6 @@ export async function createAPP(dd: any) {
                     if (req.query.appName) {
                         appName = req.query.appName;
                     }
-
                     //SAAS品牌和用戶類型
                     const brandAndMemberType = await App.checkBrandAndMemberType(appName);
                     let data = await Seo.getPageInfo(appName, req.query.page as string);
