@@ -1279,7 +1279,7 @@ export class ShoppingOrderManager {
 
     public static searchOrder(gvc: GVC, vm: any) {
         let viewModel: any = {
-            searchOrder: "1723606217702",
+            searchOrder: "1723779052365",
             searchData: "",
             errorReport: ""
         }
@@ -1565,8 +1565,8 @@ export class ShoppingOrderManager {
                                                 if (data.select) {
                                                     checkList.push(data);
                                                     subTotal += data.sale_price * data.return_count;
-                                                    returnDiscount += data.discount_price * data.return_count;
-                                                    returnRebate += data.rebate * data.return_count;
+                                                    returnDiscount += (data.discount_price??0) * data.return_count;
+                                                    returnRebate += (data.rebate??0) * data.return_count;
                                                 }
                                             })
 

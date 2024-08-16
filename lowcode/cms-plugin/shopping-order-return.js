@@ -1106,7 +1106,7 @@ export class ShoppingOrderManager {
     }
     static searchOrder(gvc, vm) {
         let viewModel = {
-            searchOrder: "1723606217702",
+            searchOrder: "1723779052365",
             searchData: "",
             errorReport: ""
         };
@@ -1383,12 +1383,13 @@ export class ShoppingOrderManager {
                             checkList = [];
                             orderData.return_inf = {};
                             lineItems.map((data, index) => {
+                                var _a, _b;
                                 productTotal += data.sale_price * data.count;
                                 if (data.select) {
                                     checkList.push(data);
                                     subTotal += data.sale_price * data.return_count;
-                                    returnDiscount += data.discount_price * data.return_count;
-                                    returnRebate += data.rebate * data.return_count;
+                                    returnDiscount += ((_a = data.discount_price) !== null && _a !== void 0 ? _a : 0) * data.return_count;
+                                    returnRebate += ((_b = data.rebate) !== null && _b !== void 0 ? _b : 0) * data.return_count;
                                 }
                             });
                             orderData.shipment_fee = Math.round(origShipment * subTotal / productTotal);
