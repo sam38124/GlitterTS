@@ -630,7 +630,7 @@ export class UserList {
                                                         callback: (response) => {
                                                             if (response) {
                                                                 dialog.dataLoading({text: '更新中', visible: true});
-                                                                vm.data.userData.type = 'block';
+                                                                vm.data.userData.type = (vm.data.status)?'block':'normal';
                                                                 ApiUser.updateUserDataManager(vm.data, vm.data.userID).then((response) => {
                                                                     
                                                                     dialog.dataLoading({text: '', visible: false});
@@ -1219,7 +1219,6 @@ export class UserList {
                                                                             let h = '';
                                                                             const requireKey = ["name", "email"]
                                                                             data.map((item: any) => {
-                                                                                console.log(" data --- ", item);
                                                                                 switch (item.page) {
                                                                                     case 'input':
                                                                                         h += html`
