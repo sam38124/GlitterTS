@@ -16,6 +16,7 @@ import { FormWidget } from '../official_view_component/official/form.js';
 import { ApiWallet } from '../glitter-base/route/wallet.js';
 import { ApiShop } from '../glitter-base/route/shopping.js';
 import { ShoppingOrderManager } from './shopping-order-manager.js';
+import { ShoppingRebate } from './shopping-rebate.js';
 import { FilterOptions } from './filter-options.js';
 const html = String.raw;
 export class UserList {
@@ -122,7 +123,7 @@ export class UserList {
                                       <div class="flex-fill"></div>
                                       <button
                                           class="btn hoverBtn me-2 px-3 d-none"
-                                          style="height:35px !important;font-size: 14px;color:black;border:1px solid black;"
+                                          style="height:35px !important; font-size: 14px; color: #393939; border: 1px solid black;"
                                           onclick="${gvc.event(() => {
                             UserList.setUserForm(gvc, () => {
                                 gvc.notifyDataChange(vm.id);
@@ -450,7 +451,7 @@ export class UserList {
                             return gvc.glitter.ut.dateFormat(new Date(dd.deadline), 'yyyy-MM-dd hh:mm');
                         })(),
                     },
-                    { key: '回饋金項目', value: (_a = dd.note) !== null && _a !== void 0 ? _a : '' },
+                    { key: '購物金項目', value: (_a = dd.note) !== null && _a !== void 0 ? _a : '' },
                     {
                         key: '增減金額',
                         value: (() => {
@@ -683,11 +684,53 @@ export class UserList {
                                         return {
                                             bind: id,
                                             view: () => {
-                                                return BgWidget.mainCard(html ` <div style="display: flex; margin-bottom: 12px;">
-                                                                    <span class="tx_700">回饋金</span>
+                                                return BgWidget.mainCard(html ` <div style="display: flex; justify-content: space-between; align-items: center;">
+                                                                    <span class="tx_700">購物金</span>
+                                                                    <div>
+                                                                        ${BgWidget.grayButton('添加購物金', gvc.event(() => {
+                                                    ShoppingRebate.newRebateDialog({
+                                                        gvc: gvc,
+                                                        saveBotton: {
+                                                            event: (obj) => {
+                                                                const dialog = new ShareDialog(gvc.glitter);
+                                                                dialog.dataLoading({
+                                                                    text: '發送中...',
+                                                                    visible: true,
+                                                                });
+                                                                ApiWallet.storeRebateByManager({
+                                                                    userID: [vm.data.userID],
+                                                                    total: (() => {
+                                                                        if (obj.type === 'add') {
+                                                                            return parseInt(obj.value, 10);
+                                                                        }
+                                                                        else {
+                                                                            const minus = parseInt(obj.value, 10);
+                                                                            return minus ? minus * -1 : minus;
+                                                                        }
+                                                                    })(),
+                                                                    note: obj.note,
+                                                                    rebateEndDay: obj.rebateEndDay,
+                                                                }).then((result) => {
+                                                                    dialog.dataLoading({ visible: false });
+                                                                    if (result.response.result) {
+                                                                        dialog.successMessage({ text: `設定成功` });
+                                                                        setTimeout(() => {
+                                                                            gvc.notifyDataChange(id);
+                                                                        }, 200);
+                                                                    }
+                                                                    else {
+                                                                        dialog.errorMessage({ text: result.response.msg });
+                                                                    }
+                                                                });
+                                                            },
+                                                            text: '確認',
+                                                        },
+                                                    });
+                                                }))}
+                                                                    </div>
                                                                 </div>` +
                                                     html ` <div style="display: flex; margin-bottom: 18px; align-items: center; gap: 18px">
-                                                                        <span class="tx_700">現有回饋金</span>
+                                                                        <span class="tx_700">現有購物金</span>
                                                                         <span style="font-size: 24px; font-weight: 400; color: #393939;"
                                                                             >${gvc.bindView(() => {
                                                         const id = gvc.glitter.getUUID();
@@ -710,7 +753,7 @@ export class UserList {
                                                                         >
                                                                     </div>` +
                                                     html ` <div style="display: flex; margin-bottom: 18px;">
-                                                                        <span class="tx_700">回饋金紀錄</span>
+                                                                        <span class="tx_700">購物金紀錄</span>
                                                                     </div>` +
                                                     gvc.bindView(() => {
                                                         const id = gvc.glitter.getUUID();
