@@ -1,24 +1,24 @@
 import db from '../../modules/database';
 import exception from '../../modules/exception';
-import tool, { getUUID } from '../../services/tool';
+import tool, {getUUID} from '../../services/tool';
 import UserUtil from '../../utils/UserUtil';
 import config from '../../config.js';
-import { sendmail } from '../../services/ses.js';
+import {sendmail} from '../../services/ses.js';
 import App from '../../app.js';
 import redis from '../../modules/redis.js';
 import Tool from '../../modules/tool.js';
 import process from 'process';
-import { UtDatabase } from '../utils/ut-database.js';
-import { CustomCode } from './custom-code.js';
-import { IToken } from '../models/Auth.js';
+import {UtDatabase} from '../utils/ut-database.js';
+import {CustomCode} from './custom-code.js';
+import {IToken} from '../models/Auth.js';
 import axios from 'axios';
-import { AutoSendEmail } from './auto-send-email.js';
+import {AutoSendEmail} from './auto-send-email.js';
 import qs from 'qs';
 import jwt from 'jsonwebtoken';
-import { OAuth2Client } from 'google-auth-library';
-import { Rebate } from './rebate.js';
+import {OAuth2Client} from 'google-auth-library';
+import {Rebate} from './rebate.js';
 import moment from 'moment';
-import { ManagerNotify } from './notify.js';
+import {ManagerNotify} from './notify.js';
 
 interface UserQuery {
     page?: number;
@@ -34,6 +34,7 @@ interface UserQuery {
     total_amount?: string;
     groupType?: string;
     groupTag?: string;
+    filter_type?: string;
 }
 
 interface GroupUserItem {
@@ -74,9 +75,9 @@ export class User {
                 } else if (login_config.email_verify) {
                     await db.execute(
                         `delete
-                     from \`${this.app}\`.\`t_user\`
-                     where account = ${db.escape(account)}
-                       and status = 0`,
+                         from \`${this.app}\`.\`t_user\`
+                         where account = ${db.escape(account)}
+                           and status = 0`,
                         []
                     );
                     const data = await AutoSendEmail.getDefCompare(this.app, 'auto-email-verify');
@@ -116,7 +117,9 @@ export class User {
         // 發送歡迎信件
         const usData: any = await this.getUserData(userID, 'userID');
 
-        await db.query(`update \`${this.app}\`.t_user set userData=? where userID=?`, [
+        await db.query(`update \`${this.app}\`.t_user
+                        set userData=?
+                        where userID = ?`, [
             JSON.stringify(
                 await this.checkUpdate({
                     userID: userID,
@@ -132,7 +135,7 @@ export class User {
         }
 
         //發送購物金
-        const getRS = await this.getConfig({ key: 'rebate_setting', user_id: 'manager' });
+        const getRS = await this.getConfig({key: 'rebate_setting', user_id: 'manager'});
         const rgs = getRS[0] && getRS[0].value.register ? getRS[0].value.register : {};
         if (rgs && rgs.switch && rgs.value) {
             await new Rebate(this.app).insertRebate(userID, rgs.value, '新加入會員', {
@@ -143,7 +146,7 @@ export class User {
 
         //發送用戶註冊通知
         const manager = new ManagerNotify(this.app);
-        manager.userRegister({ user_id: userID });
+        manager.userRegister({user_id: userID});
     }
 
     public async updateAccount(account: string, userID: string): Promise<any> {
@@ -329,7 +332,7 @@ export class User {
                     await db.query(
                         `select count(1)
                          from \`${this.app}\`.t_user
-                         where account=?`,
+                         where account = ?`,
                         [line_profile.email]
                     )
                 )[0]['count(1)'] == 0
@@ -355,7 +358,7 @@ export class User {
                 (await db.execute(
                     `select *
                      from \`${this.app}\`.t_user
-                     where account=?`,
+                     where account = ?`,
                     [line_profile.email]
                 )) as any
             )[0];
@@ -381,7 +384,7 @@ export class User {
             });
             const oauth2Client = new OAuth2Client(config.id, config.secret, redirect);
             // 使用授权码交换令牌
-            const { tokens } = await oauth2Client.getToken(code);
+            const {tokens} = await oauth2Client.getToken(code);
             oauth2Client.setCredentials(tokens);
 
             // 验证 ID 令牌
@@ -465,10 +468,10 @@ export class User {
                     id: '',
                     og: {
                         id: '',
-                        duration: { type: 'noLimit', value: 0 },
+                        duration: {type: 'noLimit', value: 0},
                         tag_name: '一般會員',
-                        condition: { type: 'total', value: 0 },
-                        dead_line: { type: 'noLimit' },
+                        condition: {type: 'total', value: 0},
+                        dead_line: {type: 'noLimit'},
                         create_date: '2024-01-01T00:00:00.000Z',
                     },
                     sum: 0,
@@ -506,14 +509,14 @@ export class User {
             const order_list = (
                 await db.query(
                     `SELECT orderData ->> '$.total' as total, created_time
-                 FROM \`${this.app}\`.t_checkout
-                 where email = ${db.escape(userData.account)}
-                   and status = 1
-                 order by id desc`,
+                     FROM \`${this.app}\`.t_checkout
+                     where email = ${db.escape(userData.account)}
+                       and status = 1
+                     order by id desc`,
                     []
                 )
             ).map((dd: any) => {
-                return { total_amount: parseInt(`${dd.total}`, 10), date: dd.created_time };
+                return {total_amount: parseInt(`${dd.total}`, 10), date: dd.created_time};
             });
             // 判斷是否符合上個等級
             let pass_level = true;
@@ -726,7 +729,6 @@ export class User {
             const noRegisterUsers: any[] = [];
             query.page = query.page ?? 0;
             query.limit = query.limit ?? 50;
-
             if (query.groupType) {
                 const getGroup = await this.getUserGroups(query.groupType.split(','), query.groupTag);
                 if (getGroup.result && getGroup.data[0]) {
@@ -740,7 +742,7 @@ export class User {
                                 userID: -(index + 1),
                                 email: user.email,
                                 account: user.email,
-                                userData: { email: user.email },
+                                userData: {email: user.email},
                                 status: 1,
                             });
                         }
@@ -748,11 +750,12 @@ export class User {
 
                     const ids = query.id
                         ? query.id.split(',').filter((id) => {
-                              return users.find((item) => {
-                                  return item.userID === parseInt(`${id}`, 10);
-                              });
-                          })
+                            return users.find((item) => {
+                                return item.userID === parseInt(`${id}`, 10);
+                            });
+                        })
                         : users.map((item: { userID: number }) => item.userID);
+                    // @ts-ignore
                     query.id = ids.filter((id) => id).join(',');
                 } else {
                     query.id = '0,0';
@@ -772,10 +775,10 @@ export class User {
                 if (rebateData && rebateData.total > 0) {
                     const ids = query.id
                         ? query.id.split(',').filter((id) => {
-                              return rebateData.data.find((item) => {
-                                  return item.user_id === parseInt(`${id}`, 10);
-                              });
-                          })
+                            return rebateData.data.find((item) => {
+                                return item.user_id === parseInt(`${id}`, 10);
+                            });
+                        })
                         : rebateData.data.map((item) => item.user_id);
                     query.id = ids.join(',');
                 } else {
@@ -796,10 +799,10 @@ export class User {
                     if (levelIds.length > 0) {
                         const ids = query.id
                             ? query.id.split(',').filter((id) => {
-                                  return levelIds.find((item) => {
-                                      return item === parseInt(`${id}`, 10);
-                                  });
-                              })
+                                return levelIds.find((item) => {
+                                    return item === parseInt(`${id}`, 10);
+                                });
+                            })
                             : levelIds;
                         query.id = ids.join(',');
                     } else {
@@ -857,6 +860,11 @@ export class User {
                         .join(` || `)
                 );
             }
+            if (query.filter_type === 'block') {
+                querySql.push(`status = 0`);
+            } else {
+                querySql.push(`status = 1`);
+            }
 
             const dataSQL = this.getUserAndOrderSQL({
                 select: 'o.email, o.order_count, o.total_amount, u.*',
@@ -890,7 +898,10 @@ export class User {
         }
     }
 
-    public async getUserGroups(type?: string[], tag?: string): Promise<{ result: false } | { result: true; data: GroupsItem[] }> {
+    public async getUserGroups(type?: string[], tag?: string): Promise<{ result: false } | {
+        result: true;
+        data: GroupsItem[]
+    }> {
         try {
             const pass = (text: string) => type === undefined || type.includes(text);
             let dataList: GroupsItem[] = [];
@@ -899,12 +910,12 @@ export class User {
             if (pass('subscriber')) {
                 const subscriberList = await db.query(
                     `SELECT DISTINCT u.userID, s.email
-                    FROM
-                        \`${this.app}\`.t_subscribe AS s LEFT JOIN
-                        \`${this.app}\`.t_user AS u ON s.email = JSON_EXTRACT(u.userData, '$.email');`,
+                     FROM \`${this.app}\`.t_subscribe AS s
+                              LEFT JOIN
+                          \`${this.app}\`.t_user AS u ON s.email = JSON_EXTRACT(u.userData, '$.email');`,
                     []
                 );
-                dataList.push({ type: 'subscriber', title: '電子郵件訂閱者', users: subscriberList });
+                dataList.push({type: 'subscriber', title: '電子郵件訂閱者', users: subscriberList});
             }
 
             // 購買者清單
@@ -912,16 +923,16 @@ export class User {
                 const buyingList = [] as GroupUserItem[];
                 const buyingData = await db.query(
                     `SELECT u.userID, c.email, JSON_UNQUOTE(JSON_EXTRACT(c.orderData, '$.email')) AS order_email
-                    FROM
-                        \`${this.app}\`.t_checkout AS c JOIN
-                        \`${this.app}\`.t_user AS u ON c.email = JSON_EXTRACT(u.userData, '$.email')
-                    WHERE c.status = 1;`,
+                     FROM \`${this.app}\`.t_checkout AS c
+                              JOIN
+                          \`${this.app}\`.t_user AS u ON c.email = JSON_EXTRACT(u.userData, '$.email')
+                     WHERE c.status = 1;`,
                     []
                 );
                 buyingData.map((item1: { userID: number; email: string }) => {
                     const index = buyingList.findIndex((item2) => item2.userID === item1.userID);
                     if (index === -1) {
-                        buyingList.push({ userID: item1.userID, email: item1.email, count: 1 });
+                        buyingList.push({userID: item1.userID, email: item1.email, count: 1});
                     } else {
                         buyingList[index].count++;
                     }
@@ -933,34 +944,35 @@ export class User {
                 // 從未購買者清單(Join時要確保至少包含一個值，不然sql會報錯。)
                 const neverBuyingData = await db.query(
                     `SELECT userID, JSON_UNQUOTE(JSON_EXTRACT(userData, '$.email')) AS email
-                    FROM \`${this.app}\`.t_user
-                    WHERE userID not in (${buyingList
-                        .map((item) => item.userID)
-                        .concat([-1312])
-                        .join(',')})`,
+                     FROM \`${this.app}\`.t_user
+                     WHERE userID not in (${buyingList
+                             .map((item) => item.userID)
+                             .concat([-1312])
+                             .join(',')})`,
                     []
                 );
 
                 dataList = dataList.concat([
-                    { type: 'neverBuying', title: '尚未購買過的顧客', users: neverBuyingData },
-                    { type: 'usuallyBuying', title: '已購買多次的顧客', users: usuallyBuyingList },
+                    {type: 'neverBuying', title: '尚未購買過的顧客', users: neverBuyingData},
+                    {type: 'usuallyBuying', title: '已購買多次的顧客', users: usuallyBuyingList},
                 ]);
             }
 
             // 會員等級
             if (pass('level')) {
-                const levelData = await this.getConfigV2({ key: 'member_level_config', user_id: 'manager' });
+                const levelData = await this.getConfigV2({key: 'member_level_config', user_id: 'manager'});
                 levelData.levels = levelData.levels || [];
                 const levels = levelData.levels
                     .map((item: any) => {
-                        return { id: item.id, name: item.tag_name };
+                        return {id: item.id, name: item.tag_name};
                     })
                     .filter((item: any) => {
                         return tag ? item.id === tag : true;
                     });
                 const memberUpdates = await db.query(
-                    `SELECT * FROM \`${this.app}\`.t_user_public_config 
-                        WHERE \`key\` = 'member_update';`,
+                    `SELECT *
+                     FROM \`${this.app}\`.t_user_public_config
+                     WHERE \`key\` = 'member_update';`,
                     []
                 );
                 for (const level of levels) {
@@ -974,11 +986,16 @@ export class User {
                     if (ids.length > 0) {
                         const levelList = await db.query(
                             `SELECT userID, JSON_UNQUOTE(JSON_EXTRACT(userData, '$.email')) AS email
-                            FROM \`${this.app}\`.t_user
-                            WHERE userID in (${ids.join(',')})`,
+                             FROM \`${this.app}\`.t_user
+                             WHERE userID in (${ids.join(',')})`,
                             []
                         );
-                        dataList.push({ type: 'level', title: `會員等級 - ${level.name}`, tag: level.id, users: levelList });
+                        dataList.push({
+                            type: 'level',
+                            title: `會員等級 - ${level.name}`,
+                            tag: level.id,
+                            users: levelList
+                        });
                     }
                 }
             }
@@ -1079,18 +1096,20 @@ export class User {
                 }
             }
             const subData = await db.query(
-                `SELECT s.*, u.account FROM
-                    \`${this.app}\`.t_subscribe AS s LEFT JOIN \`${this.app}\`.t_user AS u
-                    ON s.email = u.account
-                    WHERE ${querySql.length > 0 ? querySql.join(' AND ') : '1 = 1'}
+                `SELECT s.*, u.account
+                 FROM \`${this.app}\`.t_subscribe AS s
+                          LEFT JOIN \`${this.app}\`.t_user AS u
+                                    ON s.email = u.account
+                 WHERE ${querySql.length > 0 ? querySql.join(' AND ') : '1 = 1'}
                 `,
                 []
             );
             const subTotal = await db.query(
-                `SELECT count(*) as c FROM
-                    \`${this.app}\`.t_subscribe AS s LEFT JOIN \`${this.app}\`.t_user AS u
-                    ON s.email = u.account
-                    WHERE ${querySql.length > 0 ? querySql.join(' AND ') : '1 = 1'}
+                `SELECT count(*) as c
+                 FROM \`${this.app}\`.t_subscribe AS s
+                          LEFT JOIN \`${this.app}\`.t_user AS u
+                                    ON s.email = u.account
+                 WHERE ${querySql.length > 0 ? querySql.join(' AND ') : '1 = 1'}
                 `,
                 []
             );
@@ -1109,7 +1128,7 @@ export class User {
             query.limit = query.limit ?? 50;
             const querySql: any = [];
             query.search &&
-                querySql.push([`(userID in (select userID from \`${this.app}\`.t_user where (UPPER(JSON_UNQUOTE(JSON_EXTRACT(userData, '$.name')) LIKE UPPER('%${query.search}%')))))`].join(` || `));
+            querySql.push([`(userID in (select userID from \`${this.app}\`.t_user where (UPPER(JSON_UNQUOTE(JSON_EXTRACT(userData, '$.name')) LIKE UPPER('%${query.search}%')))))`].join(` || `));
             const data = await new UtDatabase(this.app, `t_fcm`).querySql(querySql, query as any);
             for (const b of data.data) {
                 let userData = (
@@ -1130,6 +1149,7 @@ export class User {
 
     public async deleteUser(query: { id: string }) {
         try {
+            //確保單一進來的元素不會被解析成字串
             await db.query(
                 `delete
                  FROM \`${this.app}\`.t_user
@@ -1155,6 +1175,8 @@ export class User {
                 )
             )[0];
             const configAd = await App.getAdConfig(this.app, 'glitter_loginConfig');
+            const blockCheck = par.userData.type == 'block'
+            par.status = blockCheck ? 0 : 1;
 
             if (
                 !manager &&
@@ -1191,10 +1213,12 @@ export class User {
             par = {
                 account: userData.account,
                 userData: JSON.stringify(par.userData),
+                status: par.status,
             };
             if (!par.account) {
                 delete par.account;
             }
+
             return {
                 data: (await db.query(
                     `update \`${this.app}\`.t_user
@@ -1230,8 +1254,7 @@ export class User {
         }
         config = config.concat(register_form).concat(customer_form_user_setting);
         Object.keys(userData).map((dd) => {
-            if (
-                !config.find((d2: any) => {
+            if (!config.find((d2: any) => {
                     return d2.key === dd && (d2.auth !== 'manager' || manager);
                 })
             ) {
@@ -1239,6 +1262,7 @@ export class User {
             }
         });
     }
+
     public async checkUpdate(cf: { updateUserData: any; manager: boolean; userID: string }) {
         let originUserData = (
             await db.query(
@@ -1251,13 +1275,16 @@ export class User {
         if (typeof originUserData !== 'object') {
             originUserData = {};
         }
+
         //清空不得編輯的資料
         await this.clearUselessData(cf.updateUserData, cf.manager);
+
         function mapUserData(userData: any, originUserData: any) {
             Object.keys(userData).map((dd) => {
                 originUserData[dd] = userData[dd];
             });
         }
+
         mapUserData(cf.updateUserData, originUserData);
         return originUserData;
     }
@@ -1268,7 +1295,7 @@ export class User {
                 `update \`${this.app}\`.t_user
                  SET ?
                  WHERE 1 = 1
-                   and ( (account = ?))`,
+                   and ((account = ?))`,
                 [
                     {
                         pwd: await tool.hashPwd(newPwd),
@@ -1376,8 +1403,8 @@ export class User {
             const count = (
                 await db.query(
                     `select count(1)
-                                           from \`${this.app}\`.t_user
-                                           where userID = ?`,
+                     from \`${this.app}\`.t_user
+                     where userID = ?`,
                     [id]
                 )
             )[0]['count(1)'];
@@ -1405,7 +1432,8 @@ export class User {
             ) {
                 await db.query(
                     `update \`${this.app}\`.t_user_public_config
-                     set value=? , updated_at=?
+                     set value=?,
+                         updated_at=?
                      where \`key\` = ?
                        and user_id = ?`,
                     [config.value, new Date(), config.key, config.user_id ?? this.token!.userID]
@@ -1463,8 +1491,8 @@ export class User {
             const count = (
                 await db.query(
                     `select count(1)
-                                           from \`${this.app}\`.t_user
-                                           where account = ?`,
+                     from \`${this.app}\`.t_user
+                     where account = ?`,
                     [email]
                 )
             )[0]['count(1)'];
@@ -1516,7 +1544,7 @@ export class User {
                 await db.query(
                     `insert into \`${this.app}\`.t_user_public_config (user_id, \`key\`, value, updated_at)
                      values (?, ?, ?, ?)`,
-                    [this.token?.userID, 'notice_last_read', JSON.stringify({ time: new Date() }), new Date()]
+                    [this.token?.userID, 'notice_last_read', JSON.stringify({time: new Date()}), new Date()]
                 );
             } else {
                 last_time_read = new Date(last_read_time[0].value.time).getTime();
@@ -1525,7 +1553,7 @@ export class User {
                      set \`value\`=?
                      where user_id = ?
                        and \`key\` = ?`,
-                    [JSON.stringify({ time: new Date() }), `${this.token?.userID}`, 'notice_last_read']
+                    [JSON.stringify({time: new Date()}), `${this.token?.userID}`, 'notice_last_read']
                 );
             }
             const response: any = await new UtDatabase(this.app, `t_notice`).querySql(query, cf.query);

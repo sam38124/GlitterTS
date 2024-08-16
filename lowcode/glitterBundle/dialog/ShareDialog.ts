@@ -6,7 +6,8 @@ export class ShareDialog {
     public infoMessage = (obj: { text?: string }) => {};
     public errorMessage = (obj: { text?: string }) => {};
     public successMessage = (obj: { text?: string }) => {};
-    public checkYesOrNot: (obj: { callback: (response: boolean) => void; text: string }) => void;
+    public checkYesOrNot: (obj: { callback: (response: boolean) => void; text: string ; icon?:string}) => void;
+    public warningMessage: (obj: { callback: (response: boolean) => void; text: string ; icon?:string}) => void;
     public policy: () => void;
 
     constructor(glitter: Glitter) {
@@ -29,7 +30,7 @@ export class ShareDialog {
         this.policy = () => {
             glitter.openDiaLog('glitterBundle/dialog/dialog.js', 'policy', { type: 'policy' });
         };
-        this.checkYesOrNot = (obj: { text: string; callback: (response: boolean) => void }) => {
+        this.checkYesOrNot = (obj: { icon?:string ;text: string; callback: (response: boolean) => void }) => {
             glitter.openDiaLog('glitterBundle/dialog/dialog.js', 'checkYesOrNot', {
                 type: 'checkYesOrNot',
                 callback: (response: boolean) => {
@@ -37,6 +38,17 @@ export class ShareDialog {
                     obj.callback(response);
                 },
                 title: obj.text,
+                icon : obj.icon,
+            });
+        };
+        this.warningMessage = (obj: {text: string; callback: (response: boolean) => void }) => {
+            glitter.openDiaLog('glitterBundle/dialog/dialog.js', 'warningMessage', {
+                type: 'warningMessage',
+                callback: (response: boolean) => {
+                    glitter.closeDiaLog('warningMessage');
+                    obj.callback(response);
+                },
+                title: obj.text
             });
         };
     }

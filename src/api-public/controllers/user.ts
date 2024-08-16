@@ -6,6 +6,8 @@ import exception from '../../modules/exception';
 import config from '../../config.js';
 import { UtPermission } from '../utils/ut-permission.js';
 import redis from '../../modules/redis.js';
+import {Shopping} from "../services/shopping";
+import Tool from "../../modules/tool";
 
 const router: express.Router = express.Router();
 
@@ -67,6 +69,25 @@ router.post('/register', async (req: express.Request, resp: express.Response) =>
             res.type = res.verify;
             res.needVerify = res.verify;
             return response.succ(resp, res);
+        }
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+router.post('/manager/register', async (req: express.Request, resp: express.Response) => {
+    try {
+        if (await UtPermission.isManager(req)) {
+            const user = new User(req.get('g-app') as string);
+            if (await user.checkUserExists(req.body.account)) {
+                throw exception.BadRequestError('BAD_REQUEST', 'user is already exists.', null);
+            } else {
+                const res = await user.createUser(req.body.account, Tool.randomString(8), req.body.userData, {}, true);
+                res.type = res.verify;
+                res.needVerify = res.verify;
+                return response.succ(resp, res);
+            }
+        } else {
+            return response.fail(resp, exception.BadRequestError('BAD_REQUEST', 'No permission.', null));
         }
     } catch (err) {
         return response.fail(resp, err);

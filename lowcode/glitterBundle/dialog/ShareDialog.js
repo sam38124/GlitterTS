@@ -32,6 +32,17 @@ export class ShareDialog {
                     obj.callback(response);
                 },
                 title: obj.text,
+                icon: obj.icon,
+            });
+        };
+        this.warningMessage = (obj) => {
+            glitter.openDiaLog('glitterBundle/dialog/dialog.js', 'warningMessage', {
+                type: 'warningMessage',
+                callback: (response) => {
+                    glitter.closeDiaLog('warningMessage');
+                    obj.callback(response);
+                },
+                title: obj.text
             });
         };
     }

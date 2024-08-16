@@ -432,12 +432,18 @@ export class Shopping {
                     return this.token && this.token.userID
                         ? await userClass.getUserData(this.token.userID as any, 'userID')
                         : await userClass.getUserData(data.email! || data.user_info.email, 'account');
+                //     檢查
+
                 } else {
                     return {};
                 }
             })();
+
             if (userData && userData.account) {
                 data.email = userData.account;
+                console.log(" shutdown in check userData ")
+                console.log("userData -- " , userData)
+                return ""
             }
 
             if (!data.email && type !== 'preview') {
@@ -983,13 +989,7 @@ export class Shopping {
         if (data.orderData.returnProgress == -1 && data.status == 1){
             const userClass = new User(this.app);
             const rebateClass = new Rebate(this.app);
-
-
             const userData = await userClass.getUserData(data.orderData.customer_info.account, 'account');
-
-            console.log(await rebateClass.insertRebate(userData.id, 0, "測試"))
-            console.log(data.orderData.return_rebate);
-
         }
         try {
             await db.query(
@@ -1359,6 +1359,7 @@ export class Shopping {
     }
 
     public async getCheckOut(query: {
+        filter_type?:string;
         page: number;
         limit: number;
         id?: string;
@@ -1453,9 +1454,9 @@ export class Shopping {
             query.email && querySql.push(`email=${db.escape(query.email)}`);
             query.id && querySql.push(`(content->>'$.id'=${query.id})`);
 
-            if (query.archived === 'true') {
+            if (query.filter_type === 'true') {
                 querySql.push(`(orderData->>'$.archived'="${query.archived}")`);
-            } else if (query.archived === 'false') {
+            } else if (query.filter_type === 'normal') {
                 querySql.push(`((orderData->>'$.archived' is null) or (orderData->>'$.archived'!='true'))`);
             }
 
@@ -1482,12 +1483,18 @@ export class Shopping {
                 )
                 if (returnData.length > 0) {
                     returnData.forEach((returnOrder:any) => {
+                        // todo 確認訂單是否被作廢
+                        if (!data[0].orderData?.discard){
+
+                        }
                         data[0].orderData.lineItems.map((lineItem:any , index:number) => {
                             lineItem.count = lineItem.count - returnOrder.orderData.lineItems[index].return_count;
-
                         })
-                        data[0].orderData.rebate += returnOrder.return_rebate;
-                        data[0].orderData.discount += returnOrder.return_discount;//已經退回的購物金和優惠卷折扣金額
+                        console.log(data[0].orderData.shipment_fee)
+                        console.log(returnOrder.orderData.shipment_fee)
+                        data[0].orderData.shipment_fee -= returnOrder.orderData.shipment_fee;
+                        // data[0].orderData.rebate += returnOrder.return_rebate;
+                        // data[0].orderData.discount += returnOrder.return_discount;//已經退回的購物金和優惠卷折扣金額
                     })
                     data[0].orderData.lineItems = data[0].orderData.lineItems.filter((dd: any) => {
                         return dd.count > 0;

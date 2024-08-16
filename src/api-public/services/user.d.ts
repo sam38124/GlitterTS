@@ -13,6 +13,7 @@ interface UserQuery {
     total_amount?: string;
     groupType?: string;
     groupTag?: string;
+    filter_type?: string;
 }
 interface GroupUserItem {
     userID: number;

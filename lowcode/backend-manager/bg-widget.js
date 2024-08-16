@@ -287,6 +287,13 @@ export class BgWidget {
     static title_16(title, style = '') {
         return html ` <h3 class="my-auto tx_title" style="white-space: nowrap;font-size: 16px;${style}">${title}</h3>`;
     }
+    static create_btn(event, title = "新增") {
+        return html `
+            <button class="btn btn-snow" style="padding: 6px 18px;border-radius: 10px;background: #393939;font-size: 16px;color: #FFF;font-weight: 700;" type="button" onclick="${event}">
+                ${title}
+            </button>
+        `;
+    }
     static plus_btn(title, gvc, option) {
         return html `
             <div class="w-100 d-flex align-items-center justify-content-center">

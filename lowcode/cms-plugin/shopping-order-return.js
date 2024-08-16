@@ -97,92 +97,14 @@ export class ShoppingOrderManager {
                             <div class="d-flex w-100 align-items-center  ">
                                 ${BgWidget.title('退貨單列表')}
                                 <div class="flex-fill"></div>
-                                <div style="display: flex; gap: 14px;">
-
-                                    <input class="d-none" type="file" id="upload-excel"
-                                           onchange="${gvc.event((e, event) => {
-                            importDataTo(event);
-                        })}"/>
-                                    ${BgWidget.grayButton('匯出', gvc.event(() => {
-                            let dialog = new ShareDialog(glitter);
-                            dialog.dataLoading({ visible: true });
-                            ApiShop.getOrder({
-                                page: 0,
-                                limit: 100,
-                                search: undefined,
-                                searchType: 'name',
-                                orderString: '',
-                                filter: '',
-                                archived: (vm.filter_type === 'normal') ? `false` : `true`
-                            }).then(response => {
-                                dialog.dataLoading({ visible: false });
-                                let firstRow = ["訂單編號", "訂購人", "訂購人email", "訂單金額", "付款狀態", "出貨狀態", "訂單狀態"];
-                                let exportData = [];
-                                response.response.data.map((orderData) => {
-                                    var _a, _b;
-                                    let rowData = {
-                                        orderID: orderData.cart_token,
-                                        order_name: (_b = (_a = orderData === null || orderData === void 0 ? void 0 : orderData.customer_info) === null || _a === void 0 ? void 0 : _a.name) !== null && _b !== void 0 ? _b : orderData.orderData.user_info.name,
-                                        order_email: orderData.orderData.user_email,
-                                        total: orderData.orderData.total,
-                                        pay_status: (() => {
-                                            switch (orderData.status) {
-                                                case 0:
-                                                    return `未付款`;
-                                                case 1:
-                                                    return `已付款`;
-                                                case -1:
-                                                    return `付款失敗`;
-                                                case -2:
-                                                    return `已退款`;
-                                            }
-                                            return ``;
-                                        })(),
-                                        progress: (() => {
-                                            var _a;
-                                            switch ((_a = orderData.orderData.progress) !== null && _a !== void 0 ? _a : 'wait') {
-                                                case 'wait':
-                                                    return `未出貨`;
-                                                case 'shipping':
-                                                    return `已出貨`;
-                                                case 'finish':
-                                                    return `已取貨`;
-                                                case 'arrived':
-                                                    return `已送達`;
-                                                case 'returns':
-                                                    return `已退貨`;
-                                            }
-                                            return ``;
-                                        })(),
-                                        order_status: (() => {
-                                            var _a;
-                                            switch ((_a = orderData.orderData.orderStatus) !== null && _a !== void 0 ? _a : '0') {
-                                                case '-1':
-                                                    return `已取消`;
-                                                case '0':
-                                                    return `處理中`;
-                                                case '1':
-                                                    return `已完成`;
-                                            }
-                                            return ``;
-                                        })(),
-                                    };
-                                    exportData.push(rowData);
-                                });
-                                exportDataTo(firstRow, exportData);
-                            });
-                        }))}
-                                    ${BgWidget.darkButton('新增', gvc.event(() => {
+                                ${BgWidget.darkButton('新增', gvc.event(() => {
                             vm.type = 'addSearch';
                         }))}
-                                </div>
                             </div>
+
                             ${BgWidget.tab([{
                                 title: '一般列表',
                                 key: 'normal'
-                            }, {
-                                title: '封存列表',
-                                key: 'block'
                             }], gvc, vm.filter_type, (text) => {
                             vm.filter_type = text;
                             gvc.notifyDataChange(vm.id);
@@ -255,11 +177,11 @@ export class ShoppingOrderManager {
                                                         var _a;
                                                         switch ((_a = dd.orderData.returnProgress) !== null && _a !== void 0 ? _a : "1") {
                                                             case "0":
-                                                                return `<div class="badge" style="font-size: 14px;color:#393939;height: 22px;padding: 4px 6px;border-radius: 7px;background: #FFE9B2;">退貨中</div>`;
+                                                                return `<div class="badge" style="font-size: 16px;color:#393939;height: 22px;padding: 4px 6px;border-radius: 7px;background: #FFE9B2;">退貨中</div>`;
                                                             case "-1":
-                                                                return `<div class="badge" style="border-radius: 7px;background: #D8ECDA;height: 22px;padding: 4px 6px;font-size: 14px;color:#393939;">已退貨</div>`;
+                                                                return `<div class="badge" style="border-radius: 7px;background: #D8ECDA;height: 22px;padding: 4px 6px;font-size: 16px;color:#393939;">已退貨</div>`;
                                                             default:
-                                                                return `<div class="badge" style="font-size: 14px;color:#393939;height: 22px;padding: 4px 6px;border-radius: 7px;background: #FFE9B2;">處理中</div>`;
+                                                                return `<div class="badge" style="font-size: 16px;color:#393939;height: 22px;padding: 4px 6px;border-radius: 7px;background: #FFE9B2;">處理中</div>`;
                                                         }
                                                     })(),
                                                 },
@@ -359,6 +281,37 @@ export class ShoppingOrderManager {
                                             })}"
                                                     >
                                                         ${(vm.filter_type === 'normal') ? ` 批量封存` : `解除封存`}
+                                                    </button>
+                                                    <button
+                                                            class="btn btn-danger fs-7 px-2"
+                                                            style="height: 30px; border: none;"
+                                                            onclick="${gvc.event(() => {
+                                                const dialog = new ShareDialog(gvc.glitter);
+                                                dialog.checkYesOrNot({
+                                                    text: `是否確認${(vm.filter_type === 'void') ? `解除作廢` : `作廢`}所選項目?`,
+                                                    callback: (response) => __awaiter(this, void 0, void 0, function* () {
+                                                        if (response) {
+                                                            dialog.dataLoading({ visible: true });
+                                                            const check = vm.dataList.filter((dd) => {
+                                                                return dd.checked;
+                                                            });
+                                                            for (const b of check) {
+                                                                b.orderData.void = (vm.filter_type === 'void') ? `false` : `true`;
+                                                                yield ApiShop.putReturnOrder({
+                                                                    id: `${b.id}`,
+                                                                    data: b
+                                                                });
+                                                            }
+                                                            setTimeout(() => {
+                                                                dialog.dataLoading({ visible: false });
+                                                                gvc.notifyDataChange(vm.id);
+                                                            }, 100);
+                                                        }
+                                                    }),
+                                                });
+                                            })}"
+                                                    >
+                                                        ${(vm.filter_type === 'void') ? ` 批量作廢` : `解除作廢`}
                                                     </button>`,
                                         ].join(``);
                                     },
@@ -425,9 +378,9 @@ export class ShoppingOrderManager {
                     return `<div class="badge fs-6" style="max-height:34px;border-radius: 7px;color: #393939;background: ${color};">${text}</div>`;
             }
         }
-        function drawInputRow(text, value, readonly) {
+        function drawInputRow(text, value, readonly, style) {
             return html `
-                <div class=" d-flex flex-column" style="gap:8px;flex:1">
+                <div class=" d-flex flex-column" style="gap:8px;flex:1;${style ? style : ''}">
                     <div style="font-size: 16px;font-weight: 400;">
                         ${text}
                     </div>
@@ -492,7 +445,7 @@ export class ShoppingOrderManager {
                 }
             ],
             view: () => {
-                var _a, _b, _c;
+                var _a, _b;
                 try {
                     if (child_vm.type === 'user') {
                         return UserList.userInformationDetail({
@@ -605,7 +558,8 @@ export class ShoppingOrderManager {
                                                                 退貨狀態
                                                             </div>
                                                             <select class="form-select"
-                                                                    style="width: 100%;display: flex;padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;" onchange="${gvc.event((e) => {
+                                                                    style="width: 100%;display: flex;padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;"
+                                                                    onchange="${gvc.event((e) => {
                         orderData.orderData.returnProgress = e.value;
                     })}">
                                                                 ${(() => {
@@ -631,13 +585,18 @@ export class ShoppingOrderManager {
                                                             ${drawInputRow("退貨單編號", orderData.return_order_id, true)}
                                                             ${drawInputRow("原訂單編號", orderData.order_id, true)}
                                                         </div>
-                                                        <div class="d-flex" style="gap:18px;">
-                                                            ${drawInputRow("顧客姓名", orderData.orderData.customer_info.name, true)}
-                                                            ${drawInputRow("顧客電話", (_a = orderData.orderData.customer_info.phone) !== null && _a !== void 0 ? _a : "", false)}
+                                                    </div>
+                                                `)}
+                                                ${BgWidget.mainCard(html `
+                                                    <div style="width:100%;display: flex;flex-direction: column;align-items: flex-start;gap: 18px;align-self: stretch;color:#393939;font-size: 16px;font-weight: 400;">
+                                                        <div style="font-weight: 700;">
+                                                            收件人資訊
                                                         </div>
-                                                        <div class="d-flex" style="gap:18px;">
-                                                            ${drawInputRow("顧客電子信箱", orderData.orderData.customer_info.email, true)}
-                                                        </div>
+                                                        ${(() => {
+                        return [["姓名", "name"], ["電話", "phone"], ["電子信箱", "email"]].map((data) => {
+                            return drawInputRow(data[0], orderData.orderData.user_info[data[1]], false, "width:100%;");
+                        }).join('');
+                    })()}
                                                     </div>
                                                 `)}
                                                 ${BgWidget.mainCard(html `
@@ -687,7 +646,13 @@ export class ShoppingOrderManager {
                                                                                 </div>
                                                                                 <div class="d-flex " style="gap:4px;">
                                                                                     ${(() => {
-                                        if (data.spec.length == 0) {
+                                        function isBlankString(input) {
+                                            if (input === null || input === undefined || input === "" || input.length == 0) {
+                                                return true;
+                                            }
+                                            return /^\s*$/.test(input);
+                                        }
+                                        if (data.spec.length == 0 || isBlankString(data.spec[0])) {
                                             return html `
                                                                                                 <div style="border-radius: 7px;background: #EAEAEA;display: flex;height: 22px;padding: 4px 6px;justify-content: center;align-items: center;gap: 10px;color:#393939;font-weight: 400;">
                                                                                                     單一規格
@@ -761,7 +726,7 @@ export class ShoppingOrderManager {
                                 },
                                 divCreate: { style: `display: flex;padding: 0px 4px 12px 0px;align-items: center;gap: 18px;background: #FFF;width: 100%;padding-right:12px;` }
                             });
-                        });
+                        }).join('');
                     })()}
                                                     <div style="width: 100%;height: 1px;background-color: #DDD;margin-bottom:18px;"></div>
                                                     ${gvc.bindView({
@@ -769,6 +734,116 @@ export class ShoppingOrderManager {
                         view: () => {
                             var _a, _b;
                             let subTotal = 0;
+                            function showDetail(lineItem, type) {
+                                let dict = {
+                                    '運費': "shipment_fee",
+                                    '折扣': "discount_price",
+                                    '購物金': "rebate",
+                                };
+                                gvc.glitter.innerDialog((gvc) => {
+                                    return html `
+                                                                        <div style="width: 912px;height: 450px;border-radius: 10px;background: #FFF;color: #393939;"
+                                                                             class="d-flex flex-column ">
+                                                                            <div class="d-flex align-items-center"
+                                                                                 style="border-radius: 10px 10px 0 0 ;background: #F2F2F2;padding: 12px 20px;font-size: 16px;font-weight: 700;">
+                                                                                ${type}明細
+                                                                                <svg class="ms-auto"
+                                                                                     style="cursor: pointer;"
+                                                                                     xmlns="http://www.w3.org/2000/svg"
+                                                                                     width="14" height="14"
+                                                                                     viewBox="0 0 14 14" fill="none"
+                                                                                     onclick="${gvc.event(() => {
+                                        gvc.glitter.closeDiaLog();
+                                    })}">
+                                                                                    <path d="M1 1L13 13"
+                                                                                          stroke="#393939"
+                                                                                          stroke-linecap="round"/>
+                                                                                    <path d="M13 1L1 13"
+                                                                                          stroke="#393939"
+                                                                                          stroke-linecap="round"/>
+                                                                                </svg>
+                                                                            </div>
+                                                                            <div class="d-flex"
+                                                                                 style="padding: 24px 24px 12px;">
+                                                                                <div>商品名稱</div>
+                                                                                <div class="ms-auto d-flex">
+                                                                                    <div class="d-flex align-items-center justify-content-center"
+                                                                                         style="width: 60px;">運費
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                            <div class=""
+                                                                                 style="width: 872px;height:1px;background-color: #DDD;margin: 0 20px;"></div>
+                                                                            <div class="d-flex flex-column"
+                                                                                 style="width: 100%;padding: 17px 24px;gap:12px;">
+                                                                                ${(() => {
+                                        return lineItem.map((data) => {
+                                            var _a;
+                                            return html `
+                                                                                            <div class="d-flex"
+                                                                                                 style="padding: ">
+                                                                                                <div class="d-flex align-items-center"
+                                                                                                     style="gap:12px;">
+                                                                                                    <img style="width: 54px;height: 54px;"
+                                                                                                         src="${data.preview_image}">
+                                                                                                    <div class="d-flex justify-content-center flex-column"
+                                                                                                         style="gap: 4px;">
+                                                                                                        <div style="color:#393939;font-weight: 400;overflow:hidden;white-space: nowrap;text-overflow: ellipsis;width: 250px;">
+                                                                                                            ${data.title}
+                                                                                                        </div>
+                                                                                                        <div class="d-flex "
+                                                                                                             style="gap:4px;">
+                                                                                                            ${(() => {
+                                                var _a;
+                                                data.return_count = (_a = data.return_count) !== null && _a !== void 0 ? _a : data.count;
+                                                function isBlankString(input) {
+                                                    if (input === null || input === undefined || input === "" || input.length == 0) {
+                                                        return true;
+                                                    }
+                                                    return /^\s*$/.test(input);
+                                                }
+                                                if (data.spec.length == 0 || isBlankString(data.spec[0])) {
+                                                    return html `
+                                                                                                                        <div style="border-radius: 7px;background: #EAEAEA;display: flex;height: 22px;padding: 4px 6px;justify-content: center;align-items: center;gap: 10px;color:#393939;font-weight: 400;">
+                                                                                                                            單一規格
+                                                                                                                        </div>
+                                                                                                                    `;
+                                                }
+                                                return data.spec.map((spec) => {
+                                                    return html `
+                                                                                                                        <div style="border-radius: 7px;background: #EAEAEA;display: flex;height: 22px;padding: 4px 6px;justify-content: center;align-items: center;gap: 10px;color:#393939;font-weight: 400;">
+                                                                                                                            ${spec}
+                                                                                                                        </div>`;
+                                                }).join("");
+                                            })()}
+                                                                                                        </div>
+                                                                                                        <div style="color: #8D8D8D;font-size: 14px;font-weight: 400;">
+                                                                                                            存貨單位
+                                                                                                            (SKU):
+                                                                                                            ${(_a = data.sku) !== null && _a !== void 0 ? _a : ""}
+                                                                                                        </div>
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                                <div class="ms-auto d-flex">
+                                                                                                    <div class="d-flex align-items-center justify-content-center"
+                                                                                                         style="width: 128px;">
+                                                                                                        -
+                                                                                                    </div>
+                                                                                                    <div class="d-flex align-items-center justify-content-center"
+                                                                                                         style="width: 60px;">
+                                                                                                        ${data[dict[type]]}
+                                                                                                    </div>
+                                                                                                </div>
+
+                                                                                            </div>
+                                                                                        `;
+                                        }).join('');
+                                    })()}
+                                                                            </div>
+
+                                                                        </div>`;
+                                }, 'show');
+                            }
                             orderData.orderData.lineItems.map((data, index) => {
                                 subTotal += data.sale_price * data.return_count;
                             });
@@ -776,41 +851,46 @@ export class ShoppingOrderManager {
                             orderData.orderData.return_discount = (_b = orderData.orderData.return_discount) !== null && _b !== void 0 ? _b : "0";
                             let returnTotal = subTotal + orderData.orderData.return_rebate + orderData.orderData.return_discount;
                             return html `
-                                                                <div class="d-flex" style="gap: 24px;">
-                                                                    <div style="font-size: 16px;font-weight: 400;">
-                                                                        小計總額
-                                                                    </div>
-                                                                    <div style="width:158px;text-align: right;">
-                                                                        ${subTotal}
-                                                                    </div>
-                                                                </div>
-                                                                <div class="d-flex" style="gap: 24px;">
-                                                                    <div style="font-size: 16px;font-weight: 400;">
-                                                                        運費
-                                                                    </div>
-                                                                    <div style="width:158px;text-align: right;">
-                                                                        ${orderData.orderData.shipment_fee}
-                                                                    </div>
-                                                                </div>
                                                                 ${(() => {
-                                return [["折扣", "discount"], ["購物金", "rebate"]].map((item, index) => {
-                                    let des = orderData.orderData.voucherList.filter((orderitem) => orderitem.reBackType == item[1]).map((orderitem) => {
-                                        return orderitem.title;
-                                    }).join(' , ');
-                                    des = des !== null && des !== void 0 ? des : "";
+                                return [["小計總額", subTotal], ["運費", orderData.orderData.shipment_fee]].map((data) => {
                                     return html `
                                                                             <div class="d-flex" style="gap: 24px;">
+                                                                                <div style="font-size: 16px;font-weight: 400;">
+                                                                                    ${data[0]}
+                                                                                </div>
+                                                                                <div style="width:158px;text-align: right;">
+                                                                                    ${data[1]}
+                                                                                </div>
+                                                                            </div>
+                                                                        `;
+                                }).join('');
+                            })()}
+
+                                                                ${(() => {
+                                let des = orderData.orderData.voucherList.filter((orderitem) => orderitem.reBackType == "rebate").map((orderitem) => {
+                                    return orderitem.title;
+                                }).join(' , ');
+                                return [["運費", orderData.orderData.return_inf.shipping], ["折扣", orderData.orderData.return_inf.discount], ["購物金", orderData.orderData.use_rebate]].map((item, index) => {
+                                    des = des !== null && des !== void 0 ? des : "";
+                                    return html `
+                                                                            <div class="d-flex" style="gap: 70px;">
                                                                                 <div class="d-flex flex-column justify-content-center "
                                                                                      style="font-size: 16px;font-weight: 400;">
                                                                                     <div style="text-align: right;">
                                                                                         ${item[0]}
                                                                                     </div>
-                                                                                    <div class="${des.length ? '' : 'd-none'}"
-                                                                                         style="font-size: 14px;font-weight: 400;color: #8D8D8D;">
-                                                                                        ${des}
+                                                                                </div>
+
+                                                                                <div class="d-flex "
+                                                                                     style="width: 112px;height: 100%">
+                                                                                    <div style="text-align: right;width: 112px;color: #4D86DB;text-decoration-line: underline;cursor: pointer"
+                                                                                         onclick="${gvc.event(() => {
+                                        showDetail(orderData.orderData.lineItems, item[0]);
+                                    })}">
+                                                                                        ${(item[1] > 0) ? `-${item[1]}` : 0}
                                                                                     </div>
                                                                                 </div>
-                                                                                <div class="d-flex align-items-center justify-content-end" style="width:158px;text-align: right;">${orderData.orderData[`return_${item[1]}`]}</div>
+
                                                                             </div>
                                                                         `;
                                 }).join('');
@@ -819,7 +899,7 @@ export class ShoppingOrderManager {
                                                                      style="gap: 24px;color:#393939;font-size: 16px;font-weight: 700;">
                                                                     <div style="">退款總金額</div>
                                                                     <div style="width:158px;text-align: right;">
-                                                                        ${returnTotal}
+                                                                        ${orderData.orderData.return_inf.subTotal}
                                                                     </div>
                                                                 </div>
                                                             `;
@@ -834,62 +914,111 @@ export class ShoppingOrderManager {
                                                         <div style="font-weight: 700;">退貨備註</div>
                                                         <textarea
                                                                 style="height: 102px;border-radius: 10px;border: 1px solid #DDD;padding: 15px;"
-                                                            ">${(_c = (_b = orderData.orderData) === null || _b === void 0 ? void 0 : _b.return_order_remark) !== null && _c !== void 0 ? _c : ""}</textarea>
+                                                            ">${(_b = (_a = orderData.orderData) === null || _a === void 0 ? void 0 : _a.return_order_remark) !== null && _b !== void 0 ? _b : ""}</textarea>
+                                                    </div>
+                                                `)}
+                                                ${BgWidget.mainCard(html `
+                                                    <div style="width:100%;display: flex;flex-direction: column;align-items: flex-start;gap: 18px;align-self: stretch;color:#393939;font-size: 16px;font-weight: 400;">
+                                                        <div style="font-weight: 700;">
+                                                            訂購人資訊
+                                                        </div>
+                                                        ${(() => {
+                        return [["姓名", "name"], ["電話", "phone"], ["電子信箱", "email"]].map((data) => {
+                            return drawInputRow(data[0], orderData.orderData.user_info[data[1]], true, "width:100%;");
+                        }).join('');
+                    })()}
+                                                        ${gvc.bindView({
+                        bind: "inputRebate",
+                        view: () => {
+                            return html `
+                                                                    <div style="font-weight: 700;margin-bottom: 4px;">
+                                                                        購物金異動
+                                                                    </div>
+                                                                    <div style="color: #8D8D8D;font-size: 14px;margin-bottom: 8px;">
+                                                                            抵用購物金${orderData.orderData.use_rebate}
+                                                                        -
+                                                                            回補購物金${orderData.orderData.return_inf.rebate}
+                                                                    </div>
+                                                                    <input class="w-100"
+                                                                           style="height: 40px;padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;"
+                                                                           value="${orderData.orderData.rebateChange}"
+                                                                           onchange="${gvc.event((e) => {
+                                orderData.orderData.rebateChange = e.value;
+                            })}">
+                                                                `;
+                        }, divCreate: { class: `d-flex flex-column w-100` }
+                    })}
                                                     </div>
                                                 `)}
                                                 ${BgWidget.mainCard(html `
                                                     <div class="d-flex flex-column"
                                                          style="color: #393939;font-size: 16px;font-weight: 700;gap: 12px;">
-                                                     
-                                                            ${gvc.bindView({
+
+                                                        ${gvc.bindView({
                         bind: `refundTime`,
                         view: () => {
                             var _a;
                             return html `
-                                                                        <div class="d-flex flex-column w-50"
-                                                                             style="gap: 12px;">
-                                                                            <div>退款狀態</div>
-                                                                            <select class="form-select"
-                                                                                    style="font-size: 16px;padding: 11px 12px;border-radius: 10px;border: 1px solid #DDD;"
-                                                                                    onchange="${gvc.event((e) => {
+                                                                    <div class="d-flex flex-column w-50"
+                                                                         style="gap: 12px;">
+                                                                        <div>退款狀態</div>
+                                                                        <select class="form-select"
+                                                                                style="font-size: 16px;padding: 11px 12px;border-radius: 10px;border: 1px solid #DDD;"
+                                                                                onchange="${gvc.event((e) => {
                                 orderData.status = e.value;
                                 if (e.value == "0") {
                                     orderData.orderData.refundTime = "";
                                 }
                                 gvc.notifyDataChange('refundTime');
                             })}">
-                                                                                ${(() => {
+                                                                            ${(() => {
                                 let dataArray = [
                                     ["未退款", "0"],
                                     ["已退款", "1"],
                                 ];
                                 return dataArray.map((data) => {
                                     return html `
-                                                                                            <option value="${data[1]}"
-                                                                                                    ${(data[1] == `${orderData.status}`) ? 'selected' : ''}>
-                                                                                                ${data[0]}
-                                                                                            </option>
-                                                                                        `;
+                                                                                        <option value="${data[1]}"
+                                                                                                ${(data[1] == `${orderData.status}`) ? 'selected' : ''}>
+                                                                                            ${data[0]}
+                                                                                        </option>
+                                                                                    `;
                                 });
                             })()}
-                                                                            </select>
-                                                                        </div>
-                                                                        <div class="d-flex flex-column w-50"
-                                                                             style="gap: 12px;">
-                                                                            <div style="">退款時間</div>
-                                                                            <input type="date" id="datetime"
-                                                                                   name="datetime"
-                                                                                   ${(orderData.status == 1) ? '' : 'disabled'}
-                                                                                   value="${(_a = orderData.orderData.refundTime) !== null && _a !== void 0 ? _a : ""}"
-                                                                                   style="font-size: 16px;padding: 11px 12px;border-radius: 10px;border: 1px solid #DDD;"
-                                                                                   onchange="${gvc.event((e) => {
+                                                                        </select>
+                                                                    </div>
+                                                                    <div class="d-flex flex-column w-50"
+                                                                         style="gap: 12px;">
+                                                                        <div style="">退款時間</div>
+                                                                        <input type="date" id="datetime"
+                                                                               name="datetime"
+                                                                               ${(orderData.status == 1) ? '' : 'disabled'}
+                                                                               value="${(_a = orderData.orderData.refundTime) !== null && _a !== void 0 ? _a : ""}"
+                                                                               style="font-size: 16px;padding: 11px 12px;border-radius: 10px;border: 1px solid #DDD;"
+                                                                               onchange="${gvc.event((e) => {
                                 orderData.orderData.refundTime = e.value;
                             })}">
-                                                                        </div>`;
+                                                                    </div>`;
                         }, divCreate: { class: `d-flex`, style: `gap: 18px;` }
                     })}
-
-
+                                                        ${gvc.bindView({
+                        bind: `inputReturn`,
+                        view: () => {
+                            var _a;
+                            return html `
+                                                                    <div style="">實際退款金額</div>
+                                                                    <input style="width: 100%;height: 40px;padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;"
+                                                                           value="${(_a = orderData.orderData.return_inf.subTotal) !== null && _a !== void 0 ? _a : 0}"
+                                                                           onchange="${gvc.event((e) => {
+                                orderData.orderData.return_inf.subTotal = e.value;
+                            })}">
+                                                                `;
+                        },
+                        divCreate: {
+                            class: `d-flex flex-column`,
+                            style: `color: #393939;font-size: 16px;font-weight: 700;gap: 18px;margin-bottom:18px;`
+                        }
+                    })}
 
                                                         <div style="margin-top: 12px;">退款銀行帳號</div>
                                                         ${gvc.bindView({
@@ -957,6 +1086,7 @@ export class ShoppingOrderManager {
                             dialog.dataLoading({ text: '上傳中', visible: false });
                             if (response.result) {
                                 dialog.successMessage({ text: '更新成功!' });
+                                vm.type = 'list';
                             }
                             else {
                                 dialog.errorMessage({ text: '更新異常!' });
@@ -976,10 +1106,11 @@ export class ShoppingOrderManager {
     }
     static searchOrder(gvc, vm) {
         let viewModel = {
-            searchOrder: "1721813981129",
+            searchOrder: "1723606217702",
             searchData: "",
             errorReport: ""
         };
+        let checkList = [];
         return BgWidget.container(html `
             <!--                                標頭 --- 新增訂單標題和返回  -->
             <div class="d-flex align-items-center" style="margin-bottom: 24px;">
@@ -1011,7 +1142,6 @@ export class ShoppingOrderManager {
                 if (response.response.length == 0) {
                     viewModel.errorReport = "查無此訂單";
                 }
-                console.log(response);
                 if (response.response.orderData.lineItems.length > 0) {
                     viewModel.searchData = response.response;
                 }
@@ -1049,12 +1179,13 @@ export class ShoppingOrderManager {
                 if (viewModel.searchData) {
                     let orderData = viewModel.searchData.orderData;
                     let lineItems = orderData.lineItems;
+                    let origShipment = orderData.shipment_fee;
                     return html `
                             <div style="display: flex;flex-direction: column;gap: 24px">
                                 ${BgWidget.mainCard(html `
                                     <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 18px;align-self: stretch;color:#393939;font-size: 16px;font-weight: 400;">
                                         <div style="font-weight: 700;">
-                                            顧客資訊
+                                            收件人資訊
                                         </div>
                                         ${(() => {
                         return [["姓名", "name"], ["電話", "phone"], ["電子信箱", "email"]].map((data) => {
@@ -1063,9 +1194,10 @@ export class ShoppingOrderManager {
                                                     <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 8px;width:100%">
                                                         <div>${data[0]}</div>
                                                         <input style="width: 100%;height: 40px;padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;"
-                                                               value="${(_a = orderData.customer_info[data[1]]) !== null && _a !== void 0 ? _a : ""}"
+                                                               value="${(_a = orderData.user_info[data[1]]) !== null && _a !== void 0 ? _a : ""}"
+
                                                                onchange="${gvc.event((e) => {
-                                orderData.customer_info[data[1]] = e.value;
+                                orderData.user_info[data[1]] = e.value;
                             })}">
                                                     </div>
                                                 `;
@@ -1093,7 +1225,7 @@ export class ShoppingOrderManager {
                             return gvc.bindView({
                                 bind: `lineItem${index}`,
                                 view: () => {
-                                    var _a, _b, _c;
+                                    var _a, _b, _c, _d;
                                     gvc.addStyle(`
                                                         input[type=number]::-webkit-outer-spin-button,
                                                         input[type=number]::-webkit-inner-spin-button {
@@ -1106,7 +1238,24 @@ export class ShoppingOrderManager {
                                                             -moz-appearance: textfield;
                                                         }
                                                     `);
+                                    data.select = (_a = data.select) !== null && _a !== void 0 ? _a : true;
+                                    let select = html `
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                                             viewBox="0 0 16 16" fill="none" style="cursor: pointer;">
+                                                            <rect width="16" height="16" rx="3" fill="#393939"/>
+                                                            <path d="M4.5 8.5L7 11L11.5 5" stroke="white"
+                                                                  stroke-width="2" stroke-linecap="round"
+                                                                  stroke-linejoin="round"/>
+                                                        </svg>`;
+                                    let unselect = html `
+                                                        <div style="width: 16px;height: 16px;border-radius: 3px;border: 1px solid #DDD;cursor: pointer;"></div>`;
                                     return html `
+                                                        <div onclick="${gvc.event(() => {
+                                        data.select = !data.select;
+                                        gvc.notifyDataChange([`lineItem${index}`, 'checkout']);
+                                    })}">
+                                                            ${data.select ? select : unselect}
+                                                        </div>
                                                         <div style="flex:1 0 0;display: flex;align-items: center;gap: 12px;">
                                                             <img style="width: 54px;height: 54px;"
                                                                  src="${data.preview_image}">
@@ -1119,7 +1268,13 @@ export class ShoppingOrderManager {
                                                                     ${(() => {
                                         var _a;
                                         data.return_count = (_a = data.return_count) !== null && _a !== void 0 ? _a : data.count;
-                                        if (data.spec.length == 0) {
+                                        function isBlankString(input) {
+                                            if (input === null || input === undefined || input === "" || input.length == 0) {
+                                                return true;
+                                            }
+                                            return /^\s*$/.test(input);
+                                        }
+                                        if (data.spec.length == 0 || isBlankString(data.spec[0])) {
                                             return html `
                                                                                 <div style="border-radius: 7px;background: #EAEAEA;display: flex;height: 22px;padding: 4px 6px;justify-content: center;align-items: center;gap: 10px;color:#393939;font-weight: 400;">
                                                                                     單一規格
@@ -1131,11 +1286,11 @@ export class ShoppingOrderManager {
                                                                                 <div style="border-radius: 7px;background: #EAEAEA;display: flex;height: 22px;padding: 4px 6px;justify-content: center;align-items: center;gap: 10px;color:#393939;font-weight: 400;">
                                                                                     ${spec}
                                                                                 </div>`;
-                                        }).join();
+                                        }).join("");
                                     })()}
                                                                 </div>
                                                                 <div style="color: #8D8D8D;font-size: 14px;font-weight: 400;">
-                                                                    存貨單位 (SKU): ${(_a = data.sku) !== null && _a !== void 0 ? _a : ""}
+                                                                    存貨單位 (SKU): ${(_b = data.sku) !== null && _b !== void 0 ? _b : ""}
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -1143,12 +1298,13 @@ export class ShoppingOrderManager {
                                                              class="d-flex align-items-center justify-content-center">
                                                             <select class="form-select"
                                                                     style="width:80%;padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;"
+                                                                    ${data.select ? `` : `disabled`}
                                                                     onchange="${gvc.event((e) => {
                                         data.return_reason = e.value;
+                                        gvc.notifyDataChange([`lineItem${index}`, 'checkout']);
                                     })}">
                                                                 ${(() => {
                                         var _a;
-                                        console.log(data.return_count, data.sale_price);
                                         let options = [
                                             {
                                                 value: 'not_as_described',
@@ -1183,26 +1339,29 @@ export class ShoppingOrderManager {
                                                         <div style="width:10%;"
                                                              class="d-flex align-items-center justify-content-center">
                                                             <input type="number"
-                                                                   style="text-align: center;width:94px;border-radius: 10px;border: 1px solid #DDD;display: flex;padding: 9px 18px;"
-                                                                   value="${(_b = data.return_count) !== null && _b !== void 0 ? _b : data.count}" min="0"
+                                                                   style="text-align: center;width:94px;border-radius: 10px;border: 1px solid #DDD;display: flex;padding: 9px 18px;${data.select ? `` : `text-decoration-line: strikethrough;`}"
+                                                                   value="${(_c = data.return_count) !== null && _c !== void 0 ? _c : data.count}" min="0"
+                                                                   max="${data.count}"
+                                                                   ${data.select ? `` : `disabled`}
                                                                    onchange="${gvc.event((e) => {
+                                        e.value = (e.value > data.count) ? data.count : e.value;
+                                        e.value = (e.value < 0) ? 0 : e.value;
                                         data.return_count = e.value;
-                                        gvc.notifyDataChange(`lineItem${index}`);
+                                        gvc.notifyDataChange([`lineItem${index}`, 'checkout']);
                                     })}">
                                                         </div>
                                                         <div style="width:10%;"
                                                              class="d-flex align-items-center justify-content-center">
                                                             <input type="number"
-                                                                   style="text-align: center;width:94px;border-radius: 10px;border: 1px solid #DDD;display: flex;padding: 9px 18px;"
-                                                                   value="${(_c = data.return_stock) !== null && _c !== void 0 ? _c : 0}"
+                                                                   style="text-align: center;width:94px;border-radius: 10px;border: 1px solid #DDD;display: flex;padding: 9px 18px;${data.select ? `` : `text-decoration-line: strikethrough;`}"
+                                                                   value="${(_d = data.return_stock) !== null && _d !== void 0 ? _d : 0}"
                                                                    max=${data.return_count} min="0"
+                                                                   ${data.select ? `` : `disabled`}
                                                                    onchange="${gvc.event((e) => {
-                                        if (e.value > data.return_count) {
-                                            console.log("test");
-                                            e.value = data.return_count;
-                                        }
+                                        e.value = (e.value > data.return_count) ? e.value : data.return_count;
+                                        e.value = (e.value < 0) ? 0 : e.value;
                                         data.return_stock = e.value;
-                                        gvc.notifyDataChange(`lineItem${index}`);
+                                        gvc.notifyDataChange([`lineItem${index}`, 'checkout']);
                                     })}">
                                                         </div>
                                                         <div style="width:50px;text-align: right;">
@@ -1211,37 +1370,157 @@ export class ShoppingOrderManager {
                                 },
                                 divCreate: { style: `display: flex;padding: 0px 4px 12px 0px;align-items: center;gap: 18px;background: #FFF;width: 100%` }
                             });
-                        });
+                        }).join("");
                     })()}
                                     <div style="width: 100%;height: 1px;background-color: #DDD;margin-bottom:18px;"></div>
                                     ${gvc.bindView({
                         bind: `checkout`,
                         view: () => {
-                            var _a, _b;
                             let subTotal = 0;
+                            let returnDiscount = 0;
+                            let returnRebate = 0;
+                            let productTotal = 0;
+                            checkList = [];
+                            orderData.return_inf = {};
                             lineItems.map((data, index) => {
-                                subTotal += data.sale_price * data.return_count;
+                                productTotal += data.sale_price * data.count;
+                                if (data.select) {
+                                    checkList.push(data);
+                                    subTotal += data.sale_price * data.return_count;
+                                    returnDiscount += data.discount_price * data.return_count;
+                                    returnRebate += data.rebate * data.return_count;
+                                }
                             });
-                            orderData.return_rebate = (_a = orderData.return_rebate) !== null && _a !== void 0 ? _a : -orderData.rebate;
-                            orderData.return_discount = (_b = orderData.return_discount) !== null && _b !== void 0 ? _b : -orderData.discount;
-                            let returnTotal = subTotal + orderData.return_rebate + orderData.return_discount;
+                            orderData.shipment_fee = Math.round(origShipment * subTotal / productTotal);
+                            orderData.return_inf = {
+                                'subTotal': subTotal + orderData.shipment_fee - returnDiscount - orderData.use_rebate,
+                                'discount': returnDiscount,
+                                'rebate': returnRebate,
+                            };
+                            orderData.rebateChange = orderData.use_rebate - orderData.return_inf.rebate;
+                            gvc.notifyDataChange([`inputReturn`, 'inputRebate']);
+                            function showDetail(lineItem, type) {
+                                let dict = {
+                                    '運費': "shipment_fee",
+                                    '折扣': "discount_price",
+                                    '購物金': "rebate",
+                                };
+                                gvc.glitter.innerDialog((gvc) => {
+                                    return html `
+                                                        <div style="width: 912px;height: 450px;border-radius: 10px;background: #FFF;color: #393939;"
+                                                             class="d-flex flex-column ">
+                                                            <div class="d-flex align-items-center"
+                                                                 style="border-radius: 10px 10px 0 0 ;background: #F2F2F2;padding: 12px 20px;font-size: 16px;font-weight: 700;">
+                                                                ${type}明細
+                                                                <svg class="ms-auto" xmlns="http://www.w3.org/2000/svg"
+                                                                     width="14" height="14" viewBox="0 0 14 14"
+                                                                     fill="none" onclick="${gvc.event(() => {
+                                        gvc.glitter.closeDiaLog();
+                                    })}">
+                                                                    <path d="M1 1L13 13" stroke="#393939"
+                                                                          stroke-linecap="round"/>
+                                                                    <path d="M13 1L1 13" stroke="#393939"
+                                                                          stroke-linecap="round"/>
+                                                                </svg>
+                                                            </div>
+                                                            <div class="d-flex" style="padding: 24px 24px 12px;">
+                                                                <div>商品名稱</div>
+                                                                <div class="ms-auto d-flex">
+                                                                    <div class="d-flex align-items-center justify-content-center"
+                                                                         style="width: 60px;">運費
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class=""
+                                                                 style="width: 872px;height:1px;background-color: #DDD;margin: 0 20px;"></div>
+                                                            <div class="d-flex flex-column"
+                                                                 style="width: 100%;padding: 17px 24px;gap:12px;">
+                                                                ${(() => {
+                                        return lineItem.map((data) => {
+                                            var _a;
+                                            return html `
+                                                                            <div class="d-flex" style="padding: ">
+                                                                                <div class="d-flex align-items-center"
+                                                                                     style="gap:12px;">
+                                                                                    <img style="width: 54px;height: 54px;"
+                                                                                         src="${data.preview_image}">
+                                                                                    <div class="d-flex justify-content-center flex-column"
+                                                                                         style="gap: 4px;">
+                                                                                        <div style="color:#393939;font-weight: 400;overflow:hidden;white-space: nowrap;text-overflow: ellipsis;width: 250px;">
+                                                                                            ${data.title}
+                                                                                        </div>
+                                                                                        <div class="d-flex "
+                                                                                             style="gap:4px;">
+                                                                                            ${(() => {
+                                                var _a;
+                                                data.return_count = (_a = data.return_count) !== null && _a !== void 0 ? _a : data.count;
+                                                function isBlankString(input) {
+                                                    if (input === null || input === undefined || input === "" || input.length == 0) {
+                                                        return true;
+                                                    }
+                                                    return /^\s*$/.test(input);
+                                                }
+                                                if (data.spec.length == 0 || isBlankString(data.spec[0])) {
+                                                    return html `
+                                                                                                        <div style="border-radius: 7px;background: #EAEAEA;display: flex;height: 22px;padding: 4px 6px;justify-content: center;align-items: center;gap: 10px;color:#393939;font-weight: 400;">
+                                                                                                            單一規格
+                                                                                                        </div>
+                                                                                                    `;
+                                                }
+                                                return data.spec.map((spec) => {
+                                                    return html `
+                                                                                                        <div style="border-radius: 7px;background: #EAEAEA;display: flex;height: 22px;padding: 4px 6px;justify-content: center;align-items: center;gap: 10px;color:#393939;font-weight: 400;">
+                                                                                                            ${spec}
+                                                                                                        </div>`;
+                                                }).join("");
+                                            })()}
+                                                                                        </div>
+                                                                                        <div style="color: #8D8D8D;font-size: 14px;font-weight: 400;">
+                                                                                            存貨單位 (SKU):
+                                                                                            ${(_a = data.sku) !== null && _a !== void 0 ? _a : ""}
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                                <div class="ms-auto d-flex">
+                                                                                    <div class="d-flex align-items-center justify-content-center"
+                                                                                         style="width: 128px;">
+                                                                                        -
+                                                                                    </div>
+                                                                                    <div class="d-flex align-items-center justify-content-center"
+                                                                                         style="width: 60px;">
+                                                                                        ${data[dict[type]]}
+                                                                                    </div>
+                                                                                </div>
+
+                                                                            </div>
+                                                                        `;
+                                        }).join('');
+                                    })()}
+                                                            </div>
+
+                                                        </div>`;
+                                }, 'show');
+                            }
                             return html `
-                                                <div class="d-flex" style="gap: 24px;">
-                                                    <div style="font-size: 16px;font-weight: 400;">小計總額</div>
-                                                    <div style="width:158px;text-align: right;">${subTotal}</div>
-                                                </div>
-                                                <div class="d-flex" style="gap: 24px;">
-                                                    <div style="font-size: 16px;font-weight: 400;">運費</div>
-                                                    <div style="width:158px;text-align: right;">
-                                                        ${orderData.shipment_fee}
-                                                    </div>
-                                                </div>
                                                 ${(() => {
-                                return [["折扣", "discount"], ["購物金", "rebate"]].map((item, index) => {
-                                    var _a;
-                                    let des = orderData.voucherList.filter((orderitem) => orderitem.reBackType == item[1]).map((orderitem) => {
-                                        return orderitem.title;
-                                    }).join(' , ');
+                                return [["小計總額", subTotal], ["運費", orderData.shipment_fee]].map((data) => {
+                                    return html `
+                                                            <div class="d-flex" style="gap: 24px;">
+                                                                <div style="font-size: 16px;font-weight: 400;">
+                                                                    ${data[0]}
+                                                                </div>
+                                                                <div style="width:158px;text-align: right;">${data[1]}
+                                                                </div>
+                                                            </div>
+                                                        `;
+                                }).join('');
+                            })()}
+
+                                                ${(() => {
+                                let des = orderData.voucherList.filter((orderitem) => orderitem.reBackType == "rebate").map((orderitem) => {
+                                    return orderitem.title;
+                                }).join(' , ');
+                                return [["折扣", orderData.return_inf.discount], ["購物金折抵", orderData.use_rebate]].map((item, index) => {
                                     des = des !== null && des !== void 0 ? des : "";
                                     return html `
                                                             <div class="d-flex" style="gap: 70px;">
@@ -1250,19 +1529,17 @@ export class ShoppingOrderManager {
                                                                     <div style="text-align: right;">
                                                                         ${item[0]}
                                                                     </div>
-                                                                    <div class="${des.length ? '' : 'd-none'}"
-                                                                         style="font-size: 14px;font-weight: 400;color: #8D8D8D;">
-                                                                        ${des}
+                                                                </div>
+
+                                                                <div class="d-flex " style="width: 112px;height: 100%">
+                                                                    <div style="text-align: right;width: 112px;color: #4D86DB;text-decoration-line: underline;cursor: pointer"
+                                                                         onclick="${gvc.event(() => {
+                                        showDetail(checkList, item[0]);
+                                    })}">
+                                                                        ${(item[1] > 0) ? `-${item[1]}` : 0}
                                                                     </div>
                                                                 </div>
-                                                                <input style="text-align: right;width: 112px;padding: 9px 11px;border-radius: 10px;border: 1px solid #DDD;"
-                                                                       type="number" max="0"
-                                                                       value="${orderData[`return_${item[1]}`]}"
-                                                                       min="${-orderData[(_a = item[1]) !== null && _a !== void 0 ? _a : 0]}"
-                                                                       onchange="${gvc.event((e) => {
-                                        orderData[`return_${item[1]}`] = Number(e.value);
-                                        gvc.notifyDataChange('checkout');
-                                    })}">
+
                                                             </div>
                                                         `;
                                 }).join('');
@@ -1270,12 +1547,67 @@ export class ShoppingOrderManager {
                                                 <div class="d-flex"
                                                      style="gap: 24px;color:#393939;font-size: 16px;font-weight: 700;">
                                                     <div style="">退款總金額</div>
-                                                    <div style="width:158px;text-align: right;">${returnTotal}</div>
+                                                    <div style="width:158px;text-align: right;">
+                                                        ${orderData.return_inf.subTotal}
+                                                    </div>
                                                 </div>
                                             `;
                         },
                         divCreate: { style: `display: flex;flex-direction: column;gap: 12px;width:100%;justify-content: center;align-items: end` }
                     })}
+                                `)}
+                                ${BgWidget.mainCard(html `
+                                    <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 18px;align-self: stretch;color:#393939;font-size: 16px;font-weight: 400;">
+                                        <div style="font-weight: 700;">
+                                            訂購人資訊
+                                        </div>
+                                        ${(() => {
+                        return [["姓名", "name"], ["電話", "phone"], ["電子信箱", "email"]].map((data) => {
+                            var _a;
+                            return html `
+                                                    <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 8px;width:100%">
+                                                        <div>${data[0]}</div>
+                                                        <input style="width: 100%;height: 40px;padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;"
+                                                               disabled
+                                                               value="${(_a = orderData.customer_info[data[1]]) !== null && _a !== void 0 ? _a : ""}"
+
+                                                               onchange="${gvc.event((e) => {
+                                orderData.customer_info[data[1]] = e.value;
+                            })}">
+
+                                                    </div>
+                                                `;
+                        }).join('');
+                    })()}
+                                        ${gvc.bindView({
+                        bind: "inputRebate",
+                        view: () => {
+                            let rebate = 0;
+                            ApiUser.getUserRebate({ email: orderData.customer_info.email }).then(r => {
+                                rebate = r.response.data.point;
+                                gvc.notifyDataChange('rebate');
+                            });
+                            return html `
+                                                    <div style="font-weight: 700;margin-bottom: 12px;">持有購物金
+                                                    </div>
+                                                    <div style="margin-bottom: 18px;">${rebate}</div>
+                                                    </div>
+                                                    <div style="font-weight: 700;margin-bottom: 4px;">退貨後購物金增減
+                                                    </div>
+                                                    <div style="color: #8D8D8D;font-size: 14px;margin-bottom: 8px;">
+                                                        計算方式: 顧客原先使用的購物金 - 此筆訂單獲得的購物金 = 需要回補的購物金<br>
+                                                        <span style="margin-left: 63px;">${orderData.use_rebate} - ${orderData.return_inf.rebate} = ${orderData.use_rebate - orderData.return_inf.rebate}</span>
+                                                    </div>
+                                                    <input class="w-100"
+                                                           style="height: 40px;padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;"
+                                                           value="${orderData.rebateChange}"
+                                                           onchange="${gvc.event((e) => {
+                                orderData.rebateChange = e.value;
+                            })}">
+                                                `;
+                        }, divCreate: { class: `d-flex flex-column w-100` }
+                    })}
+                                    </div>
                                 `)}
                                 ${BgWidget.mainCard(html `
                                     <div class="d-flex flex-column"
@@ -1289,10 +1621,27 @@ export class ShoppingOrderManager {
                                     </div>
                                 `)}
                                 ${BgWidget.mainCard(html `
+                                    ${gvc.bindView({
+                        bind: `inputReturn`,
+                        view: () => {
+                            var _a, _b;
+                            return html `
+                                                <div style="">實際退款金額</div>
+                                                <input style="width: 100%;height: 40px;padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;"
+                                                       value="${(_b = (_a = orderData === null || orderData === void 0 ? void 0 : orderData.return_inf) === null || _a === void 0 ? void 0 : _a.subTotal) !== null && _b !== void 0 ? _b : 0}"
+                                                       onchange="${gvc.event((e) => {
+                                orderData.return_inf.subTotal = e.value;
+                            })}">
+                                            `;
+                        },
+                        divCreate: {
+                            class: `d-flex flex-column`,
+                            style: `color: #393939;font-size: 16px;font-weight: 700;gap: 18px;margin-bottom:18px;`
+                        }
+                    })}
                                     <div class="d-flex flex-column"
-                                         style="color: #393939;font-size: 16px;font-weight: 700;gap: 12px;">
+                                         style="color: #393939;font-size: 16px;font-weight: 700;gap: 18px;">
                                         <div style="">退款銀行帳號</div>
-                                        <div class="d-flex flex-wrap"></div>
                                         ${gvc.bindView({
                         bind: "return_Info",
                         view: () => {
@@ -1346,9 +1695,22 @@ export class ShoppingOrderManager {
                                             style="color: #FFF;font-size: 16px;font-weight: 700;padding: 6px 18px;align-items: center;gap: 8px;"
                                             onclick="${gvc.event(() => {
                         viewModel.searchData.orderData.returnProgress = "1";
-                        ApiShop.postReturnOrder(viewModel.searchData).then(r => {
-                            vm.type = 'list';
-                        });
+                        viewModel.searchData.orderData.lineItems = checkList;
+                        console.log(viewModel.searchData.orderData.return_inf.subTotal);
+                        function checkPass() {
+                            if (viewModel.searchData.orderData.return_inf.subTotal < 1) {
+                                return false;
+                            }
+                            return true;
+                        }
+                        if (checkPass()) {
+                            const dialog = new ShareDialog(gvc.glitter);
+                            dialog.dataLoading({ visible: true });
+                            ApiShop.postReturnOrder(viewModel.searchData).then(r => {
+                                dialog.dataLoading({ visible: false });
+                                vm.type = 'list';
+                            });
+                        }
                     })}"
                                     >
                                         儲存
@@ -1363,62 +1725,6 @@ export class ShoppingOrderManager {
         })}
 
         `, 1200);
-    }
-    static getPaymentMethodText(key, orderData) {
-        switch (key) {
-            case 'off_line':
-                switch (orderData.customer_info.payment_select) {
-                    case 'atm':
-                        return `銀行轉帳`;
-                    case 'line':
-                        return `Line Pay`;
-                    case 'cash_on_delivery':
-                        return `貨到付款`;
-                }
-                return `線下付款`;
-            case 'newWebPay':
-                return `藍新金流`;
-            case 'ecPay':
-                return `綠界金流`;
-            default:
-                return `線下付款`;
-        }
-    }
-    static getProofPurchaseString(orderData, gvc) {
-        if (orderData.method !== 'off_line' || orderData.customer_info.payment_select === 'cash_on_delivery') {
-            return ``;
-        }
-        else {
-            return [
-                BgWidget.title_16('付款證明回傳'),
-                `<div class="border rounded-3 w-100 p-3" style="color: #393939;font-size: 16px;font-weight: 400; line-height: 120%;">
-${(() => {
-                    const array = [];
-                    switch (orderData.customer_info.payment_select) {
-                        case 'atm':
-                            ['pay-date', 'bank_name', 'bank_account', 'trasaction_code'].map((dd, index) => {
-                                if (orderData.proof_purchase && orderData.proof_purchase[dd]) {
-                                    array.push(`${['交易時間', '銀行名稱', '銀行戶名', '銀行帳號後五碼'][index]} : ${orderData.proof_purchase[dd]}`);
-                                }
-                            });
-                            break;
-                        case 'line':
-                            ['image'].map((dd, index) => {
-                                if (orderData.proof_purchase[dd]) {
-                                    array.push(`<img src="${orderData.proof_purchase[dd]}" style="width: 300px;cursor: pointer;" onclick="${gvc.event(() => {
-                                        window.parent.glitter.openDiaLog(window.parent.glitter.root_path + '/dialog/image-preview.js', 'preview', orderData.proof_purchase[dd]);
-                                    })}">`);
-                                }
-                            });
-                            break;
-                        case 'cash_on_delivery':
-                            return `貨到付款`;
-                    }
-                    return array.join('<div class="my-2"></div>') || '尚未回傳付款證明';
-                })()}
-        </div>`
-            ].join('');
-        }
     }
 }
 window.glitter.setModule(import.meta.url, ShoppingOrderManager);

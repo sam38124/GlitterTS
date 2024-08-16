@@ -7,6 +7,18 @@ export class ApiUser {
 
     public static register(json: { account: string; pwd: string; userData: any }) {
         return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/user/manager/register`,
+            type: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+            },
+            data: JSON.stringify(json),
+        });
+    }
+
+    public static quickRegister(json: { account: string; pwd: string; userData: any }) {
+        return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user/register`,
             type: 'POST',
             headers: {
@@ -273,7 +285,7 @@ export class ApiUser {
         return list;
     }
 
-    public static getUserListOrders(json: { limit: number; page: number; search?: string; id?: string; searchType?: string; orderString?: string; filter?: any; status?: number; group?: any }) {
+    public static getUserListOrders(json: { limit: number; page: number; search?: string; id?: string; searchType?: string; orderString?: string; filter?: any; status?: number; group?: any; filter_type?:string }) {
         const filterString = this.userListFilterString(json.filter);
         const groupString = this.userListGroupString(json.group);
         const userData = BaseApi.create({
@@ -285,6 +297,7 @@ export class ApiUser {
                     json.id && par.push(`id=${json.id}`);
                     json.searchType && par.push(`searchType=${json.searchType}`);
                     json.orderString && par.push(`order_string=${json.orderString}`);
+                    json.filter_type && par.push(`filter_type=${json.filter_type}`);
                     filterString.length > 0 && par.push(filterString.join('&'));
                     groupString.length > 0 && par.push(groupString.join('&'));
                     return par.join('&');
@@ -557,6 +570,26 @@ export class ApiUser {
                 Authorization: getConfig().config.token,
             },
         });
+    }
+
+    public static getUserRebate(json: { id?: string , email?: string }) {
+        return BaseApi.create({
+            url:
+                getBaseUrl() +
+                `/api-public/v1/rebate?type=user&${(() => {
+                    let par = [];
+                    json.email && par.push(`email=${json.email}`);
+                    json.id && par.push(`user_id=${json.id}`);
+                    return par.join('&');
+                })()}`,
+            type: 'GET',
+            headers: {
+                'g-app': getConfig().config.appName,
+                'Content-Type': 'application/json',
+                Authorization: getConfig().config.token,
+            },
+        });
+
     }
 }
 

@@ -140,7 +140,7 @@ export declare class Shopping {
         pay_status?: number;
         custom_form_format?: any;
         custom_form_data?: any;
-    }, type?: 'add' | 'preview' | 'manual' | 'manual-preview', replace_order_id?: string): Promise<{
+    }, type?: 'add' | 'preview' | 'manual' | 'manual-preview', replace_order_id?: string): Promise<"" | {
         data: {
             customer_info: any;
             lineItems: {
@@ -275,6 +275,7 @@ export declare class Shopping {
         result: boolean;
     }>;
     getCheckOut(query: {
+        filter_type?: string;
         page: number;
         limit: number;
         id?: string;

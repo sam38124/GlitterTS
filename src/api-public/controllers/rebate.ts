@@ -12,7 +12,9 @@ export = router;
 
 router.get('/', async (req: express.Request, resp: express.Response) => {
     try {
+
         if (await UtPermission.isManager(req)) {
+
             const app = req.get('g-app') as string;
             if (req.query.type === 'list') {
                 return response.succ(resp, {

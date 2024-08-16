@@ -105,7 +105,7 @@ const whiteList = [
     { url: config_1.config.getRoute(config_1.config.public_route.graph_api, 'public'), method: 'PATCH' },
 ];
 async function doAuthAction(req, resp, next) {
-    var _a, _b, _c, _d, _e, _f;
+    var _a, _b, _c, _d;
     if (live_source_js_1.Live_source.liveAPP.indexOf(`${(_a = req.get('g-app')) !== null && _a !== void 0 ? _a : req.query['g-app']}`) === -1) {
         return response_1.default.fail(resp, exception_1.default.PermissionError('INVALID_APP', 'invalid app'));
     }
@@ -119,11 +119,22 @@ async function doAuthAction(req, resp, next) {
     const url = req.baseUrl;
     const matches = underscore_1.default.where(whiteList, { url: url, method: req.method });
     const token = (_d = req.get('Authorization')) === null || _d === void 0 ? void 0 : _d.replace('Bearer ', '');
+    async function checkBlockUser() {
+        var _a, _b;
+        if ((await database_1.default.query(`SELECT count(1) FROM \`${(_a = req.get('g-app')) !== null && _a !== void 0 ? _a : req.query['g-app']}\`.t_user where userID=? and status=0`, [req.body.token.userID]))[0]['count(1)'] === 1) {
+            await redis_1.default.deleteKey(token);
+            return true;
+        }
+        await database_1.default.execute(`update \`${(_b = req.get('g-app')) !== null && _b !== void 0 ? _b : req.query['g-app']}\`.t_user set online_time=NOW() where userID=?`, [req.body.token.userID || '-1']);
+        return false;
+    }
     if (matches.length > 0) {
         try {
             req.body.token = jsonwebtoken_1.default.verify(token, config_1.config.SECRET_KEY);
             if (req.body.token) {
-                await database_1.default.execute(`update \`${(_e = req.get('g-app')) !== null && _e !== void 0 ? _e : req.query['g-app']}\`.t_user set online_time=NOW() where userID=?`, [req.body.token.userID || '-1']);
+                if (await checkBlockUser()) {
+                    return response_1.default.fail(resp, exception_1.default.PermissionError('INVALID_TOKEN', 'this user has been block.'));
+                }
             }
         }
         catch (e) {
@@ -135,7 +146,9 @@ async function doAuthAction(req, resp, next) {
     try {
         req.body.token = jsonwebtoken_1.default.verify(token, config_1.config.SECRET_KEY);
         if (req.body.token) {
-            await database_1.default.execute(`update \`${(_f = req.get('g-app')) !== null && _f !== void 0 ? _f : req.query['g-app']}\`.t_user set online_time=NOW() where userID=?`, [req.body.token.userID || '-1']);
+            if (await checkBlockUser()) {
+                return response_1.default.fail(resp, exception_1.default.PermissionError('INVALID_TOKEN', 'this user has been block.'));
+            }
         }
         const redisToken = await redis_1.default.getValue(token);
         if (!redisToken) {

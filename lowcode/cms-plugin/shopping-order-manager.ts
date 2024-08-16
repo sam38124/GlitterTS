@@ -342,12 +342,15 @@ export class ShoppingOrderManager {
                                                     {
                                                         key: '付款狀態',
                                                         value: (() => {
-
+                                                            
                                                             switch (dd.status) {
                                                                 case 0:
                                                                     if (dd.orderData.proof_purchase) {
                                                                         return `<div class="badge" style="border-radius: 7px;background: #FFE9B2;height: 22px;padding: 4px 6px;font-size: 14px;color:#393939;">待核款</div>`;
                                                                     } else {
+                                                                        if (dd.orderData.customer_info.payment_select == "cash_on_delivery") {
+                                                                            return `<div class="badge" style="border-radius: 7px;background: #FFD5D0;height: 22px;padding: 4px 6px;font-size: 14px;color:#393939;">貨到付款</div>`;
+                                                                        }
                                                                         return `<div class="badge" style="border-radius: 7px;background: #FFD5D0;height: 22px;padding: 4px 6px;font-size: 14px;color:#393939;">未付款</div>`;
                                                                     }
 
@@ -2159,12 +2162,20 @@ export class ShoppingOrderManager {
                     })
                     // 取得這些商品運費
                     if (orderDetailRefresh) {
+                        const dialog = new ShareDialog(gvc.glitter);
+                        dialog.dataLoading({
+                            text:"計算中",
+                            visible: true,
+                        })
                         ApiShop.getManualCheckout({
                             line_items: orderDetail.lineItems
                         }).then(r => {
+                            dialog.dataLoading({
+                                visible: false,
+                            })
                             if (r.result) {
                                 orderDetailRefresh = false;
-                                orderDetail.shipment += r.response.data.shipment_fee
+                                orderDetail.shipment = r.response.data.shipment_fee
                                 gvc.notifyDataChange('orderDetail')
                             }
                         })

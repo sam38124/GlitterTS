@@ -14,6 +14,17 @@ export class ApiUser {
     constructor() { }
     static register(json) {
         return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/user/manager/register`,
+            type: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+            },
+            data: JSON.stringify(json),
+        });
+    }
+    static quickRegister(json) {
+        return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user/register`,
             type: 'POST',
             headers: {
@@ -277,6 +288,7 @@ export class ApiUser {
                     json.id && par.push(`id=${json.id}`);
                     json.searchType && par.push(`searchType=${json.searchType}`);
                     json.orderString && par.push(`order_string=${json.orderString}`);
+                    json.filter_type && par.push(`filter_type=${json.filter_type}`);
                     filterString.length > 0 && par.push(filterString.join('&'));
                     groupString.length > 0 && par.push(groupString.join('&'));
                     return par.join('&');
@@ -532,6 +544,23 @@ export class ApiUser {
             headers: {
                 'Content-Type': 'application/json',
                 'g-app': getConfig().config.appName,
+                Authorization: getConfig().config.token,
+            },
+        });
+    }
+    static getUserRebate(json) {
+        return BaseApi.create({
+            url: getBaseUrl() +
+                `/api-public/v1/rebate?type=user&${(() => {
+                    let par = [];
+                    json.email && par.push(`email=${json.email}`);
+                    json.id && par.push(`user_id=${json.id}`);
+                    return par.join('&');
+                })()}`,
+            type: 'GET',
+            headers: {
+                'g-app': getConfig().config.appName,
+                'Content-Type': 'application/json',
                 Authorization: getConfig().config.token,
             },
         });

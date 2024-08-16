@@ -255,6 +255,9 @@ class Shopping {
             })();
             if (userData && userData.account) {
                 data.email = userData.account;
+                console.log(" shutdown in check userData ");
+                console.log("userData -- ", userData);
+                return "";
             }
             if (!data.email && type !== 'preview') {
                 if (data.user_info && data.user_info.email) {
@@ -661,8 +664,6 @@ class Shopping {
             const userClass = new user_js_1.User(this.app);
             const rebateClass = new rebate_js_1.Rebate(this.app);
             const userData = await userClass.getUserData(data.orderData.customer_info.account, 'account');
-            console.log(await rebateClass.insertRebate(userData.id, 0, "測試"));
-            console.log(data.orderData.return_rebate);
         }
         try {
             await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_return_order\`
@@ -1036,10 +1037,10 @@ class Shopping {
             query.status && querySql.push(`status IN (${query.status})`);
             query.email && querySql.push(`email=${database_js_1.default.escape(query.email)}`);
             query.id && querySql.push(`(content->>'$.id'=${query.id})`);
-            if (query.archived === 'true') {
+            if (query.filter_type === 'true') {
                 querySql.push(`(orderData->>'$.archived'="${query.archived}")`);
             }
-            else if (query.archived === 'false') {
+            else if (query.filter_type === 'normal') {
                 querySql.push(`((orderData->>'$.archived' is null) or (orderData->>'$.archived'!='true'))`);
             }
             let sql = `SELECT *
@@ -1055,11 +1056,15 @@ class Shopping {
                 let returnData = await database_js_1.default.query(returnSql, []);
                 if (returnData.length > 0) {
                     returnData.forEach((returnOrder) => {
+                        var _a;
+                        if (!((_a = data[0].orderData) === null || _a === void 0 ? void 0 : _a.discard)) {
+                        }
                         data[0].orderData.lineItems.map((lineItem, index) => {
                             lineItem.count = lineItem.count - returnOrder.orderData.lineItems[index].return_count;
                         });
-                        data[0].orderData.rebate += returnOrder.return_rebate;
-                        data[0].orderData.discount += returnOrder.return_discount;
+                        console.log(data[0].orderData.shipment_fee);
+                        console.log(returnOrder.orderData.shipment_fee);
+                        data[0].orderData.shipment_fee -= returnOrder.orderData.shipment_fee;
                     });
                     data[0].orderData.lineItems = data[0].orderData.lineItems.filter((dd) => {
                         return dd.count > 0;
