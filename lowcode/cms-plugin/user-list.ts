@@ -1,14 +1,15 @@
-import {GVC} from '../glitterBundle/GVController.js';
-import {EditorElem} from '../glitterBundle/plugins/editor-elem.js';
-import {BgWidget} from '../backend-manager/bg-widget.js';
-import {BgListComponent} from '../backend-manager/bg-list-component.js';
-import {ApiUser} from '../glitter-base/route/user.js';
-import {ShareDialog} from '../glitterBundle/dialog/ShareDialog.js';
-import {FormWidget} from '../official_view_component/official/form.js';
-import {ApiWallet} from '../glitter-base/route/wallet.js';
-import {ApiShop} from '../glitter-base/route/shopping.js';
-import {ShoppingOrderManager} from './shopping-order-manager.js';
-import {FilterOptions} from './filter-options.js';
+import { GVC } from '../glitterBundle/GVController.js';
+import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
+import { BgWidget } from '../backend-manager/bg-widget.js';
+import { BgListComponent } from '../backend-manager/bg-list-component.js';
+import { ApiUser } from '../glitter-base/route/user.js';
+import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
+import { FormWidget } from '../official_view_component/official/form.js';
+import { ApiWallet } from '../glitter-base/route/wallet.js';
+import { ApiShop } from '../glitter-base/route/shopping.js';
+import { ShoppingOrderManager } from './shopping-order-manager.js';
+import { FilterOptions } from './filter-options.js';
+import { ShoppingRebate } from './shopping-rebate.js'
 
 const html = String.raw;
 
@@ -538,7 +539,7 @@ export class UserList {
                             return gvc.glitter.ut.dateFormat(new Date(dd.deadline), 'yyyy-MM-dd hh:mm');
                         })(),
                     },
-                    {key: '回饋金項目', value: dd.note ?? ''},
+                    { key: '購物金項目', value: dd.note ?? '' },
                     {
                         key: '增減金額',
                         value: (() => {
@@ -801,6 +802,7 @@ export class UserList {
                                                                                         });
                                                                                     },
                                                                                 };
+// head
                                                                             })
                                                                     );
                                                                 },
@@ -842,6 +844,8 @@ export class UserList {
                                                                                                         vd.data = getOrderlist(vm.dataList);
                                                                                                         vd.loading = false;
                                                                                                         vd.callback();
+// from main
+// end
                                                                                                     });
                                                                                                 },
                                                                                                 rowClick: (data, index) => {
@@ -867,20 +871,62 @@ export class UserList {
                                                                 },
                                                             };
                                                         }),
-                                                        // 回饋金
+                                                        // 購物金
                                                         gvc.bindView(() => {
                                                             const id = gvc.glitter.getUUID();
                                                             return {
                                                                 bind: id,
                                                                 view: () => {
                                                                     return BgWidget.mainCard(
-                                                                            html`
-                                                                                <div style="display: flex; margin-bottom: 12px;">
-                                                                                    <span class="tx_700">回饋金</span>
-                                                                                </div>` +
-                                                                            html`
-                                                                                <div style="display: flex; margin-bottom: 18px; align-items: center; gap: 18px">
-                                                                                    <span class="tx_700">現有回饋金</span>
+                                                                            html` <div style="display: flex; justify-content: space-between; align-items: center;">
+                                                                    <span class="tx_700">購物金</span>
+                                                                    <div>
+                                                                        ${BgWidget.grayButton(
+                                                                                    '添加購物金',
+                                                                                    gvc.event(() => {
+                                                                                        
+                                                                                        ShoppingRebate.newRebateDialog({
+                                                                                            gvc: gvc,
+                                                                                            saveBotton: {
+                                                                                                event: (obj) => {
+                                                                                                    const dialog = new ShareDialog(gvc.glitter);
+                                                                                                    dialog.dataLoading({
+                                                                                                        text: '發送中...',
+                                                                                                        visible: true,
+                                                                                                    });
+                                                                                                    ApiWallet.storeRebateByManager({
+                                                                                                        userID: [vm.data.userID],
+                                                                                                        total: (() => {
+                                                                                                            if (obj.type === 'add') {
+                                                                                                                return parseInt(obj.value, 10);
+                                                                                                            } else {
+                                                                                                                const minus = parseInt(obj.value, 10);
+                                                                                                                return minus ? minus * -1 : minus;
+                                                                                                            }
+                                                                                                        })(),
+                                                                                                        note: obj.note,
+                                                                                                        rebateEndDay: obj.rebateEndDay,
+                                                                                                    }).then((result) => {
+                                                                                                        dialog.dataLoading({ visible: false });
+                                                                                                        if (result.response.result) {
+                                                                                                            dialog.successMessage({ text: `設定成功` });
+                                                                                                            setTimeout(() => {
+                                                                                                                gvc.notifyDataChange(id);
+                                                                                                            }, 200);
+                                                                                                        } else {
+                                                                                                            dialog.errorMessage({ text: result.response.msg });
+                                                                                                        }
+                                                                                                    });
+                                                                                                },
+                                                                                                text: '確認',
+                                                                                            },
+                                                                                        });
+                                                                                    })
+                                                                            )}
+                                                                    </div>
+                                                                </div>` +
+                                                                            html` <div style="display: flex; margin-bottom: 18px; align-items: center; gap: 18px">
+                                                                        <span class="tx_700">現有購物金</span>
                                                                                     <span style="font-size: 24px; font-weight: 400; color: #393939;"
                                                                                     >${gvc.bindView(() => {
                                                                                         const id = gvc.glitter.getUUID();
@@ -904,7 +950,7 @@ export class UserList {
                                                                                 </div>` +
                                                                             html`
                                                                                 <div style="display: flex; margin-bottom: 18px;">
-                                                                                    <span class="tx_700">回饋金紀錄</span>
+                                                                                    <span class="tx_700">購物金紀錄</span>
                                                                                 </div>` +
                                                                             gvc.bindView(() => {
                                                                                 const id = gvc.glitter.getUUID();

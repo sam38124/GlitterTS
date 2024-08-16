@@ -18,7 +18,7 @@ import { log } from 'winston';
 const router: express.Router = express.Router();
 export = router;
 
-// 回饋金
+// 購物金
 router.get('/rebate', async (req: express.Request, resp: express.Response) => {
     try {
         const app = req.get('g-app') as string;
