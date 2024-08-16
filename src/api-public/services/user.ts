@@ -880,6 +880,12 @@ export class User {
                 orderBy: query.order_string ?? '',
             });
 
+            console.log(
+                (await db.query(dataSQL, [])).map((dd: any) => {
+                    dd.pwd = undefined;
+                    return dd;
+                })
+            );
             return {
                 // 所有註冊會員的詳細資料
                 data: (await db.query(dataSQL, [])).map((dd: any) => {

@@ -4,7 +4,7 @@ interface VoucherData {
     title: string;
     method: 'percent' | 'fixed';
     reBackType: 'rebate' | 'discount' | 'shipment_free';
-    trigger: 'auto' | 'code';
+    trigger: 'auto' | 'code' | 'distribution';
     value: string;
     for: 'collection' | 'product' | 'all';
     rule: 'min_price' | 'min_count';
@@ -46,6 +46,7 @@ type Collection = {
     seo_title: string;
     seo_content: string;
     seo_image: string;
+    code: string;
 };
 export declare class Shopping {
     app: string;
@@ -124,7 +125,10 @@ export declare class Shopping {
             title?: string;
             preview_image?: string;
             sku: string;
-            shipment_fee: number;
+            shipment_obj: {
+                type: string;
+                value: number;
+            };
         }[];
         customer_info?: any;
         email?: string;
@@ -140,6 +144,7 @@ export declare class Shopping {
         pay_status?: number;
         custom_form_format?: any;
         custom_form_data?: any;
+        distribution_code?: string;
     }, type?: 'add' | 'preview' | 'manual' | 'manual-preview', replace_order_id?: string): Promise<"" | {
         data: {
             customer_info: any;
@@ -151,7 +156,10 @@ export declare class Shopping {
                 collection: string[];
                 title: string;
                 preview_image: string;
-                shipment_fee: number;
+                shipment_obj: {
+                    type: string;
+                    value: number;
+                };
             }[];
             discount?: number | undefined;
             total: number;
@@ -175,6 +183,7 @@ export declare class Shopping {
             voucherList?: VoucherData[] | undefined;
             custom_form_format?: any;
             custom_form_data?: any;
+            distribution_id?: number | undefined;
         };
         is_free?: undefined;
         return_url?: undefined;
@@ -246,7 +255,6 @@ export declare class Shopping {
             sale_price: number;
             collection: string[];
             discount_price?: number;
-            shipment_fee: number;
             rebate?: number;
         }[];
         discount?: number;
@@ -257,6 +265,7 @@ export declare class Shopping {
         shipment_fee: number;
         voucherList?: VoucherData[];
         code?: string;
+        distribution_id?: number;
     }): Promise<void>;
     putOrder(data: {
         id: string;

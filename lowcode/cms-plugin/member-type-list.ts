@@ -137,13 +137,25 @@ export class MemberTypeList {
                                             gvc: gvc,
                                             getData: async (vd) => {
                                                 vmi = vd;
-                                                const member_levels_count_list: any = (await ApiUser.getPublicConfig('member_levels_count_list', 'manager')).response.value || {};
-                                                ApiUser.getPublicConfig('member_level_config', 'manager').then((res: any) => {
+                                                Promise.all([
+                                                    new Promise((resolve) => {
+                                                        ApiUser.getUserGroupList('level').then((res: any) => {
+                                                            resolve(res);
+                                                        });
+                                                    }),
+                                                    new Promise((resolve) => {
+                                                        ApiUser.getPublicConfig('member_level_config', 'manager').then((res: any) => {
+                                                            resolve(res);
+                                                        });
+                                                    }),
+                                                ]).then((data) => {
                                                     vmi.pageSize = 1;
                                                     vm.dataList = (() => {
-                                                        if (res.result && res.response.value && res.response.value.levels.length > 0) {
+                                                        const [member, res]: any = data;
+                                                        if (member.result && member.response.result && res.result && res.response.value && res.response.value.levels.length > 0) {
                                                             return res.response.value.levels.map((data: any) => {
-                                                                data.counts = member_levels_count_list[data.id] || 0;
+                                                                const group = member.response.data.find((item: { tag: string }) => item.tag === data.id);
+                                                                data.counts = group ? group.count : 0;
                                                                 return data;
                                                             });
                                                         }
@@ -455,7 +467,7 @@ export class MemberTypeList {
                                                                                                 gvc.notifyDataChange(id);
                                                                                             },
                                                                                         }),
-                                                                                        `<div class="tx_normal" style="color:#8D8D8D;margin-top: 8px;white-space: nowrap;">天內消費</div>`,
+                                                                                        html`<div class="tx_normal" style="color:#8D8D8D;margin-top: 8px;white-space: nowrap;">天內消費</div>`,
                                                                                     ].join('');
                                                                                 } else {
                                                                                     return ``;
@@ -539,25 +551,24 @@ export class MemberTypeList {
                                                                                             return parseInt(vm.data.dead_line.value as any, 10) === dd;
                                                                                         })
                                                                                     ) {
-                                                                                        map.push(` <div class="flex-fill w-100 mt-n2 d-flex align-items-center"
-                                                                             style="gap:10px;flex: 2;">
-                                                                            ${(() => {
-                                                                                return [
-                                                                                    BgWidget.editeInput({
-                                                                                        gvc: gvc,
-                                                                                        title: '',
-                                                                                        type: 'number',
-                                                                                        default: `${vm.data.dead_line.value || '0'}`,
-                                                                                        placeHolder: '請輸入有效天數',
-                                                                                        callback: (text) => {
-                                                                                            vm.data.dead_line.value = parseInt(text, 10);
-                                                                                            gvc.notifyDataChange(id);
-                                                                                        },
-                                                                                    }),
-                                                                                    `<div class="tx_normal" style="color:#8D8D8D;margin-top: 8px;white-space: nowrap;">天</div>`,
-                                                                                ].join('');
-                                                                            })()}
-                                                                        </div>`);
+                                                                                        map.push(html` <div class="flex-fill w-100 mt-n2 d-flex align-items-center" style="gap:10px;flex: 2;">
+                                                                                            ${(() => {
+                                                                                                return [
+                                                                                                    BgWidget.editeInput({
+                                                                                                        gvc: gvc,
+                                                                                                        title: '',
+                                                                                                        type: 'number',
+                                                                                                        default: `${vm.data.dead_line.value || '0'}`,
+                                                                                                        placeHolder: '請輸入有效天數',
+                                                                                                        callback: (text) => {
+                                                                                                            vm.data.dead_line.value = parseInt(text, 10);
+                                                                                                            gvc.notifyDataChange(id);
+                                                                                                        },
+                                                                                                    }),
+                                                                                                    html`<div class="tx_normal" style="color:#8D8D8D;margin-top: 8px;white-space: nowrap;">天</div>`,
+                                                                                                ].join('');
+                                                                                            })()}
+                                                                                        </div>`);
                                                                                     }
                                                                                     return map.join('');
                                                                                 } else {
@@ -611,7 +622,7 @@ export class MemberTypeList {
                                     'padding: 0; margin: 0 !important; width: 35%;'
                                 )}
                             </div>`,
-                            BgWidget.mb240(),
+                            BgWidget.mbContainer(240),
                             html` <div class="update-bar-container">
                                 ${BgWidget.cancel(
                                     gvc.event(() => {

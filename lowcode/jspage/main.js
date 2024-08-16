@@ -26,7 +26,6 @@ import { SetGlobalValue } from '../editor/set-global-value.js';
 import { PageCodeSetting } from '../editor/page-code-setting.js';
 import { NormalPageEditor } from '../editor/normal-page-editor.js';
 import { EditorConfig } from '../editor-config.js';
-import { HtmlGenerate } from '../glitterBundle/module/html-generate.js';
 import { BgCustomerMessage } from '../backend-manager/bg-customer-message.js';
 const html = String.raw;
 const editorContainerID = `HtmlEditorContainer`;
@@ -658,7 +657,7 @@ function initialEditor(gvc, viewModel) {
         data.js = data.js.replace(url.href, './');
         viewModel.selectContainer.push(data);
         Storage.lastSelect = data.id;
-        HtmlGenerate.hover_items = [Storage.lastSelect];
+        glitter.htmlGenerate.hover_items = [Storage.lastSelect];
         data.data._style_refer_global = {
             index: `0`
         };
@@ -666,7 +665,7 @@ function initialEditor(gvc, viewModel) {
             viewModel.selectContainer.container_config.getElement().recreateView();
         }
         else {
-            $(viewModel.selectContainer.container_config.getElement()).append(HtmlGenerate.renderWidgetSingle({
+            $(viewModel.selectContainer.container_config.getElement()).append(glitter.htmlGenerate.renderWidgetSingle({
                 widget: data,
                 gvc: viewModel.selectContainer.container_config.gvc,
                 option: viewModel.selectContainer.container_config.option,
@@ -678,7 +677,7 @@ function initialEditor(gvc, viewModel) {
             }));
         }
         setTimeout(() => {
-            HtmlGenerate.selectWidget({
+            glitter.htmlGenerate.selectWidget({
                 widget: data,
                 widgetComponentID: data.id,
                 gvc: viewModel.selectContainer.container_config.gvc,
@@ -687,6 +686,7 @@ function initialEditor(gvc, viewModel) {
             });
         }, 100);
         AddComponent.toggle(false);
+        viewModel.selectContainer && viewModel.selectContainer.rerenderReplaceElem && viewModel.selectContainer.rerenderReplaceElem();
     };
     glitter.share.addWithIndex = (cf) => {
         AddComponent.toggle(false);
@@ -702,9 +702,9 @@ function initialEditor(gvc, viewModel) {
             arrayData.container.splice(arrayData.index, 0, cf.data);
         }
         Storage.lastSelect = cf.data.id;
-        HtmlGenerate.hover_items = [Storage.lastSelect];
+        glitter.htmlGenerate.hover_items = [Storage.lastSelect];
         const $ = document.querySelector('#editerCenter iframe').contentWindow.$;
-        $(HtmlGenerate.renderWidgetSingle({
+        $(glitter.htmlGenerate.renderWidgetSingle({
             widget: cf.data,
             gvc: arrayData.container.container_config.gvc,
             option: arrayData.container.container_config.option,
@@ -715,7 +715,7 @@ function initialEditor(gvc, viewModel) {
             root: arrayData.container.container_config.root,
         }))[cf.direction === 1 ? 'insertAfter' : 'insertBefore']($(`.editor_it_${cf.index}`).parent());
         setTimeout(() => {
-            HtmlGenerate.selectWidget({
+            glitter.htmlGenerate.selectWidget({
                 widget: cf.data,
                 widgetComponentID: cf.data.id,
                 gvc: arrayData.container.container_config.gvc,
@@ -723,6 +723,8 @@ function initialEditor(gvc, viewModel) {
                 glitter: glitter,
             });
         }, 50);
+        AddComponent.toggle(false);
+        viewModel.selectContainer && viewModel.selectContainer.rerenderReplaceElem && viewModel.selectContainer.rerenderReplaceElem();
     };
     if (glitter.getUrlParameter('blogEditor') === 'true') {
         glitter.share.blogEditor = true;

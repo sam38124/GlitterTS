@@ -1,5 +1,4 @@
 import {HtmlJson, Plugin} from "../plugins/plugin-creater.js";
-import {Glitter} from "../Glitter.js";
 import {GVC} from "../GVController.js";
 import {TriggerEvent} from "../plugins/trigger-event.js";
 import {EditorElem} from "../plugins/editor-elem.js";
@@ -88,7 +87,16 @@ export const widgetComponent = {
                                     })
                                 }
                                 if (widget.data.elem === 'img') {
-                                    option.push({key: 'src', value: innerText})
+                                    //判斷是新版響應式連結
+                                    let rela_link = innerText
+                                    if (innerText.includes(`size1440_s*px$_`)) {
+                                        [150, 600, 1200, 1440].reverse().map((dd) => {
+                                            if (document.body.clientWidth < dd) {
+                                                rela_link = innerText.replace('size1440_s*px$_', `size${dd}_s*px$_`)
+                                            }
+                                        })
+                                    }
+                                    option.push({key: 'src', value: rela_link})
                                 } else if (widget.data.elem === 'input') {
                                     option.push({key: 'value', value: innerText})
                                 }
@@ -100,7 +108,7 @@ export const widgetComponent = {
                                 classList.push(glitter.htmlGenerate.styleEditor(widget.data, gvc, widget as any, subData).class())
                                 widget.hashTag && classList.push(`glitterTag${widget.hashTag}`);
                                 let style_user = ''
-                                if (widget.type === 'container') {
+                                if (widget.type === 'container' && widget.data._layout === 'grid') {
                                     style_user = CustomStyle.value(gvc, widget)
                                 }
                                 return {
@@ -116,19 +124,12 @@ export const widgetComponent = {
                                 widget.data.setting.formData = widget.formData;
 
                                 function getView() {
-                                    const htmlGenerate = new glitter.htmlGenerate(widget.data.setting, hoverID, subData, rootHtmlGenerate.root);
+                                    const chtmlGenerate = new glitter.htmlGenerate(widget.data.setting, hoverID, subData, rootHtmlGenerate.root);
                                     innerText = '';
-                                    return htmlGenerate.render(gvc, {
+                                    return chtmlGenerate.render(gvc, {
                                         containerID: id,
                                         tag: (widget as any).tag,
                                         onCreate: () => {
-                                            TriggerEvent.trigger({
-                                                gvc,
-                                                widget: widget as any,
-                                                clickEvent: (widget as any).onCreateEvent,
-                                                subData: subData,
-                                                element: gvc.getBindViewElem(id).get(0)
-                                            })
                                             gvc.glitter.document.querySelector(`[gvc-id="${gvc.id(id)}"]`).onResumeEvent = () => {
                                                 TriggerEvent.trigger({
                                                     gvc,
@@ -137,6 +138,84 @@ export const widgetComponent = {
                                                     subData: subData
                                                 })
                                             }
+                                            setTimeout(()=>{
+                                                if (widget.data._layout === 'grid' && (((gvc.glitter.window.parent as any).editerData !== undefined) || ((gvc.glitter.window as any).editerData !== undefined)) && htmlGenerate.root) {
+                                                    const html = String.raw
+                                                    const tempID=gvc.glitter.getUUID()
+                                                    function rerenderReplaceElem(){
+                                                        gvc.glitter.$('.'+tempID).remove();
+                                                        widget.data.setting.need_count=parseInt(widget.data._x_count, 10) * parseInt(widget.data._y_count, 10)
+                                                        for(let b=widget.data.setting.length;b<widget.data.setting.need_count;b++){
+                                                            gvc.glitter.$(`.editor_it_${id}`).append(
+                                                                html`<div
+                                                                        class="d-flex align-items-center justify-content-center flex-column rounded-3 w-100 py-3 ${tempID}"
+                                                                        style="background: lightgrey;color: #393939;cursor: pointer;min-height: 100px;left: 0px;top:0px;width: 100%;height: 100%;"
+                                                                        onmousedown="${gvc.event(() => {
+                                                                    glitter.getModule(new URL(gvc.glitter.root_path + 'editor/add-component.js').href, (AddComponent: any) => {
+                                                                        glitter.share.editorViewModel.selectContainer = widget.data.setting;
+                                                                        AddComponent.toggle(true);
+                                                                        AddComponent.addWidget = (gvc: GVC, cf: any) => {
+                                                                            (window.parent as any).glitter.share.editorViewModel.selectContainer = widget.data.setting;
+                                                                            (window.parent as any).glitter.share.addComponent(cf);
+                                                                            AddComponent.toggle(false);
+                                                                        };
+                                                                        AddComponent.addEvent = (gvc: GVC, tdata: any) => {
+                                                                            (window.parent as any).glitter.share.editorViewModel.selectContainer = widget.data.setting;
+                                                                            (window.parent as any).glitter.share.addComponent({
+                                                                                id: gvc.glitter.getUUID(),
+                                                                                js: './official_view_component/official.js',
+                                                                                css: {
+                                                                                    class: {},
+                                                                                    style: {},
+                                                                                },
+                                                                                data: {
+                                                                                    refer_app: tdata.copyApp,
+                                                                                    tag: tdata.copy,
+                                                                                    list: [],
+                                                                                    carryData: {},
+                                                                                    _style_refer_global: {
+                                                                                        index: `0`,
+                                                                                    },
+                                                                                },
+                                                                                type: 'component',
+                                                                                class: 'w-100',
+                                                                                index: 0,
+                                                                                label: tdata.title,
+                                                                                style: '',
+                                                                                bundle: {},
+                                                                                global: [],
+                                                                                toggle: false,
+                                                                                stylist: [],
+                                                                                dataType: 'static',
+                                                                                style_from: 'code',
+                                                                                classDataType: 'static',
+                                                                                preloadEvenet: {},
+                                                                                share: {},
+                                                                            });
+                                                                            AddComponent.toggle(false);
+                                                                        };
+                                                                    });
+                                                                })}"
+                                                                >
+                                                                    <i class="fa-regular fa-circle-plus text-black"
+                                                                       style="font-size: 60px;"></i>
+                                                                    <span class="fw-500 fs-5 mt-3">添加元件</span>
+                                                                </div>`
+                                                            );
+
+                                                        }
+                                                    }
+                                                    widget.data.setting.rerenderReplaceElem=rerenderReplaceElem
+                                                    rerenderReplaceElem()
+                                                }
+                                            },200)
+                                            TriggerEvent.trigger({
+                                                gvc,
+                                                widget: widget as any,
+                                                clickEvent: (widget as any).onCreateEvent,
+                                                subData: subData,
+                                                element: gvc.getBindViewElem(id).get(0)
+                                            })
                                         },
                                         onDestroy: () => {
                                             TriggerEvent.trigger({
@@ -276,7 +355,9 @@ export const widgetComponent = {
                                 ${dd.name}
                             </option>
 `;
-                                                        }).join('')+`<option class="d-none" ${((data as any).find((dd:any)=>{return `${dd.value}` === `${selectItem}`})) ? ``:`selected`}>請選擇</option>`)
+                                                        }).join('') + `<option class="d-none" ${((data as any).find((dd: any) => {
+                                                            return `${dd.value}` === `${selectItem}`
+                                                        })) ? `` : `selected`}>請選擇</option>`)
                                                     } else {
                                                         resolve(widget.data.selectList.map((dd: any) => {
                                                             if (dd.visible === 'invisible' && (dd.value !== formData[widget.data.key])) {
@@ -291,6 +372,7 @@ export const widgetComponent = {
                                                 })
                                             case 'img':
                                             case 'input':
+                                            case 'textArea':
                                                 break
                                             default:
                                                 view.push(innerText)
@@ -309,9 +391,18 @@ export const widgetComponent = {
                                     },
                                     divCreate: getCreateOption,
                                     onCreate: () => {
+                                        // console.log(`elementCallback->`,glitter.elementCallback[gvc.id(id)].element)
+                                        // let images = document.querySelectorAll(".branwdo");
+                                        // lazyload(images);
                                         glitter.elementCallback[gvc.id(id)].updateAttribute()
                                         if (widget.data.elem.toLowerCase() === 'textarea') {
-                                            autosize(gvc.getBindViewElem(id).get(0))
+                                            const textArea = gvc.getBindViewElem(id).get(0)
+                                            textArea.textContent = innerText;
+                                            setTimeout(() => {
+                                                textArea.style.height = textArea.scrollHeight + 'px';
+                                                autosize(textArea)
+                                            }, 100)
+
                                         }
                                         TriggerEvent.trigger({
                                             gvc,
@@ -351,12 +442,12 @@ export const widgetComponent = {
                             console.log(e)
                             return `${e}`
                         }
-
                     }
                 })
 
             },
             editor: () => {
+
                 if (widget.type === 'container' && Storage.select_function === 'user-editor' || localStorage.getItem('uasi') === 'user_editor') {
                     return gvc.bindView(() => {
                         const id = gvc.glitter.getUUID()
@@ -364,6 +455,19 @@ export const widgetComponent = {
                             bind: id,
                             view: () => {
                                 return [
+                                    `<div
+                                                                                                            class="px-3 mx-n2   border-bottom pb-3 fw-bold mt-n3 mb-2 pt-3 hoverF2 d-flex align-items-center"
+                                                                                                            style="cursor: pointer;color:#393939;border-radius: 0px;gap:10px;"
+                                                                                                            onclick="${gvc.event(() => {
+                                        Storage.lastSelect = '';
+                                        gvc.glitter.share.editorViewModel.selectItem = undefined;
+                                        gvc.glitter.share.selectEditorItem();
+                                    })}"
+                                                                                                    >
+                                                                                                        <i class="fa-solid fa-chevron-left"></i>
+                                                                                                        <span style="max-width: calc(100% - 50px);text-overflow: ellipsis;white-space: nowrap;overflow: hidden;">${widget.label}</span>
+                                                                                                        <div class="flex-fill"></div>
+                                                                                                    </div>`,
                                     GlobalWidget.showCaseBar(gvc, widget, () => {
                                         gvc.notifyDataChange(id)
                                     }),
@@ -371,9 +475,53 @@ export const widgetComponent = {
                                         gvc: gvc,
                                         widget: widget,
                                         view: (widget) => {
-                                            return CustomStyle.editor(gvc, widget)
+                                            let array: string[] = []
+                                            if (widget.data._layout === 'grid') {
+                                                array = array.concat([EditorElem.editeInput({
+                                                    gvc: gvc,
+                                                    title: `X軸數量`,
+                                                    default: widget.data._x_count,
+                                                    placeHolder: '請輸入X軸數量',
+                                                    callback: (text) => {
+                                                        widget.data._x_count = text;
+                                                        widget.refreshComponent()
+                                                    }
+                                                }),
+                                                    EditorElem.editeInput({
+                                                        gvc: gvc,
+                                                        title: `Y軸數量`,
+                                                        default: widget.data._y_count,
+                                                        placeHolder: '請輸入Y軸數量',
+                                                        callback: (text) => {
+                                                            widget.data._y_count = text;
+                                                            widget.refreshComponent()
+                                                        }
+                                                    }),
+                                                    EditorElem.editeInput({
+                                                        gvc: gvc,
+                                                        title: `X軸間距`,
+                                                        default: widget.data._gap_x,
+                                                        placeHolder: '請輸入X軸間距',
+                                                        callback: (text) => {
+                                                            widget.data._gap_x = text;
+                                                            widget.refreshComponent()
+                                                        }
+                                                    }),
+                                                    EditorElem.editeInput({
+                                                        gvc: gvc,
+                                                        title: `Y軸間距`,
+                                                        default: widget.data._gap_y,
+                                                        placeHolder: '請輸入Y軸間距',
+                                                        callback: (text) => {
+                                                            widget.data._gap_y = text;
+                                                            widget.refreshComponent()
+                                                        }
+                                                    }),])
+                                            }
+                                            array.push(CustomStyle.editorMargin(gvc, widget))
+                                            return array.join('')
                                         }
-                                    }),
+                                    })
                                 ].join('')
                             }
                         }

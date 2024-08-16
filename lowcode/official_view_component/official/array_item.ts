@@ -33,6 +33,8 @@ export const array_item = Plugin.createComponent(import.meta.url, (glitter: Glit
                     };
                     function getData() {
                         views = '';
+                        vm.loading=true
+                        gvc.notifyDataChange(id);
                         new Promise(async (resolve, reject) => {
                             let view: any = [];
                             let createOption = () => {
@@ -125,7 +127,8 @@ export const array_item = Plugin.createComponent(import.meta.url, (glitter: Glit
                             bind: id,
                             view: () => {
                                 if (vm.loading) {
-                                    return component.render(gvc, widget.data.loading, setting, hoverID, subData).view() || `<span>loading...</span>`;
+                                    return `<div class="w-100 d-flex align-items-center justify-content-center p-3"><div class="spinner-border "></div></div>`
+                                    // return component.render(gvc, widget.data.loading, setting, hoverID, subData).view() || `<span>loading...</span>`;
                                 } else if (views) {
                                     return (
                                         views +

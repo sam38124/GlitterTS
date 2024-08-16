@@ -130,7 +130,10 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                     class: ``,
                     style: ``,
                     app_config: gBundle.app_config,
-                    page_config: gBundle.page_config
+                    page_config: gBundle.page_config,
+                    onCreate: () => {
+                        console.log(`createRender`);
+                    }
                 }));
             }
             else {
@@ -144,9 +147,6 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                     }
                     return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
                         console.log(`Render-time:`, window.renderClock.stop());
-                        console.log(`gBundle`, gBundle);
-                        console.log(`gBundle.config-->`, gBundle.config);
-                        console.log(`gBundle.page_config-->`, gBundle.page_config);
                         (gBundle.config.formData = gBundle.page_config.formData);
                         if (gBundle.page_config.template) {
                             window.glitterInitialHelper.getPageData(gBundle.page_config.template, (data) => {
@@ -208,7 +208,6 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                         }
                         else {
                             function editorView() {
-                                console.log(`gBundle.editMode.render->`, gBundle.editMode.render);
                                 return gBundle.editMode.render(gvc, {
                                     class: ``,
                                     style: ``,
@@ -231,7 +230,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                 },
                 divCreate: {
                     class: glitter.htmlGenerate.styleEditor(gBundle.page_config).class(),
-                    style: `overflow-x:hidden;min-height: 100vh;min-width: 100vw;overflow-x:hidden;min-height: 100vh;min-width: 100vw;${glitter.htmlGenerate.styleEditor(gBundle.page_config).style()}
+                    style: `overflow-x:hidden;min-height: 100%;min-width: 100%;${glitter.htmlGenerate.styleEditor(gBundle.page_config).style()}
                     
                     `
                 },

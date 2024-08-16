@@ -7,6 +7,7 @@ import { ApiShop } from '../glitter-base/route/shopping.js';
 import { FilterOptions } from './filter-options.js';
 import { BgProduct, OptionsItem } from '../backend-manager/bg-product.js';
 import { ShoppingProductSetting } from './shopping-product-setting.js';
+import { Tool } from '../modules/tool.js';
 
 const html = String.raw;
 
@@ -86,18 +87,13 @@ export class UserList {
                     {
                         key: '商品名稱',
                         value: html`<div class="d-flex align-items-center gap-3">
-                            <div
-                                style="
-                                    width: 45px; height: 45px;
-                                    border-radius: 5px;
-                                    background-image: url('${dd.product_content.preview_image[0] ?? BgWidget.noImageURL}');
-                                    background-position: center;
-                                    background-size: cover;
-                                    background-repeat: no-repeat;
-                                "
-                            ></div>
+                            ${BgWidget.validImageBox({
+                                gvc,
+                                image: dd.product_content.preview_image[0],
+                                width: 45,
+                            })}
                             <div class="d-flex flex-column">
-                                <span class="tx_normal">${dd.product_content.title}</span>
+                                <span class="tx_normal">${Tool.truncateString(dd.product_content.title)}</span>
                                 ${BgWidget.grayNote(dd.variant_content.spec.length > 0 ? dd.variant_content.spec.join(' / ') : '單一規格')}
                             </div>
                         </div>`,
@@ -345,7 +341,7 @@ export class UserList {
                                         ].join('')
                                     ),
                                     // 空白容器
-                                    BgWidget.mb240(),
+                                    BgWidget.mbContainer(240),
                                     // 儲存資料
                                     gvc.bindView({
                                         bind: vm.updateId,

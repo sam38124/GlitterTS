@@ -18,7 +18,7 @@ import { GlobalEvent } from '../api/global-event.js';
 import { NormalPageEditor } from '../../editor/normal-page-editor.js';
 import { StyleEditor } from '../plugins/style-editor.js';
 import { component } from '../../official_view_component/official/component.js';
-import { ShareDialog } from "../dialog/ShareDialog.js";
+import { ShareDialog } from '../dialog/ShareDialog.js';
 const html = String.raw;
 export class HtmlGenerate {
     constructor(container, hoverInitial = [], subData, root) {
@@ -296,7 +296,8 @@ export class HtmlGenerate {
                                                     root: root,
                                                     sub_data: subData,
                                                 });
-                                            })
+                                            }).
+                                                concat(container.replace_elem)
                                                 .join(''));
                                         })).then((html) => {
                                             if (option && option.is_page) {
@@ -605,87 +606,89 @@ ${e.line}
                                                     }
                                                     else {
                                                         resolve([
-                                                            Storage.select_function === 'user-editor' ? `` : gvc.bindView(() => {
-                                                                const vm = {
-                                                                    id: gvc.glitter.getUUID(),
-                                                                    type: 'preview',
-                                                                };
-                                                                return {
-                                                                    bind: vm.id,
-                                                                    view: () => {
-                                                                        if (vm.type === 'edit') {
-                                                                            return `<i class="fa-solid fa-check me-2" style="color:#295ed1;cursor:pointer;" onclick="${gvc.event(() => {
-                                                                                vm.type = 'preview';
-                                                                                gvc.notifyDataChange(vm.id);
-                                                                            })}"></i>
+                                                            Storage.select_function === 'user-editor'
+                                                                ? ``
+                                                                : gvc.bindView(() => {
+                                                                    const vm = {
+                                                                        id: gvc.glitter.getUUID(),
+                                                                        type: 'preview',
+                                                                    };
+                                                                    return {
+                                                                        bind: vm.id,
+                                                                        view: () => {
+                                                                            if (vm.type === 'edit') {
+                                                                                return `<i class="fa-solid fa-check me-2" style="color:#295ed1;cursor:pointer;" onclick="${gvc.event(() => {
+                                                                                    vm.type = 'preview';
+                                                                                    gvc.notifyDataChange(vm.id);
+                                                                                })}"></i>
 ${EditorElem.editeInput({
-                                                                                gvc: gvc,
-                                                                                title: '',
-                                                                                default: dd.label,
-                                                                                placeHolder: '請輸入自定義模塊名稱',
-                                                                                callback: (text) => {
-                                                                                    dd.label = text;
-                                                                                    gvc.notifyDataChange(['right_NAV', 'MainEditorLeft']);
-                                                                                },
-                                                                            })}`;
-                                                                        }
-                                                                        else {
-                                                                            return `<i class="fa-solid fa-pencil me-2" style="color:black;cursor:pointer;" onclick="${gvc.event(() => {
-                                                                                vm.type = 'edit';
-                                                                                gvc.notifyDataChange(vm.id);
-                                                                            })}"></i>
+                                                                                    gvc: gvc,
+                                                                                    title: '',
+                                                                                    default: dd.label,
+                                                                                    placeHolder: '請輸入自定義模塊名稱',
+                                                                                    callback: (text) => {
+                                                                                        dd.label = text;
+                                                                                        gvc.notifyDataChange(['right_NAV', 'MainEditorLeft']);
+                                                                                    },
+                                                                                })}`;
+                                                                            }
+                                                                            else {
+                                                                                return `<i class="fa-solid fa-pencil me-2" style="color:black;cursor:pointer;" onclick="${gvc.event(() => {
+                                                                                    vm.type = 'edit';
+                                                                                    gvc.notifyDataChange(vm.id);
+                                                                                })}"></i>
 <span class="fw-bold" style="color:black;text-overflow: ellipsis;max-width:120px;overflow: hidden;">${dd.label}</span>
 <div class="flex-fill"></div>
 <button class="btn ms-2 btn-outline-secondary-c d-flex align-items-center justify-content-center p-0
 ${dd.data.elem === 'script' || dd.data.elem === 'style' || dd.data.elem === 'link' || dd.type === 'code' ? `d-none` : ``}
 " style="height: 30px;width: 70px;gap:5px;"
 onclick="${gvc.event(() => {
-                                                                                NormalPageEditor.toggle({
-                                                                                    visible: true,
-                                                                                    title: '進階設定',
-                                                                                    view: (() => {
-                                                                                        const html = String.raw;
-                                                                                        const id = gvc.glitter.getUUID();
-                                                                                        let vm = {
-                                                                                            select: 'info',
-                                                                                        };
-                                                                                        return [
-                                                                                            gvc.bindView(() => {
-                                                                                                const selectID = gvc.glitter.getUUID();
-                                                                                                return {
-                                                                                                    bind: selectID,
-                                                                                                    view: () => {
-                                                                                                        return html ` <div class="w-100 " style="">
+                                                                                    NormalPageEditor.toggle({
+                                                                                        visible: true,
+                                                                                        title: '進階設定',
+                                                                                        view: (() => {
+                                                                                            const html = String.raw;
+                                                                                            const id = gvc.glitter.getUUID();
+                                                                                            let vm = {
+                                                                                                select: 'info',
+                                                                                            };
+                                                                                            return [
+                                                                                                gvc.bindView(() => {
+                                                                                                    const selectID = gvc.glitter.getUUID();
+                                                                                                    return {
+                                                                                                        bind: selectID,
+                                                                                                        view: () => {
+                                                                                                            return html ` <div class="w-100 " style="">
                                                                                       <div class="d-flex align-items-center justify-content-around w-100 p-2">
                                                                                           ${[
-                                                                                                            {
-                                                                                                                title: '模塊資訊',
-                                                                                                                value: 'info',
-                                                                                                                icon: 'fa-solid fa-info',
-                                                                                                            },
-                                                                                                            {
-                                                                                                                title: '載入設定',
-                                                                                                                value: 'loading',
-                                                                                                                icon: 'fa-regular fa-loader',
-                                                                                                            },
-                                                                                                            {
-                                                                                                                title: '生命週期',
-                                                                                                                value: 'lifecycle',
-                                                                                                                icon: 'fa-regular fa-wave-pulse',
-                                                                                                            },
-                                                                                                        ]
-                                                                                                            .map((dd) => {
-                                                                                                            return html ` <div
+                                                                                                                {
+                                                                                                                    title: '模塊資訊',
+                                                                                                                    value: 'info',
+                                                                                                                    icon: 'fa-solid fa-info',
+                                                                                                                },
+                                                                                                                {
+                                                                                                                    title: '載入設定',
+                                                                                                                    value: 'loading',
+                                                                                                                    icon: 'fa-regular fa-loader',
+                                                                                                                },
+                                                                                                                {
+                                                                                                                    title: '生命週期',
+                                                                                                                    value: 'lifecycle',
+                                                                                                                    icon: 'fa-regular fa-wave-pulse',
+                                                                                                                },
+                                                                                                            ]
+                                                                                                                .map((dd) => {
+                                                                                                                return html ` <div
                                                                                                       class=" d-flex align-items-center justify-content-center ${dd.value === vm.select
-                                                                                                                ? `border`
-                                                                                                                : ``} rounded-3"
+                                                                                                                    ? `border`
+                                                                                                                    : ``} rounded-3"
                                                                                                       style="height:36px;width:36px;cursor:pointer;
 ${dd.value === vm.select ? `background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);background:-webkit-linear-gradient(135deg, #667eea 0%, #764ba2 100%);color:white;` : `color:#151515;`}
 "
                                                                                                       onclick="${gvc.event(() => {
-                                                                                                                vm.select = dd.value;
-                                                                                                                gvc.notifyDataChange([id, selectID]);
-                                                                                                            })}"
+                                                                                                                    vm.select = dd.value;
+                                                                                                                    gvc.notifyDataChange([id, selectID]);
+                                                                                                                })}"
                                                                                                       data-bs-toggle="tooltip"
                                                                                                       data-bs-placement="top"
                                                                                                       data-bs-custom-class="custom-tooltip"
@@ -693,28 +696,28 @@ ${dd.value === vm.select ? `background:linear-gradient(135deg, #667eea 0%, #764b
                                                                                                   >
                                                                                                       <i class="${dd.icon}" aria-hidden="true"></i>
                                                                                                   </div>`;
-                                                                                                        })
-                                                                                                            .join(``)}
+                                                                                                            })
+                                                                                                                .join(``)}
                                                                                       </div>
                                                                                   </div>`;
-                                                                                                    },
-                                                                                                    divCreate: {
-                                                                                                        class: `d-flex bg-white mx-n3 border-bottom`,
-                                                                                                    },
-                                                                                                    onCreate: () => {
-                                                                                                        $('.tooltip').remove();
-                                                                                                        $('[data-bs-toggle="tooltip"]').tooltip();
-                                                                                                    },
-                                                                                                };
-                                                                                            }),
-                                                                                            gvc.bindView(() => {
-                                                                                                return {
-                                                                                                    bind: id,
-                                                                                                    view: () => {
-                                                                                                        var _a, _b, _c, _d;
-                                                                                                        switch (vm.select) {
-                                                                                                            case 'info':
-                                                                                                                return html ` <div
+                                                                                                        },
+                                                                                                        divCreate: {
+                                                                                                            class: `d-flex bg-white mx-n3 border-bottom`,
+                                                                                                        },
+                                                                                                        onCreate: () => {
+                                                                                                            $('.tooltip').remove();
+                                                                                                            $('[data-bs-toggle="tooltip"]').tooltip();
+                                                                                                        },
+                                                                                                    };
+                                                                                                }),
+                                                                                                gvc.bindView(() => {
+                                                                                                    return {
+                                                                                                        bind: id,
+                                                                                                        view: () => {
+                                                                                                            var _a, _b, _c, _d;
+                                                                                                            switch (vm.select) {
+                                                                                                                case 'info':
+                                                                                                                    return html ` <div
                                                                                               class="alert-warning alert mt-0  p-2 mb-0"
                                                                                               style="border-bottom-right-radius:8px;border-bottom-left-radius:8px;border:none;max-width: 350px;white-space: normal;"
                                                                                           >
@@ -725,108 +728,108 @@ ${dd.value === vm.select ? `background:linear-gradient(135deg, #667eea 0%, #764b
                                                                                               <h3 class="text-dark  m-1 mt-2" style="font-size: 16px;">函式路徑</h3>
                                                                                               <h3 class="text-primary  alert-primary m-1 fw-500 rounded p-2" style="font-size: 14px;">${dd.type}</h3>
                                                                                           </div>`;
-                                                                                                            case 'loading':
-                                                                                                                return html ` <div class="px-2">
+                                                                                                                case 'loading':
+                                                                                                                    return html ` <div class="px-2">
                                                                                               ${(() => {
-                                                                                                                    var _a, _b, _c;
-                                                                                                                    const array = [];
-                                                                                                                    if (dd.data.elem !== 'style' && dd.data.elem !== 'script') {
-                                                                                                                        array.push(EditorElem.select({
-                                                                                                                            title: '開放刪除',
-                                                                                                                            gvc: gvc,
-                                                                                                                            def: (_a = dd.deletable) !== null && _a !== void 0 ? _a : '',
-                                                                                                                            array: [
-                                                                                                                                {
-                                                                                                                                    title: '是',
-                                                                                                                                    value: 'true',
+                                                                                                                        var _a, _b, _c;
+                                                                                                                        const array = [];
+                                                                                                                        if (dd.data.elem !== 'style' && dd.data.elem !== 'script') {
+                                                                                                                            array.push(EditorElem.select({
+                                                                                                                                title: '開放刪除',
+                                                                                                                                gvc: gvc,
+                                                                                                                                def: (_a = dd.deletable) !== null && _a !== void 0 ? _a : '',
+                                                                                                                                array: [
+                                                                                                                                    {
+                                                                                                                                        title: '是',
+                                                                                                                                        value: 'true',
+                                                                                                                                    },
+                                                                                                                                    {
+                                                                                                                                        title: '否',
+                                                                                                                                        value: 'false',
+                                                                                                                                    },
+                                                                                                                                ],
+                                                                                                                                callback: (text) => {
+                                                                                                                                    dd.deletable = text;
+                                                                                                                                    gvc.notifyDataChange(id);
                                                                                                                                 },
-                                                                                                                                {
-                                                                                                                                    title: '否',
-                                                                                                                                    value: 'false',
+                                                                                                                            }));
+                                                                                                                            array.push(EditorElem.select({
+                                                                                                                                title: '生成方式',
+                                                                                                                                gvc: gvc,
+                                                                                                                                def: (_b = dd.gCount) !== null && _b !== void 0 ? _b : 'single',
+                                                                                                                                array: [
+                                                                                                                                    {
+                                                                                                                                        title: '靜態',
+                                                                                                                                        value: 'single',
+                                                                                                                                    },
+                                                                                                                                    {
+                                                                                                                                        title: '程式碼',
+                                                                                                                                        value: 'multiple',
+                                                                                                                                    },
+                                                                                                                                ],
+                                                                                                                                callback: (text) => {
+                                                                                                                                    dd.gCount = text;
+                                                                                                                                    gvc.notifyDataChange(id);
                                                                                                                                 },
-                                                                                                                            ],
-                                                                                                                            callback: (text) => {
-                                                                                                                                dd.deletable = text;
-                                                                                                                                gvc.notifyDataChange(id);
-                                                                                                                            },
-                                                                                                                        }));
-                                                                                                                        array.push(EditorElem.select({
-                                                                                                                            title: '生成方式',
-                                                                                                                            gvc: gvc,
-                                                                                                                            def: (_b = dd.gCount) !== null && _b !== void 0 ? _b : 'single',
-                                                                                                                            array: [
-                                                                                                                                {
-                                                                                                                                    title: '靜態',
-                                                                                                                                    value: 'single',
-                                                                                                                                },
-                                                                                                                                {
-                                                                                                                                    title: '程式碼',
-                                                                                                                                    value: 'multiple',
-                                                                                                                                },
-                                                                                                                            ],
-                                                                                                                            callback: (text) => {
-                                                                                                                                dd.gCount = text;
-                                                                                                                                gvc.notifyDataChange(id);
-                                                                                                                            },
-                                                                                                                        }));
-                                                                                                                    }
-                                                                                                                    if (dd.gCount === 'multiple') {
-                                                                                                                        dd.arrayData = (_c = dd.arrayData) !== null && _c !== void 0 ? _c : {};
-                                                                                                                        array.push(TriggerEvent.editer(gvc, dd, dd.arrayData, {
-                                                                                                                            hover: false,
-                                                                                                                            option: [],
-                                                                                                                            title: '設定資料來源',
-                                                                                                                        }));
-                                                                                                                    }
-                                                                                                                    else {
-                                                                                                                        dd.arrayData = undefined;
-                                                                                                                    }
-                                                                                                                    return array.join(`<div class="my-2"></div>`);
-                                                                                                                })()}
+                                                                                                                            }));
+                                                                                                                        }
+                                                                                                                        if (dd.gCount === 'multiple') {
+                                                                                                                            dd.arrayData = (_c = dd.arrayData) !== null && _c !== void 0 ? _c : {};
+                                                                                                                            array.push(TriggerEvent.editer(gvc, dd, dd.arrayData, {
+                                                                                                                                hover: false,
+                                                                                                                                option: [],
+                                                                                                                                title: '設定資料來源',
+                                                                                                                            }));
+                                                                                                                        }
+                                                                                                                        else {
+                                                                                                                            dd.arrayData = undefined;
+                                                                                                                        }
+                                                                                                                        return array.join(`<div class="my-2"></div>`);
+                                                                                                                    })()}
                                                                                               ${gvc.bindView(() => {
-                                                                                                                    const uid = gvc.glitter.getUUID();
-                                                                                                                    return {
-                                                                                                                        bind: uid,
-                                                                                                                        view: () => {
-                                                                                                                            var _a, _b;
-                                                                                                                            dd.preloadEvenet = (_a = dd.preloadEvenet) !== null && _a !== void 0 ? _a : {};
-                                                                                                                            dd.hiddenEvent = (_b = dd.hiddenEvent) !== null && _b !== void 0 ? _b : {};
-                                                                                                                            let view = [
-                                                                                                                                TriggerEvent.editer(gvc, dd, dd.preloadEvenet, {
-                                                                                                                                    title: '模塊預載事件',
-                                                                                                                                    option: [],
-                                                                                                                                    hover: false,
-                                                                                                                                }),
-                                                                                                                                TriggerEvent.editer(gvc, dd, dd.hiddenEvent, {
-                                                                                                                                    title: '模塊隱藏事件',
-                                                                                                                                    option: [],
-                                                                                                                                    hover: false,
-                                                                                                                                }),
-                                                                                                                            ];
-                                                                                                                            if (dd.type !== 'widget' && dd.type !== 'container') {
-                                                                                                                                view.push(gvc.glitter.htmlGenerate.styleEditor(dd, gvc, dd, {}).editor(gvc, () => {
-                                                                                                                                    gvc.notifyDataChange('showView');
-                                                                                                                                }, '模塊容器樣式'));
-                                                                                                                            }
-                                                                                                                            return view.join(`<div class="my-2"></div>`);
-                                                                                                                        },
-                                                                                                                        divCreate: {
-                                                                                                                            class: 'mt-2 mb-2 ',
-                                                                                                                        },
-                                                                                                                    };
-                                                                                                                })}
+                                                                                                                        const uid = gvc.glitter.getUUID();
+                                                                                                                        return {
+                                                                                                                            bind: uid,
+                                                                                                                            view: () => {
+                                                                                                                                var _a, _b;
+                                                                                                                                dd.preloadEvenet = (_a = dd.preloadEvenet) !== null && _a !== void 0 ? _a : {};
+                                                                                                                                dd.hiddenEvent = (_b = dd.hiddenEvent) !== null && _b !== void 0 ? _b : {};
+                                                                                                                                let view = [
+                                                                                                                                    TriggerEvent.editer(gvc, dd, dd.preloadEvenet, {
+                                                                                                                                        title: '模塊預載事件',
+                                                                                                                                        option: [],
+                                                                                                                                        hover: false,
+                                                                                                                                    }),
+                                                                                                                                    TriggerEvent.editer(gvc, dd, dd.hiddenEvent, {
+                                                                                                                                        title: '模塊隱藏事件',
+                                                                                                                                        option: [],
+                                                                                                                                        hover: false,
+                                                                                                                                    }),
+                                                                                                                                ];
+                                                                                                                                if (dd.type !== 'widget' && dd.type !== 'container') {
+                                                                                                                                    view.push(gvc.glitter.htmlGenerate.styleEditor(dd, gvc, dd, {}).editor(gvc, () => {
+                                                                                                                                        gvc.notifyDataChange('showView');
+                                                                                                                                    }, '模塊容器樣式'));
+                                                                                                                                }
+                                                                                                                                return view.join(`<div class="my-2"></div>`);
+                                                                                                                            },
+                                                                                                                            divCreate: {
+                                                                                                                                class: 'mt-2 mb-2 ',
+                                                                                                                            },
+                                                                                                                        };
+                                                                                                                    })}
                                                                                           </div>`;
-                                                                                                            case 'lifecycle':
-                                                                                                                if (dd.data && dd.data.onCreateEvent) {
-                                                                                                                    dd.onCreateEvent = dd.data.onCreateEvent;
-                                                                                                                    dd.data.onCreateEvent = undefined;
-                                                                                                                }
-                                                                                                                dd.onInitialEvent = (_a = dd.onInitialEvent) !== null && _a !== void 0 ? _a : {};
-                                                                                                                dd.onCreateEvent = (_b = dd.onCreateEvent) !== null && _b !== void 0 ? _b : {};
-                                                                                                                dd.onResumtEvent = (_c = dd.onResumtEvent) !== null && _c !== void 0 ? _c : {};
-                                                                                                                dd.onDestoryEvent = (_d = dd.onDestoryEvent) !== null && _d !== void 0 ? _d : {};
-                                                                                                                return `<div class="p-2 pt-1">${[
-                                                                                                                    html ` <div
+                                                                                                                case 'lifecycle':
+                                                                                                                    if (dd.data && dd.data.onCreateEvent) {
+                                                                                                                        dd.onCreateEvent = dd.data.onCreateEvent;
+                                                                                                                        dd.data.onCreateEvent = undefined;
+                                                                                                                    }
+                                                                                                                    dd.onInitialEvent = (_a = dd.onInitialEvent) !== null && _a !== void 0 ? _a : {};
+                                                                                                                    dd.onCreateEvent = (_b = dd.onCreateEvent) !== null && _b !== void 0 ? _b : {};
+                                                                                                                    dd.onResumtEvent = (_c = dd.onResumtEvent) !== null && _c !== void 0 ? _c : {};
+                                                                                                                    dd.onDestoryEvent = (_d = dd.onDestoryEvent) !== null && _d !== void 0 ? _d : {};
+                                                                                                                    return `<div class="p-2 pt-1">${[
+                                                                                                                        html ` <div
                                                                                                   class="alert alert-warning  p-2   m-n2 border-bottom fw-500"
                                                                                                   style="border-radius: 0px;color:black !important;"
                                                                                               >
@@ -835,49 +838,49 @@ ${dd.value === vm.select ? `background:linear-gradient(135deg, #667eea 0%, #764b
                                                                                                   <strong>onResume事件:</strong><br />模塊重新渲染至畫面時所執行事件。<br />
                                                                                                   <strong>onDestroy事件:</strong><br />模塊被銷毀所執行的事件。<br />
                                                                                               </div>`,
-                                                                                                                    `<div class="my-4"></div>`,
-                                                                                                                    TriggerEvent.editer(gvc, dd, dd.onInitialEvent, {
-                                                                                                                        title: 'onInitial事件',
-                                                                                                                        option: [],
-                                                                                                                        hover: false,
-                                                                                                                    }),
-                                                                                                                    TriggerEvent.editer(gvc, dd, dd.onCreateEvent, {
-                                                                                                                        title: 'onCreate事件',
-                                                                                                                        option: [],
-                                                                                                                        hover: false,
-                                                                                                                    }),
-                                                                                                                    TriggerEvent.editer(gvc, dd, dd.onResumtEvent, {
-                                                                                                                        title: 'onResume事件',
-                                                                                                                        option: [],
-                                                                                                                        hover: false,
-                                                                                                                    }),
-                                                                                                                    TriggerEvent.editer(gvc, dd, dd.onDestoryEvent, {
-                                                                                                                        title: 'onDestroy事件',
-                                                                                                                        option: [],
-                                                                                                                        hover: false,
-                                                                                                                    }),
-                                                                                                                ].join(`<div class="my-2"></div>`)}</div>`;
-                                                                                                            default:
-                                                                                                                return ``;
-                                                                                                        }
-                                                                                                    },
-                                                                                                };
-                                                                                            }),
-                                                                                        ].join('');
-                                                                                    })(),
-                                                                                    width: 350,
-                                                                                });
-                                                                            })}">
+                                                                                                                        `<div class="my-4"></div>`,
+                                                                                                                        TriggerEvent.editer(gvc, dd, dd.onInitialEvent, {
+                                                                                                                            title: 'onInitial事件',
+                                                                                                                            option: [],
+                                                                                                                            hover: false,
+                                                                                                                        }),
+                                                                                                                        TriggerEvent.editer(gvc, dd, dd.onCreateEvent, {
+                                                                                                                            title: 'onCreate事件',
+                                                                                                                            option: [],
+                                                                                                                            hover: false,
+                                                                                                                        }),
+                                                                                                                        TriggerEvent.editer(gvc, dd, dd.onResumtEvent, {
+                                                                                                                            title: 'onResume事件',
+                                                                                                                            option: [],
+                                                                                                                            hover: false,
+                                                                                                                        }),
+                                                                                                                        TriggerEvent.editer(gvc, dd, dd.onDestoryEvent, {
+                                                                                                                            title: 'onDestroy事件',
+                                                                                                                            option: [],
+                                                                                                                            hover: false,
+                                                                                                                        }),
+                                                                                                                    ].join(`<div class="my-2"></div>`)}</div>`;
+                                                                                                                default:
+                                                                                                                    return ``;
+                                                                                                            }
+                                                                                                        },
+                                                                                                    };
+                                                                                                }),
+                                                                                            ].join('');
+                                                                                        })(),
+                                                                                        width: 350,
+                                                                                    });
+                                                                                })}">
 <i class="fa-regular fa-gear" style="font-size:16px"></i>進階</button>
 `;
-                                                                        }
-                                                                    },
-                                                                    divCreate: {
-                                                                        class: `d-flex align-items-center mx-n2 mt-n2 p-3 py-2 shadow border-bottom`,
-                                                                        style: `background: #f6f6f6;height:48px;`,
-                                                                    },
-                                                                };
-                                                            }),
+                                                                            }
+                                                                        },
+                                                                        divCreate: {
+                                                                            class: `d-flex align-items-center mx-n2 mt-n2 p-3 py-2 shadow border-bottom`,
+                                                                            style: `background: #f6f6f6;height:48px;`,
+                                                                        },
+                                                                    };
+                                                                }),
                                                             gvc.bindView(() => {
                                                                 let loading = true;
                                                                 let data = '';
@@ -1047,6 +1050,8 @@ ${e.line}
         return js;
     }
     static checkEventStore(glitter, src) {
+        var _a;
+        glitter.share.componentData = (_a = glitter.share.componentData) !== null && _a !== void 0 ? _a : {};
         let key = glitter.htmlGenerate.resourceHook(src);
         return glitter.share.componentData[key];
     }
@@ -1363,10 +1368,10 @@ ${obj.gvc.bindView({
                     },
                     element: () => {
                         return gvc.glitter.$(`.editor_it_${cf.widget.id}`).get(0);
-                    }
+                    },
                 };
             },
-            set(v) { }
+            set(v) { },
         });
         function getHtml() {
             var _a;
@@ -1609,18 +1614,20 @@ ${obj.gvc.bindView({
                                                                 ${gvc.glitter.htmlGenerate.styleEditor(widget, gvc, widget, {}).class()}`,
                                                 option: option.concat((() => {
                                                     if (root && isEditMode()) {
-                                                        return [{
+                                                        return [
+                                                            {
                                                                 key: 'onmouseover',
                                                                 value: gvc.event((e, event) => {
-                                                                    $(e).children('.editorChild').get(0).style.background = "linear-gradient(143deg, rgba(255, 180, 0, 0.2) -22.7%, rgba(255, 108, 2, 0.2) 114.57%)";
-                                                                })
+                                                                    $(e).children('.editorChild').get(0).style.background =
+                                                                        'linear-gradient(143deg, rgba(255, 180, 0, 0.2) -22.7%, rgba(255, 108, 2, 0.2) 114.57%)';
+                                                                }),
                                                             },
                                                             {
                                                                 key: 'onmouseout',
                                                                 value: gvc.event((e, event) => {
-                                                                    $(e).children('.editorChild').get(0).style.background = "none";
-                                                                })
-                                                            }
+                                                                    $(e).children('.editorChild').get(0).style.background = 'none';
+                                                                }),
+                                                            },
                                                         ];
                                                     }
                                                     else {
@@ -1707,7 +1714,7 @@ ${obj.gvc.bindView({
         const widgetComponentID = cf.widgetComponentID;
         const event = cf.event;
         let glitter = window.glitter;
-        while (!glitter.share.editorViewModel) {
+        if (!glitter.share.editorViewModel) {
             glitter = window.parent.glitter;
         }
         function active() {
@@ -1724,7 +1731,7 @@ ${obj.gvc.bindView({
                         scrollToHover(gvc.glitter.$(`.editor_it_${widgetComponentID}`).get(0));
                     });
                 }
-                if (document.body.clientWidth < 800) {
+                if (document.body.clientWidth < 768) {
                     glitter.openDrawer();
                 }
                 event && event.stopPropagation && event.stopPropagation();
@@ -1749,66 +1756,7 @@ ${obj.gvc.bindView({
         const widget = glitter.share.findWidgetIndex(cf.id).widget;
         return [
             (() => {
-                if (widget && widget.type === 'container' && widget.data.setting && widget.data.setting.length === 0) {
-                    const addID = gvc.glitter.getUUID();
-                    return html ` <div class="${addID}" style="min-height: 250px;"></div>
-                        <div
-                            class="d-flex align-items-center justify-content-center flex-column rounded-3 position-absolute ${addID}"
-                            style="background: lightgrey;color: #393939;cursor: pointer;min-height: 250px;left: 0px;top:0px;width: 100%;height: 100%;"
-                            onmousedown="${gvc.event(() => {
-                        glitter.getModule(new URL(gvc.glitter.root_path + 'editor/add-component.js').href, (AddComponent) => {
-                            glitter.share.editorViewModel.selectContainer = widget.data.setting;
-                            AddComponent.toggle(true);
-                            AddComponent.addWidget = (gvc, cf) => {
-                                window.parent.glitter.share.editorViewModel.selectContainer = widget.data.setting;
-                                window.parent.glitter.share.addComponent(cf);
-                                cf.gvc.glitter.document.querySelector('#' + addID).remove();
-                            };
-                            AddComponent.addEvent = (gvc, tdata) => {
-                                window.parent.glitter.share.editorViewModel.selectContainer = widget.data.setting;
-                                window.parent.glitter.share.addComponent({
-                                    id: gvc.glitter.getUUID(),
-                                    js: './official_view_component/official.js',
-                                    css: {
-                                        class: {},
-                                        style: {},
-                                    },
-                                    data: {
-                                        refer_app: tdata.copyApp,
-                                        tag: tdata.copy,
-                                        list: [],
-                                        carryData: {},
-                                        _style_refer_global: {
-                                            index: `0`
-                                        }
-                                    },
-                                    type: 'component',
-                                    class: 'w-100',
-                                    index: 0,
-                                    label: tdata.title,
-                                    style: '',
-                                    bundle: {},
-                                    global: [],
-                                    toggle: false,
-                                    stylist: [],
-                                    dataType: 'static',
-                                    style_from: 'code',
-                                    classDataType: 'static',
-                                    preloadEvenet: {},
-                                    share: {},
-                                });
-                                cf.gvc.glitter.document.querySelector('#' + addID).remove();
-                            };
-                        });
-                    })}"
-                        >
-                            <i class="fa-regular fa-circle-plus text-black" style="font-size: 80px;"></i>
-                            <span class="fw-500 fs-5 mt-3">添加元件</span>
-                        </div>`;
-                }
-                else {
-                    return ``;
-                }
+                return ``;
             })(),
             cf.gvc.bindView(() => {
                 const id = cf.gvc.glitter.getUUID();
@@ -1823,7 +1771,9 @@ ${obj.gvc.bindView({
                             </div>
                             <div
                                 class="position-absolute fs-1 plus_btn"
-                                style="left:50%;transform: translateX(-50%);height:20px;width:20px;top:${(Storage.view_type === 'mobile') ? `-30px` : `-40px`};z-index:99999;cursor: pointer;pointer-events:all;"
+                                style="left:50%;transform: translateX(-50%);height:20px;width:20px;top:${Storage.view_type === 'mobile'
+                            ? `-30px`
+                            : `-40px`};z-index:99999;cursor: pointer;pointer-events:all;"
                                 onmousedown="${cf.gvc.event((e, event) => {
                             HtmlGenerate.block_timer = new Date().getTime();
                             glitter.getModule(new URL('../.././editor/add-component.js', import.meta.url).href, (AddComponent) => {
@@ -1850,8 +1800,8 @@ ${obj.gvc.bindView({
                                                 list: [],
                                                 carryData: {},
                                                 _style_refer_global: {
-                                                    index: `0`
-                                                }
+                                                    index: `0`,
+                                                },
                                             },
                                             type: 'component',
                                             class: 'w-100',
@@ -1881,7 +1831,9 @@ ${obj.gvc.bindView({
                             </div>
                             <div
                                 class="position-absolute fs-1 plus_btn"
-                                style="left:50%;transform: translateX(-50%);height:20px;width:20px;bottom:${(Storage.view_type === 'mobile') ? `10px` : `20px`};z-index:99999;cursor: pointer;pointer-events:all;"
+                                style="left:50%;transform: translateX(-50%);height:20px;width:20px;bottom:${Storage.view_type === 'mobile'
+                            ? `10px`
+                            : `20px`};z-index:99999;cursor: pointer;pointer-events:all;"
                                 onmousedown="${cf.gvc.event((e, event) => {
                             HtmlGenerate.block_timer = new Date().getTime();
                             glitter.getModule(new URL('../.././editor/add-component.js', import.meta.url).href, (AddComponent) => {
@@ -1908,8 +1860,8 @@ ${obj.gvc.bindView({
                                                 list: [],
                                                 carryData: {},
                                                 _style_refer_global: {
-                                                    index: `0`
-                                                }
+                                                    index: `0`,
+                                                },
                                             },
                                             type: 'component',
                                             class: 'w-100',
@@ -1941,7 +1893,7 @@ ${obj.gvc.bindView({
                     divCreate: {
                         class: `editorChild editor_it_${cf.id} ${cf.gvc.glitter.htmlGenerate.hover_items.indexOf(cf.id) !== -1 ? `editorItemActive` : ``}`,
                         style: `z-index: 99999;top:0px;left:0px;`,
-                        option: []
+                        option: [],
                     },
                     onCreate: () => {
                     },
@@ -1978,12 +1930,15 @@ ${obj.gvc.bindView({
                             gvc.notifyDataChange(['HtmlEditorContainer']);
                         }
                     }
+                    if (container_items.rerenderReplaceElem) {
+                        container_items.rerenderReplaceElem();
+                    }
                     glitter.share.editorViewModel.selectItem = undefined;
                     gvc.notifyDataChange(['right_NAV', 'MainEditorLeft']);
                     callback();
                 }
             },
-            text: '是否確認刪除此元件?'
+            text: '是否確認刪除此元件?',
         });
     }
     static preloadEvent(data) {

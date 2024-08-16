@@ -1968,7 +1968,7 @@ export class BgProject {
                         divCreate: { class: 'd-flex flex-column flex-column-reverse flex-md-row p-0', style: 'gap: 10px;' },
                     };
                 })}
-                ${BgWidget.mb240()}
+                ${BgWidget.mbContainer(240)}
                 <div class="update-bar-container">
                     ${BgWidget.save(
                         gvc.event(() => {

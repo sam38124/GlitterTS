@@ -3,6 +3,7 @@ import { PageSplit } from './splitPage.js';
 import { ApiShop } from '../glitter-base/route/shopping.js';
 import { Article } from '../glitter-base/route/article.js';
 import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
+import { Tool } from '../modules/tool.js';
 
 const html = String.raw;
 
@@ -17,6 +18,7 @@ interface MenuItem {
 interface CollecrtionItem {
     title: string;
     array?: CollecrtionItem[];
+    code: string;
 }
 
 export interface OptionsItem {
@@ -332,7 +334,7 @@ export class BgWidget {
         `;
     }
 
-    static danger(event: string, text: string = '取消') {
+    static danger(event: string, text: string = '刪除') {
         return html`
             <button class="btn btn-red" type="button" onclick="${event}">
                 <span class="text-white tx_700">${text}</span>
@@ -459,7 +461,7 @@ export class BgWidget {
         callback: (key: string) => void,
         style?: string
     ) {
-        return html`<div style="justify-content: flex-start; align-items: flex-start; gap: 22px; display: inline-flex;cursor: pointer;margin-top: 24px;margin-bottom: 24px; ${style ?? ''}">
+        return html` <div style="justify-content: flex-start; align-items: flex-start; gap: 22px; display: inline-flex;cursor: pointer;margin-top: 24px;margin-bottom: 24px; ${style ?? ''}">
             ${data
                 .map((dd) => {
                     if (select === dd.key) {
@@ -514,7 +516,7 @@ export class BgWidget {
                             return html` <div>
                                 ${[
                                     html` <div
-                                        class="d-flex align-items-center cursor_pointer"
+                                        class="d-flex align-items-center cursor_pointer mb-2"
                                         style="gap:8px;"
                                         onclick="${obj.gvc.event(() => {
                                             obj.def = dd.value;
@@ -690,7 +692,19 @@ ${obj.default ?? ''}</textarea
         </div>`;
     }
 
-    static linkList(obj: { gvc: GVC; title: string; default: string; placeHolder: string; callback: (path: string) => void; style?: string; readonly?: boolean; pattern?: string }) {
+    static linkList(obj: {
+        gvc: GVC;
+        title: string;
+        default: string;
+        placeHolder: string;
+        callback: (path: string) => void;
+        style?: string;
+        readonly?: boolean;
+        pattern?: string;
+        filter?: {
+            page?: string[];
+        };
+    }) {
         obj.title = obj.title ?? '';
         const vm = {
             id: obj.gvc.glitter.getUUID(),
@@ -703,7 +717,7 @@ ${obj.default ?? ''}</textarea
         };
         const dropMenu = {
             id: obj.gvc.glitter.getUUID(),
-            elementClass: this.randomString(5),
+            elementClass: Tool.randomString(5),
             elementWidth: 240,
             loading: true,
             search: '',
@@ -715,8 +729,8 @@ ${obj.default ?? ''}</textarea
         // 遞迴類別資料的物件
         const setCollectionPath = (target: MenuItem[], data: CollecrtionItem[]) => {
             (data || []).map((item, index) => {
-                const { title, array } = item;
-                target.push({ name: title, icon: '', link: `/all-product?collection=${title}` });
+                const { title, array, code } = item;
+                target.push({ name: title, icon: '', link: `/collections/${code}` });
                 if (array && array.length > 0) {
                     target[index].items = [];
                     setCollectionPath(target[index].items as MenuItem[], array);
@@ -725,7 +739,15 @@ ${obj.default ?? ''}</textarea
         };
 
         // 確認網址，回傳icon與父子層陣列
-        const findMenuItemPathByLink = (items: MenuItem[], link: string): { icon: string; nameMap: string[] } | undefined => {
+        const findMenuItemPathByLink = (
+            items: MenuItem[],
+            link: string
+        ):
+            | {
+                  icon: string;
+                  nameMap: string[];
+              }
+            | undefined => {
             for (const item of items) {
                 if (item.link === link) {
                     return { icon: item.icon, nameMap: [item.name] };
@@ -744,7 +766,7 @@ ${obj.default ?? ''}</textarea
         const formatLinkHTML = (icon: string, pathList: string[]) => {
             let pathHTML = '';
             pathList.map((path, index) => {
-                pathHTML += html`<span class="mx-1" style="font-size: 14px;">${path}</span>${index === pathList.length - 1 ? '' : html`<i class="fa-solid fa-chevron-right"></i>`}`;
+                pathHTML += html`<span class="mx-1" style="font-size: 14px;">${path}</span>${index === pathList.length - 1 ? '' : html` <i class="fa-solid fa-chevron-right"></i>`}`;
             });
             return html` <div style="display: flex; flex-wrap: wrap; align-items: center; font-size: 14px; font-weight: 500; gap: 6px; line-height: 140%;cursor: default;">
                 <div style="width: 28px;height: 28px;display: flex; align-items: center; justify-content:center;">
@@ -810,7 +832,7 @@ ${obj.default ?? ''}</textarea
             bind: vm.id,
             view: () => {
                 if (vm.loading) {
-                    return '';
+                    return this.spinner({ textNone: true });
                 } else {
                     let dataList = JSON.parse(JSON.stringify(dropMenu.recentList)) as MenuItem[];
                     return html`${obj.title ? html` <div class="tx_normal fw-normal">${obj.title}</div>` : ``}
@@ -1040,38 +1062,89 @@ ${obj.default ?? ''}</textarea
                                 for_index: 'false',
                             }).then((data) => {
                                 if (data.result) {
-                                    data.response.data.map((item: { content: { name: string; tag: string; page_type: 'page' | 'hidden' | 'shopping' } }) => {
-                                        const { name, tag, page_type } = item.content;
-                                        if (name) {
-                                            const tagObj = { name: name, icon: '', link: `/pages/${tag}` };
-                                            switch (page_type) {
-                                                case 'page':
-                                                    blockPageList.push(tagObj);
-                                                    break;
-                                                case 'hidden':
-                                                    hiddenPageList.push(tagObj);
-                                                    break;
-                                                case 'shopping':
-                                                    oneStoreList.push(tagObj);
-                                                    break;
+                                    data.response.data.map(
+                                        (item: {
+                                            content: {
+                                                name: string;
+                                                tag: string;
+                                                page_type: 'page' | 'hidden' | 'shopping';
+                                            };
+                                        }) => {
+                                            const { name, tag, page_type } = item.content;
+                                            if (name) {
+                                                const tagObj = { name: name, icon: '', link: `/pages/${tag}` };
+                                                switch (page_type) {
+                                                    case 'page':
+                                                        blockPageList.push(tagObj);
+                                                        break;
+                                                    case 'hidden':
+                                                        hiddenPageList.push(tagObj);
+                                                        break;
+                                                    case 'shopping':
+                                                        oneStoreList.push(tagObj);
+                                                        break;
+                                                }
                                             }
                                         }
-                                    });
+                                    );
                                 }
                                 resolve();
                             });
                         }),
                     ]).then(() => {
                         dropMenu.recentList = [
-                            { name: '首頁', icon: 'fa-regular fa-house', link: '/index' },
-                            { name: '所有商品', icon: 'fa-regular fa-tag', link: '/all-product', items: productList },
-                            { name: '商品分類', icon: 'fa-regular fa-tags', link: '', items: collectionList, ignoreFirst: true },
-                            { name: '網誌文章', icon: 'fa-regular fa-newspaper', link: '/blogs', items: acticleList },
-                            { name: '分頁列表', icon: 'fa-regular fa-pager', link: '/pages', items: blockPageList, ignoreFirst: true },
-                            { name: '一頁商店', icon: 'fa-regular fa-1', link: '/pages', items: oneStoreList, ignoreFirst: true },
-                            { name: '隱形賣場', icon: 'fa-regular fa-store-lock', link: '/pages', items: hiddenPageList, ignoreFirst: true },
+                            {
+                                name: '首頁',
+                                icon: 'fa-regular fa-house',
+                                link: '/index',
+                            },
+                            {
+                                name: '所有商品',
+                                icon: 'fa-regular fa-tag',
+                                link: '/all-product',
+                                items: productList,
+                            },
+                            {
+                                name: '商品分類',
+                                icon: 'fa-regular fa-tags',
+                                link: '',
+                                items: collectionList,
+                                ignoreFirst: true,
+                            },
+                            {
+                                name: '網誌文章',
+                                icon: 'fa-regular fa-newspaper',
+                                link: '/blogs',
+                                items: acticleList,
+                            },
+                            {
+                                name: '分頁列表',
+                                icon: 'fa-regular fa-pager',
+                                link: '/pages',
+                                items: blockPageList,
+                                ignoreFirst: true,
+                            },
+                            {
+                                name: '隱形賣場',
+                                icon: 'fa-sharp fa-regular fa-face-dotted',
+                                link: '/pages',
+                                items: hiddenPageList,
+                                ignoreFirst: true,
+                            },
+                            {
+                                name: '一頁商店',
+                                icon: 'fa-regular fa-page',
+                                link: '/pages',
+                                items: oneStoreList,
+                                ignoreFirst: true,
+                            },
                         ].filter((menu) => {
-                            if (menu.items === undefined) return true; // 首頁
+                            if (obj.filter && obj.filter.page && obj.filter.page.length > 0 && !obj.filter.page.includes(menu.name)) {
+                                return false; // 篩選不需顯示的連結頁面
+                            }
+                            if (menu.items === undefined) {
+                                return true; // 首頁
+                            }
                             return menu.items.length > 0;
                         });
                         vm.loading = false;
@@ -1091,11 +1164,11 @@ ${obj.default ?? ''}</textarea
     }
 
     static leftLineBar() {
-        return html` <div class="ms-2 border-end position-absolute h-100" style="left: 0px;"></div>`;
+        return html` <div class="ms-2 border-end position-absolute h-100 left-0"></div>`;
     }
 
-    static bottomLineBar() {
-        return html` <div class="ms-2 border-end position-absolute h-100" style="left: 0px;"></div>`;
+    static horizontalLine() {
+        return html` <div class="my-3 w-100" style="border-bottom: 1px solid #DDD"></div>`;
     }
 
     static grayButton(text: string, event: string, obj?: { icon?: string; textStyle?: string }) {
@@ -1105,7 +1178,16 @@ ${obj.default ?? ''}</textarea
         </button>`;
     }
 
-    static darkButton(text: string, event: string, obj?: { icon?: string; textStyle?: string; size?: 'sm' | 'lg'; style?: string }) {
+    static darkButton(
+        text: string,
+        event: string,
+        obj?: {
+            icon?: string;
+            textStyle?: string;
+            size?: 'sm' | 'lg';
+            style?: string;
+        }
+    ) {
         const size = { btn: '', font: '' };
         if (obj && obj.size) {
             size.btn = `btn-black-${obj.size}`;
@@ -1137,7 +1219,15 @@ ${obj.default ?? ''}</textarea
         </div>`;
     }
 
-    static switchTextButton(gvc: GVC, def: boolean, text: { left?: string; right?: string }, callback: (value: boolean) => void) {
+    static switchTextButton(
+        gvc: GVC,
+        def: boolean,
+        text: {
+            left?: string;
+            right?: string;
+        },
+        callback: (value: boolean) => void
+    ) {
         return html` <div style="display: flex; align-items: center;">
             <div class="tx_normal me-2">${text.left ?? ''}</div>
             <div class="form-check form-switch m-0 cursor_pointer" style="margin-top: 10px; display: flex; align-items: center;">
@@ -1196,20 +1286,11 @@ ${obj.default ?? ''}</textarea
     static selectDropList(obj: { gvc: GVC; callback: (value: any) => void; default: string[]; options: OptionsItem[]; style?: string; placeholder?: string }) {
         const vm = {
             id: obj.gvc.glitter.getUUID(),
-            checkClass: this.randomString(5),
+            checkClass: this.getCheckedClass(obj.gvc),
             loading: true,
             show: false,
             def: JSON.parse(JSON.stringify(obj.default)),
         };
-
-        obj.gvc.addStyle(`
-            .${vm.checkClass}:checked[type='checkbox'] {
-                border: 2px solid #000;
-                background-color: #fff;
-                background-image: url(${this.checkedDataImage('#000')});
-                background-position: center center;
-            }
-        `);
 
         return obj.gvc.bindView({
             bind: vm.id,
@@ -1318,7 +1399,7 @@ ${obj.default ?? ''}</textarea
             const vm = {
                 id: obj.gvc.glitter.getUUID(),
                 loading: true,
-                checkClass: this.randomString(5),
+                checkClass: this.getCheckedClass(obj.gvc),
                 def: JSON.parse(JSON.stringify(obj.default)),
                 options: [] as OptionsItem[],
                 query: '',
@@ -1328,15 +1409,6 @@ ${obj.default ?? ''}</textarea
                     index: 0,
                 },
             };
-
-            obj.gvc.addStyle(`
-                .${vm.checkClass}:checked[type='checkbox'] {
-                    border: 2px solid #000;
-                    background-color: #fff;
-                    background-image: url(${this.checkedDataImage('#000')});
-                    background-position: center center;
-                }
-            `);
 
             return html` <div class="bg-white shadow rounded-3" style="overflow-y: auto; ${document.body.clientWidth > 768 ? 'min-width: 400px; width: 600px;' : 'min-width: 92.5vw;'}">
                 ${obj.gvc.bindView({
@@ -1412,11 +1484,11 @@ ${obj.default ?? ''}</textarea
                                                               ${obj.default.includes(opt.key) ? 'checked' : ''}
                                                           />`}
                                                     ${opt.image
-                                                        ? html`
-                                                              <div style="line-height: 40px;">
-                                                                  <img class="rounded border" src="${opt.image}" style="width:40px; height:40px;" />
-                                                              </div>
-                                                          `
+                                                        ? BgWidget.validImageBox({
+                                                              gvc: obj.gvc,
+                                                              image: opt.image,
+                                                              width: 40,
+                                                          })
                                                         : ''}
                                                     <div class="form-check-label c_updown_label ${obj.readonly ? '' : 'cursor_pointer'}" onclick="${obj.gvc.event(() => call())}">
                                                         <div class="tx_normal ${opt.note ? 'mb-1' : ''}">${opt.value}</div>
@@ -1507,20 +1579,11 @@ ${obj.default ?? ''}</textarea
     static updownFilter(obj: { gvc: GVC; callback: (value: any) => void; default: string; options: OptionsItem[] }) {
         const vm = {
             id: obj.gvc.glitter.getUUID(),
-            checkClass: this.randomString(5),
+            checkClass: this.getDarkDotClass(obj.gvc),
             show: false,
             top: 0,
             right: 0,
         };
-
-        obj.gvc.addStyle(`
-            .${vm.checkClass}:checked[type='radio'] {
-                border: 2px solid #000;
-                background-color: #fff;
-                background-image: url(${this.dotDataImage('#000')});
-                background-position: center center;
-            }
-        `);
 
         return html` <div
                 class="c_updown"
@@ -1585,12 +1648,25 @@ ${obj.default ?? ''}</textarea
         return `"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='${color}' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='M6 10l3 3l6-6'/%3e%3c/svg%3e"`;
     }
 
-    static dotDataImage(color: string): string {
+    static darkDotDataImage(color: string): string {
         color = color.replace('#', '%23');
         return `"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='2' fill='${color}'/%3e%3c/svg%3e"`;
     }
 
-    static duringInputContainer(gvc: GVC, obj: { centerText: string; list: { key: string; type: string; placeHolder: string }[] }, def: string[], callback: (value: string[]) => void) {
+    static whiteDotDataImage(color: string): string {
+        color = color.replace('#', '%23');
+        return `"data:image/svg+xml,%3csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='16' height='16' rx='8' fill='${color}'/%3e%3crect x='4' y='4' width='8' height='8' rx='4' fill='white'/%3e%3c/svg%3e"`;
+    }
+
+    static duringInputContainer(
+        gvc: GVC,
+        obj: {
+            centerText: string;
+            list: { key: string; type: string; placeHolder: string }[];
+        },
+        def: string[],
+        callback: (value: string[]) => void
+    ) {
         const defualt = (def && def.length) > 1 ? def : ['', ''];
         if (obj.list.length > 1) {
             const first = obj.list[0];
@@ -1628,18 +1704,12 @@ ${obj.default ?? ''}</textarea
         return '';
     }
 
-    static randomString(max: number) {
-        let possible = 'abcdefghijklmnopqrstuvwxyz0123456789';
-        let text = possible.charAt(Math.floor(Math.random() * (possible.length - 10)));
-        for (let i = 1; i < max; i++) text += possible.charAt(Math.floor(Math.random() * possible.length));
-        return text;
-    }
-
     static multiCheckboxContainer(
         gvc: GVC,
         data: {
             key: string;
             name: string;
+            innerHtml?: string;
         }[],
         def: string[],
         callback: (value: string[]) => void,
@@ -1649,18 +1719,9 @@ ${obj.default ?? ''}</textarea
         }
     ) {
         const id = gvc.glitter.getUUID();
-        const randomString = this.randomString(5);
-        const viewId = this.randomString(5);
-
-        gvc.addStyle(`
-            .${randomString}:checked[type='checkbox'],
-            .${randomString}:checked[type='radio']  {
-                border: 2px solid #000;
-                background-color: #fff;
-                background-image: url(${obj && obj.single ? this.dotDataImage('#000') : this.checkedDataImage('#000')});
-                background-position: center center;
-            }
-        `);
+        const inputColor = obj && obj.readonly ? '#808080' : undefined;
+        const randomString = obj && obj.single ? this.getWhiteDotClass(gvc, inputColor) : this.getCheckedClass(gvc, inputColor);
+        const viewId = Tool.randomString(5);
 
         return gvc.bindView({
             bind: viewId,
@@ -1668,35 +1729,44 @@ ${obj.default ?? ''}</textarea
                 let checkboxHTML = '';
                 data.map((item) => {
                     checkboxHTML += html`
-                        <div class="form-check">
-                            <input
-                                class="form-check-input ${randomString} cursor_pointer"
-                                style="margin-top: 0.35rem;"
-                                type="${obj && obj.single ? 'radio' : 'checkbox'}"
-                                id="${id}_${item.key}"
-                                onclick="${gvc.event((e, ev) => {
+                        <div>
+                            <div
+                                class="form-check"
+                                onclick="${gvc.event((e, evt) => {
                                     if (obj && obj.readonly) {
-                                        ev.preventDefault();
+                                        evt.preventDefault();
                                         return;
                                     }
-                                })}"
-                                onchange="${gvc.event((e, ev) => {
                                     if (obj && obj.single) {
                                         def = [item.key];
                                         callback([item.key]);
                                     } else {
-                                        if (e.checked) {
+                                        if (!def.find((d) => d === item.key)) {
                                             def.push(item.key);
                                         } else {
                                             def = def.filter((d) => d !== item.key);
                                         }
+                                        def = def.filter((d) => data.map((item2) => item2.key).includes(d));
                                         callback(def);
                                     }
                                     gvc.notifyDataChange(viewId);
                                 })}"
-                                ${def.includes(item.key) ? 'checked' : ''}
-                            />
-                            <label class="form-check-label cursor_pointer" for="${id}_${item.key}" style="font-size: 16px; color: #393939;">${item.name}</label>
+                            >
+                                <input
+                                    class="form-check-input ${randomString} cursor_pointer"
+                                    style="margin-top: 0.35rem;"
+                                    type="${obj && obj.single ? 'radio' : 'checkbox'}"
+                                    id="${id}_${item.key}"
+                                    ${def.includes(item.key) ? 'checked' : ''}
+                                />
+                                <label class="form-check-label cursor_pointer" for="${id}_${item.key}" style="font-size: 16px; color: #393939;">${item.name}</label>
+                            </div>
+                            ${def.includes(item.key) && item.innerHtml
+                                ? html` <div class="d-flex position-relative my-2">
+                                      ${this.leftLineBar()}
+                                      <div class="ms-4 w-100 flex-fill">${item.innerHtml}</div>
+                                  </div>`
+                                : ``}
                         </div>
                     `;
                 });
@@ -1713,17 +1783,7 @@ ${obj.default ?? ''}</textarea
         callback: (value: { key: string; value: string }) => void
     ) {
         const id = gvc.glitter.getUUID();
-        const randomString = this.randomString(5);
-
-        gvc.addStyle(`
-            .${randomString}:checked[type='radio'] {
-                margin-right: 4px;
-                border: 2px solid #000;
-                background-color: #fff;
-                background-image: url(${this.dotDataImage('#000')});
-                background-position: center center;
-            }
-        `);
+        const randomString = this.getDarkDotClass(gvc);
 
         return gvc.bindView({
             bind: id,
@@ -1899,7 +1959,7 @@ ${obj.default ?? ''}</textarea
             <div
                 style="display: flex; width: 100%; border-radius: 10px; padding: 0 18px;
                 background: linear-gradient(0deg, #F7F7F7 0%, #F7F7F7 100%), #FFF;
-                ${document.body.clientWidth > 1000 ? 'justify-content: space-between; align-items: center; height: 40px;' : 'justify-content: center; gap: 8px; flex-direction: column; height: 80px;'}"
+                ${document.body.clientWidth > 768 ? 'justify-content: space-between; align-items: center; height: 40px;' : 'justify-content: center; gap: 8px; flex-direction: column; height: 80px;'}"
             >
                 <div style="font-size: 14px; color: #393939; font-weight: 700;">已選取${data.count}項</div>
                 <div style="display: flex; gap: 12px;">${data.buttonList.join('')}</div>
@@ -1918,7 +1978,7 @@ ${obj.default ?? ''}</textarea
     static selEventDropmenu(obj: { gvc: GVC; options: SelEventItem[]; text: string }) {
         const vm = {
             id: obj.gvc.glitter.getUUID(),
-            checkClass: this.randomString(5),
+            checkClass: Tool.randomString(5),
             show: false,
             top: 0,
             right: 0,
@@ -1934,7 +1994,7 @@ ${obj.default ?? ''}</textarea
                     const rect = element?.getBoundingClientRect();
                     if (rect) {
                         vm.top = rect.top + 30;
-                        vm.right = document.body.clientWidth > 1000 ? rect.right : 300;
+                        vm.right = document.body.clientWidth > 768 ? rect.right : 300;
                     }
 
                     obj.gvc.notifyDataChange(vm.id);
@@ -1968,13 +2028,22 @@ ${obj.default ?? ''}</textarea
     static validImageBox(obj: { gvc: GVC; image: string; width: number; height?: number; class?: string; style?: string }) {
         const imageVM = {
             id: obj.gvc.glitter.getUUID(),
+            class: Tool.randomString(6),
             loading: true,
             url: this.noImageURL,
         };
+        obj.gvc.addStyle(`
+            .${imageVM.class} {
+                min-width: ${obj.width}px;
+                min-height: ${obj.height ?? obj.width}px;
+                max-width: ${obj.width}px;
+                max-height: ${obj.height ?? obj.width}px;
+            }
+        `);
         return obj.gvc.bindView({
             bind: imageVM.id,
             view: () => {
-                return html`<img class="${obj.class ?? ''}" style="width:${obj.width}px; height:${obj.height ?? obj.width}px; ${obj.style ?? ''}" src="${imageVM.url}" />`;
+                return html`<img class="${imageVM.class} ${obj.class ?? ''}" style="${obj.style ?? ''}" src="${imageVM.url}" />`;
             },
             divCreate: {},
             onCreate: () => {
@@ -1998,6 +2067,71 @@ ${obj.default ?? ''}</textarea
             img.onerror = () => resolve(false);
             img.src = url;
         });
+    }
+
+    static getCheckedClass(gvc: GVC, color?: string) {
+        const className = Tool.randomString(6);
+        gvc.addStyle(`
+            .${className} {
+                min-width: 1rem;
+                min-height: 1rem;
+            }
+            .${className}:checked[type='checkbox'] {
+                border: 2px solid ${color ?? '#000'};
+                background-color: #fff;
+                background-image: url(${this.checkedDataImage(color ?? '#000')});
+                background-position: center center;
+            }
+        `);
+        return className;
+    }
+
+    static getDarkDotClass(gvc: GVC, color?: string) {
+        const className = Tool.randomString(6);
+        gvc.addStyle(`
+            .${className} {
+                min-width: 1rem;
+                min-height: 1rem;
+                margin-right: 4px;
+            }
+            .${className}:checked[type='radio'] {
+                border: 2px solid #000;
+                background-color: #fff;
+                background-image: url(${this.darkDotDataImage(color ?? '#000')});
+                background-position: center center;
+            }
+        `);
+        return className;
+    }
+
+    static getWhiteDotClass(gvc: GVC, color?: string) {
+        const className = Tool.randomString(6);
+        gvc.addStyle(`
+            .${className} {
+                min-width: 1rem;
+                min-height: 1rem;
+                margin-right: 4px;
+            }
+            .${className}:checked[type='radio'] {
+                border: 0px solid #000;
+                background-color: #fff;
+                background-image: url(${this.whiteDotDataImage(color ?? '#000')});
+                background-position: center center;
+            }
+        `);
+        return className;
+    }
+
+    static summaryHTML(stringArray: string[][]) {
+        return stringArray
+            .map((list) => {
+                return list
+                    .map((item) => {
+                        return html`<div class="tx_normal" style="overflow-wrap: break-word;">${item}</div>`;
+                    })
+                    .join(this.mbContainer(8));
+            })
+            .join(this.horizontalLine());
     }
 }
 

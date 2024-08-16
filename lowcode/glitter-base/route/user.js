@@ -537,9 +537,9 @@ export class ApiUser {
             },
         });
     }
-    static getUserGroupList() {
+    static getUserGroupList(type, tag) {
         return BaseApi.create({
-            url: getBaseUrl() + `/api-public/v1/user/group`,
+            url: getBaseUrl() + `/api-public/v1/user/group?type=${type !== null && type !== void 0 ? type : ''}&tag=${tag !== null && tag !== void 0 ? tag : ''}`,
             type: 'GET',
             headers: {
                 'Content-Type': 'application/json',

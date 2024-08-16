@@ -313,7 +313,7 @@ ${vm.plugin.homePage === vm.select_page ? `d-none` : ``}"
                         flex-direction: column;
                         min-height:calc(100vh);
                         background: whitesmoke;
-                        padding: 0 ${window.innerWidth > 1000 ? '24%' : '3%'};
+                        padding: 0 ${window.innerWidth > 768 ? '24%' : '3%'};
                     `,
                 },
             };

@@ -54,7 +54,7 @@ export class Entry {
         }
         window.renderClock = (_a = window.renderClock) !== null && _a !== void 0 ? _a : clockF();
         console.log(`Entry-time:`, window.renderClock.stop());
-        glitter.share.editerVersion = "V_9.9.7";
+        glitter.share.editerVersion = "V_10.5.3";
         glitter.share.start = (new Date());
         const vm = {
             appConfig: [],
@@ -282,7 +282,6 @@ export class Entry {
                 }
             }
         `);
-        console.log('timer');
         window.parent.glitter.share.editerGlitter = glitter;
         const clock = glitter.ut.clock();
         function scrollToItem(element) {
@@ -326,8 +325,12 @@ export class Entry {
         glitter.htmlGenerate.setHome({
             app_config: vm.appConfig,
             page_config: (_a = window.parent.page_config) !== null && _a !== void 0 ? _a : {},
-            config: window.parent.editerData.setting,
-            editMode: window.parent.editerData,
+            get config() {
+                return window.parent.editerData.setting;
+            },
+            get editMode() {
+                return window.parent.editerData;
+            },
             data: {},
             tag: window.parent.glitter.getUrlParameter('page'),
         });
@@ -398,7 +401,7 @@ export class Entry {
     }
     static resourceInitial(glitter, vm, callback) {
         window.glitterInitialHelper.getPlugin((dd) => {
-            var _a, _b, _c, _d;
+            var _a, _b, _c, _d, _e;
             console.log(`getPlugin-time:`, window.renderClock.stop());
             window.saasConfig.appConfig = dd.response.data;
             GlobalUser.language = GlobalUser.language || navigator.language;
@@ -409,14 +412,31 @@ export class Entry {
             const config = glitter.share.appConfigresponse.response.data;
             config.color_theme = (_a = config.color_theme) !== null && _a !== void 0 ? _a : [];
             config.container_theme = (_b = config.container_theme) !== null && _b !== void 0 ? _b : [];
-            config.globalValue = (_c = config.globalValue) !== null && _c !== void 0 ? _c : [];
-            config.globalStyleTag = (_d = config.globalStyleTag) !== null && _d !== void 0 ? _d : [];
+            config.font_theme = (_c = config.font_theme) !== null && _c !== void 0 ? _c : [];
+            config.globalValue = (_d = config.globalValue) !== null && _d !== void 0 ? _d : [];
+            config.globalStyleTag = (_e = config.globalStyleTag) !== null && _e !== void 0 ? _e : [];
             config.color_theme.map((dd, index) => {
                 EditorConfig.color_setting_config.map((d2) => {
                     glitter.share.globalValue[`theme_color.${index}.${d2.key}`] = dd[d2.key];
                 });
             });
+            glitter.share.font_theme = config.font_theme;
             glitter.share.global_container_theme = config.container_theme;
+            glitter.share.initial_fonts = [];
+            if (glitter.share.font_theme[0]) {
+                glitter.addStyle(`
+@charset "UTF-8";
+${glitter.share.font_theme.map((dd) => {
+                    glitter.share.initial_fonts.push(dd.value);
+                    return `@import url('https://fonts.googleapis.com/css2?family=${dd.value}&display=swap');`;
+                }).join('\n')}
+body {
+    font-family: "${glitter.share.font_theme[0].value}" !important;
+    font-optical-sizing: auto;
+    font-style: normal;
+    color: #393939;
+}`);
+            }
             function loopCheckGlobalValue(array, tag) {
                 try {
                     array.map((dd) => {

@@ -505,7 +505,7 @@ export class MemberSetting {
                                             },
                                         };
                                     }),
-                                    BgWidget.mb240(),
+                                    BgWidget.mbContainer(240),
                                 ].join(BgWidget.mbContainer(24))
                             )}
                         `,

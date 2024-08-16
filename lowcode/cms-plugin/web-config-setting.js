@@ -410,7 +410,7 @@ export class WebConfigSetting {
                                 ].join('');
                             }
                         })()),
-                        BgWidget.mb240(),
+                        BgWidget.mbContainer(240),
                         html ` <div class="update-bar-container">
                                 ${BgWidget.save(gvc.event(() => {
                             if (!postMd.form_title) {

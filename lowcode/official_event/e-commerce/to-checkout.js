@@ -8,8 +8,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { TriggerEvent } from '../../glitterBundle/plugins/trigger-event.js';
-import { ApiShop } from "../../glitter-base/route/shopping.js";
-import { EditorElem } from "../../glitterBundle/plugins/editor-elem.js";
+import { ApiShop } from '../../glitter-base/route/shopping.js';
+import { EditorElem } from '../../glitterBundle/plugins/editor-elem.js';
 TriggerEvent.createSingleEvent(import.meta.url, () => {
     return {
         fun: (gvc, widget, object, subData) => {
@@ -34,113 +34,122 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                 let map = [
                                     EditorElem.select({
                                         gvc: gvc,
-                                        title: "付款方式",
+                                        title: '付款方式',
                                         def: object.payType,
-                                        array: [{ title: "線上金流付款", value: "online" }, {
-                                                title: "線下付款",
-                                                value: "offline"
-                                            }],
+                                        array: [
+                                            { title: '線上金流付款', value: 'online' },
+                                            {
+                                                title: '線下付款',
+                                                value: 'offline',
+                                            },
+                                        ],
                                         callback: (text) => {
                                             object.payType = text;
                                             gvc.notifyDataChange(id);
-                                        }
+                                        },
                                     }),
                                     EditorElem.select({
                                         gvc: gvc,
-                                        title: "資料來源",
-                                        def: (_a = object.dataFrom) !== null && _a !== void 0 ? _a : "cart",
-                                        array: [{ title: "立即購買", value: "addNow" }, {
-                                                title: "購物車內容",
-                                                value: "cart"
-                                            }, { title: "程式碼", value: "code" }],
+                                        title: '資料來源',
+                                        def: (_a = object.dataFrom) !== null && _a !== void 0 ? _a : 'cart',
+                                        array: [
+                                            { title: '立即購買', value: 'addNow' },
+                                            {
+                                                title: '購物車內容',
+                                                value: 'cart',
+                                            },
+                                            { title: '程式碼', value: 'code' },
+                                        ],
                                         callback: (text) => {
                                             object.dataFrom = text;
                                             gvc.notifyDataChange(id);
-                                        }
+                                        },
                                     }),
                                     TriggerEvent.editer(gvc, widget, object.customer_info, {
                                         hover: false,
                                         option: [],
-                                        title: '取得客戶資料'
+                                        title: '取得客戶資料',
                                     }),
                                     TriggerEvent.editer(gvc, widget, object.userInfo, {
                                         hover: false,
                                         option: [],
-                                        title: '取得配送資料'
+                                        title: '取得配送資料',
                                     }),
                                     TriggerEvent.editer(gvc, widget, object.custom_form_format, {
                                         hover: false,
                                         option: [],
-                                        title: '自訂表單格式'
+                                        title: '自訂表單格式',
                                     }),
                                     TriggerEvent.editer(gvc, widget, object.custom_form_data, {
                                         hover: false,
                                         option: [],
-                                        title: '自訂表單資料'
-                                    })
+                                        title: '自訂表單資料',
+                                    }),
                                 ];
                                 if (object.dataFrom === 'code') {
                                     map.push(TriggerEvent.editer(gvc, widget, object.codeData, {
                                         hover: false,
                                         option: [],
-                                        title: 'lineItems集合'
+                                        title: 'lineItems集合',
                                     }));
                                 }
                                 if (object.dataFrom === 'addNow') {
                                     map.push(TriggerEvent.editer(gvc, widget, object.idData, {
                                         hover: false,
                                         option: [],
-                                        title: '取得商品ID'
+                                        title: '取得商品ID',
                                     }));
                                     map.push(TriggerEvent.editer(gvc, widget, object.cartCount, {
                                         hover: false,
                                         option: [],
-                                        title: '購買數量'
+                                        title: '購買數量',
                                     }));
                                 }
                                 map.push(TriggerEvent.editer(gvc, widget, object.redirect, {
                                     hover: false,
                                     option: [],
-                                    title: '跳轉頁面'
+                                    title: '跳轉頁面',
                                 }));
                                 return EditorElem.container(map);
-                            }
+                            },
                         };
                     });
                 },
                 event: () => {
                     return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
+                        var _a;
                         const userInfo = yield TriggerEvent.trigger({
                             gvc: gvc,
                             widget: widget,
-                            clickEvent: object.userInfo
+                            clickEvent: object.userInfo,
                         });
                         const redirect = yield TriggerEvent.trigger({
                             gvc: gvc,
                             widget: widget,
-                            clickEvent: object.redirect
+                            clickEvent: object.redirect,
                         });
                         const custom_form_format = yield TriggerEvent.trigger({
                             gvc: gvc,
                             widget: widget,
-                            clickEvent: object.custom_form_format
+                            clickEvent: object.custom_form_format,
                         });
                         const custom_form_data = yield TriggerEvent.trigger({
                             gvc: gvc,
                             widget: widget,
-                            clickEvent: object.custom_form_data
+                            clickEvent: object.custom_form_data,
                         });
                         const customer_info = (yield TriggerEvent.trigger({
                             gvc: gvc,
                             widget: widget,
-                            clickEvent: object.customer_info
+                            clickEvent: object.customer_info,
                         })) || {};
                         const cartData = {
                             line_items: [],
-                            total: 0
+                            total: 0,
                         };
                         const voucher = yield ApiShop.getVoucherCode();
                         const rebate = (yield ApiShop.getRebateValue()) || 0;
+                        const distributionCode = (_a = localStorage.getItem('distributionCode')) !== null && _a !== void 0 ? _a : '';
                         function checkout() {
                             const href = new URL(redirect, location.href);
                             ApiShop.toCheckout({
@@ -148,7 +157,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                     return {
                                         id: dd.id,
                                         spec: dd.spec,
-                                        count: dd.count
+                                        count: dd.count,
                                     };
                                 }),
                                 customer_info: customer_info,
@@ -157,7 +166,8 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                 code: voucher,
                                 use_rebate: parseInt(rebate, 10),
                                 custom_form_format: custom_form_format,
-                                custom_form_data: custom_form_data
+                                custom_form_data: custom_form_data,
+                                distribution_code: distributionCode,
                             }).then((res) => {
                                 if (object.payType === 'offline' || res.response.off_line || res.response.is_free) {
                                     ApiShop.clearCart();
@@ -177,18 +187,18 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                 gvc: gvc,
                                 widget: widget,
                                 clickEvent: object.idData,
-                                subData: subData
+                                subData: subData,
                             });
                             let cartCount = yield TriggerEvent.trigger({
                                 gvc: gvc,
                                 widget: widget,
                                 clickEvent: object.cartCount,
-                                subData: subData
+                                subData: subData,
                             });
                             const pd = (yield ApiShop.getProduct({
                                 limit: 50,
                                 page: 0,
-                                id: b.split('-')[0]
+                                id: b.split('-')[0],
                             })).response.data.content;
                             const vard = pd.variants.find((d2) => {
                                 return `${pd.id}-${d2.spec.join('-')}` === b;
@@ -205,9 +215,8 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                 gvc: gvc,
                                 widget: widget,
                                 clickEvent: object.codeData,
-                                subData: subData
+                                subData: subData,
                             }));
-                            console.log(`cartData.line_items->`, cartData.line_items);
                             checkout();
                         }
                         else {
@@ -217,7 +226,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                         const pd = (yield ApiShop.getProduct({
                                             limit: 50,
                                             page: 0,
-                                            id: b.split('-')[0]
+                                            id: b.split('-')[0],
                                         })).response.data.content;
                                         const vard = pd.variants.find((d2) => {
                                             return `${pd.id}-${d2.spec.join('-')}` === b;
@@ -228,8 +237,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                         cartData.line_items.push(vard);
                                         cartData.total += vard.count * vard.sale_price;
                                     }
-                                    catch (e) {
-                                    }
+                                    catch (e) { }
                                 }
                                 checkout();
                             }));

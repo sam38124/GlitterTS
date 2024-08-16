@@ -10,7 +10,9 @@ class UpdateScript {
         const migrate_template = (await database_1.default.query('SELECT appName FROM glitter.app_config where template_type!=0;', [])).map((dd) => {
             return dd.appName;
         }).concat(['shop-template-clothing-v3']);
-        await UpdateScript.migrateLink(migrate_template);
+        UpdateScript.migrateHeaderAndFooterAndCollection(migrate_template.filter((dd) => {
+            return dd !== 't_1719819344426';
+        }));
     }
     static async migrateHomePageFooter(appList) {
         for (const b of appList) {
@@ -33,6 +35,8 @@ class UpdateScript {
                                              where app_name = ?`, ['t_1719819344426']);
         let public_config = await database_1.default.query(`select *
                                             from \`t_1719819344426\`.t_user_public_config`, []);
+        let pb_config2 = await database_1.default.query(`select *
+                                            from \`t_1719819344426\`.public_config`, []);
         for (const v of appList) {
             for (const b of private_config) {
                 b.id = undefined;
@@ -61,6 +65,21 @@ class UpdateScript {
                                 where \`key\` = ?
                                   and id > 0`, [b.key]);
                 await database_1.default.query(`insert into \`${v}\`.t_user_public_config
+                                set ?`, [
+                    b
+                ]);
+            }
+            for (const b of pb_config2) {
+                b.id = undefined;
+                b.updated_at = new Date();
+                if (typeof b.value === 'object') {
+                    b.value = JSON.stringify(b.value);
+                }
+                await database_1.default.query(`delete
+                                from \`${v}\`.public_config
+                                where \`key\` = ?
+                                  and id > 0`, [b.key]);
+                await database_1.default.query(`insert into \`${v}\`.public_config
                                 set ?`, [
                     b
                 ]);
@@ -315,14 +334,14 @@ class UpdateScript {
             ]);
         }
     }
-    static async migrateHeaderAndFooter(appList) {
+    static async migrateHeaderAndFooterAndCollection(appList) {
         const rebate_page = (await database_1.default.query(`SELECT *
-                                             FROM shop_template_black_style.t_user_public_config
-                                             where \`key\` in ('menu-setting', 'footer-setting');`, []));
+                                             FROM t_1719819344426.t_user_public_config
+                                             where \`key\` in ('menu-setting', 'footer-setting','blog_collection');`, []));
         for (const b of appList) {
             for (const c of rebate_page) {
                 if (typeof c.value !== 'string') {
-                    c.value = JSON.stringify(c);
+                    c.value = JSON.stringify(c.value);
                 }
                 (await database_1.default.query(`replace
                 into \`${b}\`.t_user_public_config set ?`, [

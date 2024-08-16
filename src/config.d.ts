@@ -52,6 +52,7 @@ export declare const config: {
         article: string;
         delivery: string;
         rebate: string;
+        recommend: string;
         graph_api: string;
     };
     route: {

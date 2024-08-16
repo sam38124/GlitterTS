@@ -89,9 +89,10 @@ export class FilterOptions {
         shipment: [],
         created_time: ['', ''],
     };
+
     static returnOrderFilterFrame = {
-        progress:[],
-        refund:[],
+        progress: [],
+        refund: [],
         created_time: ['', ''],
     };
 
@@ -154,6 +155,7 @@ export class FilterOptions {
             },
         },
     ];
+
     static returnOrderFunnel = [
         {
             key: 'progress',
@@ -194,6 +196,7 @@ export class FilterOptions {
         { key: 'order_total_desc', value: '訂單金額高 > 低' },
         { key: 'order_total_asc', value: '訂單金額低 > 高' },
     ];
+
     static returnOrderOrderBy = [
         { key: 'created_time_desc', value: '訂單時間新 > 舊' },
         { key: 'created_time_asc', value: '訂單時間舊 > 新' },
@@ -348,5 +351,26 @@ export class FilterOptions {
                 { key: 'get-customer-message', name: '客服訊息' },
             ],
         },
+    ];
+
+    static recommendUserFilterFrame = {};
+
+    static recommendUserSelect = [
+        { key: 'name', value: '推薦人名稱' },
+        { key: 'email', value: '推薦人信箱' },
+        { key: 'phone', value: '推薦人電話' },
+    ];
+
+    static recommendUserOrderBy = [
+        { key: 'default', value: '預設' },
+        { key: 'name', value: '推薦人名稱' },
+        { key: 'created_time_desc', value: '註冊時間新 > 舊' },
+        { key: 'created_time_asc', value: '註冊時間舊 > 新' },
+        // { key: 'order_total_desc', value: '總金額高 > 低' },
+        // { key: 'order_total_asc', value: '總金額低 > 高' },
+        // { key: 'share_value_desc', value: '分潤獎金多 > 少' },
+        // { key: 'share_value_asc', value: '分潤獎金少 > 多' },
+        // { key: 'conversion_rate_desc', value: '轉換率高 > 低' },
+        // { key: 'conversion_rate_asc', value: '轉換率低 > 高' },
     ];
 }

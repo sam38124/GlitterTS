@@ -2335,7 +2335,7 @@ ${EditorElem.editeInput({
                                                                         postMD.preview_image.push(text);
                                                                         obj.gvc.notifyDataChange(id);
                                                                     },
-                                                                    type: `image/*, video/*`,
+                                                                    type: `image/*, video/*`
                                                                 });
                                                             })}"
                                                         >

@@ -101,39 +101,50 @@ export class BgListComponent {
                             let contentHTML = '';
                             switch (item.type) {
                                 case 'during':
-                                    contentHTML += BgWidget.duringInputContainer(gvc, item.data, this.vm.filter[item.key], (value) => {
-                                        this.vm.filter[item.key] = value;
-                                    });
+                                    contentHTML +=
+                                        item.data && item.data.list.length > 0
+                                            ? BgWidget.duringInputContainer(gvc, item.data, this.vm.filter[item.key], (value) => {
+                                                this.vm.filter[item.key] = value;
+                                            })
+                                            : '';
                                     break;
                                 case 'multi_checkbox':
-                                    contentHTML += BgWidget.multiCheckboxContainer(gvc, item.data, this.vm.filter[item.key], (value) => {
-                                        this.vm.filter[item.key] = value;
-                                    });
+                                    contentHTML +=
+                                        item.data.length > 0
+                                            ? BgWidget.multiCheckboxContainer(gvc, item.data, this.vm.filter[item.key], (value) => {
+                                                this.vm.filter[item.key] = value;
+                                            })
+                                            : '';
                                     break;
                                 case 'radio_and_input':
-                                    contentHTML += BgWidget.radioInputContainer(gvc, item.data, this.vm.filter[item.key], (value) => {
-                                        this.vm.filter[item.key] = value;
-                                    });
+                                    contentHTML +=
+                                        item.data.length > 0
+                                            ? BgWidget.radioInputContainer(gvc, item.data, this.vm.filter[item.key], (value) => {
+                                                this.vm.filter[item.key] = value;
+                                            })
+                                            : '';
                                     break;
                             }
-                            return html `<!-- Item -->
-                                            <div class="accordion-item border-0 rounded-3 mb-3">
-                                                <h3 class="accordion-header" id="heading${item.key}">
-                                                    <button
-                                                        class="accordion-button shadow-none rounded-3 p-0 collapsed"
-                                                        type="button"
-                                                        data-bs-toggle="collapse"
-                                                        data-bs-target="#collapse${item.key}"
-                                                        aria-expanded="false"
-                                                        aria-controls="collapse${item.key}"
-                                                    >
-                                                        ${item.name}
-                                                    </button>
-                                                </h3>
-                                                <div class="accordion-collapse collapse" id="collapse${item.key}" aria-labelledby="heading${item.key}" data-bs-parent="#accordion${vmShow.id}">
-                                                    <div class="accordion-body p-0 pt-1">${contentHTML}</div>
-                                                </div>
-                                            </div> `;
+                            return contentHTML.length > 0
+                                ? html `<!-- Item -->
+                                                  <div class="accordion-item border-0 rounded-3 mb-3">
+                                                      <h3 class="accordion-header" id="heading${item.key}">
+                                                          <button
+                                                              class="accordion-button shadow-none rounded-3 p-0 collapsed"
+                                                              type="button"
+                                                              data-bs-toggle="collapse"
+                                                              data-bs-target="#collapse${item.key}"
+                                                              aria-expanded="false"
+                                                              aria-controls="collapse${item.key}"
+                                                          >
+                                                              ${item.name}
+                                                          </button>
+                                                      </h3>
+                                                      <div class="accordion-collapse collapse" id="collapse${item.key}" aria-labelledby="heading${item.key}" data-bs-parent="#accordion${vmShow.id}">
+                                                          <div class="accordion-body p-0 pt-1">${contentHTML}</div>
+                                                      </div>
+                                                  </div> `
+                                : '';
                         }))}
                             </div>
                             <div class="position-absolute bottom-0 left-0 w-100 d-flex align-items-center justify-content-end p-3 border-top pe-4" style="gap:10px;">

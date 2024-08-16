@@ -1,5 +1,6 @@
 import { ApiShop } from '../../glitter-base/route/shopping.js';
 import { ApiPost } from '../../glitter-base/route/post.js';
+import { Tool } from '../../modules/tool.js';
 export class PathSelect {
     static getData(obj) {
         var _a, _b;
@@ -16,7 +17,7 @@ export class PathSelect {
         };
         const dropMenu = {
             id: obj.gvc.glitter.getUUID(),
-            elementClass: this.randomString(5),
+            elementClass: Tool.randomString(5),
             elementWidth: 240,
             loading: true,
             search: '',
@@ -26,8 +27,8 @@ export class PathSelect {
         };
         const setCollectionPath = (target, data) => {
             (data || []).map((item, index) => {
-                const { title, array } = item;
-                target.push({ name: title, icon: '', link: `/all-product?collection=${title}` });
+                const { title, array, code } = item;
+                target.push({ name: title, icon: '', link: `/collections/${code}` });
                 if (array && array.length > 0) {
                     target[index].items = [];
                     setCollectionPath(target[index].items, array);

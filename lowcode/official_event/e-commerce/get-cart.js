@@ -8,9 +8,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { TriggerEvent } from '../../glitterBundle/plugins/trigger-event.js';
-import { ApiShop } from "../../glitter-base/route/shopping.js";
-import { EditorElem } from "../../glitterBundle/plugins/editor-elem.js";
-import { GlobalUser } from "../../glitter-base/global/global-user.js";
+import { ApiShop } from '../../glitter-base/route/shopping.js';
+import { EditorElem } from '../../glitterBundle/plugins/editor-elem.js';
+import { GlobalUser } from '../../glitter-base/global/global-user.js';
 TriggerEvent.createSingleEvent(import.meta.url, () => {
     return {
         fun: (gvc, widget, object, subData) => {
@@ -30,38 +30,40 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                         gvc: gvc,
                                         def: object.pd_from,
                                         array: [
-                                            { title: '本地購物車', value: "local" },
-                                            { title: '自定義', value: "custom" }
+                                            { title: '本地購物車', value: 'local' },
+                                            { title: '自定義', value: 'custom' },
                                         ],
                                         callback: (text) => {
                                             object.pd_from = text;
                                             gvc.notifyDataChange(id);
-                                        }
-                                    })
+                                        },
+                                    }),
                                 ];
                                 if (object.pd_from === 'custom') {
-                                    view.push(TriggerEvent.editer(gvc, widget, object.pd_data, { title: "設定商品來源", hover: false, option: [] }));
+                                    view.push(TriggerEvent.editer(gvc, widget, object.pd_data, { title: '設定商品來源', hover: false, option: [] }));
                                 }
                                 return view.join('');
                             },
-                            divCreate: {}
+                            divCreate: {},
                         };
                     });
                 },
                 event: () => {
                     return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
-                        (((object.pd_from === 'custom') ? (() => {
-                            return TriggerEvent.trigger({
-                                gvc: gvc,
-                                widget: widget,
-                                clickEvent: object.pd_data,
-                                subData: subData
-                            });
-                        }) : ApiShop.getCart))().then((res) => __awaiter(void 0, void 0, void 0, function* () {
-                            console.log(`ApiShop.getCart->`, res);
+                        (object.pd_from === 'custom'
+                            ? () => {
+                                return TriggerEvent.trigger({
+                                    gvc: gvc,
+                                    widget: widget,
+                                    clickEvent: object.pd_data,
+                                    subData: subData,
+                                });
+                            }
+                            : ApiShop.getCart)().then((res) => __awaiter(void 0, void 0, void 0, function* () {
+                            var _a;
                             const cartData = {
                                 line_items: [],
-                                total: 0
+                                total: 0,
                             };
                             for (const b of Object.keys(res)) {
                                 cartData.line_items.push({
@@ -69,21 +71,23 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                     count: res[b],
                                     spec: b.split('-').filter((dd, index) => {
                                         return index !== 0;
-                                    })
+                                    }),
                                 });
                             }
                             const voucher = yield ApiShop.getVoucherCode();
                             const rebate = (yield ApiShop.getRebateValue()) || 0;
+                            const distributionCode = (_a = localStorage.getItem('distributionCode')) !== null && _a !== void 0 ? _a : '';
                             ApiShop.getCheckout({
                                 line_items: cartData.line_items.map((dd) => {
                                     return {
                                         id: dd.id,
                                         spec: dd.spec,
-                                        count: dd.count
+                                        count: dd.count,
                                     };
                                 }),
                                 code: voucher,
-                                use_rebate: GlobalUser.token && parseInt(rebate, 10)
+                                use_rebate: GlobalUser.token && parseInt(rebate, 10),
+                                distribution_code: distributionCode,
                             }).then((res) => {
                                 if (res.result) {
                                     resolve(res.response.data);

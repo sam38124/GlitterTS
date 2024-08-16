@@ -13,7 +13,7 @@ import { User } from '../services/user.js';
 import { Post } from '../services/post.js';
 import { Shopping } from '../services/shopping';
 import { Rebate, IRebateSearch } from '../services/rebate';
-import {log} from "winston";
+import { log } from 'winston';
 
 const router: express.Router = express.Router();
 export = router;
@@ -117,6 +117,7 @@ router.post('/checkout', async (req: express.Request, resp: express.Response) =>
                 })(),
                 custom_form_format: req.body.custom_form_format,
                 custom_form_data: req.body.custom_form_data,
+                distribution_code: req.body.distribution_code,
             })
         );
     } catch (err) {
@@ -157,6 +158,7 @@ router.post('/checkout/preview', async (req: express.Request, resp: express.Resp
                             return 0;
                         }
                     })(),
+                    distribution_code: req.body.distribution_code,
                 },
                 'preview'
             )
@@ -244,7 +246,7 @@ router.get('/order', async (req: express.Request, resp: express.Response) => {
                     created_time: req.query.created_time as string,
                     orderString: req.query.orderString as string,
                     archived: req.query.archived as string,
-                    returnSearch:req.query.returnSearch as string,
+                    returnSearch: req.query.returnSearch as string,
                 })
             );
         } else if (await UtPermission.isAppUser(req)) {
@@ -409,11 +411,14 @@ router.put('/returnOrder', async (req: express.Request, resp: express.Response) 
     try {
         if (await UtPermission.isManager(req)) {
             //管理員
-            return response.succ(resp, await new Shopping(req.get('g-app') as string, req.body.token).putReturnOrder({
-                id: req.body.data.id,
-                orderData: req.body.data,
-                status: req.body.status || "0",
-            }));
+            return response.succ(
+                resp,
+                await new Shopping(req.get('g-app') as string, req.body.token).putReturnOrder({
+                    id: req.body.data.id,
+                    orderData: req.body.data,
+                    status: req.body.status || '0',
+                })
+            );
             // return response.succ(
             //     resp,
             //     await new Shopping(req.get('g-app') as string, req.body.token).getReturnOrder({
@@ -440,12 +445,7 @@ router.put('/returnOrder', async (req: express.Request, resp: express.Response) 
 router.post('/returnOrder', async (req: express.Request, resp: express.Response) => {
     try {
         if (await UtPermission.isManager(req)) {
-            return response.succ(
-                resp,
-                await new Shopping(req.get('g-app') as string, req.body.token).createReturnOrder(
-                    req.body
-                )
-            );
+            return response.succ(resp, await new Shopping(req.get('g-app') as string, req.body.token).createReturnOrder(req.body));
         } else {
             return response.fail(resp, exception.BadRequestError('BAD_REQUEST', 'No permission.', null));
         }

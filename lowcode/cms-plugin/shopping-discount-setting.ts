@@ -7,6 +7,7 @@ import { ApiUser } from '../glitter-base/route/user.js';
 import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
 import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
 import { FilterOptions } from './filter-options.js';
+import { Tool } from '../modules/tool.js';
 
 export class ShoppingDiscountSetting {
     public static main(gvc: GVC) {
@@ -439,7 +440,7 @@ export class ShoppingDiscountSetting {
                                                                                 html`<div class="d-flex justify-content-end" style="margin-top: 8px;">
                                                                                     ${BgWidget.blueNote('隨機產生優惠代碼', () =>
                                                                                         gvc.event(() => {
-                                                                                            voucherData.code = BgWidget.randomString(6).toUpperCase();
+                                                                                            voucherData.code = Tool.randomString(6).toUpperCase();
                                                                                             gvc.notifyDataChange(id);
                                                                                         })
                                                                                     )}
@@ -689,6 +690,7 @@ export class ShoppingDiscountSetting {
                                                                                                 onCreate: () => {
                                                                                                     if (levelVM.loading) {
                                                                                                         ApiUser.getUserGroupList().then((dd: any) => {
+                                                                                                            console.log(dd);
                                                                                                             if (dd.result && dd.response.data) {
                                                                                                                 levelVM.dataList = dd.response.data
                                                                                                                     .filter((item: any) => {
@@ -964,17 +966,7 @@ export class ShoppingDiscountSetting {
                                                                                                 subVM.dataList.map((opt: OptionsItem, index) => {
                                                                                                     return html`<div class="d-flex align-items-center form-check-label c_updown_label gap-3">
                                                                                                         <span class="tx_normal">${index + 1}.</span>
-                                                                                                        <div
-                                                                                                            style="
-                                                                                                    width: 40px;
-                                                                                                    height: 40px;
-                                                                                                    border-radius: 5px;
-                                                                                                    background-color: #fff;
-                                                                                                    background-image: url('${opt.image}');
-                                                                                                    background-position: center center;
-                                                                                                    background-size: contain;
-                                                                                                "
-                                                                                                        ></div>
+                                                                                                        ${BgWidget.validImageBox({ gvc: gvc, image: opt.image, width: 40 })}
                                                                                                         <div class="tx_normal ${opt.note ? 'mb-1' : ''}">${opt.value}</div>
                                                                                                         ${opt.note ? html` <div class="tx_gray_12">${opt.note}</div> ` : ''}
                                                                                                     </div>`;
@@ -1304,7 +1296,7 @@ export class ShoppingDiscountSetting {
                                 )}
                             </div>`,
                             // 空白容器
-                            BgWidget.mb240(),
+                            BgWidget.mbContainer(240),
                             // 儲存資料
                             html` <div class="update-bar-container">
                                 ${obj.type === 'replace'

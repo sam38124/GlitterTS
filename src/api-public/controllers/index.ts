@@ -3,7 +3,6 @@ import response from '../../modules/response';
 import jwt from 'jsonwebtoken';
 import redis from '../../modules/redis';
 import db from '../../modules/database';
-import path from 'path';
 import { config, saasConfig } from '../../config';
 const router: express.Router = express.Router();
 import Logger from '../../modules/logger';
@@ -24,6 +23,7 @@ import wallet = require('./wallet');
 import article = require('./article');
 import delivery = require('./delivery');
 import rebate = require('./rebate');
+import recommend = require('./recommend');
 import { Live_source } from '../../live_source.js';
 import { IToken } from '../models/Auth.js';
 import { ApiPublic } from '../services/public-table-check.js';
@@ -44,6 +44,7 @@ router.use(config.getRoute(config.public_route.wallet, 'public'), wallet);
 router.use(config.getRoute(config.public_route.article, 'public'), article);
 router.use(config.getRoute(config.public_route.delivery, 'public'), delivery);
 router.use(config.getRoute(config.public_route.rebate, 'public'), rebate);
+router.use(config.getRoute(config.public_route.recommend, 'public'), recommend);
 router.use(config.getRoute(config.public_route.graph_api, 'public'), require('./graph-api'));
 /******************************/
 const whiteList: {}[] = [

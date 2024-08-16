@@ -1,6 +1,7 @@
 import { GVC } from '../../glitterBundle/GVController.js';
 import { ApiShop } from '../../glitter-base/route/shopping.js';
 import { ApiPost } from '../../glitter-base/route/post.js';
+import { Tool } from '../../modules/tool.js';
 
 interface MenuItem {
     name: string;
@@ -12,6 +13,7 @@ interface MenuItem {
 interface CollecrtionItem {
     title: string;
     array?: CollecrtionItem[];
+    code: string;
 }
 
 export class PathSelect {
@@ -29,7 +31,7 @@ export class PathSelect {
         };
         const dropMenu = {
             id: obj.gvc.glitter.getUUID(),
-            elementClass: this.randomString(5),
+            elementClass: Tool.randomString(5),
             elementWidth: 240,
             loading: true,
             search: '',
@@ -41,8 +43,8 @@ export class PathSelect {
         // 遞迴類別資料的物件
         const setCollectionPath = (target: MenuItem[], data: CollecrtionItem[]) => {
             (data || []).map((item, index) => {
-                const { title, array } = item;
-                target.push({ name: title, icon: '', link: `/all-product?collection=${title}` });
+                const { title, array, code } = item;
+                target.push({ name: title, icon: '', link: `/collections/${code}` });
                 if (array && array.length > 0) {
                     target[index].items = [];
                     setCollectionPath(target[index].items as MenuItem[], array);

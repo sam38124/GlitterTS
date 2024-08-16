@@ -2,6 +2,8 @@ import {config} from "../config.js";
 import {BaseApi} from "../glitterBundle/api/base.js";
 import {GlobalUser} from "../glitter-base/global/global-user.js";
 import {EditorElem} from "../glitterBundle/plugins/editor-elem";
+import {ShareDialog} from "../glitterBundle/dialog/ShareDialog.js";
+
 
 export class ApiPageConfig {
     constructor() {
@@ -187,7 +189,6 @@ export class ApiPageConfig {
         favorite?: number,
         preview_image?: string
     }) {
-        console.log(`setPage->`, data)
         return BaseApi.create({
             "url": config.url + `/api/v1/template`,
             "type": "PUT",
@@ -382,6 +383,114 @@ export class ApiPageConfig {
                 "fileName": fileName
             })
         })
+    }
+    public static async uploadFileAll(files:File | File[],type:'blob'|'file'='file'){
+        if(!Array.isArray(files)){files=[files]}
+        let result=true
+        let links:string[]=[]
+        for (const file of files){
+            const file_id=(window as any).glitter.getUUID()
+            //取得檔案名稱
+            function getFileName(size?:number){
+              let file_name  = (
+                    file.name ||
+                    `${file_id}.${(() => {
+                        if (file.type === 'image/jpeg') {
+                            return `jpg`;
+                        } else if (file.type === 'image/png') {
+                            return `png`;
+                        } else {
+                            return `png`;
+                        }
+                    })()}`
+                ).replace(/ /g, '')
+
+                if(file.type.startsWith('image')){
+                    file_name=`${size ?`size${size}_`:``}s*px$_${file_name}`
+                }
+                return file_name
+            }
+            //壓縮圖片後再上傳
+            if(file.type.startsWith('image/')){
+                async function loopSize(size:number):Promise<boolean>{
+                   return  new Promise( (resolve,reject)=>{
+                       const reader = new FileReader();
+                       reader.onload = function(e) {
+                           const img = new Image();
+                           img.src = URL.createObjectURL(file);
+                           img.onload =  function() {
+                               // 获取图像宽度和高度
+                               const og_width = img.width;
+                               const og_height = img.height;
+                               const canvas = document.createElement('canvas');
+                               const maxWidth = size; // 设置最大宽度
+                               const maxHeight = size/og_width*og_height; // 设置最大高度
+                               let width = img.width;
+                               let height = img.height;
+                               // 保持纵横比调整尺寸
+                               if (width > height) {
+                                   if (width > maxWidth) {
+                                       height *= maxWidth / width;
+                                       width = maxWidth;
+                                   }
+                               } else {
+                                   if (height > maxHeight) {
+                                       width *= maxHeight / height;
+                                       height = maxHeight;
+                                   }
+                               }
+
+                               canvas.width = width;
+                               canvas.height = height;
+                               const ctx:any = canvas.getContext('2d');
+                               ctx.drawImage(img, 0, 0, width, height);
+                               // 将调整后的图像转换为 Blob
+                               canvas.toBlob(async function(blob:any) {
+                                   const s3res= (await ApiPageConfig.uploadFile(getFileName(size))).response;
+                                   const res= await BaseApi.create({
+                                       url: s3res.url,
+                                       type: 'put',
+                                       data: blob,
+                                       headers: {
+                                           'Content-Type': s3res.type,
+                                       }
+                                   })
+                                   if(size===1440){
+                                       links.push(s3res.fullUrl)
+                                   }
+                                   resolve(res.result)
+                               }, file.type);
+
+                           };
+                       };
+                       reader.readAsDataURL(file);
+                   })
+                }
+                let chunk_size=[150,600,1200,1440]
+                let chunk_count=0
+                await new Promise((resolve, reject)=>{
+                    for (const size of chunk_size){
+                        loopSize(size).then((res:boolean)=>{
+                            chunk_count++
+                            result=res && result
+                            if(chunk_count===chunk_size.length){
+                                resolve(true)
+                            }
+                        })
+                    }
+                })
+                if(!result){
+                    return  {
+                        result:false
+                    }
+                }
+            }
+        }
+
+     return {
+            result:result,
+         links:links
+     }
     }
 }
 

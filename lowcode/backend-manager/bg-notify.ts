@@ -861,7 +861,7 @@ export class BgNotify {
                     BgWidget.getContainerWidth(),
                     'padding: 0 !important; margin: 0 !important;'
                 )}
-                ${BgWidget.mb240()}
+                ${BgWidget.mbContainer(240)}
                 <div class="update-bar-container">
                     ${obj.type === 'replace' && !obj.readonly
                         ? BgWidget.danger(
@@ -886,8 +886,7 @@ export class BgNotify {
                                           }
                                       },
                                   });
-                              }),
-                              '刪除'
+                              })
                           )
                         : ''}
                     ${BgWidget.cancel(
@@ -1660,7 +1659,7 @@ export class BgNotify {
                     BgWidget.getContainerWidth(),
                     'padding: 0 !important; margin: 0 !important;'
                 )}
-                ${BgWidget.mb240()}
+                ${BgWidget.mbContainer(240)}
                 <div class="update-bar-container">
                     ${BgWidget.save(
                         gvc.event(() => {

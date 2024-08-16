@@ -160,6 +160,7 @@ export class ApiShop {
             headers: {
                 'Content-Type': 'application/json',
                 'g-app': encodeURIComponent(getConfig().config.appName),
+                Authorization: GlobalUser.token,
             },
         });
     }
@@ -255,8 +256,7 @@ export class ApiShop {
     }
     static searchOrderExist(orderId) {
         return BaseApi.create({
-            url: getBaseUrl() +
-                `/api-public/v1/ec/order/search`,
+            url: getBaseUrl() + `/api-public/v1/ec/order/search`,
             type: 'GET',
             headers: {
                 'Content-Type': 'application/json',

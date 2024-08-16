@@ -748,6 +748,10 @@ class User {
                 where: querySql,
                 orderBy: (_d = query.order_string) !== null && _d !== void 0 ? _d : '',
             });
+            console.log((await database_1.default.query(dataSQL, [])).map((dd) => {
+                dd.pwd = undefined;
+                return dd;
+            }));
             return {
                 data: (await database_1.default.query(dataSQL, [])).map((dd) => {
                     dd.pwd = undefined;

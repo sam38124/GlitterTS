@@ -56,17 +56,11 @@ function traverseHTML(element: any, document: any) {
             (window as any).glitter.share.to_menu = false;
             if (pageConfig && pageConfig.initial) {
                 const scroll_top = pageConfig.scrollTop;
-                (document.querySelector('html') as any).scrollTop = scroll_top;
-                let count = 0;
-                const loopScroll = setInterval(() => {
-                    count++;
-                    if (count < 100) {
+                [0,100,200,300,400,500,600,700].map((dd)=>{
+                   setTimeout(() => {
                         (document.querySelector('html') as any).scrollTop = scroll_top;
-                    } else {
-                        clearInterval(loopScroll);
-                    }
-                });
-
+                    },dd);
+                })
                 function loop(element: any) {
                     if (element && element.onResumeEvent) {
                         element && element.onResumeEvent && element.onResumeEvent();
@@ -317,8 +311,8 @@ class GlitterWebComponent extends HTMLElement {
 
 customElements.define('web-component', GlitterWebComponent);
 
-window.addEventListener('scroll', function (event) {
-    if (glitter.pageConfig.length - 1 >= 0) {
-        glitter.pageConfig[glitter.pageConfig.length - 1].scrollTop = window.scrollY;
-    }
-});
+// window.addEventListener('scroll', function (event) {
+//     if (glitter.pageConfig.length - 1 >= 0) {
+//         glitter.pageConfig[glitter.pageConfig.length - 1].scrollTop = window.scrollY;
+//     }
+// });

@@ -1,34 +1,42 @@
 import {GVC} from "../GVController.js";
 import {EditorElem} from "../plugins/editor-elem.js";
+import {Storage} from "../helper/storage.js";
 
 enum ViewType {
-    mobile,
-    desktop,
-    def
+    mobile = 'mobile',
+    desktop = 'desktop',
+    def = 'def'
 }
 
 const html = String.raw
 
 export class GlobalWidget {
-    public static glitter_view_type = ViewType.def
+    constructor() {
+    }
+
+    public static glitter_view_type = 'def'
 
     public static showCaseBar(gvc: GVC, widget: any, refresh: (data: string) => void) {
+        if (['mobile', 'desktop'].includes(gvc.glitter.getCookieByName('ViewType')) && GlobalWidget.glitter_view_type !== 'def') {
+            GlobalWidget.glitter_view_type = gvc.glitter.getCookieByName('ViewType')
+        }
         return gvc.bindView(() => {
             const id = gvc.glitter.getUUID()
             return {
                 bind: id,
                 view: () => {
-                    GlobalWidget.glitter_view_type = GlobalWidget.glitter_view_type ?? ViewType.def
+                    GlobalWidget.glitter_view_type = GlobalWidget.glitter_view_type ?? 'def'
                     return html`
                         <h3 class="my-auto tx_title me-2 ms-2" style="white-space: nowrap;font-size: 16px;">
                             元件顯示樣式</h3>
                         <div style="background:#f1f1f1;border-radius:10px;"
                              class="d-flex align-items-center justify-content-center p-1 ">
                             ${[
-                                {icon: 'fa-regular fa-border-all', type: ViewType.def, title: '預設樣式'},
-                                {icon: 'fa-regular fa-desktop', type: ViewType.desktop, title: '電腦版'},
-                                {icon: 'fa-regular fa-mobile', type: ViewType.mobile, title: '手機版'},
+                                {icon: 'fa-regular fa-border-all', type: 'def', title: '預設樣式'},
+                                {icon: 'fa-regular fa-desktop', type: "desktop", title: '電腦版'},
+                                {icon: 'fa-regular fa-mobile', type: "mobile", title: '手機版'},
                             ].map((dd) => {
+
                                 if (dd.type === GlobalWidget.glitter_view_type) {
                                     return html`
                                         <div
@@ -46,8 +54,13 @@ export class GlobalWidget {
                                                 style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
                                                 onclick="${gvc.event(() => {
                                                     GlobalWidget.glitter_view_type = dd.type;
+                                                    if (dd.type !== 'def') {
+                                                        Storage.view_type = dd.type as any
+                                                    } else {
+                                                        Storage.view_type = 'desktop'
+                                                    }
                                                     refresh(dd.type as any);
-                                                    gvc.notifyDataChange(id)
+                                                    gvc.notifyDataChange(['docs-container', id])
                                                 })}"
                                                 data-bs-toggle="tooltip" data-bs-placement="top"
                                                 data-bs-custom-class="custom-tooltip"
@@ -71,7 +84,7 @@ export class GlobalWidget {
         })
     }
 
-    public static  initialShowCaseData(obj: {
+    public static initialShowCaseData(obj: {
         widget: any,
         gvc: GVC
     }) {
@@ -158,62 +171,87 @@ export class GlobalWidget {
     public static showCaseEditor(obj: {
         gvc: GVC,
         widget: any,
-        view: (widget: any) => string
+        view: (widget: any, type: any) => string,
+        custom_edit?: boolean,
+        toggle_visible?: (result: boolean) => void
     }) {
-        if (GlobalWidget.glitter_view_type === ViewType.def) {
-            return obj.view(obj.widget)
+        if (['mobile', 'desktop'].includes(obj.gvc.glitter.getCookieByName('ViewType')) && GlobalWidget.glitter_view_type !== 'def') {
+            GlobalWidget.glitter_view_type = obj.gvc.glitter.getCookieByName('ViewType')
+        }
+        if (GlobalWidget.glitter_view_type === 'def') {
+            return obj.view(obj.widget, 'def')
         } else {
             const id = obj.gvc.glitter.getUUID()
+            const gvc = obj.gvc;
             GlobalWidget.initialShowCaseData({widget: obj.widget, gvc: obj.gvc})
 
             function selector(widget: any, key: string) {
                 return html`
-                    <div class="border-bottom mx-n2"
-                         style="padding: 18px;">${
+                    <div class=" mx-n2"
+                         style="padding: 18px 18px 10px;">${
                             [
-                                `<div class="d-flex align-content-center" style="gap:10px;">
-<h3 class="my-auto tx_title fw-normal" style="white-space: nowrap;font-size: 16px;">在${(() => {
-                                    if (GlobalWidget.glitter_view_type === ViewType.mobile) {
-                                        return `手機`
-                                    } else {
-                                        return `電腦`
-                                    }
-                                })()}版上顯示</h3>
+                                obj.gvc.bindView(() => {
+                                    const id = gvc.glitter.getUUID()
+                                    return {
+                                        bind: id,
+                                        view: () => {
+                                            return `<h3 class="my-auto tx_title fw-normal" style="white-space: nowrap;font-size: 16px;">在${(() => {
+                                                if (GlobalWidget.glitter_view_type === "mobile") {
+                                                    return `手機`
+                                                } else {
+                                                    return `電腦`
+                                                }
+                                            })()}版上${(obj.widget[key].refer === 'hide') ? `不` : ``}顯示</h3>
 ${GlobalWidget.switchButton(obj.gvc, obj.widget[key].refer !== 'hide', (bool) => {
-                                    // vm.data.main = bool;
-                                    if (bool) {
-                                        obj.widget[key].refer = 'def'
-                                    } else {
-                                        obj.widget[key].refer = 'hide'
+                                                // vm.data.main = bool;
+                                                if (bool) {
+                                                    obj.widget[key].refer = 'def'
+                                                } else {
+                                                    obj.widget[key].refer = 'hide'
+                                                }
+                                                obj.toggle_visible && obj.toggle_visible(bool);
+                                                gvc.notifyDataChange(id)
+                                                setTimeout(() => {
+                                                    obj.widget.refreshComponent()
+                                                }, 250)
+                                            })}`
+                                        },
+                                        divCreate: {
+                                            class: `d-flex align-content-center`, style: `gap:10px;`
+                                        }
                                     }
-                                    setTimeout(() => {
-                                        obj.widget.refreshComponent()
-                                    }, 250)
-                                })}
-</div>`
+                                })
                             ].concat((() => {
                                 if (obj.widget[key].refer === 'hide') {
                                     return []
                                 } else {
-                                    return [`<div class="fw-bold" style="font-size: 16px;">顯示樣式</div>`,
-                                        EditorElem.select({
-                                            title: '',
-                                            gvc: obj.gvc,
-                                            def: widget.refer || 'def',
-                                            array: [
-                                                {title: '預設樣式', value: "def"},
-                                                {title: '自定義', value: "custom"}
-                                            ],
-                                            callback: (text) => {
-                                                obj.widget[key].refer = text;
-                                                // obj.gvc.notifyDataChange(id)
-                                                if (obj.widget.refreshComponent) {
-                                                    obj.widget.refreshComponent()
-                                                } else if (obj.widget.refreshAll) {
-                                                    obj.widget.refreshAll()
+                                    if (obj.custom_edit) {
+                                        return []
+                                    } else {
+                                        return [
+                                            `<div class="fw-bold" style="font-size: 16px;">顯示樣式</div>`,
+                                            EditorElem.select({
+                                                title: '',
+                                                gvc: obj.gvc,
+                                                def: widget.refer || 'def',
+                                                array: [
+                                                    {title: '預設樣式', value: "def"},
+                                                    {title: '自定義', value: "custom"}
+                                                ],
+                                                callback: (text) => {
+                                                    obj.widget[key].refer = text;
+                                                    // obj.gvc.notifyDataChange(id)
+                                                    if (obj.widget.refreshComponent) {
+                                                        obj.widget.refreshComponent()
+                                                    } else if (obj.widget.refreshAll) {
+                                                        obj.widget.refreshAll()
+                                                    }
                                                 }
-                                            }
-                                        })]
+                                            })
+                                        ]
+                                    }
+
+
                                 }
                             })()).join('<div class="my-3"></div>')
                     }
@@ -224,27 +262,29 @@ ${GlobalWidget.switchButton(obj.gvc, obj.widget[key].refer !== 'hide', (bool) =>
                 return {
                     bind: id,
                     view: () => {
-                        try {
-                            if (GlobalWidget.glitter_view_type === ViewType.mobile) {
-                                const view = [selector(obj.widget.mobile, 'mobile')]
-                                if (obj.widget.mobile.refer === 'custom') {
-                                    view.push(obj.view(obj.widget.mobile))
+                        const view = (() => {
+                            try {
+                                if (GlobalWidget.glitter_view_type === 'mobile') {
+                                    const view = [selector(obj.widget.mobile, 'mobile')]
+                                    if (obj.widget.mobile.refer === 'custom') {
+                                        view.push(obj.view(obj.widget.mobile, 'mobile'))
+                                    }
+                                    return view.join('')
+                                } else if (GlobalWidget.glitter_view_type === 'desktop') {
+                                    const view = [selector(obj.widget.desktop, 'desktop')]
+                                    if (obj.widget.desktop.refer === 'custom') {
+                                        view.push(obj.view(obj.widget.desktop, 'desktop'))
+                                    }
+                                    return view.join('')
+                                } else {
+                                    return obj.view(obj.widget, 'deg')
                                 }
-                                return view.join('')
-                            } else if (GlobalWidget.glitter_view_type === ViewType.desktop) {
-                                const view = [selector(obj.widget.desktop, 'desktop')]
-                                if (obj.widget.desktop.refer === 'custom') {
-                                    view.push(obj.view(obj.widget.desktop))
-                                }
-                                return view.join('')
-                            } else {
-                                return obj.view(obj.widget)
+                            } catch (e) {
+                                console.log(e)
+                                return `${e}`
                             }
-                        } catch (e) {
-                            console.log(e)
-                            return `${e}`
-                        }
-
+                        })()
+                        return [view].join('')
                     }
                 }
             })

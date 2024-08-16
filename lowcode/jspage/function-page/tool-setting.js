@@ -40,7 +40,7 @@ export class ToolSetting {
                 bind: vm.id,
                 view: () => {
                     if (vm.function === 'edit') {
-                        return `<div class="px-2">${vm.edit_view}</div>`;
+                        return `<div class="px-2 pt-3">${vm.edit_view}</div>`;
                     }
                     return BgWidget.container(html `
                             <div class="d-flex  px-3 align-items-start flex-column">
@@ -96,8 +96,12 @@ ${dd.hint && dd.toggle ? BgWidget.hint_title(dd.hint) : ``}
                                                                 tag: 'footer'
                                                             })).response.result[0];
                                                         }
-                                                        else {
-                                                            return {};
+                                                        else if (dd.tag === '商品卡片') {
+                                                            return (yield ApiPageConfig.getPage({
+                                                                appName: window.appName,
+                                                                type: 'template',
+                                                                tag: 'product_widget'
+                                                            })).response.result[0];
                                                         }
                                                     }))();
                                                     const refer_widget = yield (() => __awaiter(this, void 0, void 0, function* () {
@@ -115,6 +119,18 @@ ${dd.hint && dd.toggle ? BgWidget.hint_title(dd.hint) : ``}
                                                                 tag: widget.config[0].data.tag
                                                             })).response.result[0];
                                                         }
+                                                        else if (dd.tag === '商品卡片') {
+                                                            try {
+                                                                return (yield ApiPageConfig.getPage({
+                                                                    appName: widget.config[0].data.refer_app,
+                                                                    type: 'template',
+                                                                    tag: widget.config[0].data.tag
+                                                                })).response.result[0];
+                                                            }
+                                                            catch (e) {
+                                                                return {};
+                                                            }
+                                                        }
                                                         else {
                                                             return {};
                                                         }
@@ -126,6 +142,8 @@ ${dd.hint && dd.toggle ? BgWidget.hint_title(dd.hint) : ``}
                                                                     return 'c_header';
                                                                 case '頁腳元件':
                                                                     return 'footer';
+                                                                case '商品卡片':
+                                                                    return `product_widget`;
                                                                 default:
                                                                     return gvc.glitter.getUUID();
                                                             }
@@ -135,11 +153,16 @@ ${dd.hint && dd.toggle ? BgWidget.hint_title(dd.hint) : ``}
                                                     const widget_edited = find_showed_widget.widget || widget.config[0];
                                                     const htmlGenerate = new gvc.glitter.htmlGenerate(widget_container, [], undefined, true);
                                                     gvc.glitter.share.editorViewModel.selectItem = widget_edited;
-                                                    module_list = module_list.filter((dd) => {
-                                                        return (dd.appName !== widget.config[0].data.refer_app) || (dd.tag !== widget.config[0].data.tag);
-                                                    });
-                                                    console.log(`find_showed_widget.widget->`, find_showed_widget.widget);
-                                                    setting_view += html `
+                                                    try {
+                                                        module_list = module_list.filter((dd) => {
+                                                            return (dd.appName !== widget.config[0].data.refer_app) || (dd.tag !== widget.config[0].data.tag);
+                                                        });
+                                                    }
+                                                    catch (e) {
+                                                        module_list = [];
+                                                    }
+                                                    try {
+                                                        setting_view += html `
                                                                 <div class="p-2 col-6 " style="">
                                                                     <div class="w-100 p-2 rounded-3"
                                                                          style="border: 1px solid #393939;background: #F7F7F7;">
@@ -156,49 +179,29 @@ ${dd.hint && dd.toggle ? BgWidget.hint_title(dd.hint) : ``}
                                                                                 <button class="btn btn-sm btn-secondary"
                                                                                         style="height: 28px;"
                                                                                         onclick="${gvc.event(() => {
-                                                        vm.edit_view = html `
-                                                                                                <div class="pe-3   border-bottom pb-3 fw-bold mt-2 pt-3 mx-n2 d-flex align-items-center"
-                                                                                                     style="cursor: pointer;color:#393939;">
-                                                                                                    <i class="fa-sharp fa-solid fa-angle-left d-flex align-items-center justify-content-center"
-                                                                                                       style="cursor: pointer;width: 40px;height: 30px;"
-                                                                                                       onclick="${gvc.event(() => {
-                                                            vm.function = 'list';
-                                                            gvc.notifyDataChange(vm.id);
-                                                        })}"></i>
-                                                                                                    <span>${refer_widget.template_config.name}</span>
-                                                                                                    <div class="flex-fill"></div>
-                                                                                                    ${BgWidget.darkButton('儲存變更', gvc.event(() => {
-                                                            const dialog = new ShareDialog(gvc.glitter);
-                                                            dialog.dataLoading({ visible: true });
-                                                            ApiPageConfig.setPage({
-                                                                id: widget.id,
-                                                                appName: widget.appName,
-                                                                tag: widget.tag,
-                                                                name: widget.name,
-                                                                config: widget.config,
-                                                                group: widget.group,
-                                                                page_config: widget.page_config,
-                                                                page_type: widget.page_type,
-                                                                preview_image: widget.preview_image,
-                                                                favorite: widget.favorite,
-                                                            }).then((api) => {
-                                                                dialog.dataLoading({ visible: false });
-                                                                location.reload();
-                                                            });
-                                                        }), { size: 'sm' })}
-                                                                                                </div>
-                                                                                            ` + htmlGenerate.editor(gvc, {
-                                                            return_: false,
-                                                            refreshAll: () => {
-                                                                alert('ref');
-                                                            },
-                                                            setting: [widget_edited],
-                                                            deleteEvent: () => {
+                                                            if (dd.tag === '商品卡片') {
+                                                                gvc.glitter.share.edit_ittt = widget;
+                                                                gvc.glitter.share.editorViewModel.saveArray[widget.id] = (() => {
+                                                                    return ApiPageConfig.setPage({
+                                                                        id: widget.id,
+                                                                        appName: widget.appName,
+                                                                        tag: widget.tag,
+                                                                        config: widget.config,
+                                                                    });
+                                                                });
                                                             }
-                                                        });
-                                                        vm.function = 'edit';
-                                                        gvc.notifyDataChange(vm.id);
-                                                    })}">設定
+                                                            vm.edit_view = html `` + htmlGenerate.editor(gvc, {
+                                                                return_: false,
+                                                                refreshAll: () => {
+                                                                    alert('ref');
+                                                                },
+                                                                setting: [widget_edited],
+                                                                deleteEvent: () => {
+                                                                }
+                                                            });
+                                                            vm.function = 'edit';
+                                                            gvc.notifyDataChange(vm.id);
+                                                        })}">設定
                                                                                 </button>
                                                                             </div>
                                                                         </div>
@@ -207,6 +210,9 @@ ${dd.hint && dd.toggle ? BgWidget.hint_title(dd.hint) : ``}
                                                                             <i class="fa-sharp fa-solid fa-circle-dot"></i> ${refer_widget.template_config.name}</h3>
                                                                     </div>
                                                                 </div>`;
+                                                    }
+                                                    catch (e) {
+                                                    }
                                                     return [setting_view].concat(module_list.map((dd, index) => {
                                                         var _a;
                                                         return `<div class="p-2 col-6 " onclick="${gvc.event(() => {

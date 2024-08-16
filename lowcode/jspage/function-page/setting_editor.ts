@@ -130,7 +130,7 @@ export class Setting_editor {
                                                     groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716652949790-Component 56 (3).svg',
                                                     moduleName: '訂單列表',
                                                 },
-                                                    
+
                                                 {
                                                     icon: '',
                                                     page: 'out-delivery',
@@ -138,7 +138,6 @@ export class Setting_editor {
                                                     title: '退貨單',
                                                     appName: 'cms_system',
                                                     groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716652949790-Component 56 (3).svg',
-                                                    
                                                 },
                                                 {
                                                     icon: '',
@@ -196,18 +195,36 @@ export class Setting_editor {
                                                 },
                                                 {
                                                     icon: '',
-                                                    page: 'single-shop',
+                                                    page: 'hidden-shop',
                                                     group: '行銷推廣',
-                                                    title: '一頁商店',
+                                                    title: '隱形賣場',
                                                     appName: 'cms_system',
                                                     groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722230748790-Component 56.svg',
                                                     moduleName: 'dashboard_ec',
                                                 },
                                                 {
                                                     icon: '',
-                                                    page: 'hidden-shop',
+                                                    page: 'single-shop',
                                                     group: '行銷推廣',
-                                                    title: '隱形賣場',
+                                                    title: '一頁式商店',
+                                                    appName: 'cms_system',
+                                                    groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722230748790-Component 56.svg',
+                                                    moduleName: 'dashboard_ec',
+                                                },
+                                                {
+                                                    icon: '',
+                                                    page: 'distribution_list',
+                                                    group: '行銷推廣',
+                                                    title: '分銷連結',
+                                                    appName: 'cms_system',
+                                                    groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722230748790-Component 56.svg',
+                                                    moduleName: 'dashboard_ec',
+                                                },
+                                                {
+                                                    icon: '',
+                                                    page: 'distribution_users',
+                                                    group: '行銷推廣',
+                                                    title: '推薦人列表',
                                                     appName: 'cms_system',
                                                     groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722230748790-Component 56.svg',
                                                     moduleName: 'dashboard_ec',

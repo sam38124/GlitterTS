@@ -1,15 +1,13 @@
-
 import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
 import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
 import { EditorConfig } from '../editor-config.js';
-import {GVC} from "../glitterBundle/GVController.js";
-import {ApiUser} from "../glitter-base/route/user.js";
-import {BgWidget} from "../backend-manager/bg-widget.js";
-import {ViewWidget} from "./view-widget.js";
-
+import { GVC } from '../glitterBundle/GVController.js';
+import { ApiUser } from '../glitter-base/route/user.js';
+import { BgWidget } from '../backend-manager/bg-widget.js';
+import { ViewWidget } from './view-widget.js';
 
 export class WidgetManager {
-    public static main(gvc: GVC,widget:any) {
+    public static main(gvc: GVC, widget: any) {
         const html = String.raw;
         const vm: {
             id: string;
@@ -36,7 +34,7 @@ export class WidgetManager {
                                 [
                                     BgWidget.mainCard(
                                         [
-                                           BgWidget.title_16('網站標頭'),
+                                            BgWidget.title_16('網站標頭'),
                                             gvc.bindView(() => {
                                                 const id = gvc.glitter.getUUID();
                                                 return {
@@ -44,47 +42,51 @@ export class WidgetManager {
                                                     view: () => {
                                                         return [
                                                             {
-                                                                title:'標頭樣式一',
-                                                                img:'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1720714686605-Screenshot2024-07-12at12.17.52 AM.jpg',
-                                                                app:'',
-                                                                tag:''
+                                                                title: '標頭樣式一',
+                                                                img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1720714686605-Screenshot2024-07-12at12.17.52 AM.jpg',
+                                                                app: '',
+                                                                tag: '',
                                                             },
                                                             {
-                                                                title:'標頭樣式二',
-                                                                img:'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1720714686605-Screenshot2024-07-12at12.17.52 AM.jpg',
-                                                                app:'',
-                                                                tag:''
-                                                            },  {
-                                                                title:'標頭樣式三',
-                                                                img:'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1720714686605-Screenshot2024-07-12at12.17.52 AM.jpg',
-                                                                app:'',
-                                                                tag:''
-                                                            }
-                                                            ,  {
-                                                                title:'標頭樣式四',
-                                                                img:'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1720714686605-Screenshot2024-07-12at12.17.52 AM.jpg',
-                                                                app:'',
-                                                                tag:''
-                                                            }
-                                                        ].map((dd,index:number)=>{
-                                                            return `<div class="p-2" style="width: 25%;min-width: 25%;"><div class="d-flex flex-column" style="gap:10px;justify-content: center;">
+                                                                title: '標頭樣式二',
+                                                                img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1720714686605-Screenshot2024-07-12at12.17.52 AM.jpg',
+                                                                app: '',
+                                                                tag: '',
+                                                            },
+                                                            {
+                                                                title: '標頭樣式三',
+                                                                img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1720714686605-Screenshot2024-07-12at12.17.52 AM.jpg',
+                                                                app: '',
+                                                                tag: '',
+                                                            },
+                                                            {
+                                                                title: '標頭樣式四',
+                                                                img: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1720714686605-Screenshot2024-07-12at12.17.52 AM.jpg',
+                                                                app: '',
+                                                                tag: '',
+                                                            },
+                                                        ]
+                                                            .map((dd, index: number) => {
+                                                                return `<div class="p-2" style="width: 25%;min-width: 25%;"><div class="d-flex flex-column" style="gap:10px;justify-content: center;">
 <div class="rounded-3 shadow-sm" style="width: 100%;padding-bottom: 110%;background-image: url('${dd.img}');background-size: cover;background-repeat: no-repeat;background-position: center;"></div>
 <div class="w-100 d-flex align-items-center justify-content-center">
 <h3 class="my-auto tx_title" style="white-space: nowrap;font-size: 16px;font-weight: 500;">${dd.title}</h3>
 </div>
 </div>
 
-</div>`
-                                                        }).join('')
+</div>`;
+                                                            })
+                                                            .join('');
                                                     },
                                                     divCreate: {
-                                                        class: `d-flex m-0 mx-n2`,style:'overflow-x:auto;'
+                                                        class: `d-flex m-0 mx-n2`,
+                                                        style: 'overflow-x:auto;',
                                                     },
                                                 };
                                             }),
                                         ].join('')
                                     ),
-                                    BgWidget.mb240(),
+                                    BgWidget.mbContainer(240),
                                 ].join('<div style="margin-top: 24px;"></div>')
                             )}
                         `,

@@ -19,6 +19,7 @@ import {ToolSetting} from "./tool-setting.js";
 import {BgWidget} from "../../backend-manager/bg-widget.js";
 import {CustomStyle} from "../../glitterBundle/html-component/custom-style.js";
 
+
 enum ViewType {
     mobile = 'mobile',
     desktop = 'desktop',
@@ -210,10 +211,10 @@ export class Main_editor {
                                                                                         onclick="${gvc.event((e, event) => {
                                                                                     lastClick.zeroing();
                                                                                     event.stopPropagation();
-                                                                                    glitter.htmlGenerate.deleteWidget(og_array, og_array[index],()=>{
+                                                                                    glitter.htmlGenerate.deleteWidget(og_array, og_array[index], () => {
                                                                                         setPageConfig();
                                                                                     });
-                                                                                  
+
 
                                                                                 })}"
                                                                                 >
@@ -306,7 +307,7 @@ export class Main_editor {
                                                                                         "tag": tdata.copy,
                                                                                         "list": [],
                                                                                         "carryData": {},
-                                                                                        _style_refer_global : {
+                                                                                        _style_refer_global: {
                                                                                             index: `0`
                                                                                         }
                                                                                     },
@@ -492,9 +493,9 @@ export class Main_editor {
                 },
                 divCreate: {class: `swiper-slide h-100 position-relative`},
                 onCreate: () => {
-                    const htmlGenerate = new gvc.glitter.htmlGenerate((viewModel.data! as any).config, [Storage.lastSelect], undefined, true);
-                    (window as any).editerData = htmlGenerate;
-                    (window as any).page_config = (viewModel.data! as any).page_config;
+                    // const htmlGenerate = new gvc.glitter.htmlGenerate((viewModel.data! as any).config, [Storage.lastSelect], undefined, true);
+                    // (window as any).editerData = htmlGenerate;
+                    // (window as any).page_config = (viewModel.data! as any).page_config;
                 },
             };
         });
@@ -527,7 +528,8 @@ export class Main_editor {
                                 if (vm.type === 'list') {
 
                                     return [Main_editor.color_list(vm, gvc, id, globalValue),
-                                        CustomStyle.globalContainerList(vm, gvc, id, globalValue)
+                                        CustomStyle.globalContainerList(vm, gvc, id, globalValue),
+                                        Main_editor.fonts_list(vm, gvc, id, globalValue)
                                     ].join('');
                                 } else if (vm.type === 'color_detail') {
                                     return Main_editor.color_detail({
@@ -545,7 +547,7 @@ export class Main_editor {
                                         gvc: gvc,
                                         back: () => {
                                             vm.type = 'list'
-                                          
+
                                             gvc.notifyDataChange(id)
                                         },
                                         name: `容器${vm.index + 1}`,
@@ -560,48 +562,89 @@ export class Main_editor {
                     `;
                 },
                 divCreate: {
-                    class: `border-bottom`,
+                    class: ``,
                 },
             };
         });
     }
 
 
-
-
-
-    public static color_list(vm: any, gvc: any, id: string, globalValue: any) {
-        return ` <div class="px-3   border-bottom pb-3 fw-bold mt-2 pt-2 d-flex align-content-center"
-                                             style="cursor: pointer;color:#393939;">
-                                            <span><i class="fa-sharp fa-regular fa-palette fs-5 fw-bold me-2 rounded"></i>調色盤樣式</span>
-                                        </div>
-                                        <div class="row ${(globalValue.color_theme.length === 0) ? `d-none` : ``}"
+    public static color_list(vm: any, gvc: GVC, id: string, globalValue: any) {
+        return gvc.bindView(() => {
+            const vm_c = {
+                toggle: false,
+                id: gvc.glitter.getUUID()
+            }
+            return {
+                bind: vm_c.id,
+                view: () => {
+                    const array = [`<div class="hoverF2 d-flex align-items-center p-3"
+                 onclick="${gvc.event(() => {
+                        vm_c.toggle = !vm_c.toggle
+                        gvc.notifyDataChange(vm_c.id)
+                    })}">
+<span class="fw-500"
+      style="max-width: calc(100% - 50px);text-overflow: ellipsis;white-space: nowrap;overflow: hidden;">調色盤樣式</span>
+                <div class="flex-fill"></div>
+                ${vm_c.toggle ? ` <i class="fa-solid fa-chevron-down"></i>` : ` <i class="fa-solid fa-chevron-right"></i>`}
+            </div>`]
+                    if (vm_c.toggle) {
+                        array.push(`<div class="row ${(globalValue.color_theme.length === 0) ? `d-none` : ``}"
                                              style="margin:18px;">
                                             ${globalValue.color_theme.map((dd: any, index: number) => {
-            return `<div class="col-6 mb-3" style="cursor: pointer;" onclick="${gvc.event(() => {
-                vm.type = 'color_detail'
-                vm.data = globalValue.color_theme[index]
-                vm.index = index
-                gvc.notifyDataChange(id)
-            })}">
+                            return `<div class="col-6 mb-3" style="cursor: pointer;" onclick="${gvc.event(() => {
+                                vm.type = 'color_detail'
+                                vm.data = globalValue.color_theme[index]
+                                vm.index = index
+                                gvc.notifyDataChange(id)
+                            })}">
                                                 ${Main_editor.colorCard(globalValue.color_theme[index])}
                                                 <div class="w-100 t_39_16 mt-2" style="text-align: center;">調色盤${index + 1}</div>
                                             </div>`
-        }).join('')}
-                                        </div>
-                                        <div style="padding: 0px 24px 24px;${(globalValue.color_theme.length === 0) ? `margin-top:24px;` : ``}">
+                        }).join('')}
+                                        </div>`)
+                        array.push(`<div style="padding: 0px 24px 24px;${(globalValue.color_theme.length === 0) ? `margin-top:24px;` : ``}">
                                             <div class="bt_border_editor"
                                                  onclick="${gvc.event(() => {
-            vm.data = {id: gvc.glitter.getUUID()};
-            globalValue.color_theme.push(vm.data);
-            vm.name = ('調色盤' + globalValue.color_theme.length);
-            vm.type = 'color_detail'
-            vm.index = globalValue.color_theme.length - 1
-            gvc.notifyDataChange(id)
-        })}">
+                            vm.data = {id: gvc.glitter.getUUID()};
+                            globalValue.color_theme.push(vm.data);
+                            vm.name = ('調色盤' + globalValue.color_theme.length);
+                            vm.type = 'color_detail'
+                            vm.index = globalValue.color_theme.length - 1
+                            gvc.notifyDataChange(id)
+                        })}">
                                                 新增配色
                                             </div>
-                                        </div>`
+                                        </div>`)
+                    }
+                    return array.join('')
+                },
+                divCreate: {
+                    class: `  border-bottom    w-100`
+                }
+            }
+        })
+    }
+
+    public static fonts_list(vm: any, gvc: GVC, id: string, globalValue: any) {
+        return gvc.bindView(() => {
+
+
+
+            return {
+                bind: gvc.glitter.getUUID(),
+                view: () => {
+                  return new Promise((resolve, reject)=>{
+                      gvc.glitter.getModule(`${gvc.glitter.root_path}/setting/fonts-config.js`, (FontsConfig) => {
+                          resolve(FontsConfig.fontsSettingView(gvc,globalValue))
+                      });
+                  })
+                },
+                divCreate: {
+                    class: `w-100`
+                }
+            }
+        })
     }
 
     public static color_detail_custom(vm: {
@@ -705,11 +748,11 @@ export class Main_editor {
                         }).join('<div style="height: 15px;"></div>')}</div>`,
                         `<div style="padding: 0px 24px 24px;"> <div class="bt_border_editor"
                                                  onclick="${gvc.event(() => {
-                            const dialog=new ShareDialog(gvc.glitter)
+                            const dialog = new ShareDialog(gvc.glitter)
                             dialog.checkYesOrNot({
-                                text:'是否確認刪除配色?',
-                                callback:(response)=>{
-                                    if(response){
+                                text: '是否確認刪除配色?',
+                                callback: (response) => {
+                                    if (response) {
                                         globalValue.color_theme = globalValue.color_theme.filter((dd: any) => {
                                             return dd !== vm.data
                                         })
@@ -862,23 +905,6 @@ export class Main_editor {
                                     dd.refreshComponentParameter = undefined;
                                 });
                                 return (
-                                        (Storage.select_function === 'user-editor'
-                                                ? html`
-                                                    <div
-                                                            class="px-3 mx-n2  border-bottom pb-3 fw-bold mt-n2 pt-3 hoverF2 d-flex align-items-center"
-                                                            style="cursor: pointer;color:#393939;border-radius: 0px;gap:10px;"
-                                                            onclick="${gvc.event(() => {
-                                                                Storage.lastSelect = '';
-                                                                glitter.share.editorViewModel.selectItem = undefined;
-                                                                glitter.share.selectEditorItem();
-                                                            })}"
-                                                    >
-                                                        <i class="fa-solid fa-chevron-left"></i>
-                                                        <span style="max-width: calc(100% - 50px);text-overflow: ellipsis;white-space: nowrap;overflow: hidden;">${viewModel.selectItem.label}</span>
-                                                        <div class="flex-fill"></div>
-                                                    </div>
-                                                `
-                                                : ``) +
                                         htmlGenerate.editor(gvc, {
                                             return_: false,
                                             refreshAll: () => {
@@ -914,8 +940,8 @@ export class Main_editor {
                             dialog.successMessage({text: '複製成功'})
                         }), '複製元件')}
                         ${(viewModel.selectItem.deletable !== 'false') ? ` <div class="mx-2"></div>` + BgWidget.cancel(gvc.event(() => {
-                            glitter.htmlGenerate.deleteWidget(glitter.share.editorViewModel.selectContainer, viewModel.selectItem,()=>{
-                                
+                            glitter.htmlGenerate.deleteWidget(glitter.share.editorViewModel.selectContainer, viewModel.selectItem, () => {
+
                             })
                         }), '刪除元件') : ``}
                     </div>
@@ -972,21 +998,27 @@ export class Main_editor {
         ].join('');
     }
 
-    public static center(viewModel: any, gvc: GVC) {
-        return html`
-            <div
-                    class="${viewModel.type === ViewType.mobile && (Storage.select_function === 'page-editor' || Storage.select_function === 'user-editor')
-                            ? `d-flex align-items-center justify-content-center flex-column mx-auto`
-                            : `d-flex align-items-center justify-content-center flex-column`}"
-                    style="${viewModel.type === ViewType.mobile && (Storage.select_function === 'page-editor' || Storage.select_function === 'user-editor')
-                            ? `width: 414px;height: calc(100vh - ${56 + EditorConfig.getPaddingTop(gvc)}px);`
-                            : `width: calc(100%);height: calc(100vh - ${56 + EditorConfig.getPaddingTop(gvc)}px);overflow:hidden;`}"
-            >
-                <div class="position-relative" style="width:100%;height: calc(100%);" id="editerCenter">
+    public static center( gvc: GVC) {
+        return gvc.bindView(()=>{
+            return {
+                bind:'iframe_center',
+                view:()=>{
+                    return `<div class="position-relative" style="width:100%;height: calc(100%);" id="editerCenter">
                     <iframe class="w-100 h-100  bg-white"
                             src="${gvc.glitter.root_path}${gvc.glitter.getUrlParameter('page')}?type=htmlEditor&appName=${gvc.glitter.getUrlParameter('appName')}"></iframe>
-                </div>
-            </div>`;
+                </div>`
+                },
+                divCreate:()=>{
+                    return {
+                        class:Storage.view_type === ViewType.mobile && (Storage.select_function === 'page-editor' || Storage.select_function === 'user-editor')
+                            ? `d-flex align-items-center justify-content-center flex-column mx-auto` : `d-flex align-items-center justify-content-center flex-column`,
+                        style:Storage.view_type === ViewType.mobile && (Storage.select_function === 'page-editor' || Storage.select_function === 'user-editor')
+                            ? `width: 414px;height: calc(100vh - ${56 + EditorConfig.getPaddingTop(gvc)}px);` : `width: calc(100%);height: calc(100vh - ${56 + EditorConfig.getPaddingTop(gvc)}px);overflow:hidden;`
+                    }
+                }
+            }
+        })
+
     }
 
     public static pageAndComponent(option: { gvc: GVC; data: any; divCreate?: any }) {

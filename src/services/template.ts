@@ -187,6 +187,11 @@ export class Template {
                                    from \`${appName}\`.t_manager_post
                                    where content->>'$.tag'=${db.escape(query_page.split('/')[1])} and content->>'$.type'='article';`, []))[0].content.template;
         }
+
+        //當判斷是Collection時
+        if (query_page.split('/')[0] === 'collections' && query_page.split('/')[1]) {
+            page = 'all-product'
+        }
         return page
     }
     public async getPage(config: {

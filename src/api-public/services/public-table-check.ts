@@ -51,6 +51,30 @@ export class ApiPublic {
                 },
                 {
                     scheme: appName,
+                    table: 't_recommend_users',
+                    sql: `(
+  \`id\` int NOT NULL AUTO_INCREMENT,
+  \`email\` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  \`content\` json NOT NULL,
+  \`created_time\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (\`id\`),
+  UNIQUE KEY \`email_UNIQUE\` (\`email\`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+                },
+                {
+                    scheme: appName,
+                    table: 't_recommend_links',
+                    sql: `(
+  \`id\` int NOT NULL AUTO_INCREMENT,
+  \`code\` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  \`content\` json NOT NULL,
+  \`created_time\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (\`id\`),
+  UNIQUE KEY \`code_UNIQUE\` (\`code\`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+                },
+                {
+                    scheme: appName,
                     table: 't_triggers',
                     sql: `(
   \`id\` int NOT NULL AUTO_INCREMENT,

@@ -142,22 +142,6 @@ export class App {
                     );
                 }
             }
-            if (cf.copyWith.indexOf('user') !== -1) {
-                for (const dd of await db.query(
-                    `SELECT *
-                     FROM \`${cf.copyApp}\`.t_user`,
-                    []
-                )) {
-                    dd.userData = dd.userData && JSON.stringify(dd.userData);
-                    await trans.execute(
-                        `
-                            insert into \`${cf.appName}\`.t_user
-                            SET ?;
-                        `,
-                        [dd]
-                    );
-                }
-            }
             for (const dd of await db.query(
                 `SELECT *
                  FROM \`${cf.copyApp}\`.t_global_event`,

@@ -467,6 +467,18 @@ ul {
     font-size: 16px;
     font-weight: 700;
 }
+.bt_gray_stroke {
+    border-radius: 12px;
+    border: 1px solid #d4d7e5;
+
+    display: flex;
+    padding: 10px 22px 10px 23px;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 700;
+}
 
 .bg_orange {
     background: linear-gradient(143deg, #ffb400 -22.7%, #ff6c02 114.57%);

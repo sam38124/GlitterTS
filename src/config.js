@@ -109,6 +109,7 @@ exports.config = {
         article: '/article',
         delivery: '/delivery',
         rebate: '/rebate',
+        recommend: '/recommend',
         graph_api: '/graph_api',
     },
     route: {

@@ -157,7 +157,7 @@ export class AutoReply {
                                     })
                                 )
                             )}
-                            ${BgWidget.mb240()}
+                            ${BgWidget.mbContainer(240)}
                         `,
                         BgWidget.getContainerWidth()
                     );
@@ -257,7 +257,7 @@ export class AutoReply {
                         };
                     })
                 ),
-                BgWidget.mb240(),
+                BgWidget.mbContainer(240),
                 html` <div class="update-bar-container">
                     ${BgWidget.cancel(
                         gvc.event(() => {

@@ -54,6 +54,7 @@ const seo_js_1 = require("./services/seo.js");
 const shopping_js_1 = require("./api-public/services/shopping.js");
 const web_socket_js_1 = require("./services/web-socket.js");
 const ut_database_js_1 = require("./api-public/utils/ut-database.js");
+const update_script_js_1 = require("./update-script.js");
 const compression_1 = __importDefault(require("compression"));
 const user_js_1 = require("./api-public/services/user.js");
 const schedule_js_1 = require("./api-public/services/schedule.js");
@@ -94,6 +95,7 @@ async function initial(serverPort) {
         if (process.env.firebase) {
             await firebase_js_1.Firebase.initial();
         }
+        update_script_js_1.UpdateScript.run();
         if (config_1.ConfigSetting.runSchedule) {
             new schedule_js_1.Schedule().main();
             new system_schedule_1.SystemSchedule().start();
@@ -271,7 +273,8 @@ window.appName='${appName}';
 window.glitterBase='${brandAndMemberType.brand}';
 window.memberType='${brandAndMemberType.memberType}';
 window.glitterBackend='${config_1.config.domain}';
-window.preloadData=${JSON.stringify(preload)};
+window.preloadData=${JSON.stringify(preload).replace(/<\/script>/g, 'sdjuescript_prepand').replace(/<script>/g, 'sdjuescript_prefix')};
+window.preloadData=JSON.parse(JSON.stringify(window.preloadData).replace(/sdjuescript_prepand/g,'</s'+'cript>').replace(/sdjuescript_prefix/g,'<s'+'cript>'))
 window.glitter_page='${req.query.page}';
 </script>
 ${[

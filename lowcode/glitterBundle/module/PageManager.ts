@@ -187,9 +187,10 @@ export class PageManager {
                         })
                         glitter.pageConfig.push(pageConfig)
                         glitter.defaultSetting.pageLoading();
-                        if((window as any).gtag && !GVC.initial){
+                        if((window as any).gtag && GVC.initial){
                             (window as any).gtag('event', 'page_view', {'page_title': document.title, page_location: document.location.href});
                         }
+                        GVC.initial=true
                         gvFunction({
                             pageConfig:pageConfig,
                             c_type:'home'
@@ -283,7 +284,6 @@ export class PageManager {
             if(['home','page'].find((dd)=>{
                 return dd===type
             })){
-                console.log(`pushState->${search}`)
                 window.history.pushState({}, glitter.document.title, search);
                 glitter.pageConfig[glitter.pageConfig.length-1].search=search
             }

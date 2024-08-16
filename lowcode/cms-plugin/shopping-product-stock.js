@@ -6,6 +6,7 @@ import { ApiShop } from '../glitter-base/route/shopping.js';
 import { FilterOptions } from './filter-options.js';
 import { BgProduct } from '../backend-manager/bg-product.js';
 import { ShoppingProductSetting } from './shopping-product-setting.js';
+import { Tool } from '../modules/tool.js';
 const html = String.raw;
 export class UserList {
     static main(gvc) {
@@ -31,7 +32,7 @@ export class UserList {
         let vmi = undefined;
         function getDatalist() {
             return vm.dataList.map((dd, index) => {
-                var _a, _b, _c;
+                var _a, _b;
                 vm.stockList[index] = dd.variant_content.stock;
                 return [
                     {
@@ -64,18 +65,13 @@ export class UserList {
                     {
                         key: '商品名稱',
                         value: html `<div class="d-flex align-items-center gap-3">
-                            <div
-                                style="
-                                    width: 45px; height: 45px;
-                                    border-radius: 5px;
-                                    background-image: url('${(_a = dd.product_content.preview_image[0]) !== null && _a !== void 0 ? _a : BgWidget.noImageURL}');
-                                    background-position: center;
-                                    background-size: cover;
-                                    background-repeat: no-repeat;
-                                "
-                            ></div>
+                            ${BgWidget.validImageBox({
+                            gvc,
+                            image: dd.product_content.preview_image[0],
+                            width: 45,
+                        })}
                             <div class="d-flex flex-column">
-                                <span class="tx_normal">${dd.product_content.title}</span>
+                                <span class="tx_normal">${Tool.truncateString(dd.product_content.title)}</span>
                                 ${BgWidget.grayNote(dd.variant_content.spec.length > 0 ? dd.variant_content.spec.join(' / ') : '單一規格')}
                             </div>
                         </div>`,
@@ -86,7 +82,7 @@ export class UserList {
                     },
                     {
                         key: '安全庫存',
-                        value: `<span class="fs-7">${(_b = dd.variant_content.save_stock) !== null && _b !== void 0 ? _b : '-'}</span>`,
+                        value: `<span class="fs-7">${(_a = dd.variant_content.save_stock) !== null && _a !== void 0 ? _a : '-'}</span>`,
                     },
                     {
                         key: '庫存數量',
@@ -122,7 +118,7 @@ export class UserList {
                             vm.stockList[index] = n;
                             gvc.notifyDataChange(vm.updateId);
                         })}"
-                                value="${(_c = dd.variant_content.stock) !== null && _c !== void 0 ? _c : 0}"
+                                value="${(_b = dd.variant_content.stock) !== null && _b !== void 0 ? _b : 0}"
                             />
                         </div>`,
                     },
@@ -298,7 +294,7 @@ export class UserList {
                                 },
                             }),
                         ].join('')),
-                        BgWidget.mb240(),
+                        BgWidget.mbContainer(240),
                         gvc.bindView({
                             bind: vm.updateId,
                             view: () => {
