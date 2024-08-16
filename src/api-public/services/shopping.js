@@ -511,15 +511,9 @@ class Shopping {
                 subtotal += item.count * (item.sale_price - ((_a = item.discount_price) !== null && _a !== void 0 ? _a : 0));
             });
             if (carData.total < 0 || carData.use_rebate > subtotal) {
-                console.log('In');
                 carData.use_rebate = 0;
                 carData.total = subtotal + carData.shipment_fee;
             }
-            console.log({
-                subtotal: subtotal,
-                data_use_rebate: carData.use_rebate,
-                data_total: carData.total,
-            });
             if (type === 'preview' || type === 'manual-preview')
                 return { data: carData };
             if (type !== 'manual') {
