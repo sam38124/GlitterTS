@@ -288,7 +288,7 @@ export class BgWidget {
     static title_16(title, style = '') {
         return html ` <h3 class="my-auto tx_title" style="white-space: nowrap;font-size: 16px;${style}">${title}</h3>`;
     }
-    static create_btn(event, title = "新增") {
+    static create_btn(event, title = '新增') {
         return html `
             <button class="btn btn-snow" style="padding: 6px 18px;border-radius: 10px;background: #393939;font-size: 16px;color: #FFF;font-weight: 700;" type="button" onclick="${event}">
                 ${title}
@@ -1307,6 +1307,75 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             </div>`;
         }, obj.tag);
     }
+    static infoDialog(obj) {
+        return obj.gvc.glitter.innerDialog((gvc) => {
+            const vm = {
+                id: obj.gvc.glitter.getUUID(),
+                loading: true,
+                checkClass: BgWidget.getCheckedClass(gvc),
+                options: [],
+                query: '',
+                orderString: '',
+            };
+            return html `<div class="bg-white shadow rounded-3" style="overflow-y: auto;${document.body.clientWidth > 768 ? 'min-width: 400px; width: 600px;' : 'min-width: 90vw; max-width: 92.5vw;'}">
+                ${obj.gvc.bindView({
+                bind: vm.id,
+                view: () => {
+                    var _a, _b;
+                    if (vm.loading) {
+                        return BgWidget.spinner();
+                    }
+                    return html `<div class="bg-white shadow rounded-3" style="width: 100%; overflow-y: auto;">
+                            <div class="w-100 d-flex align-items-center p-3 border-bottom">
+                                <div class="tx_700">${(_a = obj.title) !== null && _a !== void 0 ? _a : '產品列表'}</div>
+                                <div class="flex-fill"></div>
+                                <i
+                                    class="fa-regular fa-circle-xmark fs-5 text-dark cursor_pointer"
+                                    onclick="${gvc.event(() => {
+                        gvc.closeDialog();
+                    })}"
+                                ></i>
+                            </div>
+                            <div class="c_dialog">
+                                <div class="c_dialog_body">
+                                    <div class="c_dialog_main" style="gap: 24px; max-height: 500px;">${(_b = obj.innerHTML) !== null && _b !== void 0 ? _b : ''}</div>
+                                </div>
+                            </div>
+                        </div>`;
+                },
+                onCreate: () => {
+                    if (vm.loading) {
+                        ApiShop.getProduct({
+                            page: 0,
+                            limit: 99999,
+                            search: vm.query,
+                            orderBy: (() => {
+                                switch (vm.orderString) {
+                                    case 'max_price':
+                                    case 'min_price':
+                                        return vm.orderString;
+                                    default:
+                                        return '';
+                                }
+                            })(),
+                        }).then((data) => {
+                            vm.options = data.response.data.map((product) => {
+                                var _a;
+                                return {
+                                    key: product.content.id,
+                                    value: product.content.title,
+                                    image: (_a = product.content.preview_image[0]) !== null && _a !== void 0 ? _a : BgWidget.noImageURL,
+                                };
+                            });
+                            vm.loading = false;
+                            obj.gvc.notifyDataChange(vm.id);
+                        });
+                    }
+                },
+            })}
+            </div>`;
+        }, 'productsDialog');
+    }
     static funnelFilter(obj) {
         return html ` <div
             class="c_funnel"
@@ -1472,7 +1541,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                             </div>
                             ${def.includes(item.key) && item.innerHtml
                         ? html ` <div class="d-flex position-relative my-2">
-                                      ${this.leftLineBar()}
+                                      ${item.hiddenLeftLine ? '' : this.leftLineBar()}
                                       <div class="ms-4 w-100 flex-fill">${item.innerHtml}</div>
                                   </div>`
                         : ``}

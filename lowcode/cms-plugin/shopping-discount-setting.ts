@@ -690,7 +690,6 @@ export class ShoppingDiscountSetting {
                                                                                                 onCreate: () => {
                                                                                                     if (levelVM.loading) {
                                                                                                         ApiUser.getUserGroupList().then((dd: any) => {
-                                                                                                            console.log(dd);
                                                                                                             if (dd.result && dd.response.data) {
                                                                                                                 levelVM.dataList = dd.response.data
                                                                                                                     .filter((item: any) => {
@@ -726,6 +725,7 @@ export class ShoppingDiscountSetting {
                                         BgWidget.mainCard(
                                             gvc.bindView(() => {
                                                 const id = glitter.getUUID();
+                                                voucherData.forKey = voucherData.forKey ?? [];
                                                 let defKeys: any = {
                                                     collection: JSON.parse(JSON.stringify(voucherData.forKey)),
                                                     product: JSON.parse(JSON.stringify(voucherData.forKey)),
@@ -833,7 +833,7 @@ export class ShoppingDiscountSetting {
                                                                             ${EditorElem.radio({
                                                                                 gvc: gvc,
                                                                                 title: '',
-                                                                                def: voucherData.for,
+                                                                                def: voucherData.for ?? 'all',
                                                                                 array: productForList,
                                                                                 callback: (text) => {
                                                                                     voucherData.forKey = defKeys[text];

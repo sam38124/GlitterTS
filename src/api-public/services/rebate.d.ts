@@ -67,7 +67,7 @@ export declare class Rebate {
     getOldestRebate(user_id: number | string): Promise<{
         data: any;
     } | undefined>;
-    updateOldestRebate(user_id: number | string, originMinus: number): Promise<void>;
+    updateOldestRebate(user_id: number | string, originMinus: number): Promise<boolean | undefined>;
     minusCheck(user_id: number | string, amount: number): Promise<boolean | undefined>;
     insertRebate(user_id: number | string, amount: number, note: string, proof?: RebateProof): Promise<{
         result: boolean;

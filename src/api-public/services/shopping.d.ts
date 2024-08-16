@@ -145,7 +145,7 @@ export declare class Shopping {
         custom_form_format?: any;
         custom_form_data?: any;
         distribution_code?: string;
-    }, type?: 'add' | 'preview' | 'manual' | 'manual-preview', replace_order_id?: string): Promise<"" | {
+    }, type?: 'add' | 'preview' | 'manual' | 'manual-preview', replace_order_id?: string): Promise<{
         data: {
             customer_info: any;
             lineItems: {
@@ -160,6 +160,7 @@ export declare class Shopping {
                     type: string;
                     value: number;
                 };
+                discount_price?: number | undefined;
             }[];
             discount?: number | undefined;
             total: number;

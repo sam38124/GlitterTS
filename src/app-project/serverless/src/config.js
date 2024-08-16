@@ -15,18 +15,19 @@ class ConfigSetting {
     }
 }
 exports.ConfigSetting = ConfigSetting;
-ConfigSetting.config_path = "";
+ConfigSetting.config_path = '';
 exports.config = {
     get domain() {
         return process.env.DOMAIN;
     },
-    LOG_PATH: path_1.default.resolve("../../log"),
+    LOG_PATH: path_1.default.resolve('../../log'),
     DB_CONN_LIMIT: 0,
     DB_QUEUE_LIMIT: 0,
     get DB_URL() {
         return process.env.DB_URL;
     },
     DB_PORT: 3306,
+    DB_SHOW_INFO: false,
     get DB_USER() {
         return process.env.DB_USER;
     },
@@ -58,8 +59,8 @@ exports.config = {
         return process.env.AWS_S3_DOMAIN + '/';
     },
     get SINGLE_TYPE() {
-        return `${process.env.SINGLE_TYPE}` == "true";
-    }
+        return `${process.env.SINGLE_TYPE}` == 'true';
+    },
 };
 exports.default = exports.config;
 //# sourceMappingURL=config.js.map

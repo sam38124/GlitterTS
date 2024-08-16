@@ -48,9 +48,12 @@ class Shopping {
                                                        where \`key\` = 'collection';`, []))[0]['value'];
                 query.collection = decodeURI(query.collection);
                 query.collection = query.collection
-                    .split(',').map((dd) => {
+                    .split(',')
+                    .map((dd) => {
                     function loop(array, prefix) {
-                        const find = array.find((d1) => { return d1.code === dd; });
+                        const find = array.find((d1) => {
+                            return d1.code === dd;
+                        });
                         if (find) {
                             prefix.push(find.title);
                             dd = prefix.join(' / ');
@@ -68,7 +71,8 @@ class Shopping {
                     }
                     loop(collection_cf, []);
                     return dd;
-                }).join(',');
+                })
+                    .join(',');
             }
             query.collection &&
                 querySql.push(`(${query.collection
@@ -288,9 +292,6 @@ class Shopping {
             })();
             if (userData && userData.account) {
                 data.email = userData.account;
-                console.log(" shutdown in check userData ");
-                console.log("userData -- ", userData);
-                return "";
             }
             if (!data.email && type !== 'preview') {
                 if (data.user_info && data.user_info.email) {
@@ -448,8 +449,7 @@ class Shopping {
                         }
                     }
                 }
-                catch (e) {
-                }
+                catch (e) { }
             }
             carData.shipment_fee = (() => {
                 let total_volume = 0;
@@ -505,6 +505,21 @@ class Shopping {
             carData.off_line_support = keyData.off_line_support;
             carData.payment_info_line_pay = keyData.payment_info_line_pay;
             carData.payment_info_atm = keyData.payment_info_atm;
+            let subtotal = 0;
+            carData.lineItems.map((item) => {
+                var _a;
+                subtotal += item.count * (item.sale_price - ((_a = item.discount_price) !== null && _a !== void 0 ? _a : 0));
+            });
+            if (carData.total < 0 || carData.use_rebate > subtotal) {
+                console.log('In');
+                carData.use_rebate = 0;
+                carData.total = subtotal + carData.shipment_fee;
+            }
+            console.log({
+                subtotal: subtotal,
+                data_use_rebate: carData.use_rebate,
+                data_total: carData.total,
+            });
             if (type === 'preview' || type === 'manual-preview')
                 return { data: carData };
             if (type !== 'manual') {
@@ -986,10 +1001,6 @@ class Shopping {
                  FROM \`${this.app}\`.t_checkout
                  WHERE id = ?;
                 `, [data.id]);
-            await database_js_1.default.query(`UPDATE \`${this.app}\`.t_checkout
-                 SET ?
-                 WHERE id = ?
-                `, [update, data.id]);
             if (update.orderData && JSON.parse(update.orderData)) {
                 const updateProgress = JSON.parse(update.orderData).progress;
                 if (origin[0].orderData.progress !== 'shipping' && updateProgress === 'shipping') {
@@ -998,14 +1009,14 @@ class Shopping {
                 if (origin[0].orderData.progress !== 'arrived' && updateProgress === 'arrived') {
                     await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-shipment-arrival', data.orderData.orderID, data.orderData.email);
                 }
-                if (origin[0].status === 0 && update.status === 1) {
-                    new notify_js_1.ManagerNotify(this.app).checkout({
-                        orderData: JSON.parse(update.orderData),
-                        status: 1,
-                    });
-                    await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-payment-successful', data.orderData.orderID, data.orderData.email);
+                if (origin[0].status !== 1 && update.status === 1) {
+                    await this.releaseCheckout(1, data.orderData.orderID);
                 }
             }
+            await database_js_1.default.query(`UPDATE \`${this.app}\`.t_checkout
+                 SET ?
+                 WHERE id = ?
+                `, [update, data.id]);
             return {
                 result: 'success',
                 orderData: data.orderData,
@@ -1146,8 +1157,6 @@ class Shopping {
                         data[0].orderData.lineItems.map((lineItem, index) => {
                             lineItem.count = lineItem.count - returnOrder.orderData.lineItems[index].return_count;
                         });
-                        console.log(data[0].orderData.shipment_fee);
-                        console.log(returnOrder.orderData.shipment_fee);
                         data[0].orderData.shipment_fee -= returnOrder.orderData.shipment_fee;
                     });
                     data[0].orderData.lineItems = data[0].orderData.lineItems.filter((dd) => {

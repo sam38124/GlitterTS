@@ -53,7 +53,7 @@ export class ShoppingRebate {
                                         gvc.event(() => {
                                             this.newRebateDialog({
                                                 gvc: gvc,
-                                                saveBotton: {
+                                                saveButton: {
                                                     event: (obj) => {
                                                         gvc.glitter.innerDialog((gvc3) => {
                                                             let dataList: any = [];
@@ -207,7 +207,7 @@ export class ShoppingRebate {
                                                                             })(),
                                                                         },
                                                                         {
-                                                                            key: '增減金額',
+                                                                            key: '增減',
                                                                             value: (() => {
                                                                                 if (dd.origin > 0) {
                                                                                     return html`<span class="tx_700 text-success">+ ${dd.origin}</span>`;
@@ -216,12 +216,10 @@ export class ShoppingRebate {
                                                                             })(),
                                                                         },
                                                                         {
-                                                                            key: '剩餘金額',
+                                                                            key: '此筆可使用餘額',
                                                                             value: (() => {
-                                                                                if (dd.origin < 0) {
-                                                                                    return html`<span class="tx_700">-</span>`;
-                                                                                }
-                                                                                if (dd.remain > 0) {
+                                                                                const now = new Date();
+                                                                                if (dd.origin > 0 && dd.remain > 0 && now > new Date(dd.created_at) && now < new Date(dd.deadline)) {
                                                                                     return html`<span class="tx_700 text-success">+ ${dd.remain}</span>`;
                                                                                 }
                                                                                 return html`<span class="tx_700">0</span>`;
@@ -317,7 +315,7 @@ export class ShoppingRebate {
 
     public static newRebateDialog(obj: {
         gvc: GVC;
-        saveBotton: {
+        saveButton: {
             event: (data: { type: string; value: string; note: string; rebateEndDay: string }) => void;
             text: string;
         };
@@ -418,18 +416,21 @@ export class ShoppingRebate {
                             gvc.event(() => {
                                 const dialog = new ShareDialog(gvc.glitter);
                                 const day = parseInt(`${vm.rebateEndDay}`, 10);
+                                const value = parseInt(`${vm.value}`, 10);
+
+                                if (value <= 0) {
+                                    dialog.infoMessage({ text: '金額需大於0' });
+                                    return;
+                                }
                                 if (vm.type === 'add' && isNaN(day)) {
                                     dialog.infoMessage({ text: '請輸入可使用天數' });
                                     return;
                                 }
-                                if (parseInt(`${vm.value}`, 10) === 0) {
-                                    dialog.infoMessage({ text: '金額不可為0' });
-                                    return;
-                                }
+
                                 gvc2.closeDialog();
-                                obj.saveBotton.event(vm);
+                                obj.saveButton.event(vm);
                             }),
-                            obj.saveBotton.text
+                            obj.saveButton.text
                         )}
                     </div>
                 </div>

@@ -37,6 +37,7 @@ export const config = {
     /*Database*/
     DB_CONN_LIMIT: 0,
     DB_QUEUE_LIMIT: 0,
+    DB_SHOW_INFO: false,
     get DB_URL() {
         return process.env.DB_URL;
     },

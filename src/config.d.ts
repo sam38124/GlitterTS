@@ -18,6 +18,7 @@ export declare const config: {
     LOG_PATH: string;
     DB_CONN_LIMIT: number;
     DB_QUEUE_LIMIT: number;
+    DB_SHOW_INFO: boolean;
     readonly DB_URL: string | undefined;
     DB_PORT: number;
     readonly DB_USER: string | undefined;

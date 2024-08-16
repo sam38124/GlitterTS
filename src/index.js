@@ -196,7 +196,7 @@ async function createAPP(dd) {
                         }
                         let link_prefix = req.originalUrl.split('/')[1];
                         if (config_1.ConfigSetting.is_local) {
-                            if ((link_prefix !== 'shopnex') && (link_prefix !== 'codenex_v2')) {
+                            if (link_prefix !== 'shopnex' && link_prefix !== 'codenex_v2') {
                                 link_prefix = '';
                             }
                         }
@@ -212,34 +212,38 @@ async function createAPP(dd) {
                                 var _a, _b, _c, _d, _e, _f, _g, _h;
                                 if (req.query.type === 'editor') {
                                     return html `<title>SHOPNEX後台系統</title>
-    <link rel="canonical" href="/index"/>
-    <meta name="keywords" content="SHOPNEX,電商平台" />
-    <link id="appImage" rel="shortcut icon"
-        href="https://liondesign-prd.s3.amazonaws.com/file/252530754/1697354801736-Glitter logo.png"
-        type="image/x-icon" />
-    <link rel="icon" href="https://liondesign-prd.s3.amazonaws.com/file/252530754/1697354801736-Glitter logo.png"
-        type="image/png" sizes="128x128" />
-    <meta property="og:image"
-        content="https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1718778766524-shopnex_banner.jpg" />
-    <meta property="og:title" content="SHOPNEX後台系統"/>
-    <meta name="description"
-        content="SHOPNEX電商開店平台，零抽成、免手續費。提供精美模板和豐富插件，操作簡單，3分鐘內快速打造專屬商店。購物車、金物流、SEO行銷、資料分析一站搞定。支援APP上架，並提供100%客製化設計，立即免費體驗30天。" />
-    <meta name="og:description"
-        content="SHOPNEX電商開店平台，零抽成、免手續費。提供精美模板和豐富插件，操作簡單，3分鐘內快速打造專屬商店。購物車、金物流、SEO行銷、資料分析一站搞定。支援APP上架，並提供100%客製化設計，立即免費體驗30天。" />`;
+                                                <link rel="canonical" href="/index" />
+                                                <meta name="keywords" content="SHOPNEX,電商平台" />
+                                                <link
+                                                    id="appImage"
+                                                    rel="shortcut icon"
+                                                    href="https://liondesign-prd.s3.amazonaws.com/file/252530754/1697354801736-Glitter logo.png"
+                                                    type="image/x-icon"
+                                                />
+                                                <link rel="icon" href="https://liondesign-prd.s3.amazonaws.com/file/252530754/1697354801736-Glitter logo.png" type="image/png" sizes="128x128" />
+                                                <meta property="og:image" content="https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1718778766524-shopnex_banner.jpg" />
+                                                <meta property="og:title" content="SHOPNEX後台系統" />
+                                                <meta
+                                                    name="description"
+                                                    content="SHOPNEX電商開店平台，零抽成、免手續費。提供精美模板和豐富插件，操作簡單，3分鐘內快速打造專屬商店。購物車、金物流、SEO行銷、資料分析一站搞定。支援APP上架，並提供100%客製化設計，立即免費體驗30天。"
+                                                />
+                                                <meta
+                                                    name="og:description"
+                                                    content="SHOPNEX電商開店平台，零抽成、免手續費。提供精美模板和豐富插件，操作簡單，3分鐘內快速打造專屬商店。購物車、金物流、SEO行銷、資料分析一站搞定。支援APP上架，並提供100%客製化設計，立即免費體驗30天。"
+                                                />`;
                                 }
                                 else {
                                     return html `<title>${(_a = d.title) !== null && _a !== void 0 ? _a : '尚未設定標題'}</title>
-                                            <link rel="canonical" href="/${link_prefix && `${link_prefix}/`}${data.tag}"/>
-                                            <meta name="keywords" content="${(_b = d.keywords) !== null && _b !== void 0 ? _b : '尚未設定關鍵字'}"/>
-                                            <link id="appImage" rel="shortcut icon" href="${(_c = d.logo) !== null && _c !== void 0 ? _c : ''}" type="image/x-icon"/>
-                                            <link rel="icon" href="${(_d = d.logo) !== null && _d !== void 0 ? _d : ''}" type="image/png" sizes="128x128"/>
-                                            <meta property="og:image" content="${(_e = d.image) !== null && _e !== void 0 ? _e : ''}"/>
-                                            <meta property="og:title" content="${((_f = d.title) !== null && _f !== void 0 ? _f : '').replace(/\n/g, '')}"/>
-                                            <meta name="description" content="${((_g = d.content) !== null && _g !== void 0 ? _g : '').replace(/\n/g, '')}"/>
-                                            <meta name="og:description" content="${((_h = d.content) !== null && _h !== void 0 ? _h : '').replace(/\n/g, '')}"/>`;
+                                                <link rel="canonical" href="/${link_prefix && `${link_prefix}/`}${data.tag}" />
+                                                <meta name="keywords" content="${(_b = d.keywords) !== null && _b !== void 0 ? _b : '尚未設定關鍵字'}" />
+                                                <link id="appImage" rel="shortcut icon" href="${(_c = d.logo) !== null && _c !== void 0 ? _c : ''}" type="image/x-icon" />
+                                                <link rel="icon" href="${(_d = d.logo) !== null && _d !== void 0 ? _d : ''}" type="image/png" sizes="128x128" />
+                                                <meta property="og:image" content="${(_e = d.image) !== null && _e !== void 0 ? _e : ''}" />
+                                                <meta property="og:title" content="${((_f = d.title) !== null && _f !== void 0 ? _f : '').replace(/\n/g, '')}" />
+                                                <meta name="description" content="${((_g = d.content) !== null && _g !== void 0 ? _g : '').replace(/\n/g, '')}" />
+                                                <meta name="og:description" content="${((_h = d.content) !== null && _h !== void 0 ? _h : '').replace(/\n/g, '')}" />`;
                                 }
                             })()}
-                                  
                                     ${(_a = d.code) !== null && _a !== void 0 ? _a : ''}
                                     ${(() => {
                                 var _a;
@@ -271,7 +275,9 @@ window.appName='${appName}';
 window.glitterBase='${brandAndMemberType.brand}';
 window.memberType='${brandAndMemberType.memberType}';
 window.glitterBackend='${config_1.config.domain}';
-window.preloadData=${JSON.stringify(preload).replace(/<\/script>/g, 'sdjuescript_prepand').replace(/<script>/g, 'sdjuescript_prefix')};
+window.preloadData=${JSON.stringify(preload)
+                            .replace(/<\/script>/g, 'sdjuescript_prepand')
+                            .replace(/<script>/g, 'sdjuescript_prefix')};
 window.preloadData=JSON.parse(JSON.stringify(window.preloadData).replace(/sdjuescript_prepand/g,'</s'+'cript>').replace(/sdjuescript_prefix/g,'<s'+'cript>'))
 window.glitter_page='${req.query.page}';
 </script>
@@ -355,9 +361,8 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                          where appName = ?`, [appName]))[0]['domain'];
                 const site_map = await getSeoSiteMap(appName, req);
                 const sitemap = html `<?xml version="1.0" encoding="UTF-8"?>
-                <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-                        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
-                    ${(await database_2.default.query(`select page_config, tag, updated_time
+                    <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+                        ${(await database_2.default.query(`select page_config, tag, updated_time
                                      from \`${config_1.saasConfig.SAAS_NAME}\`.page_config
                                      where appName = ?
                                        and page_config ->>'$.seo.type'='custom'
@@ -370,19 +375,19 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 `;
                 })
                     .join('')}
-                    ${article.data
+                        ${article.data
                     .map((d2) => {
                     if (!d2.content.template) {
                         return ``;
                     }
                     return `<url>
-<loc>${`https://${domain}/${(d2.content.for_index === 'false') ? `pages` : `blogs`}/${d2.content.tag}`.replace(/ /g, '+')}</loc>
+<loc>${`https://${domain}/${d2.content.for_index === 'false' ? `pages` : `blogs`}/${d2.content.tag}`.replace(/ /g, '+')}</loc>
 <lastmod>${(0, moment_js_1.default)(new Date(d2.updated_time)).format('YYYY-MM-DD')}</lastmod>
 </url>
 `;
                 })
                     .join('')}
-                    ${(site_map || []).map((d2) => {
+                        ${(site_map || []).map((d2) => {
                     return `<url>
 <loc>${`https://${domain}/${d2.url}`.replace(/ /g, '+')}</loc>
 <lastmod>${d2.updated_time ? (0, moment_js_1.default)(new Date(d2.updated_time)).format('YYYY-MM-DD') : (0, moment_js_1.default)(new Date()).format('YYYY-MM-DDTHH:mm:SS+00:00')}</lastmod>
@@ -390,7 +395,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 </url>
 `;
                 })}
-                </urlset> `;
+                    </urlset> `;
                 return (0, xml_formatter_1.default)(sitemap, {
                     indentation: '  ',
                     filter: (node) => node.type !== 'Comment',
@@ -406,12 +411,12 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                          from \`${config_1.saasConfig.SAAS_NAME}\`.app_config
                          where appName = ?`, [appName]))[0]['domain'];
                 return html `<?xml version="1.0" encoding="UTF-8"?>
-                <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-                    <!-- This is the parent sitemap linking to additional sitemaps for products, collections and pages as shown below. The sitemap can not be edited manually, but is kept up to date in real time. -->
-                    <sitemap>
-                        <loc>https://${domain}/sitemap_detail.xml</loc>
-                    </sitemap>
-                </sitemapindex> `;
+                    <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+                        <!-- This is the parent sitemap linking to additional sitemaps for products, collections and pages as shown below. The sitemap can not be edited manually, but is kept up to date in real time. -->
+                        <sitemap>
+                            <loc>https://${domain}/sitemap_detail.xml</loc>
+                        </sitemap>
+                    </sitemapindex> `;
             },
             robots: async (req, resp) => {
                 let appName = dd.appName;
@@ -421,8 +426,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                 const domain = (await database_2.default.query(`select \`domain\`
                          from \`${config_1.saasConfig.SAAS_NAME}\`.app_config
                          where appName = ?`, [appName]))[0]['domain'];
-                return html `# we use SHOPNEX as our ecommerce platform
-User-agent: * Sitemap: https://${domain}/sitemap.xml `;
+                return html `# we use SHOPNEX as our ecommerce platform User-agent: * Sitemap: https://${domain}/sitemap.xml `;
             },
             sitemap_test: async (req, resp) => {
                 let appName = dd.appName;
