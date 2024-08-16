@@ -54,7 +54,6 @@ const seo_js_1 = require("./services/seo.js");
 const shopping_js_1 = require("./api-public/services/shopping.js");
 const web_socket_js_1 = require("./services/web-socket.js");
 const ut_database_js_1 = require("./api-public/utils/ut-database.js");
-const update_script_js_1 = require("./update-script.js");
 const compression_1 = __importDefault(require("compression"));
 const user_js_1 = require("./api-public/services/user.js");
 const schedule_js_1 = require("./api-public/services/schedule.js");
@@ -95,7 +94,6 @@ async function initial(serverPort) {
         if (process.env.firebase) {
             await firebase_js_1.Firebase.initial();
         }
-        update_script_js_1.UpdateScript.run();
         if (config_1.ConfigSetting.runSchedule) {
             new schedule_js_1.Schedule().main();
             new system_schedule_1.SystemSchedule().start();
