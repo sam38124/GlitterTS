@@ -50,6 +50,9 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                         ApiShop.addToCart(pdid, count);
                         ApiShop.getCart();
                         resolve(pdid);
+                        for (const b of document.querySelectorAll('.shopping-cart')) {
+                            b.recreateView();
+                        }
                     }));
                 },
             };

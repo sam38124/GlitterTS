@@ -206,7 +206,7 @@ export class Setting_editor {
                                                     icon: '',
                                                     page: 'single-shop',
                                                     group: '行銷推廣',
-                                                    title: '一頁式商店',
+                                                    title: '一頁商店',
                                                     appName: 'cms_system',
                                                     groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722230748790-Component 56.svg',
                                                     moduleName: 'dashboard_ec',

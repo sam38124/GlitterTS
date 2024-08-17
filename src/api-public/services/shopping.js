@@ -41,7 +41,7 @@ class Shopping {
                         break;
                 }
             }
-            query.id && querySql.push(`(content->>'$.id' = ${query.id})`);
+            query.id && querySql.push(`id = ${query.id}`);
             if (query.collection) {
                 const collection_cf = (await database_js_1.default.query(`SELECT *
                                                        FROM \`${this.app}\`.public_config
@@ -99,6 +99,7 @@ class Shopping {
                                  WHERE (content ->>'$.type'='wishlist')
                                    and userID = ${this.token.userID}
                                    and (content ->>'$.product_id'=${b.id})`, []))[0]['count(1)'] == '1';
+                    b.content.id = b.id;
                 }
             }
             const checkoutSQL = `

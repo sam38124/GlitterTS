@@ -125,7 +125,7 @@ export class Shopping {
                 }
             }
 
-            query.id && querySql.push(`(content->>'$.id' = ${query.id})`);
+            query.id && querySql.push(`id = ${query.id}`);
             //如是連結帶入則轉換成Title
             if (query.collection) {
                 const collection_cf = (
@@ -199,6 +199,7 @@ export class Shopping {
                                 []
                             )
                         )[0]['count(1)'] == '1';
+                    b.content.id=b.id;
                 }
             }
 

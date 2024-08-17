@@ -336,7 +336,7 @@ export class ApiPageConfig {
                             }
                         })()}`).replace(/ /g, '');
                     if (file.type.startsWith('image')) {
-                        file_name = `${size ? `size${size}_` : ``}s*px$_${file_name}`;
+                        file_name = `${size ? `size${size}_` : ``}s*px$_${file_id}_${file_name}`;
                     }
                     return file_name;
                 }
