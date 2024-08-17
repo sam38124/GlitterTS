@@ -313,7 +313,7 @@ export class BgBlog {
                                         case 'hidden':
                                             return `一頁購物`;
                                         case 'page':
-                                            return `關於我們,聯絡我們`;
+                                            return `關於我們,聯絡我們,頁面範例`;
                                         default:
                                             return ``;
                                     }
@@ -321,6 +321,31 @@ export class BgBlog {
                                 search: vm.search,
                             }).then((res) => {
                                 data = res;
+                                data.response.result.data = [{
+                                        "id": 20739,
+                                        "userID": "234285319",
+                                        "tag": "empty",
+                                        "name": "空白內容",
+                                        "page_type": "page",
+                                        "preview_image": null,
+                                        "appName": "shop_template_black_style",
+                                        "template_type": 2,
+                                        "template_config": {
+                                            "tag": [
+                                                "頁面範例"
+                                            ],
+                                            "desc": "",
+                                            "name": "空白內容",
+                                            "image": [
+                                                "https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1709282671899-BLANK PAGE.jpg"
+                                            ],
+                                            "status": "wait",
+                                            "post_to": "all",
+                                            "version": "1.0",
+                                            "created_by": "liondesign.io",
+                                            "preview_img": ""
+                                        }
+                                    }].concat(data.response.result.data);
                                 gvc.notifyDataChange(id);
                             });
                             return {
@@ -352,7 +377,12 @@ export class BgBlog {
                                                                 <div class="row m-0 pt-2 w-100">
                                                                     ${data.response.result.data
                                                     .sort((a, b) => {
-                                                    return a.template_config.name.localeCompare(b.template_config.name);
+                                                    if (a.tag === 'empty' || b.tag === 'empty') {
+                                                        return b.tag === 'empty' ? 1 : -1;
+                                                    }
+                                                    else {
+                                                        return a.template_config.name.localeCompare(b.template_config.name);
+                                                    }
                                                 })
                                                     .map((dd, index) => {
                                                     var _a;
@@ -377,12 +407,17 @@ export class BgBlog {
                                                                                                 class="btn btn-secondary d-flex align-items-center "
                                                                                                 style="height: 28px;width: 75px;gap:5px;"
                                                                                                 onclick="${gvc.event(() => {
-                                                        BaseApi.create({
-                                                            url: `${window.glitterBackend}/api/v1/template?appName=${dd.appName}&tag=${dd.tag}`,
-                                                            type: 'get',
-                                                        }).then((res) => {
-                                                            callback(res.response.result[0].config);
-                                                        });
+                                                        if (dd.tag === 'empty') {
+                                                            callback([]);
+                                                        }
+                                                        else {
+                                                            BaseApi.create({
+                                                                url: `${window.glitterBackend}/api/v1/template?appName=${dd.appName}&tag=${dd.tag}`,
+                                                                type: 'get',
+                                                            }).then((res) => {
+                                                                callback(res.response.result[0].config);
+                                                            });
+                                                        }
                                                     })}"
                                                                                             >
                                                                                                 選擇
@@ -392,7 +427,7 @@ export class BgBlog {
                                                                                     <h3 class="fs-6 mb-0 d-flex justify-content-between align-items-center fw-500 mt-1">
                                                                                         ${dd.template_config.name}
                                                                                         <i
-                                                                                            class="fa-solid fa-eye"
+                                                                                            class="fa-solid fa-eye ${dd.tag === 'empty' ? `d-none` : ``}"
                                                                                             style="cursor:pointer;"
                                                                                             onclick="${gvc.event(() => {
                                                         window.parent.glitter.openNewTab(`${gvc.glitter.root_path}pages/${dd.tag}?appName=${dd.appName}`);
@@ -417,7 +452,7 @@ export class BgBlog {
                                     }
                                 },
                                 divCreate: {
-                                    style: 'padding-bottom:150px;',
+                                    style: '',
                                 },
                             };
                         });

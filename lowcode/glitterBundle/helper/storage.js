@@ -89,4 +89,10 @@ export const Storage = {
     set page_setting_item(value) {
         localStorage.setItem('page_setting_item', value);
     },
+    get page_setting_global() {
+        return (localStorage.getItem('page_setting_global') || 'layout');
+    },
+    set page_setting_global(value) {
+        (localStorage.setItem('page_setting_global', value));
+    }
 };

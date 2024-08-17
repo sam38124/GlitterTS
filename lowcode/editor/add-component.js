@@ -548,6 +548,15 @@ export class AddComponent {
                                                                                                 type: '',
                                                                                                 name: '網格容器',
                                                                                             },
+                                                                                            {
+                                                                                                template_config: {
+                                                                                                    image: ['https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_Screenshot2024-08-16at5.04.35 PM.jpg'],
+                                                                                                    tag: ['基本元件'],
+                                                                                                    name: '垂直排版',
+                                                                                                },
+                                                                                                type: '',
+                                                                                                name: '垂直排版',
+                                                                                            },
                                                                                         ];
                                                                                     }
                                                                                     else {
@@ -606,6 +615,39 @@ export class AddComponent {
                                                                                             formData: {},
                                                                                         };
                                                                                         config.label = `網格容器`;
+                                                                                        AddComponent.addWidget(gvc, config);
+                                                                                    }
+                                                                                    else if (dd.title === '垂直排版') {
+                                                                                        const config = {
+                                                                                            id: gvc.glitter.getUUID(),
+                                                                                            js: 'http://127.0.0.1:4000/shopnex/official_view_component/official.js',
+                                                                                            css: { class: {}, style: {} },
+                                                                                            data: {
+                                                                                                attr: [],
+                                                                                                elem: 'div',
+                                                                                                list: [],
+                                                                                                inner: '',
+                                                                                                setting: [],
+                                                                                                version: 'v2',
+                                                                                                atrExpand: {},
+                                                                                                elemExpand: {},
+                                                                                                _layout: 'vertical',
+                                                                                                _x_count: '2',
+                                                                                                _y_count: '2',
+                                                                                                _gap_x: '30',
+                                                                                                _gap_y: '30'
+                                                                                            },
+                                                                                            type: 'container',
+                                                                                            index: 0,
+                                                                                            label: '容器',
+                                                                                            global: [],
+                                                                                            toggle: true,
+                                                                                            preloadEvenet: {},
+                                                                                            refreshAllParameter: {},
+                                                                                            refreshComponentParameter: {},
+                                                                                            formData: {},
+                                                                                        };
+                                                                                        config.label = `垂直排版`;
                                                                                         AddComponent.addWidget(gvc, config);
                                                                                     }
                                                                                     else {

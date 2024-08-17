@@ -100,7 +100,7 @@ export class EditorElem {
                     if (obj.def && obj.def.length > 0) {
                         return html`
                             <div class="uimg-container">
-                                <img class="uimg-image" ${obj.def}" />
+                                <img class="uimg-image" src="${obj.def}"  />
                                 <div
                                         class="uimg-shadow"
                                         onmouseover="${gvc.event((e) => {

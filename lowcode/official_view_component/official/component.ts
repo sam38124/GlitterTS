@@ -5,8 +5,8 @@ import {TriggerEvent} from "../../glitterBundle/plugins/trigger-event.js";
 import {Storage} from "../../glitterBundle/helper/storage.js";
 import {BaseApi} from "../../glitterBundle/api/base.js";
 import {GlobalWidget} from "../../glitterBundle/html-component/global-widget.js";
-import {CustomStyle} from "../../glitterBundle/html-component/custom-style.js";
 import {NormalPageEditor} from "../../editor/normal-page-editor.js";
+import {RenderValue} from "../../glitterBundle/html-component/render-value.js";
 
 
 export const component = Plugin.createComponent(import.meta.url, (glitter: Glitter, editMode: boolean) => {
@@ -171,17 +171,19 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                 createOption.childContainer = true
                                                 createOption.class += ` ${(glitter.htmlGenerate.isEditMode()) ? `${page_request_config.appName}_${page_request_config.tag} ${widget.id}` : ``}`;
                                                 createOption.style = createOption.style ?? ''
+                                                createOption.style += RenderValue.custom_style.container_style(gvc,widget);
                                                 createOption.style += (() => {
                                                     if (gvc.glitter.document.body.clientWidth < 800 && (widget as any).mobile && (widget as any).mobile.refer === 'custom' && (widget as any)[`mobile_editable`].find((d1: any) => {
                                                         return d1 === '_container_margin'
                                                     })) {
-                                                        return CustomStyle.value(gvc, (widget as any).mobile)
+
+                                                        return RenderValue.custom_style.value(gvc, (widget as any).mobile)
                                                     } else if (gvc.glitter.document.body.clientWidth >= 800 && (widget as any).desktop && (widget as any).desktop.refer === 'custom' && (widget as any)[`desktop_editable`].find((d1: any) => {
                                                         return d1 === '_container_margin'
                                                     })) {
-                                                        return CustomStyle.value(gvc, (widget as any).desktop)
+                                                        return RenderValue.custom_style.value(gvc, (widget as any).desktop)
                                                     } else {
-                                                        return CustomStyle.value(gvc, (widget as any))
+                                                        return RenderValue.custom_style.value(gvc, (widget as any))
                                                     }
                                                 })();
                                                 const fonts_index= (()=>{
@@ -268,7 +270,11 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                             resolve(clas)
                         })
                     })
-
+                    const CustomStyle: any = await new Promise((resolve, reject) => {
+                        gvc.glitter.getModule(new URL(gvc.glitter.root_path+'glitterBundle/html-component/custom-style.js', import.meta.url).href, (clas) => {
+                            resolve(clas)
+                        })
+                    })
                     function devEditorView() {
                         const id = glitter.getUUID()
                         const data: any = {
@@ -475,7 +481,6 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                             }
                         })
                     }
-
                     function userEditorView() {
                         const saasConfig = (window as any).saasConfig
                         let data = {
@@ -832,6 +837,11 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                                                                                         array: []
                                                                                                                     },
                                                                                                                     {
+                                                                                                                        title: "容器背景設定",
+                                                                                                                        key: 'background',
+                                                                                                                        array: []
+                                                                                                                    },
+                                                                                                                    {
                                                                                                                         title: "開發者設定",
                                                                                                                         key: 'develop',
                                                                                                                         array: []
@@ -841,6 +851,10 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                                                                                         case 'style':
                                                                                                                         case 'color':
                                                                                                                             return (dd.array && dd.array.length > 0)
+                                                                                                                        case 'background':
+                                                                                                                            return (type === 'def' || oWidget[`${type}_editable`].filter((d1: any) => {
+                                                                                                                                return d1 === '_container_background'
+                                                                                                                            }).length)
                                                                                                                         case 'fonts':
                                                                                                                            return (type === 'def' || oWidget[`${type}_editable`].filter((d1: any) => {
                                                                                                                             return d1 === '_container_fonts'
@@ -881,7 +895,11 @@ justify-content: center; align-items: center; gap: 8px; display: inline-flex;cur
                                                                                                                                                                  },{
                                                                                                                                                                      key: '_container_fonts',
                                                                                                                                                                      name: '字型設定'
-                                                                                                                                                                 }]),
+                                                                                                                                                                 },{
+                                                                                                                                                                     key: '_container_background',
+                                                                                                                                                                     name: '背景設定'
+                                                                                                                                                                 },
+                                                                                                                                                                     ]),
                                                                                                                                                                  oWidget[`${type}_editable`] || [],
                                                                                                                                                                  (select: any) => {
                                                                                                                                                                      oWidget[`${type}_editable`] = select
@@ -1034,6 +1052,11 @@ font-weight: 700;" onclick="${gvc.event(() => {
                                                                                                                                                         refresh(widget, type)
                                                                                                                                                     })}</div>`)
                                                                                                                                                     break
+                                                                                                                                                case 'background':
+                                                                                                                                                    array_string.push(`<div class="px-3 pb-2">${CustomStyle.editorBackground(gvc, widget, () => {
+                                                                                                                                                        refresh(widget, type)
+                                                                                                                                                    })}</div>`)
+                                                                                                                                                    break
                                                                                                                                                 case 'develop':
                                                                                                                                                     array_string.push(`<div class="px-3">${CustomStyle.editor(gvc, widget, () => {
                                                                                                                                                         refresh(widget, type)
@@ -1072,9 +1095,9 @@ font-weight: 700;" onclick="${gvc.event(() => {
                                                                                             custom_edit: true,
                                                                                             toggle_visible: (bool) => {
                                                                                                 if (bool) {
-                                                                                                    $((document.querySelector('#editerCenter  iframe') as any).contentWindow.document.querySelector('.' + view_container_id)).show()
+                                                                                                    $((gvc.glitter.document.querySelector('#editerCenter  iframe') as any).contentWindow.document.querySelector('.' + view_container_id)).show()
                                                                                                 } else {
-                                                                                                    $((document.querySelector('#editerCenter  iframe') as any).contentWindow.document.querySelector('.' + view_container_id)).hide()
+                                                                                                    $((gvc.glitter.document.querySelector('#editerCenter  iframe') as any).contentWindow.document.querySelector('.' + view_container_id)).hide()
                                                                                                 }
                                                                                             }
                                                                                         })
@@ -1153,7 +1176,6 @@ font-weight: 700;" onclick="${gvc.event(() => {
                             }
                         })
                     }
-
                     return [
                         gvc.bindView(() => {
                             const id = gvc.glitter.getUUID()
