@@ -127,20 +127,36 @@ export class BgBlog {
                         return BgWidget.container(
                             html`
                                 <div class="d-flex w-100 align-items-center mb-3 ${type === 'select' ? `d-none` : ``}">
-                                    ${BgWidget.title(
-                                        is_page
-                                            ? (() => {
-                                                  switch (page_tab) {
-                                                      case 'hidden':
-                                                          return '隱形賣場';
-                                                      case 'page':
-                                                          return '自訂頁面';
-                                                      case 'shopping':
-                                                          return '一頁商店';
-                                                  }
-                                              })()
-                                            : '網誌文章'
-                                    )}
+                                  <div class="d-flex flex-column" style="gap:5px;">
+                                      ${BgWidget.title(
+                                              is_page
+                                                      ? (() => {
+                                                          switch (page_tab) {
+                                                              case 'hidden':
+                                                                  return '隱形賣場';
+                                                              case 'page':
+                                                                  return '自訂頁面';
+                                                              case 'shopping':
+                                                                  return '一頁商店';
+                                                          }
+                                                      })()
+                                                      : '網誌文章'
+                                      )}
+                                      ${BgWidget.hint_title(
+                                              is_page
+                                                      ? (() => {
+                                                          switch (page_tab) {
+                                                              case 'hidden':
+                                                                  return '隱形賣場僅能透過連結分享，無法顯示於Google搜尋列表。';
+                                                              case 'page':
+                                                                  return '打造自訂頁面，顯示品牌官網的獨特內容。';
+                                                              case 'shopping':
+                                                                  return '放大特定商品重點，打造專屬爆品產品，一頁下單快速購物。';
+                                                          }
+                                                      })()
+                                                      : '快速分享商店最新資訊的好功能。'
+                                      )}
+                                  </div>
                                     <div class="flex-fill"></div>
                                     <div style="display: flex; gap: 12px;">
                                         ${is_page
@@ -679,27 +695,35 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any, page_tab: 'page' | 'hidden
                 <div class="d-flex justify-content-center p-0 ${document.body.clientWidth < 768 ? 'flex-column' : ''}" style="gap: 24px">
                     <div class="d-flex flex-column " style="gap:10px;${document.body.clientWidth > 768 ? 'width: 73.5%;' : ''}">
                         ${BgWidget.container(
-                            (() => {
-                                if (cf.is_page) {
-                                    return gvc.bindView(() => {
-                                        vm.data.status = vm.data.status ?? 1;
-                                        const id = gvc.glitter.getUUID();
-                                        return {
-                                            bind: id,
-                                            view: () => {
-                                                return [
-                                                    BgWidget.mainCard(
+                                gvc.bindView(() => {
+                                    vm.data.status = vm.data.status ?? 1;
+                                    const id = gvc.glitter.getUUID();
+                                    return {
+                                        bind: id,
+                                        view: () => {
+                                            return [
+                                                BgWidget.mainCard(
                                                         (() => {
-                                                            const prefixURL = `https://${(window.parent as any).glitter.share.editorViewModel.domain}/${cf.is_page ? `pages` : `blogs`}/`;
+                                                            const prefixURL = `https://${(window.parent as any).glitter.share.editorViewModel.domain}/${cf.is_page ? (()=>{
+                                                                switch (page_tab) {
+                                                                    case 'shopping':
+                                                                        return 'shop';
+                                                                    case 'hidden':
+                                                                        return 'hidden';
+                                                                    case 'page':
+                                                                        return 'pages';
+                                                                }
+                                                                return  ``
+                                                            })() : `blogs`}/`;
                                                             return [
                                                                 BgWidget.title_16('基本設定'),
                                                                 html`<div style="height:18px;"></div>`,
                                                                 html` <div style="display:flex; align-items: center; gap: 4px; margin-bottom: 8px;">
                                                                     <div class="tx_normal">網頁啟用</div>
                                                                     ${BgWidget.switchButton(gvc, vm.data.status, (bool) => {
-                                                                        vm.data.status = bool ? 1 : 0;
-                                                                        gvc.notifyDataChange(id);
-                                                                    })}
+                                                                    vm.data.status = bool ? 1 : 0;
+                                                                    gvc.notifyDataChange(id);
+                                                                })}
                                                                 </div>`,
                                                                 BgWidget.editeInput({
                                                                     gvc: gvc,
@@ -726,24 +750,24 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any, page_tab: 'page' | 'hidden
                                                                         </div>
                                                                     </div>
                                                                     <input
-                                                                        class="w-100"
+                                                                        class="flex-fill"
                                                                         style="border:none;background:none;text-align: start; color: #393939; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word; ${document
-                                                                            .body.clientWidth > 768
-                                                                            ? ''
-                                                                            : 'padding: 9px 18px;'}"
+                                                                        .body.clientWidth > 768
+                                                                        ? ''
+                                                                        : 'padding: 9px 18px;'}"
                                                                         value="${vm.data.content.tag || ''}"
                                                                         onchange="${gvc.event((e) => {
-                                                                            let text = e.value;
-                                                                            const regex = /^[a-zA-Z0-9-]+$/;
-                                                                            if (!regex.test(text)) {
-                                                                                const dialog = new ShareDialog(gvc.glitter);
-                                                                                dialog.infoMessage({ text: '僅能輸入英文或數字與連接號' });
-                                                                                gvc.notifyDataChange(id);
-                                                                            } else {
-                                                                                vm.data.content.tag = text;
-                                                                                gvc.notifyDataChange(id);
-                                                                            }
-                                                                        })}"
+                                                                    let text = e.value;
+                                                                    const regex = /^[a-zA-Z0-9-]+$/;
+                                                                    if (!regex.test(text)) {
+                                                                        const dialog = new ShareDialog(gvc.glitter);
+                                                                        dialog.infoMessage({ text: '僅能輸入英文或數字與連接號' });
+                                                                        gvc.notifyDataChange(id);
+                                                                    } else {
+                                                                        vm.data.content.tag = text;
+                                                                        gvc.notifyDataChange(id);
+                                                                    }
+                                                                })}"
                                                                     />
                                                                 </div>`,
                                                                 html` <div class="mt-2 mb-1">
@@ -755,314 +779,68 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any, page_tab: 'page' | 'hidden
                                                                 html`<div style="height:18px;"></div>`,
                                                                 ///是否顯示SEO列表
                                                                 ...(() => {
-                                                                    if (vm.data.content.page_type !== 'hidden') {
-                                                                        return [
-                                                                            BgWidget.editeInput({
-                                                                                gvc: gvc,
-                                                                                title: 'SEO標題',
-                                                                                default: vm.data.content.seo.title,
-                                                                                placeHolder: `請輸入SEO標題`,
-                                                                                callback: (text) => {
-                                                                                    vm.data.content.seo.title = text;
-                                                                                    gvc.notifyDataChange(id);
-                                                                                },
-                                                                            }),
-                                                                            BgWidget.textArea({
-                                                                                gvc: gvc,
-                                                                                title: 'SEO描述',
-                                                                                default: vm.data.content.seo.content,
-                                                                                placeHolder: `請輸入中繼描述`,
-                                                                                callback: (text) => {
-                                                                                    vm.data.content.seo.content = text;
-                                                                                    gvc.notifyDataChange(id);
-                                                                                },
-                                                                            }),
-                                                                            `<div style="height:10px;"></div>`,
-                                                                            BgWidget.sub_title(html` <div class="d-flex flex-column">
+                                                                    return [
+                                                                        BgWidget.editeInput({
+                                                                            gvc: gvc,
+                                                                            title: 'SEO標題',
+                                                                            default: vm.data.content.seo.title,
+                                                                            placeHolder: `請輸入SEO標題`,
+                                                                            callback: (text) => {
+                                                                                vm.data.content.title=text
+                                                                                vm.data.content.seo.title = text;
+                                                                                gvc.notifyDataChange(id);
+                                                                            },
+                                                                        }),
+                                                                        BgWidget.textArea({
+                                                                            gvc: gvc,
+                                                                            title: 'SEO描述',
+                                                                            default: vm.data.content.seo.content,
+                                                                            placeHolder: `請輸入中繼描述`,
+                                                                            callback: (text) => {
+                                                                                vm.data.content.description=text
+                                                                                vm.data.content.seo.content = text;
+                                                                                gvc.notifyDataChange(id);
+                                                                            },
+                                                                        }),
+                                                                        `<div style="height:10px;"></div>`,
+                                                                        BgWidget.sub_title(html` <div class="d-flex flex-column">
                                                                                 <div class="tx_normal">社群分享縮圖</div>
                                                                                 <div style="height:8px;"></div>
                                                                                 ${BgWidget.hint_title(`建議尺寸：200px*200px以上`)}
                                                                             </div>`),
-                                                                            `<div style="height:10px;"></div>`,
-                                                                            BgWidget.imageSelector(gvc, vm.data.content.seo.image || '', (text) => {
-                                                                                vm.data.content.seo.image = text;
-                                                                                gvc.notifyDataChange(id);
-                                                                            }),
-                                                                        ];
-                                                                    } else {
-                                                                        return [];
-                                                                    }
+                                                                        `<div style="height:10px;"></div>`,
+                                                                        BgWidget.imageSelector(gvc, vm.data.content.seo.image || '', (text) => {
+                                                                            vm.data.content.seo.image = text;
+                                                                            gvc.notifyDataChange(id);
+                                                                        }),
+                                                                    ];
                                                                 })(),
+                                                                ...(()=>{
+                                                                    if(`${vm.data.content.for_index}`==='true'){
+                                                                        return [[
+                                                                            BgWidget.sub_title('<div class="tx_normal my-3">網誌內文</div>'),
+                                                                            EditorElem.richText({
+                                                                                gvc: gvc,
+                                                                                def: vm.data.content.text ?? '',
+                                                                                callback: (text) => {
+                                                                                    vm.data.content.text = text;
+                                                                                },
+                                                                            }),
+                                                                        ].join('<div class="my-2"></div>')];
+                                                                    }else{
+                                                                        return  []
+                                                                    }
+                                                                })()
                                                             ].join('');
                                                         })()
-                                                    ),
-                                                ].join('');
-                                            },
-                                            divCreate: {
-                                                style: 'padding: 0;',
-                                            },
-                                        };
-                                    });
-                                } else {
-                                    return [
-                                        cf.is_page
-                                            ? ``
-                                            : BgWidget.mainCard(
-                                                  gvc.bindView(() => {
-                                                      const artViewID = gvc.glitter.getUUID();
-                                                      return {
-                                                          bind: artViewID,
-                                                          view: () => {
-                                                              return [
-                                                                  EditorElem.editeInput({
-                                                                      gvc: gvc,
-                                                                      title: '網誌名稱',
-                                                                      default: vm.data.content.name,
-                                                                      placeHolder: '請輸入網誌名稱',
-                                                                      callback: (text) => {
-                                                                          vm.data.content.name = text;
-                                                                      },
-                                                                  }),
-                                                                  EditorElem.editeInput({
-                                                                      gvc: gvc,
-                                                                      title: '網誌標題',
-                                                                      default: vm.data.content.title,
-                                                                      placeHolder: '請輸入網誌標題',
-                                                                      callback: (text) => {
-                                                                          vm.data.content.title = text;
-                                                                      },
-                                                                  }),
-                                                                  EditorElem.editeText({
-                                                                      gvc: gvc,
-                                                                      title: '網誌摘要',
-                                                                      default: vm.data.content.description,
-                                                                      placeHolder: '請輸入網誌摘要',
-                                                                      callback: (text) => {
-                                                                          vm.data.content.description = text;
-                                                                      },
-                                                                  }),
-                                                                  (() => {
-                                                                      if (vm.data.content.generator === 'page_editor') {
-                                                                          return html` <div
-                                                                              class="d-flex flex-fill ${document.body.clientWidth > 768 ? 'align-items-end' : 'flex-column'}"
-                                                                              style="gap: 10px;"
-                                                                          >
-                                                                              <div class="d-flex align-items-center" style="height: 45px; gap: 10px; width: 100%;">
-                                                                                  <div
-                                                                                      class="cursor_pointer bt_c39 p-1"
-                                                                                      style="height: 40px; width: 60%;"
-                                                                                      onclick="${gvc.event(() => {
-                                                                                          const rightMenu = (window.parent as any).glitter.share.NormalPageEditor;
-                                                                                          const gvc: GVC = (window.parent as any).glitter.pageConfig[0].gvc;
-                                                                                          rightMenu.toggle({
-                                                                                              visible: true,
-                                                                                              title: '選擇預設模板',
-                                                                                              view: gvc.bindView(() => {
-                                                                                                  const id = gvc.glitter.getUUID();
-                                                                                                  return {
-                                                                                                      bind: id,
-                                                                                                      view: () => {
-                                                                                                          return BgBlog.template_select(
-                                                                                                              gvc,
-                                                                                                              (cf) => {
-                                                                                                                  vm.data.content.config = cf;
-                                                                                                                  rightMenu.toggle({ visible: false });
-                                                                                                              },
-                                                                                                              page_tab
-                                                                                                          );
-                                                                                                      },
-                                                                                                      divCreate: {},
-                                                                                                  };
-                                                                                              }),
-                                                                                              right: false,
-                                                                                          });
-                                                                                      })}"
-                                                                                  >
-                                                                                      <i class="fa-solid fa-pager me-2"></i>選擇預設模板
-                                                                                  </div>
-                                                                                  <div
-                                                                                      class="cursor_pointer bt_c39 p-1 "
-                                                                                      style="height: 40px; width: 40%;"
-                                                                                      onclick="${gvc.event(() => {
-                                                                                          (window.parent as any).glitter.innerDialog(
-                                                                                              (gvc: GVC) => {
-                                                                                                  return gvc.bindView(() => {
-                                                                                                      const id = gvc.glitter.getUUID();
-                                                                                                      return {
-                                                                                                          bind: id,
-                                                                                                          view: () => {
-                                                                                                              return html` <iframe
-                                                                                                                  class="rounded-3"
-                                                                                                                  id="editor_dialog"
-                                                                                                                  src="${(() => {
-                                                                                                                      const url = new URL(window.parent.location.href);
-                                                                                                                      url.searchParams.set('function', 'user-editor');
-                                                                                                                      return url.href;
-                                                                                                                  })()}"
-                                                                                                              ></iframe>`;
-                                                                                                          },
-                                                                                                          divCreate: {
-                                                                                                              class: `vw-100 vh-100 p-2`,
-                                                                                                              style: `background: rgba(0,0,0,0.5);`,
-                                                                                                          },
-                                                                                                          onCreate: () => {
-                                                                                                              const interval = setInterval(() => {
-                                                                                                                  const iframe: any = window.parent.document.querySelector('#editor_dialog')!;
-                                                                                                                  if (iframe.contentWindow.glitter) {
-                                                                                                                      iframe.contentWindow.glitter.share.editor_vm = {
-                                                                                                                          close: () => {
-                                                                                                                              gvc.closeDialog();
-                                                                                                                          },
-                                                                                                                          callback: (cf: any) => {
-                                                                                                                              vm.data.content.config = cf.config;
-                                                                                                                          },
-                                                                                                                          page_data: {
-                                                                                                                              config: JSON.parse(JSON.stringify(vm.data.content.config || [])),
-                                                                                                                              page_config: {},
-                                                                                                                              name: vm.data.content.name || '尚未設定頁面標題',
-                                                                                                                          },
-                                                                                                                          title: vm.data.content.name || '尚未設定頁面標題',
-                                                                                                                      };
-                                                                                                                      clearInterval(interval);
-                                                                                                                  }
-                                                                                                              }, 100);
-                                                                                                          },
-                                                                                                      };
-                                                                                                  });
-                                                                                              },
-                                                                                              '',
-                                                                                              {
-                                                                                                  dismiss: () => {},
-                                                                                              }
-                                                                                          );
-                                                                                      })}"
-                                                                                  >
-                                                                                      <i class="fa-regular fa-pencil me-2"></i>編輯內容
-                                                                                  </div>
-                                                                              </div>
-                                                                          </div>`;
-                                                                      }
-                                                                      return [
-                                                                          BgWidget.title_16('網誌內文'),
-                                                                          EditorElem.richText({
-                                                                              gvc: gvc,
-                                                                              def: vm.data.content.text ?? '',
-                                                                              callback: (text) => {
-                                                                                  vm.data.content.text = text;
-                                                                              },
-                                                                          }),
-                                                                      ].join('<div class="my-2"></div>');
-                                                                  })(),
-                                                              ].join(`<div class="my-2"></div>`);
-                                                          },
-                                                          divCreate: {},
-                                                      };
-                                                  })
-                                              ),
-                                        cf.is_page ? `` : BgWidget.mbContainer(24),
-                                        BgWidget.mainCard(
-                                            gvc.bindView(() => {
-                                                const id = gvc.glitter.getUUID();
-                                                let toggle = false;
-                                                return {
-                                                    bind: id,
-                                                    view: () => {
-                                                        try {
-                                                            let view = [
-                                                                html` <div class="fs-sm fw-500 d-flex align-items-center justify-content-between mb-2">
-                                                                    ${EditorElem.h3('SEO配置')}
-                                                                    <div
-                                                                        class="fw-500 fs-sm "
-                                                                        style="cursor: pointer;color:rgba(0, 91, 211, 1);"
-                                                                        onclick="${gvc.event(() => {
-                                                                            toggle = !toggle;
-                                                                            gvc.notifyDataChange(id);
-                                                                        })}"
-                                                                    >
-                                                                        ${toggle ? `確認` : `編輯`}
-                                                                    </div>
-                                                                </div>`,
-                                                                html` <div class="fs-6 fw-500" style="color:#1a0dab;">${vm.data.content.seo.title || '尚未設定'}</div>`,
-                                                                (() => {
-                                                                    const href = (() => {
-                                                                        return `https://${(window.parent as any).glitter.share.editorViewModel.domain}/${cf.is_page ? `pages` : `blogs`}/${
-                                                                            vm.data.content.tag
-                                                                        }`;
-                                                                    })();
-                                                                    return html`<a
-                                                                        class="fs-sm fw-500"
-                                                                        style="color:#006621;cursor: pointer;overflow-wrap: break-word;"
-                                                                        onclick="${gvc.event(() => {
-                                                                            (window.parent as any).glitter.openNewTab(href);
-                                                                        })}"
-                                                                        >${href}</a
-                                                                    >`;
-                                                                })(),
-                                                                html` <div class="fs-sm fw-500" style="color:#545454;white-space: normal;">${vm.data.content.seo.content || '尚未設定'}</div>`,
-                                                            ];
-                                                            if (toggle) {
-                                                                view = view.concat([
-                                                                    EditorElem.editeInput({
-                                                                        gvc: gvc,
-                                                                        title: '網誌連結',
-                                                                        default: vm.data.content.tag,
-                                                                        placeHolder: `請輸入網誌連結`,
-                                                                        callback: (text) => {
-                                                                            const regex = /^[a-zA-Z0-9-]+$/;
-                                                                            if (!regex.test(text)) {
-                                                                                const dialog = new ShareDialog(gvc.glitter);
-                                                                                dialog.infoMessage({ text: '僅能輸入英文或數字與連接號' });
-                                                                                gvc.notifyDataChange(id);
-                                                                            } else {
-                                                                                vm.data.content.tag = text;
-                                                                                gvc.notifyDataChange(id);
-                                                                            }
-                                                                        },
-                                                                    }),
-                                                                    EditorElem.editeInput({
-                                                                        gvc: gvc,
-                                                                        title: '頁面標題',
-                                                                        default: vm.data.content.seo.title,
-                                                                        placeHolder: `請輸入頁面標題`,
-                                                                        callback: (text) => {
-                                                                            vm.data.content.seo.title = text;
-                                                                            gvc.notifyDataChange(id);
-                                                                        },
-                                                                    }),
-                                                                    EditorElem.editeText({
-                                                                        gvc: gvc,
-                                                                        title: '中繼描述',
-                                                                        default: vm.data.content.seo.content,
-                                                                        placeHolder: `請輸入中繼描述`,
-                                                                        callback: (text) => {
-                                                                            vm.data.content.seo.content = text;
-                                                                            gvc.notifyDataChange(id);
-                                                                        },
-                                                                    }),
-                                                                    EditorElem.editeText({
-                                                                        gvc: gvc,
-                                                                        title: 'SEO關鍵字',
-                                                                        default: vm.data.content.seo.keywords,
-                                                                        placeHolder: `請輸入SEO關鍵字`,
-                                                                        callback: (text) => {
-                                                                            vm.data.content.seo.keywords = text;
-                                                                            gvc.notifyDataChange(id);
-                                                                        },
-                                                                    }),
-                                                                ]);
-                                                            }
-                                                            return view.join('');
-                                                        } catch (e) {
-                                                            console.error(e);
-                                                            return ``;
-                                                        }
-                                                    },
-                                                };
-                                            })
-                                        ),
-                                    ].join('');
-                                }
-                            })(),
+                                                ),
+                                            ].join('');
+                                        },
+                                        divCreate: {
+                                            style: 'padding: 0;',
+                                        },
+                                    };
+                                }),
                             undefined,
                             'padding: 0 !important; margin: 0 !important; width: 100%;'
                         )}
@@ -1073,6 +851,7 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any, page_tab: 'page' | 'hidden
                             const productForList = [
                                 { title: '商品系列', value: 'collection' },
                                 { title: '單一商品', value: 'product' },
+                                { title: '所有商品', value: 'all' },
                             ];
 
                             return gvc.bindView(() => {
@@ -1082,284 +861,188 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any, page_tab: 'page' | 'hidden
                                     view: () => {
                                         ///顯示套用的賣場商品列表
                                         if (vm.data.content.page_type === 'hidden' || vm.data.content.page_type === 'shopping') {
+                                            
                                             return [
                                                 BgWidget.mainCard(
                                                     [
-                                                        BgWidget.title_16('賣場商品'),
-                                                        `<div style="height: 10px;"></div>`,
-                                                        // html`
-                                                        //     ${EditorElem.radio({
-                                                        //         gvc: gvc,
-                                                        //         title: '',
-                                                        //         def: vm.data.content.relative,
-                                                        //         array: productForList,
-                                                        //         callback: (text) => {
-                                                        //             vm.data.content.relative = text as 'collection' | 'product' | 'all';
-                                                        //             gvc.notifyDataChange(id);
-                                                        //         },
-                                                        //         oneLine: true,
-                                                        //     })}
-                                                        // `,
-                                                        html`${(() => {
-                                                            vm.data.content.relative = 'product';
-                                                            switch (vm.data.content.relative) {
-                                                                case 'collection':
-                                                                    return gvc.bindView(() => {
-                                                                        const subVM = {
-                                                                            id: gvc.glitter.getUUID(),
-                                                                            loading: true,
-                                                                            dataList: [] as OptionsItem[],
-                                                                        };
-                                                                        return {
-                                                                            bind: subVM.id,
-                                                                            view: () => {
-                                                                                if (subVM.loading) {
-                                                                                    return BgWidget.spinner();
-                                                                                }
-                                                                                return html`
-                                                                                    <div class="d-flex flex-column p-2" style="gap: 18px;">
-                                                                                        <div class="d-flex align-items-center gray-bottom-line-18" style="gap: 24px; justify-content: space-between;">
-                                                                                            <div class="form-check-label c_updown_label">
-                                                                                                <div class="tx_normal">系列列表</div>
-                                                                                            </div>
-                                                                                            ${BgWidget.grayButton(
-                                                                                                '選擇系列',
-                                                                                                gvc.event(() => {
-                                                                                                    BgProduct.collectionsDialog({
-                                                                                                        gvc: gvc,
-                                                                                                        default: vm.data.content.relative_data,
-                                                                                                        callback: async (value) => {
-                                                                                                            vm.data.content.relative_data = value;
-                                                                                                            subVM.dataList = await BgProduct.getCollectiosOpts(value);
-                                                                                                            subVM.loading = true;
-                                                                                                            gvc.notifyDataChange(subVM.id);
-                                                                                                        },
-                                                                                                    });
-                                                                                                }),
-                                                                                                { textStyle: 'font-weight: 400;' }
-                                                                                            )}
-                                                                                        </div>
-                                                                                        ${gvc.map(
-                                                                                            subVM.dataList.map((opt: OptionsItem, index) => {
-                                                                                                return html` <div class="d-flex align-items-center form-check-label c_updown_label gap-3">
-                                                                                                    <span class="tx_normal">${index + 1} . ${opt.value}</span>
-                                                                                                    ${opt.note ? html` <span class="tx_gray_12 ms-2">${opt.note}</span> ` : ''}
-                                                                                                </div>`;
-                                                                                            })
-                                                                                        )}
-                                                                                    </div>
-                                                                                `;
-                                                                            },
-                                                                            onCreate: () => {
-                                                                                if (subVM.loading) {
-                                                                                    if (vm.data.content.relative_data.length === 0) {
-                                                                                        setTimeout(() => {
-                                                                                            subVM.dataList = [];
-                                                                                            subVM.loading = false;
-                                                                                            gvc.notifyDataChange(subVM.id);
-                                                                                        }, 300);
-                                                                                    } else {
-                                                                                        new Promise<OptionsItem[]>((resolve) => {
-                                                                                            resolve(BgProduct.getCollectiosOpts(vm.data.content.relative_data));
-                                                                                        }).then((data) => {
-                                                                                            subVM.dataList = data;
-                                                                                            subVM.loading = false;
-                                                                                            gvc.notifyDataChange(subVM.id);
-                                                                                        });
-                                                                                    }
-                                                                                }
-                                                                            },
-                                                                        };
-                                                                    });
-                                                                case 'product':
-                                                                    return gvc.bindView(() => {
-                                                                        const subVM = {
-                                                                            id: gvc.glitter.getUUID(),
-                                                                            loading: true,
-                                                                            dataList: [] as OptionsItem[],
-                                                                        };
-                                                                        return {
-                                                                            bind: subVM.id,
-                                                                            view: () => {
-                                                                                if (subVM.loading) {
-                                                                                    return BgWidget.spinner();
-                                                                                }
-                                                                                return html`
+                                                        BgWidget.title_16(`預設加入購物車<div class="badge ms-2" style="background:#eaeaea;color:#393939;">以下設定的商品會自動加入購物車</div>`),
+                                                        `<div class="my-2"></div>`,
+                                                        [
+                                                            html`${(() => {
+                                                                return gvc.bindView(() => {
+                                                                    const subVM = {
+                                                                        id: gvc.glitter.getUUID(),
+                                                                        loading: true,
+                                                                        dataList: [] as OptionsItem[],
+                                                                    };
+                                                                    return {
+                                                                        bind: subVM.id,
+                                                                        view: () => {
+                                                                            if (subVM.loading) {
+                                                                                return BgWidget.spinner();
+                                                                            }
+                                                                            return html`
                                                                                     <div class="d-flex flex-column p-2" style="gap: 18px;">
                                                                                         <div
-                                                                                            class="d-flex align-items-center gray-bottom-line-18 d-none"
+                                                                                            class="d-flex align-items-center gray-bottom-line-18 "
                                                                                             style="gap: 24px; justify-content: space-between;"
                                                                                         >
                                                                                             <div class="form-check-label c_updown_label">
                                                                                                 <div class="tx_normal">產品列表</div>
                                                                                             </div>
                                                                                             ${BgWidget.grayButton(
-                                                                                                '選擇商品',
-                                                                                                gvc.event(() => {
-                                                                                                    BgProduct.productsDialog({
-                                                                                                        gvc: gvc,
-                                                                                                        default: vm.data.content.relative_data ?? [],
-                                                                                                        callback: async (value) => {
-                                                                                                            vm.data.content.relative_data = value;
-                                                                                                            subVM.dataList = await BgProduct.getProductOpts(vm.data.content.relative_data);
-                                                                                                            subVM.loading = true;
-                                                                                                            gvc.notifyDataChange(subVM.id);
-                                                                                                        },
-                                                                                                    });
-                                                                                                }),
-                                                                                                { textStyle: 'font-weight: 400;' }
-                                                                                            )}
+                                                                                    '搜尋商品',
+                                                                                    gvc.event(() => {
+                                                                                        BgProduct.variantsSelector({
+                                                                                            gvc: gvc,
+                                                                                            filter_variants: vm.data.content.relative_data.map((dd:any)=>{
+                                                                                                return [dd.product_id].concat(dd.variant.spec).join('-')
+                                                                                            }),
+                                                                                            callback: async (value) => {
+                                                                                                vm.data.content.relative_data = value.map((dd:any)=>{
+                                                                                                  return {
+                                                                                                      variant:dd.variant_content,
+                                                                                                      product_id:dd.product_id
+                                                                                                  }
+                                                                                                });
+                                                                                                subVM.loading = true;
+                                                                                                gvc.notifyDataChange(subVM.id);
+                                                                                            },
+                                                                                        });
+                                                                                    }),
+                                                                                    { textStyle: 'font-weight: 400;' }
+                                                                            )}
                                                                                         </div>
                                                                                         ${subVM.dataList
-                                                                                            .map((opt: OptionsItem, index) => {
-                                                                                                return html` <div class="d-flex align-items-center form-check-label c_updown_label gap-3">
+                                                                                    .map((opt: OptionsItem, index) => {
+                                                                                        return html` <div class="d-flex align-items-center form-check-label c_updown_label gap-3">
                                                                                                     <span class="tx_normal" style="min-width: 20px;">${index + 1} .</span>
                                                                                                     ${BgWidget.validImageBox({ gvc: gvc, image: opt.image, width: 40 })}
-                                                                                                    <div class="tx_normal ${opt.note ? 'mb-1' : ''}">${opt.value}</div>
-                                                                                                    ${opt.note ? html` <div class="tx_gray_12">${opt.note}</div> ` : ''}
-                                                                                                </div>`;
-                                                                                            })
-                                                                                            .join('') ||
-                                                                                        `<div class="w-100 d-flex align-content-center justify-content-center">尚未加入任何賣場商品</div>`}
+                                                                                                    <div class="tx_normal ${opt.note ? 'mb-1' : ''} d-flex flex-column">${opt.value}
+                                                                                                     ${opt.note ? html` <div class="tx_gray_12">${opt.note}</div> ` : ''}</div>
+                                                                                            <div class="flex-fill"></div>
+                                                                                                     ${BgWidget.cancel(gvc.event(()=>{
+                                                                                                         vm.data.content.relative_data.splice(index,1)
+                                                                                                         subVM.dataList.splice(index,1)
+                                                                                                         gvc.notifyDataChange(subVM.id);
+                                                                                                     }),'移除')}
+                                                                                                </div>
+                                                                                                 
+                                                                                                `;
+                                                                                    })
+                                                                                    .join('') ||
+                                                                            `<div class="w-100 d-flex align-content-center justify-content-center">尚未加入任何賣場商品</div>`}
                                                                                     </div>
                                                                                 `;
-                                                                            },
-                                                                            onCreate: () => {
-                                                                                vm.data.content.relative_data = (() => {
-                                                                                    const product_list: any = [];
-
-                                                                                    function loop(data: any) {
-                                                                                        data.map((dd: any) => {
-                                                                                            if (Array.isArray(dd)) {
-                                                                                                loop(dd);
-                                                                                            } else if (typeof dd === 'object') {
-                                                                                                function loopObj(dd: any) {
-                                                                                                    Object.keys(dd).map((d1) => {
-                                                                                                        if (d1 === 'product_list') {
-                                                                                                            for (const b of dd[d1]) {
-                                                                                                                if (
-                                                                                                                    !product_list.find((d1: any) => {
-                                                                                                                        return d1 === b;
-                                                                                                                    })
-                                                                                                                ) {
-                                                                                                                    product_list.push(b);
-                                                                                                                }
-                                                                                                            }
-                                                                                                        } else if (Array.isArray(dd[d1])) {
-                                                                                                            loop(dd[d1]);
-                                                                                                        } else if (typeof dd[d1] === 'object') {
-                                                                                                            loopObj(dd[d1]);
-                                                                                                        }
-                                                                                                    });
-                                                                                                }
-                                                                                                loopObj(dd);
-                                                                                            }
-                                                                                        });
-                                                                                    }
-                                                                                    loop(vm.data.content.config);
-                                                                                    return product_list;
-                                                                                })();
-                                                                                if (subVM.loading) {
-                                                                                    if (vm.data.content.relative_data.length === 0) {
-                                                                                        setTimeout(() => {
-                                                                                            subVM.dataList = [];
-                                                                                            subVM.loading = false;
-                                                                                            gvc.notifyDataChange(subVM.id);
-                                                                                        }, 300);
-                                                                                    } else {
-                                                                                        new Promise<OptionsItem[]>((resolve) => {
-                                                                                            resolve(BgProduct.getProductOpts(vm.data.content.relative_data));
-                                                                                        }).then((data) => {
-                                                                                            subVM.dataList = data;
-                                                                                            subVM.loading = false;
-                                                                                            gvc.notifyDataChange(subVM.id);
-                                                                                        });
-                                                                                    }
-                                                                                }
-                                                                            },
-                                                                        };
-                                                                    });
-                                                                case 'all':
-                                                                default:
-                                                                    return '';
-                                                            }
-                                                        })()}`,
-                                                    ].join('')
-                                                ),
-                                                `<div style="height: 15px;"></div>`,
-                                                BgWidget.mainCard(
-                                                    [
-                                                        BgWidget.title_16('優惠折扣'),
-                                                        `<div style="height: 18px;"></div>`,
-                                                        html`
-                                                            ${BgWidget.columnCheckBox({
-                                                                gvc: gvc,
-                                                                def: vm.data.content.with_discount,
-                                                                array: [
-                                                                    {
-                                                                        title: '不套用折扣',
-                                                                        value: 'false',
-                                                                        innerHtml: ``,
-                                                                    },
-                                                                    {
-                                                                        title: `套用折扣`,
-                                                                        value: 'true',
-                                                                        innerHtml: gvc.bindView(() => {
-                                                                            const id = gvc.glitter.getUUID();
-
-                                                                            return {
-                                                                                bind: id,
-                                                                                view: () => {
-                                                                                    return new Promise(async (resolve, reject) => {
-                                                                                        resolve(
-                                                                                            [
-                                                                                                BgWidget.hint_title(`請至「優惠促銷」新增折扣，折扣方式必須勾選「供分銷連結使用」`),
-                                                                                                BgWidget.select({
-                                                                                                    gvc: gvc,
-                                                                                                    callback: (value) => {
-                                                                                                        if (value !== 'unselect') {
-                                                                                                            vm.data.content.voucher_code = value;
-                                                                                                        }
-                                                                                                        gvc.notifyDataChange(id);
-                                                                                                    },
-                                                                                                    default: vm.data.content.voucher_code,
-                                                                                                    options: [
-                                                                                                        {
-                                                                                                            key: 'unselect',
-                                                                                                            value: '請選擇優惠券',
-                                                                                                        },
-                                                                                                    ].concat(
-                                                                                                        (
-                                                                                                            await ApiShop.getVoucher({
-                                                                                                                page: 0,
-                                                                                                                limit: 20000,
-                                                                                                                search: vm.query || undefined,
-                                                                                                            })
-                                                                                                        ).response.data
-                                                                                                            .filter((dd: any) => {
-                                                                                                                return dd.content.trigger === 'distribution';
-                                                                                                            })
-                                                                                                            .map((dd: any) => {
-                                                                                                                return {
-                                                                                                                    value: dd.content.title,
-                                                                                                                    key: `${dd.id}`,
-                                                                                                                };
-                                                                                                            })
-                                                                                                    ),
-                                                                                                }),
-                                                                                            ].join('<div class="my-2"></div>')
-                                                                                        );
+                                                                        },
+                                                                        onCreate: () => {
+                                                                            if (subVM.loading) {
+                                                                                if (vm.data.content.relative_data.length === 0) {
+                                                                                    setTimeout(() => {
+                                                                                        subVM.dataList = [];
+                                                                                        subVM.loading = false;
+                                                                                        gvc.notifyDataChange(subVM.id);
+                                                                                    }, 300);
+                                                                                } else {
+                                                                                    new Promise<OptionsItem[]>(async (resolve) => {
+                                                                                                const products_data=await BgProduct.getProductOpts(vm.data.content.relative_data.map((dd:any)=>{
+                                                                                                    return dd.product_id
+                                                                                                }))
+                                                                                                vm.data.content.relative_data=vm.data.content.relative_data.filter((dd:any)=>{
+                                                                                                    return products_data.find((d1)=>{
+                                                                                                        return `${dd.product_id}`===`${d1.key}`
+                                                                                                    })
+                                                                                                })
+                                                                                           subVM.dataList = vm.data.content.relative_data.map((dd:any)=>{
+                                                                                                    const product:any=JSON.parse(JSON.stringify(products_data.find((d1)=>{
+                                                                                                        return `${dd.product_id}`===`${d1.key}`
+                                                                                                    })));
+                                                                                                    product.note=dd.variant.spec.join(' / ');
+                                                                                                    return product
+                                                                                                });
+                                                                                        resolve(subVM.dataList);
+                                                                                    }).then((data) => {
+                                                                                        subVM.dataList = data;
+                                                                                        subVM.loading = false;
+                                                                                        gvc.notifyDataChange(subVM.id);
                                                                                     });
-                                                                                },
-                                                                            };
-                                                                        }),
-                                                                    },
-                                                                ],
-                                                                callback: (text) => {
-                                                                    vm.data.content.with_discount = text;
-                                                                },
-                                                            })}
-                                                        `,
+                                                                                }
+                                                                            }
+                                                                        },
+                                                                    };
+                                                                });
+                                                            })()}`,
+                                                        ].join(''),
+                                                        // `<div style="height: 18px;"></div>`,
+                                                        // html`
+                                                        //     ${BgWidget.columnCheckBox({
+                                                        //         gvc: gvc,
+                                                        //         def: vm.data.content.with_discount,
+                                                        //         array: [
+                                                        //             {
+                                                        //                 title: '不套用折扣',
+                                                        //                 value: 'false',
+                                                        //                 innerHtml: ``,
+                                                        //             },
+                                                        //             {
+                                                        //                 title: `套用折扣`,
+                                                        //                 value: 'true',
+                                                        //                 innerHtml: gvc.bindView(() => {
+                                                        //                     const id = gvc.glitter.getUUID();
+                                                        //
+                                                        //                     return {
+                                                        //                         bind: id,
+                                                        //                         view: () => {
+                                                        //                             return new Promise(async (resolve, reject) => {
+                                                        //                                 resolve(
+                                                        //                                     [
+                                                        //                                         BgWidget.hint_title(`請至「優惠促銷」新增折扣，折扣方式必須勾選「供分銷連結使用」`),
+                                                        //                                         BgWidget.select({
+                                                        //                                             gvc: gvc,
+                                                        //                                             callback: (value) => {
+                                                        //                                                 if (value !== 'unselect') {
+                                                        //                                                     vm.data.content.voucher_code = value;
+                                                        //                                                 }
+                                                        //                                                 gvc.notifyDataChange(id);
+                                                        //                                             },
+                                                        //                                             default: vm.data.content.voucher_code,
+                                                        //                                             options: [
+                                                        //                                                 {
+                                                        //                                                     key: 'unselect',
+                                                        //                                                     value: '請選擇優惠券',
+                                                        //                                                 },
+                                                        //                                             ].concat(
+                                                        //                                                 (
+                                                        //                                                     await ApiShop.getVoucher({
+                                                        //                                                         page: 0,
+                                                        //                                                         limit: 20000,
+                                                        //                                                         search: vm.query || undefined,
+                                                        //                                                     })
+                                                        //                                                 ).response.data
+                                                        //                                                     .filter((dd: any) => {
+                                                        //                                                         return dd.content.trigger === 'distribution';
+                                                        //                                                     })
+                                                        //                                                     .map((dd: any) => {
+                                                        //                                                         return {
+                                                        //                                                             value: dd.content.title,
+                                                        //                                                             key: `${dd.id}`,
+                                                        //                                                         };
+                                                        //                                                     })
+                                                        //                                             ),
+                                                        //                                         })
+                                                        //                                     ].join('<div class="my-2"></div>')
+                                                        //                                 );
+                                                        //                             });
+                                                        //                         },
+                                                        //                     };
+                                                        //                 }),
+                                                        //             },
+                                                        //         ],
+                                                        //         callback: (text) => {
+                                                        //             vm.data.content.with_discount = text;
+                                                        //         },
+                                                        //     })}
+                                                        // `,
                                                     ].join('')
                                                 ),
                                             ].join('');
@@ -1577,7 +1260,17 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any, page_tab: 'page' | 'hidden
                         });
                     } else {
                         const href = (() => {
-                            return `https://${(window.parent as any).glitter.share.editorViewModel.domain}/${cf.is_page ? `pages` : `blogs`}/${vm.data.content.tag}`;
+                            return `https://${(window.parent as any).glitter.share.editorViewModel.domain}/${cf.is_page ? (()=>{
+                                switch (page_tab) {
+                                    case 'shopping':
+                                        return 'shop';
+                                    case 'hidden':
+                                        return 'hidden';
+                                    case 'page':
+                                        return 'pages';
+                                }
+                                return  ``
+                            })() : `blogs`}/${vm.data.content.tag}`;
                         })();
                         (window.parent as any).glitter.openNewTab(href);
                     }
@@ -1602,9 +1295,13 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any, page_tab: 'page' | 'hidden
 async function saveData(gvc: GVC, cf: any, vm: any, cVm: any, silence: boolean) {
     if (!vm.data.content.tag) {
         await cf.widget.event('error', {
-            title: '請設定網誌連結',
+            title: '請設定連結',
         });
-    } else {
+    } else if(!vm.data.content.name){
+        await cf.widget.event('error', {
+            title: '請設定名稱',
+        });
+    }else{
         if (!silence) {
             await cf.widget.event('loading', {
                 title: '儲存中...',

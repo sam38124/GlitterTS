@@ -67,6 +67,8 @@ export declare class Shopping {
         order_by?: string;
         id_list?: string;
         with_hide_index?: string;
+        is_manger?: boolean;
+        show_hidden?: string;
     }): Promise<{
         data: any;
         result: boolean;

@@ -130,7 +130,7 @@ async function createAPP(dd) {
             app_name: dd.appName,
             root_path: '/' + encodeURI(dd.appName) + '/',
             seoManager: async (req, resp) => {
-                var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
+                var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l;
                 try {
                     if (req.query.state === 'google_login') {
                         req.query.page = 'login';
@@ -203,6 +203,16 @@ async function createAPP(dd) {
                         else {
                             link_prefix = '';
                         }
+                        let distribution_code = '';
+                        if (req.query.page.split('/')[0] === 'distribution' && req.query.page.split('/')[1]) {
+                            const redURL = new URL(`https://127.0.0.1${req.url}`);
+                            const page = (await database_2.default.query(`SELECT *
+                                   from \`${appName}\`.t_recommend_links where content->>'$.link'=?`, [req.query.page.split('/')[1]]))[0].content;
+                            distribution_code = `
+                            localStorage.setItem('distributionCode','${page.code}');
+                            location.href='${page.redirect}${redURL.search}';
+                            `;
+                        }
                         return `${(() => {
                             var _a;
                             const d = data.page_config.seo;
@@ -271,6 +281,7 @@ async function createAPP(dd) {
                             `;
                         })()}
                         <script>
+                        ${(_k = d.custom_script) !== null && _k !== void 0 ? _k : ''}
 window.appName='${appName}';
 window.glitterBase='${brandAndMemberType.brand}';
 window.memberType='${brandAndMemberType.memberType}';
@@ -280,6 +291,7 @@ window.preloadData=${JSON.stringify(preload)
                             .replace(/<script>/g, 'sdjuescript_prefix')};
 window.preloadData=JSON.parse(JSON.stringify(window.preloadData).replace(/sdjuescript_prepand/g,'</s'+'cript>').replace(/sdjuescript_prefix/g,'<s'+'cript>'))
 window.glitter_page='${req.query.page}';
+${distribution_code}
 </script>
 ${[
                             { src: 'glitterBundle/GlitterInitial.js', type: 'module' },
@@ -292,7 +304,7 @@ ${[
                             return `<script src="/${link_prefix && `${link_prefix}/`}${dd.src}" type="${dd.type}"></script>`;
                         })
                             .join('')}
-${((_k = preload.event) !== null && _k !== void 0 ? _k : [])
+${((_l = preload.event) !== null && _l !== void 0 ? _l : [])
                             .map((dd) => {
                             const link = dd.fun.replace(`TriggerEvent.setEventRouter(import.meta.url, '.`, 'official_event');
                             return link.substring(0, link.length - 2);

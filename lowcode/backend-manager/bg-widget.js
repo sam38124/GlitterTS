@@ -878,16 +878,15 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                     data.response.data.map((item) => {
                                         const { name, tag, page_type } = item.content;
                                         if (name) {
-                                            const tagObj = { name: name, icon: '', link: `/pages/${tag}` };
                                             switch (page_type) {
                                                 case 'page':
-                                                    blockPageList.push(tagObj);
+                                                    blockPageList.push({ name: name, icon: '', link: `/pages/${tag}` });
                                                     break;
                                                 case 'hidden':
-                                                    hiddenPageList.push(tagObj);
+                                                    hiddenPageList.push({ name: name, icon: '', link: `/hidden/${tag}` });
                                                     break;
                                                 case 'shopping':
-                                                    oneStoreList.push(tagObj);
+                                                    oneStoreList.push({ name: name, icon: '', link: `/shop/${tag}` });
                                                     break;
                                             }
                                         }
@@ -932,14 +931,14 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                             {
                                 name: '隱形賣場',
                                 icon: 'fa-sharp fa-regular fa-face-dotted',
-                                link: '/pages',
+                                link: '/hidden',
                                 items: hiddenPageList,
                                 ignoreFirst: true,
                             },
                             {
                                 name: '一頁商店',
                                 icon: 'fa-regular fa-page',
-                                link: '/pages',
+                                link: '/shop',
                                 items: oneStoreList,
                                 ignoreFirst: true,
                             },

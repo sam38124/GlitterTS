@@ -107,8 +107,11 @@ export class Shopping {
         order_by?: string;
         id_list?: string;
         with_hide_index?: string;
+        is_manger?:boolean,
+        show_hidden?:string
     }) {
         try {
+            query.show_hidden=query.show_hidden ?? 'true'
             let querySql = [`(content->>'$.type'='product')`];
             if (query.search) {
                 switch (query.searchType) {
@@ -124,8 +127,12 @@ export class Shopping {
                         break;
                 }
             }
-
             query.id && querySql.push(`id = ${query.id}`);
+            //當非管理員時，檢查是否顯示隱形商品
+            if(!query.is_manger && (`${query.show_hidden}` !== 'true')){
+
+                querySql.push(`(content->>'$.visible' is null || content->>'$.visible' = 'true')`)
+            }
             //如是連結帶入則轉換成Title
             if (query.collection) {
                 const collection_cf = (
@@ -176,7 +183,7 @@ export class Shopping {
             if (!query.id && query.status === 'active' && query.with_hide_index !== 'true') {
                 querySql.push(`((content->>'$.hideIndex' is NULL) || (content->>'$.hideIndex'='false'))`);
             }
-            query.id_list && querySql.push(`(content->>'$.id' in (${query.id_list}))`);
+            query.id_list && querySql.push(`(id in (${query.id_list}))`);
             query.status && querySql.push(`(JSON_EXTRACT(content, '$.status') = '${query.status}')`);
             query.min_price && querySql.push(`(id in (select product_id from \`${this.app}\`.t_variants where content->>'$.sale_price'>=${query.min_price})) `);
             query.max_price && querySql.push(`(id in (select product_id from \`${this.app}\`.t_variants where content->>'$.sale_price'<=${query.max_price})) `);

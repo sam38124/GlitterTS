@@ -1991,6 +1991,7 @@ export class ShoppingProductSetting {
                 addProduct: boolean;
                 giveaway: boolean;
             };
+            visible:'true' | 'false';
             content: string;
             preview_image: string[];
             hideIndex: string;
@@ -2012,6 +2013,7 @@ export class ShoppingProductSetting {
                 giveaway: false,
             },
             content: '',
+            visible:"true",
             status: 'active',
             collection: [],
             hideIndex: 'false',
@@ -3711,6 +3713,24 @@ ${postMD.seo.content ?? ''}</textarea
                                                         })
                                                 ),
                                                 BgWidget.mainCard(
+                                                        html` <div style="font-weight: 700;" class="mb-2">商品顯示</div>` +
+                                                      BgWidget.hint_title('當商品設定為隱藏時，僅能顯示於隱形賣場與一頁商店當中。')+
+                                                        `<div class="my-2"></div>`+
+                                                        EditorElem.select({
+                                                            gvc: obj.gvc,
+                                                            title: '',
+                                                            def: postMD.visible || 'true',
+                                                            array: [
+                                                                { title: '顯示', value: 'true' },
+                                                                { title: '隱藏', value: 'false' },
+                                                            ],
+                                                            callback: (text: any) => {
+                                                                postMD.visible = text;
+                                                            },
+                                                        })
+                                                ),
+                                                BgWidget.mainCard(
+                                                        html` <div style="font-weight: 700;" class="mb-2">商品類型</div>` +
                                                     gvc.bindView({
                                                         bind: 'productType',
                                                         view: () => {

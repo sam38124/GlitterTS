@@ -22,16 +22,23 @@ export class RenderValue {
             let style_string = '';
             if (widget.data._layout === 'grid') {
                 (style_string += `display: grid; gap: ${(isNaN(widget.data._gap_x)) ? widget.data._gap_x : `${widget.data._gap_x}px`} ${(isNaN(widget.data._gap_y)) ? widget.data._gap_y : `${widget.data._gap_y}px`}; 
-            grid-template-columns: repeat(${widget.data._x_count}, 1fr); grid-template-rows: repeat(${widget.data._y_count}, 1fr);`);
-                style_string+=`grid-template-columns: ${(()=>{
-                    let view=[]
-                    for(let a=0;a<parseInt(widget.data._x_count,10);a++){
-                        view.push(`calc((100% / ${parseInt(widget.data._x_count,10)}) - ((${(isNaN(widget.data._gap_y)) ? widget.data._gap_y : `${widget.data._gap_y}px`})*${((parseInt(widget.data._x_count,10)-1) / (parseInt(widget.data._x_count,10))).toFixed(1)}))`)
-                    }
-                    return view.join(' ')
-                })()} 0px;`
+             grid-template-rows: repeat(${widget.data._y_count}, 1fr);`);
+                if(widget.data._x_count>1){
+                    style_string+=`grid-template-columns: ${(()=>{
+                        let view=[]
+                        for(let a=0;a<parseInt(widget.data._x_count,10);a++){
+                            view.push(`calc((100% / ${parseInt(widget.data._x_count,10)}) - ((${(isNaN(widget.data._gap_y)) ? widget.data._gap_y : `${widget.data._gap_y}px`})*${((parseInt(widget.data._x_count,10)-1) / (parseInt(widget.data._x_count,10))).toFixed(1)}))`)
+                        }
+                        return view.join(' ')
+                    })()} 0px;`
+                }else{
+                    style_string+=`grid-template-columns:100%;`
+                }
+
             }else   if (widget.data._layout === 'vertical') {
                 style_string += css`display:flex;flex-direction: column;justify-content: ${widget.data._ver_position || 'center'};`
+            }else if(widget.type==='container'){
+                return  ``
             }
             if (widget.data && widget.data._style_refer === 'global' && widget.data._style_refer_global) {
                 const globalValue = gvc.glitter.share.global_container_theme[parseInt(widget.data._style_refer_global.index, 10)]

@@ -538,6 +538,10 @@ export class AddComponent {
                                                                 title:'基礎設計元件',
                                                                 value:'basic'
                                                             },{
+                                                                title:'包裝容器元件',
+                                                                value:'container'
+                                                            },
+                                                                {
                                                                 title:'商品顯示元件',
                                                                 value:'product_show'
                                                             },{
@@ -570,24 +574,24 @@ export class AddComponent {
                                                                                 
                                                                                 array.push(AddComponent.getComponentDetail({
                                                                                     data:data.response.result.data.concat((()=>{
-                                                                                        if(d1.value==='basic'){
+                                                                                        if(d1.value==='container'){
                                                                                             return  [
                                                                                                 {
                                                                                                     template_config: {
                                                                                                         image: ['https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/Screenshot 2024-08-12 at 2.11.09 PM.jpg'],
-                                                                                                        tag: ['基本元件'],
+                                                                                                        tag: [],
                                                                                                         name: '網格容器',
                                                                                                     },
-                                                                                                    type:'',
+                                                                                                    type:'容器',
                                                                                                     name: '網格容器',
                                                                                                 },
                                                                                                 {
                                                                                                     template_config: {
                                                                                                         image: ['https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_Screenshot2024-08-16at5.04.35 PM.jpg'],
-                                                                                                        tag: ['基本元件'],
+                                                                                                        tag: [],
                                                                                                         name: '垂直排版',
                                                                                                     },
-                                                                                                    type:'',
+                                                                                                    type:'容器',
                                                                                                     name: '垂直排版',
                                                                                                 },
                                                                                             ]
@@ -607,6 +611,8 @@ export class AddComponent {
                                                                                             return (dd.template_config.tag ?? []).find((dd: any) => {
                                                                                                 return dd === '商品元件';
                                                                                             });
+                                                                                        }else if(d1.value==='container'){
+                                                                                            return  dd.type==='容器'
                                                                                         }
                                                                                     }),
                                                                                     gvc:gvc,

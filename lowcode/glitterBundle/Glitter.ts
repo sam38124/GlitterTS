@@ -125,7 +125,11 @@ export class Glitter {
     public goBack = PageManager.goBack
     public goMenu = PageManager.goMenu
     public addChangePageListener = PageManager.addChangePageListener
-
+    public recreateView=(selector:string)=>{
+        for (const a of document.querySelectorAll(`${selector}`)){
+            (a as any).recreateView()
+        }
+    }
     public promiseValue(fun: Promise<any> | string) {
         const index = Object.keys(this.promiseValueMap).length + 1
         this.promiseValueMap[`${index}`] = fun

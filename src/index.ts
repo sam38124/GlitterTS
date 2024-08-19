@@ -128,6 +128,7 @@ export async function createAPP(dd: any) {
                     }
                     //SAAS品牌和用戶類型
                     const brandAndMemberType = await App.checkBrandAndMemberType(appName);
+
                     let data = await Seo.getPageInfo(appName, req.query.page as string);
                     let customCode = await new User(appName).getConfigV2({
                         key: 'ga4_config',
@@ -187,10 +188,21 @@ export async function createAPP(dd: any) {
                         } else {
                             link_prefix = '';
                         }
+                        let distribution_code=''
+                        if ((req.query.page as string).split('/')[0] === 'distribution' && (req.query.page as string).split('/')[1]) {
+                            const redURL=new URL(`https://127.0.0.1${req.url}`)
+                            const page=(await db.query(`SELECT *
+                                   from \`${appName}\`.t_recommend_links where content->>'$.link'=?`, [(req.query.page as string).split('/')[1]]))[0].content;
+                            distribution_code=`
+                            localStorage.setItem('distributionCode','${page.code}');
+                            location.href='${page.redirect}${redURL.search}';
+                            `
+
+                        }
+
 
                         return `${(() => {
                             const d = data.page_config.seo;
-
                             return html`
                                 <head>
                                     ${(() => {
@@ -253,6 +265,7 @@ export async function createAPP(dd: any) {
                             `;
                         })()}
                         <script>
+                        ${d.custom_script ?? ''}
 window.appName='${appName}';
 window.glitterBase='${brandAndMemberType.brand}';
 window.memberType='${brandAndMemberType.memberType}';
@@ -262,6 +275,7 @@ window.preloadData=${JSON.stringify(preload)
                             .replace(/<script>/g, 'sdjuescript_prefix')};
 window.preloadData=JSON.parse(JSON.stringify(window.preloadData).replace(/sdjuescript_prepand/g,'</s'+'cript>').replace(/sdjuescript_prefix/g,'<s'+'cript>'))
 window.glitter_page='${req.query.page}';
+${distribution_code}
 </script>
 ${[
     { src: 'glitterBundle/GlitterInitial.js', type: 'module' },

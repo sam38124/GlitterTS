@@ -25,7 +25,9 @@ class Shopping {
         this.token = token;
     }
     async getProduct(query) {
+        var _a;
         try {
+            query.show_hidden = (_a = query.show_hidden) !== null && _a !== void 0 ? _a : 'true';
             let querySql = [`(content->>'$.type'='product')`];
             if (query.search) {
                 switch (query.searchType) {
@@ -42,6 +44,9 @@ class Shopping {
                 }
             }
             query.id && querySql.push(`id = ${query.id}`);
+            if (!query.is_manger && (`${query.show_hidden}` !== 'true')) {
+                querySql.push(`(content->>'$.visible' is null || content->>'$.visible' = 'true')`);
+            }
             if (query.collection) {
                 const collection_cf = (await database_js_1.default.query(`SELECT *
                                                        FROM \`${this.app}\`.public_config
@@ -85,7 +90,7 @@ class Shopping {
             if (!query.id && query.status === 'active' && query.with_hide_index !== 'true') {
                 querySql.push(`((content->>'$.hideIndex' is NULL) || (content->>'$.hideIndex'='false'))`);
             }
-            query.id_list && querySql.push(`(content->>'$.id' in (${query.id_list}))`);
+            query.id_list && querySql.push(`(id in (${query.id_list}))`);
             query.status && querySql.push(`(JSON_EXTRACT(content, '$.status') = '${query.status}')`);
             query.min_price && querySql.push(`(id in (select product_id from \`${this.app}\`.t_variants where content->>'$.sale_price'>=${query.min_price})) `);
             query.max_price && querySql.push(`(id in (select product_id from \`${this.app}\`.t_variants where content->>'$.sale_price'<=${query.max_price})) `);

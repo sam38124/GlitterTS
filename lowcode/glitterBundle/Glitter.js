@@ -68,6 +68,11 @@ export class Glitter {
         this.goBack = PageManager.goBack;
         this.goMenu = PageManager.goMenu;
         this.addChangePageListener = PageManager.addChangePageListener;
+        this.recreateView = (selector) => {
+            for (const a of document.querySelectorAll(`${selector}`)) {
+                a.recreateView();
+            }
+        };
         this.ut = {
             glitter: this,
             queue: {},

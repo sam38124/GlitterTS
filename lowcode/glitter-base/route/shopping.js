@@ -154,13 +154,16 @@ export class ApiShop {
                     json.id_list && par.push(`id_list=${json.id_list}`);
                     json.with_hide_index && par.push(`with_hide_index=${json.with_hide_index}`);
                     json.searchType && par.push(`searchType=${json.searchType}`);
+                    if (location.pathname.includes('/hidden/') || location.pathname.includes('/shop/')) {
+                        par.push(`show_hidden=true`);
+                    }
                     return par.join('&');
                 })()}`,
             type: 'GET',
             headers: {
                 'Content-Type': 'application/json',
                 'g-app': encodeURIComponent(getConfig().config.appName),
-                Authorization: GlobalUser.token,
+                Authorization: (window.parent.glitter.getUrlParameter('type') === 'editor' && getConfig().config.token) || GlobalUser.token,
             },
         });
     }
@@ -649,3 +652,9 @@ function getConfig() {
 function getBaseUrl() {
     return getConfig().config.url;
 }
+const interVal = setInterval(() => {
+    if (window.glitter) {
+        clearInterval(interVal);
+        window.glitter.share.ApiShop = ApiShop;
+    }
+}, 100);
