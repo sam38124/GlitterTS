@@ -7,6 +7,7 @@ import {BaseApi} from "../../glitterBundle/api/base.js";
 import {GlobalWidget} from "../../glitterBundle/html-component/global-widget.js";
 import {NormalPageEditor} from "../../editor/normal-page-editor.js";
 import {RenderValue} from "../../glitterBundle/html-component/render-value.js";
+import {EditorElem} from "../../glitterBundle/plugins/editor-elem";
 
 
 export const component = Plugin.createComponent(import.meta.url, (glitter: Glitter, editMode: boolean) => {
@@ -171,7 +172,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                 createOption.childContainer = true
                                                 createOption.class += ` ${(glitter.htmlGenerate.isEditMode()) ? `${page_request_config.appName}_${page_request_config.tag} ${widget.id}` : ``}`;
                                                 createOption.style = createOption.style ?? ''
-                                                createOption.style += RenderValue.custom_style.container_style(gvc,widget);
+                                                createOption.style += RenderValue.custom_style.container_style(gvc, widget);
                                                 createOption.style += (() => {
                                                     if (gvc.glitter.document.body.clientWidth < 800 && (widget as any).mobile && (widget as any).mobile.refer === 'custom' && (widget as any)[`mobile_editable`].find((d1: any) => {
                                                         return d1 === '_container_margin'
@@ -186,14 +187,14 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                         return RenderValue.custom_style.value(gvc, (widget as any))
                                                     }
                                                 })();
-                                                const fonts_index= (()=>{
-                                                    if(!glitter.share.font_theme[parseInt(widget.container_fonts,10)]){
-                                                        widget.container_fonts=0
+                                                const fonts_index = (() => {
+                                                    if (!glitter.share.font_theme[parseInt(widget.container_fonts, 10)]) {
+                                                        widget.container_fonts = 0
                                                     }
-                                                    return parseInt(widget.container_fonts,10)
+                                                    return parseInt(widget.container_fonts, 10)
                                                 })()
-                                                if(glitter.share.font_theme[fonts_index]){
-                                                    createOption.style+=` font-family: '${glitter.share.font_theme[fonts_index].value}' !important;`
+                                                if (glitter.share.font_theme[fonts_index]) {
+                                                    createOption.style += ` font-family: '${glitter.share.font_theme[fonts_index].value}' !important;`
                                                 }
                                                 return createOption
                                             }
@@ -271,10 +272,11 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                         })
                     })
                     const CustomStyle: any = await new Promise((resolve, reject) => {
-                        gvc.glitter.getModule(new URL(gvc.glitter.root_path+'glitterBundle/html-component/custom-style.js', import.meta.url).href, (clas) => {
+                        gvc.glitter.getModule(new URL(gvc.glitter.root_path + 'glitterBundle/html-component/custom-style.js', import.meta.url).href, (clas) => {
                             resolve(clas)
                         })
                     })
+
                     function devEditorView() {
                         const id = glitter.getUUID()
                         const data: any = {
@@ -481,6 +483,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                             }
                         })
                     }
+
                     function userEditorView() {
                         const saasConfig = (window as any).saasConfig
                         let data = {
@@ -498,7 +501,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                             }
 
                             BaseApi.create({
-                                "url": saasConfig.config.url + `/api/v1/template?appName=${widget.data.refer_app || saasConfig.config.appName}`,
+                                "url": saasConfig.config.url + `/api/v1/template?appName=${widget.data.refer_app || saasConfig.config.appName}&tag=${widget.data.tag}`,
                                 "type": "GET",
                                 "timeout": 0,
                                 "headers": {
@@ -600,6 +603,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                                 const oWidget = widget
                                                                 initialReferData(widget)
                                                                 const page_config = pageData.page_config;
+
                                                                 function getReferForm(widget: any, type: string) {
                                                                     if ((widget.data.refer_app)) {
                                                                         widget.data.refer_form_data = widget.data.refer_form_data || (oWidget.data.refer_form_data && JSON.parse(JSON.stringify(oWidget.data.refer_form_data))) || JSON.parse(JSON.stringify(page_config.formData))
@@ -667,19 +671,72 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                                                             switch (vm.page) {
                                                                                                 case "editor":
                                                                                                     return html`
-                                                                                                        <div
-                                                                                                                class="px-3   border-bottom pb-3 fw-bold mt-n3 mb-2 pt-3 hoverF2 d-flex align-items-center"
-                                                                                                                style="cursor: pointer;color:#393939;border-radius: 0px;gap:10px;"
-                                                                                                                onclick="${gvc.event(() => {
-                                                                                                                    Storage.lastSelect = '';
-                                                                                                                    gvc.glitter.share.editorViewModel.selectItem = undefined;
-                                                                                                                    gvc.glitter.share.selectEditorItem();
-                                                                                                                })}"
-                                                                                                        >
-                                                                                                            <i class="fa-solid fa-chevron-left"></i>
-                                                                                                            <span style="max-width: calc(100% - 50px);text-overflow: ellipsis;white-space: nowrap;overflow: hidden;">${widget.label}</span>
-                                                                                                            <div class="flex-fill"></div>
-                                                                                                        </div>
+                                                                                                        ${gvc.bindView(() => {
+                                                                                                            const vm: {
+                                                                                                                id: string,
+                                                                                                                type: 'editor' | 'preview'
+                                                                                                            } = {
+                                                                                                                id: gvc.glitter.getUUID(),
+                                                                                                                type: 'preview'
+                                                                                                            }
+                                                                                                            return {
+                                                                                                                bind: vm.id,
+                                                                                                                view: () => {
+                                                                                                                    if (vm.type === 'preview') {
+                                                                                                                        return html`
+                                                                                                                            <i class="fa-solid fa-chevron-left h-100 d-flex align-items-center justify-content-center "
+                                                                                                                               onclick="${gvc.event(() => {
+                                                                                                                                   Storage.lastSelect = '';
+                                                                                                                                   gvc.glitter.share.editorViewModel.selectItem = undefined;
+                                                                                                                                   gvc.glitter.share.selectEditorItem();
+                                                                                                                               })}"></i>
+                                                                                                                            <span style="max-width: calc(100% - 50px);text-overflow: ellipsis;white-space: nowrap;overflow: hidden;">${widget.label}</span>
+                                                                                                                            <div class="flex-fill"></div>
+                                                                                                                            <button class="btn sel_normal"
+                                                                                                                                    type="button"
+                                                                                                                                    onclick="${gvc.event(() => {
+                                                                                                                                        vm.type = 'editor'
+                                                                                                                                        gvc.notifyDataChange(vm.id)
+                                                                                                                                    })}">
+                                                                                                                                <span style="font-size: 14px; color: #393939; font-weight: 400;">更改命名</span>
+                                                                                                                            </button>`
+                                                                                                                    } else {
+                                                                                                                        let name = widget.label
+                                                                                                                        return html`
+                                                                                                                            <i class="fa-solid fa-xmark h-100 d-flex align-items-center justify-content-center "
+                                                                                                                               onclick="${gvc.event(() => {
+                                                                                                                                   vm.type = 'preview';
+                                                                                                                                   gvc.notifyDataChange(vm.id)
+                                                                                                                               })}"></i>
+                                                                                                                            ${
+                                                                                                                                    EditorElem.editeInput({
+                                                                                                                                        gvc: gvc,
+                                                                                                                                        title: '',
+                                                                                                                                        default: name,
+                                                                                                                                        placeHolder: '請輸入自定義名稱',
+                                                                                                                                        callback: (text: any) => {
+                                                                                                                                            name = text;
+                                                                                                                                        },
+                                                                                                                                    })
+                                                                                                                            }
+                                                                                                                            <button class="btn sel_normal"
+                                                                                                                                    type="button"
+                                                                                                                                    onclick="${gvc.event(() => {
+                                                                                                                                        vm.type = 'preview';
+                                                                                                                                        widget.label = name;
+                                                                                                                                        gvc.notifyDataChange(vm.id)
+                                                                                                                                    })}">
+                                                                                                                                <span style="font-size: 14px; color: #393939; font-weight: 400;">確認</span>
+                                                                                                                            </button>`
+                                                                                                                    }
+
+                                                                                                                },
+                                                                                                                divCreate: {
+                                                                                                                    class: `px-3   border-bottom pb-3 fw-bold mt-n3 mb-2 pt-3 hoverF2 d-flex align-items-center`,
+                                                                                                                    style: `cursor: pointer;color:#393939;border-radius: 0px;gap:10px;`
+                                                                                                                }
+                                                                                                            }
+                                                                                                        })}
                                                                                                         <div class="ps-2">
                                                                                                             ${GlobalWidget.showCaseBar(gvc, widget, () => {
                                                                                                                 vm.page = 'editor'
@@ -856,9 +913,9 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                                                                                                 return d1 === '_container_background'
                                                                                                                             }).length)
                                                                                                                         case 'fonts':
-                                                                                                                           return (type === 'def' || oWidget[`${type}_editable`].filter((d1: any) => {
-                                                                                                                            return d1 === '_container_fonts'
-                                                                                                                        }).length)
+                                                                                                                            return (type === 'def' || oWidget[`${type}_editable`].filter((d1: any) => {
+                                                                                                                                return d1 === '_container_fonts'
+                                                                                                                            }).length)
                                                                                                                         case 'margin':
                                                                                                                         case 'develop':
                                                                                                                             return (type === 'def' || oWidget[`${type}_editable`].filter((d1: any) => {
@@ -892,14 +949,14 @@ justify-content: center; align-items: center; gap: 8px; display: inline-flex;cur
                                                                                                                                                                  }).concat([{
                                                                                                                                                                      key: '_container_margin',
                                                                                                                                                                      name: '容器間距'
-                                                                                                                                                                 },{
+                                                                                                                                                                 }, {
                                                                                                                                                                      key: '_container_fonts',
                                                                                                                                                                      name: '字型設定'
-                                                                                                                                                                 },{
+                                                                                                                                                                 }, {
                                                                                                                                                                      key: '_container_background',
                                                                                                                                                                      name: '背景設定'
                                                                                                                                                                  },
-                                                                                                                                                                     ]),
+                                                                                                                                                                 ]),
                                                                                                                                                                  oWidget[`${type}_editable`] || [],
                                                                                                                                                                  (select: any) => {
                                                                                                                                                                      oWidget[`${type}_editable`] = select
@@ -1010,43 +1067,43 @@ font-weight: 700;" onclick="${gvc.event(() => {
                                                                                                                                                         EditorElem.select({
                                                                                                                                                             title: '',
                                                                                                                                                             gvc: gvc,
-                                                                                                                                                            def: (()=>{
-                                                                                                                                                                if(!glitter.share.editorViewModel.appConfig.font_theme[parseInt(widget.container_fonts,10)]){
-                                                                                                                                                                    widget.container_fonts=`0`
+                                                                                                                                                            def: (() => {
+                                                                                                                                                                if (!glitter.share.editorViewModel.appConfig.font_theme[parseInt(widget.container_fonts, 10)]) {
+                                                                                                                                                                    widget.container_fonts = `0`
                                                                                                                                                                 }
                                                                                                                                                                 return widget.container_fonts
                                                                                                                                                             })(),
-                                                                                                                                                            callback: (text:any) => {
+                                                                                                                                                            callback: (text: any) => {
                                                                                                                                                                 widget.container_fonts = text
-                                                                                                                                                                refresh(widget,type)
+                                                                                                                                                                refresh(widget, type)
                                                                                                                                                             },
-                                                                                                                                                            array: glitter.share.editorViewModel.appConfig.font_theme.map((dd:any,index:number)=>{
+                                                                                                                                                            array: glitter.share.editorViewModel.appConfig.font_theme.map((dd: any, index: number) => {
                                                                                                                                                                 return {
-                                                                                                                                                                    title:dd.title,
-                                                                                                                                                                    value:`${index}`
+                                                                                                                                                                    title: dd.title,
+                                                                                                                                                                    value: `${index}`
                                                                                                                                                                 }
                                                                                                                                                             }),
                                                                                                                                                         })
                                                                                                                                                     }
   <div class="bt_border_editor mt-2"
-                                                 onclick="${gvc.event((e,event) => {
+                                                 onclick="${gvc.event((e, event) => {
                                                                                                                                                         gvc.glitter.getModule(`${gvc.glitter.root_path}/setting/fonts-config.js`, (FontsConfig) => {
-                                                                                                                                                            NormalPageEditor.closeEvent=()=>{
+                                                                                                                                                            NormalPageEditor.closeEvent = () => {
                                                                                                                                                                 gvc.notifyDataChange(vm_c.id)
-                                                                                                                                                                refresh(widget,type)
+                                                                                                                                                                refresh(widget, type)
                                                                                                                                                             }
                                                                                                                                                             NormalPageEditor.toggle({
                                                                                                                                                                 visible: true,
-                                                                                                                                                                view: FontsConfig.fontsSettingView(gvc,glitter.share.editorViewModel.appConfig,true),
+                                                                                                                                                                view: FontsConfig.fontsSettingView(gvc, glitter.share.editorViewModel.appConfig, true),
                                                                                                                                                                 title: '管理全站字型'
                                                                                                                                                             })
                                                                                                                                                         })
-                                                                                                                                                       
+
                                                                                                                                                     })}">
                                                 管理全站字型
                                             </div>
 </div>`)
-                                                                                                                                                break
+                                                                                                                                                    break
                                                                                                                                                 case 'margin':
                                                                                                                                                     array_string.push(`<div class="px-3 pb-2">${CustomStyle.editorMargin(gvc, widget, () => {
                                                                                                                                                         refresh(widget, type)
@@ -1129,9 +1186,9 @@ font-weight: 700;" onclick="${gvc.event(() => {
                                                                             tag: dd.data.tag,
                                                                             appName: dd.data.refer_app
                                                                         } : dd.data.tag);
-                                                                        if(!pageData.template_config || !pageData.template_config.tag || (!pageData.template_config.tag.find((dd:any)=>{
-                                                                            return dd==="商品卡片"
-                                                                        }))){
+                                                                        if (!pageData.template_config || !pageData.template_config.tag || (!pageData.template_config.tag.find((dd: any) => {
+                                                                            return dd === "商品卡片"
+                                                                        }))) {
                                                                             appendHtml(pageData, dd, false, (dd.data.refer_app) ? id : pageData.id, parent_config);
                                                                             if (!dd.data.refer_app) {
                                                                                 pageData.config.tag = pageData.tag;
@@ -1176,6 +1233,7 @@ font-weight: 700;" onclick="${gvc.event(() => {
                             }
                         })
                     }
+
                     return [
                         gvc.bindView(() => {
                             const id = gvc.glitter.getUUID()

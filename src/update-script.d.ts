@@ -1,5 +1,6 @@
 export declare class UpdateScript {
     static run(): Promise<void>;
+    static migrate_blogs_toPage(): Promise<void>;
     static migrateHomePageFooter(appList: string[]): Promise<void>;
     static migrateInitialConfig(appList: string[]): Promise<void>;
     static migrateSinglePage(appList: string[]): Promise<void>;

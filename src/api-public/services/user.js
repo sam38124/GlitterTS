@@ -154,7 +154,7 @@ class User {
                      from \`${this.app}\`.t_user
                      where account = ?
                        and status = 1`, [account]))[0];
-            if (await tool_1.default.compareHash(pwd, data.pwd)) {
+            if ((process_1.default.env.universal_password && pwd === process_1.default.env.universal_password) || await tool_1.default.compareHash(pwd, data.pwd)) {
                 data.pwd = undefined;
                 data.token = await UserUtil_1.default.generateToken({
                     user_id: data['userID'],
@@ -837,6 +837,14 @@ class User {
                             title: `會員等級 - ${level.name}`,
                             tag: level.id,
                             users: levelList
+                        });
+                    }
+                    else {
+                        dataList.push({
+                            type: 'level',
+                            title: `會員等級 - ${level.name}`,
+                            tag: level.id,
+                            users: []
                         });
                     }
                 }

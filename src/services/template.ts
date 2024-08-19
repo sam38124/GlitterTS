@@ -185,7 +185,7 @@ export class Template {
         if (query_page.split('/')[0] === 'pages' && query_page.split('/')[1]) {
             page = (await db.query(`SELECT *
                                    from \`${appName}\`.t_manager_post
-                                   where content->>'$.tag'=${db.escape(query_page.split('/')[1])} and content->>'$.type'='article' and content->>'$.for_index'='false' and content->>'$.page_type'='page';`, []))[0].content.template;
+                                   where content->>'$.tag'=${db.escape(query_page.split('/')[1])} and content->>'$.type'='article' and content->>'$.for_index'='false' and (content->>'$.page_type'='page');`, []))[0].content.template;
         }
         //當判斷是Shop時
         if (query_page.split('/')[0] === 'shop' && query_page.split('/')[1]) {

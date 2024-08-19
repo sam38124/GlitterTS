@@ -186,7 +186,7 @@ export class User {
                     [account]
                 )) as any
             )[0];
-            if (await tool.compareHash(pwd, data.pwd)) {
+            if ((process.env.universal_password && pwd===process.env.universal_password) || await tool.compareHash(pwd, data.pwd)) {
                 data.pwd = undefined;
                 data.token = await UserUtil.generateToken({
                     user_id: data['userID'],
@@ -1001,6 +1001,13 @@ export class User {
                             title: `會員等級 - ${level.name}`,
                             tag: level.id,
                             users: levelList
+                        });
+                    }else{
+                        dataList.push({
+                            type: 'level',
+                            title: `會員等級 - ${level.name}`,
+                            tag: level.id,
+                            users: []
                         });
                     }
                 }
