@@ -414,7 +414,7 @@ router.put('/returnOrder', async (req: express.Request, resp: express.Response) 
             return response.succ(
                 resp,
                 await new Shopping(req.get('g-app') as string, req.body.token).putReturnOrder({
-                    id: req.body.data.id,
+                    id: req.body.id,
                     orderData: req.body.data,
                     status: req.body.status || '0',
                 })

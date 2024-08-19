@@ -301,11 +301,10 @@ export class Rebate {
         const nowTime = Rebate.nowTime();
         const updateSQL = `UPDATE \`${this.app}\`.t_rebate_point SET remain = ?, updated_at = ? WHERE id = ?`;
         try {
+            let minus = -originMinus;
+            do {
             const oldest = await this.getOldestRebate(user_id);
             if (oldest?.data) {
-                let n = 0;
-                let minus = -originMinus;
-                do {
                     const { id, remain } = oldest?.data;
                     if (id && remain !== undefined) {
                         if (remain - minus > 0) {
@@ -315,11 +314,12 @@ export class Rebate {
                             await db.execute(updateSQL, [0, nowTime, id]);
                             minus = minus - remain;
                         }
-                        n++;
                     }
-                } while (minus > 0);
+            }else{
+                return false
             }
-            return;
+            } while (minus > 0);
+            return true;
         } catch (error) {
             console.error(error);
             if (error instanceof Error) {

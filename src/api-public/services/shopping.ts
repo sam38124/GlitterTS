@@ -1078,13 +1078,22 @@ export class Shopping {
     }
 
     public async putReturnOrder(data: { id: string; orderData: any; status: any }) {
+        let origData = await db.execute(`SELECT *
+                       FROM \`${this.app}\`.t_return_order
+                       WHERE id = ${data.id}`,[]);
+        origData = origData[0]
+        // console.log("origData -- " , origData)
         // 當退貨單都結束後，要做的購物金 優惠金和庫存處理
-        if (data.orderData.returnProgress == -1 && data.status == 1) {
+        if (origData.status != "1" && origData.orderData.returnProgress != "-1" && data.orderData.returnProgress == "-1" && data.status == "1") {
             const userClass = new User(this.app);
             const rebateClass = new Rebate(this.app);
-            const userData = await userClass.getUserData(data.orderData.customer_info.account, 'account');
-
+            const userData = await userClass.getUserData(data.orderData.customer_info.email, 'account');
+            console.log("fin --- ")
+            console.log(await rebateClass.insertRebate(userData.userID, data.orderData.rebateChange, `退貨單調整-退貨單號${origData.return_order_id}`))
         }
+
+
+
         try {
             await db.query(
                 `UPDATE \`${this.app}\`.\`t_return_order\`
@@ -1414,14 +1423,11 @@ export class Shopping {
                 if (origin[0].orderData.progress !== 'arrived' && updateProgress === 'arrived') {
                     await AutoSendEmail.customerOrder(this.app, 'auto-email-shipment-arrival', data.orderData.orderID, data.orderData.email);
                 }
-
+                console.log("origin[0] && update.status" , origin[0].status , update.status)
                 // 訂單已付款信件通知（管理員, 消費者）
                 if (origin[0].status === 0 && update.status === 1) {
-                    new ManagerNotify(this.app).checkout({
-                        orderData: JSON.parse(update.orderData),
-                        status: 1,
-                    });
-                    await AutoSendEmail.customerOrder(this.app, 'auto-email-payment-successful', data.orderData.orderID, data.orderData.email);
+
+                    await this.releaseCheckout(1, data.orderData.orderID);
                 }
             }
 

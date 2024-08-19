@@ -378,7 +378,7 @@ router.put('/returnOrder', async (req, resp) => {
     try {
         if (await ut_permission_1.UtPermission.isManager(req)) {
             return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).putReturnOrder({
-                id: req.body.data.id,
+                id: req.body.id,
                 orderData: req.body.data,
                 status: req.body.status || '0',
             }));

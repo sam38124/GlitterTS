@@ -237,11 +237,10 @@ class Rebate {
         const nowTime = Rebate.nowTime();
         const updateSQL = `UPDATE \`${this.app}\`.t_rebate_point SET remain = ?, updated_at = ? WHERE id = ?`;
         try {
-            const oldest = await this.getOldestRebate(user_id);
-            if (oldest === null || oldest === void 0 ? void 0 : oldest.data) {
-                let n = 0;
-                let minus = -originMinus;
-                do {
+            let minus = -originMinus;
+            do {
+                const oldest = await this.getOldestRebate(user_id);
+                if (oldest === null || oldest === void 0 ? void 0 : oldest.data) {
                     const { id, remain } = oldest === null || oldest === void 0 ? void 0 : oldest.data;
                     if (id && remain !== undefined) {
                         if (remain - minus > 0) {
@@ -252,11 +251,13 @@ class Rebate {
                             await database_1.default.execute(updateSQL, [0, nowTime, id]);
                             minus = minus - remain;
                         }
-                        n++;
                     }
-                } while (minus > 0);
-            }
-            return;
+                }
+                else {
+                    return false;
+                }
+            } while (minus > 0);
+            return true;
         }
         catch (error) {
             console.error(error);

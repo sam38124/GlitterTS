@@ -14,7 +14,7 @@ export class ApiUser {
     constructor() { }
     static register(json) {
         return BaseApi.create({
-            url: getBaseUrl() + `/api-public/v1/user/manager/register`,
+            url: getBaseUrl() + `/api-public/v1/user/register`,
             type: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -25,7 +25,7 @@ export class ApiUser {
     }
     static quickRegister(json) {
         return BaseApi.create({
-            url: getBaseUrl() + `/api-public/v1/user/register`,
+            url: getBaseUrl() + `/api-public/v1/user/manager/register`,
             type: 'POST',
             headers: {
                 'Content-Type': 'application/json',

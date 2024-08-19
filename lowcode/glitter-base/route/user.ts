@@ -7,7 +7,7 @@ export class ApiUser {
 
     public static register(json: { account: string; pwd: string; userData: any }) {
         return BaseApi.create({
-            url: getBaseUrl() + `/api-public/v1/user/manager/register`,
+            url: getBaseUrl() + `/api-public/v1/user/register`,
             type: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -19,7 +19,7 @@ export class ApiUser {
 
     public static quickRegister(json: { account: string; pwd: string; userData: any }) {
         return BaseApi.create({
-            url: getBaseUrl() + `/api-public/v1/user/register`,
+            url: getBaseUrl() + `/api-public/v1/user/manager/register`,
             type: 'POST',
             headers: {
                 'Content-Type': 'application/json',
