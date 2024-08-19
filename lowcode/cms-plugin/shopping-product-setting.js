@@ -1737,6 +1737,7 @@ export class ShoppingProductSetting {
                     giveaway: false,
                 },
                 content: '',
+                visible: "true",
                 status: 'active',
                 collection: [],
                 hideIndex: 'false',
@@ -3319,38 +3320,54 @@ ${(_c = postMD.seo.content) !== null && _c !== void 0 ? _c : ''}</textarea
                                             postMD.status = text;
                                         },
                                     })),
-                                BgWidget.mainCard(gvc.bindView({
-                                    bind: 'productType',
-                                    view: () => {
-                                        var _a;
-                                        postMD.productType = (_a = postMD.productType) !== null && _a !== void 0 ? _a : {
-                                            product: true,
-                                            addProduct: false,
-                                            giveaway: false,
-                                        };
-                                        return ['product', 'addProduct', 'giveaway']
-                                            .map((dd, index) => {
-                                            return html ` <div
+                                BgWidget.mainCard(html ` <div style="font-weight: 700;" class="mb-2">商品顯示</div>` +
+                                    BgWidget.hint_title('當商品設定為隱藏時，僅能顯示於隱形賣場與一頁商店當中。') +
+                                    `<div class="my-2"></div>` +
+                                    EditorElem.select({
+                                        gvc: obj.gvc,
+                                        title: '',
+                                        def: postMD.visible || 'true',
+                                        array: [
+                                            { title: '顯示', value: 'true' },
+                                            { title: '隱藏', value: 'false' },
+                                        ],
+                                        callback: (text) => {
+                                            postMD.visible = text;
+                                        },
+                                    })),
+                                BgWidget.mainCard(html ` <div style="font-weight: 700;" class="mb-2">商品類型</div>` +
+                                    gvc.bindView({
+                                        bind: 'productType',
+                                        view: () => {
+                                            var _a;
+                                            postMD.productType = (_a = postMD.productType) !== null && _a !== void 0 ? _a : {
+                                                product: true,
+                                                addProduct: false,
+                                                giveaway: false,
+                                            };
+                                            return ['product', 'addProduct', 'giveaway']
+                                                .map((dd, index) => {
+                                                return html ` <div
                                                                         class="d-flex align-items-center"
                                                                         style="gap:6px;cursor: pointer;"
                                                                         onclick="${gvc.event(() => {
-                                                postMD.productType[dd] = !postMD.productType[dd];
-                                                gvc.notifyDataChange('productType');
-                                            })}"
+                                                    postMD.productType[dd] = !postMD.productType[dd];
+                                                    gvc.notifyDataChange('productType');
+                                                })}"
                                                                     >
                                                                         ${postMD.productType[dd]
-                                                ? html ` <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                    ? html ` <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
                                                                                   <rect width="16" height="16" rx="3" fill="#393939" />
                                                                                   <path d="M4.5 8.5L7 11L11.5 5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                                                                               </svg>`
-                                                : html ` <div style="width: 16px;height: 16px;border-radius: 3px;border: 1px solid #DDD;"></div> `}
+                                                    : html ` <div style="width: 16px;height: 16px;border-radius: 3px;border: 1px solid #DDD;"></div> `}
                                                                         ${['商品', '加購品', '贈品'][index]}
                                                                     </div>`;
-                                        })
-                                            .join('');
-                                    },
-                                    divCreate: { class: `d-flex flex-column `, style: 'gap:12px;' },
-                                }), ''),
+                                            })
+                                                .join('');
+                                        },
+                                        divCreate: { class: `d-flex flex-column `, style: 'gap:12px;' },
+                                    }), ''),
                                 BgWidget.mainCard(obj.gvc.bindView(() => {
                                     const id = obj.gvc.glitter.getUUID();
                                     function refresh() {

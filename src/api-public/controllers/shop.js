@@ -718,6 +718,8 @@ router.get('/product', async (req, resp) => {
                 }
             })(),
             with_hide_index: req.query.with_hide_index,
+            is_manger: await ut_permission_1.UtPermission.isManager(req),
+            show_hidden: `${req.query.show_hidden}`
         });
         return response_1.default.succ(resp, shopping);
     }

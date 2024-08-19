@@ -19,13 +19,13 @@ const createPool = async () => {
         port: config_1.default.DB_PORT,
         user: config_1.default.DB_USER,
         password: config_1.default.DB_PWD,
-        supportBigNumbers: true
+        supportBigNumbers: true,
     });
     try {
         const connection = await pool.getConnection();
         if (connection) {
             await connection.release();
-            logger.info(TAG, 'Pool has been created.');
+            config_1.default.DB_SHOW_INFO && logger.info(TAG, 'Pool has been created. (function: createPool)');
             return pool;
         }
     }
@@ -87,7 +87,7 @@ const queryLambada = async (cf, fun) => {
         port: config_1.default.DB_PORT,
         user: config_1.default.DB_USER,
         password: config_1.default.DB_PWD,
-        supportBigNumbers: true
+        supportBigNumbers: true,
     };
     Object.keys(cf).map((key) => {
         cs[key] = cf[key];
@@ -97,7 +97,7 @@ const queryLambada = async (cf, fun) => {
         const connection = await sp.getConnection();
         if (connection) {
             await connection.release();
-            logger.info(TAG, 'Pool has been created.');
+            config_1.default.DB_SHOW_INFO && logger.info(TAG, 'Pool has been created. (function: queryLambada)');
         }
         const data = await fun({
             query(sql, params) {
@@ -113,7 +113,7 @@ const queryLambada = async (cf, fun) => {
                         reject(err);
                     }
                 });
-            }
+            },
         });
         connection.release();
         sp.end();
@@ -162,7 +162,7 @@ class Transaction {
         try {
             await this.trans.commit();
             await this.trans.release();
-            logger.info(this.TAG, 'Commited successfully');
+            config_1.default.DB_SHOW_INFO && logger.info(this.TAG, 'Commited successfully');
         }
         catch (err) {
             logger.error(this.TAG, 'Failed to commit from transaction because ' + err);
@@ -179,7 +179,7 @@ class Transaction {
                 await this.trans.rollback();
                 await this.trans.destroy();
                 this.trans = null;
-                logger.info(this.TAG, 'Release successfully');
+                config_1.default.DB_SHOW_INFO && logger.info(this.TAG, 'Release successfully');
             }
         }
         catch (err) {
@@ -190,7 +190,7 @@ class Transaction {
 }
 const getPagination = (sql, page, pageCount) => {
     let newSql = sql;
-    newSql += ' LIMIT ' + pageCount + ' OFFSET ' + ((page - 1) * pageCount);
+    newSql += ' LIMIT ' + pageCount + ' OFFSET ' + (page - 1) * pageCount;
     return newSql;
 };
 const escape = (parameter) => {
@@ -207,6 +207,6 @@ exports.default = {
     getPagination,
     escape,
     queryLambada: exports.queryLambada,
-    checkExists
+    checkExists,
 };
 //# sourceMappingURL=database.js.map

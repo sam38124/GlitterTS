@@ -67,6 +67,8 @@ export declare class Shopping {
         order_by?: string;
         id_list?: string;
         with_hide_index?: string;
+        is_manger?: boolean;
+        show_hidden?: string;
     }): Promise<{
         data: any;
         result: boolean;
@@ -145,7 +147,7 @@ export declare class Shopping {
         custom_form_format?: any;
         custom_form_data?: any;
         distribution_code?: string;
-    }, type?: 'add' | 'preview' | 'manual' | 'manual-preview', replace_order_id?: string): Promise<"" | {
+    }, type?: 'add' | 'preview' | 'manual' | 'manual-preview', replace_order_id?: string): Promise<{
         data: {
             customer_info: any;
             lineItems: {
@@ -160,6 +162,7 @@ export declare class Shopping {
                     type: string;
                     value: number;
                 };
+                discount_price?: number | undefined;
             }[];
             discount?: number | undefined;
             total: number;

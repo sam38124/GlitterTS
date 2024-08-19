@@ -25,7 +25,9 @@ class Shopping {
         this.token = token;
     }
     async getProduct(query) {
+        var _a;
         try {
+            query.show_hidden = (_a = query.show_hidden) !== null && _a !== void 0 ? _a : 'true';
             let querySql = [`(content->>'$.type'='product')`];
             if (query.search) {
                 switch (query.searchType) {
@@ -41,16 +43,22 @@ class Shopping {
                         break;
                 }
             }
-            query.id && querySql.push(`(content->>'$.id' = ${query.id})`);
+            query.id && querySql.push(`id = ${query.id}`);
+            if (!query.is_manger && (`${query.show_hidden}` !== 'true')) {
+                querySql.push(`(content->>'$.visible' is null || content->>'$.visible' = 'true')`);
+            }
             if (query.collection) {
                 const collection_cf = (await database_js_1.default.query(`SELECT *
                                                        FROM \`${this.app}\`.public_config
                                                        where \`key\` = 'collection';`, []))[0]['value'];
                 query.collection = decodeURI(query.collection);
                 query.collection = query.collection
-                    .split(',').map((dd) => {
+                    .split(',')
+                    .map((dd) => {
                     function loop(array, prefix) {
-                        const find = array.find((d1) => { return d1.code === dd; });
+                        const find = array.find((d1) => {
+                            return d1.code === dd;
+                        });
                         if (find) {
                             prefix.push(find.title);
                             dd = prefix.join(' / ');
@@ -68,7 +76,8 @@ class Shopping {
                     }
                     loop(collection_cf, []);
                     return dd;
-                }).join(',');
+                })
+                    .join(',');
             }
             query.collection &&
                 querySql.push(`(${query.collection
@@ -81,7 +90,7 @@ class Shopping {
             if (!query.id && query.status === 'active' && query.with_hide_index !== 'true') {
                 querySql.push(`((content->>'$.hideIndex' is NULL) || (content->>'$.hideIndex'='false'))`);
             }
-            query.id_list && querySql.push(`(content->>'$.id' in (${query.id_list}))`);
+            query.id_list && querySql.push(`(id in (${query.id_list}))`);
             query.status && querySql.push(`(JSON_EXTRACT(content, '$.status') = '${query.status}')`);
             query.min_price && querySql.push(`(id in (select product_id from \`${this.app}\`.t_variants where content->>'$.sale_price'>=${query.min_price})) `);
             query.max_price && querySql.push(`(id in (select product_id from \`${this.app}\`.t_variants where content->>'$.sale_price'<=${query.max_price})) `);
@@ -95,6 +104,7 @@ class Shopping {
                                  WHERE (content ->>'$.type'='wishlist')
                                    and userID = ${this.token.userID}
                                    and (content ->>'$.product_id'=${b.id})`, []))[0]['count(1)'] == '1';
+                    b.content.id = b.id;
                 }
             }
             const checkoutSQL = `
@@ -288,9 +298,6 @@ class Shopping {
             })();
             if (userData && userData.account) {
                 data.email = userData.account;
-                console.log(" shutdown in check userData ");
-                console.log("userData -- ", userData);
-                return "";
             }
             if (!data.email && type !== 'preview') {
                 if (data.user_info && data.user_info.email) {
@@ -448,8 +455,7 @@ class Shopping {
                         }
                     }
                 }
-                catch (e) {
-                }
+                catch (e) { }
             }
             carData.shipment_fee = (() => {
                 let total_volume = 0;
@@ -505,6 +511,15 @@ class Shopping {
             carData.off_line_support = keyData.off_line_support;
             carData.payment_info_line_pay = keyData.payment_info_line_pay;
             carData.payment_info_atm = keyData.payment_info_atm;
+            let subtotal = 0;
+            carData.lineItems.map((item) => {
+                var _a;
+                subtotal += item.count * (item.sale_price - ((_a = item.discount_price) !== null && _a !== void 0 ? _a : 0));
+            });
+            if (carData.total < 0 || carData.use_rebate > subtotal) {
+                carData.use_rebate = 0;
+                carData.total = subtotal + carData.shipment_fee;
+            }
             if (type === 'preview' || type === 'manual-preview')
                 return { data: carData };
             if (type !== 'manual') {
@@ -728,18 +743,10 @@ class Shopping {
              values (?, ?, ?, ?)`, [orderID, returnOrderID, email, data.orderData]);
     }
     async putReturnOrder(data) {
-        let origData = await database_js_1.default.execute(`SELECT *
-                       FROM \`${this.app}\`.t_return_order
-                       WHERE id = ${data.id}`, []);
-        origData = origData[0];
-        console.log(origData.status, origData.orderData.returnProgress);
-        console.log(data.orderData.returnProgress, data.status);
-        if (origData.status != "1" && origData.orderData.returnProgress != "-1" && data.orderData.returnProgress == "-1" && data.status == "1") {
+        if (data.orderData.returnProgress == -1 && data.status == 1) {
             const userClass = new user_js_1.User(this.app);
             const rebateClass = new rebate_js_1.Rebate(this.app);
-            const userData = await userClass.getUserData(data.orderData.customer_info.email, 'account');
-            console.log("fin --- ");
-            console.log(await rebateClass.insertRebate(userData.userID, data.orderData.rebateChange, `退貨單調整-退貨單號${origData.return_order_id}`));
+            const userData = await userClass.getUserData(data.orderData.customer_info.account, 'account');
         }
         try {
             await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_return_order\`
@@ -994,10 +1001,6 @@ class Shopping {
                  FROM \`${this.app}\`.t_checkout
                  WHERE id = ?;
                 `, [data.id]);
-            await database_js_1.default.query(`UPDATE \`${this.app}\`.t_checkout
-                 SET ?
-                 WHERE id = ?
-                `, [update, data.id]);
             if (update.orderData && JSON.parse(update.orderData)) {
                 const updateProgress = JSON.parse(update.orderData).progress;
                 if (origin[0].orderData.progress !== 'shipping' && updateProgress === 'shipping') {
@@ -1006,11 +1009,14 @@ class Shopping {
                 if (origin[0].orderData.progress !== 'arrived' && updateProgress === 'arrived') {
                     await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'auto-email-shipment-arrival', data.orderData.orderID, data.orderData.email);
                 }
-                console.log("origin[0] && update.status", origin[0].status, update.status);
-                if (origin[0].status === 0 && update.status === 1) {
+                if (origin[0].status !== 1 && update.status === 1) {
                     await this.releaseCheckout(1, data.orderData.orderID);
                 }
             }
+            await database_js_1.default.query(`UPDATE \`${this.app}\`.t_checkout
+                 SET ?
+                 WHERE id = ?
+                `, [update, data.id]);
             return {
                 result: 'success',
                 orderData: data.orderData,
@@ -1151,8 +1157,6 @@ class Shopping {
                         data[0].orderData.lineItems.map((lineItem, index) => {
                             lineItem.count = lineItem.count - returnOrder.orderData.lineItems[index].return_count;
                         });
-                        console.log(data[0].orderData.shipment_fee);
-                        console.log(returnOrder.orderData.shipment_fee);
                         data[0].orderData.shipment_fee -= returnOrder.orderData.shipment_fee;
                     });
                     data[0].orderData.lineItems = data[0].orderData.lineItems.filter((dd) => {

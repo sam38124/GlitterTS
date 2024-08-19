@@ -165,12 +165,27 @@ class Template {
         if (query_page.split('/')[0] === 'blogs' && query_page.split('/')[1]) {
             page = (await database_1.default.query(`SELECT *
                                    from \`${appName}\`.t_manager_post
-                                   where content->>'$.tag'=${database_1.default.escape(query_page.split('/')[1])} and content->>'$.type'='article';`, []))[0].content.template;
+                                   where content->>'$.tag'=${database_1.default.escape(query_page.split('/')[1])} and content->>'$.type'='article' and content->>'$.for_index'='true';`, []))[0].content.template;
         }
         if (query_page.split('/')[0] === 'pages' && query_page.split('/')[1]) {
             page = (await database_1.default.query(`SELECT *
                                    from \`${appName}\`.t_manager_post
-                                   where content->>'$.tag'=${database_1.default.escape(query_page.split('/')[1])} and content->>'$.type'='article';`, []))[0].content.template;
+                                   where content->>'$.tag'=${database_1.default.escape(query_page.split('/')[1])} and content->>'$.type'='article' and content->>'$.for_index'='false' and content->>'$.page_type'='page';`, []))[0].content.template;
+        }
+        if (query_page.split('/')[0] === 'shop' && query_page.split('/')[1]) {
+            page = (await database_1.default.query(`SELECT *
+                                   from \`${appName}\`.t_manager_post
+                                   where content->>'$.tag'=${database_1.default.escape(query_page.split('/')[1])} and content->>'$.type'='article' and content->>'$.for_index'='false' and content->>'$.page_type'='shopping';`, []))[0].content.template;
+        }
+        if (query_page.split('/')[0] === 'hidden' && query_page.split('/')[1]) {
+            page = (await database_1.default.query(`SELECT *
+                                   from \`${appName}\`.t_manager_post
+                                   where content->>'$.tag'=${database_1.default.escape(query_page.split('/')[1])} and content->>'$.type'='article' and content->>'$.for_index'='false' and content->>'$.page_type'='hidden';`, []))[0].content.template;
+        }
+        if (query_page.split('/')[0] === 'distribution' && query_page.split('/')[1]) {
+            const page = (await database_1.default.query(`SELECT *
+                                   from \`${appName}\`.t_recommend_links where content->>'$.link'=?`, [query_page.split('/')[1]]))[0].content;
+            return (await Template.getRealPage(page.redirect.substring(1), appName));
         }
         if (query_page.split('/')[0] === 'collections' && query_page.split('/')[1]) {
             page = 'all-product';

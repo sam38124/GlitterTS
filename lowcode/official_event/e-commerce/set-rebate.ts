@@ -1,7 +1,5 @@
 import { TriggerEvent } from '../../glitterBundle/plugins/trigger-event.js';
 import { ApiShop } from '../../glitter-base/route/shopping.js';
-import { EditorElem } from '../../glitterBundle/plugins/editor-elem.js';
-import { GlobalUser } from '../../glitter-base/global/global-user.js';
 
 TriggerEvent.createSingleEvent(import.meta.url, () => {
     return {
@@ -78,7 +76,8 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                 }),
                                 use_rebate: parseInt(rebate as string, 10),
                             }).then(async (res) => {
-                                if (rebate == 0 || (res.result && res.response.data.use_rebate)) {
+                                const data = res.response?.data;
+                                if ((rebate == 0 || data.use_rebate >= 0) && data.total - data.shipment_fee >= 0) {
                                     ApiShop.setRebateValue(`${rebate}`);
                                     TriggerEvent.trigger({
                                         gvc: gvc,

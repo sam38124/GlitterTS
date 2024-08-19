@@ -8,8 +8,8 @@ import { BgProduct } from '../backend-manager/bg-product.js';
 import { ShoppingProductSetting } from './shopping-product-setting.js';
 import { Tool } from '../modules/tool.js';
 const html = String.raw;
-export class UserList {
-    static main(gvc) {
+export class StockList {
+    static main(gvc, option = { title: '庫存管理', select_data: [], select_mode: false, filter_variants: [] }) {
         const glitter = gvc.glitter;
         const vm = {
             id: glitter.getUUID(),
@@ -32,49 +32,72 @@ export class UserList {
         let vmi = undefined;
         function getDatalist() {
             return vm.dataList.map((dd, index) => {
-                var _a, _b;
+                var _a, _b, _c;
                 vm.stockList[index] = dd.variant_content.stock;
                 return [
                     {
-                        key: EditorElem.checkBoxOnly({
-                            gvc: gvc,
-                            def: !vm.dataList.find((dd) => {
-                                return !dd.checked;
-                            }),
-                            callback: (result) => {
-                                vm.dataList.map((dd) => {
-                                    dd.checked = result;
-                                });
-                                vmi.data = getDatalist();
-                                vmi.callback();
-                                gvc.notifyDataChange(vm.filterId);
-                            },
+                        key: gvc.bindView(() => {
+                            const id = gvc.glitter.getUUID();
+                            return {
+                                bind: id,
+                                view: () => {
+                                    return EditorElem.checkBoxOnly({
+                                        gvc: gvc,
+                                        def: !vm.dataList.find((dd) => {
+                                            return !dd.checked;
+                                        }),
+                                        callback: (result) => {
+                                            vm.dataList.map((dd) => {
+                                                dd.checked = result;
+                                            });
+                                            vmi.data = getDatalist();
+                                            vmi.callback();
+                                            gvc.notifyDataChange(vm.filterId);
+                                        },
+                                    });
+                                },
+                                divCreate: {
+                                    class: `check-box-item`
+                                }
+                            };
                         }),
-                        value: EditorElem.checkBoxOnly({
-                            gvc: gvc,
-                            def: dd.checked,
-                            callback: (result) => {
-                                dd.checked = result;
-                                vmi.data = getDatalist();
-                                vmi.callback();
-                                gvc.notifyDataChange(vm.filterId);
-                            },
-                            style: 'height:40px;',
+                        value: gvc.bindView(() => {
+                            const id = gvc.glitter.getUUID();
+                            return {
+                                bind: id,
+                                view: () => {
+                                    return EditorElem.checkBoxOnly({
+                                        gvc: gvc,
+                                        def: dd.checked,
+                                        callback: (result) => {
+                                            dd.checked = result;
+                                            vmi.data = getDatalist();
+                                            gvc.glitter.recreateView('.check-box-item');
+                                            gvc.notifyDataChange(vm.filterId);
+                                        },
+                                        style: 'height:40px;',
+                                    });
+                                },
+                                divCreate: {
+                                    class: `check-box-item`
+                                }
+                            };
                         }),
                     },
                     {
                         key: '商品名稱',
-                        value: html `<div class="d-flex align-items-center gap-3">
-                            ${BgWidget.validImageBox({
+                        value: html `
+                            <div class="d-flex align-items-center gap-3">
+                                ${BgWidget.validImageBox({
                             gvc,
                             image: dd.product_content.preview_image[0],
                             width: 45,
                         })}
-                            <div class="d-flex flex-column">
-                                <span class="tx_normal">${Tool.truncateString(dd.product_content.title)}</span>
-                                ${BgWidget.grayNote(dd.variant_content.spec.length > 0 ? dd.variant_content.spec.join(' / ') : '單一規格')}
-                            </div>
-                        </div>`,
+                                <div class="d-flex flex-column">
+                                    <span class="tx_normal">${Tool.truncateString(dd.product_content.title)}</span>
+                                    ${BgWidget.grayNote(dd.variant_content.spec.length > 0 ? dd.variant_content.spec.join(' / ') : '單一規格')}
+                                </div>
+                            </div>`,
                     },
                     {
                         key: '庫存單位（SKU）',
@@ -86,19 +109,21 @@ export class UserList {
                     },
                     {
                         key: '庫存數量',
-                        value: html ` <div
-                            style="width: 95px"
-                            onclick="${gvc.event((e, event) => {
+                        value: (option.select_mode) ? html `<span
+                                class="fs-7">${(_b = dd.variant_content.stock) !== null && _b !== void 0 ? _b : 0}</span>` : html `
+                            <div
+                                    style="width: 95px"
+                                    onclick="${gvc.event((e, event) => {
                             event.stopPropagation();
                         })}"
-                        >
-                            <input
-                                class="form-control"
-                                type="number"
-                                min="0"
-                                style="border-radius: 10px; border: 1px solid #DDD; padding-left: 18px;"
-                                placeholder="請輸入數值"
-                                onchange="${gvc.event((e) => {
+                            >
+                                <input
+                                        class="form-control"
+                                        type="number"
+                                        min="0"
+                                        style="border-radius: 10px; border: 1px solid #DDD; padding-left: 18px;"
+                                        placeholder="請輸入數值"
+                                        onchange="${gvc.event((e) => {
                             let n = parseInt(e.value, 10);
                             if (n < 0) {
                                 e.value = 0;
@@ -118,9 +143,9 @@ export class UserList {
                             vm.stockList[index] = n;
                             gvc.notifyDataChange(vm.updateId);
                         })}"
-                                value="${(_b = dd.variant_content.stock) !== null && _b !== void 0 ? _b : 0}"
-                            />
-                        </div>`,
+                                        value="${(_c = dd.variant_content.stock) !== null && _c !== void 0 ? _c : 0}"
+                                />
+                            </div>`,
                     },
                 ];
             });
@@ -132,7 +157,7 @@ export class UserList {
                 if (vm.type === 'list') {
                     return BgWidget.container(html `
                             <div class="d-flex w-100 align-items-center">
-                                ${BgWidget.title('庫存管理')}
+                                ${BgWidget.title(option.title)}
                                 <div class="flex-fill"></div>
                                 <div style="display: none; gap: 14px;">
                                     ${BgWidget.grayButton('匯入', gvc.event(() => {
@@ -162,7 +187,10 @@ export class UserList {
                                                 type: 'multi_checkbox',
                                                 name: '商品分類',
                                                 data: vmlist.collections.map((item) => {
-                                                    return { key: `${item.key}`, name: item.value };
+                                                    return {
+                                                        key: `${item.key}`,
+                                                        name: item.value
+                                                    };
                                                 }),
                                             });
                                         }
@@ -199,19 +227,25 @@ export class UserList {
                                         ];
                                         const filterTags = ListComp.getFilterTags(FilterOptions.stockFunnel).replace(/多少/g, '');
                                         if (document.body.clientWidth < 768) {
-                                            return html `<div style="display: flex; align-items: center; gap: 10px; width: 100%; justify-content: space-between">
-                                                                    <div>${filterList[0]}</div>
-                                                                    <div style="display: flex;">
-                                                                        <div class="me-2">${filterList[2]}</div>
-                                                                        ${filterList[3]}
-                                                                    </div>
-                                                                </div>
-                                                                <div style="display: flex; margin-top: 8px;">${filterList[1]}</div>
-                                                                <div>${filterTags}</div>`;
+                                            return html `
+                                                                        <div style="display: flex; align-items: center; gap: 10px; width: 100%; justify-content: space-between">
+                                                                            <div>${filterList[0]}</div>
+                                                                            <div style="display: flex;">
+                                                                                <div class="me-2">${filterList[2]}</div>
+                                                                                ${filterList[3]}
+                                                                            </div>
+                                                                        </div>
+                                                                        <div style="display: flex; margin-top: 8px;">
+                                                                            ${filterList[1]}
+                                                                        </div>
+                                                                        <div>${filterTags}</div>`;
                                         }
                                         else {
-                                            return html `<div style="display: flex; align-items: center; gap: 10px;">${filterList.join('')}</div>
-                                                                <div>${filterTags}</div>`;
+                                            return html `
+                                                                        <div style="display: flex; align-items: center; gap: 10px;">
+                                                                            ${filterList.join('')}
+                                                                        </div>
+                                                                        <div>${filterTags}</div>`;
                                         }
                                     },
                                     onCreate: () => {
@@ -254,7 +288,11 @@ export class UserList {
                                                 accurate_search_collection: true,
                                             }).then((data) => {
                                                 vmi.pageSize = Math.ceil(data.response.total / limit);
-                                                vm.dataList = data.response.data;
+                                                vm.dataList = data.response.data.filter((data) => {
+                                                    return !option.filter_variants.find((dd) => {
+                                                        return dd === ([data.product_id].concat(data.variant_content.spec).join('-'));
+                                                    });
+                                                });
                                                 vmi.data = getDatalist();
                                                 vm.stockOriginList = vm.stockList.concat();
                                                 gvc.notifyDataChange(vm.updateId);
@@ -262,20 +300,31 @@ export class UserList {
                                             });
                                         },
                                         rowClick: (data, index) => {
-                                            const product = vm.dataList[index].product_content;
-                                            const variant = vm.dataList[index].variant_content;
-                                            product.variants.map((dd) => {
-                                                dd.editable = JSON.stringify(variant.spec) === JSON.stringify(dd.spec);
-                                            });
-                                            vm.replaceData = product;
-                                            vm.type = 'editSpec';
+                                            if (option.select_mode) {
+                                                vm.dataList[index].checked = !vm.dataList[index].checked;
+                                                vmi.data = getDatalist();
+                                                gvc.glitter.recreateView('.check-box-item');
+                                                gvc.notifyDataChange(vm.filterId);
+                                            }
+                                            else {
+                                                const product = vm.dataList[index].product_content;
+                                                const variant = vm.dataList[index].variant_content;
+                                                product.variants.map((dd) => {
+                                                    dd.editable = JSON.stringify(variant.spec) === JSON.stringify(dd.spec);
+                                                });
+                                                vm.replaceData = product;
+                                                vm.type = 'editSpec';
+                                            }
                                         },
                                         filter: gvc.bindView(() => {
                                             return {
                                                 bind: vm.filterId,
                                                 view: () => {
-                                                    const dialog = new ShareDialog(gvc.glitter);
                                                     const selCount = vm.dataList.filter((dd) => dd.checked).length;
+                                                    option.select_data.splice(0, option.select_data.length);
+                                                    vm.dataList.filter((dd) => dd.checked).map((dd) => {
+                                                        option.select_data.push(dd);
+                                                    });
                                                     return BgWidget.selNavbar({
                                                         count: selCount,
                                                         buttonList: [],
@@ -285,7 +334,7 @@ export class UserList {
                                                     const display = !vm.dataList || !vm.dataList.find((dd) => dd.checked) ? 'd-none' : '';
                                                     return {
                                                         class: `d-flex align-items-center p-2 ${display}`,
-                                                        style: ``,
+                                                        style: `min-height:45px;`,
                                                     };
                                                 },
                                             };
@@ -301,13 +350,17 @@ export class UserList {
                                 for (let i = 0; i < vm.stockList.length; i++) {
                                     const element = vm.stockList[i];
                                     if (element !== vm.stockOriginList[i]) {
-                                        return html ` <div class="update-bar-container">
-                                                        ${BgWidget.cancel(gvc.event(() => {
+                                        return html `
+                                                            <div class="update-bar-container">
+                                                                ${BgWidget.cancel(gvc.event(() => {
                                             gvc.notifyDataChange(vm.tableId);
                                         }))}
-                                                        ${BgWidget.save(gvc.event(() => {
+                                                                ${BgWidget.save(gvc.event(() => {
                                             const dialog = new ShareDialog(gvc.glitter);
-                                            dialog.dataLoading({ text: '更新庫存中', visible: true });
+                                            dialog.dataLoading({
+                                                text: '更新庫存中',
+                                                visible: true
+                                            });
                                             ApiShop.putVariants({
                                                 data: vm.dataList,
                                                 token: window.parent.config.token,
@@ -322,7 +375,7 @@ export class UserList {
                                                 }
                                             });
                                         }))}
-                                                    </div>`;
+                                                            </div>`;
                                     }
                                 }
                                 return '';
@@ -366,4 +419,4 @@ export class UserList {
         });
     }
 }
-window.glitter.setModule(import.meta.url, UserList);
+window.glitter.setModule(import.meta.url, StockList);

@@ -24,6 +24,7 @@ export class ApiUser {
             headers: {
                 'Content-Type': 'application/json',
                 'g-app': getConfig().config.appName,
+                Authorization: (window.parent as any).saasConfig.config.token,
             },
             data: JSON.stringify(json),
         });

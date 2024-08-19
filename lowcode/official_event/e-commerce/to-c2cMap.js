@@ -42,9 +42,8 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                             logistics: ctype
                         }).then((res) => __awaiter(void 0, void 0, void 0, function* () {
                             $('body').html(res.response.form);
-                            setTimeout(() => {
-                                document.querySelector('#submit').click();
-                            }, 1000);
+                            document.querySelector('#submit').click();
+                            localStorage.setItem('block-refresh-cart', 'true');
                         }));
                     }));
                 },

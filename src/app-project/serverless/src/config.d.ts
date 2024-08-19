@@ -9,6 +9,7 @@ export declare const config: {
     DB_QUEUE_LIMIT: number;
     readonly DB_URL: string | undefined;
     DB_PORT: number;
+    DB_SHOW_INFO: boolean;
     readonly DB_USER: string | undefined;
     readonly DB_PWD: string | undefined;
     readonly DB_NAME: string | undefined;

@@ -1,19 +1,19 @@
-import {IToken} from '../models/Auth.js';
+import { IToken } from '../models/Auth.js';
 import exception from '../../modules/exception.js';
 import db from '../../modules/database.js';
 import FinancialService from './financial-service.js';
-import {Private_config} from '../../services/private_config.js';
+import { Private_config } from '../../services/private_config.js';
 import redis from '../../modules/redis.js';
-import {User} from './user.js';
+import { User } from './user.js';
 import Tool from '../../modules/tool.js';
-import {Invoice} from './invoice.js';
+import { Invoice } from './invoice.js';
 import e from 'express';
-import {Rebate} from './rebate.js';
-import {CustomCode} from '../services/custom-code.js';
+import { Rebate } from './rebate.js';
+import { CustomCode } from '../services/custom-code.js';
 import moment from 'moment';
-import {ManagerNotify} from './notify.js';
-import {AutoSendEmail} from './auto-send-email.js';
-import {Recommend} from './recommend.js';
+import { ManagerNotify } from './notify.js';
+import { AutoSendEmail } from './auto-send-email.js';
+import { Recommend } from './recommend.js';
 
 interface VoucherData {
     id: number;
@@ -107,8 +107,11 @@ export class Shopping {
         order_by?: string;
         id_list?: string;
         with_hide_index?: string;
+        is_manger?:boolean,
+        show_hidden?:string
     }) {
         try {
+            query.show_hidden=query.show_hidden ?? 'true'
             let querySql = [`(content->>'$.type'='product')`];
             if (query.search) {
                 switch (query.searchType) {
@@ -124,51 +127,63 @@ export class Shopping {
                         break;
                 }
             }
+            query.id && querySql.push(`id = ${query.id}`);
+            //當非管理員時，檢查是否顯示隱形商品
+            if(!query.is_manger && (`${query.show_hidden}` !== 'true')){
 
-            query.id && querySql.push(`(content->>'$.id' = ${query.id})`);
+                querySql.push(`(content->>'$.visible' is null || content->>'$.visible' = 'true')`)
+            }
             //如是連結帶入則轉換成Title
             if (query.collection) {
-                const collection_cf = (await db.query(`SELECT *
+                const collection_cf = (
+                    await db.query(
+                        `SELECT *
                                                        FROM \`${this.app}\`.public_config
-                                                       where \`key\` = 'collection';`, []))[0]['value'];
-                query.collection=decodeURI(query.collection)
+                                                       where \`key\` = 'collection';`,
+                        []
+                    )
+                )[0]['value'];
+                query.collection = decodeURI(query.collection);
                 query.collection = query.collection
-                    .split(',').map((dd) => {
-                        function loop(array: any,prefix:string[]) {
-                            const find=array.find((d1:any)=>{return d1.code === dd})
-                            if(find){
-                                prefix.push(find.title)
-                                dd = prefix.join(' / ')
-                                query.accurate_search_collection=true
-                            }else{
-                                array.map((d1: any) => {
-                                    if (d1.array) {
-                                        let prefix_i=JSON.parse(JSON.stringify(prefix))
-                                        prefix_i.push(d1.title)
-                                        loop(d1.array,prefix_i)
-                                    }
-                                })
-                            }
-
-                        }
-                        loop(collection_cf,[])
-                        return dd
-                    }).join(',')
-            }
-            query.collection &&
-            querySql.push(
-                `(${query.collection
                     .split(',')
                     .map((dd) => {
-                        return query.accurate_search_collection ? `(JSON_CONTAINS(content->'$.collection', '"${dd}"'))` : `(JSON_EXTRACT(content, '$.collection') LIKE '%${dd}%')`;
+                        function loop(array: any, prefix: string[]) {
+                            const find = array.find((d1: any) => {
+                                return d1.code === dd;
+                            });
+                            if (find) {
+                                prefix.push(find.title);
+                                dd = prefix.join(' / ');
+                                query.accurate_search_collection = true;
+                            } else {
+                                array.map((d1: any) => {
+                                    if (d1.array) {
+                                        let prefix_i = JSON.parse(JSON.stringify(prefix));
+                                        prefix_i.push(d1.title);
+                                        loop(d1.array, prefix_i);
+                                    }
+                                });
+                            }
+                        }
+                        loop(collection_cf, []);
+                        return dd;
                     })
-                    .join(' or ')})`
-            );
+                    .join(',');
+            }
+            query.collection &&
+                querySql.push(
+                    `(${query.collection
+                        .split(',')
+                        .map((dd) => {
+                            return query.accurate_search_collection ? `(JSON_CONTAINS(content->'$.collection', '"${dd}"'))` : `(JSON_EXTRACT(content, '$.collection') LIKE '%${dd}%')`;
+                        })
+                        .join(' or ')})`
+                );
             query.sku && querySql.push(`(id in ( select product_id from \`${this.app}\`.t_variants where content->>'$.sku'=${db.escape(query.sku)}))`);
             if (!query.id && query.status === 'active' && query.with_hide_index !== 'true') {
                 querySql.push(`((content->>'$.hideIndex' is NULL) || (content->>'$.hideIndex'='false'))`);
             }
-            query.id_list && querySql.push(`(content->>'$.id' in (${query.id_list}))`);
+            query.id_list && querySql.push(`(id in (${query.id_list}))`);
             query.status && querySql.push(`(JSON_EXTRACT(content, '$.status') = '${query.status}')`);
             query.min_price && querySql.push(`(id in (select product_id from \`${this.app}\`.t_variants where content->>'$.sale_price'>=${query.min_price})) `);
             query.max_price && querySql.push(`(id in (select product_id from \`${this.app}\`.t_variants where content->>'$.sale_price'<=${query.max_price})) `);
@@ -191,6 +206,7 @@ export class Shopping {
                                 []
                             )
                         )[0]['count(1)'] == '1';
+                    b.content.id=b.id;
                 }
             }
 
@@ -208,7 +224,7 @@ export class Shopping {
                     for (const item1 of checkout.lineItems) {
                         const index = itemRecord.findIndex((item2) => item1.id === item2.id);
                         if (index === -1) {
-                            itemRecord.push({id: parseInt(`${item1.id}`, 10), count: item1.count});
+                            itemRecord.push({ id: parseInt(`${item1.id}`, 10), count: item1.count });
                         } else {
                             itemRecord[index].count += item1.count;
                         }
@@ -223,10 +239,10 @@ export class Shopping {
                      FROM \`${this.app}\`.t_stock_recover,
                           \`${this.app}\`.t_checkout
                      WHERE product_id in (${productList
-                             .map((dd) => {
-                                 return dd.id;
-                             })
-                             .join(',')})
+                         .map((dd) => {
+                             return dd.id;
+                         })
+                         .join(',')})
                        and order_id = cart_token
                        and dead_line < ?;`,
                     [new Date()]
@@ -248,7 +264,7 @@ export class Shopping {
                                  SET ?
                                  WHERE 1 = 1
                                    and id = ${stock.product_id}`,
-                                [{content: JSON.stringify(product.content)}]
+                                [{ content: JSON.stringify(product.content) }]
                             );
                         }
                         // 移除紀錄
@@ -291,7 +307,7 @@ export class Shopping {
                     []
                 )
             )[0];
-            return {data: data, result: !!data};
+            return { data: data, result: !!data };
         } else {
             return {
                 data: (
@@ -317,12 +333,15 @@ export class Shopping {
         }
     }
 
-    public async querySqlByVariants(querySql: string[], query: {
-        page: number;
-        limit: number;
-        id?: string;
-        order_by?: string
-    }) {
+    public async querySqlByVariants(
+        querySql: string[],
+        query: {
+            page: number;
+            limit: number;
+            id?: string;
+            order_by?: string;
+        }
+    ) {
         let sql = `SELECT v.id,
                           v.product_id,
                           v.content as                                            variant_content,
@@ -343,7 +362,7 @@ export class Shopping {
                     []
                 )
             )[0];
-            return {data: data, result: !!data};
+            return { data: data, result: !!data };
         } else {
             return {
                 data: await db.query(
@@ -476,8 +495,7 @@ export class Shopping {
                     return this.token && this.token.userID
                         ? await userClass.getUserData(this.token.userID as any, 'userID')
                         : await userClass.getUserData(data.email! || data.user_info.email, 'account');
-                //     檢查
-
+                    //     檢查
                 } else {
                     return {};
                 }
@@ -485,9 +503,6 @@ export class Shopping {
 
             if (userData && userData.account) {
                 data.email = userData.account;
-                console.log(" shutdown in check userData ")
-                console.log("userData -- " , userData)
-                return ""
             }
 
             if (!data.email && type !== 'preview') {
@@ -505,7 +520,7 @@ export class Shopping {
             // 判斷購物金是否可用
             if (data.use_rebate && data.use_rebate > 0) {
                 if (userData) {
-                    const userRebate = await rebateClass.getOneRebate({user_id: userData.userID});
+                    const userRebate = await rebateClass.getOneRebate({ user_id: userData.userID });
                     const sum = userRebate ? userRebate.point : 0;
                     if (sum < data.use_rebate) {
                         data.use_rebate = 0;
@@ -564,6 +579,7 @@ export class Shopping {
                         type: string;
                         value: number;
                     };
+                    discount_price?: number;
                 }[];
                 discount?: number;
                 total: number;
@@ -599,7 +615,7 @@ export class Shopping {
                 use_wallet: 0,
                 method: data.user_info && data.user_info.method,
                 user_email: (userData && userData.account) || (data.email ?? ((data.user_info && data.user_info.email) || '')),
-                useRebateInfo: {point: 0},
+                useRebateInfo: { point: 0 },
                 custom_form_format: data.custom_form_format,
                 custom_form_data: data.custom_form_data,
             };
@@ -682,7 +698,7 @@ export class Shopping {
                                      SET ?
                                      WHERE 1 = 1
                                        and id = ${pdDqlData.id}`,
-                                    [{content: JSON.stringify(pd)}]
+                                    [{ content: JSON.stringify(pd) }]
                                 );
                                 // 獲取當前時間
                                 let deadTime = new Date();
@@ -705,8 +721,7 @@ export class Shopping {
                             }
                         }
                     }
-                } catch (e) {
-                }
+                } catch (e) {}
             }
 
             carData.shipment_fee = (() => {
@@ -731,12 +746,7 @@ export class Shopping {
             carData.code = data.code;
             carData.voucherList = [];
 
-            function checkDuring(jsonData: {
-                startDate: string;
-                startTime: string;
-                endDate: string | undefined;
-                endTime: string | undefined
-            }) {
+            function checkDuring(jsonData: { startDate: string; startTime: string; endDate: string | undefined; endTime: string | undefined }) {
                 // 獲取當前時間
                 const now = new Date();
                 const currentDateTime = now.getTime();
@@ -770,21 +780,32 @@ export class Shopping {
                 await this.checkVoucher(carData);
             }
 
-            // ================================ Preview UP ================================
+            // 付款資訊設定
             const keyData = (
                 await Private_config.getConfig({
                     appName: this.app,
                     key: 'glitter_finance',
                 })
             )[0].value;
-            //付款資訊設定
             (carData as any).payment_setting = {
                 TYPE: keyData.TYPE,
             };
             (carData as any).off_line_support = keyData.off_line_support;
             (carData as any).payment_info_line_pay = keyData.payment_info_line_pay;
             (carData as any).payment_info_atm = keyData.payment_info_atm;
-            if (type === 'preview' || type === 'manual-preview') return {data: carData};
+
+            // 防止帶入購物金時，總計小於0
+            let subtotal = 0;
+            carData.lineItems.map((item) => {
+                subtotal += item.count * (item.sale_price - (item.discount_price ?? 0));
+            });
+            if (carData.total < 0 || carData.use_rebate > subtotal) {
+                carData.use_rebate = 0;
+                carData.total = subtotal + carData.shipment_fee;
+            }
+
+            // ================================ Preview UP ================================
+            if (type === 'preview' || type === 'manual-preview') return { data: carData };
             // ================================ Add DOWN ================================
 
             // 手動結帳地方判定
@@ -1099,7 +1120,7 @@ export class Shopping {
                 `UPDATE \`${this.app}\`.\`t_return_order\`
                  set ?
                  WHERE id = ?`,
-                [{status: data.status, orderData: JSON.stringify(data.orderData)}, data.id]
+                [{ status: data.status, orderData: JSON.stringify(data.orderData) }, data.id]
             );
             return {
                 result: 'success',
@@ -1110,13 +1131,16 @@ export class Shopping {
         }
     }
 
-    public async formatUseRebate(total: number, useRebate: number): Promise<{
+    public async formatUseRebate(
+        total: number,
+        useRebate: number
+    ): Promise<{
         point: number;
         limit?: number;
-        condition?: number
+        condition?: number;
     }> {
         try {
-            const getRS = await new User(this.app).getConfig({key: 'rebate_setting', user_id: 'manager'});
+            const getRS = await new User(this.app).getConfig({ key: 'rebate_setting', user_id: 'manager' });
             if (getRS[0] && getRS[0].value) {
                 const configData = getRS[0].value.config;
                 if (configData.condition.type === 'total_price' && configData.condition.value > total) {
@@ -1300,23 +1324,23 @@ export class Shopping {
             .sort(function (a: VoucherData, b: VoucherData) {
                 let compareB = b
                     .bind!.map((dd) => {
-                    if (b.reBackType === 'shipment_free') {
-                        return dd.shipment_fee;
-                    } else {
-                        return b.method === 'percent' ? (dd.sale_price * parseFloat(b.value)) / 100 : parseFloat(b.value);
-                    }
-                })
+                        if (b.reBackType === 'shipment_free') {
+                            return dd.shipment_fee;
+                        } else {
+                            return b.method === 'percent' ? (dd.sale_price * parseFloat(b.value)) / 100 : parseFloat(b.value);
+                        }
+                    })
                     .reduce(function (accumulator, currentValue) {
                         return accumulator + currentValue;
                     }, 0);
                 let compareA = a
                     .bind!.map((dd) => {
-                    if (a.reBackType === 'shipment_free') {
-                        return dd.shipment_fee;
-                    } else {
-                        return a.method === 'percent' ? (dd.sale_price * parseFloat(a.value)) / 100 : parseFloat(a.value);
-                    }
-                })
+                        if (a.reBackType === 'shipment_free') {
+                            return dd.shipment_fee;
+                        } else {
+                            return a.method === 'percent' ? (dd.sale_price * parseFloat(a.value)) / 100 : parseFloat(a.value);
+                        }
+                    })
                     .reduce(function (accumulator, currentValue) {
                         return accumulator + currentValue;
                     }, 0);
@@ -1404,14 +1428,6 @@ export class Shopping {
                 [data.id]
             );
 
-            await db.query(
-                `UPDATE \`${this.app}\`.t_checkout
-                 SET ?
-                 WHERE id = ?
-                `,
-                [update, data.id]
-            );
-
             if (update.orderData && JSON.parse(update.orderData)) {
                 // 商品出貨信件通知（消費者）
                 const updateProgress = JSON.parse(update.orderData).progress;
@@ -1423,13 +1439,18 @@ export class Shopping {
                 if (origin[0].orderData.progress !== 'arrived' && updateProgress === 'arrived') {
                     await AutoSendEmail.customerOrder(this.app, 'auto-email-shipment-arrival', data.orderData.orderID, data.orderData.email);
                 }
-                console.log("origin[0] && update.status" , origin[0].status , update.status)
-                // 訂單已付款信件通知（管理員, 消費者）
-                if (origin[0].status === 0 && update.status === 1) {
-
+                if (origin[0].status !== 1 && update.status === 1) {
                     await this.releaseCheckout(1, data.orderData.orderID);
                 }
             }
+
+            await db.query(
+                `UPDATE \`${this.app}\`.t_checkout
+                 SET ?
+                 WHERE id = ?
+                `,
+                [update, data.id]
+            );
 
             return {
                 result: 'success',
@@ -1458,18 +1479,26 @@ export class Shopping {
 
     public async proofPurchase(order_id: string, text: string) {
         try {
-            const orderData = (await db.query(`select orderData
+            const orderData = (
+                await db.query(
+                    `select orderData
                                                from \`${this.app}\`.t_checkout
-                                               where cart_token = ?`, [order_id]))[0]['orderData'];
+                                               where cart_token = ?`,
+                    [order_id]
+                )
+            )[0]['orderData'];
             orderData.proof_purchase = text;
 
             // 訂單待核款信件通知
-            new ManagerNotify(this.app).uploadProof({orderData: orderData});
+            new ManagerNotify(this.app).uploadProof({ orderData: orderData });
             await AutoSendEmail.customerOrder(this.app, 'proof-purchase', order_id, orderData.email);
 
-            await db.query(`update \`${this.app}\`.t_checkout
+            await db.query(
+                `update \`${this.app}\`.t_checkout
                             set orderData=?
-                            where cart_token = ?`, [JSON.stringify(orderData), order_id]);
+                            where cart_token = ?`,
+                [JSON.stringify(orderData), order_id]
+            );
             return {
                 result: true,
             };
@@ -1479,7 +1508,7 @@ export class Shopping {
     }
 
     public async getCheckOut(query: {
-        filter_type?:string;
+        filter_type?: string;
         page: number;
         limit: number;
         id?: string;
@@ -1597,20 +1626,15 @@ export class Shopping {
 
                 let returnData = await db.query(returnSql, []);
                 if (returnData.length > 0) {
-                    returnData.forEach((returnOrder:any) => {
+                    returnData.forEach((returnOrder: any) => {
                         // todo 確認訂單是否被作廢
-                        if (!data[0].orderData?.discard){
-
+                        if (!data[0].orderData?.discard) {
                         }
-                        data[0].orderData.lineItems.map((lineItem:any , index:number) => {
+                        data[0].orderData.lineItems.map((lineItem: any, index: number) => {
                             lineItem.count = lineItem.count - returnOrder.orderData.lineItems[index].return_count;
-                        })
-                        console.log(data[0].orderData.shipment_fee)
-                        console.log(returnOrder.orderData.shipment_fee)
+                        });
                         data[0].orderData.shipment_fee -= returnOrder.orderData.shipment_fee;
-                        // data[0].orderData.rebate += returnOrder.return_rebate;
-                        // data[0].orderData.discount += returnOrder.return_discount;//已經退回的購物金和優惠卷折扣金額
-                    })
+                    });
                     data[0].orderData.lineItems = data[0].orderData.lineItems.filter((dd: any) => {
                         return dd.count > 0;
                     });
@@ -1744,7 +1768,7 @@ export class Shopping {
                 }
 
                 try {
-                    await new CustomCode(this.app).checkOutHook({userData, cartData});
+                    await new CustomCode(this.app).checkOutHook({ userData, cartData });
                 } catch (e) {
                     console.error(e);
                 }
@@ -1849,13 +1873,13 @@ export class Shopping {
     public async postVariantsAndPriceValue(content: any) {
         content.variants = content.variants ?? [];
         content.id &&
-        (await db.query(
-            `DELETE
+            (await db.query(
+                `DELETE
              from \`${this.app}\`.t_variants
              WHERE (product_id = ${content.id})
                and id > 0`,
-            []
-        ));
+                []
+            ));
         for (const a of content.variants) {
             content.min_price = content.min_price ?? a.sale_price;
             content.max_price = content.max_price ?? a.sale_price;
@@ -1914,7 +1938,7 @@ export class Shopping {
                 }
                 return result;
             }
-            return {result: false};
+            return { result: false };
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'getDataAnalyze Error:' + e, null);
         }
@@ -1980,7 +2004,7 @@ export class Shopping {
                 WHERE MONTH (online_time) = MONTH (NOW()) AND YEAR (online_time) = YEAR (NOW());
             `;
             const month_users = await db.query(monthSQL, []);
-            return {recent: recent_users.length, months: month_users.length};
+            return { recent: recent_users.length, months: month_users.length };
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
         }
@@ -2020,7 +2044,7 @@ export class Shopping {
                 gap = Math.floor(((recent_month_total - previous_month_total) / previous_month_total) * 10000) / 10000;
             }
 
-            return {recent_month_total, previous_month_total, gap};
+            return { recent_month_total, previous_month_total, gap };
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
         }
@@ -2044,7 +2068,7 @@ export class Shopping {
                     for (const item1 of checkout.lineItems) {
                         const index = product_list.findIndex((item2) => item1.title === item2.title);
                         if (index === -1) {
-                            product_list.push({title: item1.title, count: item1.count});
+                            product_list.push({ title: item1.title, count: item1.count });
                         } else {
                             product_list[index].count += item1.count;
                         }
@@ -2061,7 +2085,7 @@ export class Shopping {
                 }
             }
 
-            return {series, categories};
+            return { series, categories };
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
         }
@@ -2095,7 +2119,7 @@ export class Shopping {
                 gap = Math.floor(((recent_month_total - previous_month_total) / previous_month_total) * 10000) / 10000;
             }
 
-            return {recent_month_total, previous_month_total, gap};
+            return { recent_month_total, previous_month_total, gap };
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
         }
@@ -2120,7 +2144,7 @@ export class Shopping {
                 countArray.unshift(orders[0].c);
             }
 
-            return {countArray};
+            return { countArray };
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
         }
@@ -2149,7 +2173,7 @@ export class Shopping {
                 countArray.unshift(total);
             }
 
-            return {countArray};
+            return { countArray };
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
         }
@@ -2184,7 +2208,7 @@ export class Shopping {
                 }
             }
 
-            return {countArray};
+            return { countArray };
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
         }
@@ -2315,7 +2339,7 @@ export class Shopping {
                         const sub = config.value[parentIndex].array.find((item: { title: string }) => {
                             return item.title === col;
                         });
-                        return {array: [], title: col, code: sub ? sub.code : ''};
+                        return { array: [], title: col, code: sub ? sub.code : '' };
                     }),
                 };
             } else {
@@ -2428,7 +2452,7 @@ export class Shopping {
                                     WHERE \`key\` = 'collection';`;
             await db.execute(update_col_sql, [config.value]);
 
-            return {result: true};
+            return { result: true };
         } catch (e) {
             console.error(e);
             throw exception.BadRequestError('BAD_REQUEST', 'putCollection Error:' + e, null);
@@ -2508,7 +2532,7 @@ export class Shopping {
             const title = levels[0];
             let node = nodes.find((n) => n.title === title);
             if (!node) {
-                node = {title, array: []};
+                node = { title, array: [] };
                 nodes.push(node);
             }
             if (levels.length > 1) {
@@ -2618,19 +2642,17 @@ export class Shopping {
                 if (parentTitles.length > 0) {
                     // data 為子層
                     const parentIndex = config.value.findIndex((col: { title: string }) => col.title === parentTitles);
-                    const childrenIndex = config.value[parentIndex].array.findIndex((col: {
-                        title: string
-                    }) => col.title === data.title);
+                    const childrenIndex = config.value[parentIndex].array.findIndex((col: { title: string }) => col.title === data.title);
                     const n = deleteList.findIndex((obj) => obj.parent === parentIndex);
                     if (n === -1) {
-                        deleteList.push({parent: parentIndex, child: [childrenIndex]});
+                        deleteList.push({ parent: parentIndex, child: [childrenIndex] });
                     } else {
                         deleteList[n].child.push(childrenIndex);
                     }
                 } else {
                     // data 為父層
                     const parentIndex = config.value.findIndex((col: { title: string }) => col.title === data.title);
-                    deleteList.push({parent: parentIndex, child: [-1]});
+                    deleteList.push({ parent: parentIndex, child: [-1] });
                 }
             });
 
@@ -2664,7 +2686,7 @@ export class Shopping {
                                     WHERE \`key\` = 'collection';`;
             await db.execute(update_col_sql, [config.value]);
 
-            return {result: true};
+            return { result: true };
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'getCollectionProducts Error:' + e, null);
         }
@@ -2690,7 +2712,7 @@ export class Shopping {
                     await this.updateProductCollection(product.content, product.id);
                 }
             }
-            return {result: true};
+            return { result: true };
         } catch (error) {
             throw exception.BadRequestError('BAD_REQUEST', 'deleteCollectionProduct Error:' + e, null);
         }
@@ -2744,14 +2766,14 @@ export class Shopping {
             query.id && querySql.push(`(v.id = ${query.id})`);
             query.id_list && querySql.push(`(v.id in (${query.id_list}))`);
             query.collection &&
-            querySql.push(
-                `(${query.collection
-                    .split(',')
-                    .map((dd) => {
-                        return query.accurate_search_collection ? `(JSON_CONTAINS(p.content->'$.collection', '"${dd}"'))` : `(JSON_EXTRACT(p.content, '$.collection') LIKE '%${dd}%')`;
-                    })
-                    .join(' or ')})`
-            );
+                querySql.push(
+                    `(${query.collection
+                        .split(',')
+                        .map((dd) => {
+                            return query.accurate_search_collection ? `(JSON_CONTAINS(p.content->'$.collection', '"${dd}"'))` : `(JSON_EXTRACT(p.content, '$.collection') LIKE '%${dd}%')`;
+                        })
+                        .join(' or ')})`
+                );
             query.status && querySql.push(`(JSON_EXTRACT(p.content, '$.status') = '${query.status}')`);
             query.min_price && querySql.push(`(v.content->>'$.sale_price' >= ${query.min_price})`);
             query.max_price && querySql.push(`(v.content->>'$.sale_price' <= ${query.min_price})`);
@@ -2814,13 +2836,13 @@ export class Shopping {
                     `UPDATE \`${this.app}\`.t_variants
                      SET ?
                      WHERE id = ?`,
-                    [{content: JSON.stringify(data.variant_content)}, data.id]
+                    [{ content: JSON.stringify(data.variant_content) }, data.id]
                 );
                 await db.query(
                     `UPDATE \`${this.app}\`.t_manager_post
                      SET ?
                      WHERE id = ?`,
-                    [{content: JSON.stringify(data.product_content)}, data.product_id]
+                    [{ content: JSON.stringify(data.product_content) }, data.product_id]
                 );
             }
             return {

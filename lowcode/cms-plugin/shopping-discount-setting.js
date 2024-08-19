@@ -626,7 +626,6 @@ export class ShoppingDiscountSetting {
                                                             onCreate: () => {
                                                                 if (levelVM.loading) {
                                                                     ApiUser.getUserGroupList().then((dd) => {
-                                                                        console.log(dd);
                                                                         if (dd.result && dd.response.data) {
                                                                             levelVM.dataList = dd.response.data
                                                                                 .filter((item) => {
@@ -659,7 +658,9 @@ export class ShoppingDiscountSetting {
                                                 </div>
                                             </div>`),
                             BgWidget.mainCard(gvc.bindView(() => {
+                                var _a;
                                 const id = glitter.getUUID();
+                                voucherData.forKey = (_a = voucherData.forKey) !== null && _a !== void 0 ? _a : [];
                                 let defKeys = {
                                     collection: JSON.parse(JSON.stringify(voucherData.forKey)),
                                     product: JSON.parse(JSON.stringify(voucherData.forKey)),
@@ -762,6 +763,7 @@ export class ShoppingDiscountSetting {
                                                 }
                                             })(),
                                             ...(() => {
+                                                var _a;
                                                 if (voucherData.trigger !== 'distribution') {
                                                     return [
                                                         html `
@@ -769,7 +771,7 @@ export class ShoppingDiscountSetting {
                                                                             ${EditorElem.radio({
                                                             gvc: gvc,
                                                             title: '',
-                                                            def: voucherData.for,
+                                                            def: (_a = voucherData.for) !== null && _a !== void 0 ? _a : 'all',
                                                             array: productForList,
                                                             callback: (text) => {
                                                                 voucherData.forKey = defKeys[text];

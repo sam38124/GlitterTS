@@ -797,6 +797,8 @@ router.get('/product', async (req: express.Request, resp: express.Response) => {
                 }
             })(),
             with_hide_index: req.query.with_hide_index as string,
+            is_manger:await UtPermission.isManager(req) as any,
+            show_hidden:`${req.query.show_hidden as any}`
         });
         return response.succ(resp, shopping);
     } catch (err) {

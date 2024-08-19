@@ -27,6 +27,8 @@ export const Storage:{
     select_item:any,
     //頁面編輯選項
     page_setting_item:'layout' | 'color' | 'widget'
+    //Setting_Global
+    page_setting_global:'editor'|'setting'
 }={
     get editor_mode(){
         return 'dev' as any
@@ -126,5 +128,12 @@ export const Storage:{
     set page_setting_item(value){
         localStorage.setItem('page_setting_item',value)
     },
+    get page_setting_global(){
+        return (localStorage.getItem('page_setting_global') || 'layout') as any
+    },
+    set page_setting_global(value:any){
+        (localStorage.setItem('page_setting_global',value)) as any;
+        // return true
+    }
 }
 

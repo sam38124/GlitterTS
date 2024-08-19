@@ -1,5 +1,5 @@
 'use strict';
-import mysql from "mysql2/promise";
+import mysql from 'mysql2/promise';
 import config from '../config';
 import Logger from './logger';
 import exception from './exception';
@@ -16,39 +16,33 @@ const createPool = async () => {
         port: config.DB_PORT,
         user: config.DB_USER,
         password: config.DB_PWD,
-        supportBigNumbers: true
+        supportBigNumbers: true,
     });
     try {
         return pool;
     } catch (err) {
         logger.error(TAG, 'Failed to create connection pool for mysql because ' + err);
-        throw exception.ServerError(
-            'INTERNAL_SERVER_ERROR',
-            'Failed to create connection pool.'
-        );
+        throw exception.ServerError('INTERNAL_SERVER_ERROR', 'Failed to create connection pool.');
     }
 };
 
-async function createNewPool(){
+async function createNewPool() {
     const logger = new Logger();
-    const new_pool:mysql.Pool =  mysql.createPool({
+    const new_pool: mysql.Pool = mysql.createPool({
         connectionLimit: config.DB_CONN_LIMIT,
         queueLimit: config.DB_QUEUE_LIMIT,
         host: config.DB_URL,
         port: config.DB_PORT,
         user: config.DB_USER,
         password: config.DB_PWD,
-        supportBigNumbers: true
+        supportBigNumbers: true,
     });
     try {
-        logger.info(TAG, 'Pool has been created.');
+        config.DB_SHOW_INFO && logger.info(TAG, 'Pool has been created. (function: createNewPool)');
         return new_pool;
     } catch (err) {
-        logger.error(TAG, 'Failed to create connection pool for mysql because ' + err);
-        throw exception.ServerError(
-            'INTERNAL_SERVER_ERROR',
-            'Failed to create connection pool.'
-        );
+        logger.error(TAG, '(createNewPool) Failed to create connection pool for mysql because ' + err);
+        throw exception.ServerError('INTERNAL_SERVER_ERROR', 'Failed to create connection pool.');
     }
 }
 
@@ -57,50 +51,42 @@ const execute = async (sql: string, params: any[]): Promise<any> => {
     const TAG = '[Database][Execute]';
     if (params.indexOf(undefined) !== -1) {
         logger.error(TAG, 'Failed to exect statement ' + sql + ' because params=null');
-        throw exception.ServerError(
-            'INTERNAL_SERVER_ERROR',
-            'Failed to exect statement because params=null'
-        );
+        throw exception.ServerError('INTERNAL_SERVER_ERROR', 'Failed to exect statement because params=null');
     }
     try {
-        const connection=await pool.getConnection()
+        const connection = await pool.getConnection();
         const [results] = await pool.execute(sql, params);
-        connection.release()
+        connection.release();
         return results;
     } catch (err) {
         logger.error(TAG, 'Failed to exect statement ' + sql + ' because ' + err);
-        throw exception.ServerError(
-            'INTERNAL_SERVER_ERROR',
-            'Failed to execute statement.'
-        );
+        throw exception.ServerError('INTERNAL_SERVER_ERROR', 'Failed to execute statement.');
     }
 };
 
 export const limit = (map: any) => {
-    return ` limit ${parseInt(map.page, 10) * parseInt(map.limit, 10)}, ${parseInt(map.limit, 10)} `
-}
+    return ` limit ${parseInt(map.page, 10) * parseInt(map.limit, 10)}, ${parseInt(map.limit, 10)} `;
+};
 const query = async (sql: string, params: unknown[]): Promise<any> => {
     const logger = new Logger();
     const TAG = '[Database][Query]';
     try {
-        const connection=await pool.getConnection()
+        const connection = await pool.getConnection();
         const [results] = await pool.query(sql, params);
-        connection.release()
+        connection.release();
         return results;
     } catch (err) {
         logger.error(TAG, 'Failed to query statement ' + sql + ' because ' + err);
-        throw exception.ServerError(
-            'INTERNAL_SERVER_ERROR',
-            'Failed to execute statement.'
-        );
+        throw exception.ServerError('INTERNAL_SERVER_ERROR', 'Failed to execute statement.');
     }
 };
 
-export const queryLambada = async (cf: {
-    database?: string
-}, fun: (v: {
-    query(sql: string, params: unknown[]): Promise<any>
-}) => any) => {
+export const queryLambada = async (
+    cf: {
+        database?: string;
+    },
+    fun: (v: { query(sql: string, params: unknown[]): Promise<any> }) => any
+) => {
     const logger = new Logger();
     const cs: any = {
         connectionLimit: config.DB_CONN_LIMIT,
@@ -109,16 +95,16 @@ export const queryLambada = async (cf: {
         port: config.DB_PORT,
         user: config.DB_USER,
         password: config.DB_PWD,
-        supportBigNumbers: true
-    }
+        supportBigNumbers: true,
+    };
     Object.keys(cf).map((key) => {
-        cs[key] = (cf as any)[key]
-    })
+        cs[key] = (cf as any)[key];
+    });
     const sp = mysql.createPool(cs);
     const connection = await sp.getConnection();
     if (connection) {
         await connection.release();
-        logger.info(TAG, 'Pool has been created.');
+        config.DB_SHOW_INFO && logger.info(TAG, 'Pool has been created. (function: queryLambada)');
     }
     try {
         const data = await fun({
@@ -128,34 +114,30 @@ export const queryLambada = async (cf: {
                     const TAG = '[Database][Query]';
                     try {
                         const [results] = await sp.query(sql, params);
-                        resolve(results)
+                        resolve(results);
                     } catch (err) {
                         logger.error(TAG, 'Failed to query statement ' + sql + ' because ' + err);
-                        reject(err)
+                        reject(err);
                     }
-                })
-            }
-        })
+                });
+            },
+        });
         //Close connection
-        connection.release()
-        sp.end()
-        return data
+        connection.release();
+        sp.end();
+        return data;
     } catch (err) {
         //Close connection
-        connection.release()
-        sp.end()
+        connection.release();
+        sp.end();
         logger.error(TAG, 'Failed to create connection pool for mysql because ' + err);
-        throw exception.ServerError(
-            'INTERNAL_SERVER_ERROR',
-            'Failed to create connection pool.'
-        );
+        throw exception.ServerError('INTERNAL_SERVER_ERROR', 'Failed to create connection pool.');
     }
-}
-
+};
 
 class Transaction {
-    private  pool?: mysql.Pool;
-    private  trans: any;
+    private pool?: mysql.Pool;
+    private trans: any;
     connectionId: any;
     private TAG: any;
 
@@ -164,27 +146,21 @@ class Transaction {
         const Trans = new Transaction();
         try {
             Trans.pool = (await createNewPool())!;
-            Trans.trans = await Trans.pool.getConnection()
+            Trans.trans = await Trans.pool.getConnection();
             Trans.TAG = `[Database][Transaction][CID:${Trans.trans.threadId}]`;
             Trans.trans.beginTransaction();
             return Trans;
         } catch (err) {
             logger.error(Trans.TAG, 'Failed to create transaction when call transaction.init because ' + err);
             await Trans.release();
-            throw exception.ServerError(
-                'INTERNAL_SERVER_ERROR',
-                'Failed to create transaction when connecting database.'
-            );
+            throw exception.ServerError('INTERNAL_SERVER_ERROR', 'Failed to create transaction when connecting database.');
         }
     }
 
     public async execute(sql: string, params: any[] | any): Promise<any> {
         const logger = new Logger();
         if (!this.trans) {
-            throw exception.ServerError(
-                'INTERNAL_SERVER_ERROR',
-                'Can not use Transaction class without build.'
-            );
+            throw exception.ServerError('INTERNAL_SERVER_ERROR', 'Can not use Transaction class without build.');
         }
         try {
             const [result] = await this.trans.query(sql, params);
@@ -202,14 +178,11 @@ class Transaction {
         try {
             await this.trans.commit();
             await this.release();
-            logger.info(this.TAG, 'Commited successfully');
+            config.DB_SHOW_INFO && logger.info(this.TAG, 'Commited successfully');
         } catch (err) {
             logger.error(this.TAG, 'Failed to commit from transaction because ' + err);
             await this.release();
-            throw exception.ServerError(
-                'INTERNAL_SERVER_ERROR',
-                'Failed to commit from transaction.'
-            );
+            throw exception.ServerError('INTERNAL_SERVER_ERROR', 'Failed to commit from transaction.');
         }
     }
 
@@ -217,26 +190,23 @@ class Transaction {
         const logger = new Logger();
         try {
             if (this.trans) {
-                await this.trans.release()
-                await this.trans.destroy()
+                await this.trans.release();
+                await this.trans.destroy();
                 this.trans = null;
-                await this.pool?.end()
-                logger.info(this.TAG, 'Release successfully');
+                await this.pool?.end();
+                config.DB_SHOW_INFO && logger.info(this.TAG, 'Release successfully');
             }
         } catch (err) {
             logger.error(this.TAG, 'Failed to commit from transaction because ' + err);
-            await this.pool?.end()
-            throw exception.ServerError(
-                'INTERNAL_SERVER_ERROR',
-                'Failed to release transaction.'
-            );
+            await this.pool?.end();
+            throw exception.ServerError('INTERNAL_SERVER_ERROR', 'Failed to release transaction.');
         }
     }
 }
 
 const getPagination = (sql: string, page: number, pageCount: number) => {
     let newSql = sql;
-    newSql += ' LIMIT ' + pageCount + ' OFFSET ' + ((page - 1) * pageCount);
+    newSql += ' LIMIT ' + pageCount + ' OFFSET ' + (page - 1) * pageCount;
     return newSql;
 };
 
@@ -244,9 +214,9 @@ const escape = (parameter: any) => {
     return mysql.escape(parameter);
 };
 
-const checkExists = async (sql:string)=>{
-    return (await query('select count(1) from '+sql,[]))[0]['count(1)']>0
-}
+const checkExists = async (sql: string) => {
+    return (await query('select count(1) from ' + sql, []))[0]['count(1)'] > 0;
+};
 
 export default {
     createPool,
@@ -256,5 +226,5 @@ export default {
     getPagination,
     escape,
     queryLambada,
-    checkExists
+    checkExists,
 };

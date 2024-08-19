@@ -2,12 +2,15 @@ import {EditorElem} from "../plugins/editor-elem.js";
 import {GVC} from "../GVController.js";
 import {NormalPageEditor} from "../../editor/normal-page-editor.js";
 import {ShareDialog} from "../dialog/ShareDialog.js";
+import {RenderValue} from "./render-value.js";
+import {ApiPageConfig} from "../../api/pageConfig.js";
+
 
 const html = String.raw
 
 export class CustomStyle {
     public static renderThemeEditor(gvc: GVC, widget: any, callback?: () => void) {
-        CustomStyle.initialWidget(widget);
+        RenderValue.custom_style.initialWidget(widget);
         return [
             EditorElem.editeInput({
                 gvc: gvc,
@@ -84,12 +87,12 @@ export class CustomStyle {
                 }).join(','),
                 placeHolder: '',
                 callback: (text) => {
-                    const dialog=new ShareDialog(gvc.glitter)
-                    if(text.split(',').length!=4){
+                    const dialog = new ShareDialog(gvc.glitter)
+                    if (text.split(',').length != 4) {
                         dialog.errorMessage({
-                            text:'格式輸入錯誤'
+                            text: '格式輸入錯誤'
                         })
-                    }else{
+                    } else {
                         [{
                             title: '上',
                             key: 'top'
@@ -106,8 +109,8 @@ export class CustomStyle {
                                 title: '左',
                                 key: 'left'
                             }
-                        ].map((dd,index)=>{
-                            widget.data._padding[dd.key]=text.split(',')[index]
+                        ].map((dd, index) => {
+                            widget.data._padding[dd.key] = text.split(',')[index]
                         });
                         (callback || widget.refreshComponent)()
                     }
@@ -142,12 +145,12 @@ export class CustomStyle {
                 }).join(','),
                 placeHolder: '',
                 callback: (text) => {
-                    const dialog=new ShareDialog(gvc.glitter)
-                    if(text.split(',').length!=4){
+                    const dialog = new ShareDialog(gvc.glitter)
+                    if (text.split(',').length != 4) {
                         dialog.errorMessage({
-                            text:'格式輸入錯誤'
+                            text: '格式輸入錯誤'
                         })
-                    }else{
+                    } else {
                         [{
                             title: '上',
                             key: 'top'
@@ -164,8 +167,8 @@ export class CustomStyle {
                                 title: '左',
                                 key: 'left'
                             }
-                        ].map((dd,index)=>{
-                            widget.data._margin[dd.key]=text.split(',')[index]
+                        ].map((dd, index) => {
+                            widget.data._margin[dd.key] = text.split(',')[index]
                         });
                         (callback || widget.refreshComponent)()
                     }
@@ -310,7 +313,8 @@ export class CustomStyle {
     }
 
     public static renderMarginEditor(gvc: GVC, widget: any, callback?: () => void) {
-        CustomStyle.initialWidget(widget);
+        RenderValue.custom_style.initialWidget(widget);
+
         return [
             EditorElem.editeInput({
                 gvc: gvc,
@@ -340,12 +344,12 @@ export class CustomStyle {
                 }).join(','),
                 placeHolder: '',
                 callback: (text) => {
-                    const dialog=new ShareDialog(gvc.glitter)
-                    if(text.split(',').length!=4){
+                    const dialog = new ShareDialog(gvc.glitter)
+                    if (text.split(',').length != 4) {
                         dialog.errorMessage({
-                            text:'格式輸入錯誤'
+                            text: '格式輸入錯誤'
                         })
-                    }else{
+                    } else {
                         [{
                             title: '上',
                             key: 'top'
@@ -362,8 +366,8 @@ export class CustomStyle {
                                 title: '左',
                                 key: 'left'
                             }
-                        ].map((dd,index)=>{
-                            widget.data._padding[dd.key]=text.split(',')[index]
+                        ].map((dd, index) => {
+                            widget.data._padding[dd.key] = text.split(',')[index]
                         });
                         (callback || widget.refreshComponent)()
                     }
@@ -398,7 +402,7 @@ export class CustomStyle {
     }
 
     public static editor(gvc: GVC, widget: any, callback?: () => void) {
-        CustomStyle.initialWidget(widget);
+        RenderValue.custom_style.initialWidget(widget);
 
         const html = String.raw;
         return gvc.bindView(() => {
@@ -493,7 +497,7 @@ export class CustomStyle {
     }
 
     public static editorMargin(gvc: GVC, widget: any, callback?: () => void) {
-        CustomStyle.initialWidget(widget);
+        RenderValue.custom_style.initialWidget(widget);
 
         const html = String.raw;
         return gvc.bindView(() => {
@@ -590,120 +594,119 @@ background: #F7F7F7;">${CustomStyle.renderMarginEditor(gvc, widget, callback)}
 
     }
 
-    public static value(gvc: GVC, widget: any) {
-        let style_string = '';
-        if(widget.data._layout === 'grid'){
-            (style_string += `display: grid; gap: ${(isNaN(widget.data._gap_x)) ? widget.data._gap_x : `${widget.data._gap_x}px`} ${(isNaN(widget.data._gap_y)) ? widget.data._gap_y : `${widget.data._gap_y}px`}; 
-            grid-template-columns: repeat(${widget.data._x_count}, 1fr); grid-template-rows: repeat(${widget.data._y_count}, 1fr);`);
-            style_string+=`grid-template-columns: ${(()=>{
-                let view=[]
-                for(let a=0;a<parseInt(widget.data._x_count,10);a++){
-                    view.push(`calc((100% / ${parseInt(widget.data._x_count,10)}) - ((${(isNaN(widget.data._gap_y)) ? widget.data._gap_y : `${widget.data._gap_y}px`})*${((parseInt(widget.data._x_count,10)-1) / (parseInt(widget.data._x_count,10))).toFixed(1)}))`)
-                }
-                return view.join(' ')
-            })()};`
-        }
-        if (widget.data && widget.data._style_refer === 'global' && widget.data._style_refer_global) {
-            const globalValue = gvc.glitter.share.global_container_theme[parseInt(widget.data._style_refer_global.index, 10)]
+    public static editorBackground(gvc: GVC, widget: any, callback?: () => void) {
+        RenderValue.custom_style.initialWidget(widget);
 
-            widget = {
-                data: (globalValue && globalValue.data) || {}
+        const html = String.raw;
+        return gvc.bindView(() => {
+            const id = gvc.glitter.getUUID()
+
+            return {
+                bind: id,
+                view: () => {
+                    return [
+                        {
+                            title: html`預設背景`,
+                            hint: `<span class="" style="color:#8D8D8D;font-size: 13px;white-space: normal;word-break: break-all;line-height: 16px;">將依據父層的背景樣式，進行顯示。</span>`,
+                            value: 'none',
+                        },
+                        {
+                            title: html`背景顏色`,
+                            hint: ` <span class="my-2"
+                                                  style="color:#8D8D8D;font-size: 13px;white-space: normal;word-break: break-all;line-height: 16px;">設定容器的背景顏色。</span>`,
+                            value: 'color',
+                        },
+                        {
+                            title: html`背景圖片`,
+                            hint: ` <span class="my-2"
+                                                  style="color:#8D8D8D;font-size: 13px;white-space: normal;word-break: break-all;line-height: 16px;">使用圖片作為容器的背景顯示效果。</span>`,
+                            value: 'image',
+                        }
+                    ]
+                        .map((dd: any) => {
+                            return html`
+                                <div>
+                                    ${[
+                                        html`
+                                            <div
+                                                    class="d-flex  cursor_pointer"
+                                                    style="gap:8px;"
+                                                    onclick="${gvc.event(() => {
+                                                        if(widget.data._background_setting.type !== dd.value){
+                                                            widget.data._background_setting.value=''
+                                                            widget.data._background_setting.type = dd.value;
+                                                            (callback || widget.refreshComponent)();
+                                                            gvc.notifyDataChange(id)
+                                                        }
+                                                      
+                                                    })}"
+                                            >
+                                                ${widget.data._background_setting.type === dd.value
+                                                        ? `<i class="fa-sharp fa-solid fa-circle-dot cl_39" style="margin-top: 5px;"></i>`
+                                                        : ` <div class="c_39_checkbox " style="margin-top: 5px;"></div>`}
+                                                <div class="tx_normal fw-normal d-flex flex-column"
+                                                     style="max-width: calc(100% - 40px);white-space: normal;word-break: break-all;overflow: hidden;line-height: 25px;">
+                                                    ${dd.title}
+                                                    ${(widget.data._background_setting.type === dd.value) ? dd.hint : ``}
+                                                </div>
+                                            </div>`,
+                                        html`
+                                            <div class="d-flex position-relative mt-2"
+                                                 style="">
+                                                <div class="ms-0 border-end position-absolute h-100"
+                                                     style="left: 5px;"></div>
+                                                <div class="flex-fill ${widget.data._background_setting.type !== dd.value ? `d-none`:``} mt-n2"
+                                                     style="margin-left:20px;max-width: 100%;">
+                                                    ${(() => {
+                                                        if(widget.data._background_setting.type !== dd.value){
+                                                            return  ``
+                                                        }
+                                                        switch (widget.data._background_setting.type) {
+                                                            case 'none':
+                                                                return ``
+                                                            case 'color':
+                                                                return EditorElem.colorSelect({
+                                                                    title: '',
+                                                                    callback: (text) => {
+                                                                        widget.data._background_setting.value = text;
+                                                                        (callback || widget.refreshComponent)();
+                                                                    },
+                                                                    def: widget.data._background_setting.value,
+                                                                    gvc: gvc
+                                                                })
+                                                            case 'image':
+                                                                return EditorElem.uploadImageContainer({
+                                                                    title: '',
+                                                                    callback: (text) => {
+                                                                        widget.data._background_setting.value = text;
+                                                                        (callback || widget.refreshComponent)()
+                                                                        gvc.notifyDataChange(id)
+                                                                    },
+                                                                    def: widget.data._background_setting.value,
+                                                                    gvc: gvc
+                                                                })
+                                                        }
+                                                    })()}
+                                                </div>
+                                            </div>`,
+                                    ].join('')}
+                                </div>`;
+                        })
+                        .join(`<div class="my-2"></div>`)
+                },
+                divCreate: {
+                    class: `pt-2`
+                }
             }
+        })
 
-        }
-        CustomStyle.initialWidget(widget);
-        ['top', 'bottom', 'left', 'right'].map((dd) => {
-            if (widget.data._padding[dd]) {
-                if (!isNaN(widget.data._padding[dd])) {
-                    (style_string += `padding-${dd}:${widget.data._padding[dd]}px;`)
-                } else {
-                    (style_string += `padding-${dd}:${widget.data._padding[dd]};`)
-                }
-
-            }
-        });
-        if (widget.data._display_block === 'vertical') {
-            (style_string += `display: flex;align-items: center;justify-content: center;flex-direction: column;`)
-        } else if (widget.data._display_block === 'horizontal') {
-            (style_string += `display: flex;align-items: center;justify-content: center;flex-direction: row;`)
-        }
-        widget.data._max_width && (style_string += `width:${(isNaN(widget.data._max_width)) ? widget.data._max_width : `${widget.data._max_width}px`};max-width:100%;`)
-        widget.data._border.width && (style_string += `border: ${widget.data._border.width}px solid ${widget.data._border.color};`);
-        widget.data._border['radius'] && (style_string += `border-radius: ${widget.data._border.radius}px;`);
-        widget.data._border['radius'] && ((widget.data._border.radius || '0') > 0 && (style_string += 'overflow:hidden;'))
-        widget.data._gap && (style_string += `gap:${widget.data._gap}px;`)
-        widget.data._background && (style_string += `background:${widget.data._background};`)
-        widget.data._radius && (style_string += `background:${widget.data._background};`);
-        widget.data._z_index && (style_string += `z-index:${widget.data._z_index};`);
-        widget.data._max_height && (style_string += `max-height:${(isNaN(widget.data._max_height)) ? widget.data._max_height : `${widget.data._max_height}px`};`)
-        switch (widget.data._hor_position) {
-            case "left":
-                if (widget.data._display_block === 'vertical') {
-                    style_string += `align-items: start;`
-                } else {
-                    style_string += `justify-content: start;`
-                }
-                break
-            case "right":
-                if (widget.data._display_block === 'vertical') {
-                    style_string += `align-items: end;`
-                } else {
-                    style_string += `justify-content: end;`
-                }
-                break
-            case "center":
-                if (widget.data._max_width) {
-                    style_string += `margin:auto;`
-                }
-                break
-        }
-        ['top', 'bottom', 'left', 'right'].map((dd) => {
-            if (widget.data._margin[dd] && (widget.data._margin[dd] != '0')) {
-                if (!isNaN(widget.data._margin[dd])) {
-                    (style_string += `margin-${dd}:${widget.data._margin[dd]}px;`)
-                } else {
-                    (style_string += `margin-${dd}:${widget.data._margin[dd]};`)
-                }
-
-            }
-        });
-        (widget.data._style) && (style_string += widget.data._style);
-        (widget.data._reverse === 'true') && (style_string += ((widget.data._display_block === 'vertical') ? `flex-direction: column-reverse !important;` : `flex-direction: row-reverse !important;`));
-        return style_string
-    }
-
-
-    public static initialWidget(widget: any) {
-        if (widget.data.onCreateEvent) {
-            (widget as any).onCreateEvent = widget.data.onCreateEvent;
-            widget.data.onCreateEvent = undefined;
-        }
-        if (widget.data._hor_position) {
-            widget.data._style_refer = widget.data._style_refer ?? 'custom'
-        } else {
-            widget.data._style_refer = widget.data._style_refer ?? 'global';
-        }
-
-        widget.data.elem = widget.data.elem ?? "div"
-        widget.data.inner = widget.data.inner ?? ""
-        widget.data.attr = widget.data.attr ?? []
-        widget.data._padding = widget.data._padding ?? {}
-        widget.data._margin = widget.data._margin ?? {}
-        widget.data._border = widget.data._border || {}
-        widget.data._max_width = widget.data._max_width ?? ''
-        widget.data._gap = widget.data._gap ?? ''
-        widget.data._background = widget.data._background ?? ''
-        widget.data._other = widget.data._other ?? {}
-        widget.data._radius = widget.data._radius ?? ''
-        widget.data._reverse = widget.data._reverse ?? 'false'
-        widget.data._hor_position = widget.data._hor_position ?? 'center'
     }
 
     public static globalContainerList(vm: any, gvc: any, id: string, globalValue: any) {
         return gvc.bindView(() => {
             const vm_c = {
                 toggle: false,
-                id:gvc.glitter.getUUID()
+                id: gvc.glitter.getUUID()
             }
             return {
                 bind: vm_c.id,
@@ -895,7 +898,7 @@ background: #F7F7F7;">${CustomStyle.renderMarginEditor(gvc, widget, callback)}
                                 index: parseInt(def, 10),
                                 hide_title: true,
                                 hide_delete: true,
-                                margin_style:true
+                                margin_style: true
                             }),
                             title: '變更全局間距樣式'
                         })
@@ -931,7 +934,7 @@ background: #F7F7F7;">${CustomStyle.renderMarginEditor(gvc, widget, callback)}
                                     index: globalValue.container_theme.length - 1,
                                     hide_title: true,
                                     hide_delete: true,
-                                    margin_style:true
+                                    margin_style: true
                                 }),
                                 `<div class="d-flex align-content-center border justify-content-end p-3">
 <button class="btn btn-black" type="button" onclick="${gvc.event(() => {
@@ -963,7 +966,7 @@ background: #F7F7F7;">${CustomStyle.renderMarginEditor(gvc, widget, callback)}
         index: number,
         hide_title?: boolean,
         hide_delete?: boolean,
-        margin_style?:boolean
+        margin_style?: boolean
     }) {
         obj.data.data = obj.data.data || {}
         const html = String.raw
@@ -980,7 +983,7 @@ background: #F7F7F7;">${CustomStyle.renderMarginEditor(gvc, widget, callback)}
                     <span>${obj.name} 編輯</span>
                 </div>
                 <div class="py-2 px-3">
-                    ${(obj.margin_style ? CustomStyle.renderMarginEditor:CustomStyle.renderThemeEditor)(obj.gvc, obj.data, () => {
+                    ${(obj.margin_style ? CustomStyle.renderMarginEditor : CustomStyle.renderThemeEditor)(obj.gvc, obj.data, () => {
                         gvc.glitter.share.global_container_theme = globalValue.container_theme;
                         const element = (document.querySelector('#editerCenter iframe') as any).contentWindow.glitter.elementCallback;
                         (document.querySelector('#editerCenter  iframe') as any).contentWindow.glitter.share.global_container_theme = globalValue.container_theme;
@@ -1017,3 +1020,10 @@ background: #F7F7F7;">${CustomStyle.renderMarginEditor(gvc, widget, callback)}
         `
     }
 }
+
+const interval = setInterval(() => {
+    if ((window as any).glitter) {
+        clearInterval(interval);
+        (window as any).glitter.setModule(import.meta.url, CustomStyle);
+    }
+}, 100);

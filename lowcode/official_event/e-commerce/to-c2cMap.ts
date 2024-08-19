@@ -28,18 +28,17 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                 },
                 event: () => {
                     return new Promise(async (resolve, reject)=>{
-
                         const ctype=await TriggerEvent.trigger({gvc:gvc,widget:widget,clickEvent:object.ctype,subData:subData})
+
                         ApiShop.selectC2cMap(
                             {
                                 returnURL:location.href,
                                 logistics:ctype as string
                             }
                         ).then(async (res)=>{
-                            $('body').html(res.response.form)
-                            setTimeout(()=>{
-                                (document.querySelector('#submit') as any).click()
-                            },1000)
+                            $('body').html(res.response.form);
+                            (document.querySelector('#submit') as any).click();
+                            localStorage.setItem('block-refresh-cart','true')
                         })
 
                     })
