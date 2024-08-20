@@ -38,7 +38,7 @@ export class RenderValue {
             }else   if (widget.data._layout === 'vertical') {
                 style_string += css`display:flex;flex-direction: column;justify-content: ${widget.data._ver_position || 'center'};`
             }else if(widget.type==='container'){
-                return  ``
+                // return  ``
             }
             if (widget.data && widget.data._style_refer === 'global' && widget.data._style_refer_global) {
                 const globalValue = gvc.glitter.share.global_container_theme[parseInt(widget.data._style_refer_global.index, 10)]

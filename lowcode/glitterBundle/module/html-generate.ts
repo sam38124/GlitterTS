@@ -991,7 +991,7 @@ ${obj.gvc.bindView({
                                     startRender();
                                 }),
                             ];
-                            if (isEditMode() && option && option.editorSection) {
+                            if ((isEditMode() || isIdeaMode()) && option && option.editorSection) {
                                 view.push(
                                     HtmlGenerate.getEditorSelectSection({
                                         id: option.editorSection,
@@ -1964,7 +1964,7 @@ ${e.line}
                                             view: () => {
                                                 if (cf.widget.type === 'component') {
                                                     const view = [component.render(gvc, widget, container, HtmlGenerate.hover_items, subData, {}, document).view() as string];
-                                                    if (root && isEditMode()) {
+                                                    if (root && (isEditMode() || isIdeaMode())) {
                                                         view.push(
                                                             HtmlGenerate.getEditorSelectSection({
                                                                 id: cf.widget.id,
@@ -2008,7 +2008,7 @@ ${e.line}
                                                             ]);
                                                         }),
                                                     ];
-                                                    if (root && isEditMode()) {
+                                                    if (root && (isEditMode() || isIdeaMode())) {
                                                         const html = String.raw;
                                                         view.push(
                                                             HtmlGenerate.getEditorSelectSection({
@@ -2170,9 +2170,10 @@ ${e.line}
     }
 
     public static getEditorSelectSection(cf: { id: string; gvc: GVC; label: string }) {
-        if (cf.gvc.glitter.getUrlParameter('type') !== 'htmlEditor') {
+        if (cf.gvc.glitter.getUrlParameter('type') !== 'htmlEditor' && (!isIdeaMode())) {
             return ``;
         }
+
         let glitter = (window as any).glitter;
         while (!glitter.share.editorViewModel) {
             glitter = (window.parent as any).glitter;
@@ -2477,6 +2478,15 @@ ${e.line}
     }
 }
 
+function isIdeaMode(){
+    try {
+
+        return (window as any).glitter.getUrlParameter('type')==='find_idea';
+    } catch (e) {
+        alert(e)
+        return false;
+    }
+}
 function isEditMode() {
     try {
         return (window as any).editerData !== undefined || (window.parent as any).editerData !== undefined;

@@ -339,7 +339,7 @@ export class HtmlGenerate {
                                     startRender();
                                 }),
                             ];
-                            if (isEditMode() && option && option.editorSection) {
+                            if ((isEditMode() || isIdeaMode()) && option && option.editorSection) {
                                 view.push(HtmlGenerate.getEditorSelectSection({
                                     id: option.editorSection,
                                     gvc: gvc,
@@ -1552,7 +1552,7 @@ ${obj.gvc.bindView({
                                             view: () => {
                                                 if (cf.widget.type === 'component') {
                                                     const view = [component.render(gvc, widget, container, HtmlGenerate.hover_items, subData, {}, document).view()];
-                                                    if (root && isEditMode()) {
+                                                    if (root && (isEditMode() || isIdeaMode())) {
                                                         view.push(HtmlGenerate.getEditorSelectSection({
                                                             id: cf.widget.id,
                                                             gvc: gvc,
@@ -1596,7 +1596,7 @@ ${obj.gvc.bindView({
                                                             ]);
                                                         }),
                                                     ];
-                                                    if (root && isEditMode()) {
+                                                    if (root && (isEditMode() || isIdeaMode())) {
                                                         const html = String.raw;
                                                         view.push(HtmlGenerate.getEditorSelectSection({
                                                             id: cf.widget.id,
@@ -1745,7 +1745,7 @@ ${obj.gvc.bindView({
         }
     }
     static getEditorSelectSection(cf) {
-        if (cf.gvc.glitter.getUrlParameter('type') !== 'htmlEditor') {
+        if (cf.gvc.glitter.getUrlParameter('type') !== 'htmlEditor' && (!isIdeaMode())) {
             return ``;
         }
         let glitter = window.glitter;
@@ -2140,6 +2140,15 @@ HtmlGenerate.changePage = (obj) => {
 };
 HtmlGenerate.hover_items = [];
 HtmlGenerate.block_timer = 0;
+function isIdeaMode() {
+    try {
+        return window.glitter.getUrlParameter('type') === 'find_idea';
+    }
+    catch (e) {
+        alert(e);
+        return false;
+    }
+}
 function isEditMode() {
     try {
         return window.editerData !== undefined || window.parent.editerData !== undefined;

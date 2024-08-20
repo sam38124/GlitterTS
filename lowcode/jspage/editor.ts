@@ -16,6 +16,8 @@ import {SaasViewModel} from '../view-model/saas-view-model.js';
 import {ApiUser} from '../glitter-base/route/user.js';
 import {GlobalUser} from '../glitter-base/global/global-user.js';
 import {Setting_editor} from './function-page/setting_editor.js';
+import {NormalPageEditor} from "../editor/normal-page-editor.js";
+import {SearchIdea} from "../editor/search-idea.js";
 
 const html = String.raw;
 
@@ -186,17 +188,17 @@ color: transparent;"
                                         bind: id,
                                         view: () => {
                                             return [
-                                                html`<div class="hoverBtn  d-flex align-items-center justify-content-center   border "
+                                                html`<div class="hoverBtn  d-flex align-items-center justify-content-center   border  d-none"
                                                      style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
                                                      onclick="${gvc.event(() => {
-                                                    SetGlobalValue.toggle(true);
+                                                         SearchIdea.open(gvc)
                                                 })}"
                                                      data-bs-toggle="tooltip"
                                                      data-bs-placement="top"
                                                      data-bs-custom-class="custom-tooltip"
                                                      data-bs-title="找靈感"
                                                 >
-                                                    <i class="fa-solid fa-bars"></i>
+                                                    <i class="fa-solid fa-thought-bubble"></i>
                                                 </div>`,
                                                 html`
                                                 <div class="hoverBtn  d-flex align-items-center justify-content-center   border ${Storage.select_function === 'user-editor' ? `d-none` : ``}"

@@ -743,10 +743,16 @@ class Shopping {
              values (?, ?, ?, ?)`, [orderID, returnOrderID, email, data.orderData]);
     }
     async putReturnOrder(data) {
-        if (data.orderData.returnProgress == -1 && data.status == 1) {
+        let origData = await database_js_1.default.execute(`SELECT *
+                       FROM \`${this.app}\`.t_return_order
+                       WHERE id = ${data.id}`, []);
+        origData = origData[0];
+        if (origData.status != "1" && origData.orderData.returnProgress != "-1" && data.orderData.returnProgress == "-1" && data.status == "1") {
             const userClass = new user_js_1.User(this.app);
             const rebateClass = new rebate_js_1.Rebate(this.app);
-            const userData = await userClass.getUserData(data.orderData.customer_info.account, 'account');
+            const userData = await userClass.getUserData(data.orderData.customer_info.email, 'account');
+            console.log("fin --- ");
+            console.log(await rebateClass.insertRebate(userData.userID, data.orderData.rebateChange, `退貨單調整-退貨單號${origData.return_order_id}`));
         }
         try {
             await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_return_order\`

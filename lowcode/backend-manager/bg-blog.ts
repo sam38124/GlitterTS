@@ -468,12 +468,15 @@ export class BgBlog {
                                                                                                 style="height: 28px;width: 75px;gap:5px;"
                                                                                                 onclick="${gvc.event(() => {
                                                                                                     if(dd.tag==='empty'){
-                                                                                                        callback([])
+                                                                                                        const a:any=[];
+                                                                                                        (a as any).name='空白頁面'
+                                                                                                        callback(a)
                                                                                                     }else{
                                                                                                         BaseApi.create({
                                                                                                             url: `${(window as any).glitterBackend}/api/v1/template?appName=${dd.appName}&tag=${dd.tag}`,
                                                                                                             type: 'get',
                                                                                                         }).then((res) => {
+                                                                                                            res.response.result[0].config.name=dd.template_config.name
                                                                                                             callback(res.response.result[0].config);
                                                                                                         });
                                                                                                     }
@@ -1838,6 +1841,7 @@ function template_select(gvc: GVC, cf: any, vm: any, cVm: any, page_type: any) {
         (c2) => {
             if (c2) {
                 vm.data.content.config = c2;
+                vm.data.content.name = c2.name
                 saveData(gvc, cf, vm, cVm, false).then(() => {
                     cVm.type = 'detail';
                 });
