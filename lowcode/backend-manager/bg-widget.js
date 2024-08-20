@@ -483,7 +483,7 @@ export class BgWidget {
             <div style="${(_b = obj.divStyle) !== null && _b !== void 0 ? _b : ''}">
                 ${obj.title ? html ` <div class="tx_normal fw-normal" style="${(_c = obj.titleStyle) !== null && _c !== void 0 ? _c : ''}">${obj.title}</div>` : ``}
                 <div class="d-flex w-100 align-items-center border rounded-3 ${obj.readonly ? `bgw-input-readonly` : ``}" style="margin: 8px 0;">
-                    ${obj.startText ? html ` <div class="py-2 ps-3">${obj.startText}</div>` : ''}
+                    ${obj.startText ? html ` <div class="py-2 ps-3" style="white-space: nowrap">${obj.startText}</div>` : ''}
                     <input
                         class="bgw-input ${obj.readonly ? `bgw-input-readonly` : ``}"
                         style="${(_d = obj.style) !== null && _d !== void 0 ? _d : ''}"
@@ -505,7 +505,7 @@ export class BgWidget {
                         value="${(_f = obj.default) !== null && _f !== void 0 ? _f : ''}"
                         ${obj.readonly ? `readonly` : ``}
                     />
-                    ${obj.endText ? html ` <div class="py-2 pe-3">${obj.endText}</div>` : ''}
+                    ${obj.endText ? html ` <div class="py-2 pe-3" style="white-space: nowrap">${obj.endText}</div>` : ''}
                 </div>
             </div>
         `;
@@ -1079,7 +1079,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                 });
                 return html ` <div class="c_select" style="position: relative; ${(_a = obj.style) !== null && _a !== void 0 ? _a : ''}">
                     <div
-                        class="w-100 h-100"
+                        class="w-100 h-100 d-flex align-items-center"
                         onclick="${obj.gvc.event(() => {
                     vm.show = !vm.show;
                     if (!vm.show) {

@@ -14,7 +14,16 @@ import moment from 'moment';
 import { ManagerNotify } from './notify.js';
 import { AutoSendEmail } from './auto-send-email.js';
 import { Recommend } from './recommend.js';
-
+type BindItem = {
+    id: string;
+    spec: string[];
+    count: number;
+    sale_price: number;
+    collection: string[];
+    discount_price: number;
+    rebate: number;
+    shipment_fee: number;
+};
 interface VoucherData {
     id: number;
     title: string;
@@ -34,16 +43,7 @@ interface VoucherData {
     type: 'voucher';
     code?: string;
     overlay: boolean;
-    bind?: {
-        id: string;
-        spec: string[];
-        count: number;
-        sale_price: number;
-        collection: string[];
-        discount_price: number;
-        rebate: number;
-        shipment_fee: number;
-    }[];
+    bind?: BindItem[];
     start_ISO_Date: string;
     end_ISO_Date: string;
     discount_total: number;
@@ -82,6 +82,21 @@ type Collection = {
     code: string;
 };
 
+type CartItem = {
+    id: string;
+    spec: string[];
+    count: number;
+    sale_price: number;
+    collection: string[];
+    title: string;
+    preview_image: string;
+    shipment_obj: {
+        type: string;
+        value: number;
+    };
+    discount_price?: number;
+};
+
 export class Shopping {
     public app: string;
 
@@ -107,11 +122,11 @@ export class Shopping {
         order_by?: string;
         id_list?: string;
         with_hide_index?: string;
-        is_manger?:boolean,
-        show_hidden?:string
+        is_manger?: boolean;
+        show_hidden?: string;
     }) {
         try {
-            query.show_hidden=query.show_hidden ?? 'true'
+            query.show_hidden = query.show_hidden ?? 'true';
             let querySql = [`(content->>'$.type'='product')`];
             if (query.search) {
                 switch (query.searchType) {
@@ -129,9 +144,8 @@ export class Shopping {
             }
             query.id && querySql.push(`id = ${query.id}`);
             //當非管理員時，檢查是否顯示隱形商品
-            if(!query.is_manger && (`${query.show_hidden}` !== 'true')){
-
-                querySql.push(`(content->>'$.visible' is null || content->>'$.visible' = 'true')`)
+            if (!query.is_manger && `${query.show_hidden}` !== 'true') {
+                querySql.push(`(content->>'$.visible' is null || content->>'$.visible' = 'true')`);
             }
             //如是連結帶入則轉換成Title
             if (query.collection) {
@@ -206,7 +220,7 @@ export class Shopping {
                                 []
                             )
                         )[0]['count(1)'] == '1';
-                    b.content.id=b.id;
+                    b.content.id = b.id;
                 }
             }
 
@@ -567,20 +581,7 @@ export class Shopping {
             // 購物車資料
             const carData: {
                 customer_info: any; //這張訂單的收件人
-                lineItems: {
-                    id: string;
-                    spec: string[];
-                    count: number;
-                    sale_price: number;
-                    collection: string[];
-                    title: string;
-                    preview_image: string;
-                    shipment_obj: {
-                        type: string;
-                        value: number;
-                    };
-                    discount_price?: number;
-                }[];
+                lineItems: CartItem[];
                 discount?: number;
                 total: number;
                 email: string;
@@ -599,7 +600,7 @@ export class Shopping {
                 voucherList?: VoucherData[];
                 custom_form_format?: any; //自定義表單格式
                 custom_form_data?: any; //自定義表單資料
-                distribution_id?: number;
+                distribution_info?: any;
             } = {
                 customer_info: data.customer_info || {},
                 lineItems: [],
@@ -770,7 +771,7 @@ export class Shopping {
                 if (linkList.data.length > 0) {
                     const content = linkList.data[0].content;
                     if (checkDuring(content)) {
-                        carData.distribution_id = content.voucher;
+                        carData.distribution_info = content;
                     }
                 }
             }
@@ -1200,8 +1201,12 @@ export class Shopping {
         user_info: any;
         shipment_fee: number;
         voucherList?: VoucherData[];
+        distribution_info?: {
+            voucher: number;
+            relative: 'collection' | 'product' | 'all';
+            relative_data: string[];
+        };
         code?: string;
-        distribution_id?: number;
     }) {
         const userClass = new User(this.app);
         cart.discount = 0;
@@ -1215,6 +1220,16 @@ export class Shopping {
         if (!userData || !userData.userID) {
             return;
         }
+
+        const levelData = await userClass.getConfigV2({
+            key: 'member_level_config',
+            user_id: 'manager',
+        });
+        levelData.levels = levelData.levels || [];
+        const userLevel = await userClass.getUserLevel({
+            levelList: levelData.levels,
+            email: cart.email,
+        });
 
         const allVoucher: VoucherData[] = (
             await this.querySql([`(content->>'$.type'='voucher')`], {
@@ -1240,6 +1255,34 @@ export class Shopping {
             pass_voucher_id.push(voucher.id);
         }
 
+        function switchValidProduct(caseName: string, caseList: string[]) {
+            switch (caseName) {
+                case 'collection':
+                    return cart.lineItems.filter((dp) => {
+                        return (
+                            caseList.filter((d1) => {
+                                return dp.collection.find((d2) => {
+                                    return d2 === d1;
+                                });
+                            }).length > 0
+                        );
+                    });
+                case 'product':
+                    return cart.lineItems.filter((dp) => {
+                        return (
+                            caseList
+                                .map((d2) => {
+                                    return `${d2}`;
+                                })
+                                .indexOf(`${dp.id}`) !== -1
+                        );
+                    });
+                case 'all':
+                    return cart.lineItems;
+            }
+            return [] as any;
+        }
+
         // 過濾可使用優惠券
         let overlay = false;
         const groupList = await userClass.getUserGroups();
@@ -1248,43 +1291,19 @@ export class Shopping {
                 return pass_voucher_id.includes(dd.id);
             })
             .filter((dd) => {
-                // 綁定商品
-                let item: any = [];
                 // 判斷符合商品類型
-                switch (dd.for) {
-                    case 'collection':
-                        item = cart.lineItems.filter((dp) => {
-                            return (
-                                dd.forKey.filter((d1) => {
-                                    return dp.collection.find((d2) => {
-                                        return d2 === d1;
-                                    });
-                                }).length > 0
-                            );
-                        });
-                        dd.bind = item;
-                        return item.length > 0;
-                    case 'product':
-                        item = cart.lineItems.filter((dp) => {
-                            return (
-                                dd.forKey
-                                    .map((dd) => {
-                                        return `${dd}`;
-                                    })
-                                    .indexOf(`${dp.id}`) !== -1
-                            );
-                        });
-                        dd.bind = item;
-                        return item.length > 0;
-                    case 'all':
-                        item = cart.lineItems;
-                        dd.bind = item;
-                        return item.length > 0;
-                }
+                const bindItem = switchValidProduct(dd.for, dd.forKey);
+                dd.bind = bindItem;
+                return bindItem.length > 0;
             })
             .filter((dd) => {
                 // 判斷是自動發放還是優惠碼
-                return dd.trigger === 'auto' || dd.code === `${cart.code}` || (dd.trigger === 'distribution' && cart.distribution_id === dd.id);
+                if (dd.trigger === 'distribution' && cart.distribution_info && cart.distribution_info.voucher === dd.id) {
+                    const bindItem = switchValidProduct(cart.distribution_info.relative, cart.distribution_info.relative_data);
+                    dd.bind = bindItem;
+                    return bindItem.length > 0;
+                }
+                return dd.trigger === 'auto' || dd.code === `${cart.code}`;
             })
             .filter((dd) => {
                 // 判斷最低消費金額或數量
@@ -1304,8 +1323,7 @@ export class Shopping {
                     return dd.targetList.includes(userData.userID);
                 }
                 if (dd.target === 'levels') {
-                    const level = userData.member.find((dd: any) => dd.trigger);
-                    return level && dd.targetList.includes(level.id);
+                    return userLevel.id.length > 0 && dd.targetList.includes(userLevel.id);
                 }
                 if (dd.target === 'group') {
                     if (!groupList.result) {

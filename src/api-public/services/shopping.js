@@ -44,7 +44,7 @@ class Shopping {
                 }
             }
             query.id && querySql.push(`id = ${query.id}`);
-            if (!query.is_manger && (`${query.show_hidden}` !== 'true')) {
+            if (!query.is_manger && `${query.show_hidden}` !== 'true') {
                 querySql.push(`(content->>'$.visible' is null || content->>'$.visible' = 'true')`);
             }
             if (query.collection) {
@@ -494,7 +494,7 @@ class Shopping {
                 if (linkList.data.length > 0) {
                     const content = linkList.data[0].content;
                     if (checkDuring(content)) {
-                        carData.distribution_id = content.voucher;
+                        carData.distribution_info = content;
                     }
                 }
             }
@@ -842,6 +842,29 @@ class Shopping {
             }
             pass_voucher_id.push(voucher.id);
         }
+        function switchValidProduct(caseName, caseList) {
+            switch (caseName) {
+                case 'collection':
+                    return cart.lineItems.filter((dp) => {
+                        return (caseList.filter((d1) => {
+                            return dp.collection.find((d2) => {
+                                return d2 === d1;
+                            });
+                        }).length > 0);
+                    });
+                case 'product':
+                    return cart.lineItems.filter((dp) => {
+                        return (caseList
+                            .map((d2) => {
+                            return `${d2}`;
+                        })
+                            .indexOf(`${dp.id}`) !== -1);
+                    });
+                case 'all':
+                    return cart.lineItems;
+            }
+            return [];
+        }
         let overlay = false;
         const groupList = await userClass.getUserGroups();
         const voucherList = allVoucher
@@ -849,36 +872,17 @@ class Shopping {
             return pass_voucher_id.includes(dd.id);
         })
             .filter((dd) => {
-            let item = [];
-            switch (dd.for) {
-                case 'collection':
-                    item = cart.lineItems.filter((dp) => {
-                        return (dd.forKey.filter((d1) => {
-                            return dp.collection.find((d2) => {
-                                return d2 === d1;
-                            });
-                        }).length > 0);
-                    });
-                    dd.bind = item;
-                    return item.length > 0;
-                case 'product':
-                    item = cart.lineItems.filter((dp) => {
-                        return (dd.forKey
-                            .map((dd) => {
-                            return `${dd}`;
-                        })
-                            .indexOf(`${dp.id}`) !== -1);
-                    });
-                    dd.bind = item;
-                    return item.length > 0;
-                case 'all':
-                    item = cart.lineItems;
-                    dd.bind = item;
-                    return item.length > 0;
-            }
+            const bindItem = switchValidProduct(dd.for, dd.forKey);
+            dd.bind = bindItem;
+            return bindItem.length > 0;
         })
             .filter((dd) => {
-            return dd.trigger === 'auto' || dd.code === `${cart.code}` || (dd.trigger === 'distribution' && cart.distribution_id === dd.id);
+            if (dd.trigger === 'distribution' && cart.distribution_info && cart.distribution_info.voucher === dd.id) {
+                const bindItem = switchValidProduct(cart.distribution_info.relative, cart.distribution_info.relative_data);
+                dd.bind = bindItem;
+                return bindItem.length > 0;
+            }
+            return dd.trigger === 'auto' || dd.code === `${cart.code}`;
         })
             .filter((dd) => {
             const ruleValue = parseInt(`${dd.ruleValue}`, 10);

@@ -636,7 +636,7 @@ export class BgWidget {
             <div style="${obj.divStyle ?? ''}">
                 ${obj.title ? html` <div class="tx_normal fw-normal" style="${obj.titleStyle ?? ''}">${obj.title}</div>` : ``}
                 <div class="d-flex w-100 align-items-center border rounded-3 ${obj.readonly ? `bgw-input-readonly` : ``}" style="margin: 8px 0;">
-                    ${obj.startText ? html` <div class="py-2 ps-3">${obj.startText}</div>` : ''}
+                    ${obj.startText ? html` <div class="py-2 ps-3" style="white-space: nowrap">${obj.startText}</div>` : ''}
                     <input
                         class="bgw-input ${obj.readonly ? `bgw-input-readonly` : ``}"
                         style="${obj.style ?? ''}"
@@ -659,7 +659,7 @@ export class BgWidget {
                         value="${obj.default ?? ''}"
                         ${obj.readonly ? `readonly` : ``}
                     />
-                    ${obj.endText ? html` <div class="py-2 pe-3">${obj.endText}</div>` : ''}
+                    ${obj.endText ? html` <div class="py-2 pe-3" style="white-space: nowrap">${obj.endText}</div>` : ''}
                 </div>
             </div>
         `;
@@ -1298,7 +1298,7 @@ ${obj.default ?? ''}</textarea
                 });
                 return html` <div class="c_select" style="position: relative; ${obj.style ?? ''}">
                     <div
-                        class="w-100 h-100"
+                        class="w-100 h-100 d-flex align-items-center"
                         onclick="${obj.gvc.event(() => {
                             vm.show = !vm.show;
                             if (!vm.show) {

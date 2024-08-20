@@ -836,7 +836,7 @@ class User {
                             type: 'level',
                             title: `會員等級 - ${level.name}`,
                             tag: level.id,
-                            users: levelList
+                            users: levelList,
                         });
                     }
                     else {
@@ -983,6 +983,7 @@ class User {
         }
     }
     async updateUserData(userID, par, manager = false) {
+        var _a, _b;
         try {
             const userData = (await database_1.default.query(`select *
                      from \`${this.app}\`.\`t_user\`
@@ -1013,6 +1014,7 @@ class User {
                        and email = ?`, [par.userData.email, userData.account]);
                 userData.account = par.userData.email;
             }
+            par.userData = Object.assign(Object.assign({}, par.userData), { level_status: (_a = par.level_status) !== null && _a !== void 0 ? _a : undefined, level_default: (_b = par.level_default) !== null && _b !== void 0 ? _b : undefined });
             par.userData = await this.checkUpdate({
                 updateUserData: par.userData,
                 userID: userID,
@@ -1056,7 +1058,9 @@ class User {
         Object.keys(userData).map((dd) => {
             if (!config.find((d2) => {
                 return d2.key === dd && (d2.auth !== 'manager' || manager);
-            })) {
+            }) &&
+                !['level_status', 'level_default'].includes(dd)) {
+                console.log(dd);
                 delete userData[dd];
             }
         });

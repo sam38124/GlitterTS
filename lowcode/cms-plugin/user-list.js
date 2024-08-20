@@ -500,7 +500,7 @@ export class UserList {
                 bind: vm.id,
                 dataList: [{ obj: vm, key: 'type' }],
                 view: () => {
-                    var _a, _b, _c;
+                    var _a, _b, _c, _d;
                     if (vm.loading) {
                         return html `<div class="d-flex w-100 align-items-center pt-5">${BgWidget.spinner()}</div>`;
                     }
@@ -721,31 +721,61 @@ export class UserList {
                                                 {
                                                     key: 'manual',
                                                     name: '手動調整',
-                                                    innerHtml: html `
-                                                                            ${BgWidget.grayNote('針對特殊會員，手動調整後將無法自動升級', 'font-size: 14px;')}
-                                                                            ${BgWidget.select({
-                                                        gvc: gvc,
-                                                        default: '',
-                                                        callback: (key) => {
-                                                            console.log(key);
-                                                        },
-                                                        options: [
-                                                            { key: '123', value: '123' },
-                                                            { key: '124', value: '124' },
-                                                            { key: '125', value: '125' },
-                                                        ],
-                                                        style: 'margin: 8px 0;',
-                                                    })}
-                                                                        `,
+                                                    innerHtml: gvc.bindView((() => {
+                                                        const id = gvc.glitter.getUUID();
+                                                        let loading = true;
+                                                        let options = [];
+                                                        return {
+                                                            bind: id,
+                                                            view: () => {
+                                                                var _a;
+                                                                if (loading) {
+                                                                    return BgWidget.spinner();
+                                                                }
+                                                                else {
+                                                                    vm.data.level_default = (_a = vm.data.userData.level_default) !== null && _a !== void 0 ? _a : options[0].key;
+                                                                    return html `
+                                                                                                ${BgWidget.grayNote('針對特殊會員，手動調整後將無法自動升級', 'font-size: 14px;')}
+                                                                                                ${BgWidget.select({
+                                                                        gvc: gvc,
+                                                                        default: vm.data.level_default,
+                                                                        callback: (key) => {
+                                                                            vm.data.level_default = key;
+                                                                        },
+                                                                        options: options,
+                                                                        style: 'margin: 8px 0;',
+                                                                    })}
+                                                                                            `;
+                                                                }
+                                                            },
+                                                            divCreate: {},
+                                                            onCreate: () => {
+                                                                if (loading) {
+                                                                    ApiUser.getPublicConfig('member_level_config', 'manager').then((dd) => {
+                                                                        if (dd.result && dd.response.value) {
+                                                                            options = dd.response.value.levels.map((item) => {
+                                                                                return {
+                                                                                    key: `${item.id}`,
+                                                                                    value: item.tag_name,
+                                                                                };
+                                                                            });
+                                                                            loading = false;
+                                                                            gvc.notifyDataChange(id);
+                                                                        }
+                                                                    });
+                                                                }
+                                                            },
+                                                        };
+                                                    })()),
                                                 },
-                                            ], ['auto'], (value) => {
-                                                console.log(value);
+                                            ], [(_c = vm.data.userData.level_status) !== null && _c !== void 0 ? _c : 'auto'], (value) => {
+                                                vm.data.level_status = value[0];
                                             }, { single: true }),
                                         ].join(BgWidget.mbContainer(12)),
                                         [
                                             html `<div class="tx_700">會員有效期</div>`,
                                             html `<div class="tx_noraml">
-                                                                ${((_c = vm.data.member_level.dead_line) === null || _c === void 0 ? void 0 : _c.length) > 0 ? Tool.convertDateTimeFormat(vm.data.member_level.dead_line) : '永久'}
+                                                                ${((_d = vm.data.member_level.dead_line) === null || _d === void 0 ? void 0 : _d.length) > 0 ? Tool.convertDateTimeFormat(vm.data.member_level.dead_line) : '永久'}
                                                             </div>`,
                                         ].join(BgWidget.mbContainer(12)),
                                         [html `<div class="tx_700">註冊時間</div>`, Tool.convertDateTimeFormat(vm.data.created_time)].join(BgWidget.mbContainer(12)),

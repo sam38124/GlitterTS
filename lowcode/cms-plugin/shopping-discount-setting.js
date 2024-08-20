@@ -437,7 +437,7 @@ export class ShoppingDiscountSetting {
                                                 { key: 'levels', value: '會員等級' },
                                                 { key: 'group', value: '顧客分群' },
                                             ],
-                                            style: 'width: 100%; background-position-x: 97.5%;',
+                                            style: 'width: 100%;',
                                         })}
                                                                         <div>
                                                                             ${(() => {
@@ -500,7 +500,7 @@ export class ShoppingDiscountSetting {
                                                                                 });
                                                                             });
                                                                         },
-                                                                        style: 'width: 100%; background-position-x: 97.5%;',
+                                                                        style: 'width: 100%;',
                                                                     });
                                                                 }), { textStyle: 'font-weight: 400;' })}
                                                                                                             </div>
@@ -568,7 +568,7 @@ export class ShoppingDiscountSetting {
                                                                         },
                                                                         default: (_a = voucherData.targetList) !== null && _a !== void 0 ? _a : [],
                                                                         options: levelVM.dataList,
-                                                                        style: 'width: 100%; background-position-x: 97.5%;',
+                                                                        style: 'width: 100%;',
                                                                     });
                                                                 }
                                                             },
@@ -616,7 +616,7 @@ export class ShoppingDiscountSetting {
                                                                         },
                                                                         default: (_a = voucherData.targetList) !== null && _a !== void 0 ? _a : [],
                                                                         options: levelVM.dataList,
-                                                                        style: 'width: 100%; background-position-x: 97.5%;',
+                                                                        style: 'width: 100%;',
                                                                     });
                                                                 }
                                                             },

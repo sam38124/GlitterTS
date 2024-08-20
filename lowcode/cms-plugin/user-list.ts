@@ -11,6 +11,7 @@ import { ShoppingOrderManager } from './shopping-order-manager.js';
 import { FilterOptions } from './filter-options.js';
 import { ShoppingRebate } from './shopping-rebate.js';
 import { Tool } from '../modules/tool.js';
+import { OptionsItem } from '../backend-manager/bg-product.js';
 
 const html = String.raw;
 
@@ -816,27 +817,57 @@ export class UserList {
                                                                     {
                                                                         key: 'manual',
                                                                         name: '手動調整',
-                                                                        innerHtml: html`
-                                                                            ${BgWidget.grayNote('針對特殊會員，手動調整後將無法自動升級', 'font-size: 14px;')}
-                                                                            ${BgWidget.select({
-                                                                                gvc: gvc,
-                                                                                default: '',
-                                                                                callback: (key) => {
-                                                                                    console.log(key);
-                                                                                },
-                                                                                options: [
-                                                                                    { key: '123', value: '123' },
-                                                                                    { key: '124', value: '124' },
-                                                                                    { key: '125', value: '125' },
-                                                                                ],
-                                                                                style: 'margin: 8px 0;',
-                                                                            })}
-                                                                        `,
+                                                                        innerHtml: gvc.bindView(
+                                                                            (() => {
+                                                                                const id = gvc.glitter.getUUID();
+                                                                                let loading = true;
+                                                                                let options: { key: string; value: string }[] = [];
+                                                                                return {
+                                                                                    bind: id,
+                                                                                    view: () => {
+                                                                                        if (loading) {
+                                                                                            return BgWidget.spinner();
+                                                                                        } else {
+                                                                                            vm.data.level_default = vm.data.userData.level_default ?? options[0].key;
+                                                                                            return html`
+                                                                                                ${BgWidget.grayNote('針對特殊會員，手動調整後將無法自動升級', 'font-size: 14px;')}
+                                                                                                ${BgWidget.select({
+                                                                                                    gvc: gvc,
+                                                                                                    default: vm.data.level_default,
+                                                                                                    callback: (key) => {
+                                                                                                        vm.data.level_default = key;
+                                                                                                    },
+                                                                                                    options: options,
+                                                                                                    style: 'margin: 8px 0;',
+                                                                                                })}
+                                                                                            `;
+                                                                                        }
+                                                                                    },
+                                                                                    divCreate: {},
+                                                                                    onCreate: () => {
+                                                                                        if (loading) {
+                                                                                            ApiUser.getPublicConfig('member_level_config', 'manager').then((dd: any) => {
+                                                                                                if (dd.result && dd.response.value) {
+                                                                                                    options = dd.response.value.levels.map((item: { id: string; tag_name: string }) => {
+                                                                                                        return {
+                                                                                                            key: `${item.id}`,
+                                                                                                            value: item.tag_name,
+                                                                                                        };
+                                                                                                    });
+                                                                                                    loading = false;
+                                                                                                    gvc.notifyDataChange(id);
+                                                                                                }
+                                                                                            });
+                                                                                        }
+                                                                                    },
+                                                                                };
+                                                                            })()
+                                                                        ),
                                                                     },
                                                                 ],
-                                                                ['auto'],
+                                                                [vm.data.userData.level_status ?? 'auto'],
                                                                 (value) => {
-                                                                    console.log(value);
+                                                                    vm.data.level_status = value[0];
                                                                 },
                                                                 { single: true }
                                                             ),
@@ -1129,7 +1160,6 @@ export class UserList {
                                             gvc.event(() => {
                                                 const dialog = new ShareDialog(gvc.glitter);
                                                 dialog.dataLoading({ text: '更新中', visible: true });
-
                                                 ApiUser.updateUserDataManager(vm.data, vm.data.userID).then((response) => {
                                                     dialog.dataLoading({ text: '', visible: false });
                                                     if (response.result) {

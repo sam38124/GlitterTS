@@ -111,12 +111,14 @@ export class Schedule {
                                 }
                             }
 
+                            const levelData = await userClass.getConfigV2({ key: 'member_level_config', user_id: 'manager' });
+                            levelData.levels = levelData.levels || [];
+
                             if (rgs.type === 'levels') {
                                 for (const user of users) {
-                                    const member = await userClass.refreshMember(user);
-                                    const level = member.find((dd: any) => dd.trigger);
-                                    if (!level) continue;
-                                    const data = rgs.level.find((item: { id: string }) => item.id === level.id);
+                                    const member = await userClass.getUserLevel({ levelList: levelData.levels, userId: user.user_id });
+                                    if (member.id === '') continue;
+                                    const data = rgs.level.find((item: { id: string }) => item.id === member.id);
                                     if (!data) continue;
                                     await postUserRebate(user.userID, data.value);
                                 }
