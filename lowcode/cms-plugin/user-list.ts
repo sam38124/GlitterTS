@@ -806,6 +806,59 @@ export class UserList {
                                                                                 style="color: #4D86DB; text-decoration: underline;"
                                                                                 onclick="${gvc.event((e, ev) => {
                                                                                     ev.stopPropagation();
+                                                                                    BgWidget.infoDialog({
+                                                                                        gvc: gvc,
+                                                                                        title: '會員規則',
+                                                                                        innerHTML: BgWidget.tableV2({
+                                                                                            gvc: gvc,
+                                                                                            getData: (vd) => {
+                                                                                                setTimeout(() => {
+                                                                                                    vd.data = vm.data.member.map((leadData: any, index: number) => {
+                                                                                                        return [
+                                                                                                            { key: '會員等級', value: leadData.tag_name },
+                                                                                                            {
+                                                                                                                key: '升級條件',
+                                                                                                                value: (() => {
+                                                                                                                    let text = '';
+                                                                                                                    const val = parseInt(`${leadData.og.condition.value}`, 10).toLocaleString();
+                                                                                                                    const condition_type = leadData.og.condition.type === 'single' ? '單筆' : '累積';
+                                                                                                                    if (leadData.og.duration.type === 'noLimit') {
+                                                                                                                        text = `${condition_type}消費額達 NT$${val}`;
+                                                                                                                    } else {
+                                                                                                                        text = `${leadData.og.duration.value}天內${condition_type}消費額達 NT$${val}`;
+                                                                                                                    }
+                                                                                                                    return text;
+                                                                                                                })(),
+                                                                                                            },
+                                                                                                            {
+                                                                                                                key: '有效期限',
+                                                                                                                value: (() => {
+                                                                                                                    let dead_line = '';
+                                                                                                                    if (leadData.og.dead_line.type === 'date') {
+                                                                                                                        const day = [
+                                                                                                                            { title: '一個月', value: 30 },
+                                                                                                                            { title: '三個月', value: 90 },
+                                                                                                                            { title: '六個月', value: 180 },
+                                                                                                                            { title: '一年', value: 365 },
+                                                                                                                        ].find((item) => {
+                                                                                                                            return item.value == leadData.og.dead_line.value;
+                                                                                                                        });
+                                                                                                                        dead_line = day ? day.title : `${leadData.og.dead_line.value}天`;
+                                                                                                                    }
+                                                                                                                    if (leadData.og.dead_line.type === 'noLimit') {
+                                                                                                                        dead_line = '沒有期限';
+                                                                                                                    }
+                                                                                                                    return dead_line;
+                                                                                                                })(),
+                                                                                                            },
+                                                                                                        ];
+                                                                                                    });
+                                                                                                    vd.loading = false;
+                                                                                                    vd.callback();
+                                                                                                }, 200);
+                                                                                            },
+                                                                                        }),
+                                                                                    });
                                                                                 })}"
                                                                                 >會員規則</span
                                                                             >自動升級
