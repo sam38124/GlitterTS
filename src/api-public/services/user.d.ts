@@ -27,6 +27,22 @@ interface GroupsItem {
     tag?: string;
     users: GroupUserItem[];
 }
+type MemberLevel = {
+    id: string;
+    duration: {
+        type: string;
+        value: number;
+    };
+    tag_name: string;
+    condition: {
+        type: string;
+        value: number;
+    };
+    dead_line: {
+        type: string;
+    };
+    create_date: string;
+};
 export declare class User {
     app: string;
     token?: IToken;
@@ -70,14 +86,32 @@ export declare class User {
         result: true;
         data: GroupsItem[];
     }>;
-    getUserLevel(obj: {
-        levelList: any[];
+    normalMember: {
+        id: string;
+        duration: {
+            type: string;
+            value: number;
+        };
+        tag_name: string;
+        condition: {
+            type: string;
+            value: number;
+        };
+        dead_line: {
+            type: string;
+        };
+        create_date: string;
+    };
+    getLevelConfig(): Promise<any>;
+    getUserLevel(data: {
         userId?: string;
         email?: string;
-    }): Promise<{
-        id: any;
-        tag_name: any;
-    }>;
+    }[]): Promise<{
+        id: number;
+        email: string;
+        data: MemberLevel;
+        status: 'auto' | 'manual';
+    }[]>;
     subscribe(email: string, tag: string): Promise<void>;
     registerFcm(userID: string, deviceToken: string): Promise<void>;
     deleteSubscribe(email: string): Promise<{

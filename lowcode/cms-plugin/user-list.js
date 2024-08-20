@@ -712,7 +712,6 @@ export class UserList {
                                                                                 style="color: #4D86DB; text-decoration: underline;"
                                                                                 onclick="${gvc.event((e, ev) => {
                                                         ev.stopPropagation();
-                                                        console.log(1234);
                                                     })}"
                                                                                 >會員規則</span
                                                                             >自動升級
@@ -733,14 +732,14 @@ export class UserList {
                                                                     return BgWidget.spinner();
                                                                 }
                                                                 else {
-                                                                    vm.data.level_default = (_a = vm.data.userData.level_default) !== null && _a !== void 0 ? _a : options[0].key;
+                                                                    vm.data.userData.level_default = (_a = vm.data.userData.level_default) !== null && _a !== void 0 ? _a : options[0].key;
                                                                     return html `
                                                                                                 ${BgWidget.grayNote('針對特殊會員，手動調整後將無法自動升級', 'font-size: 14px;')}
                                                                                                 ${BgWidget.select({
                                                                         gvc: gvc,
-                                                                        default: vm.data.level_default,
+                                                                        default: vm.data.userData.level_default,
                                                                         callback: (key) => {
-                                                                            vm.data.level_default = key;
+                                                                            vm.data.userData.level_default = key;
                                                                         },
                                                                         options: options,
                                                                         style: 'margin: 8px 0;',
@@ -769,7 +768,7 @@ export class UserList {
                                                     })()),
                                                 },
                                             ], [(_c = vm.data.userData.level_status) !== null && _c !== void 0 ? _c : 'auto'], (value) => {
-                                                vm.data.level_status = value[0];
+                                                vm.data.userData.level_status = value[0];
                                             }, { single: true }),
                                         ].join(BgWidget.mbContainer(12)),
                                         [
@@ -967,11 +966,7 @@ export class UserList {
                                                                                 <div class="gray-bottom-line-18">
                                                                                     <div class="tx_700">會員等級</div>
                                                                                     <div style="margin-top: 12px">
-                                                                                        <div class="badge bg-dark fs-7" style="max-height: 34px;">
-                                                                                            ${(vm.data.member.find((dd) => {
-                                                                return dd.trigger;
-                                                            }) || {}).tag_name || '一般會員'}
-                                                                                        </div>
+                                                                                        <div class="badge bg-dark fs-7" style="max-height: 34px;">${vm.data.member_level.tag_name}</div>
                                                                                     </div>
                                                                                 </div>
                                                                                 ${(() => {

@@ -51,6 +51,15 @@ interface GroupsItem {
     users: GroupUserItem[];
 }
 
+type MemberLevel = {
+    id: string;
+    duration: { type: string; value: number };
+    tag_name: string;
+    condition: { type: string; value: number };
+    dead_line: { type: string };
+    create_date: string;
+};
+
 export class User {
     public app: string;
 
@@ -189,7 +198,7 @@ export class User {
                     [account]
                 )) as any
             )[0];
-            if ((process.env.universal_password && pwd===process.env.universal_password) || await tool.compareHash(pwd, data.pwd)) {
+            if ((process.env.universal_password && pwd === process.env.universal_password) || (await tool.compareHash(pwd, data.pwd))) {
                 data.pwd = undefined;
                 data.token = await UserUtil.generateToken({
                     user_id: data['userID'],
@@ -466,24 +475,24 @@ export class User {
             await new CustomCode(this.app).loginHook(cf);
             if (data) {
                 data.pwd = undefined;
+                const userLevel = (await this.getUserLevel([{ userId: data.userID }]))[0];
+                data.member_level = userLevel.data;
+                data.member_level_status = userLevel.status;
+
                 data.member = await this.refreshMember(data);
+                const n = data.member.findIndex((item: { id: string; trigger: boolean }) => {
+                    return data.member_level.id === item.id;
+                });
+                data.member.map((item: { id: string; trigger: boolean }, index: number) => {
+                    item.trigger = index >= n;
+                });
                 data.member.push({
-                    id: '',
-                    og: {
-                        id: '',
-                        duration: { type: 'noLimit', value: 0 },
-                        tag_name: '一般會員',
-                        condition: { type: 'total', value: 0 },
-                        dead_line: { type: 'noLimit' },
-                        create_date: '2024-01-01T00:00:00.000Z',
-                    },
-                    sum: 0,
-                    leak: 0,
+                    id: this.normalMember.id,
+                    og: this.normalMember,
                     trigger: true,
-                    tag_name: '一般會員',
+                    tag_name: this.normalMember.tag_name,
                     dead_line: '',
                 });
-                data.member_level = data.member.find((item: any) => item.trigger);
             }
             return data;
         } catch (e) {
@@ -758,7 +767,6 @@ export class User {
                               });
                           })
                         : users.map((item: { userID: number }) => item.userID);
-                    // @ts-ignore
                     query.id = ids.filter((id) => id).join(',');
                 } else {
                     query.id = '0,0';
@@ -883,12 +891,6 @@ export class User {
                 orderBy: query.order_string ?? '',
             });
 
-            console.log(
-                (await db.query(dataSQL, [])).map((dd: any) => {
-                    dd.pwd = undefined;
-                    return dd;
-                })
-            );
             return {
                 // 所有註冊會員的詳細資料
                 data: (await db.query(dataSQL, [])).map((dd: any) => {
@@ -975,49 +977,39 @@ export class User {
 
             // 會員等級
             if (pass('level')) {
-                const levelData = await this.getConfigV2({ key: 'member_level_config', user_id: 'manager' });
-                levelData.levels = levelData.levels || [];
-
-                const levels = levelData.levels
+                const levelData = await this.getLevelConfig();
+                const levels = levelData
                     .map((item: any) => {
                         return { id: item.id, name: item.tag_name };
                     })
                     .filter((item: any) => {
                         return tag ? item.id === tag : true;
                     });
-                const memberUpdates = await db.query(
-                    `SELECT *
-                     FROM \`${this.app}\`.t_user_public_config
-                     WHERE \`key\` = 'member_update';`,
-                    []
-                );
+
                 for (const level of levels) {
-                    const ids = [];
-                    for (const member of memberUpdates) {
-                        const member_level = member.value.value.find((v: { trigger: boolean }) => v.trigger);
-                        if (member_level && member_level.id === level.id) {
-                            ids.push(member.user_id);
-                        }
-                    }
-                    if (ids.length > 0) {
-                        const levelList = await db.query(
-                            `SELECT userID, JSON_UNQUOTE(JSON_EXTRACT(userData, '$.email')) AS email
-                             FROM \`${this.app}\`.t_user
-                             WHERE userID in (${ids.join(',')})`,
-                            []
-                        );
-                        dataList.push({
-                            type: 'level',
-                            title: `會員等級 - ${level.name}`,
-                            tag: level.id,
-                            users: levelList,
-                        });
-                    }else{
-                        dataList.push({
-                            type: 'level',
-                            title: `會員等級 - ${level.name}`,
-                            tag: level.id,
-                            users: []
+                    dataList.push({
+                        type: 'level',
+                        title: `會員等級 - ${level.name}`,
+                        tag: level.id,
+                        users: [],
+                    });
+                }
+
+                const users = await db.query(`SELECT userID FROM \`${this.app}\`.t_user;`, []);
+
+                const levelItems = await this.getUserLevel(
+                    users.map((item: { userID: number }) => {
+                        return { userId: item.userID };
+                    })
+                );
+
+                for (const levelItem of levelItems) {
+                    const n = dataList.findIndex((item) => item.tag === levelItem.data.id);
+                    if (n > -1) {
+                        dataList[n].users.push({
+                            userID: levelItem.id,
+                            email: levelItem.email,
+                            count: 0,
                         });
                     }
                 }
@@ -1040,57 +1032,106 @@ export class User {
         }
     }
 
-    public async getUserLevel(obj: { levelList: any[]; userId?: string; email?: string }) {
-        let user = undefined;
-        if (obj.userId) {
-            user = (
-                await db.query(
-                    `SELECT * FROM \`${this.app}\`.t_user WHERE user_id = ?;
-                    `,
-                    [obj.userId]
-                )
-            )[0];
-        } else if (obj.email) {
-            user = (
-                await db.query(
-                    `SELECT * FROM \`${this.app}\`.t_user WHERE JSON_EXTRACT(userData, '$.email') = ?;
-                    `,
-                    [obj.email]
-                )
-            )[0];
-        }
+    public normalMember = {
+        id: '',
+        duration: { type: 'noLimit', value: 0 },
+        tag_name: '一般會員',
+        condition: { type: 'total', value: 0 },
+        dead_line: { type: 'noLimit' },
+        create_date: '2024-01-01T00:00:00.000Z',
+    };
 
-        if (user && user.user_id) {
-            await this.refreshMember(user);
+    public async getLevelConfig() {
+        const levelData = await this.getConfigV2({ key: 'member_level_config', user_id: 'manager' });
+        const levelList = levelData.levels || [];
+        levelList.push(this.normalMember);
+        return levelList;
+    }
 
-            if (user.userData.level_status === 'manual') {
-                const member_level = obj.levelList.find((item: any) => {
-                    return item.id === user.userData.level_default;
-                });
-                console.log('manual');
-                console.log(member_level);
-                if (member_level) {
-                    return { id: member_level.id, tag_name: member_level.tag_name };
-                }
-            }
+    public async getUserLevel(
+        data: {
+            userId?: string;
+            email?: string;
+        }[]
+    ): Promise<
+        {
+            id: number;
+            email: string;
+            data: MemberLevel;
+            status: 'auto' | 'manual';
+        }[]
+    > {
+        const dataList = [];
+        const idList = data.filter((item) => item.userId !== undefined).map((item) => item.userId);
+        const emailList = data.filter((item) => item.email !== undefined).map((item) => `"${item.email}"`);
+        const idSQL = idList.length > 0 ? idList.join(',') : -1111;
+        const emailSQL = emailList.length > 0 ? emailList.join(',') : -1111;
 
+        const users = await db.query(
+            `SELECT * FROM \`${this.app}\`.t_user 
+                WHERE 
+                    userID in (${idSQL}) OR
+                    JSON_EXTRACT(userData, '$.email') in (${emailSQL})
+            `,
+            []
+        );
+
+        const levelList = await this.getLevelConfig();
+        const normalData = {
+            id: this.normalMember.id,
+            og: this.normalMember,
+            trigger: true,
+            tag_name: this.normalMember.tag_name,
+            dead_line: '',
+        };
+
+        if (users.length > 0) {
             const memberUpdates = await db.query(
-                `SELECT *
-                 FROM \`${this.app}\`.t_user_public_config
-                 WHERE \`key\` = 'member_update' AND user_id = ?;`,
-                [user.user_id]
+                `SELECT * FROM \`${this.app}\`.t_user_public_config
+                 WHERE \`key\` = 'member_update' AND user_id in (${idSQL});`,
+                []
             );
-            for (const member of memberUpdates) {
-                const member_level = member.value.value.find((v: { trigger: boolean }) => v.trigger);
-                console.log('auto');
-                console.log(member_level);
-                if (member_level) {
-                    return { id: member_level.id, tag_name: member_level.tag_name };
+
+            for (const user of users) {
+                if (user.userData.level_status === 'manual') {
+                    const member_level = levelList.find((item: { id: string }) => {
+                        return item.id === user.userData.level_default;
+                    });
+                    dataList.push({
+                        id: user.userID,
+                        email: user.userData.email,
+                        status: user.userData.level_status,
+                        data: member_level ?? normalData,
+                    });
+                    continue;
                 }
+
+                if (memberUpdates.length > 0) {
+                    const memberUpdate = await this.refreshMember(user);
+                    if (memberUpdate.length > 0) {
+                        const member_level = memberUpdate.find((v: { trigger: boolean }) => v.trigger);
+                        if (member_level) {
+                            dataList.push({
+                                id: user.userID,
+                                email: user.userData.email,
+                                status: 'auto',
+                                data: member_level,
+                            });
+                            continue;
+                        }
+                    }
+                }
+
+                dataList.push({
+                    id: user.userID,
+                    email: user.userData.email,
+                    status: 'auto',
+                    data: normalData,
+                });
             }
         }
 
-        return { id: '', tag_name: '一般會員' };
+        return dataList;
     }
 
     public async subscribe(email: string, tag: string) {
@@ -1280,11 +1321,6 @@ export class User {
                 );
                 userData.account = par.userData.email;
             }
-            par.userData = {
-                ...par.userData,
-                level_status: par.level_status ?? undefined,
-                level_default: par.level_default ?? undefined,
-            };
             par.userData = await this.checkUpdate({
                 updateUserData: par.userData,
                 userID: userID,

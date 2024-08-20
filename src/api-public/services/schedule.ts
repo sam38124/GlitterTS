@@ -115,11 +115,20 @@ export class Schedule {
                             levelData.levels = levelData.levels || [];
 
                             if (rgs.type === 'levels') {
+                                const usersLevel = await userClass.getUserLevel(
+                                    users.map((item: { userID: number }) => {
+                                        return { userId: item.userID };
+                                    })
+                                );
                                 for (const user of users) {
-                                    const member = await userClass.getUserLevel({ levelList: levelData.levels, userId: user.user_id });
-                                    if (member.id === '') continue;
-                                    const data = rgs.level.find((item: { id: string }) => item.id === member.id);
-                                    if (!data) continue;
+                                    const member = usersLevel.find((item) => item.id == user.userID);
+                                    if (member && member.data.id === '') {
+                                        continue;
+                                    }
+                                    const data = rgs.level.find((item: { id: string }) => item.id == member?.data.id);
+                                    if (!data) {
+                                        continue;
+                                    }
                                     await postUserRebate(user.userID, data.value);
                                 }
                             }

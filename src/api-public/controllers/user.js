@@ -61,6 +61,40 @@ router.delete('/', async (req, resp) => {
         return response_1.default.fail(resp, err);
     }
 });
+router.get('/level', async (req, resp) => {
+    try {
+        if (await ut_permission_js_1.UtPermission.isManager(req)) {
+            const user = new user_1.User(req.get('g-app'));
+            const emails = req.query.email
+                ? `${req.query.email}`.split(',').map((item) => {
+                    return { email: item };
+                })
+                : [];
+            const ids = req.query.id
+                ? `${req.query.id}`.split(',').map((item) => {
+                    return { userId: item };
+                })
+                : [];
+            return response_1.default.succ(resp, await user.getUserLevel([...emails, ...ids]));
+        }
+        else {
+            const user = new user_1.User(req.get('g-app'));
+            return response_1.default.succ(resp, await user.getUserLevel([{ userId: req.body.token.userID }]));
+        }
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.get('/level/config', async (req, resp) => {
+    try {
+        const user = new user_1.User(req.get('g-app'));
+        return response_1.default.succ(resp, await user.getLevelConfig());
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
 router.post('/register', async (req, resp) => {
     try {
         const user = new user_1.User(req.get('g-app'));

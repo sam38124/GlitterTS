@@ -747,11 +747,11 @@ class Shopping {
                        FROM \`${this.app}\`.t_return_order
                        WHERE id = ${data.id}`, []);
         origData = origData[0];
-        if (origData.status != "1" && origData.orderData.returnProgress != "-1" && data.orderData.returnProgress == "-1" && data.status == "1") {
+        if (origData.status != '1' && origData.orderData.returnProgress != '-1' && data.orderData.returnProgress == '-1' && data.status == '1') {
             const userClass = new user_js_1.User(this.app);
             const rebateClass = new rebate_js_1.Rebate(this.app);
             const userData = await userClass.getUserData(data.orderData.customer_info.email, 'account');
-            console.log("fin --- ");
+            console.log('fin --- ');
             console.log(await rebateClass.insertRebate(userData.userID, data.orderData.rebateChange, `退貨單調整-退貨單號${origData.return_order_id}`));
         }
         try {
@@ -824,15 +824,7 @@ class Shopping {
         if (!userData || !userData.userID) {
             return;
         }
-        const levelData = await userClass.getConfigV2({
-            key: 'member_level_config',
-            user_id: 'manager',
-        });
-        levelData.levels = levelData.levels || [];
-        const userLevel = await userClass.getUserLevel({
-            levelList: levelData.levels,
-            email: cart.email,
-        });
+        const userLevels = await userClass.getUserLevel([{ email: cart.email }]);
         const allVoucher = (await this.querySql([`(content->>'$.type'='voucher')`], {
             page: 0,
             limit: 10000,
@@ -909,7 +901,10 @@ class Shopping {
                 return dd.targetList.includes(userData.userID);
             }
             if (dd.target === 'levels') {
-                return userLevel.id.length > 0 && dd.targetList.includes(userLevel.id);
+                if (userLevels[0]) {
+                    return dd.targetList.includes(userLevels[0].data.id);
+                }
+                return false;
             }
             if (dd.target === 'group') {
                 if (!groupList.result) {
