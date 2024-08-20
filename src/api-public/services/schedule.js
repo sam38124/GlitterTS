@@ -99,13 +99,14 @@ class Schedule {
                                     await postUserRebate(user.userID, rgs.value);
                                 }
                             }
+                            const levelData = await userClass.getConfigV2({ key: 'member_level_config', user_id: 'manager' });
+                            levelData.levels = levelData.levels || [];
                             if (rgs.type === 'levels') {
                                 for (const user of users) {
-                                    const member = await userClass.refreshMember(user);
-                                    const level = member.find((dd) => dd.trigger);
-                                    if (!level)
+                                    const member = await userClass.getUserLevel({ levelList: levelData.levels, userId: user.user_id });
+                                    if (member.id === '')
                                         continue;
-                                    const data = rgs.level.find((item) => item.id === level.id);
+                                    const data = rgs.level.find((item) => item.id === member.id);
                                     if (!data)
                                         continue;
                                     await postUserRebate(user.userID, data.value);

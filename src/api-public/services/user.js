@@ -865,6 +865,42 @@ class User {
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'getUserGroups Error:' + e, null);
         }
     }
+    async getUserLevel(obj) {
+        let user = undefined;
+        if (obj.userId) {
+            user = (await database_1.default.query(`SELECT * FROM \`${this.app}\`.t_user WHERE user_id = ?;
+                    `, [obj.userId]))[0];
+        }
+        else if (obj.email) {
+            user = (await database_1.default.query(`SELECT * FROM \`${this.app}\`.t_user WHERE JSON_EXTRACT(userData, '$.email') = ?;
+                    `, [obj.email]))[0];
+        }
+        if (user && user.user_id) {
+            await this.refreshMember(user);
+            if (user.userData.level_status === 'manual') {
+                const member_level = obj.levelList.find((item) => {
+                    return item.id === user.userData.level_default;
+                });
+                console.log('manual');
+                console.log(member_level);
+                if (member_level) {
+                    return { id: member_level.id, tag_name: member_level.tag_name };
+                }
+            }
+            const memberUpdates = await database_1.default.query(`SELECT *
+                 FROM \`${this.app}\`.t_user_public_config
+                 WHERE \`key\` = 'member_update' AND user_id = ?;`, [user.user_id]);
+            for (const member of memberUpdates) {
+                const member_level = member.value.value.find((v) => v.trigger);
+                console.log('auto');
+                console.log(member_level);
+                if (member_level) {
+                    return { id: member_level.id, tag_name: member_level.tag_name };
+                }
+            }
+        }
+        return { id: '', tag_name: '一般會員' };
+    }
     async subscribe(email, tag) {
         try {
             await database_1.default.queryLambada({
@@ -1060,7 +1096,6 @@ class User {
                 return d2.key === dd && (d2.auth !== 'manager' || manager);
             }) &&
                 !['level_status', 'level_default'].includes(dd)) {
-                console.log(dd);
                 delete userData[dd];
             }
         });

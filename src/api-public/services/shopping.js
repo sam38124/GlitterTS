@@ -824,6 +824,15 @@ class Shopping {
         if (!userData || !userData.userID) {
             return;
         }
+        const levelData = await userClass.getConfigV2({
+            key: 'member_level_config',
+            user_id: 'manager',
+        });
+        levelData.levels = levelData.levels || [];
+        const userLevel = await userClass.getUserLevel({
+            levelList: levelData.levels,
+            email: cart.email,
+        });
         const allVoucher = (await this.querySql([`(content->>'$.type'='voucher')`], {
             page: 0,
             limit: 10000,
@@ -900,8 +909,7 @@ class Shopping {
                 return dd.targetList.includes(userData.userID);
             }
             if (dd.target === 'levels') {
-                const level = userData.member.find((dd) => dd.trigger);
-                return level && dd.targetList.includes(level.id);
+                return userLevel.id.length > 0 && dd.targetList.includes(userLevel.id);
             }
             if (dd.target === 'group') {
                 if (!groupList.result) {

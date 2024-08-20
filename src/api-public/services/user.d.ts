@@ -70,6 +70,14 @@ export declare class User {
         result: true;
         data: GroupsItem[];
     }>;
+    getUserLevel(obj: {
+        levelList: any[];
+        userId?: string;
+        email?: string;
+    }): Promise<{
+        id: any;
+        tag_name: any;
+    }>;
     subscribe(email: string, tag: string): Promise<void>;
     registerFcm(userID: string, deviceToken: string): Promise<void>;
     deleteSubscribe(email: string): Promise<{
