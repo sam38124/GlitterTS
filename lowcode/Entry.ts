@@ -53,7 +53,7 @@ export class Entry {
         }
         (window as any).renderClock = (window as any).renderClock ?? clockF();
         console.log(`Entry-time:`, (window as any).renderClock.stop());
-        glitter.share.editerVersion = "V_10.7.5";
+        glitter.share.editerVersion = "V_10.7.6";
         glitter.share.start = (new Date());
         const vm: {
             appConfig: any;
@@ -131,6 +131,15 @@ export class Entry {
                 .relativePosition {
                     position: relative;
                 }
+                .sel_normal {
+    cursor: pointer;
+    border-radius: 7px;
+    border: 1px solid #ddd;
+    padding: 2px 14px;
+    background: #fff;
+    box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.1);
+}
+
             `);
 
             // 載入全域資源

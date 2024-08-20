@@ -1,8 +1,13 @@
 import { NormalPageEditor } from "./normal-page-editor.js";
 import { ApiPageConfig } from "../api/pageConfig.js";
 import { BgWidget } from "../backend-manager/bg-widget.js";
+import { AddComponent } from "./add-component.js";
 export class SearchIdea {
     static main(gvc) {
+        gvc.glitter.share.add_from_idea = (cf) => {
+            AddComponent.addWidget(gvc, cf);
+            NormalPageEditor.toggle({ visible: false });
+        };
         const vm = {
             select: '',
             left_id: gvc.glitter.getUUID(),

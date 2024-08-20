@@ -15,6 +15,7 @@ import Add_item_dia from '../glitterBundle/plugins/add_item_dia.js';
 import { PageEditor } from './page-editor.js';
 import { BaseApi } from '../glitterBundle/api/base.js';
 import { EditorConfig } from '../editor-config.js';
+import { SearchIdea } from "./search-idea.js";
 export class AddComponent {
     static view(gvc) {
         return gvc.bindView(() => {
@@ -111,6 +112,52 @@ export class AddComponent {
                             })}">
                                ${dd.icon}
                             </div>`;
+                        })
+                            .join('');
+                    })()}
+                        </div>
+                        <div class="d-flex  py-2 px-2 bg-white align-items-center w-100 justify-content-around border-bottom ${Storage.select_function === 'user-editor' ? `` : `d-none`}" style="gap:10px;">
+                            ${(() => {
+                        const list = [
+                            {
+                                key: 'official',
+                                label: '官方模塊',
+                                select: true
+                            },
+                            {
+                                key: 'idea',
+                                label: '找靈感',
+                                event: gvc.event(() => {
+                                    AddComponent.toggle(false);
+                                    SearchIdea.open(gvc);
+                                })
+                            }
+                        ];
+                        return list
+                            .map((dd) => {
+                            if (dd.select) {
+                                return `<div class="d-flex align-items-center justify-content-center fw-bold" style="
+padding: 10px 16px;
+gap: 10px;
+border-radius: 7px;
+cursor: pointer;
+color: white;
+flex:1;
+border: 1px solid #FFB400;
+background: linear-gradient(143deg, #FFB400 -22.7%, #FF6C02 114.57%);" >${dd.label}</div>`;
+                            }
+                            else {
+                                return `<div class="d-flex align-items-center justify-content-center fw-bold" style="
+border-radius: 7px;
+flex:1;
+padding: 10px 16px;
+border: 1px solid #FFB400;
+cursor: pointer;
+background: linear-gradient(143deg, #FFB400 -22.7%, #FF6C02 114.57%);
+background-clip: text;
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;" onclick="${dd.event || ''}">${dd.label}</div>`;
+                            }
                         })
                             .join('');
                     })()}
@@ -394,7 +441,7 @@ export class AddComponent {
                                             <i class="fa-solid fa-magnifying-glass" style="color:black;"></i>
                                         </span>
                                         <div
-                                                class="bt_gray_stroke"
+                                                class="bt_gray_stroke d-none"
                                                 style="width:50px;"
                                                 onclick="${gvc.event(() => {
                                 navigator.clipboard.readText().then((clipboardText) => {
@@ -492,13 +539,13 @@ export class AddComponent {
                                                     }
                                                     else {
                                                         return html `
-                                                        <div  class="w-100"
-                                                                style=" max-height:${(() => {
+                                                        <div class="w-100"
+                                                             style=" max-height:${(() => {
                                                             if (type === 'form_plugin') {
                                                                 return `calc(100vh - 150px)`;
                                                             }
                                                             else {
-                                                                return Storage.select_function === 'user-editor' ? `calc(100vh - 140px)` : `calc(100vh - 160px)`;
+                                                                return Storage.select_function === 'user-editor' ? `calc(100vh - 200px)` : `calc(100vh - 160px)`;
                                                             }
                                                         })()};overflow-y: auto;"
                                                         >
@@ -526,17 +573,17 @@ export class AddComponent {
                                                                     view: () => {
                                                                         const array = [
                                                                             html `
-                                                                                <div class="hoverF2 d-flex align-items-center p-3"
-                                                                                     onclick="${gvc.event(() => {
+                                                                                    <div class="hoverF2 d-flex align-items-center p-3"
+                                                                                         onclick="${gvc.event(() => {
                                                                                 vm_c.toggle = !vm_c.toggle;
                                                                                 gvc.notifyDataChange(vm_c.id);
                                                                             })}">
                                                                                      <span class="fw-500"
                                                                                            style="max-width: calc(100% - 50px);text-overflow: ellipsis;white-space: nowrap;overflow: hidden;">${d1.title}</span>
-                                                                                    <div class="flex-fill"></div>
-                                                                                    ${vm_c.toggle ? ` <i class="fa-solid fa-chevron-down"></i>` : `<i class="fa-solid fa-chevron-right"></i>`}
-                                                                                </div>
-                                                                            `
+                                                                                        <div class="flex-fill"></div>
+                                                                                        ${vm_c.toggle ? ` <i class="fa-solid fa-chevron-down"></i>` : `<i class="fa-solid fa-chevron-right"></i>`}
+                                                                                    </div>
+                                                                                `
                                                                         ];
                                                                         if (vm_c.toggle) {
                                                                             array.push(AddComponent.getComponentDetail({
@@ -595,7 +642,10 @@ export class AddComponent {
                                                                                         const config = {
                                                                                             id: gvc.glitter.getUUID(),
                                                                                             js: 'http://127.0.0.1:4000/shopnex/official_view_component/official.js',
-                                                                                            css: { class: {}, style: {} },
+                                                                                            css: {
+                                                                                                class: {},
+                                                                                                style: {}
+                                                                                            },
                                                                                             data: {
                                                                                                 attr: [],
                                                                                                 elem: 'div',
@@ -628,7 +678,10 @@ export class AddComponent {
                                                                                         const config = {
                                                                                             id: gvc.glitter.getUUID(),
                                                                                             js: 'http://127.0.0.1:4000/shopnex/official_view_component/official.js',
-                                                                                            css: { class: {}, style: {} },
+                                                                                            css: {
+                                                                                                class: {},
+                                                                                                style: {}
+                                                                                            },
                                                                                             data: {
                                                                                                 attr: [],
                                                                                                 elem: 'div',

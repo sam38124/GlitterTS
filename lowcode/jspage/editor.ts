@@ -188,18 +188,18 @@ color: transparent;"
                                         bind: id,
                                         view: () => {
                                             return [
-                                                html`<div class="hoverBtn  d-flex align-items-center justify-content-center   border  d-none"
-                                                     style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
-                                                     onclick="${gvc.event(() => {
-                                                         SearchIdea.open(gvc)
-                                                })}"
-                                                     data-bs-toggle="tooltip"
-                                                     data-bs-placement="top"
-                                                     data-bs-custom-class="custom-tooltip"
-                                                     data-bs-title="找靈感"
-                                                >
-                                                    <i class="fa-solid fa-thought-bubble"></i>
-                                                </div>`,
+                                                // html`<div class="hoverBtn  d-flex align-items-center justify-content-center   border  "
+                                                //      style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
+                                                //      onclick="${gvc.event(() => {
+                                                //          SearchIdea.open(gvc)
+                                                // })}"
+                                                //      data-bs-toggle="tooltip"
+                                                //      data-bs-placement="top"
+                                                //      data-bs-custom-class="custom-tooltip"
+                                                //      data-bs-title="找靈感"
+                                                // >
+                                                //     <i class="fa-solid fa-thought-bubble"></i>
+                                                // </div>`,
                                                 html`
                                                 <div class="hoverBtn  d-flex align-items-center justify-content-center   border ${Storage.select_function === 'user-editor' ? `d-none` : ``}"
                                                      style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"

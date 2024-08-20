@@ -113,7 +113,7 @@ export const widgetComponent = {
                                     option.push({key: 'value', value: innerText})
                                 }
                                 let classList = []
-                                if ((((window.parent as any).editerData !== undefined) || ((window as any).editerData !== undefined)) && htmlGenerate.root) {
+                                if (((((window.parent as any).editerData !== undefined) || ((window as any).editerData !== undefined)) && htmlGenerate.root)) {
                                     classList.push(`editorParent`)
                                     classList.push(`relativePosition`)
                                     classList.push(view_container_id)
@@ -256,7 +256,8 @@ export const widgetComponent = {
                                         app_config: widget.global.appConfig,
                                         page_config: widget.global.pageConfig,
                                         document: document,
-                                        editorSection: widget.id
+                                        editorSection: widget.id,
+                                        origin_widget:widget
                                     }, getCreateOption)
                                 }
 
@@ -400,11 +401,12 @@ export const widgetComponent = {
                                                 break
 
                                         }
-                                        if ((window.parent as any).editerData !== undefined && htmlGenerate.root && widget.data.elem !== 'textArea') {
+                                        if ((window.parent as any).editerData !== undefined && htmlGenerate.root && widget.data.elem !== 'textArea' ) {
                                             view.push(glitter.htmlGenerate.getEditorSelectSection({
                                                 id: widget.id,
                                                 gvc: gvc,
-                                                label: widget.label
+                                                label: widget.label,
+                                                widget:widget
                                             }));
                                         }
 

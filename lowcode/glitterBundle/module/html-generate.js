@@ -22,7 +22,8 @@ import { ShareDialog } from '../dialog/ShareDialog.js';
 const html = String.raw;
 export class HtmlGenerate {
     constructor(container, hoverInitial = [], subData, root) {
-        this.initialFunction = () => { };
+        this.initialFunction = () => {
+        };
         if (root) {
             window.glitter.htmlGenerate.preloadEvent(container);
         }
@@ -41,12 +42,16 @@ export class HtmlGenerate {
                 dd.css.style = (_b = dd.css.style) !== null && _b !== void 0 ? _b : {};
                 dd.css.class = (_c = dd.css.class) !== null && _c !== void 0 ? _c : {};
                 dd.refreshAllParameter = (_d = dd.refreshAllParameter) !== null && _d !== void 0 ? _d : {
-                    view1: () => { },
-                    view2: () => { },
+                    view1: () => {
+                    },
+                    view2: () => {
+                    },
                 };
                 dd.refreshComponentParameter = (_e = dd.refreshComponentParameter) !== null && _e !== void 0 ? _e : {
-                    view1: () => { },
-                    view2: () => { },
+                    view1: () => {
+                    },
+                    view2: () => {
+                    },
                 };
                 dd.refreshAll = () => {
                     dd.refreshAllParameter.view1();
@@ -131,7 +136,8 @@ export class HtmlGenerate {
                                 },
                             });
                         }
-                        catch (e) { }
+                        catch (e) {
+                        }
                     }
                 });
             }
@@ -142,8 +148,10 @@ export class HtmlGenerate {
             class: ``,
             style: ``,
             containerID: gvc.glitter.getUUID(),
-            jsFinish: () => { },
-            onCreate: () => { },
+            jsFinish: () => {
+            },
+            onCreate: () => {
+            },
         }, createOption) => {
             var _a, _b;
             const document = (_a = option.document) !== null && _a !== void 0 ? _a : gvc.glitter.document;
@@ -296,8 +304,7 @@ export class HtmlGenerate {
                                                     root: root,
                                                     sub_data: subData,
                                                 });
-                                            }).
-                                                concat(container.replace_elem)
+                                            }).concat(container.replace_elem)
                                                 .join(''));
                                         })).then((html) => {
                                             if (option && option.is_page) {
@@ -339,11 +346,12 @@ export class HtmlGenerate {
                                     startRender();
                                 }),
                             ];
-                            if ((isEditMode() || isIdeaMode()) && option && option.editorSection) {
+                            if ((isEditMode() || isIdeaAble(option.origin_widget)) && option && option.editorSection) {
                                 view.push(HtmlGenerate.getEditorSelectSection({
                                     id: option.editorSection,
                                     gvc: gvc,
                                     label: '容器',
+                                    widget: option.origin_widget
                                 }));
                             }
                             resolve(view.join(''));
@@ -396,9 +404,11 @@ export class HtmlGenerate {
         };
         this.editor = (gvc, option = {
             return_: false,
-            refreshAll: () => { },
+            refreshAll: () => {
+            },
             setting: container,
-            deleteEvent: () => { },
+            deleteEvent: () => {
+            },
             hideInfo: false,
         }) => {
             var loading = true;
@@ -443,8 +453,10 @@ export class HtmlGenerate {
                             try {
                                 const component = gvc.glitter.getUUID();
                                 dd.refreshAllParameter = (_a = dd.refreshAllParameter) !== null && _a !== void 0 ? _a : {
-                                    view1: () => { },
-                                    view2: () => { },
+                                    view1: () => {
+                                    },
+                                    view2: () => {
+                                    },
                                 };
                                 dd.refreshComponent = () => {
                                     try {
@@ -456,8 +468,10 @@ export class HtmlGenerate {
                                     }
                                 };
                                 dd.refreshComponentParameter = (_b = dd.refreshComponentParameter) !== null && _b !== void 0 ? _b : {
-                                    view1: () => { },
-                                    view2: () => { },
+                                    view1: () => {
+                                    },
+                                    view2: () => {
+                                    },
                                 };
                                 dd.refreshAllParameter.view2 = () => {
                                     gvc.notifyDataChange(editContainer);
@@ -658,9 +672,11 @@ onclick="${gvc.event(() => {
                                                                                                     return {
                                                                                                         bind: selectID,
                                                                                                         view: () => {
-                                                                                                            return html ` <div class="w-100 " style="">
-                                                                                      <div class="d-flex align-items-center justify-content-around w-100 p-2">
-                                                                                          ${[
+                                                                                                            return html `
+                                                                                                                        <div class="w-100 "
+                                                                                                                             style="">
+                                                                                                                            <div class="d-flex align-items-center justify-content-around w-100 p-2">
+                                                                                                                                ${[
                                                                                                                 {
                                                                                                                     title: '模塊資訊',
                                                                                                                     value: 'info',
@@ -678,28 +694,30 @@ onclick="${gvc.event(() => {
                                                                                                                 },
                                                                                                             ]
                                                                                                                 .map((dd) => {
-                                                                                                                return html ` <div
-                                                                                                      class=" d-flex align-items-center justify-content-center ${dd.value === vm.select
+                                                                                                                return html `
+                                                                                                                                                <div
+                                                                                                                                                        class=" d-flex align-items-center justify-content-center ${dd.value === vm.select
                                                                                                                     ? `border`
                                                                                                                     : ``} rounded-3"
-                                                                                                      style="height:36px;width:36px;cursor:pointer;
+                                                                                                                                                        style="height:36px;width:36px;cursor:pointer;
 ${dd.value === vm.select ? `background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);background:-webkit-linear-gradient(135deg, #667eea 0%, #764ba2 100%);color:white;` : `color:#151515;`}
 "
-                                                                                                      onclick="${gvc.event(() => {
+                                                                                                                                                        onclick="${gvc.event(() => {
                                                                                                                     vm.select = dd.value;
                                                                                                                     gvc.notifyDataChange([id, selectID]);
                                                                                                                 })}"
-                                                                                                      data-bs-toggle="tooltip"
-                                                                                                      data-bs-placement="top"
-                                                                                                      data-bs-custom-class="custom-tooltip"
-                                                                                                      data-bs-title="${dd.title}"
-                                                                                                  >
-                                                                                                      <i class="${dd.icon}" aria-hidden="true"></i>
-                                                                                                  </div>`;
+                                                                                                                                                        data-bs-toggle="tooltip"
+                                                                                                                                                        data-bs-placement="top"
+                                                                                                                                                        data-bs-custom-class="custom-tooltip"
+                                                                                                                                                        data-bs-title="${dd.title}"
+                                                                                                                                                >
+                                                                                                                                                    <i class="${dd.icon}"
+                                                                                                                                                       aria-hidden="true"></i>
+                                                                                                                                                </div>`;
                                                                                                             })
                                                                                                                 .join(``)}
-                                                                                      </div>
-                                                                                  </div>`;
+                                                                                                                            </div>
+                                                                                                                        </div>`;
                                                                                                         },
                                                                                                         divCreate: {
                                                                                                             class: `d-flex bg-white mx-n3 border-bottom`,
@@ -717,27 +735,55 @@ ${dd.value === vm.select ? `background:linear-gradient(135deg, #667eea 0%, #764b
                                                                                                             var _a, _b, _c, _d;
                                                                                                             switch (vm.select) {
                                                                                                                 case 'info':
-                                                                                                                    return html ` <div
-                                                                                              class="alert-warning alert mt-0  p-2 mb-0"
-                                                                                              style="border-bottom-right-radius:8px;border-bottom-left-radius:8px;border:none;max-width: 350px;white-space: normal;"
-                                                                                          >
-                                                                                              <h3 class="text-dark  m-1" style="font-size: 16px;">模塊路徑</h3>
-                                                                                              <h3 class="text-primary  alert-primary m-1 fw-500 rounded p-2" style="font-size: 14px;color:black;">
-                                                                                                  ${HtmlGenerate.reDefineJsResource(dd.js)}
-                                                                                              </h3>
-                                                                                              <h3 class="text-dark  m-1 mt-2" style="font-size: 16px;">函式路徑</h3>
-                                                                                              <h3 class="text-primary  alert-primary m-1 fw-500 rounded p-2" style="font-size: 14px;">${dd.type}</h3>
-                                                                                          </div>`;
+                                                                                                                    return html `
+                                                                                                                                <div
+                                                                                                                                        class="alert-warning alert mt-0  p-2 mb-0"
+                                                                                                                                        style="border-bottom-right-radius:8px;border-bottom-left-radius:8px;border:none;max-width: 350px;white-space: normal;"
+                                                                                                                                >
+                                                                                                                                    <h3 class="text-dark  m-1"
+                                                                                                                                        style="font-size: 16px;">
+                                                                                                                                        模塊路徑</h3>
+                                                                                                                                    <h3 class="text-primary  alert-primary m-1 fw-500 rounded p-2"
+                                                                                                                                        style="font-size: 14px;color:black;">
+                                                                                                                                        ${HtmlGenerate.reDefineJsResource(dd.js)}
+                                                                                                                                    </h3>
+                                                                                                                                    <h3 class="text-dark  m-1 mt-2"
+                                                                                                                                        style="font-size: 16px;">
+                                                                                                                                        函式路徑</h3>
+                                                                                                                                    <h3 class="text-primary  alert-primary m-1 fw-500 rounded p-2"
+                                                                                                                                        style="font-size: 14px;">
+                                                                                                                                        ${dd.type}</h3>
+                                                                                                                                </div>`;
                                                                                                                 case 'loading':
-                                                                                                                    return html ` <div class="px-2">
-                                                                                              ${(() => {
-                                                                                                                        var _a, _b, _c;
+                                                                                                                    return html `
+                                                                                                                                <div class="px-2">
+                                                                                                                                    ${(() => {
+                                                                                                                        var _a, _b, _c, _d;
                                                                                                                         const array = [];
                                                                                                                         if (dd.data.elem !== 'style' && dd.data.elem !== 'script') {
                                                                                                                             array.push(EditorElem.select({
+                                                                                                                                title: '開放靈感複製',
+                                                                                                                                gvc: gvc,
+                                                                                                                                def: (_a = dd.ideable) !== null && _a !== void 0 ? _a : '',
+                                                                                                                                array: [
+                                                                                                                                    {
+                                                                                                                                        title: '是',
+                                                                                                                                        value: 'true',
+                                                                                                                                    },
+                                                                                                                                    {
+                                                                                                                                        title: '否',
+                                                                                                                                        value: 'false',
+                                                                                                                                    },
+                                                                                                                                ],
+                                                                                                                                callback: (text) => {
+                                                                                                                                    dd.ideable = text;
+                                                                                                                                    gvc.notifyDataChange(id);
+                                                                                                                                },
+                                                                                                                            }));
+                                                                                                                            array.push(EditorElem.select({
                                                                                                                                 title: '開放刪除',
                                                                                                                                 gvc: gvc,
-                                                                                                                                def: (_a = dd.deletable) !== null && _a !== void 0 ? _a : '',
+                                                                                                                                def: (_b = dd.deletable) !== null && _b !== void 0 ? _b : '',
                                                                                                                                 array: [
                                                                                                                                     {
                                                                                                                                         title: '是',
@@ -756,7 +802,7 @@ ${dd.value === vm.select ? `background:linear-gradient(135deg, #667eea 0%, #764b
                                                                                                                             array.push(EditorElem.select({
                                                                                                                                 title: '生成方式',
                                                                                                                                 gvc: gvc,
-                                                                                                                                def: (_b = dd.gCount) !== null && _b !== void 0 ? _b : 'single',
+                                                                                                                                def: (_c = dd.gCount) !== null && _c !== void 0 ? _c : 'single',
                                                                                                                                 array: [
                                                                                                                                     {
                                                                                                                                         title: '靜態',
@@ -774,7 +820,7 @@ ${dd.value === vm.select ? `background:linear-gradient(135deg, #667eea 0%, #764b
                                                                                                                             }));
                                                                                                                         }
                                                                                                                         if (dd.gCount === 'multiple') {
-                                                                                                                            dd.arrayData = (_c = dd.arrayData) !== null && _c !== void 0 ? _c : {};
+                                                                                                                            dd.arrayData = (_d = dd.arrayData) !== null && _d !== void 0 ? _d : {};
                                                                                                                             array.push(TriggerEvent.editer(gvc, dd, dd.arrayData, {
                                                                                                                                 hover: false,
                                                                                                                                 option: [],
@@ -786,7 +832,7 @@ ${dd.value === vm.select ? `background:linear-gradient(135deg, #667eea 0%, #764b
                                                                                                                         }
                                                                                                                         return array.join(`<div class="my-2"></div>`);
                                                                                                                     })()}
-                                                                                              ${gvc.bindView(() => {
+                                                                                                                                    ${gvc.bindView(() => {
                                                                                                                         const uid = gvc.glitter.getUUID();
                                                                                                                         return {
                                                                                                                             bind: uid,
@@ -818,7 +864,7 @@ ${dd.value === vm.select ? `background:linear-gradient(135deg, #667eea 0%, #764b
                                                                                                                             },
                                                                                                                         };
                                                                                                                     })}
-                                                                                          </div>`;
+                                                                                                                                </div>`;
                                                                                                                 case 'lifecycle':
                                                                                                                     if (dd.data && dd.data.onCreateEvent) {
                                                                                                                         dd.onCreateEvent = dd.data.onCreateEvent;
@@ -829,15 +875,16 @@ ${dd.value === vm.select ? `background:linear-gradient(135deg, #667eea 0%, #764b
                                                                                                                     dd.onResumtEvent = (_c = dd.onResumtEvent) !== null && _c !== void 0 ? _c : {};
                                                                                                                     dd.onDestoryEvent = (_d = dd.onDestoryEvent) !== null && _d !== void 0 ? _d : {};
                                                                                                                     return `<div class="p-2 pt-1">${[
-                                                                                                                        html ` <div
-                                                                                                  class="alert alert-warning  p-2   m-n2 border-bottom fw-500"
-                                                                                                  style="border-radius: 0px;color:black !important;"
-                                                                                              >
-                                                                                                  <strong>onInitial事件:</strong><br />模塊初次載入所執行事件。<br />
-                                                                                                  <strong>onCreate事件:</strong><br />模塊被建立時所執行事件。<br />
-                                                                                                  <strong>onResume事件:</strong><br />模塊重新渲染至畫面時所執行事件。<br />
-                                                                                                  <strong>onDestroy事件:</strong><br />模塊被銷毀所執行的事件。<br />
-                                                                                              </div>`,
+                                                                                                                        html `
+                                                                                                                                    <div
+                                                                                                                                            class="alert alert-warning  p-2   m-n2 border-bottom fw-500"
+                                                                                                                                            style="border-radius: 0px;color:black !important;"
+                                                                                                                                    >
+                                                                                                                                        <strong>onInitial事件:</strong><br/>模塊初次載入所執行事件。<br/>
+                                                                                                                                        <strong>onCreate事件:</strong><br/>模塊被建立時所執行事件。<br/>
+                                                                                                                                        <strong>onResume事件:</strong><br/>模塊重新渲染至畫面時所執行事件。<br/>
+                                                                                                                                        <strong>onDestroy事件:</strong><br/>模塊被銷毀所執行的事件。<br/>
+                                                                                                                                    </div>`,
                                                                                                                         `<div class="my-4"></div>`,
                                                                                                                         TriggerEvent.editer(gvc, dd, dd.onInitialEvent, {
                                                                                                                             title: 'onInitial事件',
@@ -1025,7 +1072,8 @@ ${e.line}
                     }
                 },
                 divCreate: {},
-                onCreate: () => { },
+                onCreate: () => {
+                },
             });
         };
         this.exportJson = (setting) => {
@@ -1371,7 +1419,8 @@ ${obj.gvc.bindView({
                     },
                 };
             },
-            set(v) { },
+            set(v) {
+            },
         });
         function getHtml() {
             var _a;
@@ -1406,7 +1455,7 @@ ${obj.gvc.bindView({
                                     gvc.notifyDataChange(container_id);
                                 };
                                 function addCreateOption(option, widgetComponentID) {
-                                    if (isEditMode() && !child_container && root) {
+                                    if ((isEditMode() || isIdeaMode()) && !child_container && root) {
                                         option.push({
                                             key: 'onclick',
                                             value: (() => {
@@ -1421,13 +1470,15 @@ ${obj.gvc.bindView({
                                                     scrollToHover(gvc.glitter.$(`.editor_it_${cf.widget.id}`).get(0));
                                                 };
                                                 return gvc.editorEvent((e, event) => {
-                                                    HtmlGenerate.selectWidget({
-                                                        gvc: gvc,
-                                                        widget: widget,
-                                                        widgetComponentID: cf.widget.id,
-                                                        event: event,
-                                                        glitter: window.parent.glitter,
-                                                    });
+                                                    if (!isIdeaMode()) {
+                                                        HtmlGenerate.selectWidget({
+                                                            gvc: gvc,
+                                                            widget: widget,
+                                                            widgetComponentID: cf.widget.id,
+                                                            event: event,
+                                                            glitter: window.parent.glitter,
+                                                        });
+                                                    }
                                                 });
                                             })(),
                                         });
@@ -1496,7 +1547,8 @@ ${obj.gvc.bindView({
                                     target.outerHTML = vm.html;
                                 }
                             },
-                            onDestroy: () => { },
+                            onDestroy: () => {
+                            },
                         };
                     });
                 }
@@ -1521,7 +1573,7 @@ ${obj.gvc.bindView({
                                             gvc.notifyDataChange(component_id);
                                         };
                                         let option = [];
-                                        if (isEditMode() && !child_container && root) {
+                                        if ((isEditMode() || isIdeaMode()) && !child_container && root) {
                                             option.push({
                                                 key: 'onclick',
                                                 value: (() => {
@@ -1536,13 +1588,15 @@ ${obj.gvc.bindView({
                                                         scrollToHover(gvc.glitter.$(`.editor_it_${cf.widget.id}`).get(0));
                                                     };
                                                     return gvc.editorEvent((e, event) => {
-                                                        HtmlGenerate.selectWidget({
-                                                            gvc: gvc,
-                                                            widget: widget,
-                                                            widgetComponentID: cf.widget.id,
-                                                            event: event,
-                                                            glitter: window.parent.glitter,
-                                                        });
+                                                        if (!isIdeaMode()) {
+                                                            HtmlGenerate.selectWidget({
+                                                                gvc: gvc,
+                                                                widget: widget,
+                                                                widgetComponentID: cf.widget.id,
+                                                                event: event,
+                                                                glitter: window.parent.glitter,
+                                                            });
+                                                        }
                                                     });
                                                 })(),
                                             });
@@ -1552,11 +1606,12 @@ ${obj.gvc.bindView({
                                             view: () => {
                                                 if (cf.widget.type === 'component') {
                                                     const view = [component.render(gvc, widget, container, HtmlGenerate.hover_items, subData, {}, document).view()];
-                                                    if (root && (isEditMode() || isIdeaMode())) {
+                                                    if (root && (isEditMode() || isIdeaAble(widget))) {
                                                         view.push(HtmlGenerate.getEditorSelectSection({
                                                             id: cf.widget.id,
                                                             gvc: gvc,
                                                             label: cf.widget.label,
+                                                            widget: widget
                                                         }));
                                                     }
                                                     return view.join('');
@@ -1596,12 +1651,13 @@ ${obj.gvc.bindView({
                                                             ]);
                                                         }),
                                                     ];
-                                                    if (root && (isEditMode() || isIdeaMode())) {
+                                                    if (root && (isEditMode() || isIdeaAble(widget))) {
                                                         const html = String.raw;
                                                         view.push(HtmlGenerate.getEditorSelectSection({
                                                             id: cf.widget.id,
                                                             gvc: gvc,
                                                             label: cf.widget.label,
+                                                            widget: widget
                                                         }));
                                                     }
                                                     resolve(view.join(''));
@@ -1610,7 +1666,7 @@ ${obj.gvc.bindView({
                                             divCreate: {
                                                 style: `position: relative;${gvc.glitter.htmlGenerate.styleEditor(widget, gvc, widget, {}).style()};${widget.visible === false ? `display:none;` : ``}`,
                                                 class: `${(_a = cf.widget.class) !== null && _a !== void 0 ? _a : ''} ${cf.widget.hashTag ? `glitterTag${cf.widget.hashTag}` : ''} 
-                                                                                ${isEditMode() ? `editorParent` : ``}
+                                                                                ${(isEditMode() || isIdeaMode()) ? `editorParent` : ``}
                                                                 ${gvc.glitter.htmlGenerate.styleEditor(widget, gvc, widget, {}).class()}`,
                                                 option: option.concat((() => {
                                                     if (root && isEditMode()) {
@@ -1697,7 +1753,8 @@ ${obj.gvc.bindView({
                                     target.outerHTML = render(widget.subData || sub_data);
                                 }
                             },
-                            onDestroy: () => { },
+                            onDestroy: () => {
+                            },
                         };
                     });
                 }
@@ -1745,15 +1802,9 @@ ${obj.gvc.bindView({
         }
     }
     static getEditorSelectSection(cf) {
-        if (cf.gvc.glitter.getUrlParameter('type') !== 'htmlEditor' && (!isIdeaMode())) {
+        if (cf.gvc.glitter.getUrlParameter('type') !== 'htmlEditor' && (window.glitter.getUrlParameter('type') !== 'find_idea')) {
             return ``;
         }
-        let glitter = window.glitter;
-        while (!glitter.share.editorViewModel) {
-            glitter = window.parent.glitter;
-        }
-        const gvc = cf.gvc;
-        const widget = glitter.share.findWidgetIndex(cf.id).widget;
         return [
             (() => {
                 return ``;
@@ -1763,135 +1814,166 @@ ${obj.gvc.bindView({
                 return {
                     bind: id,
                     view: () => {
-                        return html ` <div
-                                class="position-absolute align-items-center justify-content-center px-3 fw-500 fs-6 badge_it"
-                                style="height:22px;left:-2px;top:-22px;background: linear-gradient(143deg, #FFB400 -22.7%, #FF6C02 114.57%);color:white;white-space: nowrap;"
-                            >
-                                ${cf.label}
-                            </div>
-                            <div
-                                class="position-absolute fs-1 plus_btn"
-                                style="left:50%;transform: translateX(-50%);height:20px;width:20px;top:${Storage.view_type === 'mobile'
-                            ? `-30px`
-                            : `-40px`};z-index:99999;cursor: pointer;pointer-events:all;"
-                                onmousedown="${cf.gvc.event((e, event) => {
-                            HtmlGenerate.block_timer = new Date().getTime();
-                            glitter.getModule(new URL('../.././editor/add-component.js', import.meta.url).href, (AddComponent) => {
-                                AddComponent.toggle(true);
-                                AddComponent.addWidget = (gvc, tdata) => {
-                                    glitter.share.addWithIndex({
-                                        data: tdata,
-                                        index: cf.id,
-                                        direction: -1,
-                                    });
-                                };
-                                AddComponent.addEvent = (gvc, tdata) => {
-                                    glitter.share.addWithIndex({
-                                        data: {
-                                            id: gvc.glitter.getUUID(),
-                                            js: './official_view_component/official.js',
-                                            css: {
-                                                class: {},
-                                                style: {},
-                                            },
+                        if (isIdeaMode()) {
+                            return html `
+                                <div class="position-absolute w-100 h-100" style="background:linear-gradient(143deg, rgba(255, 180, 0, 0.2) -22.7%, rgba(255, 108, 2, 0.2) 114.57%);">
+                                    <div class="position-absolute"
+                                         style="top:50%;left:50%;transform: translate(-50%,-50%);cursor: pointer;pointer-events:all;">
+                                        <button class="py-2 px-4 fw-500" style="display: inline-flex;
+justify-content: center;
+font-size: 36px;
+align-items: center;
+border-radius: 12px;
+color: #FF6C02;
+border: 2px solid #FF6C02;
+background: white;
+" onmousedown="${cf.gvc.event(() => {
+                                const add = JSON.parse(JSON.stringify(cf.widget));
+                                add.id = cf.gvc.glitter.getUUID();
+                                window.parent.glitter.share.add_from_idea(add);
+                            })}">確認複製</button>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                        else {
+                            let glitter = window.glitter;
+                            while (!glitter.share.editorViewModel) {
+                                glitter = window.parent.glitter;
+                            }
+                            return html `
+                                <div
+                                        class="position-absolute align-items-center justify-content-center px-3 fw-500 fs-6 badge_it"
+                                        style="height:22px;left:-2px;top:-22px;background: linear-gradient(143deg, #FFB400 -22.7%, #FF6C02 114.57%);color:white;white-space: nowrap;"
+                                >
+                                    ${cf.label}
+                                </div>
+                                <div
+                                        class="position-absolute fs-1 plus_btn"
+                                        style="left:50%;transform: translateX(-50%);height:20px;width:20px;top:${Storage.view_type === 'mobile'
+                                ? `-30px`
+                                : `-40px`};z-index:99999;cursor: pointer;pointer-events:all;"
+                                        onmousedown="${cf.gvc.event((e, event) => {
+                                HtmlGenerate.block_timer = new Date().getTime();
+                                glitter.getModule(new URL('../.././editor/add-component.js', import.meta.url).href, (AddComponent) => {
+                                    AddComponent.toggle(true);
+                                    AddComponent.addWidget = (gvc, tdata) => {
+                                        glitter.share.addWithIndex({
+                                            data: tdata,
+                                            index: cf.id,
+                                            direction: -1,
+                                        });
+                                    };
+                                    AddComponent.addEvent = (gvc, tdata) => {
+                                        glitter.share.addWithIndex({
                                             data: {
-                                                refer_app: tdata.copyApp,
-                                                tag: tdata.copy,
-                                                list: [],
-                                                carryData: {},
-                                                _style_refer_global: {
-                                                    index: `0`,
+                                                id: gvc.glitter.getUUID(),
+                                                js: './official_view_component/official.js',
+                                                css: {
+                                                    class: {},
+                                                    style: {},
                                                 },
+                                                data: {
+                                                    refer_app: tdata.copyApp,
+                                                    tag: tdata.copy,
+                                                    list: [],
+                                                    carryData: {},
+                                                    _style_refer_global: {
+                                                        index: `0`,
+                                                    },
+                                                },
+                                                type: 'component',
+                                                class: 'w-100',
+                                                index: 0,
+                                                label: tdata.title,
+                                                style: '',
+                                                bundle: {},
+                                                global: [],
+                                                toggle: false,
+                                                stylist: [],
+                                                dataType: 'static',
+                                                style_from: 'code',
+                                                classDataType: 'static',
+                                                preloadEvenet: {},
+                                                share: {},
                                             },
-                                            type: 'component',
-                                            class: 'w-100',
-                                            index: 0,
-                                            label: tdata.title,
-                                            style: '',
-                                            bundle: {},
-                                            global: [],
-                                            toggle: false,
-                                            stylist: [],
-                                            dataType: 'static',
-                                            style_from: 'code',
-                                            classDataType: 'static',
-                                            preloadEvenet: {},
-                                            share: {},
-                                        },
-                                        index: cf.id,
-                                        direction: -1,
-                                    });
-                                };
-                            });
-                            event.stopPropagation();
-                            event.preventDefault();
-                        })}"
-                            >
-                                <img src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1714376322616-Frame 3137.svg" class="w-100 h-100" />
-                            </div>
-                            <div
-                                class="position-absolute fs-1 plus_btn"
-                                style="left:50%;transform: translateX(-50%);height:20px;width:20px;bottom:${Storage.view_type === 'mobile'
-                            ? `10px`
-                            : `20px`};z-index:99999;cursor: pointer;pointer-events:all;"
-                                onmousedown="${cf.gvc.event((e, event) => {
-                            HtmlGenerate.block_timer = new Date().getTime();
-                            glitter.getModule(new URL('../.././editor/add-component.js', import.meta.url).href, (AddComponent) => {
-                                AddComponent.toggle(true);
-                                AddComponent.addWidget = (gvc, tdata) => {
-                                    glitter.share.addWithIndex({
-                                        data: tdata,
-                                        index: cf.id,
-                                        direction: 1,
-                                    });
-                                };
-                                AddComponent.addEvent = (gvc, tdata) => {
-                                    glitter.share.addWithIndex({
-                                        data: {
-                                            id: gvc.glitter.getUUID(),
-                                            js: './official_view_component/official.js',
-                                            css: {
-                                                class: {},
-                                                style: {},
-                                            },
+                                            index: cf.id,
+                                            direction: -1,
+                                        });
+                                    };
+                                });
+                                event.stopPropagation();
+                                event.preventDefault();
+                            })}"
+                                >
+                                    <img src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1714376322616-Frame 3137.svg"
+                                         class="w-100 h-100"/>
+                                </div>
+                                <div
+                                        class="position-absolute fs-1 plus_btn"
+                                        style="left:50%;transform: translateX(-50%);height:20px;width:20px;bottom:${Storage.view_type === 'mobile'
+                                ? `10px`
+                                : `20px`};z-index:99999;cursor: pointer;pointer-events:all;"
+                                        onmousedown="${cf.gvc.event((e, event) => {
+                                HtmlGenerate.block_timer = new Date().getTime();
+                                glitter.getModule(new URL('../.././editor/add-component.js', import.meta.url).href, (AddComponent) => {
+                                    AddComponent.toggle(true);
+                                    AddComponent.addWidget = (gvc, tdata) => {
+                                        glitter.share.addWithIndex({
+                                            data: tdata,
+                                            index: cf.id,
+                                            direction: 1,
+                                        });
+                                    };
+                                    AddComponent.addEvent = (gvc, tdata) => {
+                                        glitter.share.addWithIndex({
                                             data: {
-                                                refer_app: tdata.copyApp,
-                                                tag: tdata.copy,
-                                                list: [],
-                                                carryData: {},
-                                                _style_refer_global: {
-                                                    index: `0`,
+                                                id: gvc.glitter.getUUID(),
+                                                js: './official_view_component/official.js',
+                                                css: {
+                                                    class: {},
+                                                    style: {},
                                                 },
+                                                data: {
+                                                    refer_app: tdata.copyApp,
+                                                    tag: tdata.copy,
+                                                    list: [],
+                                                    carryData: {},
+                                                    _style_refer_global: {
+                                                        index: `0`,
+                                                    },
+                                                },
+                                                type: 'component',
+                                                class: 'w-100',
+                                                index: 0,
+                                                label: tdata.title,
+                                                style: '',
+                                                bundle: {},
+                                                global: [],
+                                                toggle: false,
+                                                stylist: [],
+                                                dataType: 'static',
+                                                style_from: 'code',
+                                                classDataType: 'static',
+                                                preloadEvenet: {},
+                                                share: {},
                                             },
-                                            type: 'component',
-                                            class: 'w-100',
-                                            index: 0,
-                                            label: tdata.title,
-                                            style: '',
-                                            bundle: {},
-                                            global: [],
-                                            toggle: false,
-                                            stylist: [],
-                                            dataType: 'static',
-                                            style_from: 'code',
-                                            classDataType: 'static',
-                                            preloadEvenet: {},
-                                            share: {},
-                                        },
-                                        index: cf.id,
-                                        direction: 1,
-                                    });
-                                };
-                            });
-                            event.stopPropagation();
-                            event.preventDefault();
-                        })}"
-                            >
-                                <img src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1714376322616-Frame 3137.svg" class="w-100 h-100" />
-                            </div>`;
+                                            index: cf.id,
+                                            direction: 1,
+                                        });
+                                    };
+                                });
+                                event.stopPropagation();
+                                event.preventDefault();
+                            })}"
+                                >
+                                    <img src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1714376322616-Frame 3137.svg"
+                                         class="w-100 h-100"/>
+                                </div>`;
+                        }
                     },
                     divCreate: {
-                        class: `editorChild editor_it_${cf.id} ${cf.gvc.glitter.htmlGenerate.hover_items.indexOf(cf.id) !== -1 ? `editorItemActive` : ``}`,
+                        class: `editorChild editor_it_${cf.id} ${(cf.gvc.glitter.htmlGenerate.hover_items.indexOf(cf.id) !== -1 && !isIdeaMode()) ? `editorItemActive` : ``}`,
                         style: `z-index: 99999;top:0px;left:0px;`,
                         option: [],
                     },
@@ -1980,6 +2062,7 @@ ${obj.gvc.bindView({
 }
 HtmlGenerate.share = {};
 HtmlGenerate.isEditMode = isEditMode;
+HtmlGenerate.isIdeaMode = isIdeaMode;
 HtmlGenerate.resourceHook = (src) => {
     if (Storage.develop_mode === 'true') {
         window.saasConfig.appConfig.initialList.map((dd) => {
@@ -2045,7 +2128,9 @@ HtmlGenerate.loadScript = (glitter, js, where = 'htmlExtension') => {
             type: 'module',
             src: key,
         };
-    }), () => { }, () => { }, [{ key: 'async', value: 'true' }]);
+    }), () => {
+    }, () => {
+    }, [{ key: 'async', value: 'true' }]);
 };
 HtmlGenerate.loadEvent = (glitter, js) => {
     var _a;
@@ -2097,7 +2182,9 @@ HtmlGenerate.loadEvent = (glitter, js) => {
             type: 'module',
             src: key,
         };
-    }), () => { }, () => { }, [{ key: 'async', value: 'true' }]);
+    }), () => {
+    }, () => {
+    }, [{ key: 'async', value: 'true' }]);
 };
 HtmlGenerate.getKey = (js) => {
     let key = window.glitter.htmlGenerate.resourceHook(js);
@@ -2140,9 +2227,9 @@ HtmlGenerate.changePage = (obj) => {
 };
 HtmlGenerate.hover_items = [];
 HtmlGenerate.block_timer = 0;
-function isIdeaMode() {
+function isIdeaAble(widget) {
     try {
-        return window.glitter.getUrlParameter('type') === 'find_idea';
+        return window.glitter.getUrlParameter('type') === 'find_idea' && widget && widget.ideable;
     }
     catch (e) {
         alert(e);
@@ -2151,7 +2238,15 @@ function isIdeaMode() {
 }
 function isEditMode() {
     try {
-        return window.editerData !== undefined || window.parent.editerData !== undefined;
+        return (window.editerData !== undefined || window.parent.editerData !== undefined) && window.glitter.getUrlParameter('type') !== 'find_idea';
+    }
+    catch (e) {
+        return false;
+    }
+}
+function isIdeaMode() {
+    try {
+        return window.glitter.getUrlParameter('type') === 'find_idea';
     }
     catch (e) {
         return false;

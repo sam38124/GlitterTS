@@ -1,24 +1,24 @@
-import { GVC, init } from '../glitterBundle/GVController.js';
-import { Editor } from './editor.js';
-import { ApiPageConfig } from '../api/pageConfig.js';
-import { Swal } from '../modules/sweetAlert.js';
-import { Main_editor } from './function-page/main_editor.js';
-import { Page_editor } from './function-page/page_editor.js';
-import { Setting_editor } from './function-page/setting_editor.js';
+import {GVC, init} from '../glitterBundle/GVController.js';
+import {Editor} from './editor.js';
+import {ApiPageConfig} from '../api/pageConfig.js';
+import {Swal} from '../modules/sweetAlert.js';
+import {Main_editor} from './function-page/main_editor.js';
+import {Page_editor} from './function-page/page_editor.js';
+import {Setting_editor} from './function-page/setting_editor.js';
 import * as triggerBridge from '../editor-bridge/trigger-event.js';
-import { TriggerEvent } from '../glitterBundle/plugins/trigger-event.js';
-import { StoreHelper } from '../helper/store-helper.js';
-import { Storage } from '../glitterBundle/helper/storage.js';
-import { ServerEditor } from './function-page/server-editor/server-editor.js';
-import { AddComponent } from '../editor/add-component.js';
-import { PageSettingView } from '../editor/page-setting-view.js';
-import { AddPage } from '../editor/add-page.js';
-import { SetGlobalValue } from '../editor/set-global-value.js';
-import { PageCodeSetting } from '../editor/page-code-setting.js';
-import { NormalPageEditor } from '../editor/normal-page-editor.js';
-import { EditorConfig } from '../editor-config.js';
-import { all } from 'underscore/index.js';
-import { BgCustomerMessage } from '../backend-manager/bg-customer-message.js';
+import {TriggerEvent} from '../glitterBundle/plugins/trigger-event.js';
+import {StoreHelper} from '../helper/store-helper.js';
+import {Storage} from '../glitterBundle/helper/storage.js';
+import {ServerEditor} from './function-page/server-editor/server-editor.js';
+import {AddComponent} from '../editor/add-component.js';
+import {PageSettingView} from '../editor/page-setting-view.js';
+import {AddPage} from '../editor/add-page.js';
+import {SetGlobalValue} from '../editor/set-global-value.js';
+import {PageCodeSetting} from '../editor/page-code-setting.js';
+import {NormalPageEditor} from '../editor/normal-page-editor.js';
+import {EditorConfig} from '../editor-config.js';
+import {all} from 'underscore/index.js';
+import {BgCustomerMessage} from '../backend-manager/bg-customer-message.js';
 
 const html = String.raw;
 //
@@ -29,9 +29,11 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
         .hoverHidden div {
             display: none;
         }
+
         .hoverHidden:hover div {
             display: flex;
         }
+
         .tooltip {
             z-index: 99999 !important;
         }
@@ -380,7 +382,8 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                 ];
                 for (const a of waitSave) {
                     if (!(await a())) {
-                        swal.nextStep(`伺服器錯誤`, () => {}, 'error');
+                        swal.nextStep(`伺服器錯誤`, () => {
+                        }, 'error');
                         return;
                     }
                 }
@@ -415,7 +418,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
             glitter.share.selectEditorItemTimer && clearInterval(glitter.share.selectEditorItemTimer);
             glitter.share.selectEditorItemTimer = setTimeout(() => {
                 // gvc.notifyDataChange(['MainEditorLeft', 'right_NAV']);
-                gvc.notifyDataChange(['MainEditorLeft','right_NAV']);
+                gvc.notifyDataChange(['MainEditorLeft', 'right_NAV']);
             }, 10);
             // gvc.notifyDataChange('htmlGenerate')
         };
@@ -448,116 +451,119 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                             const doc = new Editor(gvc, viewModel);
                             view.push(
                                 doc.create(
-                                    html` <div class="d-flex overflow-hidden border-end" style="height:100vh;background:white;">
-                                        ${gvc.bindView(() => {
-                                            return {
-                                                bind: 'left_sm_bar',
-                                                view: () => {
-                                                    return `      ${[
-                                                        {
-                                                            src: `fa-duotone fa-window`,
-                                                            index: 'layout',
-                                                            hint: '頁面編輯',
-                                                        },
-                                                        {
-                                                            src: `fa-sharp fa-regular fa-globe`,
-                                                            index: 'color',
-                                                            hint: '全局樣式'
-                                                        },
-                                                        {
-                                                            src: `fa-regular fa-grid-2`,
-                                                            index: 'widget',
-                                                            hint: '設計元件'
-                                                        }
-                                                    ]
-                                                        .map((da: any) => {
-                                                            return html`<i
-                                                                class=" ${da.src} fs-5 fw-bold   p-2 rounded"
-                                                                data-bs-toggle="tooltip"
-                                                                data-bs-placement="top"
-                                                                data-bs-custom-class="custom-tooltip"
-                                                                data-bs-title="${da.hint}"
-                                                                style="cursor:pointer;
+                                    html`
+                                        <div class="d-flex overflow-hidden border-end"
+                                             style="height:100vh;background:white;">
+                                            ${gvc.bindView(() => {
+                                                return {
+                                                    bind: 'left_sm_bar',
+                                                    view: () => {
+                                                        return `      ${[
+                                                            {
+                                                                src: `fa-duotone fa-window`,
+                                                                index: 'layout',
+                                                                hint: '頁面編輯',
+                                                            },
+                                                            {
+                                                                src: `fa-sharp fa-regular fa-globe`,
+                                                                index: 'color',
+                                                                hint: '全局樣式'
+                                                            },
+                                                            {
+                                                                src: `fa-regular fa-grid-2`,
+                                                                index: 'widget',
+                                                                hint: '設計元件'
+                                                            }
+                                                        ]
+                                                                .map((da: any) => {
+                                                                    return html`<i
+                                                                            class=" ${da.src} fs-5 fw-bold   p-2 rounded"
+                                                                            data-bs-toggle="tooltip"
+                                                                            data-bs-placement="top"
+                                                                            data-bs-custom-class="custom-tooltip"
+                                                                            data-bs-title="${da.hint}"
+                                                                            style="cursor:pointer;
 ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.editor_layout.btn_background};color:white;` : ``}
 "
-                                                                onclick="${gvc.event(() => {
-                                                                    viewModel.waitCopy = undefined;
-                                                                    viewModel.selectItem = undefined;
-                                                                    Storage.page_setting_item = da.index;
-                                                                    gvc.notifyDataChange(editorContainerID);
-                                                                })}"
-                                                            ></i>`;
-                                                        })
-                                                        .join('')}`;
-                                                },
-                                                divCreate: {
-                                                    style: `width:50px;gap:20px;padding-top: 15px;min-width:50px;`,
-                                                    class: `${
-                                                        Storage.select_function === 'user-editor' || Storage.select_function === 'page-editor' ? `` : `d-none`
-                                                    } h-120 border-end d-flex flex-column align-items-center`,
-                                                },
-                                            };
-                                        })}
-                                        <div
-                                            class="offcanvas-body swiper scrollbar-hover  w-120 ${(() => {
-                                                switch (Storage.select_function) {
-                                                    case 'backend-manger':
-                                                    case 'server-manager':
-                                                        return `pt-0`;
-                                                    case 'page-editor':
-                                                        return `p-0`;
-                                                    default:
-                                                        return `p-0`;
-                                                }
-                                            })()}"
-                                            style="overflow-y: auto;overflow-x:hidden;height:calc(100vh - 56px);"
-                                        >
-                                            <div class="h-120" style="">
-                                                ${gvc.bindView(() => {
-                                                    return {
-                                                        bind: 'MainEditorLeft',
-                                                        view: () => {
-                                                            const view = (() => {
-                                                                switch (Storage.select_function) {
-                                                                    case 'backend-manger':
-                                                                        return Setting_editor.left(gvc, viewModel, editorContainerID, gBundle);
-                                                                    case 'server-manager':
-                                                                        return ServerEditor.left(gvc);
-                                                                    case 'page-editor':
-                                                                    case 'user-editor':
-                                                                        //內容編輯模式不允許特定頁面，自動重導向。
-                                                                        if (Storage.select_function === 'user-editor') {
-                                                                            if (!viewModel.data.page_config || viewModel.data.page_config.support_editor !== 'true') {
-                                                                                const redirect = viewModel.dataList.find((dd: any) => {
-                                                                                    return dd.page_config && dd.page_config.support_editor === 'true';
-                                                                                });
-                                                                                if (redirect) {
-                                                                                    const url = new URL(glitter.root_path + `${redirect.tag}${location.search}`);
-                                                                                    location.href = url.href;
+                                                                            onclick="${gvc.event(() => {
+                                                                                viewModel.waitCopy = undefined;
+                                                                                viewModel.selectItem = undefined;
+                                                                                Storage.page_setting_item = da.index;
+                                                                                gvc.notifyDataChange(editorContainerID);
+                                                                            })}"
+                                                                    ></i>`;
+                                                                })
+                                                                .join('')}`;
+                                                    },
+                                                    divCreate: {
+                                                        style: `width:50px;gap:20px;padding-top: 15px;min-width:50px;`,
+                                                        class: `${
+                                                                Storage.select_function === 'user-editor' || Storage.select_function === 'page-editor' ? `` : `d-none`
+                                                        } h-120 border-end d-flex flex-column align-items-center`,
+                                                    },
+                                                };
+                                            })}
+                                            <div
+                                                    class="offcanvas-body swiper scrollbar-hover  w-120 ${(() => {
+                                                        switch (Storage.select_function) {
+                                                            case 'backend-manger':
+                                                            case 'server-manager':
+                                                                return `pt-0`;
+                                                            case 'page-editor':
+                                                                return `p-0`;
+                                                            default:
+                                                                return `p-0`;
+                                                        }
+                                                    })()}"
+                                                    style="overflow-y: auto;overflow-x:hidden;height:calc(100vh - 56px);"
+                                            >
+                                                <div class="h-120" style="">
+                                                    ${gvc.bindView(() => {
+                                                        return {
+                                                            bind: 'MainEditorLeft',
+                                                            view: () => {
+                                                                const view = (() => {
+                                                                    switch (Storage.select_function) {
+                                                                        case 'backend-manger':
+                                                                            return Setting_editor.left(gvc, viewModel, editorContainerID, gBundle);
+                                                                        case 'server-manager':
+                                                                            return ServerEditor.left(gvc);
+                                                                        case 'page-editor':
+                                                                        case 'user-editor':
+                                                                            //內容編輯模式不允許特定頁面，自動重導向。
+                                                                            if (Storage.select_function === 'user-editor') {
+                                                                                if (!viewModel.data.page_config || viewModel.data.page_config.support_editor !== 'true') {
+                                                                                    const redirect = viewModel.dataList.find((dd: any) => {
+                                                                                        return dd.page_config && dd.page_config.support_editor === 'true';
+                                                                                    });
+                                                                                    if (redirect) {
+                                                                                        const url = new URL(glitter.root_path + `${redirect.tag}${location.search}`);
+                                                                                        location.href = url.href;
+                                                                                    }
                                                                                 }
                                                                             }
-                                                                        }
-                                                                        return Main_editor.left(gvc, viewModel, editorContainerID, gBundle);
-                                                                    default:
-                                                                        return Page_editor.left(gvc, viewModel, editorContainerID, gBundle);
+                                                                            return Main_editor.left(gvc, viewModel, editorContainerID, gBundle);
+                                                                        default:
+                                                                            return Page_editor.left(gvc, viewModel, editorContainerID, gBundle);
+                                                                    }
+                                                                })();
+                                                                if (document.body.offsetWidth < 800) {
+                                                                    glitter.setDrawer(`<div class="bg-white vh-120 overflow-auto">${view}</div>`, () => {
+                                                                    });
+                                                                    return ``;
+                                                                } else {
+                                                                    return view;
                                                                 }
-                                                            })();
-                                                            if (document.body.offsetWidth < 800) {
-                                                                glitter.setDrawer(`<div class="bg-white vh-120 overflow-auto">${view}</div>`, () => {});
-                                                                return ``;
-                                                            } else {
-                                                                return view;
-                                                            }
-                                                        },
-                                                        divCreate: {
-                                                            class: 'h-120',
-                                                        },
-                                                    };
-                                                })}
+                                                            },
+                                                            divCreate: {
+                                                                class: 'h-120',
+                                                            },
+                                                        };
+                                                    })}
+                                                </div>
+                                                <div class="swiper-scrollbar end-0"></div>
                                             </div>
-                                            <div class="swiper-scrollbar end-0"></div>
-                                        </div>
-                                    </div>`,
+                                        </div>`,
                                     gvc.bindView({
                                         bind: 'MainEditorRight',
                                         view: () => {
@@ -605,7 +611,8 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
                 },
             });
         },
-        onCreate: () => {},
+        onCreate: () => {
+        },
     };
 });
 
@@ -619,7 +626,8 @@ function initialEditor(gvc: GVC, viewModel: any) {
     //貼上事件
     glitter.share.pastEvent = () => {
         if (!glitter.share.copycomponent) {
-            swal.nextStep(`請先複製元件`, () => {}, 'error');
+            swal.nextStep(`請先複製元件`, () => {
+            }, 'error');
             return;
         }
         let copy = JSON.parse(glitter.share.copycomponent);
@@ -683,7 +691,7 @@ function initialEditor(gvc: GVC, viewModel: any) {
     };
 
     //找到ID索引位置
-    glitter.share.findWidget = (where: (data:any)=>boolean) => {
+    glitter.share.findWidget = (where: (data: any) => boolean) => {
         let find: {
             widget: any;
             container: any;
@@ -729,9 +737,9 @@ function initialEditor(gvc: GVC, viewModel: any) {
         viewModel.selectContainer.push(data);
         Storage.lastSelect = data.id;
         glitter.htmlGenerate.hover_items = [Storage.lastSelect];
-data.data._style_refer_global = {
-    index: `0`
-}
+        data.data._style_refer_global = {
+            index: `0`
+        }
         if (viewModel.selectContainer.length === 1) {
             viewModel.selectContainer.container_config.getElement().recreateView();
         } else {
@@ -748,7 +756,7 @@ data.data._style_refer_global = {
                 })
             );
         }
-        setTimeout(()=>{
+        setTimeout(() => {
             glitter.htmlGenerate.selectWidget({
                 widget: data,
                 widgetComponentID: data.id,
@@ -756,7 +764,7 @@ data.data._style_refer_global = {
                 scroll_to_hover: true,
                 glitter: glitter,
             });
-        },100)
+        }, 100)
         AddComponent.toggle(false);
         viewModel.selectContainer && viewModel.selectContainer.rerenderReplaceElem && viewModel.selectContainer.rerenderReplaceElem()
     };
@@ -789,15 +797,15 @@ data.data._style_refer_global = {
             })
         )[cf.direction === 1 ? 'insertAfter' : 'insertBefore']($(`.editor_it_${cf.index}`).parent());
         //
-        setTimeout(()=>{
-           glitter.htmlGenerate.selectWidget({
+        setTimeout(() => {
+            glitter.htmlGenerate.selectWidget({
                 widget: cf.data,
                 widgetComponentID: cf.data.id,
                 gvc: arrayData.container.container_config.gvc,
                 scroll_to_hover: true,
                 glitter: glitter,
             });
-        },50)
+        }, 50)
         AddComponent.toggle(false);
         viewModel.selectContainer && viewModel.selectContainer.rerenderReplaceElem && viewModel.selectContainer.rerenderReplaceElem();
     };

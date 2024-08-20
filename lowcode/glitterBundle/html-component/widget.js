@@ -118,7 +118,7 @@ export const widgetComponent = {
                                     option.push({ key: 'value', value: innerText });
                                 }
                                 let classList = [];
-                                if (((window.parent.editerData !== undefined) || (window.editerData !== undefined)) && htmlGenerate.root) {
+                                if ((((window.parent.editerData !== undefined) || (window.editerData !== undefined)) && htmlGenerate.root)) {
                                     classList.push(`editorParent`);
                                     classList.push(`relativePosition`);
                                     classList.push(view_container_id);
@@ -254,7 +254,8 @@ export const widgetComponent = {
                                         app_config: widget.global.appConfig,
                                         page_config: widget.global.pageConfig,
                                         document: document,
-                                        editorSection: widget.id
+                                        editorSection: widget.id,
+                                        origin_widget: widget
                                     }, getCreateOption);
                                 }
                                 widget.data.setting.refresh = (() => {
@@ -401,7 +402,8 @@ export const widgetComponent = {
                                             view.push(glitter.htmlGenerate.getEditorSelectSection({
                                                 id: widget.id,
                                                 gvc: gvc,
-                                                label: widget.label
+                                                label: widget.label,
+                                                widget: widget
                                             }));
                                         }
                                         return view.join('');

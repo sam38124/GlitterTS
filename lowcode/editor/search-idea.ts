@@ -4,9 +4,14 @@ import {ApiPageConfig} from "../api/pageConfig.js";
 import {BaseApi} from "../glitterBundle/api/base.js";
 import {GVC} from "../glitterBundle/GVController.js";
 import {BgWidget} from "../backend-manager/bg-widget.js";
+import {AddComponent} from "./add-component.js";
 
 export class SearchIdea {
     public static main(gvc: GVC) {
+        gvc.glitter.share.add_from_idea=(cf:any)=>{
+            AddComponent.addWidget(gvc,cf);
+            NormalPageEditor.toggle({visible:false})
+        }
         const vm: {
             select: string,
             left_id: string,
