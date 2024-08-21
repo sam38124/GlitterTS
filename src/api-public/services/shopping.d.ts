@@ -28,7 +28,7 @@ interface VoucherData {
     type: 'voucher';
     code?: string;
     overlay: boolean;
-    bind?: BindItem[];
+    bind: BindItem[];
     start_ISO_Date: string;
     end_ISO_Date: string;
     discount_total: number;

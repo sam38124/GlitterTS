@@ -545,6 +545,7 @@ class Shopping {
                     end_ISO_Date: '',
                     for: 'all',
                     forKey: [],
+                    bind: [],
                     method: data.voucher.method,
                     overlay: false,
                     reBackType: data.voucher.reBackType,
@@ -820,29 +821,6 @@ class Shopping {
             dd.discount_price = 0;
             dd.rebate = 0;
         });
-        const userData = await userClass.getUserData(cart.email, 'account');
-        if (!userData || !userData.userID) {
-            return;
-        }
-        const userLevels = await userClass.getUserLevel([{ email: cart.email }]);
-        const allVoucher = (await this.querySql([`(content->>'$.type'='voucher')`], {
-            page: 0,
-            limit: 10000,
-        })).data
-            .map((dd) => {
-            return dd.content;
-        })
-            .filter((dd) => {
-            return new Date(dd.start_ISO_Date).getTime() < new Date().getTime() && (!dd.end_ISO_Date || new Date(dd.end_ISO_Date).getTime() > new Date().getTime());
-        });
-        const pass_voucher_id = [];
-        for (const voucher of allVoucher) {
-            const checkLimited = await this.checkVoucherLimited(userData.userID, voucher.id);
-            if (!checkLimited) {
-                continue;
-            }
-            pass_voucher_id.push(voucher.id);
-        }
         function switchValidProduct(caseName, caseList) {
             switch (caseName) {
                 case 'collection':
@@ -866,35 +844,34 @@ class Shopping {
             }
             return [];
         }
+        const userData = await userClass.getUserData(cart.email, 'account');
+        if (!userData || !userData.userID) {
+            return;
+        }
+        const userLevels = await userClass.getUserLevel([{ email: cart.email }]);
+        const allVoucher = (await this.querySql([`(content->>'$.type'='voucher')`], {
+            page: 0,
+            limit: 10000,
+        })).data
+            .map((dd) => {
+            return dd.content;
+        })
+            .filter((dd) => {
+            return new Date(dd.start_ISO_Date).getTime() < new Date().getTime() && (!dd.end_ISO_Date || new Date(dd.end_ISO_Date).getTime() > new Date().getTime());
+        });
+        const pass_ids = [];
+        for (const voucher of allVoucher) {
+            const checkLimited = await this.checkVoucherLimited(userData.userID, voucher.id);
+            if (!checkLimited) {
+                continue;
+            }
+            pass_ids.push(voucher.id);
+        }
         let overlay = false;
         const groupList = await userClass.getUserGroups();
         const voucherList = allVoucher
             .filter((dd) => {
-            return pass_voucher_id.includes(dd.id);
-        })
-            .filter((dd) => {
-            const bindItem = switchValidProduct(dd.for, dd.forKey);
-            dd.bind = bindItem;
-            return bindItem.length > 0;
-        })
-            .filter((dd) => {
-            if (dd.trigger === 'distribution' && cart.distribution_info && cart.distribution_info.voucher === dd.id) {
-                const bindItem = switchValidProduct(cart.distribution_info.relative, cart.distribution_info.relative_data);
-                dd.bind = bindItem;
-                return bindItem.length > 0;
-            }
-            return dd.trigger === 'auto' || dd.code === `${cart.code}`;
-        })
-            .filter((dd) => {
-            const ruleValue = parseInt(`${dd.ruleValue}`, 10);
-            if (dd.rule === 'min_count') {
-                return cart.lineItems.length >= ruleValue;
-            }
-            let subtotal = 0;
-            cart.lineItems.map((item) => {
-                subtotal += item.count * item.sale_price;
-            });
-            return subtotal >= ruleValue;
+            return pass_ids.includes(dd.id);
         })
             .filter((dd) => {
             if (dd.target === 'customer') {
@@ -920,27 +897,52 @@ class Shopping {
             }
             return true;
         })
+            .filter((dd) => {
+            dd.bind = [];
+            switch (dd.trigger) {
+                case 'auto':
+                    dd.bind = switchValidProduct(dd.for, dd.forKey);
+                    break;
+                case 'code':
+                    if (dd.code === `${cart.code}`) {
+                        dd.bind = switchValidProduct(dd.for, dd.forKey);
+                    }
+                    break;
+                case 'distribution':
+                    if (cart.distribution_info && cart.distribution_info.voucher === dd.id) {
+                        dd.bind = switchValidProduct(cart.distribution_info.relative, cart.distribution_info.relative_data);
+                    }
+                    break;
+            }
+            return dd.bind.length > 0;
+        })
+            .filter((dd) => {
+            let subtotal = 0;
+            switch (dd.rule) {
+                case 'min_price':
+                    dd.bind.map((item) => {
+                        subtotal += item.count * item.sale_price;
+                    });
+                    break;
+                case 'min_count':
+                    dd.bind.map((item) => {
+                        subtotal += item.count;
+                    });
+                    break;
+            }
+            return subtotal >= parseInt(`${dd.ruleValue}`, 10);
+        })
             .sort(function (a, b) {
-            let compareB = b
-                .bind.map((dd) => {
-                if (b.reBackType === 'shipment_free') {
-                    return dd.shipment_fee;
-                }
-                else {
-                    return b.method === 'percent' ? (dd.sale_price * parseFloat(b.value)) / 100 : parseFloat(b.value);
-                }
+            let compareB = b.bind
+                .map((dd) => {
+                return b.method === 'percent' ? (dd.sale_price * parseFloat(b.value)) / 100 : parseFloat(b.value);
             })
                 .reduce(function (accumulator, currentValue) {
                 return accumulator + currentValue;
             }, 0);
-            let compareA = a
-                .bind.map((dd) => {
-                if (a.reBackType === 'shipment_free') {
-                    return dd.shipment_fee;
-                }
-                else {
-                    return a.method === 'percent' ? (dd.sale_price * parseFloat(a.value)) / 100 : parseFloat(a.value);
-                }
+            let compareA = a.bind
+                .map((dd) => {
+                return a.method === 'percent' ? (dd.sale_price * parseFloat(a.value)) / 100 : parseFloat(a.value);
             })
                 .reduce(function (accumulator, currentValue) {
                 return accumulator + currentValue;
@@ -959,46 +961,34 @@ class Shopping {
             dd.discount_total = (_a = dd.discount_total) !== null && _a !== void 0 ? _a : 0;
             dd.rebate_total = (_b = dd.rebate_total) !== null && _b !== void 0 ? _b : 0;
             dd.bind = dd.bind.filter((d2) => {
-                if (dd.reBackType === 'shipment_free') {
-                    cart.shipment_fee -= d2.shipment_fee;
-                    cart.total -= d2.shipment_fee;
+                let discount = dd.method === 'percent' ? (d2.sale_price * parseFloat(dd.value)) / 100 : parseFloat(dd.value);
+                if (d2.discount_price + discount < d2.sale_price) {
+                    if (dd.reBackType === 'rebate') {
+                        d2.rebate += discount;
+                        cart.rebate += discount * d2.count;
+                        dd.rebate_total += discount * d2.count;
+                    }
+                    else {
+                        d2.discount_price += discount;
+                        cart.discount += discount * d2.count;
+                        dd.discount_total += discount * d2.count;
+                    }
                     return true;
                 }
                 else {
-                    let discount = dd.method === 'percent' ? (d2.sale_price * parseFloat(dd.value)) / 100 : parseFloat(dd.value);
-                    if (d2.discount_price + discount < d2.sale_price) {
-                        if (dd.reBackType === 'rebate') {
-                            d2.rebate += discount;
-                            cart.rebate += discount * d2.count;
-                            dd.rebate_total += discount * d2.count;
-                        }
-                        else {
-                            d2.discount_price += discount;
-                            cart.discount += discount * d2.count;
-                            dd.discount_total += discount * d2.count;
-                        }
-                        return true;
-                    }
-                    else {
-                        return false;
-                    }
+                    return false;
                 }
             });
             return dd.bind.length > 0;
         });
-        if (!voucherList.find((d2) => {
-            return d2.code === `${cart.code}`;
-        })) {
+        if (!voucherList.find((d2) => d2.code === `${cart.code}`)) {
             cart.code = undefined;
         }
-        if (voucherList.find((d2) => {
-            return d2.reBackType === 'shipment_free';
-        })) {
-            const basic = 0;
-            cart.shipment_fee = cart.shipment_fee - basic;
-            cart.total -= basic;
+        if (voucherList.find((d2) => d2.reBackType === 'shipment_free')) {
+            cart.total -= cart.shipment_fee;
+            cart.shipment_fee = 0;
         }
-        cart.total = cart.total - cart.discount;
+        cart.total -= cart.discount;
         cart.voucherList = voucherList;
     }
     async putOrder(data) {

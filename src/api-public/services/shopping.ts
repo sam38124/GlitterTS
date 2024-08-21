@@ -14,6 +14,7 @@ import moment from 'moment';
 import { ManagerNotify } from './notify.js';
 import { AutoSendEmail } from './auto-send-email.js';
 import { Recommend } from './recommend.js';
+
 type BindItem = {
     id: string;
     spec: string[];
@@ -24,6 +25,7 @@ type BindItem = {
     rebate: number;
     shipment_fee: number;
 };
+
 interface VoucherData {
     id: number;
     title: string;
@@ -43,7 +45,7 @@ interface VoucherData {
     type: 'voucher';
     code?: string;
     overlay: boolean;
-    bind?: BindItem[];
+    bind: BindItem[];
     start_ISO_Date: string;
     end_ISO_Date: string;
     discount_total: number;
@@ -841,6 +843,7 @@ export class Shopping {
                     end_ISO_Date: '',
                     for: 'all',
                     forKey: [],
+                    bind: [],
                     method: data.voucher.method,
                     overlay: false,
                     reBackType: data.voucher.reBackType,
@@ -1216,38 +1219,6 @@ export class Shopping {
             dd.rebate = 0;
         });
 
-        // 確認用戶資訊
-        const userData = await userClass.getUserData(cart.email, 'account');
-        if (!userData || !userData.userID) {
-            return;
-        }
-
-        const userLevels = await userClass.getUserLevel([{ email: cart.email }]);
-
-        const allVoucher: VoucherData[] = (
-            await this.querySql([`(content->>'$.type'='voucher')`], {
-                page: 0,
-                limit: 10000,
-            })
-        ).data
-            .map((dd: { content: VoucherData }) => {
-                return dd.content;
-            })
-            .filter((dd: VoucherData) => {
-                // 判斷有效期限
-                return new Date(dd.start_ISO_Date).getTime() < new Date().getTime() && (!dd.end_ISO_Date || new Date(dd.end_ISO_Date).getTime() > new Date().getTime());
-            });
-
-        // 需 async and await 的驗證
-        const pass_voucher_id: number[] = [];
-        for (const voucher of allVoucher) {
-            const checkLimited = await this.checkVoucherLimited(userData.userID, voucher.id);
-            if (!checkLimited) {
-                continue;
-            }
-            pass_voucher_id.push(voucher.id);
-        }
-
         function switchValidProduct(caseName: string, caseList: string[]) {
             switch (caseName) {
                 case 'collection':
@@ -1276,39 +1247,47 @@ export class Shopping {
             return [] as any;
         }
 
+        // 確認用戶資訊
+        const userData = await userClass.getUserData(cart.email, 'account');
+        if (!userData || !userData.userID) {
+            return;
+        }
+
+        // 取得顧客會員等級
+        const userLevels = await userClass.getUserLevel([{ email: cart.email }]);
+
+        // 所有優惠券
+        const allVoucher: VoucherData[] = (
+            await this.querySql([`(content->>'$.type'='voucher')`], {
+                page: 0,
+                limit: 10000,
+            })
+        ).data
+            .map((dd: { content: VoucherData }) => {
+                return dd.content;
+            })
+            .filter((dd: VoucherData) => {
+                // 判斷有效期限
+                return new Date(dd.start_ISO_Date).getTime() < new Date().getTime() && (!dd.end_ISO_Date || new Date(dd.end_ISO_Date).getTime() > new Date().getTime());
+            });
+
+        // 需 async and await 的驗證
+        const pass_ids: number[] = [];
+        for (const voucher of allVoucher) {
+            const checkLimited = await this.checkVoucherLimited(userData.userID, voucher.id);
+            if (!checkLimited) {
+                continue;
+            }
+            pass_ids.push(voucher.id);
+        }
+
         // 過濾可使用優惠券
         let overlay = false;
         const groupList = await userClass.getUserGroups();
         const voucherList = allVoucher
             .filter((dd) => {
-                return pass_voucher_id.includes(dd.id);
-            })
-            .filter((dd) => {
-                // 判斷符合商品類型
-                const bindItem = switchValidProduct(dd.for, dd.forKey);
-                dd.bind = bindItem;
-                return bindItem.length > 0;
-            })
-            .filter((dd) => {
-                // 判斷是自動發放還是優惠碼
-                if (dd.trigger === 'distribution' && cart.distribution_info && cart.distribution_info.voucher === dd.id) {
-                    const bindItem = switchValidProduct(cart.distribution_info.relative, cart.distribution_info.relative_data);
-                    dd.bind = bindItem;
-                    return bindItem.length > 0;
-                }
-                return dd.trigger === 'auto' || dd.code === `${cart.code}`;
-            })
-            .filter((dd) => {
-                // 判斷最低消費金額或數量
-                const ruleValue = parseInt(`${dd.ruleValue}`, 10);
-                if (dd.rule === 'min_count') {
-                    return cart.lineItems.length >= ruleValue;
-                }
-                let subtotal = 0;
-                cart.lineItems.map((item) => {
-                    subtotal += item.count * item.sale_price;
-                });
-                return subtotal >= ruleValue;
+                // 是否通過 await 的判斷
+                return pass_ids.includes(dd.id);
             })
             .filter((dd) => {
                 // 判斷用戶是否為指定客群
@@ -1335,30 +1314,60 @@ export class Shopping {
                 }
                 return true; // 所有顧客皆可使用
             })
+            .filter((dd) => {
+                dd.bind = [];
+                // 判斷符合商品類型
+                switch (dd.trigger) {
+                    case 'auto':
+                        dd.bind = switchValidProduct(dd.for, dd.forKey);
+                        break;
+                    case 'code':
+                        if (dd.code === `${cart.code}`) {
+                            dd.bind = switchValidProduct(dd.for, dd.forKey);
+                        }
+                        break;
+                    case 'distribution':
+                        // 分銷優惠
+                        if (cart.distribution_info && cart.distribution_info.voucher === dd.id) {
+                            dd.bind = switchValidProduct(cart.distribution_info.relative, cart.distribution_info.relative_data);
+                        }
+                        break;
+                }
+                return dd.bind.length > 0;
+            })
+            .filter((dd) => {
+                // 判斷最低消費金額或數量
+                let subtotal = 0;
+                switch (dd.rule) {
+                    case 'min_price':
+                        dd.bind.map((item) => {
+                            subtotal += item.count * item.sale_price;
+                        });
+                        break;
+                    case 'min_count':
+                        dd.bind.map((item) => {
+                            subtotal += item.count;
+                        });
+                        break;
+                }
+                return subtotal >= parseInt(`${dd.ruleValue}`, 10);
+            })
             .sort(function (a: VoucherData, b: VoucherData) {
-                let compareB = b
-                    .bind!.map((dd) => {
-                        if (b.reBackType === 'shipment_free') {
-                            return dd.shipment_fee;
-                        } else {
-                            return b.method === 'percent' ? (dd.sale_price * parseFloat(b.value)) / 100 : parseFloat(b.value);
-                        }
-                    })
-                    .reduce(function (accumulator, currentValue) {
-                        return accumulator + currentValue;
-                    }, 0);
-                let compareA = a
-                    .bind!.map((dd) => {
-                        if (a.reBackType === 'shipment_free') {
-                            return dd.shipment_fee;
-                        } else {
-                            return a.method === 'percent' ? (dd.sale_price * parseFloat(a.value)) / 100 : parseFloat(a.value);
-                        }
-                    })
-                    .reduce(function (accumulator, currentValue) {
-                        return accumulator + currentValue;
-                    }, 0);
                 // 排序折扣金額
+                let compareB = b.bind
+                    .map((dd) => {
+                        return b.method === 'percent' ? (dd.sale_price * parseFloat(b.value)) / 100 : parseFloat(b.value);
+                    })
+                    .reduce(function (accumulator, currentValue) {
+                        return accumulator + currentValue;
+                    }, 0);
+                let compareA = a.bind
+                    .map((dd) => {
+                        return a.method === 'percent' ? (dd.sale_price * parseFloat(a.value)) / 100 : parseFloat(a.value);
+                    })
+                    .reduce(function (accumulator, currentValue) {
+                        return accumulator + currentValue;
+                    }, 0);
                 return compareB - compareA;
             })
             .filter((dd) => {
@@ -1373,54 +1382,46 @@ export class Shopping {
                 dd.discount_total = dd.discount_total ?? 0;
                 dd.rebate_total = dd.rebate_total ?? 0;
                 // 進行折扣(判斷商品金額必須大於折扣金額)
-                dd.bind = dd.bind!.filter((d2) => {
-                    // 運費折扣
-                    if (dd.reBackType === 'shipment_free') {
-                        cart.shipment_fee -= d2.shipment_fee;
-                        cart.total -= d2.shipment_fee;
+
+                // if 單一商品 && 單次 o
+                // if 單一商品 && 重複
+                // if 整份訂單 && 單次
+                // if 整份訂單 && 重複
+
+                dd.bind = dd.bind.filter((d2) => {
+                    let discount = dd.method === 'percent' ? (d2.sale_price * parseFloat(dd.value)) / 100 : parseFloat(dd.value);
+                    // 單項商品折扣金額必須小於商品單價
+                    if (d2.discount_price + discount < d2.sale_price) {
+                        if (dd.reBackType === 'rebate') {
+                            d2.rebate += discount;
+                            cart.rebate! += discount * d2.count;
+                            dd.rebate_total += discount * d2.count;
+                        } else {
+                            d2.discount_price += discount;
+                            cart.discount! += discount * d2.count;
+                            dd.discount_total += discount * d2.count;
+                        }
                         return true;
                     } else {
-                        let discount = dd.method === 'percent' ? (d2.sale_price * parseFloat(dd.value)) / 100 : parseFloat(dd.value);
-                        // 單項商品折扣金額必須小於商品單價
-                        if (d2.discount_price + discount < d2.sale_price) {
-                            if (dd.reBackType === 'rebate') {
-                                d2.rebate += discount;
-                                cart.rebate! += discount * d2.count;
-                                dd.rebate_total += discount * d2.count;
-                            } else {
-                                d2.discount_price += discount;
-                                cart.discount! += discount * d2.count;
-                                dd.discount_total += discount * d2.count;
-                            }
-                            return true;
-                        } else {
-                            return false;
-                        }
+                        return false;
                     }
                 });
                 return dd.bind.length > 0;
             });
+
         // 判斷優惠碼無效
-        if (
-            !voucherList.find((d2: any) => {
-                return d2.code === `${cart.code}`;
-            })
-        ) {
+        if (!voucherList.find((d2: VoucherData) => d2.code === `${cart.code}`)) {
             cart.code = undefined;
         }
+
         // 如果有折扣運費，刪除基本運費
-        if (
-            voucherList.find((d2: VoucherData) => {
-                return d2.reBackType === 'shipment_free';
-            })
-        ) {
-            // const basic = shipment.basic_fee;
-            const basic = 0;
-            cart.shipment_fee = cart.shipment_fee - basic;
-            cart.total -= basic;
+        if (voucherList.find((d2: VoucherData) => d2.reBackType === 'shipment_free')) {
+            cart.total -= cart.shipment_fee;
+            cart.shipment_fee = 0;
         }
 
-        cart.total = cart.total - cart.discount;
+        // 回傳折扣後總金額與優惠券陣列
+        cart.total -= cart.discount;
         cart.voucherList = voucherList;
     }
 
