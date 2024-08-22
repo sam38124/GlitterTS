@@ -8,6 +8,7 @@ type BindItem = {
     discount_price: number;
     rebate: number;
     shipment_fee: number;
+    times: number;
 };
 interface VoucherData {
     id: number;
@@ -18,6 +19,8 @@ interface VoucherData {
     value: string;
     for: 'collection' | 'product' | 'all';
     rule: 'min_price' | 'min_count';
+    conditionType: 'order' | 'item';
+    counting: 'each' | 'single';
     forKey: string[];
     ruleValue: number;
     startDate: string;
@@ -29,6 +32,8 @@ interface VoucherData {
     code?: string;
     overlay: boolean;
     bind: BindItem[];
+    bind_subtotal: number;
+    times: number;
     start_ISO_Date: string;
     end_ISO_Date: string;
     discount_total: number;

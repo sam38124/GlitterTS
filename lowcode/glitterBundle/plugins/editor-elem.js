@@ -871,15 +871,15 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                             obj.callback(editor.html.get());
                                         },
                                         'image.uploaded': function (response) {
-                                            console.log(`image.uploaded`);
+                                            console.info(`image.uploaded`);
                                             return false;
                                         },
                                         'image.inserted': function ($img, response) {
-                                            console.log(`image.inserted`);
+                                            console.info(`image.inserted`);
                                             return false;
                                         },
                                         'image.replaced': function ($img, response) {
-                                            console.log(`image.replaced`);
+                                            console.info(`image.replaced`);
                                             return false;
                                         },
                                         'image.beforePasteUpload': (e, images) => {

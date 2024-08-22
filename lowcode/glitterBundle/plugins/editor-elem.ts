@@ -939,17 +939,15 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                             obj.callback(editor.html.get());
                                         },
                                         'image.uploaded': function (response: any) {
-                                            console.log(`image.uploaded`);
+                                            console.info(`image.uploaded`);
                                             return false;
                                         },
-
                                         'image.inserted': function ($img: any, response: any) {
-                                            console.log(`image.inserted`);
+                                            console.info(`image.inserted`);
                                             return false;
                                         },
-
                                         'image.replaced': function ($img: any, response: any) {
-                                            console.log(`image.replaced`);
+                                            console.info(`image.replaced`);
                                             return false;
                                         },
                                         'image.beforePasteUpload': (e: any, images: any) => {

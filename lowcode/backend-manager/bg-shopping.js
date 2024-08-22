@@ -904,7 +904,7 @@ export class BgShopping {
             ]);
             const dialog = new ShareDialog(gvc.glitter);
             if (obj.type === 'replace') {
-                dialog.dataLoading({ text: '變更優換券', visible: true });
+                dialog.dataLoading({ text: '正在更新優惠券', visible: true });
                 ApiPost.put({
                     postData: voucherData,
                     token: GlobalUser.token,
@@ -921,7 +921,7 @@ export class BgShopping {
                 });
             }
             else {
-                dialog.dataLoading({ text: '新增優換券', visible: true });
+                dialog.dataLoading({ text: '新增正在新增優惠券', visible: true });
                 ApiPost.post({
                     postData: voucherData,
                     token: GlobalUser.token,
@@ -2138,7 +2138,7 @@ ${EditorElem.editeInput({
                                 postMD.preview_image.push(text);
                                 obj.gvc.notifyDataChange(id);
                             },
-                            type: `image/*, video/*`
+                            type: `image/*, video/*`,
                         });
                     })}"
                                                         >

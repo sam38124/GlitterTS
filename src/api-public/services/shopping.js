@@ -520,6 +520,7 @@ class Shopping {
                 carData.use_rebate = 0;
                 carData.total = subtotal + carData.shipment_fee;
             }
+            console.log('Cart total:', carData.total);
             if (type === 'preview' || type === 'manual-preview')
                 return { data: carData };
             if (type !== 'manual') {
@@ -545,11 +546,10 @@ class Shopping {
                     end_ISO_Date: '',
                     for: 'all',
                     forKey: [],
-                    bind: [],
                     method: data.voucher.method,
                     overlay: false,
-                    reBackType: data.voucher.reBackType,
                     rebate_total: data.voucher.rebate_total,
+                    reBackType: data.voucher.reBackType,
                     rule: 'min_price',
                     ruleValue: 0,
                     startDate: '',
@@ -563,6 +563,11 @@ class Shopping {
                     type: 'voucher',
                     value: data.voucher.value,
                     id: data.voucher.id,
+                    bind: [],
+                    bind_subtotal: 0,
+                    times: 1,
+                    counting: 'single',
+                    conditionType: 'item',
                 };
                 carData.discount = data.discount;
                 carData.voucherList = [tempVoucher];
@@ -917,20 +922,66 @@ class Shopping {
             return dd.bind.length > 0;
         })
             .filter((dd) => {
-            let subtotal = 0;
-            switch (dd.rule) {
-                case 'min_price':
+            dd.times = 0;
+            dd.bind_subtotal = 0;
+            const ruleValue = parseInt(`${dd.ruleValue}`, 10);
+            if (dd.conditionType === 'order') {
+                let cartValue = 0;
+                dd.bind.map((item) => {
+                    dd.bind_subtotal += item.count * item.sale_price;
+                });
+                if (dd.rule === 'min_price') {
+                    cartValue = dd.bind_subtotal;
+                }
+                if (dd.rule === 'min_count') {
                     dd.bind.map((item) => {
-                        subtotal += item.count * item.sale_price;
+                        cartValue += item.count;
                     });
-                    break;
-                case 'min_count':
-                    dd.bind.map((item) => {
-                        subtotal += item.count;
-                    });
-                    break;
+                }
+                if (dd.reBackType === 'shipment_free') {
+                    return cartValue >= ruleValue;
+                }
+                if (cartValue >= ruleValue) {
+                    if (dd.counting === 'each') {
+                        dd.times = Math.floor(cartValue / ruleValue);
+                    }
+                    if (dd.counting === 'single') {
+                        dd.times = 1;
+                    }
+                }
+                return dd.times > 0;
             }
-            return subtotal >= parseInt(`${dd.ruleValue}`, 10);
+            if (dd.conditionType === 'item') {
+                if (dd.rule === 'min_price') {
+                    dd.bind = dd.bind.filter((item) => {
+                        item.times = 0;
+                        if (item.count * item.sale_price >= ruleValue) {
+                            if (dd.counting === 'each') {
+                                item.times = Math.floor((item.count * item.sale_price) / ruleValue);
+                            }
+                            if (dd.counting === 'single') {
+                                item.times = 1;
+                            }
+                        }
+                        return item.times > 0;
+                    });
+                }
+                if (dd.rule === 'min_count') {
+                    dd.bind = dd.bind.filter((item) => {
+                        item.times = 0;
+                        if (item.count >= ruleValue) {
+                            if (dd.counting === 'each') {
+                                item.times = Math.floor(item.count / ruleValue);
+                            }
+                            if (dd.counting === 'single') {
+                                item.times = 1;
+                            }
+                        }
+                        return item.times > 0;
+                    });
+                }
+                return dd.bind.reduce((acc, item) => acc + item.times, 0) > 0;
+            }
         })
             .sort(function (a, b) {
             let compareB = b.bind
@@ -960,25 +1011,91 @@ class Shopping {
             var _a, _b;
             dd.discount_total = (_a = dd.discount_total) !== null && _a !== void 0 ? _a : 0;
             dd.rebate_total = (_b = dd.rebate_total) !== null && _b !== void 0 ? _b : 0;
-            dd.bind = dd.bind.filter((d2) => {
-                let discount = dd.method === 'percent' ? (d2.sale_price * parseFloat(dd.value)) / 100 : parseFloat(dd.value);
-                if (d2.discount_price + discount < d2.sale_price) {
-                    if (dd.reBackType === 'rebate') {
-                        d2.rebate += discount;
-                        cart.rebate += discount * d2.count;
-                        dd.rebate_total += discount * d2.count;
-                    }
-                    else {
-                        d2.discount_price += discount;
-                        cart.discount += discount * d2.count;
-                        dd.discount_total += discount * d2.count;
-                    }
+            if (dd.reBackType === 'shipment_free') {
+                return true;
+            }
+            const disValue = dd.method === 'percent' ? parseFloat(dd.value) / 100 : parseFloat(dd.value);
+            if (dd.conditionType === 'order') {
+                if (dd.method === 'fixed') {
+                    dd.discount_total = disValue * dd.times;
+                }
+                if (dd.method === 'percent') {
+                    dd.discount_total = dd.bind_subtotal * disValue;
+                }
+                if (dd.bind_subtotal >= dd.discount_total) {
+                    console.log(dd.discount_total);
+                    let remain = parseInt(`${dd.discount_total}`, 10);
+                    dd.bind.map((d2, index) => {
+                        let discount = 0;
+                        if (index === dd.bind.length - 1) {
+                            discount = remain;
+                        }
+                        else {
+                            discount = Math.floor(remain * ((d2.sale_price * d2.count) / dd.bind_subtotal));
+                        }
+                        if (discount > 0 && discount <= d2.sale_price * d2.count) {
+                            if (dd.reBackType === 'rebate') {
+                                d2.rebate += discount / d2.count;
+                                cart.rebate += discount;
+                                dd.rebate_total += discount;
+                            }
+                            else {
+                                d2.discount_price += discount / d2.count;
+                                cart.discount += discount;
+                                dd.discount_total += discount;
+                            }
+                        }
+                        if (remain - discount > 0) {
+                            remain -= discount;
+                        }
+                        else {
+                            remain = 0;
+                        }
+                    });
                     return true;
                 }
-                else {
-                    return false;
+                return false;
+            }
+            if (dd.conditionType === 'item') {
+                if (dd.method === 'fixed') {
+                    dd.bind = dd.bind.filter((d2) => {
+                        const discount = disValue * d2.times;
+                        if (discount <= d2.sale_price * d2.count) {
+                            if (dd.reBackType === 'rebate') {
+                                d2.rebate += discount / d2.count;
+                                cart.rebate += discount;
+                                dd.rebate_total += discount;
+                            }
+                            else {
+                                d2.discount_price += discount / d2.count;
+                                cart.discount += discount;
+                                dd.discount_total += discount;
+                            }
+                            return true;
+                        }
+                        return false;
+                    });
                 }
-            });
+                if (dd.method === 'percent') {
+                    dd.bind = dd.bind.filter((d2) => {
+                        const discount = Math.floor(d2.sale_price * d2.count * disValue);
+                        if (discount <= d2.sale_price * d2.count) {
+                            if (dd.reBackType === 'rebate') {
+                                d2.rebate += discount / d2.count;
+                                cart.rebate += discount;
+                                dd.rebate_total += discount;
+                            }
+                            else {
+                                d2.discount_price += discount / d2.count;
+                                cart.discount += discount;
+                                dd.discount_total += discount;
+                            }
+                            return true;
+                        }
+                        return false;
+                    });
+                }
+            }
             return dd.bind.length > 0;
         });
         if (!voucherList.find((d2) => d2.code === `${cart.code}`)) {

@@ -100,7 +100,20 @@ export class ShoppingDiscountSetting {
                                                                 },
                                                                 {
                                                                     key: '觸發方式',
-                                                                    value: html`<span class="fs-7">${dd.content.trigger === 'code' ? `輸入代碼` : `自動`}</span>`,
+                                                                    value: html`<span class="fs-7"
+                                                                        >${(() => {
+                                                                            switch (dd.content.trigger) {
+                                                                                case 'auto':
+                                                                                    return '自動';
+                                                                                case 'code':
+                                                                                    return '輸入代碼';
+                                                                                case 'distribution':
+                                                                                    return '分銷 & 一頁式';
+                                                                                default:
+                                                                                    return '尚未設定';
+                                                                            }
+                                                                        })()}</span
+                                                                    >`,
                                                                 },
                                                                 {
                                                                     key: '對象',
@@ -249,6 +262,8 @@ export class ShoppingDiscountSetting {
             value: string;
             for: 'collection' | 'product' | 'all';
             rule: 'min_price' | 'min_count';
+            counting: 'single' | 'each';
+            conditionType: 'item' | 'order';
             forKey: (number | string)[];
             ruleValue: number;
             startDate: string;
@@ -275,7 +290,7 @@ export class ShoppingDiscountSetting {
             for: 'all',
             forKey: [],
             rule: 'min_price',
-            ruleValue: 0,
+            ruleValue: 1000,
             startDate: this.getDateTime().date,
             startTime: this.getDateTime().time,
             endDate: this.getDateTime(7).date,
@@ -286,11 +301,13 @@ export class ShoppingDiscountSetting {
             start_ISO_Date: '',
             end_ISO_Date: '',
             reBackType: 'discount',
-            rebateEndDay: '0',
+            rebateEndDay: '30',
             target: 'all',
             targetList: [],
             macroLimited: 0,
             microLimited: 0,
+            counting: 'single',
+            conditionType: 'order',
         };
 
         const productForList = [
@@ -306,7 +323,7 @@ export class ShoppingDiscountSetting {
                     const forData = productForList.find((item) => item.value === voucherData.for);
                     return forData ? forData.title : '';
                 })()}`,
-                `折扣方式：${(() => {
+                `活動方式：${(() => {
                     if (voucherData.trigger === 'auto') return '自動折扣';
                     if (voucherData.trigger === 'distribution') return '分銷連結';
                     if (voucherData.trigger === 'code') return `優惠代碼「${voucherData.code ?? ''}」`;
@@ -339,9 +356,9 @@ export class ShoppingDiscountSetting {
                 `折扣優惠：${(() => {
                     switch (voucherData.reBackType) {
                         case 'rebate':
-                            return voucherData.method === 'fixed' ? `${voucherData.value} 點購物金` : `訂單總額的 ${voucherData.value} ％作為購物金`;
+                            return voucherData.method === 'fixed' ? `${voucherData.value} 點購物金` : `符合條件商品總額的 ${voucherData.value} ％作為購物金`;
                         case 'discount':
-                            return voucherData.method === 'fixed' ? `折扣 ${voucherData.value} 元` : `訂單總額折扣 ${voucherData.value} ％`;
+                            return voucherData.method === 'fixed' ? `折扣 ${voucherData.value} 元` : `符合條件商品折扣 ${voucherData.value} ％`;
                         case 'shipment_free':
                             return '免運費';
                         default:
@@ -368,6 +385,10 @@ export class ShoppingDiscountSetting {
                 })()}`,
             ];
         }
+
+        const pageVM = {
+            conditionId: gvc.glitter.getUUID(),
+        };
 
         return gvc.bindView(() => {
             const viewID = gvc.glitter.getUUID();
@@ -407,7 +428,7 @@ export class ShoppingDiscountSetting {
                                         BgWidget.mainCard(
                                             html`<div style="display: flex; flex-direction: column; gap: 18px;">
                                                 <div class="gray-bottom-line-18">
-                                                    <div class="tx_700">折扣方式</div>
+                                                    <div class="tx_700">活動方式</div>
                                                     ${BgWidget.mbContainer(18)}
                                                     ${BgWidget.multiCheckboxContainer(
                                                         gvc,
@@ -774,6 +795,7 @@ export class ShoppingDiscountSetting {
                                                                             voucherData.for = 'all';
                                                                         }
                                                                         gvc.notifyDataChange(id);
+                                                                        gvc.notifyDataChange(pageVM.conditionId);
                                                                     },
                                                                     { single: true }
                                                                 )}
@@ -826,6 +848,7 @@ export class ShoppingDiscountSetting {
                                                                             (text) => {
                                                                                 voucherData.value = '0';
                                                                                 voucherData.method = text[0] as 'fixed' | 'percent';
+                                                                                gvc.notifyDataChange(pageVM.conditionId);
                                                                             },
                                                                             { single: true }
                                                                         )}
@@ -1026,9 +1049,8 @@ export class ShoppingDiscountSetting {
                                         ),
                                         BgWidget.mainCard(
                                             gvc.bindView(() => {
-                                                const id = glitter.getUUID();
                                                 return {
-                                                    bind: id,
+                                                    bind: pageVM.conditionId,
                                                     view: () => {
                                                         const conditionInput = (text: string) => {
                                                             return BgWidget.editeInput({
@@ -1039,34 +1061,117 @@ export class ShoppingDiscountSetting {
                                                                 placeHolder: '',
                                                                 callback: (value) => {
                                                                     voucherData.ruleValue = parseInt(value, 10);
+                                                                    gvc.notifyDataChange(pageVM.conditionId);
                                                                 },
                                                                 endText: text,
                                                             });
                                                         };
-                                                        return html` <div class="tx_700">消費條件</div>
-                                                            ${BgWidget.mbContainer(18)}
-                                                            ${BgWidget.multiCheckboxContainer(
-                                                                gvc,
-                                                                [
-                                                                    {
-                                                                        key: 'min_price',
-                                                                        name: '最低消費金額',
-                                                                        innerHtml: conditionInput('元'),
+                                                        const n = voucherData.ruleValue;
+                                                        const floor = Math.floor(n / 2);
+                                                        const ruleText = (sum: number) => {
+                                                            return `${sum}${voucherData.rule === 'min_count' ? '個' : '元'}`;
+                                                        };
+                                                        voucherData.counting = voucherData.method === 'percent' || voucherData.reBackType === 'shipment_free' ? 'single' : voucherData.counting;
+                                                        voucherData.conditionType = voucherData.reBackType === 'shipment_free' ? 'order' : voucherData.conditionType;
+                                                        return [
+                                                            html` <div class="tx_700">消費條件</div>
+                                                                ${BgWidget.mbContainer(18)}
+                                                                ${BgWidget.multiCheckboxContainer(
+                                                                    gvc,
+                                                                    [
+                                                                        {
+                                                                            key: 'min_price',
+                                                                            name: '最低消費金額',
+                                                                            innerHtml: conditionInput('元'),
+                                                                        },
+                                                                        {
+                                                                            key: 'min_count',
+                                                                            name: '最少購買數量',
+                                                                            innerHtml: conditionInput('個'),
+                                                                        },
+                                                                    ],
+                                                                    [voucherData.rule],
+                                                                    (text) => {
+                                                                        voucherData.ruleValue = 0;
+                                                                        voucherData.rule = text[0] as 'min_price' | 'min_count';
+                                                                        gvc.notifyDataChange(pageVM.conditionId);
                                                                     },
-                                                                    {
-                                                                        key: 'min_count',
-                                                                        name: '最少購買數量',
-                                                                        innerHtml: conditionInput('個'),
+                                                                    { single: true }
+                                                                )}`,
+                                                            html` <div class="tx_700">計算單位</div>
+                                                                ${BgWidget.mbContainer(18)}
+                                                                ${BgWidget.multiCheckboxContainer(
+                                                                    gvc,
+                                                                    [
+                                                                        {
+                                                                            key: 'order',
+                                                                            name: '以整份訂單計算',
+                                                                            innerHtml: BgWidget.grayNote(
+                                                                                (() => {
+                                                                                    if (voucherData.reBackType === 'shipment_free') {
+                                                                                        return '優惠條件為整份訂單免運費';
+                                                                                    }
+                                                                                    return `若商品A購買${ruleText(floor)}，加上商品B購買${ruleText(n - floor)}，可觸發優惠`;
+                                                                                })(),
+                                                                                'font-size: 14px;'
+                                                                            ),
+                                                                        },
+                                                                        {
+                                                                            key: 'item',
+                                                                            name: '以商品計算',
+                                                                            innerHtml: BgWidget.grayNote(
+                                                                                `需要商品A購買滿${ruleText(n)}，或商品B購買滿${ruleText(n)}，即可觸發優惠<br/>若商品A購買${ruleText(
+                                                                                    floor
+                                                                                )}，加上商品B購買${ruleText(n - floor)}，無法觸發優惠`,
+                                                                                'font-size: 14px;'
+                                                                            ),
+                                                                        },
+                                                                    ],
+                                                                    [voucherData.conditionType],
+                                                                    (text) => {
+                                                                        voucherData.conditionType = text[0] as 'item' | 'order';
+                                                                        gvc.notifyDataChange(pageVM.conditionId);
                                                                     },
-                                                                ],
-                                                                [voucherData.rule],
-                                                                (text) => {
-                                                                    voucherData.ruleValue = 0;
-                                                                    voucherData.rule = text[0] as 'min_price' | 'min_count';
-                                                                    gvc.notifyDataChange(id);
-                                                                },
-                                                                { single: true }
-                                                            )}`;
+                                                                    { single: true, readonly: voucherData.reBackType === 'shipment_free' }
+                                                                )}`,
+                                                            html` <div class="tx_700">重複觸發</div>
+                                                                ${BgWidget.mbContainer(18)}
+                                                                ${BgWidget.multiCheckboxContainer(
+                                                                    gvc,
+                                                                    [
+                                                                        {
+                                                                            key: 'single',
+                                                                            name: '不重複',
+                                                                            innerHtml: BgWidget.grayNote(
+                                                                                (() => {
+                                                                                    if (voucherData.reBackType === 'shipment_free') {
+                                                                                        return '整份訂單免運費，優惠不重複';
+                                                                                    }
+                                                                                    if (voucherData.method === 'percent') {
+                                                                                        return '依百分比計算，優惠不重複';
+                                                                                    }
+                                                                                    return `購買${ruleText(n)}折Y元，額外購買至${ruleText(n * 2)}或${ruleText(n * 3)}依然是折Y元`;
+                                                                                })(),
+                                                                                'font-size: 14px;'
+                                                                            ),
+                                                                        },
+                                                                        {
+                                                                            key: 'each',
+                                                                            name: '重複',
+                                                                            innerHtml: BgWidget.grayNote(
+                                                                                `購買${ruleText(n)}折Y元，購買${ruleText(n * 2)}則折Y * 2元，購買${ruleText(n * 3)}則折Y * 3元，以此類推`,
+                                                                                'font-size: 14px;'
+                                                                            ),
+                                                                        },
+                                                                    ],
+                                                                    [voucherData.counting],
+                                                                    (text) => {
+                                                                        voucherData.counting = text[0] as 'single' | 'each';
+                                                                        gvc.notifyDataChange(pageVM.conditionId);
+                                                                    },
+                                                                    { single: true, readonly: voucherData.method === 'percent' || voucherData.reBackType === 'shipment_free' }
+                                                                )}`,
+                                                        ].join(BgWidget.horizontalLine());
                                                     },
                                                 };
                                             })
@@ -1077,7 +1182,7 @@ export class ShoppingDiscountSetting {
                                                 return {
                                                     bind: id,
                                                     view: () => {
-                                                        return html`<div class="tx_700">是否可疊加使用</div>
+                                                        return html`<div class="tx_700">是否與其他優惠券疊加使用</div>
                                                             ${BgWidget.mbContainer(18)}
                                                             ${BgWidget.multiCheckboxContainer(
                                                                 gvc,
@@ -1366,7 +1471,7 @@ export class ShoppingDiscountSetting {
                                         ]);
                                         const dialog = new ShareDialog(gvc.glitter);
                                         if (obj.type === 'replace') {
-                                            dialog.dataLoading({ text: '變更優換券', visible: true });
+                                            dialog.dataLoading({ text: '正在更新優惠券', visible: true });
                                             ApiPost.put({
                                                 postData: voucherData,
                                                 token: (window.parent as any).saasConfig.config.token,
@@ -1375,13 +1480,13 @@ export class ShoppingDiscountSetting {
                                                 dialog.dataLoading({ visible: false });
                                                 if (re.result) {
                                                     vm.status = 'list';
-                                                    dialog.successMessage({ text: `上傳成功` });
+                                                    dialog.successMessage({ text: '上傳成功' });
                                                 } else {
-                                                    dialog.errorMessage({ text: `上傳失敗` });
+                                                    dialog.errorMessage({ text: '上傳失敗' });
                                                 }
                                             });
                                         } else {
-                                            dialog.dataLoading({ text: '新增優換券', visible: true });
+                                            dialog.dataLoading({ text: '新增正在新增優惠券', visible: true });
                                             ApiPost.post({
                                                 postData: voucherData,
                                                 token: (window.parent as any).saasConfig.config.token,
