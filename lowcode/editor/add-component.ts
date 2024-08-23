@@ -864,11 +864,14 @@ background-clip: text;
                                 return 1;
                             }
                         })
+                        .sort((a:any,b:any)=>{
+                            return  (Number(a.template_config.sort) < (Number(b.template_config.sort ?? Infinity))) ? -1:1;
+                        })
                         .sort((a: any, b: any) => {
                             if (a.template_config.name === '空白-嵌入模塊') {
                                 return -1;
                             } else {
-                                return 1;
+                                return  (Number(a.template_config.sort) < (Number(b.template_config.sort ?? Infinity))) ? -1:1;
                             }
                         })
                         .map((dd: any, index: number) => {
@@ -876,8 +879,8 @@ background-clip: text;
                                 <div class="col-6  mb-3 ">
                                     <div class="d-flex flex-column  justify-content-center w-100"
                                          style="gap:5px;cursor:pointer;">
-                                        <div class="card w-100 position-relative rounded hoverHidden bgf6 rounded-3"
-                                             style="padding-bottom: 58%;">
+                                        <div class="card w-100 position-relative rounded hoverHidden  rounded-3"
+                                             style="padding-bottom: 58%;overflow: hidden;">
                                             <div class="position-absolute w-100 h-100 d-flex align-items-center justify-content-center"
                                                  style="overflow: hidden;">
                                                 <img class="w-100 "

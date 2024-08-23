@@ -436,6 +436,16 @@ export class PageSettingView {
                                                 postMD.post_to = text;
                                             },
                                         }),
+                                        EditorElem.editeInput({
+                                            title: '排序',
+                                            gvc: gvc,
+                                            default: postMD.sort,
+                                            callback: (text) => {
+                                                postMD.sort = text;
+                                            },
+                                            placeHolder: '請輸入排序',
+                                            type: 'number'
+                                        })
                                     ]
                                         .map((dd) => {
                                         return `<div class="col-12 ">${dd}</div>`;

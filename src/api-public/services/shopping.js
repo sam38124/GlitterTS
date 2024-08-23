@@ -1461,8 +1461,6 @@ class Shopping {
     async postVariantsAndPriceValue(content) {
         var _a, _b, _c;
         content.variants = (_a = content.variants) !== null && _a !== void 0 ? _a : [];
-        console.log(content);
-        console.log(content.id);
         content.id &&
             (await database_js_1.default.query(`DELETE
              from \`${this.app}\`.t_variants
@@ -2002,14 +2000,21 @@ class Shopping {
         try {
             content.type = 'product';
             this.checkVariantDataType(content.variants);
-            const data = await database_js_1.default.query(`INSERT INTO \`${this.app}\`.\`t_manager_post\`
-                 SET ?`, [
+            const data = await database_js_1.default.query(`INSERT INTO \`${this.app}\`.\`t_manager_post\` SET ?
+                `, [
                 {
                     userID: (_a = this.token) === null || _a === void 0 ? void 0 : _a.userID,
                     content: JSON.stringify(content),
                 },
             ]);
             content.id = data.insertId;
+            await database_js_1.default.query(`update \`${this.app}\`.\`t_manager_post\` SET ? where id = ?
+                `, [
+                {
+                    content: JSON.stringify(content),
+                },
+                content.id,
+            ]);
             await new Shopping(this.app, this.token).postVariantsAndPriceValue(content);
             return data.insertId;
         }

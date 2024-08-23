@@ -328,7 +328,7 @@ export class Main_editor {
                                                                                 });
                                                                                 // gvc.notifyDataChange(vid)
                                                                             }
-                                                                            SearchIdea.open(gvc);
+                                                                            AddComponent.toggle(true);
                                                                         })}"
                                                                 >
                                                                     <i class="fa-solid fa-plus"></i>新增區段
