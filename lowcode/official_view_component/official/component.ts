@@ -925,7 +925,6 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                                                                                 })
                                                                                                                 try {
                                                                                                                     if (vm.page === 'editor') {
-
                                                                                                                         return [
                                                                                                                             type === 'def' ? `` : html`
                                                                                                                                 <div class="my-2 mx-3 "
@@ -1018,7 +1017,7 @@ font-weight: 700;" onclick="${gvc.event(() => {
                                                                                                                                 </div>`
                                                                                                                         ].join('')
                                                                                                                     } else if (vm.page === 'setting') {
-                                                                                                                        return [setting_option.map((dd: any) => {
+                                                                                                                        return [setting_option.map((dd: any,index:any) => {
                                                                                                                             return gvc.bindView(() => {
                                                                                                                                 const vm_c: {
                                                                                                                                     id: string,
@@ -1026,13 +1025,20 @@ font-weight: 700;" onclick="${gvc.event(() => {
                                                                                                                                 } = {
                                                                                                                                     id: gvc.glitter.getUUID(),
                                                                                                                                     toggle: false
-                                                                                                                                }
+                                                                                                                                };
+                                                                                                                                (setting_option[index] as any).vm_c=vm_c;
                                                                                                                                 return {
                                                                                                                                     bind: vm_c.id,
                                                                                                                                     view: () => {
                                                                                                                                         const array_string = [html`
                                                                                                                                             <div class="hoverF2 d-flex align-items-center p-3"
                                                                                                                                                  onclick="${gvc.event(() => {
+                                                                                                                                                     (setting_option as any).map((dd:any)=>{
+                                                                                                                                                         if(dd.vm_c.toggle){
+                                                                                                                                                             dd.vm_c.toggle=false
+                                                                                                                                                             gvc.notifyDataChange(dd.vm_c.id)
+                                                                                                                                                         }
+                                                                                                                                                     });
                                                                                                                                                      vm_c.toggle = !vm_c.toggle
                                                                                                                                                      gvc.notifyDataChange(vm_c.id)
                                                                                                                                                  })}">
@@ -1042,7 +1048,6 @@ font-weight: 700;" onclick="${gvc.event(() => {
                                                                                                                                                 ${vm_c.toggle ? ` <i class="fa-solid fa-chevron-down"></i>` : ` <i class="fa-solid fa-chevron-right"></i>`}
 
                                                                                                                                             </div>`]
-
                                                                                                                                         if (vm_c.toggle) {
                                                                                                                                             switch (dd.key) {
                                                                                                                                                 case 'style':

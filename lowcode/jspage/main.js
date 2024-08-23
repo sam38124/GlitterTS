@@ -103,6 +103,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
             }
         }
     `);
+    Storage.lastSelect = '';
     const swal = new Swal(gvc);
     const viewModel = {
         saveArray: {},

@@ -39,10 +39,6 @@ export class BgWidget {
         return html` <h3 class="my-auto tx_title" style="white-space: nowrap; ${style}">${title}</h3>`;
     }
 
-    static title_16(title: string, style: string = '') {
-        return html` <h3 class="my-auto tx_title" style="white-space: nowrap; ${style}">${title}</h3>`;
-    }
-
     static grayNote(text: string, style: string = ''): string {
         return html`<span style="color: #8D8D8D; font-size: 14px; font-weight: 400; ${style}">${text}</span>`;
     }

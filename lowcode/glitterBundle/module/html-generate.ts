@@ -2140,10 +2140,13 @@ ${e.line}
                                             divCreate: {
                                                 style: `position: relative;${gvc.glitter.htmlGenerate.styleEditor(widget, gvc, widget, {}).style()};${
                                                     (widget as any).visible === false ? `display:none;` : ``
-                                                }`,
+                                                }
+                                                  ${widget.code_style || ''}
+                                                `,
                                                 class: `${cf.widget.class ?? ''} ${cf.widget.hashTag ? `glitterTag${cf.widget.hashTag}` : ''} 
                                                                                 ${(isEditMode() || isIdeaMode()) ? `editorParent` : ``}
-                                                                ${gvc.glitter.htmlGenerate.styleEditor(widget, gvc, widget, {}).class()}`,
+                                                                ${gvc.glitter.htmlGenerate.styleEditor(widget, gvc, widget, {}).class()}
+                                                                `,
                                                 option: option.concat(
                                                     (() => {
                                                         if (root && isEditMode() ) {
@@ -2298,6 +2301,63 @@ ${e.line}
         if (cf.gvc.glitter.getUrlParameter('type') !== 'htmlEditor' && ((window as any).glitter.getUrlParameter('type') !== 'find_idea')) {
             return ``;
         }
+        function addWidgetEvent(direction:number){
+            let glitter = (window as any).glitter;
+            while (!glitter.share.editorViewModel) {
+                glitter = (window.parent as any).glitter;
+            }
+            glitter.getModule(new URL('../.././editor/add-component.js', import.meta.url).href, (AddComponent: any) => {
+                AddComponent.addWidget = (gvc: GVC, tdata: any) => {
+                    glitter.share.addWithIndex({
+                        data: tdata,
+                        index: cf.id,
+                        direction: direction,
+                    });
+                };
+                AddComponent.addEvent = (gvc: GVC, tdata: any) => {
+                    glitter.share.addWithIndex({
+                        data: {
+                            id: gvc.glitter.getUUID(),
+                            js: './official_view_component/official.js',
+                            css: {
+                                class: {},
+                                style: {},
+                            },
+                            data: {
+                                refer_app: tdata.copyApp,
+                                tag: tdata.copy,
+                                list: [],
+                                carryData: {},
+                                _style_refer_global: {
+                                    index: `0`,
+                                },
+                            },
+                            type: 'component',
+                            class: 'w-100',
+                            index: 0,
+                            label: tdata.title,
+                            style: '',
+                            bundle: {},
+                            global: [],
+                            toggle: false,
+                            stylist: [],
+                            dataType: 'static',
+                            style_from: 'code',
+                            classDataType: 'static',
+                            preloadEvenet: {},
+                            share: {},
+                        },
+                        index: cf.id,
+                        direction: direction,
+                    });
+                };
+                AddComponent.toggle(true)
+                // (window.parent as any).glitter.getModule(new URL('../.././editor/search-idea.js', import.meta.url).href, (SearchIdea: any) => {
+                //
+                //     SearchIdea.open((window.parent as any).glitter.pageConfig[0].gvc);
+                // });
+            });
+        }
         return [
             (() => {
                 return ``
@@ -2329,10 +2389,7 @@ background: white;
                                 </div>
                             `
                         } else {
-                            let glitter = (window as any).glitter;
-                            while (!glitter.share.editorViewModel) {
-                                glitter = (window.parent as any).glitter;
-                            }
+
                             return html`
                                 <div
                                         class="position-absolute align-items-center justify-content-center px-3 fw-500 fs-6 badge_it"
@@ -2347,53 +2404,7 @@ background: white;
                                                 : `-40px`};z-index:99999;cursor: pointer;pointer-events:all;"
                                         onmousedown="${cf.gvc.event((e, event) => {
                                             HtmlGenerate.block_timer = new Date().getTime();
-                                            glitter.getModule(new URL('../.././editor/add-component.js', import.meta.url).href, (AddComponent: any) => {
-                                                AddComponent.toggle(true);
-                                                AddComponent.addWidget = (gvc: GVC, tdata: any) => {
-                                                    glitter.share.addWithIndex({
-                                                        data: tdata,
-                                                        index: cf.id,
-                                                        direction: -1,
-                                                    });
-                                                };
-                                                AddComponent.addEvent = (gvc: GVC, tdata: any) => {
-                                                    glitter.share.addWithIndex({
-                                                        data: {
-                                                            id: gvc.glitter.getUUID(),
-                                                            js: './official_view_component/official.js',
-                                                            css: {
-                                                                class: {},
-                                                                style: {},
-                                                            },
-                                                            data: {
-                                                                refer_app: tdata.copyApp,
-                                                                tag: tdata.copy,
-                                                                list: [],
-                                                                carryData: {},
-                                                                _style_refer_global: {
-                                                                    index: `0`,
-                                                                },
-                                                            },
-                                                            type: 'component',
-                                                            class: 'w-100',
-                                                            index: 0,
-                                                            label: tdata.title,
-                                                            style: '',
-                                                            bundle: {},
-                                                            global: [],
-                                                            toggle: false,
-                                                            stylist: [],
-                                                            dataType: 'static',
-                                                            style_from: 'code',
-                                                            classDataType: 'static',
-                                                            preloadEvenet: {},
-                                                            share: {},
-                                                        },
-                                                        index: cf.id,
-                                                        direction: -1,
-                                                    });
-                                                };
-                                            });
+                                            addWidgetEvent(-1)
                                             event.stopPropagation();
                                             event.preventDefault();
                                         })}"
@@ -2408,53 +2419,7 @@ background: white;
                                                 : `20px`};z-index:99999;cursor: pointer;pointer-events:all;"
                                         onmousedown="${cf.gvc.event((e, event) => {
                                             HtmlGenerate.block_timer = new Date().getTime();
-                                            glitter.getModule(new URL('../.././editor/add-component.js', import.meta.url).href, (AddComponent: any) => {
-                                                AddComponent.toggle(true);
-                                                AddComponent.addWidget = (gvc: GVC, tdata: any) => {
-                                                    glitter.share.addWithIndex({
-                                                        data: tdata,
-                                                        index: cf.id,
-                                                        direction: 1,
-                                                    });
-                                                };
-                                                AddComponent.addEvent = (gvc: GVC, tdata: any) => {
-                                                    glitter.share.addWithIndex({
-                                                        data: {
-                                                            id: gvc.glitter.getUUID(),
-                                                            js: './official_view_component/official.js',
-                                                            css: {
-                                                                class: {},
-                                                                style: {},
-                                                            },
-                                                            data: {
-                                                                refer_app: tdata.copyApp,
-                                                                tag: tdata.copy,
-                                                                list: [],
-                                                                carryData: {},
-                                                                _style_refer_global: {
-                                                                    index: `0`,
-                                                                },
-                                                            },
-                                                            type: 'component',
-                                                            class: 'w-100',
-                                                            index: 0,
-                                                            label: tdata.title,
-                                                            style: '',
-                                                            bundle: {},
-                                                            global: [],
-                                                            toggle: false,
-                                                            stylist: [],
-                                                            dataType: 'static',
-                                                            style_from: 'code',
-                                                            classDataType: 'static',
-                                                            preloadEvenet: {},
-                                                            share: {},
-                                                        },
-                                                        index: cf.id,
-                                                        direction: 1,
-                                                    });
-                                                };
-                                            });
+                                            addWidgetEvent(1)
                                             event.stopPropagation();
                                             event.preventDefault();
                                         })}"

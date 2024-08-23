@@ -130,6 +130,7 @@ export const widgetComponent = {
                                     style_user = RenderValue.custom_style.value(gvc, widget);
                                     style_user += RenderValue.custom_style.container_style(gvc, widget);
                                 }
+                                style_user += widget.code_style || '';
                                 return {
                                     elem: widget.data.elem,
                                     class: classList.join(' '),
@@ -156,20 +157,65 @@ export const widgetComponent = {
                                                 });
                                             };
                                             setTimeout(() => {
-                                                if ((widget.data._layout === 'grid' || widget.data._layout === 'vertical') && ((gvc.glitter.window.parent.editerData !== undefined) || (gvc.glitter.window.editerData !== undefined)) && htmlGenerate.root) {
+                                                if ((widget.data._layout === 'grid' || widget.data._layout === 'vertical' || widget.data._layout === 'proportion') && ((gvc.glitter.window.parent.editerData !== undefined) || (gvc.glitter.window.editerData !== undefined)) && htmlGenerate.root) {
                                                     const html = String.raw;
                                                     const tempID = gvc.glitter.getUUID();
                                                     function rerenderReplaceElem() {
+                                                        var _a, _b;
                                                         gvc.glitter.$('.' + tempID).remove();
-                                                        widget.data.setting.need_count = parseInt(widget.data._x_count, 10) * parseInt(widget.data._y_count, 10);
+                                                        widget.data.setting.need_count = (() => {
+                                                            var _a;
+                                                            if (widget.data._layout === 'proportion') {
+                                                                return ((_a = widget.data._ratio_layout_value) !== null && _a !== void 0 ? _a : ``).split(',').length;
+                                                            }
+                                                            else {
+                                                                return parseInt(widget.data._x_count, 10) * parseInt(widget.data._y_count, 10);
+                                                            }
+                                                        })();
                                                         if (widget.data._layout === 'vertical') {
                                                             widget.data.setting.need_count = 1;
+                                                        }
+                                                        let horGroup = [];
+                                                        let gIndex = 0;
+                                                        let wCount = 0;
+                                                        for (let index = 0; index < ((_a = widget.data._ratio_layout_value) !== null && _a !== void 0 ? _a : ``).split(',').length; index++) {
+                                                            if (horGroup[gIndex] === undefined) {
+                                                                horGroup[gIndex] = [];
+                                                                wCount = 0;
+                                                            }
+                                                            const wid = Number(((_b = widget.data._ratio_layout_value) !== null && _b !== void 0 ? _b : ``).split(',')[index] || '0');
+                                                            if (wCount + wid <= 100) {
+                                                                wCount = wCount + wid;
+                                                                horGroup[gIndex].push(index);
+                                                                if (wCount >= 100) {
+                                                                    gIndex = gIndex + 1;
+                                                                }
+                                                            }
+                                                            else {
+                                                                gIndex = gIndex + 1;
+                                                            }
                                                         }
                                                         for (let b = widget.data.setting.length; b < widget.data.setting.need_count; b++) {
                                                             gvc.glitter.$(`.editor_it_${id}`).append(html `
                                                                     <div
                                                                             class="d-flex align-items-center justify-content-center flex-column rounded-3 w-100 py-3 ${tempID}"
-                                                                            style="background: lightgrey;color: #393939;cursor: pointer;min-height: 100px;left: 0px;top:0px;width: 100%;height: 100%;"
+                                                                            style="background: lightgrey;color: #393939;cursor: pointer;min-height: 100px;left: 0px;top:0px;width: ${(() => {
+                                                                var _a, _b;
+                                                                if (widget.data._layout === 'proportion') {
+                                                                    const wid = ((_a = widget.data._ratio_layout_value) !== null && _a !== void 0 ? _a : ``).split(',');
+                                                                    for (const c of horGroup) {
+                                                                        if (c.includes(b)) {
+                                                                            const wid = ((_b = widget.data._ratio_layout_value) !== null && _b !== void 0 ? _b : ``).split(',');
+                                                                            const _gap_y = ((Number(widget.data._gap_y) * (c.length - 1)) / c.length).toFixed(0);
+                                                                            return `calc(${wid[b]}% - ${_gap_y}px) !important;`;
+                                                                        }
+                                                                    }
+                                                                    return wid[b] + '% !important';
+                                                                }
+                                                                else {
+                                                                    return `100%`;
+                                                                }
+                                                            })()};height: 100%;"
                                                                             onmousedown="${gvc.event(() => {
                                                                 glitter.getModule(new URL(gvc.glitter.root_path + 'editor/add-component.js').href, (AddComponent) => {
                                                                     glitter.share.editorViewModel.selectContainer = widget.data.setting;
@@ -177,6 +223,7 @@ export const widgetComponent = {
                                                                     AddComponent.addWidget = (gvc, cf) => {
                                                                         window.parent.glitter.share.editorViewModel.selectContainer = widget.data.setting;
                                                                         window.parent.glitter.share.addComponent(cf);
+                                                                        RenderValue.custom_style.value(gvc, widget);
                                                                         AddComponent.toggle(false);
                                                                     };
                                                                     AddComponent.addEvent = (gvc, tdata) => {
@@ -212,6 +259,7 @@ export const widgetComponent = {
                                                                             preloadEvenet: {},
                                                                             share: {},
                                                                         });
+                                                                        RenderValue.custom_style.value(gvc, widget);
                                                                         AddComponent.toggle(false);
                                                                     };
                                                                 });
@@ -530,12 +578,13 @@ export const widgetComponent = {
                                                                                                             <i class="fa-solid fa-chevron-left"></i>
                                                                                                             <span style="max-width: calc(100% - 50px);text-overflow: ellipsis;white-space: nowrap;overflow: hidden;">設定</span>
                                                                                                             <div class="flex-fill"></div>
-                                                                                                        </div>`, setting_option.map((dd) => {
+                                                                                                        </div>`, setting_option.map((dd, index) => {
                                                     return gvc.bindView(() => {
                                                         const vm_c = {
                                                             id: gvc.glitter.getUUID(),
                                                             toggle: dd.toggle
                                                         };
+                                                        setting_option[index].vm_c = vm_c;
                                                         widget.refreshComponentParameter.view2 = () => {
                                                             gvc.notifyDataChange(vm_c.id);
                                                         };
@@ -543,17 +592,23 @@ export const widgetComponent = {
                                                             bind: vm_c.id,
                                                             view: () => {
                                                                 const array_string = [html `
-                                                                                                                                            <div class="hoverF2 d-flex align-items-center p-3"
-                                                                                                                                                 onclick="${gvc.event(() => {
+                                                                <div class="hoverF2 d-flex align-items-center p-3"
+                                                                     onclick="${gvc.event(() => {
+                                                                        setting_option.map((dd) => {
+                                                                            if (dd.vm_c.toggle) {
+                                                                                dd.vm_c.toggle = false;
+                                                                                gvc.notifyDataChange(dd.vm_c.id);
+                                                                            }
+                                                                        });
                                                                         vm_c.toggle = !vm_c.toggle;
                                                                         gvc.notifyDataChange(vm_c.id);
                                                                     })}">
 <span class="fw-500"
       style="max-width: calc(100% - 50px);text-overflow: ellipsis;white-space: nowrap;overflow: hidden;">${dd.title}</span>
-                                                                                                                                                <div class="flex-fill"></div>
-                                                                                                                                                ${vm_c.toggle ? ` <i class="fa-solid fa-chevron-down"></i>` : ` <i class="fa-solid fa-chevron-right"></i>`}
+                                                                    <div class="flex-fill"></div>
+                                                                    ${vm_c.toggle ? ` <i class="fa-solid fa-chevron-down"></i>` : ` <i class="fa-solid fa-chevron-right"></i>`}
 
-                                                                                                                                            </div>`];
+                                                                </div>`];
                                                                 if (vm_c.toggle) {
                                                                     switch (dd.key) {
                                                                         case 'margin':
@@ -616,8 +671,8 @@ export const widgetComponent = {
                                             const html = String.raw;
                                             let array = [];
                                             const setting_btn = html `
-                                                        <div class="p-2 mx-n2  mt-3 d-flex align-items-center"
-                                                             style="font-size: 16px;
+                                                <div class="p-2 mx-n2  mt-3 d-flex align-items-center"
+                                                     style="font-size: 16px;
 cursor: pointer;
 border-top: 1px solid #DDD;
 font-style: normal;
@@ -626,9 +681,9 @@ font-weight: 700;" onclick="${gvc.event(() => {
                                                 vm.page = 'setting';
                                                 gvc.notifyDataChange(id);
                                             })}">
-                                                            設定
-                                                            <i class="fa-solid fa-angle-right"></i>
-                                                        </div>`;
+                                                    設定
+                                                    <i class="fa-solid fa-angle-right"></i>
+                                                </div>`;
                                             if (widget.data._layout === 'grid') {
                                                 array = array.concat([EditorElem.editeInput({
                                                         gvc: gvc,
@@ -671,7 +726,7 @@ font-weight: 700;" onclick="${gvc.event(() => {
                                                         }
                                                     }), setting_btn]);
                                             }
-                                            if (widget.data._layout === 'vertical') {
+                                            else if (widget.data._layout === 'vertical') {
                                                 widget.data._ver_position = (_a = widget.data._ver_position) !== null && _a !== void 0 ? _a : 'center';
                                                 array = array.concat([EditorElem.editeInput({
                                                         gvc: gvc,
@@ -704,6 +759,55 @@ font-weight: 700;" onclick="${gvc.event(() => {
                                                         }
                                                     }),
                                                     setting_btn]);
+                                            }
+                                            else if (widget.data._layout === 'proportion') {
+                                                array = array.concat([
+                                                    EditorElem.editeInput({
+                                                        gvc: gvc,
+                                                        title: `X軸間距`,
+                                                        default: widget.data._gap_x,
+                                                        placeHolder: '請輸入X軸間距',
+                                                        callback: (text) => {
+                                                            widget.data._gap_x = text;
+                                                            widget.refreshComponent();
+                                                        }
+                                                    }),
+                                                    EditorElem.editeInput({
+                                                        gvc: gvc,
+                                                        title: `Y軸間距`,
+                                                        default: widget.data._gap_y,
+                                                        placeHolder: '請輸入Y軸間距',
+                                                        callback: (text) => {
+                                                            widget.data._gap_y = text;
+                                                            widget.refreshComponent();
+                                                        }
+                                                    }),
+                                                    EditorElem.editeInput({
+                                                        gvc: gvc,
+                                                        title: html `
+                                                                <div class="d-flex flex-column" style="gap:5px;">
+                                                                    元件比例設定
+                                                                    <h3
+                                                                            class="my-auto tx_title"
+                                                                            style="color: #8D8D8D;
+        font-size: 14px;
+        font-style: normal;
+        font-weight: 400;
+        line-height: normal;"
+                                                                    >
+                                                                        一列為100%，超過100%則跳往下一行
+                                                                    </h3>
+                                                                </div>`,
+                                                        default: widget.data._ratio_layout_value,
+                                                        placeHolder: '範例30,70,70,30',
+                                                        callback: (text) => {
+                                                            widget.data._ratio_layout_value = text;
+                                                            RenderValue.custom_style.value(gvc, widget);
+                                                            widget.refreshComponent();
+                                                        }
+                                                    }),
+                                                    setting_btn
+                                                ]);
                                             }
                                             return `<div class="mx-2">${array.join('')}</div>`;
                                         },

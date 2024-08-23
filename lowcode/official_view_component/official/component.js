@@ -997,18 +997,25 @@ font-weight: 700;" onclick="${gvc.event(() => {
                                                                                                                         ].join('');
                                                                                                                     }
                                                                                                                     else if (vm.page === 'setting') {
-                                                                                                                        return [setting_option.map((dd) => {
+                                                                                                                        return [setting_option.map((dd, index) => {
                                                                                                                                 return gvc.bindView(() => {
                                                                                                                                     const vm_c = {
                                                                                                                                         id: gvc.glitter.getUUID(),
                                                                                                                                         toggle: false
                                                                                                                                     };
+                                                                                                                                    setting_option[index].vm_c = vm_c;
                                                                                                                                     return {
                                                                                                                                         bind: vm_c.id,
                                                                                                                                         view: () => {
                                                                                                                                             const array_string = [html `
                                                                                                                                             <div class="hoverF2 d-flex align-items-center p-3"
                                                                                                                                                  onclick="${gvc.event(() => {
+                                                                                                                                                    setting_option.map((dd) => {
+                                                                                                                                                        if (dd.vm_c.toggle) {
+                                                                                                                                                            dd.vm_c.toggle = false;
+                                                                                                                                                            gvc.notifyDataChange(dd.vm_c.id);
+                                                                                                                                                        }
+                                                                                                                                                    });
                                                                                                                                                     vm_c.toggle = !vm_c.toggle;
                                                                                                                                                     gvc.notifyDataChange(vm_c.id);
                                                                                                                                                 })}">

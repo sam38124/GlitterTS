@@ -16,7 +16,7 @@ export class SearchIdea {
         const html = String.raw;
         return `<div class="w-100 d-flex">
 <div class="d-flex flex-column border-end" style="width:200px;">
-<div class="bgf6 p-3 w-100 border-bottom">${BgWidget.title_16('選擇偏好模板')}</div>
+<div class="bgf6 p-3 w-100 border-bottom">${BgWidget.title('選擇偏好模板', 'font-size:16px;')}</div>
 ${gvc.bindView(() => {
             let data = undefined;
             ApiPageConfig.getTemplateList().then((res) => {
@@ -98,7 +98,7 @@ ${gvc.bindView(() => {
         })}
 </div>
 <div class="" style="width: calc(100% - 200px);">
-<div class="bgf6 p-3 w-100 border-bottom">${BgWidget.title_16('點擊喜愛的區塊進行複製')}</div>
+<div class="bgf6 p-3 w-100 border-bottom">${BgWidget.title('點擊喜愛的區塊進行複製', 'font-size:16px;')}</div>
 ${gvc.bindView(() => {
             return {
                 bind: vm.right_id,
@@ -134,9 +134,58 @@ transform: scale(0.4) translateX(-75%) translateY(-75%);
     static open(gvc) {
         NormalPageEditor.toggle({
             visible: true,
-            title: '找靈感',
+            title: `找靈感
+            <div class="d-flex    bg-white align-items-center w-100 justify-content-around  ms-n1 d-none"
+                             style="gap:10px;">
+                            ${(() => {
+                const list = [
+                    {
+                        select: true,
+                        key: 'idea',
+                        label: '找靈感',
+                    },
+                    {
+                        key: 'official',
+                        label: '找模塊',
+                        event: gvc.event(() => {
+                            NormalPageEditor.toggle({ visible: false });
+                            AddComponent.toggle(true);
+                        })
+                    }
+                ];
+                return list
+                    .map((dd) => {
+                    if (dd.select) {
+                        return `<div class="d-flex align-items-center justify-content-center fw-bold px-3 py-2 fw-500" style="
+gap: 10px;
+border-radius: 7px;
+cursor: pointer;
+color: white;
+font-size: 16px;
+flex:1;
+border: 1px solid #FFB400;
+background: linear-gradient(143deg, #FFB400 -22.7%, #FF6C02 114.57%);" >${dd.label}</div>`;
+                    }
+                    else {
+                        return `<div class="d-flex align-items-center justify-content-center fw-bold  px-3 py-2 fw-500" style="
+border-radius: 7px;
+flex:1;
+font-size: 16px;
+border: 1px solid #FFB400;
+cursor: pointer;
+background: linear-gradient(143deg, #FFB400 -22.7%, #FF6C02 114.57%);
+background-clip: text;
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;" onclick="${dd.event || ''}">${dd.label}</div>`;
+                    }
+                })
+                    .join('');
+            })()}
+                        </div>
+            `,
             view: SearchIdea.main(gvc),
             width: 800
         });
     }
 }
+window.glitter.setModule(import.meta.url, SearchIdea);

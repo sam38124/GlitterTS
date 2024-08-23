@@ -18,6 +18,7 @@ import {EditorConfig} from "../../editor-config.js";
 import {ToolSetting} from "./tool-setting.js";
 import {BgWidget} from "../../backend-manager/bg-widget.js";
 import {CustomStyle} from "../../glitterBundle/html-component/custom-style.js";
+import {SearchIdea} from "../../editor/search-idea.js";
 
 
 enum ViewType {
@@ -288,7 +289,6 @@ export class Main_editor {
 
                                                                             // alert(JSON.stringify((glitter.share.editorViewModel.data! as any).config.container_config));
                                                                             setSelectContainer()
-                                                                            AddComponent.toggle(true);
 
                                                                             AddComponent.addWidget = (gvc: GVC, cf: any) => {
                                                                                 glitter.share.addComponent(cf);
@@ -328,6 +328,7 @@ export class Main_editor {
                                                                                 });
                                                                                 // gvc.notifyDataChange(vid)
                                                                             }
+                                                                            SearchIdea.open(gvc);
                                                                         })}"
                                                                 >
                                                                     <i class="fa-solid fa-plus"></i>新增區段

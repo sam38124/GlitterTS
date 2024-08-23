@@ -45,7 +45,7 @@ export class AddComponent {
                     }
                     return html `
                         <div class="w-100 d-flex align-items-center p-3 border-bottom">
-                            <h5 class="offcanvas-title" style="">添加組件</h5>
+                            <h5 class="offcanvas-title" style="">新增區塊</h5>
                             <div class="flex-fill"></div>
                             <div
                                     class="fs-5 text-black"
@@ -112,52 +112,6 @@ export class AddComponent {
                             })}">
                                ${dd.icon}
                             </div>`;
-                        })
-                            .join('');
-                    })()}
-                        </div>
-                        <div class="d-flex  py-2 px-2 bg-white align-items-center w-100 justify-content-around border-bottom ${Storage.select_function === 'user-editor' ? `` : `d-none`}" style="gap:10px;">
-                            ${(() => {
-                        const list = [
-                            {
-                                key: 'official',
-                                label: '官方模塊',
-                                select: true
-                            },
-                            {
-                                key: 'idea',
-                                label: '找靈感',
-                                event: gvc.event(() => {
-                                    AddComponent.toggle(false);
-                                    SearchIdea.open(gvc);
-                                })
-                            }
-                        ];
-                        return list
-                            .map((dd) => {
-                            if (dd.select) {
-                                return `<div class="d-flex align-items-center justify-content-center fw-bold" style="
-padding: 10px 16px;
-gap: 10px;
-border-radius: 7px;
-cursor: pointer;
-color: white;
-flex:1;
-border: 1px solid #FFB400;
-background: linear-gradient(143deg, #FFB400 -22.7%, #FF6C02 114.57%);" >${dd.label}</div>`;
-                            }
-                            else {
-                                return `<div class="d-flex align-items-center justify-content-center fw-bold" style="
-border-radius: 7px;
-flex:1;
-padding: 10px 16px;
-border: 1px solid #FFB400;
-cursor: pointer;
-background: linear-gradient(143deg, #FFB400 -22.7%, #FF6C02 114.57%);
-background-clip: text;
--webkit-background-clip: text;
--webkit-text-fill-color: transparent;" onclick="${dd.event || ''}">${dd.label}</div>`;
-                            }
                         })
                             .join('');
                     })()}
@@ -425,6 +379,52 @@ background-clip: text;
                                         <i class="fa-regular fa-paste"></i>
                                     </div>
                                 </div>
+                                <div class="d-flex align-items-center p-2" style="gap:10px;">
+                                    ${(() => {
+                                const list = [
+                                    {
+                                        key: 'official',
+                                        label: '找模塊',
+                                        select: true
+                                    },
+                                    {
+                                        key: 'idea',
+                                        label: '找靈感',
+                                        event: gvc.event(() => {
+                                            AddComponent.toggle(false);
+                                            SearchIdea.open(gvc);
+                                        })
+                                    }
+                                ];
+                                return list
+                                    .map((dd) => {
+                                    if (dd.select) {
+                                        return `<div class="d-flex align-items-center justify-content-center fw-bold px-3 py-2 fw-500" style="
+gap: 10px;
+border-radius: 7px;
+cursor: pointer;
+color: white;
+font-size: 16px;
+flex:1;
+border: 1px solid #FFB400;
+background: linear-gradient(143deg, #FFB400 -22.7%, #FF6C02 114.57%);" >${dd.label}</div>`;
+                                    }
+                                    else {
+                                        return `<div class="d-flex align-items-center justify-content-center fw-bold  px-3 py-2 fw-500" style="
+border-radius: 7px;
+flex:1;
+font-size: 16px;
+border: 1px solid #FFB400;
+cursor: pointer;
+background: linear-gradient(143deg, #FFB400 -22.7%, #FF6C02 114.57%);
+background-clip: text;
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;" onclick="${dd.event || ''}">${dd.label}</div>`;
+                                    }
+                                })
+                                    .join('');
+                            })()}
+                                </div>
                                 <div class="p-2 border-bottom  f-flex${vm.template_from === 'plus' ? `d-none` : ``}"
                                      style="">
                                     <div class="input-group mb-2">
@@ -465,6 +465,8 @@ background-clip: text;
                                         </div>
                                     </div>
                                 </div>
+                            
+                               
                             `);
                         }));
                     },
@@ -552,9 +554,6 @@ background-clip: text;
                                                             ${[{
                                                                 title: '基礎設計元件',
                                                                 value: 'basic'
-                                                            }, {
-                                                                title: '包裝容器元件',
-                                                                value: 'container'
                                                             },
                                                             {
                                                                 title: '商品顯示元件',
@@ -562,6 +561,9 @@ background-clip: text;
                                                             }, {
                                                                 title: '其餘設計模塊',
                                                                 value: 'layout'
+                                                            }, {
+                                                                title: '包裝容器元件',
+                                                                value: 'container'
                                                             }].map((d1) => {
                                                             return gvc.bindView(() => {
                                                                 let vm_c = {
@@ -608,6 +610,15 @@ background-clip: text;
                                                                                                 type: '容器',
                                                                                                 name: '垂直排版',
                                                                                             },
+                                                                                            {
+                                                                                                template_config: {
+                                                                                                    image: ['https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sbs8sfs9s0s2ses5_Screenshot2024-08-20at6.19.57 PM.jpg'],
+                                                                                                    tag: [],
+                                                                                                    name: '比例佈局',
+                                                                                                },
+                                                                                                type: '容器',
+                                                                                                name: '比例佈局'
+                                                                                            }
                                                                                         ];
                                                                                     }
                                                                                     else {
@@ -708,6 +719,41 @@ background-clip: text;
                                                                                             formData: {},
                                                                                         };
                                                                                         config.label = `垂直排版`;
+                                                                                        AddComponent.addWidget(gvc, config);
+                                                                                    }
+                                                                                    else if (dd.title === '比例佈局') {
+                                                                                        const config = {
+                                                                                            id: gvc.glitter.getUUID(),
+                                                                                            js: 'http://127.0.0.1:4000/shopnex/official_view_component/official.js',
+                                                                                            css: {
+                                                                                                class: {},
+                                                                                                style: {}
+                                                                                            },
+                                                                                            data: {
+                                                                                                attr: [],
+                                                                                                elem: 'div',
+                                                                                                list: [],
+                                                                                                inner: '',
+                                                                                                setting: [],
+                                                                                                _ratio_layout_value: '30,70,70,30',
+                                                                                                version: 'v2',
+                                                                                                atrExpand: {},
+                                                                                                elemExpand: {},
+                                                                                                _layout: 'proportion',
+                                                                                                _gap_x: '30',
+                                                                                                _gap_y: '30'
+                                                                                            },
+                                                                                            type: 'container',
+                                                                                            index: 0,
+                                                                                            label: '容器',
+                                                                                            global: [],
+                                                                                            toggle: true,
+                                                                                            preloadEvenet: {},
+                                                                                            refreshAllParameter: {},
+                                                                                            refreshComponentParameter: {},
+                                                                                            formData: {},
+                                                                                        };
+                                                                                        config.label = `比例佈局`;
                                                                                         AddComponent.addWidget(gvc, config);
                                                                                     }
                                                                                     else {

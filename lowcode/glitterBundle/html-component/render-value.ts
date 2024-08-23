@@ -1,7 +1,10 @@
 import {GVC} from "../GVController.js";
+
 const css = String.raw
+
 export class RenderValue {
     public static custom_style = {
+
 
         container_style: (gvc: GVC, widget: any) => {
             let style_string = '';
@@ -15,30 +18,77 @@ export class RenderValue {
                 }
             }
             (widget.data._style) && (style_string += widget.data._style);
-
             return style_string
         },
         value: (gvc: GVC, widget: any) => {
             let style_string = '';
-            if (widget.data._layout === 'grid') {
-                (style_string += `display: grid; gap: ${(isNaN(widget.data._gap_x)) ? widget.data._gap_x : `${widget.data._gap_x}px`} ${(isNaN(widget.data._gap_y)) ? widget.data._gap_y : `${widget.data._gap_y}px`}; 
+            if (widget.type === 'container') {
+                if (widget.data._layout === 'grid') {
+                    (style_string += `display: grid; gap: ${(isNaN(widget.data._gap_x)) ? widget.data._gap_x : `${widget.data._gap_x}px`} ${(isNaN(widget.data._gap_y)) ? widget.data._gap_y : `${widget.data._gap_y}px`}; 
              grid-template-rows: repeat(${widget.data._y_count}, 1fr);`);
-                if(widget.data._x_count>1){
-                    style_string+=`grid-template-columns: ${(()=>{
-                        let view=[]
-                        for(let a=0;a<parseInt(widget.data._x_count,10);a++){
-                            view.push(`calc((100% / ${parseInt(widget.data._x_count,10)}) - ((${(isNaN(widget.data._gap_y)) ? widget.data._gap_y : `${widget.data._gap_y}px`})*${((parseInt(widget.data._x_count,10)-1) / (parseInt(widget.data._x_count,10))).toFixed(1)}))`)
-                        }
-                        return view.join(' ')
-                    })()} 0px;`
-                }else{
-                    style_string+=`grid-template-columns:100%;`
-                }
+                    if (widget.data._x_count > 1) {
+                        style_string += `grid-template-columns: ${(() => {
+                            let view = []
+                            for (let a = 0; a < parseInt(widget.data._x_count, 10); a++) {
+                                view.push(`calc((100% / ${parseInt(widget.data._x_count, 10)}) - ((${(isNaN(widget.data._gap_y)) ? widget.data._gap_y : `${widget.data._gap_y}px`})*${((parseInt(widget.data._x_count, 10) - 1) / (parseInt(widget.data._x_count, 10))).toFixed(1)}))`)
+                            }
+                            return view.join(' ')
+                        })()};`
+                    } else {
+                        style_string += `grid-template-columns:100%;`
+                    }
 
-            }else   if (widget.data._layout === 'vertical') {
-                style_string += css`display:flex;flex-direction: column;justify-content: ${widget.data._ver_position || 'center'};`
-            }else if(widget.type==='container'){
-                // return  ``
+                } else if (widget.data._layout === 'vertical') {
+                    style_string += css`display: flex;
+                        flex-direction: column;
+                        justify-content: ${widget.data._ver_position || 'center'};`
+                } else if (widget.data._layout === 'proportion') {
+                    style_string += css`flex-wrap: wrap !important;
+                        display: flex;gap: ${(isNaN(widget.data._gap_x)) ? widget.data._gap_x : `${widget.data._gap_x}px`} ${(isNaN(widget.data._gap_y)) ? widget.data._gap_y : `${widget.data._gap_y}px`};`
+                    let horGroup:any=[];
+                    let gIndex=0
+                    let wCount=0
+                    for (let index = 0; index <(widget.data._ratio_layout_value ?? ``).split(',').length; index++) {
+                        if (horGroup[gIndex] === undefined) {
+                            horGroup[gIndex] = [];
+                            wCount = 0;
+                        }
+                        const wid = Number((widget.data._ratio_layout_value ?? ``).split(',')[index] || '0');
+                        if (wCount + wid <= 100) {
+                            wCount = wCount + wid
+                            horGroup[gIndex].push(index)
+                            if (wCount >= 100) {
+                                gIndex = gIndex + 1;
+                            }
+                        } else {
+                            gIndex = gIndex + 1
+                        }
+                    }
+
+                    widget.data.setting.map((dd: any,index:number) => {
+                        if (!dd.code_style) {
+                            let style = ''
+                            Object.defineProperty(dd, 'code_style', {
+                                get: function () {
+                                    return style;
+                                },
+
+                                set(v) {
+                                    style = v;
+                                },
+                            });
+                        }
+                        for (const b of horGroup){
+                            if(b.includes(index)){
+                                const wid=(widget.data._ratio_layout_value ?? ``).split(',');
+                                const _gap_y=((Number(widget.data._gap_y) * (b.length-1))/b.length).toFixed(0);
+
+                                dd.code_style += css`width: calc(${wid[index]}% - ${_gap_y}px) !important;`
+                            }
+                        }
+
+                    })
+                }
             }
             if (widget.data && widget.data._style_refer === 'global' && widget.data._style_refer_global) {
                 const globalValue = gvc.glitter.share.global_container_theme[parseInt(widget.data._style_refer_global.index, 10)]
@@ -115,6 +165,7 @@ export class RenderValue {
                     style_string += `background-color:${widget.data._background_setting.value};`
                 }
             }
+
             return style_string
         },
         initialWidget: (widget: any) => {

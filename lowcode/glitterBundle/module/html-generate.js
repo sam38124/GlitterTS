@@ -1664,10 +1664,13 @@ ${obj.gvc.bindView({
                                                 }));
                                             },
                                             divCreate: {
-                                                style: `position: relative;${gvc.glitter.htmlGenerate.styleEditor(widget, gvc, widget, {}).style()};${widget.visible === false ? `display:none;` : ``}`,
+                                                style: `position: relative;${gvc.glitter.htmlGenerate.styleEditor(widget, gvc, widget, {}).style()};${widget.visible === false ? `display:none;` : ``}
+                                                  ${widget.code_style || ''}
+                                                `,
                                                 class: `${(_a = cf.widget.class) !== null && _a !== void 0 ? _a : ''} ${cf.widget.hashTag ? `glitterTag${cf.widget.hashTag}` : ''} 
                                                                                 ${(isEditMode() || isIdeaMode()) ? `editorParent` : ``}
-                                                                ${gvc.glitter.htmlGenerate.styleEditor(widget, gvc, widget, {}).class()}`,
+                                                                ${gvc.glitter.htmlGenerate.styleEditor(widget, gvc, widget, {}).class()}
+                                                                `,
                                                 option: option.concat((() => {
                                                     if (root && isEditMode()) {
                                                         return [
@@ -1805,6 +1808,59 @@ ${obj.gvc.bindView({
         if (cf.gvc.glitter.getUrlParameter('type') !== 'htmlEditor' && (window.glitter.getUrlParameter('type') !== 'find_idea')) {
             return ``;
         }
+        function addWidgetEvent(direction) {
+            let glitter = window.glitter;
+            while (!glitter.share.editorViewModel) {
+                glitter = window.parent.glitter;
+            }
+            glitter.getModule(new URL('../.././editor/add-component.js', import.meta.url).href, (AddComponent) => {
+                AddComponent.addWidget = (gvc, tdata) => {
+                    glitter.share.addWithIndex({
+                        data: tdata,
+                        index: cf.id,
+                        direction: direction,
+                    });
+                };
+                AddComponent.addEvent = (gvc, tdata) => {
+                    glitter.share.addWithIndex({
+                        data: {
+                            id: gvc.glitter.getUUID(),
+                            js: './official_view_component/official.js',
+                            css: {
+                                class: {},
+                                style: {},
+                            },
+                            data: {
+                                refer_app: tdata.copyApp,
+                                tag: tdata.copy,
+                                list: [],
+                                carryData: {},
+                                _style_refer_global: {
+                                    index: `0`,
+                                },
+                            },
+                            type: 'component',
+                            class: 'w-100',
+                            index: 0,
+                            label: tdata.title,
+                            style: '',
+                            bundle: {},
+                            global: [],
+                            toggle: false,
+                            stylist: [],
+                            dataType: 'static',
+                            style_from: 'code',
+                            classDataType: 'static',
+                            preloadEvenet: {},
+                            share: {},
+                        },
+                        index: cf.id,
+                        direction: direction,
+                    });
+                };
+                AddComponent.toggle(true);
+            });
+        }
         return [
             (() => {
                 return ``;
@@ -1837,10 +1893,6 @@ background: white;
                             `;
                         }
                         else {
-                            let glitter = window.glitter;
-                            while (!glitter.share.editorViewModel) {
-                                glitter = window.parent.glitter;
-                            }
                             return html `
                                 <div
                                         class="position-absolute align-items-center justify-content-center px-3 fw-500 fs-6 badge_it"
@@ -1855,53 +1907,7 @@ background: white;
                                 : `-40px`};z-index:99999;cursor: pointer;pointer-events:all;"
                                         onmousedown="${cf.gvc.event((e, event) => {
                                 HtmlGenerate.block_timer = new Date().getTime();
-                                glitter.getModule(new URL('../.././editor/add-component.js', import.meta.url).href, (AddComponent) => {
-                                    AddComponent.toggle(true);
-                                    AddComponent.addWidget = (gvc, tdata) => {
-                                        glitter.share.addWithIndex({
-                                            data: tdata,
-                                            index: cf.id,
-                                            direction: -1,
-                                        });
-                                    };
-                                    AddComponent.addEvent = (gvc, tdata) => {
-                                        glitter.share.addWithIndex({
-                                            data: {
-                                                id: gvc.glitter.getUUID(),
-                                                js: './official_view_component/official.js',
-                                                css: {
-                                                    class: {},
-                                                    style: {},
-                                                },
-                                                data: {
-                                                    refer_app: tdata.copyApp,
-                                                    tag: tdata.copy,
-                                                    list: [],
-                                                    carryData: {},
-                                                    _style_refer_global: {
-                                                        index: `0`,
-                                                    },
-                                                },
-                                                type: 'component',
-                                                class: 'w-100',
-                                                index: 0,
-                                                label: tdata.title,
-                                                style: '',
-                                                bundle: {},
-                                                global: [],
-                                                toggle: false,
-                                                stylist: [],
-                                                dataType: 'static',
-                                                style_from: 'code',
-                                                classDataType: 'static',
-                                                preloadEvenet: {},
-                                                share: {},
-                                            },
-                                            index: cf.id,
-                                            direction: -1,
-                                        });
-                                    };
-                                });
+                                addWidgetEvent(-1);
                                 event.stopPropagation();
                                 event.preventDefault();
                             })}"
@@ -1916,53 +1922,7 @@ background: white;
                                 : `20px`};z-index:99999;cursor: pointer;pointer-events:all;"
                                         onmousedown="${cf.gvc.event((e, event) => {
                                 HtmlGenerate.block_timer = new Date().getTime();
-                                glitter.getModule(new URL('../.././editor/add-component.js', import.meta.url).href, (AddComponent) => {
-                                    AddComponent.toggle(true);
-                                    AddComponent.addWidget = (gvc, tdata) => {
-                                        glitter.share.addWithIndex({
-                                            data: tdata,
-                                            index: cf.id,
-                                            direction: 1,
-                                        });
-                                    };
-                                    AddComponent.addEvent = (gvc, tdata) => {
-                                        glitter.share.addWithIndex({
-                                            data: {
-                                                id: gvc.glitter.getUUID(),
-                                                js: './official_view_component/official.js',
-                                                css: {
-                                                    class: {},
-                                                    style: {},
-                                                },
-                                                data: {
-                                                    refer_app: tdata.copyApp,
-                                                    tag: tdata.copy,
-                                                    list: [],
-                                                    carryData: {},
-                                                    _style_refer_global: {
-                                                        index: `0`,
-                                                    },
-                                                },
-                                                type: 'component',
-                                                class: 'w-100',
-                                                index: 0,
-                                                label: tdata.title,
-                                                style: '',
-                                                bundle: {},
-                                                global: [],
-                                                toggle: false,
-                                                stylist: [],
-                                                dataType: 'static',
-                                                style_from: 'code',
-                                                classDataType: 'static',
-                                                preloadEvenet: {},
-                                                share: {},
-                                            },
-                                            index: cf.id,
-                                            direction: 1,
-                                        });
-                                    };
-                                });
+                                addWidgetEvent(1);
                                 event.stopPropagation();
                                 event.preventDefault();
                             })}"
