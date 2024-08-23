@@ -1461,6 +1461,8 @@ class Shopping {
     async postVariantsAndPriceValue(content) {
         var _a, _b, _c;
         content.variants = (_a = content.variants) !== null && _a !== void 0 ? _a : [];
+        console.log(content);
+        console.log(content.id);
         content.id &&
             (await database_js_1.default.query(`DELETE
              from \`${this.app}\`.t_variants

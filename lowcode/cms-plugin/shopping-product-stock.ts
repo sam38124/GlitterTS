@@ -36,7 +36,12 @@ export class StockList {
             select_mode: boolean;
             select_data: string[];
             filter_variants: string[];
-        } = { title: '庫存管理', select_data: [], select_mode: false, filter_variants: [] }
+        } = {
+            title: '庫存管理',
+            select_data: [],
+            select_mode: false,
+            filter_variants: [],
+        }
     ) {
         const glitter = gvc.glitter;
 

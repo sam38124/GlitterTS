@@ -9,7 +9,12 @@ import { ShoppingProductSetting } from './shopping-product-setting.js';
 import { Tool } from '../modules/tool.js';
 const html = String.raw;
 export class StockList {
-    static main(gvc, option = { title: '庫存管理', select_data: [], select_mode: false, filter_variants: [] }) {
+    static main(gvc, option = {
+        title: '庫存管理',
+        select_data: [],
+        select_mode: false,
+        filter_variants: [],
+    }) {
         const glitter = gvc.glitter;
         const vm = {
             id: glitter.getUUID(),

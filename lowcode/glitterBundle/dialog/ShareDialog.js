@@ -6,23 +6,42 @@ export class ShareDialog {
         this.successMessage = (obj) => { };
         this.dataLoading = (obj) => {
             if (obj.visible) {
-                glitter.openDiaLog('glitterBundle/dialog/dialog.js', 'dataLoading', { type: 'dataLoading', obj: obj });
+                glitter.openDiaLog('glitterBundle/dialog/dialog.js', 'dataLoading', {
+                    type: 'dataLoading',
+                    obj: obj,
+                });
             }
             else {
                 glitter.closeDiaLog('dataLoading');
             }
         };
         this.infoMessage = (obj) => {
-            glitter.openDiaLog('glitterBundle/dialog/dialog.js', 'infoMessage', { type: 'infoMessage', obj: obj });
+            glitter.openDiaLog('glitterBundle/dialog/dialog.js', 'infoMessage', {
+                type: 'infoMessage',
+                obj: obj,
+            });
         };
         this.errorMessage = (obj) => {
-            glitter.openDiaLog('glitterBundle/dialog/dialog.js', 'errorMessage', { type: 'errorMessage', obj: obj });
+            glitter.openDiaLog('glitterBundle/dialog/dialog.js', 'errorMessage', {
+                type: 'errorMessage',
+                obj: obj,
+            });
         };
         this.successMessage = (obj) => {
-            glitter.openDiaLog('glitterBundle/dialog/dialog.js', 'successMessage', { type: 'successMessage', obj: obj });
+            glitter.openDiaLog('glitterBundle/dialog/dialog.js', 'successMessage', {
+                type: 'successMessage',
+                obj: obj,
+            });
         };
-        this.policy = () => {
-            glitter.openDiaLog('glitterBundle/dialog/dialog.js', 'policy', { type: 'policy' });
+        this.warningMessage = (obj) => {
+            glitter.openDiaLog('glitterBundle/dialog/dialog.js', 'warningMessage', {
+                type: 'warningMessage',
+                callback: (response) => {
+                    glitter.closeDiaLog('warningMessage');
+                    obj.callback(response);
+                },
+                title: obj.text,
+            });
         };
         this.checkYesOrNot = (obj) => {
             glitter.openDiaLog('glitterBundle/dialog/dialog.js', 'checkYesOrNot', {
@@ -35,14 +54,9 @@ export class ShareDialog {
                 icon: obj.icon,
             });
         };
-        this.warningMessage = (obj) => {
-            glitter.openDiaLog('glitterBundle/dialog/dialog.js', 'warningMessage', {
-                type: 'warningMessage',
-                callback: (response) => {
-                    glitter.closeDiaLog('warningMessage');
-                    obj.callback(response);
-                },
-                title: obj.text
+        this.policy = () => {
+            glitter.openDiaLog('glitterBundle/dialog/dialog.js', 'policy', {
+                type: 'policy',
             });
         };
     }

@@ -2613,8 +2613,8 @@ export class Shopping {
             content.type = 'product';
             this.checkVariantDataType(content.variants);
             const data = await db.query(
-                `INSERT INTO \`${this.app}\`.\`t_manager_post\`
-                 SET ?`,
+                `INSERT INTO \`${this.app}\`.\`t_manager_post\` SET ?
+                `,
                 [
                     {
                         userID: this.token?.userID,
@@ -2623,6 +2623,16 @@ export class Shopping {
                 ]
             );
             content.id = data.insertId;
+            await db.query(
+                `update \`${this.app}\`.\`t_manager_post\` SET ? where id = ?
+                `,
+                [
+                    {
+                        content: JSON.stringify(content),
+                    },
+                    content.id,
+                ]
+            );
             await new Shopping(this.app, this.token).postVariantsAndPriceValue(content);
             return data.insertId;
         } catch (e) {
