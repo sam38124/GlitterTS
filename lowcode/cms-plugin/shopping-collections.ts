@@ -238,7 +238,6 @@ export class ShoppingCollections {
                                                                         ];
                                                                     });
                                                                 }
-
                                                                 vm.dataList = collections;
                                                                 vmi.data = getDatalist();
                                                             } else {
@@ -425,15 +424,13 @@ export class ShoppingCollections {
                                                                 />
                                                             </div>`,
                                                             html` <div class="mt-2 mb-1">
-                                                                <span class="tx_normal me-2">網址預覽</span
-                                                                ><a
-                                                                    class="fs-sm fw-500"
-                                                                    style="color:#006621;cursor: pointer;overflow-wrap: break-word;"
-                                                                    onclick="${gvc.event(() => {
-                                                                        window.parent.open(prefixURL + (vm.data.code ?? ''));
-                                                                    })}"
-                                                                    >${prefixURL + (vm.data.code ?? '')}</a
-                                                                >
+                                                                <span class="tx_normal me-1">網址預覽</span>
+                                                                ${BgWidget.greenNote(
+                                                                    prefixURL + (vm.data.code ?? ''),
+                                                                    gvc.event(() => {
+                                                                        window.parent.open(prefixURL + (vm.data.code ?? ''), '_blank');
+                                                                    })
+                                                                )}
                                                             </div>`,
                                                         ].join('')
                                                     );

@@ -2813,7 +2813,12 @@ ${EditorElem.editeInput({
                                                         }
                                                         return url.href;
                                                     })();
-                                                    return html`<a class="fs-sm fw-500" style="color:#006621;cursor: pointer;" href="${href}">${href}</a>`;
+                                                    return BgWidget.greenNote(
+                                                        href,
+                                                        gvc.event(() => {
+                                                            window.parent.open(href, '_blank');
+                                                        })
+                                                    );
                                                 })(),
                                                 html`<div class="fs-sm fw-500" style="color:#545454;white-space: normal;">${postMD.seo.content || '尚未設定'}</div>`,
                                             ];
@@ -2861,28 +2866,6 @@ ${EditorElem.editeInput({
                                         },
                                     })
                             )}
-                            ${(() => {
-                                return ``;
-                                //     return `<div class="mt-2"></div>
-                                // ${BgWidget.card(gvc.bindView(() => {
-                                //         const id = gvc.glitter.getUUID()
-                                //         return {
-                                //             bind: id,
-                                //             view: () => {
-                                //                 return EditorElem.pageSelect(gvc, '選擇佈景主題', postMD.template ?? "", (data) => {
-                                //                     postMD.template = data
-                                //                 }, (dd) => {
-                                //                     const filter_result = dd.group !== 'glitter-article' && dd.page_type === 'article' && dd.page_config.template_type === 'product'
-                                //                     if (filter_result && !postMD.template) {
-                                //                         postMD.template = dd.tag
-                                //                         gvc.notifyDataChange([seoID, id])
-                                //                     }
-                                //                     return filter_result
-                                //                 })
-                                //             }
-                                //         }
-                                //     }))}`
-                            })()}
                             <div class="mt-2"></div>
                             ${BgWidget.card(
                                 obj.gvc.bindView(() => {

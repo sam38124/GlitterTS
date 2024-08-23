@@ -383,7 +383,7 @@ export class ShoppingRebate {
                                                 unit: '天',
                                                 readonly: vm.type !== 'add',
                                             })}
-                                            ${BgWidget.grayNote('輸入0，則為無期限', 'margin-top:6px; font-size: 14px;')}
+                                            ${BgWidget.grayNote('輸入0，則為無期限', 'margin-top:6px;')}
                                         </div>
                                     </div>`,
                                     html`<div>

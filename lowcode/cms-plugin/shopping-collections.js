@@ -359,16 +359,11 @@ export class ShoppingCollections {
                                                                 />
                                                             </div>`,
                                             html ` <div class="mt-2 mb-1">
-                                                                <span class="tx_normal me-2">網址預覽</span
-                                                                ><a
-                                                                    class="fs-sm fw-500"
-                                                                    style="color:#006621;cursor: pointer;overflow-wrap: break-word;"
-                                                                    onclick="${gvc.event(() => {
+                                                                <span class="tx_normal me-1">網址預覽</span>
+                                                                ${BgWidget.greenNote(prefixURL + ((_a = vm.data.code) !== null && _a !== void 0 ? _a : ''), gvc.event(() => {
                                                 var _a;
-                                                window.parent.open(prefixURL + ((_a = vm.data.code) !== null && _a !== void 0 ? _a : ''));
-                                            })}"
-                                                                    >${prefixURL + ((_a = vm.data.code) !== null && _a !== void 0 ? _a : '')}</a
-                                                                >
+                                                window.parent.open(prefixURL + ((_a = vm.data.code) !== null && _a !== void 0 ? _a : ''), '_blank');
+                                            }))}
                                                             </div>`,
                                         ].join(''));
                                     },

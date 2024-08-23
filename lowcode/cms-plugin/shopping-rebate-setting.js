@@ -426,7 +426,7 @@ export class ShoppingRebateSetting {
                                                     innerHtml: html `<div style="position: relative">
                                                                                         ${gvc.map([
                                                         BgWidget.leftLineBar(),
-                                                        BgWidget.grayNote('最高能折抵', 'margin-left: 22px; font-size: 14px;'),
+                                                        BgWidget.grayNote('最高能折抵', 'margin-left: 22px;'),
                                                         BgWidget.editeInput({
                                                             gvc: gvc,
                                                             title: '',
@@ -449,7 +449,7 @@ export class ShoppingRebateSetting {
                                                     innerHtml: html `<div style="position: relative">
                                                                                         ${gvc.map([
                                                         BgWidget.leftLineBar(),
-                                                        BgWidget.grayNote('最高能折抵', 'margin-left: 22px; font-size: 14px;'),
+                                                        BgWidget.grayNote('最高能折抵', 'margin-left: 22px;'),
                                                         BgWidget.editeInput((() => {
                                                             function formatPercent(text) {
                                                                 const textInt = parseInt(`${text}`, 10);

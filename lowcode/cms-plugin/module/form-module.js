@@ -4,33 +4,33 @@ import { EditorElem } from '../../glitterBundle/plugins/editor-elem.js';
 export class FormModule {
     static editor(gvc, data, title, update) {
         const html = String.raw;
-        const option = [
-            {
-                icon: '<i class="fa-solid fa-text me-3"></i>',
-                title: `輸入框`,
-                key: 'input',
-            },
-            {
-                icon: `<i class="fa-regular fa-square-chevron-down me-3"></i>`,
-                title: `下拉選單`,
-                key: 'form-select',
-            },
-            {
-                icon: `<i class="fa-regular fa-circle-dot me-3"></i>`,
-                title: `單選`,
-                key: 'check_box',
-            },
-            {
-                icon: `<i class="fa-solid fa-square-check me-3"></i>`,
-                title: `多選`,
-                key: 'mutiple_select',
-            },
-        ];
         const vm = {
             id: gvc.glitter.getUUID(),
             add_btn: false,
             data: data,
         };
+        const option = [
+            {
+                icon: '<i class="fa-solid fa-text me-3"></i>',
+                title: '輸入框',
+                key: 'input',
+            },
+            {
+                icon: '<i class="fa-regular fa-square-chevron-down me-3"></i>',
+                title: '下拉選單',
+                key: 'form-select',
+            },
+            {
+                icon: '<i class="fa-regular fa-circle-dot me-3"></i>',
+                title: '單選',
+                key: 'check_box',
+            },
+            {
+                icon: '<i class="fa-solid fa-square-check me-3"></i>',
+                title: '多選',
+                key: 'mutiple_select',
+            },
+        ];
         return [
             title,
             gvc.bindView(() => {
@@ -47,7 +47,7 @@ export class FormModule {
                             const opc = option.find((d1) => {
                                 return d1.key === dd.page;
                             });
-                            return html `<li class="w-100 border rounded-3   mb-2" style="overflow: hidden;">
+                            return html `<li class="w-100 border rounded-3 mb-2" style="overflow: hidden;">
                                     <div
                                         class="d-flex align-items-center w-100 py-2"
                                         style="padding-left: 20px; padding-right: 20px;background: #F7F7F7;cursor: pointer;overflow: hidden;"
@@ -71,7 +71,7 @@ export class FormModule {
                                         case 'input':
                                             return [
                                                 EditorElem.select({
-                                                    title: '<div class="tx_normal fw-normal" >資料類型</div>',
+                                                    title: html `<div class="tx_normal fw-normal">資料類型</div>`,
                                                     gvc: gvc,
                                                     callback: (value) => {
                                                         dd.form_config.type = value;
@@ -297,12 +297,12 @@ export class FormModule {
                                                                   </div>`,
                                             ].join('<div class="my-2"></div>');
                                         default:
-                                            return ``;
+                                            return '';
                                     }
                                 })()}
                                               </div>
                                           `
-                                : ``}
+                                : ''}
                                 </li>`;
                         })
                             .join('');
@@ -310,7 +310,7 @@ export class FormModule {
                     divCreate: {
                         elem: 'ul',
                         option: [{ key: 'id', value: vm.id }],
-                        class: ``,
+                        class: '',
                     },
                     onCreate: () => {
                         const interval = setInterval(() => {
@@ -342,195 +342,199 @@ export class FormModule {
                     },
                 };
             }),
-            BgWidget.plus_btn('新增一個欄位', gvc, option.map((dd, index) => {
-                dd.callback = () => {
-                    switch (dd.key) {
-                        case 'input':
-                            vm.data.push({
-                                key: `${new Date().getTime()}`,
-                                page: 'input',
-                                type: 'form_plugin_v2',
-                                group: '',
-                                toggle: true,
-                                title: '',
-                                appName: 'cms_system',
-                                require: 'true',
-                                readonly: 'write',
-                                formFormat: '{}',
-                                style_data: {
-                                    input: {
-                                        list: [],
-                                        class: '',
-                                        style: '',
-                                        version: 'v2',
-                                    },
-                                    label: {
-                                        list: [],
-                                        class: 'form-label fs-base ',
-                                        style: '',
-                                        version: 'v2',
-                                    },
-                                    container: {
-                                        list: [],
-                                        class: '',
-                                        style: '',
-                                        version: 'v2',
-                                    },
-                                },
-                                form_config: {
-                                    type: 'text',
+            BgWidget.plusButton({
+                gvc: gvc,
+                title: '新增一個欄位',
+                options: option.map((dd) => {
+                    dd.callback = () => {
+                        switch (dd.key) {
+                            case 'input':
+                                vm.data.push({
+                                    key: `${new Date().getTime()}`,
+                                    page: 'input',
+                                    type: 'form_plugin_v2',
+                                    group: '',
+                                    toggle: true,
                                     title: '',
-                                    input_style: {
-                                        list: [],
-                                        version: 'v2',
+                                    appName: 'cms_system',
+                                    require: 'true',
+                                    readonly: 'write',
+                                    formFormat: '{}',
+                                    style_data: {
+                                        input: {
+                                            list: [],
+                                            class: '',
+                                            style: '',
+                                            version: 'v2',
+                                        },
+                                        label: {
+                                            list: [],
+                                            class: 'form-label fs-base ',
+                                            style: '',
+                                            version: 'v2',
+                                        },
+                                        container: {
+                                            list: [],
+                                            class: '',
+                                            style: '',
+                                            version: 'v2',
+                                        },
                                     },
-                                    title_style: {
-                                        list: [],
-                                        version: 'v2',
+                                    form_config: {
+                                        type: 'text',
+                                        title: '',
+                                        input_style: {
+                                            list: [],
+                                            version: 'v2',
+                                        },
+                                        title_style: {
+                                            list: [],
+                                            version: 'v2',
+                                        },
+                                        place_holder: '',
                                     },
-                                    place_holder: '',
-                                },
-                                col: '12',
-                                col_sm: '12',
-                            });
-                            break;
-                        case 'multiple_line_text':
-                            vm.data.push({
-                                key: `${new Date().getTime()}`,
-                                page: 'multiple_line_text',
-                                type: 'form_plugin_v2',
-                                toggle: true,
-                                group: '',
-                                title: '',
-                                appName: 'cms_system',
-                                require: 'true',
-                                readonly: 'write',
-                                formFormat: '{}',
-                                moduleName: '多行文字區塊',
-                                style_data: {
-                                    input: {
-                                        list: [],
-                                        class: '',
-                                        style: '',
-                                        version: 'v2',
-                                    },
-                                    label: {
-                                        list: [],
-                                        class: 'form-label fs-base ',
-                                        style: '',
-                                        version: 'v2',
-                                    },
-                                    container: {
-                                        list: [],
-                                        class: '',
-                                        style: '',
-                                        version: 'v2',
-                                    },
-                                },
-                                form_config: {
-                                    type: 'name',
+                                    col: '12',
+                                    col_sm: '12',
+                                });
+                                break;
+                            case 'multiple_line_text':
+                                vm.data.push({
+                                    key: `${new Date().getTime()}`,
+                                    page: 'multiple_line_text',
+                                    type: 'form_plugin_v2',
+                                    toggle: true,
+                                    group: '',
                                     title: '',
-                                    place_holder: '',
-                                    title_style: {},
-                                    input_style: {},
-                                },
-                                col: '12',
-                                col_sm: '12',
-                            });
-                            break;
-                        case 'form-select':
-                            vm.data.push({
-                                key: `${new Date().getTime()}`,
-                                page: 'form-select',
-                                type: 'form_plugin_v2',
-                                group: '',
-                                title: '',
-                                appName: 'cms_system',
-                                require: 'true',
-                                readonly: 'write',
-                                formFormat: '{}',
-                                moduleName: '下拉選單',
-                                style_data: {
-                                    input: { list: [], class: '', style: '', version: 'v2' },
-                                    label: { list: [], class: 'form-label fs-base ', style: '', version: 'v2' },
-                                    container: { list: [], class: '', style: '', version: 'v2' },
-                                },
-                                form_config: {
-                                    type: 'name',
+                                    appName: 'cms_system',
+                                    require: 'true',
+                                    readonly: 'write',
+                                    formFormat: '{}',
+                                    moduleName: '多行文字區塊',
+                                    style_data: {
+                                        input: {
+                                            list: [],
+                                            class: '',
+                                            style: '',
+                                            version: 'v2',
+                                        },
+                                        label: {
+                                            list: [],
+                                            class: 'form-label fs-base ',
+                                            style: '',
+                                            version: 'v2',
+                                        },
+                                        container: {
+                                            list: [],
+                                            class: '',
+                                            style: '',
+                                            version: 'v2',
+                                        },
+                                    },
+                                    form_config: {
+                                        type: 'name',
+                                        title: '',
+                                        place_holder: '',
+                                        title_style: {},
+                                        input_style: {},
+                                    },
+                                    col: '12',
+                                    col_sm: '12',
+                                });
+                                break;
+                            case 'form-select':
+                                vm.data.push({
+                                    key: `${new Date().getTime()}`,
+                                    page: 'form-select',
+                                    type: 'form_plugin_v2',
+                                    group: '',
                                     title: '',
-                                    place_holder: '',
-                                    title_style: {},
-                                    input_style: {},
-                                    option: [],
-                                },
-                                col: '12',
-                                col_sm: '12',
-                            });
-                            break;
-                        case 'check_box':
-                            vm.data.push({
-                                key: `${new Date().getTime()}`,
-                                page: 'check_box',
-                                type: 'form_plugin_v2',
-                                group: '',
-                                title: '',
-                                appName: 'cms_system',
-                                require: 'true',
-                                readonly: 'write',
-                                formFormat: '{}',
-                                moduleName: '單選題',
-                                style_data: {
-                                    input: { list: [], class: '', style: '', version: 'v2' },
-                                    label: { list: [], class: 'form-label fs-base ', style: '', version: 'v2' },
-                                    container: { list: [], class: '', style: '', version: 'v2' },
-                                },
-                                form_config: {
-                                    type: 'name',
+                                    appName: 'cms_system',
+                                    require: 'true',
+                                    readonly: 'write',
+                                    formFormat: '{}',
+                                    moduleName: '下拉選單',
+                                    style_data: {
+                                        input: { list: [], class: '', style: '', version: 'v2' },
+                                        label: { list: [], class: 'form-label fs-base ', style: '', version: 'v2' },
+                                        container: { list: [], class: '', style: '', version: 'v2' },
+                                    },
+                                    form_config: {
+                                        type: 'name',
+                                        title: '',
+                                        place_holder: '',
+                                        title_style: {},
+                                        input_style: {},
+                                        option: [],
+                                    },
+                                    col: '12',
+                                    col_sm: '12',
+                                });
+                                break;
+                            case 'check_box':
+                                vm.data.push({
+                                    key: `${new Date().getTime()}`,
+                                    page: 'check_box',
+                                    type: 'form_plugin_v2',
+                                    group: '',
                                     title: '',
-                                    place_holder: '',
-                                    title_style: {},
-                                    input_style: {},
-                                    option: [],
-                                },
-                                col: '12',
-                                col_sm: '12',
-                            });
-                            break;
-                        case 'mutiple_select':
-                            vm.data.push({
-                                key: `${new Date().getTime()}`,
-                                page: 'mutiple_select',
-                                type: 'form_plugin_v2',
-                                group: '',
-                                title: '',
-                                appName: 'cms_system',
-                                require: 'true',
-                                readonly: 'write',
-                                formFormat: '{}',
-                                moduleName: '多選題',
-                                style_data: {
-                                    input: { list: [], class: '', style: '', version: 'v2' },
-                                    label: { list: [], class: 'form-label fs-base ', style: '', version: 'v2' },
-                                    container: { list: [], class: '', style: '', version: 'v2' },
-                                },
-                                form_config: {
-                                    type: 'name',
+                                    appName: 'cms_system',
+                                    require: 'true',
+                                    readonly: 'write',
+                                    formFormat: '{}',
+                                    moduleName: '單選題',
+                                    style_data: {
+                                        input: { list: [], class: '', style: '', version: 'v2' },
+                                        label: { list: [], class: 'form-label fs-base ', style: '', version: 'v2' },
+                                        container: { list: [], class: '', style: '', version: 'v2' },
+                                    },
+                                    form_config: {
+                                        type: 'name',
+                                        title: '',
+                                        place_holder: '',
+                                        title_style: {},
+                                        input_style: {},
+                                        option: [],
+                                    },
+                                    col: '12',
+                                    col_sm: '12',
+                                });
+                                break;
+                            case 'mutiple_select':
+                                vm.data.push({
+                                    key: `${new Date().getTime()}`,
+                                    page: 'mutiple_select',
+                                    type: 'form_plugin_v2',
+                                    group: '',
                                     title: '',
-                                    place_holder: '',
-                                    title_style: {},
-                                    input_style: {},
-                                    option: [],
-                                },
-                                col: '12',
-                                col_sm: '12',
-                            });
-                            break;
-                    }
-                    update && update();
-                    gvc.notifyDataChange(vm.id);
-                };
-                return dd;
-            })),
+                                    appName: 'cms_system',
+                                    require: 'true',
+                                    readonly: 'write',
+                                    formFormat: '{}',
+                                    moduleName: '多選題',
+                                    style_data: {
+                                        input: { list: [], class: '', style: '', version: 'v2' },
+                                        label: { list: [], class: 'form-label fs-base ', style: '', version: 'v2' },
+                                        container: { list: [], class: '', style: '', version: 'v2' },
+                                    },
+                                    form_config: {
+                                        type: 'name',
+                                        title: '',
+                                        place_holder: '',
+                                        title_style: {},
+                                        input_style: {},
+                                        option: [],
+                                    },
+                                    col: '12',
+                                    col_sm: '12',
+                                });
+                                break;
+                        }
+                        update && update();
+                        gvc.notifyDataChange(vm.id);
+                    };
+                    return dd;
+                }),
+            }),
         ].join('<div class="my-3"></div>');
     }
 }

@@ -143,7 +143,8 @@ export class UserList {
                                           return BgWidget.title('顧客列表');
                                       })()}
                                       <div class="flex-fill"></div>
-                                      ${BgWidget.create_btn(
+                                      ${BgWidget.darkButton(
+                                          '新增',
                                           gvc.event(() => {
                                               vm.type = 'create';
                                           })
@@ -880,7 +881,7 @@ export class UserList {
                                                                                         } else {
                                                                                             vm.data.userData.level_default = vm.data.userData.level_default ?? options[0].key;
                                                                                             return html`
-                                                                                                ${BgWidget.grayNote('針對特殊會員，手動調整後將無法自動升級', 'font-size: 14px;')}
+                                                                                                ${BgWidget.grayNote('針對特殊會員，手動調整後將無法自動升級')}
                                                                                                 ${BgWidget.select({
                                                                                                     gvc: gvc,
                                                                                                     default: vm.data.userData.level_default,
@@ -1196,7 +1197,7 @@ export class UserList {
                                         )}
                                     </div>`,
                                     // 空白容器
-                                    BgWidget.mb240(),
+                                    BgWidget.mbContainer(240),
                                     // 儲存資料
                                     html` <div class="update-bar-container">
                                         ${BgWidget.cancel(gvc.event(() => cf.callback()))}
@@ -1359,7 +1360,7 @@ export class UserList {
                                             },
                                         };
                                     }),
-                                    BgWidget.mb240(),
+                                    BgWidget.mbContainer(240),
                                     // 儲存資料
                                     html` <div class="update-bar-container">
                                         ${BgWidget.cancel(

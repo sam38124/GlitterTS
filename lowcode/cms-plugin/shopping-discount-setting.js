@@ -365,7 +365,7 @@ export class ShoppingDiscountSetting {
                                     voucherData.title = text;
                                 },
                             })}
-                                                ${BgWidget.grayNote('顧客將會在「購物車」與「結帳」看見此標題', 'font-size: 14px; margin-left: 4px;')}`),
+                                                ${BgWidget.grayNote('顧客將會在「購物車」與「結帳」看見此標題', 'margin-left: 4px;')}`),
                             BgWidget.mainCard(html `<div style="display: flex; flex-direction: column; gap: 18px;">
                                                 <div class="gray-bottom-line-18">
                                                     <div class="tx_700">活動方式</div>
@@ -374,7 +374,7 @@ export class ShoppingDiscountSetting {
                                 {
                                     key: 'auto',
                                     name: '自動折扣',
-                                    innerHtml: BgWidget.grayNote('顧客將在結帳時，自動獲得折扣', 'font-size: 14px;'),
+                                    innerHtml: BgWidget.grayNote('顧客將在結帳時，自動獲得折扣'),
                                 },
                                 {
                                     key: 'code',
@@ -386,7 +386,7 @@ export class ShoppingDiscountSetting {
                                             view: () => {
                                                 var _a;
                                                 return gvc.map([
-                                                    BgWidget.grayNote('顧客可在結帳時輸入優惠代碼，來獲得折扣', 'font-size: 14px;'),
+                                                    BgWidget.grayNote('顧客可在結帳時輸入優惠代碼，來獲得折扣'),
                                                     BgWidget.editeInput({
                                                         gvc: gvc,
                                                         title: '',
@@ -397,7 +397,7 @@ export class ShoppingDiscountSetting {
                                                         },
                                                         endText: html `<div class="d-flex justify-content-end">
                                                                                         ${BgWidget.mbContainer(8)}
-                                                                                        ${BgWidget.blueNote(document.body.clientWidth > 768 ? '隨機產生優惠代碼' : '隨機產生', () => gvc.event(() => {
+                                                                                        ${BgWidget.blueNote(document.body.clientWidth > 768 ? '隨機產生優惠代碼' : '隨機產生', gvc.event(() => {
                                                             voucherData.code = Tool.randomString(6).toUpperCase();
                                                             gvc.notifyDataChange(id);
                                                         }))}
@@ -775,9 +775,7 @@ export class ShoppingDiscountSetting {
                                                 return [
                                                     html `
                                                                         <div class="tx_700">
-                                                                            套用至${voucherData.reBackType === 'shipment_free'
-                                                        ? BgWidget.grayNote('免運費僅限套用至所有商品', 'margin-left: 8px; font-size: 14px;')
-                                                        : ''}
+                                                                            套用至${voucherData.reBackType === 'shipment_free' ? BgWidget.grayNote('免運費僅限套用至所有商品', 'margin-left: 8px') : ''}
                                                                         </div>
                                                                         ${BgWidget.mbContainer(18)}
                                                                         ${EditorElem.radio({
@@ -1007,12 +1005,12 @@ export class ShoppingDiscountSetting {
                                                             return '優惠條件為整份訂單免運費';
                                                         }
                                                         return `若商品A購買${ruleText(floor)}，加上商品B購買${ruleText(n - floor)}，可觸發優惠`;
-                                                    })(), 'font-size: 14px;'),
+                                                    })()),
                                                 },
                                                 {
                                                     key: 'item',
                                                     name: '以商品計算',
-                                                    innerHtml: BgWidget.grayNote(`需要商品A購買滿${ruleText(n)}，或商品B購買滿${ruleText(n)}，即可觸發優惠<br/>若商品A購買${ruleText(floor)}，加上商品B購買${ruleText(n - floor)}，無法觸發優惠`, 'font-size: 14px;'),
+                                                    innerHtml: BgWidget.grayNote(`需要商品A購買滿${ruleText(n)}，或商品B購買滿${ruleText(n)}，即可觸發優惠<br/>若商品A購買${ruleText(floor)}，加上商品B購買${ruleText(n - floor)}，無法觸發優惠`),
                                                 },
                                             ], [voucherData.conditionType], (text) => {
                                                 voucherData.conditionType = text[0];
@@ -1032,12 +1030,12 @@ export class ShoppingDiscountSetting {
                                                             return '依百分比計算，優惠不重複';
                                                         }
                                                         return `購買${ruleText(n)}折Y元，額外購買至${ruleText(n * 2)}或${ruleText(n * 3)}依然是折Y元`;
-                                                    })(), 'font-size: 14px;'),
+                                                    })()),
                                                 },
                                                 {
                                                     key: 'each',
                                                     name: '重複',
-                                                    innerHtml: BgWidget.grayNote(`購買${ruleText(n)}折Y元，購買${ruleText(n * 2)}則折Y * 2元，購買${ruleText(n * 3)}則折Y * 3元，以此類推`, 'font-size: 14px;'),
+                                                    innerHtml: BgWidget.grayNote(`購買${ruleText(n)}折Y元，購買${ruleText(n * 2)}則折Y * 2元，購買${ruleText(n * 3)}則折Y * 3元，以此類推`),
                                                 },
                                             ], [voucherData.counting], (text) => {
                                                 voucherData.counting = text[0];
@@ -1062,7 +1060,7 @@ export class ShoppingDiscountSetting {
                                             {
                                                 key: 'true',
                                                 name: '可以疊加',
-                                                innerHtml: BgWidget.grayNote('系統將以最大優惠排序進行判定', 'font-size: 14px;'),
+                                                innerHtml: BgWidget.grayNote('系統將以最大優惠排序進行判定'),
                                             },
                                         ], [voucherData.overlay ? 'true' : 'false'], (text) => {
                                             voucherData.overlay = text[0] === 'true';

@@ -646,9 +646,7 @@ export class BgRecommend {
                                         BgWidget.mainCard([
                                             html ` <div class="tx_700">連結網址</div>`,
                                             html ` <div class="tx_normal">分銷代碼</div>
-                                                                <div style="margin: 4px 0 8px;">
-                                                                    ${BgWidget.grayNote('是一段唯一的識別碼，用於系統追蹤和記錄通過該代碼完成的銷售', 'font-size: 14px;')}
-                                                                </div>
+                                                                <div style="margin: 4px 0 8px;">${BgWidget.grayNote('是一段唯一的識別碼，用於系統追蹤和記錄通過該代碼完成的銷售')}</div>
                                                                 ${EditorElem.editeInput({
                                                 gvc: gvc,
                                                 title: '',
@@ -717,10 +715,7 @@ export class BgRecommend {
                                                                             />
                                                                         </div>`,
                                                         html ` <div class="mt-2 mb-1">
-                                                                            <span class="tx_normal me-2">網址預覽</span
-                                                                            ><a class="fs-sm fw-500" style="color:#006621;cursor: pointer;overflow-wrap: break-word;"
-                                                                                >${prefixURL + ((_a = vm.data.link) !== null && _a !== void 0 ? _a : '')}</a
-                                                                            >
+                                                                            <span class="tx_normal me-2">網址預覽</span>${BgWidget.greenNote(prefixURL + ((_a = vm.data.link) !== null && _a !== void 0 ? _a : ''))}
                                                                         </div>`,
                                                     ].join('');
                                                 },
@@ -762,7 +757,7 @@ export class BgRecommend {
                                                 {
                                                     key: 'fix',
                                                     name: '固定金額',
-                                                    innerHtml: html `<div style="margin: 4px 0 8px;">${BgWidget.grayNote('每筆訂單分潤固定金額', 'font-size: 14px;')}</div>
+                                                    innerHtml: html `<div style="margin: 4px 0 8px;">${BgWidget.grayNote('每筆訂單分潤固定金額')}</div>
                                                                                 ${EditorElem.numberInput({
                                                         gvc: gvc,
                                                         title: '',
@@ -780,7 +775,7 @@ export class BgRecommend {
                                                     key: 'percent',
                                                     name: '百分比',
                                                     innerHtml: html `<div style="margin: 4px 0 8px;">
-                                                                                    ${BgWidget.grayNote('分潤計算方式為: (訂單結算金額 - 運費)*分潤百分比', 'font-size: 14px;')}
+                                                                                    ${BgWidget.grayNote('分潤計算方式為: (訂單結算金額 - 運費)*分潤百分比')}
                                                                                 </div>
                                                                                 ${EditorElem.numberInput({
                                                         gvc: gvc,
@@ -814,7 +809,7 @@ export class BgRecommend {
                                                             key: 'yes',
                                                             name: '套用折扣',
                                                             innerHtml: html `<div style="margin: 4px 0 8px;">
-                                                                                            ${BgWidget.grayNote('請至「優惠促銷」新增折扣，折扣方式必須勾選「供分銷連結使用」', 'font-size: 14px;')}
+                                                                                            ${BgWidget.grayNote('請至「優惠促銷」新增折扣，折扣方式必須勾選「供分銷連結使用」')}
                                                                                         </div>
                                                                                         ${BgWidget.select({
                                                                 gvc: gvc,
@@ -828,10 +823,10 @@ export class BgRecommend {
                                                                 })),
                                                             })}
                                                                                         ${[
-                                                                BgWidget.title_16(html `折扣商品
+                                                                BgWidget.title(html `折扣商品
                                                                                                     <div class="badge ms-2 mt-3" style="background:#eaeaea;color:#393939;">
                                                                                                         僅以下設定的商品會套用折扣
-                                                                                                    </div>`),
+                                                                                                    </div>`, 'font-size: 16px;'),
                                                                 html `<div style="height: 10px;"></div>`,
                                                                 gvc.bindView((() => {
                                                                     const id = glitter.getUUID();
@@ -1155,7 +1150,7 @@ export class BgRecommend {
                                                                             readonly: true,
                                                                         }),
                                                                         html ` <div class="tx_normal">電子信箱</div>
-                                                                                                          ${BgWidget.grayNote('將作為登入帳號，系統會寄送隨機密碼至此信箱', 'font-size: 14px;')}`,
+                                                                                                          ${BgWidget.grayNote('將作為登入帳號，系統會寄送隨機密碼至此信箱')}`,
                                                                         EditorElem.editeInput({
                                                                             gvc: gvc,
                                                                             title: '',
@@ -1201,7 +1196,7 @@ export class BgRecommend {
                                                                 readonly: vm.readonly,
                                                             }),
                                                             html ` <div class="tx_normal">電子信箱</div>
-                                                                                            ${BgWidget.grayNote('將作為登入帳號，系統會寄送隨機密碼至此信箱', 'font-size: 14px;')}`,
+                                                                                            ${BgWidget.grayNote('將作為登入帳號，系統會寄送隨機密碼至此信箱')}`,
                                                             gvc.bindView((() => {
                                                                 const id = glitter.getUUID();
                                                                 return {
@@ -1633,7 +1628,7 @@ export class BgRecommend {
                                                     },
                                                 })}`,
                                                 html `<div class="tx_normal">推薦人備註</div>
-                                                                    <div style="margin: 4px 0 8px;">${BgWidget.grayNote('只有後台管理員看得見', 'font-size: 14px;')}</div>
+                                                                    <div style="margin: 4px 0 8px;">${BgWidget.grayNote('只有後台管理員看得見')}</div>
                                                                     ${EditorElem.editeText({
                                                     gvc: gvc,
                                                     title: '',

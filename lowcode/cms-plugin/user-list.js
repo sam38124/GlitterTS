@@ -123,7 +123,7 @@ export class UserList {
                             return BgWidget.title('顧客列表');
                         })()}
                                       <div class="flex-fill"></div>
-                                      ${BgWidget.create_btn(gvc.event(() => {
+                                      ${BgWidget.darkButton('新增', gvc.event(() => {
                             vm.type = 'create';
                         }))}
                                       <button
@@ -788,7 +788,7 @@ export class UserList {
                                                                 else {
                                                                     vm.data.userData.level_default = (_a = vm.data.userData.level_default) !== null && _a !== void 0 ? _a : options[0].key;
                                                                     return html `
-                                                                                                ${BgWidget.grayNote('針對特殊會員，手動調整後將無法自動升級', 'font-size: 14px;')}
+                                                                                                ${BgWidget.grayNote('針對特殊會員，手動調整後將無法自動升級')}
                                                                                                 ${BgWidget.select({
                                                                         gvc: gvc,
                                                                         default: vm.data.userData.level_default,
@@ -1080,7 +1080,7 @@ export class UserList {
                                     };
                                 }), undefined, 'padding: 0 !important; margin: 0 !important; width: 26.5%;')}
                                     </div>`,
-                                BgWidget.mb240(),
+                                BgWidget.mbContainer(240),
                                 html ` <div class="update-bar-container">
                                         ${BgWidget.cancel(gvc.event(() => cf.callback()))}
                                         ${BgWidget.save(gvc.event(() => {
@@ -1226,7 +1226,7 @@ export class UserList {
                             },
                         };
                     }),
-                    BgWidget.mb240(),
+                    BgWidget.mbContainer(240),
                     html ` <div class="update-bar-container">
                                         ${BgWidget.cancel(gvc.event(() => {
                         vm.type = 'list';

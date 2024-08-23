@@ -48,9 +48,8 @@ class Shopping {
                 querySql.push(`(content->>'$.visible' is null || content->>'$.visible' = 'true')`);
             }
             if (query.collection) {
-                const collection_cf = (await database_js_1.default.query(`SELECT *
-                                                       FROM \`${this.app}\`.public_config
-                                                       where \`key\` = 'collection';`, []))[0]['value'];
+                const collection_cf = (await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.public_config where \`key\` = 'collection';
+                        `, []))[0]['value'];
                 query.collection = decodeURI(query.collection);
                 query.collection = query.collection
                     .split(',')
@@ -520,7 +519,6 @@ class Shopping {
                 carData.use_rebate = 0;
                 carData.total = subtotal + carData.shipment_fee;
             }
-            console.log('Cart total:', carData.total);
             if (type === 'preview' || type === 'manual-preview')
                 return { data: carData };
             if (type !== 'manual') {
@@ -742,35 +740,43 @@ class Shopping {
         }
     }
     async createReturnOrder(data) {
-        let returnOrderID = this.generateOrderID();
-        let orderID = data.cart_token;
-        let email = data.email;
-        return await database_js_1.default.execute(`INSERT INTO \`${this.app}\`.t_return_order (order_id, return_order_id, email, orderData)
+        try {
+            let returnOrderID = this.generateOrderID();
+            let orderID = data.cart_token;
+            let email = data.email;
+            return await database_js_1.default.execute(`INSERT INTO \`${this.app}\`.t_return_order (order_id, return_order_id, email, orderData)
              values (?, ?, ?, ?)`, [orderID, returnOrderID, email, data.orderData]);
+        }
+        catch (e) {
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'createReturnOrder Error:' + e, null);
+        }
     }
     async putReturnOrder(data) {
-        let origData = await database_js_1.default.execute(`SELECT *
-                       FROM \`${this.app}\`.t_return_order
-                       WHERE id = ${data.id}`, []);
-        origData = origData[0];
-        if (origData.status != '1' && origData.orderData.returnProgress != '-1' && data.orderData.returnProgress == '-1' && data.status == '1') {
-            const userClass = new user_js_1.User(this.app);
-            const rebateClass = new rebate_js_1.Rebate(this.app);
-            const userData = await userClass.getUserData(data.orderData.customer_info.email, 'account');
-            console.log('fin --- ');
-            console.log(await rebateClass.insertRebate(userData.userID, data.orderData.rebateChange, `退貨單調整-退貨單號${origData.return_order_id}`));
-        }
         try {
-            await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_return_order\`
-                 set ?
-                 WHERE id = ?`, [{ status: data.status, orderData: JSON.stringify(data.orderData) }, data.id]);
+            const getData = await database_js_1.default.execute(`SELECT * FROM \`${this.app}\`.t_return_order WHERE id = ${data.id}
+                    `, []);
+            if (getData[0]) {
+                const origData = getData[0];
+                if (origData.status != '1' && origData.orderData.returnProgress != '-1' && data.orderData.returnProgress == '-1' && data.status == '1') {
+                    const userClass = new user_js_1.User(this.app);
+                    const rebateClass = new rebate_js_1.Rebate(this.app);
+                    const userData = await userClass.getUserData(data.orderData.customer_info.email, 'account');
+                    await rebateClass.insertRebate(userData.userID, data.orderData.rebateChange, `退貨單調整-退貨單號${origData.return_order_id}`);
+                }
+                await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_return_order\` SET ? WHERE id = ?
+                    `, [{ status: data.status, orderData: JSON.stringify(data.orderData) }, data.id]);
+                return {
+                    result: 'success',
+                    orderData: data,
+                };
+            }
             return {
-                result: 'success',
+                result: 'failure',
                 orderData: data,
             };
         }
         catch (e) {
-            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'putOrder Error:' + e, null);
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'putReturnOrder Error:' + e, null);
         }
     }
     async formatUseRebate(total, useRebate) {
@@ -982,6 +988,7 @@ class Shopping {
                 }
                 return dd.bind.reduce((acc, item) => acc + item.times, 0) > 0;
             }
+            return false;
         })
             .sort(function (a, b) {
             let compareB = b.bind
@@ -1023,7 +1030,6 @@ class Shopping {
                     dd.discount_total = dd.bind_subtotal * disValue;
                 }
                 if (dd.bind_subtotal >= dd.discount_total) {
-                    console.log(dd.discount_total);
                     let remain = parseInt(`${dd.discount_total}`, 10);
                     dd.bind.map((d2, index) => {
                         let discount = 0;
@@ -1117,9 +1123,7 @@ class Shopping {
             if (data.orderData) {
                 update.orderData = JSON.stringify(data.orderData);
             }
-            const origin = await database_js_1.default.query(`SELECT *
-                 FROM \`${this.app}\`.t_checkout
-                 WHERE id = ?;
+            const origin = await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_checkout WHERE id = ?;
                 `, [data.id]);
             if (update.orderData && JSON.parse(update.orderData)) {
                 const updateProgress = JSON.parse(update.orderData).progress;
@@ -1133,9 +1137,7 @@ class Shopping {
                     await this.releaseCheckout(1, data.orderData.orderID);
                 }
             }
-            await database_js_1.default.query(`UPDATE \`${this.app}\`.t_checkout
-                 SET ?
-                 WHERE id = ?
+            await database_js_1.default.query(`UPDATE \`${this.app}\`.t_checkout SET ? WHERE id = ?
                 `, [update, data.id]);
             return {
                 result: 'success',

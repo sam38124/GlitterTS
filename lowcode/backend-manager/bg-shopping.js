@@ -2595,7 +2595,9 @@ ${EditorElem.editeInput({
                                 }
                                 return url.href;
                             })();
-                            return html `<a class="fs-sm fw-500" style="color:#006621;cursor: pointer;" href="${href}">${href}</a>`;
+                            return BgWidget.greenNote(href, gvc.event(() => {
+                                window.parent.open(href, '_blank');
+                            }));
                         })(),
                         html `<div class="fs-sm fw-500" style="color:#545454;white-space: normal;">${postMD.seo.content || '尚未設定'}</div>`,
                     ];
@@ -2640,9 +2642,6 @@ ${EditorElem.editeInput({
                     postMD.status = text;
                 },
             }))}
-                            ${(() => {
-            return ``;
-        })()}
                             <div class="mt-2"></div>
                             ${BgWidget.card(obj.gvc.bindView(() => {
             const id = obj.gvc.glitter.getUUID();
