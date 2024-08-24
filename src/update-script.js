@@ -7,12 +7,17 @@ exports.UpdateScript = void 0;
 const database_1 = __importDefault(require("./modules/database"));
 class UpdateScript {
     static async run() {
-        const migrate_template = (await database_1.default.query('SELECT appName FROM glitter.app_config where template_type!=0;', [])).map((dd) => {
-            return dd.appName;
-        }).concat(['shop-template-clothing-v3']);
-        UpdateScript.migrateHeaderAndFooterAndCollection(migrate_template.filter((dd) => {
-            return dd !== 't_1719819344426';
-        }));
+        await this.migrate_blogs_toPage();
+    }
+    static async migrate_blogs_toPage() {
+        const blogs = await database_1.default.query(`SELECT * FROM shopnex.t_manager_post where content->>'$.for_index'='false' and content->>'$.page_type'='blog'`, []);
+        for (const b of blogs) {
+            b.content.page_type = 'page';
+            await database_1.default.query(`update shopnex.t_manager_post set content=? where id=?`, [
+                JSON.stringify(b.content),
+                b.id
+            ]);
+        }
     }
     static async migrateHomePageFooter(appList) {
         for (const b of appList) {

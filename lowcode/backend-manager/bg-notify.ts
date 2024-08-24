@@ -1013,7 +1013,9 @@ export class BgNotify {
                 postData.tagList = postData.tagList.filter((data) => data.tag !== postData.tag);
             } else {
                 let valueString = '';
-                if (Array.isArray(filter)) {
+                if (postData.tag === 'all') {
+                    valueString = '';
+                } else if (Array.isArray(filter)) {
                     valueString = vm.dataList
                         .filter((data) => {
                             return filter.includes(data.key);
@@ -1064,14 +1066,13 @@ export class BgNotify {
                     .filter((entry) => entry.count >= n)
                     .map((entry) => entry.emailObj);
             }
-            console.error('filterEmails error');
             return [];
         }
 
         function setUserList() {
             let n = 0;
             postData.userList = [];
-            dialog.dataLoading({ visible: true });
+            dialog.dataLoading({ visible: true, text: '更新預計寄件人...' });
 
             new Promise<void>((resolve) => {
                 const si = setInterval(() => {
@@ -1081,7 +1082,23 @@ export class BgNotify {
                     }
                 }, 200);
                 postData.tagList.map((tagData) => {
-                    if (tagData.tag === 'allCustomer') {
+                    if (tagData.tag === 'all') {
+                        ApiUser.getUserList({
+                            page: 0,
+                            limit: 99999,
+                        }).then((dd) => {
+                            dd.response.data.map((user: any) => {
+                                if (user.userData.email && user.userData.email.length > 0) {
+                                    postData.userList.push({
+                                        id: user.userID,
+                                        email: user.userData.email,
+                                    });
+                                }
+                            });
+                            n++;
+                        });
+                    }
+                    if (tagData.tag === 'customers') {
                         ApiUser.getUserList({
                             page: 0,
                             limit: 99999,
@@ -1146,7 +1163,7 @@ export class BgNotify {
                                         dataArray = dataArray.concat(data.response.extra.noRegisterUsers);
                                     }
                                     dataArray.map((user: any) => {
-                                        if (user.userData.email) {
+                                        if (user && user.userData.email) {
                                             list.push({
                                                 id: user.userID,
                                                 email: user.userData.email,
@@ -1214,10 +1231,11 @@ export class BgNotify {
         }
 
         function tagBadge(key: string, name: string, value: string) {
+            const formatName = value && value.length > 0 ? `${name}：${value}` : name;
             return {
-                name: `${name}：${value}`,
+                name: formatName,
                 html: html`<div class="c_filter_tag">
-                    ${name}：${value}
+                    ${formatName}
                     <i
                         class="fa-solid fa-xmark ms-1"
                         style="cursor: pointer"
@@ -1267,6 +1285,9 @@ export class BgNotify {
                                     dialog.infoMessage({ text: '目前無預計寄件的顧客' });
                                     return;
                                 }
+                                const userVM = {
+                                    dataList: [] as { key: string; value: string; note: string }[],
+                                };
                                 BgWidget.selectDropDialog({
                                     gvc: gvc,
                                     title: '預計寄件顧客',
@@ -1281,14 +1302,14 @@ export class BgNotify {
                                                 id: postData.userList.map((user) => user.id ?? 0).join(','),
                                             }).then((dd) => {
                                                 if (dd.response.data) {
-                                                    vm.dataList = dd.response.data.map((item: { userID: number; userData: { name: string; email: string } }) => {
+                                                    userVM.dataList = dd.response.data.map((item: { userID: number; userData: { name: string; email: string } }) => {
                                                         return {
                                                             key: item.userID,
                                                             value: item.userData.name,
                                                             note: item.userData.email,
                                                         };
                                                     });
-                                                    if (postData.userList.length > vm.dataList.length) {
+                                                    if (postData.userList.length > userVM.dataList.length) {
                                                         // 加入未註冊會員的信箱，例如有訂閱但未註冊者
                                                         const noRegisterUser = postData.userList
                                                             .filter((item) => {
@@ -1301,14 +1322,14 @@ export class BgNotify {
                                                                     note: item.email,
                                                                 };
                                                             });
-                                                        vm.dataList = vm.dataList.concat(noRegisterUser);
+                                                        userVM.dataList = userVM.dataList.concat(noRegisterUser);
                                                     }
-                                                    resolve(vm.dataList);
+                                                    resolve(userVM.dataList);
                                                 }
                                             });
                                         });
                                     },
-                                    style: 'width: 100%; background-position-x: 97.5%;',
+                                    style: 'width: 100%;',
                                     readonly: true,
                                 });
                             }),
@@ -1347,8 +1368,8 @@ export class BgNotify {
                                         [
                                             html` <div class="tx_700">選擇收件對象</div>`,
                                             html` <div class="tx_normal fw-normal mt-3">根據</div>`,
-                                            html`<div style="display: flex; gap: 18px;">
-                                                <div style="width: 400px;">
+                                            html`<div style="display: flex; ${document.body.clientWidth > 768 ? 'gap: 18px;' : 'flex-direction: column;'}">
+                                                <div style="width: ${document.body.clientWidth > 768 ? '400px' : '100%'};">
                                                     ${BgWidget.select({
                                                         gvc: gvc,
                                                         default: postData.tag,
@@ -1369,7 +1390,7 @@ export class BgNotify {
                                                                 const data = postData.tagList.find((data) => data.tag === postData.tag);
                                                                 return data ? data.filter : def;
                                                             };
-                                                            const callback = (value: any) => {
+                                                            const callback = (value?: any) => {
                                                                 if (typeof value === 'string' || typeof value === 'number') {
                                                                     const intFiltter = parseInt(`${value}`, 10);
                                                                     value = intFiltter > 0 ? intFiltter : 0;
@@ -1382,6 +1403,35 @@ export class BgNotify {
                                                                 filterEvent(value);
                                                             };
                                                             switch (postData.tag) {
+                                                                case 'all':
+                                                                    dialog.dataLoading({ visible: true, text: '取得所有會員資料中...' });
+                                                                    new Promise((resolve) => {
+                                                                        ApiUser.getUserListOrders({
+                                                                            page: 0,
+                                                                            limit: 99999,
+                                                                        }).then((dd) => {
+                                                                            if (dd.response.data) {
+                                                                                const ids: number[] = [];
+                                                                                vm.dataList = dd.response.data
+                                                                                    .filter((item: { userData: { email: string } }) => {
+                                                                                        return item.userData.email && item.userData.email.length > 0;
+                                                                                    })
+                                                                                    .map((item: { userID: number; userData: { name: string; email: string } }) => {
+                                                                                        ids.push(item.userID);
+                                                                                        return {
+                                                                                            key: item.userID,
+                                                                                            value: item.userData.name ?? '（尚無姓名）',
+                                                                                            note: item.userData.email,
+                                                                                        };
+                                                                                    });
+                                                                                resolve(ids);
+                                                                            }
+                                                                        });
+                                                                    }).then((data) => {
+                                                                        dialog.dataLoading({ visible: false });
+                                                                        callback(data);
+                                                                    });
+                                                                    return '';
                                                                 case 'level':
                                                                 case 'group':
                                                                 case 'birth':
@@ -1391,9 +1441,9 @@ export class BgNotify {
                                                                         default: getDefault([]),
                                                                         options: vm.loading ? [] : vm.dataList,
                                                                         placeholder: vm.loading ? '資料載入中...' : undefined,
-                                                                        style: 'margin: 8px 0; width: 100%; background-position-x: 97.5%;',
+                                                                        style: 'margin: 8px 0; width: 100%;',
                                                                     });
-                                                                case 'allCustomer':
+                                                                case 'customers':
                                                                     return BgWidget.grayButton(
                                                                         '點擊選取顧客',
                                                                         gvc.event(() => {
@@ -1429,7 +1479,7 @@ export class BgNotify {
                                                                                         });
                                                                                     });
                                                                                 },
-                                                                                style: 'width: 100%; background-position-x: 97.5%;',
+                                                                                style: 'width: 100%;',
                                                                             });
                                                                         }),
                                                                         { textStyle: 'font-weight: 400;' }

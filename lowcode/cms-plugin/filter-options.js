@@ -288,7 +288,8 @@ FilterOptions.emailSelect = [
 ];
 FilterOptions.emailOptions = [
     { key: 'def', value: '請選擇根據的條件' },
-    { key: 'allCustomer', value: '指定顧客' },
+    { key: 'all', value: '所有會員' },
+    { key: 'customers', value: '指定會員' },
     { key: 'level', value: '會員等級' },
     { key: 'group', value: '顧客分群' },
     { key: 'birth', value: '顧客生日月份' },

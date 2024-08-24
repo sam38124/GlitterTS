@@ -44,13 +44,12 @@ class Shopping {
                 }
             }
             query.id && querySql.push(`id = ${query.id}`);
-            if (!query.is_manger && (`${query.show_hidden}` !== 'true')) {
+            if (!query.is_manger && `${query.show_hidden}` !== 'true') {
                 querySql.push(`(content->>'$.visible' is null || content->>'$.visible' = 'true')`);
             }
             if (query.collection) {
-                const collection_cf = (await database_js_1.default.query(`SELECT *
-                                                       FROM \`${this.app}\`.public_config
-                                                       where \`key\` = 'collection';`, []))[0]['value'];
+                const collection_cf = (await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.public_config where \`key\` = 'collection';
+                        `, []))[0]['value'];
                 query.collection = decodeURI(query.collection);
                 query.collection = query.collection
                     .split(',')
@@ -510,7 +509,7 @@ class Shopping {
                 if (linkList.data.length > 0) {
                     const content = linkList.data[0].content;
                     if (checkDuring(content)) {
-                        carData.distribution_id = content.voucher;
+                        carData.distribution_info = content;
                     }
                 }
             }
@@ -546,8 +545,8 @@ class Shopping {
                     forKey: [],
                     method: data.voucher.method,
                     overlay: false,
-                    reBackType: data.voucher.reBackType,
                     rebate_total: data.voucher.rebate_total,
+                    reBackType: data.voucher.reBackType,
                     rule: 'min_price',
                     ruleValue: 0,
                     startDate: '',
@@ -561,6 +560,11 @@ class Shopping {
                     type: 'voucher',
                     value: data.voucher.value,
                     id: data.voucher.id,
+                    bind: [],
+                    bind_subtotal: 0,
+                    times: 1,
+                    counting: 'single',
+                    conditionType: 'item',
                 };
                 carData.discount = data.discount;
                 carData.voucherList = [tempVoucher];
@@ -758,13 +762,19 @@ class Shopping {
         }
     }
     async createReturnOrder(data) {
-        let returnOrderID = this.generateOrderID();
-        let orderID = data.cart_token;
-        let email = data.email;
-        return await database_js_1.default.execute(`INSERT INTO \`${this.app}\`.t_return_order (order_id, return_order_id, email, orderData)
+        try {
+            let returnOrderID = this.generateOrderID();
+            let orderID = data.cart_token;
+            let email = data.email;
+            return await database_js_1.default.execute(`INSERT INTO \`${this.app}\`.t_return_order (order_id, return_order_id, email, orderData)
              values (?, ?, ?, ?)`, [orderID, returnOrderID, email, data.orderData]);
+        }
+        catch (e) {
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'createReturnOrder Error:' + e, null);
+        }
     }
     async putReturnOrder(data) {
+<<<<<<< HEAD
         let origData = await database_js_1.default.execute(`SELECT *
                        FROM \`${this.app}\`.t_return_order
                        WHERE id = ${data.id}`, []);
@@ -776,17 +786,33 @@ class Shopping {
             console.log("fin --- ");
             console.log(await rebateClass.insertRebate(userData.userID, data.orderData.rebateChange, `退貨單調整-退貨單號${origData.return_order_id}`));
         }
+=======
+>>>>>>> 7bd88d4f3e43c715623d3ed076b23a6d8f56cbcb
         try {
-            await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_return_order\`
-                 set ?
-                 WHERE id = ?`, [{ status: data.status, orderData: JSON.stringify(data.orderData) }, data.id]);
+            const getData = await database_js_1.default.execute(`SELECT * FROM \`${this.app}\`.t_return_order WHERE id = ${data.id}
+                    `, []);
+            if (getData[0]) {
+                const origData = getData[0];
+                if (origData.status != '1' && origData.orderData.returnProgress != '-1' && data.orderData.returnProgress == '-1' && data.status == '1') {
+                    const userClass = new user_js_1.User(this.app);
+                    const rebateClass = new rebate_js_1.Rebate(this.app);
+                    const userData = await userClass.getUserData(data.orderData.customer_info.email, 'account');
+                    await rebateClass.insertRebate(userData.userID, data.orderData.rebateChange, `退貨單調整-退貨單號${origData.return_order_id}`);
+                }
+                await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_return_order\` SET ? WHERE id = ?
+                    `, [{ status: data.status, orderData: JSON.stringify(data.orderData) }, data.id]);
+                return {
+                    result: 'success',
+                    orderData: data,
+                };
+            }
             return {
-                result: 'success',
+                result: 'failure',
                 orderData: data,
             };
         }
         catch (e) {
-            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'putOrder Error:' + e, null);
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'putReturnOrder Error:' + e, null);
         }
     }
     async formatUseRebate(total, useRebate) {
@@ -842,10 +868,34 @@ class Shopping {
             dd.discount_price = 0;
             dd.rebate = 0;
         });
+        function switchValidProduct(caseName, caseList) {
+            switch (caseName) {
+                case 'collection':
+                    return cart.lineItems.filter((dp) => {
+                        return (caseList.filter((d1) => {
+                            return dp.collection.find((d2) => {
+                                return d2 === d1;
+                            });
+                        }).length > 0);
+                    });
+                case 'product':
+                    return cart.lineItems.filter((dp) => {
+                        return (caseList
+                            .map((d2) => {
+                            return `${d2}`;
+                        })
+                            .indexOf(`${dp.id}`) !== -1);
+                    });
+                case 'all':
+                    return cart.lineItems;
+            }
+            return [];
+        }
         const userData = await userClass.getUserData(cart.email, 'account');
         if (!userData || !userData.userID) {
             return;
         }
+        const userLevels = await userClass.getUserLevel([{ email: cart.email }]);
         const allVoucher = (await this.querySql([`(content->>'$.type'='voucher')`], {
             page: 0,
             limit: 10000,
@@ -856,70 +906,29 @@ class Shopping {
             .filter((dd) => {
             return new Date(dd.start_ISO_Date).getTime() < new Date().getTime() && (!dd.end_ISO_Date || new Date(dd.end_ISO_Date).getTime() > new Date().getTime());
         });
-        const pass_voucher_id = [];
+        const pass_ids = [];
         for (const voucher of allVoucher) {
             const checkLimited = await this.checkVoucherLimited(userData.userID, voucher.id);
             if (!checkLimited) {
                 continue;
             }
-            pass_voucher_id.push(voucher.id);
+            pass_ids.push(voucher.id);
         }
         let overlay = false;
         const groupList = await userClass.getUserGroups();
         const voucherList = allVoucher
             .filter((dd) => {
-            return pass_voucher_id.includes(dd.id);
-        })
-            .filter((dd) => {
-            let item = [];
-            switch (dd.for) {
-                case 'collection':
-                    item = cart.lineItems.filter((dp) => {
-                        return (dd.forKey.filter((d1) => {
-                            return dp.collection.find((d2) => {
-                                return d2 === d1;
-                            });
-                        }).length > 0);
-                    });
-                    dd.bind = item;
-                    return item.length > 0;
-                case 'product':
-                    item = cart.lineItems.filter((dp) => {
-                        return (dd.forKey
-                            .map((dd) => {
-                            return `${dd}`;
-                        })
-                            .indexOf(`${dp.id}`) !== -1);
-                    });
-                    dd.bind = item;
-                    return item.length > 0;
-                case 'all':
-                    item = cart.lineItems;
-                    dd.bind = item;
-                    return item.length > 0;
-            }
-        })
-            .filter((dd) => {
-            return dd.trigger === 'auto' || dd.code === `${cart.code}` || (dd.trigger === 'distribution' && cart.distribution_id === dd.id);
-        })
-            .filter((dd) => {
-            const ruleValue = parseInt(`${dd.ruleValue}`, 10);
-            if (dd.rule === 'min_count') {
-                return cart.lineItems.length >= ruleValue;
-            }
-            let subtotal = 0;
-            cart.lineItems.map((item) => {
-                subtotal += item.count * item.sale_price;
-            });
-            return subtotal >= ruleValue;
+            return pass_ids.includes(dd.id);
         })
             .filter((dd) => {
             if (dd.target === 'customer') {
                 return dd.targetList.includes(userData.userID);
             }
             if (dd.target === 'levels') {
-                const level = userData.member.find((dd) => dd.trigger);
-                return level && dd.targetList.includes(level.id);
+                if (userLevels[0]) {
+                    return dd.targetList.includes(userLevels[0].data.id);
+                }
+                return false;
             }
             if (dd.target === 'group') {
                 if (!groupList.result) {
@@ -935,27 +944,99 @@ class Shopping {
             }
             return true;
         })
+            .filter((dd) => {
+            dd.bind = [];
+            switch (dd.trigger) {
+                case 'auto':
+                    dd.bind = switchValidProduct(dd.for, dd.forKey);
+                    break;
+                case 'code':
+                    if (dd.code === `${cart.code}`) {
+                        dd.bind = switchValidProduct(dd.for, dd.forKey);
+                    }
+                    break;
+                case 'distribution':
+                    if (cart.distribution_info && cart.distribution_info.voucher === dd.id) {
+                        dd.bind = switchValidProduct(cart.distribution_info.relative, cart.distribution_info.relative_data);
+                    }
+                    break;
+            }
+            return dd.bind.length > 0;
+        })
+            .filter((dd) => {
+            dd.times = 0;
+            dd.bind_subtotal = 0;
+            const ruleValue = parseInt(`${dd.ruleValue}`, 10);
+            if (dd.conditionType === 'order') {
+                let cartValue = 0;
+                dd.bind.map((item) => {
+                    dd.bind_subtotal += item.count * item.sale_price;
+                });
+                if (dd.rule === 'min_price') {
+                    cartValue = dd.bind_subtotal;
+                }
+                if (dd.rule === 'min_count') {
+                    dd.bind.map((item) => {
+                        cartValue += item.count;
+                    });
+                }
+                if (dd.reBackType === 'shipment_free') {
+                    return cartValue >= ruleValue;
+                }
+                if (cartValue >= ruleValue) {
+                    if (dd.counting === 'each') {
+                        dd.times = Math.floor(cartValue / ruleValue);
+                    }
+                    if (dd.counting === 'single') {
+                        dd.times = 1;
+                    }
+                }
+                return dd.times > 0;
+            }
+            if (dd.conditionType === 'item') {
+                if (dd.rule === 'min_price') {
+                    dd.bind = dd.bind.filter((item) => {
+                        item.times = 0;
+                        if (item.count * item.sale_price >= ruleValue) {
+                            if (dd.counting === 'each') {
+                                item.times = Math.floor((item.count * item.sale_price) / ruleValue);
+                            }
+                            if (dd.counting === 'single') {
+                                item.times = 1;
+                            }
+                        }
+                        return item.times > 0;
+                    });
+                }
+                if (dd.rule === 'min_count') {
+                    dd.bind = dd.bind.filter((item) => {
+                        item.times = 0;
+                        if (item.count >= ruleValue) {
+                            if (dd.counting === 'each') {
+                                item.times = Math.floor(item.count / ruleValue);
+                            }
+                            if (dd.counting === 'single') {
+                                item.times = 1;
+                            }
+                        }
+                        return item.times > 0;
+                    });
+                }
+                return dd.bind.reduce((acc, item) => acc + item.times, 0) > 0;
+            }
+            return false;
+        })
             .sort(function (a, b) {
-            let compareB = b
-                .bind.map((dd) => {
-                if (b.reBackType === 'shipment_free') {
-                    return dd.shipment_fee;
-                }
-                else {
-                    return b.method === 'percent' ? (dd.sale_price * parseFloat(b.value)) / 100 : parseFloat(b.value);
-                }
+            let compareB = b.bind
+                .map((dd) => {
+                return b.method === 'percent' ? (dd.sale_price * parseFloat(b.value)) / 100 : parseFloat(b.value);
             })
                 .reduce(function (accumulator, currentValue) {
                 return accumulator + currentValue;
             }, 0);
-            let compareA = a
-                .bind.map((dd) => {
-                if (a.reBackType === 'shipment_free') {
-                    return dd.shipment_fee;
-                }
-                else {
-                    return a.method === 'percent' ? (dd.sale_price * parseFloat(a.value)) / 100 : parseFloat(a.value);
-                }
+            let compareA = a.bind
+                .map((dd) => {
+                return a.method === 'percent' ? (dd.sale_price * parseFloat(a.value)) / 100 : parseFloat(a.value);
             })
                 .reduce(function (accumulator, currentValue) {
                 return accumulator + currentValue;
@@ -973,47 +1054,100 @@ class Shopping {
             var _a, _b;
             dd.discount_total = (_a = dd.discount_total) !== null && _a !== void 0 ? _a : 0;
             dd.rebate_total = (_b = dd.rebate_total) !== null && _b !== void 0 ? _b : 0;
-            dd.bind = dd.bind.filter((d2) => {
-                if (dd.reBackType === 'shipment_free') {
-                    cart.shipment_fee -= d2.shipment_fee;
-                    cart.total -= d2.shipment_fee;
-                    return true;
+            if (dd.reBackType === 'shipment_free') {
+                return true;
+            }
+            const disValue = dd.method === 'percent' ? parseFloat(dd.value) / 100 : parseFloat(dd.value);
+            if (dd.conditionType === 'order') {
+                if (dd.method === 'fixed') {
+                    dd.discount_total = disValue * dd.times;
                 }
-                else {
-                    let discount = dd.method === 'percent' ? (d2.sale_price * parseFloat(dd.value)) / 100 : parseFloat(dd.value);
-                    if (d2.discount_price + discount < d2.sale_price) {
-                        if (dd.reBackType === 'rebate') {
-                            d2.rebate += discount;
-                            cart.rebate += discount * d2.count;
-                            dd.rebate_total += discount * d2.count;
+                if (dd.method === 'percent') {
+                    dd.discount_total = dd.bind_subtotal * disValue;
+                }
+                if (dd.bind_subtotal >= dd.discount_total) {
+                    let remain = parseInt(`${dd.discount_total}`, 10);
+                    dd.bind.map((d2, index) => {
+                        let discount = 0;
+                        if (index === dd.bind.length - 1) {
+                            discount = remain;
                         }
                         else {
-                            d2.discount_price += discount;
-                            cart.discount += discount * d2.count;
-                            dd.discount_total += discount * d2.count;
+                            discount = Math.floor(remain * ((d2.sale_price * d2.count) / dd.bind_subtotal));
                         }
-                        return true;
-                    }
-                    else {
-                        return false;
-                    }
+                        if (discount > 0 && discount <= d2.sale_price * d2.count) {
+                            if (dd.reBackType === 'rebate') {
+                                d2.rebate += discount / d2.count;
+                                cart.rebate += discount;
+                                dd.rebate_total += discount;
+                            }
+                            else {
+                                d2.discount_price += discount / d2.count;
+                                cart.discount += discount;
+                                dd.discount_total += discount;
+                            }
+                        }
+                        if (remain - discount > 0) {
+                            remain -= discount;
+                        }
+                        else {
+                            remain = 0;
+                        }
+                    });
+                    return true;
                 }
-            });
+                return false;
+            }
+            if (dd.conditionType === 'item') {
+                if (dd.method === 'fixed') {
+                    dd.bind = dd.bind.filter((d2) => {
+                        const discount = disValue * d2.times;
+                        if (discount <= d2.sale_price * d2.count) {
+                            if (dd.reBackType === 'rebate') {
+                                d2.rebate += discount / d2.count;
+                                cart.rebate += discount;
+                                dd.rebate_total += discount;
+                            }
+                            else {
+                                d2.discount_price += discount / d2.count;
+                                cart.discount += discount;
+                                dd.discount_total += discount;
+                            }
+                            return true;
+                        }
+                        return false;
+                    });
+                }
+                if (dd.method === 'percent') {
+                    dd.bind = dd.bind.filter((d2) => {
+                        const discount = Math.floor(d2.sale_price * d2.count * disValue);
+                        if (discount <= d2.sale_price * d2.count) {
+                            if (dd.reBackType === 'rebate') {
+                                d2.rebate += discount / d2.count;
+                                cart.rebate += discount;
+                                dd.rebate_total += discount;
+                            }
+                            else {
+                                d2.discount_price += discount / d2.count;
+                                cart.discount += discount;
+                                dd.discount_total += discount;
+                            }
+                            return true;
+                        }
+                        return false;
+                    });
+                }
+            }
             return dd.bind.length > 0;
         });
-        if (!voucherList.find((d2) => {
-            return d2.code === `${cart.code}`;
-        })) {
+        if (!voucherList.find((d2) => d2.code === `${cart.code}`)) {
             cart.code = undefined;
         }
-        if (voucherList.find((d2) => {
-            return d2.reBackType === 'shipment_free';
-        })) {
-            const basic = 0;
-            cart.shipment_fee = cart.shipment_fee - basic;
-            cart.total -= basic;
+        if (voucherList.find((d2) => d2.reBackType === 'shipment_free')) {
+            cart.total -= cart.shipment_fee;
+            cart.shipment_fee = 0;
         }
-        cart.total = cart.total - cart.discount;
+        cart.total -= cart.discount;
         cart.voucherList = voucherList;
     }
     async putOrder(data) {
@@ -1025,9 +1159,7 @@ class Shopping {
             if (data.orderData) {
                 update.orderData = JSON.stringify(data.orderData);
             }
-            const origin = await database_js_1.default.query(`SELECT *
-                 FROM \`${this.app}\`.t_checkout
-                 WHERE id = ?;
+            const origin = await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_checkout WHERE id = ?;
                 `, [data.id]);
             if (update.orderData && JSON.parse(update.orderData)) {
                 const updateProgress = JSON.parse(update.orderData).progress;
@@ -1041,9 +1173,7 @@ class Shopping {
                     await this.releaseCheckout(1, data.orderData.orderID);
                 }
             }
-            await database_js_1.default.query(`UPDATE \`${this.app}\`.t_checkout
-                 SET ?
-                 WHERE id = ?
+            await database_js_1.default.query(`UPDATE \`${this.app}\`.t_checkout SET ? WHERE id = ?
                 `, [update, data.id]);
             return {
                 result: 'success',
@@ -1906,14 +2036,21 @@ class Shopping {
         try {
             content.type = 'product';
             this.checkVariantDataType(content.variants);
-            const data = await database_js_1.default.query(`INSERT INTO \`${this.app}\`.\`t_manager_post\`
-                 SET ?`, [
+            const data = await database_js_1.default.query(`INSERT INTO \`${this.app}\`.\`t_manager_post\` SET ?
+                `, [
                 {
                     userID: (_a = this.token) === null || _a === void 0 ? void 0 : _a.userID,
                     content: JSON.stringify(content),
                 },
             ]);
             content.id = data.insertId;
+            await database_js_1.default.query(`update \`${this.app}\`.\`t_manager_post\` SET ? where id = ?
+                `, [
+                {
+                    content: JSON.stringify(content),
+                },
+                content.id,
+            ]);
             await new Shopping(this.app, this.token).postVariantsAndPriceValue(content);
             return data.insertId;
         }

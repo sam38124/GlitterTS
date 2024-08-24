@@ -1,4 +1,15 @@
 import { IToken } from '../models/Auth.js';
+type BindItem = {
+    id: string;
+    spec: string[];
+    count: number;
+    sale_price: number;
+    collection: string[];
+    discount_price: number;
+    rebate: number;
+    shipment_fee: number;
+    times: number;
+};
 interface VoucherData {
     id: number;
     title: string;
@@ -8,6 +19,8 @@ interface VoucherData {
     value: string;
     for: 'collection' | 'product' | 'all';
     rule: 'min_price' | 'min_count';
+    conditionType: 'order' | 'item';
+    counting: 'each' | 'single';
     forKey: string[];
     ruleValue: number;
     startDate: string;
@@ -18,16 +31,9 @@ interface VoucherData {
     type: 'voucher';
     code?: string;
     overlay: boolean;
-    bind?: {
-        id: string;
-        spec: string[];
-        count: number;
-        sale_price: number;
-        collection: string[];
-        discount_price: number;
-        rebate: number;
-        shipment_fee: number;
-    }[];
+    bind: BindItem[];
+    bind_subtotal: number;
+    times: number;
     start_ISO_Date: string;
     end_ISO_Date: string;
     discount_total: number;
@@ -47,6 +53,20 @@ type Collection = {
     seo_content: string;
     seo_image: string;
     code: string;
+};
+type CartItem = {
+    id: string;
+    spec: string[];
+    count: number;
+    sale_price: number;
+    collection: string[];
+    title: string;
+    preview_image: string;
+    shipment_obj: {
+        type: string;
+        value: number;
+    };
+    discount_price?: number;
 };
 export declare class Shopping {
     app: string;
@@ -151,20 +171,7 @@ export declare class Shopping {
     }, type?: 'add' | 'preview' | 'manual' | 'manual-preview' | 'POS', replace_order_id?: string): Promise<{
         data: {
             customer_info: any;
-            lineItems: {
-                id: string;
-                spec: string[];
-                count: number;
-                sale_price: number;
-                collection: string[];
-                title: string;
-                preview_image: string;
-                shipment_obj: {
-                    type: string;
-                    value: number;
-                };
-                discount_price?: number;
-            }[];
+            lineItems: CartItem[];
             discount?: number | undefined;
             total: number;
             email: string;
@@ -187,6 +194,7 @@ export declare class Shopping {
             voucherList?: VoucherData[] | undefined;
             custom_form_format?: any;
             custom_form_data?: any;
+<<<<<<< HEAD
             distribution_id?: number | undefined;
             orderSource: string;
             realTotal: number;
@@ -241,6 +249,9 @@ export declare class Shopping {
             distribution_id?: number | undefined;
             orderSource: string;
             realTotal: number;
+=======
+            distribution_info?: any;
+>>>>>>> 7bd88d4f3e43c715623d3ed076b23a6d8f56cbcb
         };
         is_free?: undefined;
         return_url?: undefined;
@@ -327,8 +338,12 @@ export declare class Shopping {
         user_info: any;
         shipment_fee: number;
         voucherList?: VoucherData[];
+        distribution_info?: {
+            voucher: number;
+            relative: 'collection' | 'product' | 'all';
+            relative_data: string[];
+        };
         code?: string;
-        distribution_id?: number;
     }): Promise<void>;
     putOrder(data: {
         id: string;

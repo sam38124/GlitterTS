@@ -2,13 +2,13 @@ import db from './modules/database';
 
 export class UpdateScript {
     public static async run() {
-        const migrate_template = (await db.query('SELECT appName FROM glitter.app_config where template_type!=0;', [])).map((dd: any) => {
-            return dd.appName
-        }).concat(['shop-template-clothing-v3'])
+        // const migrate_template = (await db.query('SELECT appName FROM glitter.app_config where template_type!=0;', [])).map((dd: any) => {
+        //     return dd.appName
+        // }).concat(['shop-template-clothing-v3'])
         // UpdateScript.migrateTermsOfService(['3131_shop', 't_1717152410650', 't_1717141688550', 't_1717129048727', 't_1719819344426'])
-        UpdateScript.migrateHeaderAndFooterAndCollection(migrate_template.filter((dd:any)=>{
-            return dd !=='t_1719819344426'
-        }))
+        // UpdateScript.migrateHeaderAndFooterAndCollection(migrate_template.filter((dd:any)=>{
+        //     return dd !=='t_1719819344426'
+        // }))
         // UpdateScript.migrateAccount('shop_template_black_style')
         // await UpdateScript.migrateLink(migrate_template)
         //  await UpdateScript.migrateHeaderAndFooter(migrate_template)
@@ -25,8 +25,19 @@ export class UpdateScript {
         //     return dd !=='t_1719819344426'
         // }))
         // await this.migrateHomePageFooter(migrate_template)
+        await this.migrate_blogs_toPage()
     }
 
+    public static async migrate_blogs_toPage(){
+       const blogs=await db.query(`SELECT * FROM shopnex.t_manager_post where content->>'$.for_index'='false' and content->>'$.page_type'='blog'`,[])
+        for (const b of blogs){
+            b.content.page_type='page'
+            await db.query(`update shopnex.t_manager_post set content=? where id=?`,[
+JSON.stringify(b.content),
+                b.id
+            ])
+        }
+    }
     public static async migrateHomePageFooter(appList: string[]) {
 
         for (const b of appList) {

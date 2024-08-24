@@ -6,28 +6,6 @@ import { EditorElem } from '../../glitterBundle/plugins/editor-elem.js';
 export class FormModule {
     public static editor(gvc: GVC, data: any, title: string, update?: () => void) {
         const html = String.raw;
-        const option = [
-            {
-                icon: '<i class="fa-solid fa-text me-3"></i>',
-                title: `輸入框`,
-                key: 'input',
-            },
-            {
-                icon: `<i class="fa-regular fa-square-chevron-down me-3"></i>`,
-                title: `下拉選單`,
-                key: 'form-select',
-            },
-            {
-                icon: `<i class="fa-regular fa-circle-dot me-3"></i>`,
-                title: `單選`,
-                key: 'check_box',
-            },
-            {
-                icon: `<i class="fa-solid fa-square-check me-3"></i>`,
-                title: `多選`,
-                key: 'mutiple_select',
-            },
-        ];
         const vm: {
             id: string;
             add_btn: boolean;
@@ -37,6 +15,29 @@ export class FormModule {
             add_btn: false,
             data: data,
         };
+        const option = [
+            {
+                icon: '<i class="fa-solid fa-text me-3"></i>',
+                title: '輸入框',
+                key: 'input',
+            },
+            {
+                icon: '<i class="fa-regular fa-square-chevron-down me-3"></i>',
+                title: '下拉選單',
+                key: 'form-select',
+            },
+            {
+                icon: '<i class="fa-regular fa-circle-dot me-3"></i>',
+                title: '單選',
+                key: 'check_box',
+            },
+            {
+                icon: '<i class="fa-solid fa-square-check me-3"></i>',
+                title: '多選',
+                key: 'mutiple_select',
+            },
+        ];
+
         return [
             title,
             gvc.bindView(() => {
@@ -57,7 +58,7 @@ export class FormModule {
                                 const opc = option.find((d1) => {
                                     return d1.key === dd.page;
                                 })!;
-                                return html`<li class="w-100 border rounded-3   mb-2" style="overflow: hidden;">
+                                return html`<li class="w-100 border rounded-3 mb-2" style="overflow: hidden;">
                                     <div
                                         class="d-flex align-items-center w-100 py-2"
                                         style="padding-left: 20px; padding-right: 20px;background: #F7F7F7;cursor: pointer;overflow: hidden;"
@@ -80,7 +81,7 @@ export class FormModule {
                                                           case 'input':
                                                               return [
                                                                   EditorElem.select({
-                                                                      title: '<div class="tx_normal fw-normal" >資料類型</div>',
+                                                                      title: html`<div class="tx_normal fw-normal">資料類型</div>`,
                                                                       gvc: gvc,
                                                                       callback: (value) => {
                                                                           dd.form_config.type = value;
@@ -313,12 +314,12 @@ export class FormModule {
                                                                   </div>`,
                                                               ].join('<div class="my-2"></div>');
                                                           default:
-                                                              return ``;
+                                                              return '';
                                                       }
                                                   })()}
                                               </div>
                                           `
-                                        : ``}
+                                        : ''}
                                 </li>`;
                             })
                             .join('');
@@ -326,7 +327,7 @@ export class FormModule {
                     divCreate: {
                         elem: 'ul',
                         option: [{ key: 'id', value: vm.id }],
-                        class: ``,
+                        class: '',
                     },
                     onCreate: () => {
                         const interval = setInterval(() => {
@@ -337,14 +338,12 @@ export class FormModule {
                                         arr.splice(index1, 1);
                                         arr.splice(index2, 0, data);
                                     }
-
                                     let startIndex = 0;
                                     //@ts-ignore
                                     Sortable.create(document.getElementById(vm.id), {
                                         group: gvc.glitter.getUUID(),
                                         animation: 100,
                                         handle: '.dragItem',
-                                        // Called when dragging element changes position
                                         onChange: function (evt: any) {},
                                         onStart: function (evt: any) {
                                             startIndex = evt.oldIndex;
@@ -360,10 +359,10 @@ export class FormModule {
                     },
                 };
             }),
-            BgWidget.plus_btn(
-                '新增一個欄位',
-                gvc,
-                option.map((dd: any, index) => {
+            BgWidget.plusButton({
+                gvc: gvc,
+                title: '新增一個欄位',
+                options: option.map((dd: any) => {
                     dd.callback = () => {
                         switch (dd.key) {
                             case 'input':
@@ -552,8 +551,8 @@ export class FormModule {
                         gvc.notifyDataChange(vm.id);
                     };
                     return dd;
-                }) as any
-            ),
+                }) as any,
+            }),
         ].join('<div class="my-3"></div>');
     }
 }

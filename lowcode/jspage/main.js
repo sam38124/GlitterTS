@@ -35,9 +35,11 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
         .hoverHidden div {
             display: none;
         }
+
         .hoverHidden:hover div {
             display: flex;
         }
+
         .tooltip {
             z-index: 99999 !important;
         }
@@ -101,6 +103,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
             }
         }
     `);
+    Storage.lastSelect = '';
     const swal = new Swal(gvc);
     const viewModel = {
         saveArray: {},
@@ -351,7 +354,8 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                     ];
                     for (const a of waitSave) {
                         if (!(yield a())) {
-                            swal.nextStep(`伺服器錯誤`, () => { }, 'error');
+                            swal.nextStep(`伺服器錯誤`, () => {
+                            }, 'error');
                             return;
                         }
                     }
@@ -417,8 +421,10 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                         view.push(NormalPageEditor.leftNav(gvc));
                         try {
                             const doc = new Editor(gvc, viewModel);
-                            view.push(doc.create(html ` <div class="d-flex overflow-hidden border-end" style="height:100vh;background:white;">
-                                        ${gvc.bindView(() => {
+                            view.push(doc.create(html `
+                                        <div class="d-flex overflow-hidden border-end"
+                                             style="height:100vh;background:white;">
+                                            ${gvc.bindView(() => {
                                 return {
                                     bind: 'left_sm_bar',
                                     view: () => {
@@ -441,21 +447,21 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                         ]
                                             .map((da) => {
                                             return html `<i
-                                                                class=" ${da.src} fs-5 fw-bold   p-2 rounded"
-                                                                data-bs-toggle="tooltip"
-                                                                data-bs-placement="top"
-                                                                data-bs-custom-class="custom-tooltip"
-                                                                data-bs-title="${da.hint}"
-                                                                style="cursor:pointer;
+                                                                            class=" ${da.src} fs-5 fw-bold   p-2 rounded"
+                                                                            data-bs-toggle="tooltip"
+                                                                            data-bs-placement="top"
+                                                                            data-bs-custom-class="custom-tooltip"
+                                                                            data-bs-title="${da.hint}"
+                                                                            style="cursor:pointer;
 ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.editor_layout.btn_background};color:white;` : ``}
 "
-                                                                onclick="${gvc.event(() => {
+                                                                            onclick="${gvc.event(() => {
                                                 viewModel.waitCopy = undefined;
                                                 viewModel.selectItem = undefined;
                                                 Storage.page_setting_item = da.index;
                                                 gvc.notifyDataChange(editorContainerID);
                                             })}"
-                                                            ></i>`;
+                                                                    ></i>`;
                                         })
                                             .join('')}`;
                                     },
@@ -465,8 +471,8 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
                                     },
                                 };
                             })}
-                                        <div
-                                            class="offcanvas-body swiper scrollbar-hover  w-120 ${(() => {
+                                            <div
+                                                    class="offcanvas-body swiper scrollbar-hover  w-120 ${(() => {
                                 switch (Storage.select_function) {
                                     case 'backend-manger':
                                     case 'server-manager':
@@ -477,10 +483,10 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
                                         return `p-0`;
                                 }
                             })()}"
-                                            style="overflow-y: auto;overflow-x:hidden;height:calc(100vh - 56px);"
-                                        >
-                                            <div class="h-120" style="">
-                                                ${gvc.bindView(() => {
+                                                    style="overflow-y: auto;overflow-x:hidden;height:calc(100vh - 56px);"
+                                            >
+                                                <div class="h-120" style="">
+                                                    ${gvc.bindView(() => {
                                 return {
                                     bind: 'MainEditorLeft',
                                     view: () => {
@@ -509,7 +515,8 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
                                             }
                                         })();
                                         if (document.body.offsetWidth < 800) {
-                                            glitter.setDrawer(`<div class="bg-white vh-120 overflow-auto">${view}</div>`, () => { });
+                                            glitter.setDrawer(`<div class="bg-white vh-120 overflow-auto">${view}</div>`, () => {
+                                            });
                                             return ``;
                                         }
                                         else {
@@ -521,10 +528,10 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
                                     },
                                 };
                             })}
+                                                </div>
+                                                <div class="swiper-scrollbar end-0"></div>
                                             </div>
-                                            <div class="swiper-scrollbar end-0"></div>
-                                        </div>
-                                    </div>`, gvc.bindView({
+                                        </div>`, gvc.bindView({
                                 bind: 'MainEditorRight',
                                 view: () => {
                                     return ``;
@@ -564,7 +571,8 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
                 },
             });
         },
-        onCreate: () => { },
+        onCreate: () => {
+        },
     };
 });
 function initialEditor(gvc, viewModel) {
@@ -575,7 +583,8 @@ function initialEditor(gvc, viewModel) {
     const swal = new Swal(gvc);
     glitter.share.pastEvent = () => {
         if (!glitter.share.copycomponent) {
-            swal.nextStep(`請先複製元件`, () => { }, 'error');
+            swal.nextStep(`請先複製元件`, () => {
+            }, 'error');
             return;
         }
         let copy = JSON.parse(glitter.share.copycomponent);

@@ -9,7 +9,12 @@ import { ShoppingProductSetting } from './shopping-product-setting.js';
 import { Tool } from '../modules/tool.js';
 const html = String.raw;
 export class StockList {
-    static main(gvc, option = { title: '庫存管理', select_data: [], select_mode: false, filter_variants: [] }) {
+    static main(gvc, option = {
+        title: '庫存管理',
+        select_data: [],
+        select_mode: false,
+        filter_variants: [],
+    }) {
         const glitter = gvc.glitter;
         const vm = {
             id: glitter.getUUID(),
@@ -57,8 +62,8 @@ export class StockList {
                                     });
                                 },
                                 divCreate: {
-                                    class: `check-box-item`
-                                }
+                                    class: `check-box-item`,
+                                },
                             };
                         }),
                         value: gvc.bindView(() => {
@@ -79,25 +84,24 @@ export class StockList {
                                     });
                                 },
                                 divCreate: {
-                                    class: `check-box-item`
-                                }
+                                    class: `check-box-item`,
+                                },
                             };
                         }),
                     },
                     {
                         key: '商品名稱',
-                        value: html `
-                            <div class="d-flex align-items-center gap-3">
-                                ${BgWidget.validImageBox({
+                        value: html ` <div class="d-flex align-items-center gap-3">
+                            ${BgWidget.validImageBox({
                             gvc,
                             image: dd.product_content.preview_image[0],
                             width: 45,
                         })}
-                                <div class="d-flex flex-column">
-                                    <span class="tx_normal">${Tool.truncateString(dd.product_content.title)}</span>
-                                    ${BgWidget.grayNote(dd.variant_content.spec.length > 0 ? dd.variant_content.spec.join(' / ') : '單一規格')}
-                                </div>
-                            </div>`,
+                            <div class="d-flex flex-column">
+                                <span class="tx_normal">${Tool.truncateString(dd.product_content.title)}</span>
+                                ${BgWidget.grayNote(dd.variant_content.spec.length > 0 ? dd.variant_content.spec.join(' / ') : '單一規格', 'font-size: 16px;')}
+                            </div>
+                        </div>`,
                     },
                     {
                         key: '庫存單位（SKU）',
@@ -109,43 +113,43 @@ export class StockList {
                     },
                     {
                         key: '庫存數量',
-                        value: (option.select_mode) ? html `<span
-                                class="fs-7">${(_b = dd.variant_content.stock) !== null && _b !== void 0 ? _b : 0}</span>` : html `
-                            <div
-                                    style="width: 95px"
-                                    onclick="${gvc.event((e, event) => {
-                            event.stopPropagation();
-                        })}"
-                            >
-                                <input
-                                        class="form-control"
-                                        type="number"
-                                        min="0"
-                                        style="border-radius: 10px; border: 1px solid #DDD; padding-left: 18px;"
-                                        placeholder="請輸入數值"
-                                        onchange="${gvc.event((e) => {
-                            let n = parseInt(e.value, 10);
-                            if (n < 0) {
-                                e.value = 0;
-                                n = 0;
-                            }
-                            dd.variant_content.stock = n;
-                            dd.product_content.variants.map((variant) => {
-                                if (JSON.stringify(variant.spec) === JSON.stringify(dd.variant_content.spec)) {
-                                    variant.stock = n;
+                        value: option.select_mode
+                            ? html `<span class="fs-7">${(_b = dd.variant_content.stock) !== null && _b !== void 0 ? _b : 0}</span>`
+                            : html ` <div
+                                  style="width: 95px"
+                                  onclick="${gvc.event((e, event) => {
+                                event.stopPropagation();
+                            })}"
+                              >
+                                  <input
+                                      class="form-control"
+                                      type="number"
+                                      min="0"
+                                      style="border-radius: 10px; border: 1px solid #DDD; padding-left: 18px;"
+                                      placeholder="請輸入數值"
+                                      onchange="${gvc.event((e) => {
+                                let n = parseInt(e.value, 10);
+                                if (n < 0) {
+                                    e.value = 0;
+                                    n = 0;
                                 }
-                            });
-                            vm.dataList.map((item) => {
-                                if (item.product_id === dd.product_id) {
-                                    item.product_content = dd.product_content;
-                                }
-                            });
-                            vm.stockList[index] = n;
-                            gvc.notifyDataChange(vm.updateId);
-                        })}"
-                                        value="${(_c = dd.variant_content.stock) !== null && _c !== void 0 ? _c : 0}"
-                                />
-                            </div>`,
+                                dd.variant_content.stock = n;
+                                dd.product_content.variants.map((variant) => {
+                                    if (JSON.stringify(variant.spec) === JSON.stringify(dd.variant_content.spec)) {
+                                        variant.stock = n;
+                                    }
+                                });
+                                vm.dataList.map((item) => {
+                                    if (item.product_id === dd.product_id) {
+                                        item.product_content = dd.product_content;
+                                    }
+                                });
+                                vm.stockList[index] = n;
+                                gvc.notifyDataChange(vm.updateId);
+                            })}"
+                                      value="${(_c = dd.variant_content.stock) !== null && _c !== void 0 ? _c : 0}"
+                                  />
+                              </div>`,
                     },
                 ];
             });
@@ -189,7 +193,7 @@ export class StockList {
                                                 data: vmlist.collections.map((item) => {
                                                     return {
                                                         key: `${item.key}`,
-                                                        name: item.value
+                                                        name: item.value,
                                                     };
                                                 }),
                                             });
@@ -227,25 +231,19 @@ export class StockList {
                                         ];
                                         const filterTags = ListComp.getFilterTags(FilterOptions.stockFunnel).replace(/多少/g, '');
                                         if (document.body.clientWidth < 768) {
-                                            return html `
-                                                                        <div style="display: flex; align-items: center; gap: 10px; width: 100%; justify-content: space-between">
-                                                                            <div>${filterList[0]}</div>
-                                                                            <div style="display: flex;">
-                                                                                <div class="me-2">${filterList[2]}</div>
-                                                                                ${filterList[3]}
-                                                                            </div>
-                                                                        </div>
-                                                                        <div style="display: flex; margin-top: 8px;">
-                                                                            ${filterList[1]}
-                                                                        </div>
-                                                                        <div>${filterTags}</div>`;
+                                            return html ` <div style="display: flex; align-items: center; gap: 10px; width: 100%; justify-content: space-between">
+                                                                    <div>${filterList[0]}</div>
+                                                                    <div style="display: flex;">
+                                                                        <div class="me-2">${filterList[2]}</div>
+                                                                        ${filterList[3]}
+                                                                    </div>
+                                                                </div>
+                                                                <div style="display: flex; margin-top: 8px;">${filterList[1]}</div>
+                                                                <div>${filterTags}</div>`;
                                         }
                                         else {
-                                            return html `
-                                                                        <div style="display: flex; align-items: center; gap: 10px;">
-                                                                            ${filterList.join('')}
-                                                                        </div>
-                                                                        <div>${filterTags}</div>`;
+                                            return html ` <div style="display: flex; align-items: center; gap: 10px;">${filterList.join('')}</div>
+                                                                <div>${filterTags}</div>`;
                                         }
                                     },
                                     onCreate: () => {
@@ -290,7 +288,7 @@ export class StockList {
                                                 vmi.pageSize = Math.ceil(data.response.total / limit);
                                                 vm.dataList = data.response.data.filter((data) => {
                                                     return !option.filter_variants.find((dd) => {
-                                                        return dd === ([data.product_id].concat(data.variant_content.spec).join('-'));
+                                                        return dd === [data.product_id].concat(data.variant_content.spec).join('-');
                                                     });
                                                 });
                                                 vmi.data = getDatalist();
@@ -322,7 +320,9 @@ export class StockList {
                                                 view: () => {
                                                     const selCount = vm.dataList.filter((dd) => dd.checked).length;
                                                     option.select_data.splice(0, option.select_data.length);
-                                                    vm.dataList.filter((dd) => dd.checked).map((dd) => {
+                                                    vm.dataList
+                                                        .filter((dd) => dd.checked)
+                                                        .map((dd) => {
                                                         option.select_data.push(dd);
                                                     });
                                                     return BgWidget.selNavbar({
@@ -350,16 +350,15 @@ export class StockList {
                                 for (let i = 0; i < vm.stockList.length; i++) {
                                     const element = vm.stockList[i];
                                     if (element !== vm.stockOriginList[i]) {
-                                        return html `
-                                                            <div class="update-bar-container">
-                                                                ${BgWidget.cancel(gvc.event(() => {
+                                        return html ` <div class="update-bar-container">
+                                                        ${BgWidget.cancel(gvc.event(() => {
                                             gvc.notifyDataChange(vm.tableId);
                                         }))}
-                                                                ${BgWidget.save(gvc.event(() => {
+                                                        ${BgWidget.save(gvc.event(() => {
                                             const dialog = new ShareDialog(gvc.glitter);
                                             dialog.dataLoading({
                                                 text: '更新庫存中',
-                                                visible: true
+                                                visible: true,
                                             });
                                             ApiShop.putVariants({
                                                 data: vm.dataList,
@@ -375,7 +374,7 @@ export class StockList {
                                                 }
                                             });
                                         }))}
-                                                            </div>`;
+                                                    </div>`;
                                     }
                                 }
                                 return '';

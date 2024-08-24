@@ -1,10 +1,6 @@
-import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
-import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
 import { EditorConfig } from '../editor-config.js';
 import { GVC } from '../glitterBundle/GVController.js';
-import { ApiUser } from '../glitter-base/route/user.js';
 import { BgWidget } from '../backend-manager/bg-widget.js';
-import { ViewWidget } from './view-widget.js';
 
 export class WidgetManager {
     public static main(gvc: GVC, widget: any) {
@@ -28,13 +24,13 @@ export class WidgetManager {
                             <div class="d-flex w-100 align-items-start flex-column">
                                 ${BgWidget.title('元件樣式')}
                                 <div class="flex-fill"></div>
-                                ${BgWidget.hint_title('全館 (首頁,隱形賣場,一頁式網頁) 的標頭將預設為以下樣式')}
+                                ${BgWidget.grayNote('全館 (首頁,隱形賣場,一頁式網頁) 的標頭將預設為以下樣式')}
                             </div>
                             ${BgWidget.container(
                                 [
                                     BgWidget.mainCard(
                                         [
-                                            BgWidget.title_16('網站標頭'),
+                                            BgWidget.title('網站標頭', 'font-size: 16px;'),
                                             gvc.bindView(() => {
                                                 const id = gvc.glitter.getUUID();
                                                 return {
@@ -66,15 +62,18 @@ export class WidgetManager {
                                                                 tag: '',
                                                             },
                                                         ]
-                                                            .map((dd, index: number) => {
-                                                                return `<div class="p-2" style="width: 25%;min-width: 25%;"><div class="d-flex flex-column" style="gap:10px;justify-content: center;">
-<div class="rounded-3 shadow-sm" style="width: 100%;padding-bottom: 110%;background-image: url('${dd.img}');background-size: cover;background-repeat: no-repeat;background-position: center;"></div>
-<div class="w-100 d-flex align-items-center justify-content-center">
-<h3 class="my-auto tx_title" style="white-space: nowrap;font-size: 16px;font-weight: 500;">${dd.title}</h3>
-</div>
-</div>
-
-</div>`;
+                                                            .map((dd) => {
+                                                                return html`<div class="p-2" style="width: 25%;min-width: 25%;">
+                                                                    <div class="d-flex flex-column" style="gap:10px;justify-content: center;">
+                                                                        <div
+                                                                            class="rounded-3 shadow-sm"
+                                                                            style="width: 100%;padding-bottom: 110%;background-image: url('${dd.img}');background-size: cover;background-repeat: no-repeat;background-position: center;"
+                                                                        ></div>
+                                                                        <div class="w-100 d-flex align-items-center justify-content-center">
+                                                                            <h3 class="my-auto tx_title" style="white-space: nowrap;font-size: 16px;font-weight: 500;">${dd.title}</h3>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>`;
                                                             })
                                                             .join('');
                                                     },
@@ -87,7 +86,7 @@ export class WidgetManager {
                                         ].join('')
                                     ),
                                     BgWidget.mbContainer(240),
-                                ].join('<div style="margin-top: 24px;"></div>')
+                                ].join(BgWidget.mbContainer(24))
                             )}
                         `,
                         BgWidget.getContainerWidth()

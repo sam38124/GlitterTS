@@ -143,7 +143,8 @@ export class UserList {
                                           return BgWidget.title('顧客列表');
                                       })()}
                                       <div class="flex-fill"></div>
-                                      ${BgWidget.create_btn(
+                                      ${BgWidget.darkButton(
+                                          '新增',
                                           gvc.event(() => {
                                               vm.type = 'create';
                                           })
@@ -266,7 +267,6 @@ export class UserList {
                                                         }).then((data) => {
                                                             vmi.pageSize = Math.ceil(data.response.total / limit);
                                                             vm.dataList = data.response.data;
-
                                                             vmi.data = getDatalist();
                                                             vmi.callback();
                                                         });
@@ -807,7 +807,59 @@ export class UserList {
                                                                                 style="color: #4D86DB; text-decoration: underline;"
                                                                                 onclick="${gvc.event((e, ev) => {
                                                                                     ev.stopPropagation();
-                                                                                    console.log(1234);
+                                                                                    BgWidget.infoDialog({
+                                                                                        gvc: gvc,
+                                                                                        title: '會員規則',
+                                                                                        innerHTML: BgWidget.tableV2({
+                                                                                            gvc: gvc,
+                                                                                            getData: (vd) => {
+                                                                                                setTimeout(() => {
+                                                                                                    vd.data = vm.data.member.map((leadData: any, index: number) => {
+                                                                                                        return [
+                                                                                                            { key: '會員等級', value: leadData.tag_name },
+                                                                                                            {
+                                                                                                                key: '升級條件',
+                                                                                                                value: (() => {
+                                                                                                                    let text = '';
+                                                                                                                    const val = parseInt(`${leadData.og.condition.value}`, 10).toLocaleString();
+                                                                                                                    const condition_type = leadData.og.condition.type === 'single' ? '單筆' : '累積';
+                                                                                                                    if (leadData.og.duration.type === 'noLimit') {
+                                                                                                                        text = `${condition_type}消費額達 NT$${val}`;
+                                                                                                                    } else {
+                                                                                                                        text = `${leadData.og.duration.value}天內${condition_type}消費額達 NT$${val}`;
+                                                                                                                    }
+                                                                                                                    return text;
+                                                                                                                })(),
+                                                                                                            },
+                                                                                                            {
+                                                                                                                key: '有效期限',
+                                                                                                                value: (() => {
+                                                                                                                    let dead_line = '';
+                                                                                                                    if (leadData.og.dead_line.type === 'date') {
+                                                                                                                        const day = [
+                                                                                                                            { title: '一個月', value: 30 },
+                                                                                                                            { title: '三個月', value: 90 },
+                                                                                                                            { title: '六個月', value: 180 },
+                                                                                                                            { title: '一年', value: 365 },
+                                                                                                                        ].find((item) => {
+                                                                                                                            return item.value == leadData.og.dead_line.value;
+                                                                                                                        });
+                                                                                                                        dead_line = day ? day.title : `${leadData.og.dead_line.value}天`;
+                                                                                                                    }
+                                                                                                                    if (leadData.og.dead_line.type === 'noLimit') {
+                                                                                                                        dead_line = '沒有期限';
+                                                                                                                    }
+                                                                                                                    return dead_line;
+                                                                                                                })(),
+                                                                                                            },
+                                                                                                        ];
+                                                                                                    });
+                                                                                                    vd.loading = false;
+                                                                                                    vd.callback();
+                                                                                                }, 200);
+                                                                                            },
+                                                                                        }),
+                                                                                    });
                                                                                 })}"
                                                                                 >會員規則</span
                                                                             >自動升級
@@ -816,27 +868,57 @@ export class UserList {
                                                                     {
                                                                         key: 'manual',
                                                                         name: '手動調整',
-                                                                        innerHtml: html`
-                                                                            ${BgWidget.grayNote('針對特殊會員，手動調整後將無法自動升級', 'font-size: 14px;')}
-                                                                            ${BgWidget.select({
-                                                                                gvc: gvc,
-                                                                                default: '',
-                                                                                callback: (key) => {
-                                                                                    console.log(key);
-                                                                                },
-                                                                                options: [
-                                                                                    { key: '123', value: '123' },
-                                                                                    { key: '124', value: '124' },
-                                                                                    { key: '125', value: '125' },
-                                                                                ],
-                                                                                style: 'margin: 8px 0;',
-                                                                            })}
-                                                                        `,
+                                                                        innerHtml: gvc.bindView(
+                                                                            (() => {
+                                                                                const id = gvc.glitter.getUUID();
+                                                                                let loading = true;
+                                                                                let options: { key: string; value: string }[] = [];
+                                                                                return {
+                                                                                    bind: id,
+                                                                                    view: () => {
+                                                                                        if (loading) {
+                                                                                            return BgWidget.spinner();
+                                                                                        } else {
+                                                                                            vm.data.userData.level_default = vm.data.userData.level_default ?? options[0].key;
+                                                                                            return html`
+                                                                                                ${BgWidget.grayNote('針對特殊會員，手動調整後將無法自動升級')}
+                                                                                                ${BgWidget.select({
+                                                                                                    gvc: gvc,
+                                                                                                    default: vm.data.userData.level_default,
+                                                                                                    callback: (key) => {
+                                                                                                        vm.data.userData.level_default = key;
+                                                                                                    },
+                                                                                                    options: options,
+                                                                                                    style: 'margin: 8px 0;',
+                                                                                                })}
+                                                                                            `;
+                                                                                        }
+                                                                                    },
+                                                                                    divCreate: {},
+                                                                                    onCreate: () => {
+                                                                                        if (loading) {
+                                                                                            ApiUser.getPublicConfig('member_level_config', 'manager').then((dd: any) => {
+                                                                                                if (dd.result && dd.response.value) {
+                                                                                                    options = dd.response.value.levels.map((item: { id: string; tag_name: string }) => {
+                                                                                                        return {
+                                                                                                            key: `${item.id}`,
+                                                                                                            value: item.tag_name,
+                                                                                                        };
+                                                                                                    });
+                                                                                                    loading = false;
+                                                                                                    gvc.notifyDataChange(id);
+                                                                                                }
+                                                                                            });
+                                                                                        }
+                                                                                    },
+                                                                                };
+                                                                            })()
+                                                                        ),
                                                                     },
                                                                 ],
-                                                                ['auto'],
+                                                                [vm.data.userData.level_status ?? 'auto'],
                                                                 (value) => {
-                                                                    console.log(value);
+                                                                    vm.data.userData.level_status = value[0];
                                                                 },
                                                                 { single: true }
                                                             ),
@@ -1049,13 +1131,7 @@ export class UserList {
                                                                                 <div class="gray-bottom-line-18">
                                                                                     <div class="tx_700">會員等級</div>
                                                                                     <div style="margin-top: 12px">
-                                                                                        <div class="badge bg-dark fs-7" style="max-height: 34px;">
-                                                                                            ${(
-                                                                                                vm.data.member.find((dd: any) => {
-                                                                                                    return dd.trigger;
-                                                                                                }) || {}
-                                                                                            ).tag_name || '一般會員'}
-                                                                                        </div>
+                                                                                        <div class="badge bg-dark fs-7" style="max-height: 34px;">${vm.data.member_level.tag_name}</div>
                                                                                     </div>
                                                                                 </div>
                                                                                 ${(() => {
@@ -1121,7 +1197,7 @@ export class UserList {
                                         )}
                                     </div>`,
                                     // 空白容器
-                                    BgWidget.mb240(),
+                                    BgWidget.mbContainer(240),
                                     // 儲存資料
                                     html` <div class="update-bar-container">
                                         ${BgWidget.cancel(gvc.event(() => cf.callback()))}
@@ -1129,7 +1205,6 @@ export class UserList {
                                             gvc.event(() => {
                                                 const dialog = new ShareDialog(gvc.glitter);
                                                 dialog.dataLoading({ text: '更新中', visible: true });
-
                                                 ApiUser.updateUserDataManager(vm.data, vm.data.userID).then((response) => {
                                                     dialog.dataLoading({ text: '', visible: false });
                                                     if (response.result) {
@@ -1285,7 +1360,7 @@ export class UserList {
                                             },
                                         };
                                     }),
-                                    BgWidget.mb240(),
+                                    BgWidget.mbContainer(240),
                                     // 儲存資料
                                     html` <div class="update-bar-container">
                                         ${BgWidget.cancel(

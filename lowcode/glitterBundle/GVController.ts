@@ -258,8 +258,8 @@ export class GVC {
                 const divCreate2 = (typeof (map as any).divCreate === "function") ? (map as any).divCreate() : (map as any).divCreate;
                 if (divCreate2) {
                     (divCreate2.option ?? []).concat(
-                        {key: 'class', value: divCreate2.class},
-                        {key: 'style', value: divCreate2.style}
+                        {key: 'class', value: (divCreate2.class ?? '').split(' ').filter((dd:any)=>{return dd}).join(' ').replace(/\n/g,'')},
+                        {key: 'style', value: (divCreate2.style ?? '').trim()}
                     ).map((dd: any) => {
                         try {
                             gvc.glitter.renderView.replaceAttributeValue(dd, document.querySelector(`[gvc-id="${id}"]`)!)
@@ -276,7 +276,7 @@ export class GVC {
 
         const divCreate = ((typeof (map as any).divCreate === "function") ? (map as any).divCreate() : (map as any).divCreate) ?? {elem: 'div'};
         // const data = map.view()
-        return `<${divCreate.elem ?? 'div'}  class="${divCreate.class ?? ""}" style="${divCreate.style ?? ""}"
+        return `<${divCreate.elem ?? 'div'}  class="${(divCreate.class ?? "").split(' ').filter((dd:any)=>{return dd}).join(' ').replace(/\n/g,'')}" style="${divCreate.style ?? ""}"
  glem="bindView"  gvc-id="${gvc.id(map.bind)}"
  ${gvc.map((divCreate.option ?? []).map((dd: any) => {
             return ` ${dd.key}="${dd.value}"`

@@ -258,7 +258,6 @@ export class Main_editor {
                                                                     }
                                                                 }
                                                                 setSelectContainer();
-                                                                AddComponent.toggle(true);
                                                                 AddComponent.addWidget = (gvc, cf) => {
                                                                     glitter.share.addComponent(cf);
                                                                 };
@@ -295,6 +294,7 @@ export class Main_editor {
                                                                         "share": {}
                                                                     });
                                                                 };
+                                                                AddComponent.toggle(true);
                                                             })}"
                                                                 >
                                                                     <i class="fa-solid fa-plus"></i>新增區段

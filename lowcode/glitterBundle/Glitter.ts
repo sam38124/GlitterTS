@@ -1060,7 +1060,7 @@ ${(!error.message) ? `` : `錯誤訊息:${error.message}`}${(!error.lineNumber) 
                         const funString = `${dd.value}`;
                         if (!((element as any).replaceAtMemory[dd.key])) {
                             element.addEventListener(dd.key.substring(2), function () {
-                                if (glitter.htmlGenerate.isEditMode() && !glitter.share.EditorMode && glitter.getUrlParameter('type') === 'htmlEditor') {
+                                if ((glitter.htmlGenerate.isEditMode() || glitter.htmlGenerate.isIdeaMode()) && !glitter.share.EditorMode && (['htmlEditor','find_idea'].includes(glitter.getUrlParameter('type')) )) {
                                     if (funString.indexOf('editorEvent') !== -1) {
                                         eval(funString.replace('editorEvent', 'clickMap'))
                                     } else if (dd.key !== 'onclick') {

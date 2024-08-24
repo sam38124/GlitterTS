@@ -6,8 +6,8 @@ import exception from '../../modules/exception';
 import config from '../../config.js';
 import { UtPermission } from '../utils/ut-permission.js';
 import redis from '../../modules/redis.js';
-import {Shopping} from "../services/shopping";
-import Tool from "../../modules/tool";
+import { Shopping } from '../services/shopping';
+import Tool from '../../modules/tool';
 
 const router: express.Router = express.Router();
 
@@ -54,6 +54,38 @@ router.delete('/', async (req: express.Request, resp: express.Response) => {
         } else {
             return response.fail(resp, exception.BadRequestError('BAD_REQUEST', 'No permission.', null));
         }
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+
+router.get('/level', async (req: express.Request, resp: express.Response) => {
+    try {
+        if (await UtPermission.isManager(req)) {
+            const user = new User(req.get('g-app') as string);
+            const emails = req.query.email
+                ? `${req.query.email}`.split(',').map((item) => {
+                      return { email: item };
+                  })
+                : [];
+            const ids = req.query.id
+                ? `${req.query.id}`.split(',').map((item) => {
+                      return { userId: item };
+                  })
+                : [];
+            return response.succ(resp, await user.getUserLevel([...emails, ...ids]));
+        } else {
+            const user = new User(req.get('g-app') as string);
+            return response.succ(resp, await user.getUserLevel([{ userId: req.body.token.userID }]));
+        }
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+router.get('/level/config', async (req: express.Request, resp: express.Response) => {
+    try {
+        const user = new User(req.get('g-app') as string);
+        return response.succ(resp, await user.getLevelConfig());
     } catch (err) {
         return response.fail(resp, err);
     }

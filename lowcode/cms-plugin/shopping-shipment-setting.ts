@@ -61,18 +61,18 @@ export class ShoppingShipmentSetting {
                                         }
                                     }
                                     gvc.addStyle(`
-                                    /* 隱藏 Chrome, Safari, Edge 的箭頭 */
-                                    input[type='number']::-webkit-outer-spin-button,
-                                    input[type='number']::-webkit-inner-spin-button {
-                                        -webkit-appearance: none;
-                                        margin: 0;
-                                    }
+                                        /* 隱藏 Chrome, Safari, Edge 的箭頭 */
+                                        input[type='number']::-webkit-outer-spin-button,
+                                        input[type='number']::-webkit-inner-spin-button {
+                                            -webkit-appearance: none;
+                                            margin: 0;
+                                        }
 
-                                    /* 隱藏 Firefox 的箭頭 */
-                                    input[type='number'] {
-                                        -moz-appearance: textfield;
-                                    }
-                                `);
+                                        /* 隱藏 Firefox 的箭頭 */
+                                        input[type='number'] {
+                                            -moz-appearance: textfield;
+                                        }
+                                    `);
 
                                     resolve(
                                         gvc.bindView({
@@ -315,7 +315,7 @@ export class ShoppingShipmentSetting {
                                                                 `)}
                                                             `,
                                                             undefined,
-                                                            'padding: 0; margin: 0 !important; width: 73.5%;'
+                                                            'padding: 0; margin: 0 !important; width: 60%;'
                                                         ),
                                                         BgWidget.container(
                                                             html`
@@ -373,7 +373,7 @@ export class ShoppingShipmentSetting {
                                                                 )}
                                                             `,
                                                             undefined,
-                                                            'padding: 0; margin: 0 !important; width: 26.5%; min-width:300px;'
+                                                            'padding: 0; margin: 0 !important; width: 40%; min-width: 300px;'
                                                         ),
                                                         BgWidget.mbContainer(240),
                                                         html` <div class="update-bar-container">
@@ -388,14 +388,14 @@ export class ShoppingShipmentSetting {
                                                             )}
                                                         </div>`,
                                                     ].join(''),
-                                                    undefined,
+                                                    BgWidget.getContainerWidth(),
                                                     `
-                                                    gap: 24px;
-                                                    color: #393939;
-                                                    width: 100%;
-                                                    color: #393939;
-                                                    display: flex;
-                                                `
+                                                        gap: 24px;
+                                                        color: #393939;
+                                                        width: 100%;
+                                                        color: #393939;
+                                                        display: flex;
+                                                    `
                                                 );
                                             },
                                             divCreate: { class: `w-100`, style: `` },
@@ -432,7 +432,7 @@ export class ShoppingShipmentSetting {
                         };
                     })}
                 `,
-                900
+                BgWidget.getContainerWidth()
             ) + BgWidget.mbContainer(240)
         );
     }

@@ -1027,7 +1027,7 @@ export class BgShopping {
 
                             const dialog = new ShareDialog(gvc.glitter);
                             if (obj.type === 'replace') {
-                                dialog.dataLoading({ text: '變更優換券', visible: true });
+                                dialog.dataLoading({ text: '正在更新優惠券', visible: true });
                                 ApiPost.put({
                                     postData: voucherData,
                                     token: GlobalUser.token,
@@ -1042,7 +1042,7 @@ export class BgShopping {
                                     }
                                 });
                             } else {
-                                dialog.dataLoading({ text: '新增優換券', visible: true });
+                                dialog.dataLoading({ text: '新增正在新增優惠券', visible: true });
                                 ApiPost.post({
                                     postData: voucherData,
                                     token: GlobalUser.token,
@@ -2335,7 +2335,7 @@ ${EditorElem.editeInput({
                                                                         postMD.preview_image.push(text);
                                                                         obj.gvc.notifyDataChange(id);
                                                                     },
-                                                                    type: `image/*, video/*`
+                                                                    type: `image/*, video/*`,
                                                                 });
                                                             })}"
                                                         >
@@ -2813,7 +2813,12 @@ ${EditorElem.editeInput({
                                                         }
                                                         return url.href;
                                                     })();
-                                                    return html`<a class="fs-sm fw-500" style="color:#006621;cursor: pointer;" href="${href}">${href}</a>`;
+                                                    return BgWidget.greenNote(
+                                                        href,
+                                                        gvc.event(() => {
+                                                            window.parent.open(href, '_blank');
+                                                        })
+                                                    );
                                                 })(),
                                                 html`<div class="fs-sm fw-500" style="color:#545454;white-space: normal;">${postMD.seo.content || '尚未設定'}</div>`,
                                             ];
@@ -2861,28 +2866,6 @@ ${EditorElem.editeInput({
                                         },
                                     })
                             )}
-                            ${(() => {
-                                return ``;
-                                //     return `<div class="mt-2"></div>
-                                // ${BgWidget.card(gvc.bindView(() => {
-                                //         const id = gvc.glitter.getUUID()
-                                //         return {
-                                //             bind: id,
-                                //             view: () => {
-                                //                 return EditorElem.pageSelect(gvc, '選擇佈景主題', postMD.template ?? "", (data) => {
-                                //                     postMD.template = data
-                                //                 }, (dd) => {
-                                //                     const filter_result = dd.group !== 'glitter-article' && dd.page_type === 'article' && dd.page_config.template_type === 'product'
-                                //                     if (filter_result && !postMD.template) {
-                                //                         postMD.template = dd.tag
-                                //                         gvc.notifyDataChange([seoID, id])
-                                //                     }
-                                //                     return filter_result
-                                //                 })
-                                //             }
-                                //         }
-                                //     }))}`
-                            })()}
                             <div class="mt-2"></div>
                             ${BgWidget.card(
                                 obj.gvc.bindView(() => {

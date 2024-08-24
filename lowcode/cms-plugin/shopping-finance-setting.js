@@ -257,7 +257,7 @@ export class ShoppingFinanceSetting {
                                                                     },
                                                                     placeHolder: '請輸入HASH_IV',
                                                                 }),
-                                                            ].join('<div class="" style="height: 12px;"></div>');
+                                                            ].join(BgWidget.mbContainer(12));
                                                         }
                                                     })()}
                                                                                     </div>
@@ -354,9 +354,9 @@ export class ShoppingFinanceSetting {
                 view: () => {
                     var _a, _b;
                     return [
-                        BgWidget.title_16('LINE Pay'),
+                        BgWidget.title('LINE Pay', 'font-size: 16px;'),
                         html `<div class="my-2"></div>`,
-                        BgWidget.hint_title('提供上傳圖片的按鈕讓消費者直接上傳證明截圖'),
+                        BgWidget.grayNote('提供上傳圖片的按鈕讓消費者直接上傳證明截圖'),
                         html `<div class="my-2"></div>`,
                         html `<div class="d-flex justify-content-between">
                             <div style="color: #393939; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word;" class="pb-2">付款說明</div>
@@ -398,7 +398,7 @@ export class ShoppingFinanceSetting {
                 view: () => {
                     var _a, _b;
                     return [
-                        BgWidget.title_16('ATM銀行轉帳'),
+                        BgWidget.title('ATM銀行轉帳', 'font-size: 16px;'),
                         html `<div class="my-3"></div>`,
                         html `<div class="row w-100">
                             ${[
@@ -579,8 +579,9 @@ export class ShoppingFinanceSetting {
                         };
                     })}
                             ${BgWidget.card([
-                        BgWidget.title_16('配送說明'),
-                        BgWidget.hint_title('於結帳頁面中顯示，告知顧客配送所需要注意的事項。'),
+                        html `<div class="tx_700">配送說明</div>`,
+                        BgWidget.grayNote('於結帳頁面中顯示，告知顧客配送所需要注意的事項'),
+                        BgWidget.mbContainer(18),
                         EditorElem.richText({
                             gvc: gvc,
                             def: vm.data.info,

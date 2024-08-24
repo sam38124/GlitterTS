@@ -53,6 +53,7 @@ export class ApiUser {
             });
         }
     }
+
     public static getNoticeUnread(appName?: string, token?: string) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user/notice/unread/count`,
@@ -64,9 +65,34 @@ export class ApiUser {
             },
         });
     }
+
     public static getUserData(token: string, type: 'list' | 'me') {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user?type=${type}`,
+            type: 'GET',
+            headers: {
+                'g-app': getConfig().config.appName,
+                'Content-Type': 'application/json',
+                Authorization: token,
+            },
+        });
+    }
+
+    public static getUserLevel(token: string, user_id: string) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/user/level?id=${user_id}`,
+            type: 'GET',
+            headers: {
+                'g-app': getConfig().config.appName,
+                'Content-Type': 'application/json',
+                Authorization: token,
+            },
+        });
+    }
+
+    public static getLevelConfig(token: string) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/user/level/config`,
             type: 'GET',
             headers: {
                 'g-app': getConfig().config.appName,
@@ -86,6 +112,7 @@ export class ApiUser {
             },
         });
     }
+
     public static getSaasUserData(token: string, type: 'list' | 'me') {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user?type=${type}`,
@@ -109,6 +136,7 @@ export class ApiUser {
             },
         });
     }
+
     public static getUsersDataWithEmail(email: string) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user?email=${email}&type=account`,
@@ -286,7 +314,18 @@ export class ApiUser {
         return list;
     }
 
-    public static getUserListOrders(json: { limit: number; page: number; search?: string; id?: string; searchType?: string; orderString?: string; filter?: any; status?: number; group?: any; filter_type?:string }) {
+    public static getUserListOrders(json: {
+        limit: number;
+        page: number;
+        search?: string;
+        id?: string;
+        searchType?: string;
+        orderString?: string;
+        filter?: any;
+        status?: number;
+        group?: any;
+        filter_type?: string;
+    }) {
         const filterString = this.userListFilterString(json.filter);
         const groupString = this.userListGroupString(json.group);
         const userData = BaseApi.create({
@@ -333,14 +372,9 @@ export class ApiUser {
                         function execute() {
                             Promise.all([
                                 new Promise<void>((resolve) => {
-                                    ApiUser.getPublicUserData(array[index].userID).then((dd) => {
+                                    ApiUser.getUserLevel(getConfig().config.token, array[index].userID).then((dd) => {
                                         if (dd.result) {
-                                            array[index].tag_name =
-                                                (
-                                                    dd.response.member.find((dd: any) => {
-                                                        return dd.trigger;
-                                                    }) || {}
-                                                ).tag_name || '一般會員';
+                                            array[index].tag_name = dd.response[0] ? dd.response[0].data.tag_name : '一般會員';
                                             resolve();
                                         } else {
                                             execute();
@@ -430,6 +464,7 @@ export class ApiUser {
             }),
         });
     }
+
     public static forgetPwdCheckCode(email: string, code: string) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user/forget/check-code`,
@@ -444,6 +479,7 @@ export class ApiUser {
             }),
         });
     }
+
     public static resetPwdV2(email: string, code: string, pwd: string) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user/reset/pwd`,
@@ -573,7 +609,7 @@ export class ApiUser {
         });
     }
 
-    public static getUserRebate(json: { id?: string , email?: string }) {
+    public static getUserRebate(json: { id?: string; email?: string }) {
         return BaseApi.create({
             url:
                 getBaseUrl() +
@@ -590,7 +626,6 @@ export class ApiUser {
                 Authorization: getConfig().config.token,
             },
         });
-
     }
 }
 

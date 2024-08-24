@@ -170,7 +170,7 @@ class Template {
         if (query_page.split('/')[0] === 'pages' && query_page.split('/')[1]) {
             page = (await database_1.default.query(`SELECT *
                                    from \`${appName}\`.t_manager_post
-                                   where content->>'$.tag'=${database_1.default.escape(query_page.split('/')[1])} and content->>'$.type'='article' and content->>'$.for_index'='false' and content->>'$.page_type'='page';`, []))[0].content.template;
+                                   where content->>'$.tag'=${database_1.default.escape(query_page.split('/')[1])} and content->>'$.type'='article' and content->>'$.for_index'='false' and (content->>'$.page_type'='page');`, []))[0].content.template;
         }
         if (query_page.split('/')[0] === 'shop' && query_page.split('/')[1]) {
             page = (await database_1.default.query(`SELECT *

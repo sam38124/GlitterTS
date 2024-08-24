@@ -7,6 +7,7 @@ import Add_item_dia from '../glitterBundle/plugins/add_item_dia.js';
 import {PageEditor} from './page-editor.js';
 import {BaseApi} from '../glitterBundle/api/base.js';
 import {EditorConfig} from '../editor-config.js';
+import {SearchIdea} from "./search-idea.js";
 
 export class AddComponent {
     public static addEvent = (gvc: GVC, tdata: any) => {
@@ -54,7 +55,7 @@ export class AddComponent {
                     }
                     return html`
                         <div class="w-100 d-flex align-items-center p-3 border-bottom">
-                            <h5 class="offcanvas-title" style="">添加組件</h5>
+                            <h5 class="offcanvas-title" style="">新增區塊</h5>
                             <div class="flex-fill"></div>
                             <div
                                     class="fs-5 text-black"
@@ -416,6 +417,51 @@ export class AddComponent {
                                         <i class="fa-regular fa-paste"></i>
                                     </div>
                                 </div>
+                                <div class="d-flex align-items-center p-2" style="gap:10px;">
+                                    ${(() => {
+                                        const list = [
+                                            {
+                                                key: 'official',
+                                                label: '找模塊',
+                                                select: true
+                                            },
+                                            {
+                                                key: 'idea',
+                                                label: '找靈感',
+                                                event: gvc.event(() => {
+                                                    AddComponent.toggle(false)
+                                                    SearchIdea.open(gvc)
+                                                })
+                                            }
+                                        ];
+                                        return list
+                                                .map((dd) => {
+                                                    if (dd.select) {
+                                                        return `<div class="d-flex align-items-center justify-content-center fw-bold px-3 py-2 fw-500" style="
+gap: 10px;
+border-radius: 7px;
+cursor: pointer;
+color: white;
+font-size: 16px;
+flex:1;
+border: 1px solid #FFB400;
+background: linear-gradient(143deg, #FFB400 -22.7%, #FF6C02 114.57%);" >${dd.label}</div>`;
+                                                    } else {
+                                                        return `<div class="d-flex align-items-center justify-content-center fw-bold  px-3 py-2 fw-500" style="
+border-radius: 7px;
+flex:1;
+font-size: 16px;
+border: 1px solid #FFB400;
+cursor: pointer;
+background: linear-gradient(143deg, #FFB400 -22.7%, #FF6C02 114.57%);
+background-clip: text;
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;" onclick="${dd.event || ''}">${dd.label}</div>`;
+                                                    }
+                                                })
+                                                .join('');
+                                    })()}
+                                </div>
                                 <div class="p-2 border-bottom  f-flex${vm.template_from === 'plus' ? `d-none` : ``}"
                                      style="">
                                     <div class="input-group mb-2">
@@ -432,7 +478,7 @@ export class AddComponent {
                                             <i class="fa-solid fa-magnifying-glass" style="color:black;"></i>
                                         </span>
                                         <div
-                                                class="bt_gray_stroke"
+                                                class="bt_gray_stroke d-none"
                                                 style="width:50px;"
                                                 onclick="${gvc.event(() => {
                                                     navigator.clipboard.readText().then((clipboardText) => {
@@ -454,6 +500,8 @@ export class AddComponent {
                                         </div>
                                     </div>
                                 </div>
+                            
+                               
                             `);
                         });
                     },
@@ -525,29 +573,29 @@ export class AddComponent {
                                                     }
                                                 } else {
                                                     return html`
-                                                        <div  class="w-100"
-                                                                style=" max-height:${(() => {
-                                                                    if (type === 'form_plugin') {
-                                                                        return `calc(100vh - 150px)`;
-                                                                    } else {
-                                                                        return Storage.select_function === 'user-editor' ? `calc(100vh - 140px)` : `calc(100vh - 160px)`;
-                                                                    }
-                                                                })()};overflow-y: auto;"
+                                                        <div class="w-100"
+                                                             style=" max-height:${(() => {
+                                                                 if (type === 'form_plugin') {
+                                                                     return `calc(100vh - 150px)`;
+                                                                 } else {
+                                                                     return Storage.select_function === 'user-editor' ? `calc(100vh - 200px)` : `calc(100vh - 160px)`;
+                                                                 }
+                                                             })()};overflow-y: auto;"
                                                         >
                                                             ${[{
-                                                                title:'基礎設計元件',
-                                                                value:'basic'
-                                                            },{
-                                                                title:'包裝容器元件',
-                                                                value:'container'
+                                                                title: '基礎設計元件',
+                                                                value: 'basic'
                                                             },
                                                                 {
-                                                                title:'商品顯示元件',
-                                                                value:'product_show'
-                                                            },{
-                                                                title:'其餘設計模塊',
-                                                                value:'layout'
-                                                            }].map((d1)=>{
+                                                                    title: '商品顯示元件',
+                                                                    value: 'product_show'
+                                                                }, {
+                                                                    title: '其餘設計模塊',
+                                                                    value: 'layout'
+                                                                },{
+                                                                    title: '包裝容器元件',
+                                                                    value: 'container'
+                                                                }].map((d1) => {
                                                                 return gvc.bindView(() => {
                                                                     let vm_c = {
                                                                         toggle: false,
@@ -558,31 +606,31 @@ export class AddComponent {
                                                                         view: () => {
                                                                             const array = [
                                                                                 html`
-                                                                                <div class="hoverF2 d-flex align-items-center p-3"
-                                                                                     onclick="${gvc.event(() => {
-                                                                                    vm_c.toggle = !vm_c.toggle
-                                                                                    gvc.notifyDataChange(vm_c.id)
-                                                                                })}">
+                                                                                    <div class="hoverF2 d-flex align-items-center p-3"
+                                                                                         onclick="${gvc.event(() => {
+                                                                                             vm_c.toggle = !vm_c.toggle
+                                                                                             gvc.notifyDataChange(vm_c.id)
+                                                                                         })}">
                                                                                      <span class="fw-500"
                                                                                            style="max-width: calc(100% - 50px);text-overflow: ellipsis;white-space: nowrap;overflow: hidden;">${d1.title}</span>
-                                                                                    <div class="flex-fill"></div>
-                                                                                    ${vm_c.toggle ? ` <i class="fa-solid fa-chevron-down"></i>` : `<i class="fa-solid fa-chevron-right"></i>`}
-                                                                                </div>
-                                                                            `
+                                                                                        <div class="flex-fill"></div>
+                                                                                        ${vm_c.toggle ? ` <i class="fa-solid fa-chevron-down"></i>` : `<i class="fa-solid fa-chevron-right"></i>`}
+                                                                                    </div>
+                                                                                `
                                                                             ]
                                                                             if (vm_c.toggle) {
-                                                                                
+
                                                                                 array.push(AddComponent.getComponentDetail({
-                                                                                    data:data.response.result.data.concat((()=>{
-                                                                                        if(d1.value==='container'){
-                                                                                            return  [
+                                                                                    data: data.response.result.data.concat((() => {
+                                                                                        if (d1.value === 'container') {
+                                                                                            return [
                                                                                                 {
                                                                                                     template_config: {
                                                                                                         image: ['https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/Screenshot 2024-08-12 at 2.11.09 PM.jpg'],
                                                                                                         tag: [],
                                                                                                         name: '網格容器',
                                                                                                     },
-                                                                                                    type:'容器',
+                                                                                                    type: '容器',
                                                                                                     name: '網格容器',
                                                                                                 },
                                                                                                 {
@@ -591,39 +639,51 @@ export class AddComponent {
                                                                                                         tag: [],
                                                                                                         name: '垂直排版',
                                                                                                     },
-                                                                                                    type:'容器',
+                                                                                                    type: '容器',
                                                                                                     name: '垂直排版',
                                                                                                 },
+                                                                                                {
+                                                                                                    template_config: {
+                                                                                                        image: ['https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sbs8sfs9s0s2ses5_Screenshot2024-08-20at6.19.57 PM.jpg'],
+                                                                                                        tag: [],
+                                                                                                        name: '比例佈局',
+                                                                                                    },
+                                                                                                    type: '容器',
+                                                                                                    name: '比例佈局'
+                                                                                                }
                                                                                             ]
-                                                                                        }else{
+                                                                                        } else {
                                                                                             return []
                                                                                         }
-                                                                                    })()).filter((dd:any)=>{
-                                                                                        if(d1.value==='basic'){
+                                                                                    })()).filter((dd: any) => {
+                                                                                        if (d1.value === 'basic') {
                                                                                             return (dd.template_config.tag ?? []).find((dd: any) => {
                                                                                                 return dd === '基本元件';
                                                                                             });
-                                                                                        }else if(d1.value==='layout'){
+                                                                                        } else if (d1.value === 'layout') {
                                                                                             return !(dd.template_config.tag ?? []).find((dd: any) => {
                                                                                                 return dd === '基本元件' || dd === '商品元件';
                                                                                             });
-                                                                                        }else if(d1.value==='product_show'){
+                                                                                        } else if (d1.value === 'product_show') {
                                                                                             return (dd.template_config.tag ?? []).find((dd: any) => {
                                                                                                 return dd === '商品元件';
                                                                                             });
-                                                                                        }else if(d1.value==='container'){
-                                                                                            return  dd.type==='容器'
+                                                                                        } else if (d1.value === 'container') {
+                                                                                            return dd.type === '容器'
                                                                                         }
                                                                                     }),
-                                                                                    gvc:gvc,
-                                                                                    justGetIframe:justGetIframe,
-                                                                                    withEmpty:withEmpty,
-                                                                                    callback:(dd)=>{
-                                                                                        if(dd.title==='網格容器'){
+                                                                                    gvc: gvc,
+                                                                                    justGetIframe: justGetIframe,
+                                                                                    withEmpty: withEmpty,
+                                                                                    callback: (dd) => {
+                                                                                        if (dd.title === '網格容器') {
                                                                                             const config = {
                                                                                                 id: gvc.glitter.getUUID(),
                                                                                                 js: 'http://127.0.0.1:4000/shopnex/official_view_component/official.js',
-                                                                                                css: {class: {}, style: {}},
+                                                                                                css: {
+                                                                                                    class: {},
+                                                                                                    style: {}
+                                                                                                },
                                                                                                 data: {
                                                                                                     attr: [],
                                                                                                     elem: 'div',
@@ -633,11 +693,11 @@ export class AddComponent {
                                                                                                     version: 'v2',
                                                                                                     atrExpand: {},
                                                                                                     elemExpand: {},
-                                                                                                    _layout:'grid',
-                                                                                                    _x_count:'2',
-                                                                                                    _y_count:'2',
-                                                                                                    _gap_x:'30',
-                                                                                                    _gap_y:'30'
+                                                                                                    _layout: 'grid',
+                                                                                                    _x_count: '2',
+                                                                                                    _y_count: '2',
+                                                                                                    _gap_x: '30',
+                                                                                                    _gap_y: '30'
                                                                                                 },
                                                                                                 type: 'container',
                                                                                                 index: 0,
@@ -652,11 +712,14 @@ export class AddComponent {
                                                                                             config.label = `網格容器`;
                                                                                             // callback(dd)
                                                                                             AddComponent.addWidget(gvc, config);
-                                                                                        }else if(dd.title==='垂直排版'){
+                                                                                        } else if (dd.title === '垂直排版') {
                                                                                             const config = {
                                                                                                 id: gvc.glitter.getUUID(),
                                                                                                 js: 'http://127.0.0.1:4000/shopnex/official_view_component/official.js',
-                                                                                                css: {class: {}, style: {}},
+                                                                                                css: {
+                                                                                                    class: {},
+                                                                                                    style: {}
+                                                                                                },
                                                                                                 data: {
                                                                                                     attr: [],
                                                                                                     elem: 'div',
@@ -666,11 +729,11 @@ export class AddComponent {
                                                                                                     version: 'v2',
                                                                                                     atrExpand: {},
                                                                                                     elemExpand: {},
-                                                                                                    _layout:'vertical',
-                                                                                                    _x_count:'2',
-                                                                                                    _y_count:'2',
-                                                                                                    _gap_x:'30',
-                                                                                                    _gap_y:'30'
+                                                                                                    _layout: 'vertical',
+                                                                                                    _x_count: '2',
+                                                                                                    _y_count: '2',
+                                                                                                    _gap_x: '30',
+                                                                                                    _gap_y: '30'
                                                                                                 },
                                                                                                 type: 'container',
                                                                                                 index: 0,
@@ -685,17 +748,52 @@ export class AddComponent {
                                                                                             config.label = `垂直排版`;
                                                                                             // callback(dd)
                                                                                             AddComponent.addWidget(gvc, config);
-                                                                                        }else{
-                                                                                           callback(dd)
+                                                                                        } else if (dd.title === '比例佈局') {
+                                                                                            const config = {
+                                                                                                id: gvc.glitter.getUUID(),
+                                                                                                js: 'http://127.0.0.1:4000/shopnex/official_view_component/official.js',
+                                                                                                css: {
+                                                                                                    class: {},
+                                                                                                    style: {}
+                                                                                                },
+                                                                                                data: {
+                                                                                                    attr: [],
+                                                                                                    elem: 'div',
+                                                                                                    list: [],
+                                                                                                    inner: '',
+                                                                                                    setting: [],
+                                                                                                    _ratio_layout_value: '30,70,70,30',
+                                                                                                    version: 'v2',
+                                                                                                    atrExpand: {},
+                                                                                                    elemExpand: {},
+                                                                                                    _layout: 'proportion',
+                                                                                                    _gap_x: '30',
+                                                                                                    _gap_y: '30'
+                                                                                                },
+                                                                                                type: 'container',
+                                                                                                index: 0,
+                                                                                                label: '容器',
+                                                                                                global: [],
+                                                                                                toggle: true,
+                                                                                                preloadEvenet: {},
+                                                                                                refreshAllParameter: {},
+                                                                                                refreshComponentParameter: {},
+                                                                                                formData: {},
+                                                                                            };
+                                                                                            config.label = `比例佈局`;
+                                                                                            // callback(dd)
+                                                                                            AddComponent.addWidget(gvc, config);
+                                                                                        } else {
+                                                                                            callback(dd)
                                                                                         }
                                                                                     },
-                                                                                    type:type
+                                                                                    type: type
                                                                                 }))
                                                                             }
                                                                             return array.join(``)
                                                                         },
                                                                         divCreate: {
-                                                                            class:`border-bottom`
+                                                                            class: `border-bottom`
                                                                         }
                                                                     }
                                                                 })
@@ -725,16 +823,16 @@ export class AddComponent {
         );
     }
 
-    public static getComponentDetail(obj:{
-        data: any,gvc:GVC,withEmpty:boolean,type:string,callback:(data:any)=>void,justGetIframe:boolean
+    public static getComponentDetail(obj: {
+        data: any, gvc: GVC, withEmpty: boolean, type: string, callback: (data: any) => void, justGetIframe: boolean
     }) {
-        const data=obj.data
-        const gvc=obj.gvc
-        const withEmpty=obj.withEmpty
-        const type=obj.type
-        const callback=obj.callback
-        const justGetIframe=obj.justGetIframe
-        const html=String.raw
+        const data = obj.data
+        const gvc = obj.gvc
+        const withEmpty = obj.withEmpty
+        const type = obj.type
+        const callback = obj.callback
+        const justGetIframe = obj.justGetIframe
+        const html = String.raw
         return html`
             <div class="row m-0 pt-2 w-100">
                 ${data
@@ -766,11 +864,14 @@ export class AddComponent {
                                 return 1;
                             }
                         })
+                        .sort((a:any,b:any)=>{
+                            return  (Number(a.template_config.sort) < (Number(b.template_config.sort ?? Infinity))) ? -1:1;
+                        })
                         .sort((a: any, b: any) => {
                             if (a.template_config.name === '空白-嵌入模塊') {
                                 return -1;
                             } else {
-                                return 1;
+                                return  (Number(a.template_config.sort) < (Number(b.template_config.sort ?? Infinity))) ? -1:1;
                             }
                         })
                         .map((dd: any, index: number) => {
@@ -778,8 +879,8 @@ export class AddComponent {
                                 <div class="col-6  mb-3 ">
                                     <div class="d-flex flex-column  justify-content-center w-100"
                                          style="gap:5px;cursor:pointer;">
-                                        <div class="card w-100 position-relative rounded hoverHidden bgf6 rounded-3"
-                                             style="padding-bottom: 58%;">
+                                        <div class="card w-100 position-relative rounded hoverHidden  rounded-3"
+                                             style="padding-bottom: 58%;overflow: hidden;">
                                             <div class="position-absolute w-100 h-100 d-flex align-items-center justify-content-center"
                                                  style="overflow: hidden;">
                                                 <img class="w-100 "
@@ -795,7 +896,7 @@ export class AddComponent {
                                                         style="height: 28px;width: 75px;gap:5px;"
                                                         onclick="${gvc.event(() => {
                                                             const dialog = new ShareDialog(gvc.glitter);
-                                                            
+
                                                             if (withEmpty && index === 0 && dd.template_config.name.includes('空白')) {
                                                                 AddComponent.redefinePage(
                                                                         gvc,
@@ -1080,8 +1181,8 @@ ${[
                                             ${dd.template_config.name}</h3>
                                         <div class="d-flex flex-wrap">
                                             ${(dd.template_config.tag ?? [])
-                                                    .filter((dd:any)=>{
-                                                        return dd!=='設計元件' && dd!=='基本元件' && dd!=='商品元件'
+                                                    .filter((dd: any) => {
+                                                        return dd !== '設計元件' && dd !== '基本元件' && dd !== '商品元件'
                                                     }).map((dd: any) => {
                                                         return html`
                                                             <div
@@ -1131,7 +1232,7 @@ ${[
                                                 version: 'v2',
                                                 atrExpand: {},
                                                 elemExpand: {},
-                                                _layout:'grid'
+                                                _layout: 'grid'
                                             },
                                             type: 'container',
                                             index: 0,

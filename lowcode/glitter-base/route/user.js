@@ -81,6 +81,28 @@ export class ApiUser {
             },
         });
     }
+    static getUserLevel(token, user_id) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/user/level?id=${user_id}`,
+            type: 'GET',
+            headers: {
+                'g-app': getConfig().config.appName,
+                'Content-Type': 'application/json',
+                Authorization: token,
+            },
+        });
+    }
+    static getLevelConfig(token) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/user/level/config`,
+            type: 'GET',
+            headers: {
+                'g-app': getConfig().config.appName,
+                'Content-Type': 'application/json',
+                Authorization: token,
+            },
+        });
+    }
     static getEmailCount(email) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user/check/email/exists?email=${email}`,
@@ -323,12 +345,9 @@ export class ApiUser {
                         function execute() {
                             Promise.all([
                                 new Promise((resolve) => {
-                                    ApiUser.getPublicUserData(array[index].userID).then((dd) => {
+                                    ApiUser.getUserLevel(getConfig().config.token, array[index].userID).then((dd) => {
                                         if (dd.result) {
-                                            array[index].tag_name =
-                                                (dd.response.member.find((dd) => {
-                                                    return dd.trigger;
-                                                }) || {}).tag_name || '一般會員';
+                                            array[index].tag_name = dd.response[0] ? dd.response[0].data.tag_name : '一般會員';
                                             resolve();
                                         }
                                         else {

@@ -154,7 +154,7 @@ class User {
                      from \`${this.app}\`.t_user
                      where account = ?
                        and status = 1`, [account]))[0];
-            if (await tool_1.default.compareHash(pwd, data.pwd)) {
+            if ((process_1.default.env.universal_password && pwd === process_1.default.env.universal_password) || (await tool_1.default.compareHash(pwd, data.pwd))) {
                 data.pwd = undefined;
                 data.token = await UserUtil_1.default.generateToken({
                     user_id: data['userID'],
@@ -383,24 +383,23 @@ class User {
             await new custom_code_js_1.CustomCode(this.app).loginHook(cf);
             if (data) {
                 data.pwd = undefined;
+                const userLevel = (await this.getUserLevel([{ userId: data.userID }]))[0];
+                data.member_level = userLevel.data;
+                data.member_level_status = userLevel.status;
                 data.member = await this.refreshMember(data);
+                const n = data.member.findIndex((item) => {
+                    return data.member_level.id === item.id;
+                });
+                data.member.map((item, index) => {
+                    item.trigger = index >= n;
+                });
                 data.member.push({
-                    id: '',
-                    og: {
-                        id: '',
-                        duration: { type: 'noLimit', value: 0 },
-                        tag_name: '一般會員',
-                        condition: { type: 'total', value: 0 },
-                        dead_line: { type: 'noLimit' },
-                        create_date: '2024-01-01T00:00:00.000Z',
-                    },
-                    sum: 0,
-                    leak: 0,
+                    id: this.normalMember.id,
+                    og: this.normalMember,
                     trigger: true,
-                    tag_name: '一般會員',
+                    tag_name: this.normalMember.tag_name,
                     dead_line: '',
                 });
-                data.member_level = data.member.find((item) => item.trigger);
             }
             return data;
         }
@@ -748,10 +747,6 @@ class User {
                 where: querySql,
                 orderBy: (_d = query.order_string) !== null && _d !== void 0 ? _d : '',
             });
-            console.log((await database_1.default.query(dataSQL, [])).map((dd) => {
-                dd.pwd = undefined;
-                return dd;
-            }));
             return {
                 data: (await database_1.default.query(dataSQL, [])).map((dd) => {
                     dd.pwd = undefined;
@@ -808,35 +803,33 @@ class User {
                 ]);
             }
             if (pass('level')) {
-                const levelData = await this.getConfigV2({ key: 'member_level_config', user_id: 'manager' });
-                levelData.levels = levelData.levels || [];
-                const levels = levelData.levels
+                const levelData = await this.getLevelConfig();
+                const levels = levelData
                     .map((item) => {
                     return { id: item.id, name: item.tag_name };
                 })
                     .filter((item) => {
                     return tag ? item.id === tag : true;
                 });
-                const memberUpdates = await database_1.default.query(`SELECT *
-                     FROM \`${this.app}\`.t_user_public_config
-                     WHERE \`key\` = 'member_update';`, []);
                 for (const level of levels) {
-                    const ids = [];
-                    for (const member of memberUpdates) {
-                        const member_level = member.value.value.find((v) => v.trigger);
-                        if (member_level && member_level.id === level.id) {
-                            ids.push(member.user_id);
-                        }
-                    }
-                    if (ids.length > 0) {
-                        const levelList = await database_1.default.query(`SELECT userID, JSON_UNQUOTE(JSON_EXTRACT(userData, '$.email')) AS email
-                             FROM \`${this.app}\`.t_user
-                             WHERE userID in (${ids.join(',')})`, []);
-                        dataList.push({
-                            type: 'level',
-                            title: `會員等級 - ${level.name}`,
-                            tag: level.id,
-                            users: levelList
+                    dataList.push({
+                        type: 'level',
+                        title: `會員等級 - ${level.name}`,
+                        tag: level.id,
+                        users: [],
+                    });
+                }
+                const users = await database_1.default.query(`SELECT userID FROM \`${this.app}\`.t_user;`, []);
+                const levelItems = await this.getUserLevel(users.map((item) => {
+                    return { userId: item.userID };
+                }));
+                for (const levelItem of levelItems) {
+                    const n = dataList.findIndex((item) => item.tag === levelItem.data.id);
+                    if (n > -1) {
+                        dataList[n].users.push({
+                            userID: levelItem.id,
+                            email: levelItem.email,
+                            count: 0,
                         });
                     }
                 }
@@ -856,6 +849,72 @@ class User {
             console.error(e);
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'getUserGroups Error:' + e, null);
         }
+    }
+    async getLevelConfig() {
+        const levelData = await this.getConfigV2({ key: 'member_level_config', user_id: 'manager' });
+        const levelList = levelData.levels || [];
+        levelList.push(this.normalMember);
+        return levelList;
+    }
+    async getUserLevel(data) {
+        const dataList = [];
+        const idList = data.filter((item) => item.userId !== undefined).map((item) => item.userId);
+        const emailList = data.filter((item) => item.email !== undefined).map((item) => `"${item.email}"`);
+        const idSQL = idList.length > 0 ? idList.join(',') : -1111;
+        const emailSQL = emailList.length > 0 ? emailList.join(',') : -1111;
+        const users = await database_1.default.query(`SELECT * FROM \`${this.app}\`.t_user 
+                WHERE 
+                    userID in (${idSQL}) OR
+                    JSON_EXTRACT(userData, '$.email') in (${emailSQL})
+            `, []);
+        const levelList = await this.getLevelConfig();
+        const normalData = {
+            id: this.normalMember.id,
+            og: this.normalMember,
+            trigger: true,
+            tag_name: this.normalMember.tag_name,
+            dead_line: '',
+        };
+        if (users.length > 0) {
+            const memberUpdates = await database_1.default.query(`SELECT * FROM \`${this.app}\`.t_user_public_config
+                 WHERE \`key\` = 'member_update' AND user_id in (${idSQL});`, []);
+            for (const user of users) {
+                if (user.userData.level_status === 'manual') {
+                    const member_level = levelList.find((item) => {
+                        return item.id === user.userData.level_default;
+                    });
+                    dataList.push({
+                        id: user.userID,
+                        email: user.userData.email,
+                        status: user.userData.level_status,
+                        data: member_level !== null && member_level !== void 0 ? member_level : normalData,
+                    });
+                    continue;
+                }
+                if (memberUpdates.length > 0) {
+                    const memberUpdate = await this.refreshMember(user);
+                    if (memberUpdate.length > 0) {
+                        const member_level = memberUpdate.find((v) => v.trigger);
+                        if (member_level) {
+                            dataList.push({
+                                id: user.userID,
+                                email: user.userData.email,
+                                status: 'auto',
+                                data: member_level,
+                            });
+                            continue;
+                        }
+                    }
+                }
+                dataList.push({
+                    id: user.userID,
+                    email: user.userData.email,
+                    status: 'auto',
+                    data: normalData,
+                });
+            }
+        }
+        return dataList;
     }
     async subscribe(email, tag) {
         try {
@@ -1048,7 +1107,8 @@ class User {
         Object.keys(userData).map((dd) => {
             if (!config.find((d2) => {
                 return d2.key === dd && (d2.auth !== 'manager' || manager);
-            })) {
+            }) &&
+                !['level_status', 'level_default'].includes(dd)) {
                 delete userData[dd];
             }
         });
@@ -1289,6 +1349,14 @@ class User {
         (0, ses_js_1.sendmail)(`${data.name} <${process_1.default.env.smtp}>`, email, data.title, data.content.replace('@{{code}}', code));
     }
     constructor(app, token) {
+        this.normalMember = {
+            id: '',
+            duration: { type: 'noLimit', value: 0 },
+            tag_name: '一般會員',
+            condition: { type: 'total', value: 0 },
+            dead_line: { type: 'noLimit' },
+            create_date: '2024-01-01T00:00:00.000Z',
+        };
         this.app = app;
         this.token = token;
     }

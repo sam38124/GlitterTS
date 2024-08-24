@@ -15,6 +15,7 @@ import Add_item_dia from '../glitterBundle/plugins/add_item_dia.js';
 import { PageEditor } from './page-editor.js';
 import { BaseApi } from '../glitterBundle/api/base.js';
 import { EditorConfig } from '../editor-config.js';
+import { SearchIdea } from "./search-idea.js";
 export class AddComponent {
     static view(gvc) {
         return gvc.bindView(() => {
@@ -44,7 +45,7 @@ export class AddComponent {
                     }
                     return html `
                         <div class="w-100 d-flex align-items-center p-3 border-bottom">
-                            <h5 class="offcanvas-title" style="">添加組件</h5>
+                            <h5 class="offcanvas-title" style="">新增區塊</h5>
                             <div class="flex-fill"></div>
                             <div
                                     class="fs-5 text-black"
@@ -378,6 +379,52 @@ export class AddComponent {
                                         <i class="fa-regular fa-paste"></i>
                                     </div>
                                 </div>
+                                <div class="d-flex align-items-center p-2" style="gap:10px;">
+                                    ${(() => {
+                                const list = [
+                                    {
+                                        key: 'official',
+                                        label: '找模塊',
+                                        select: true
+                                    },
+                                    {
+                                        key: 'idea',
+                                        label: '找靈感',
+                                        event: gvc.event(() => {
+                                            AddComponent.toggle(false);
+                                            SearchIdea.open(gvc);
+                                        })
+                                    }
+                                ];
+                                return list
+                                    .map((dd) => {
+                                    if (dd.select) {
+                                        return `<div class="d-flex align-items-center justify-content-center fw-bold px-3 py-2 fw-500" style="
+gap: 10px;
+border-radius: 7px;
+cursor: pointer;
+color: white;
+font-size: 16px;
+flex:1;
+border: 1px solid #FFB400;
+background: linear-gradient(143deg, #FFB400 -22.7%, #FF6C02 114.57%);" >${dd.label}</div>`;
+                                    }
+                                    else {
+                                        return `<div class="d-flex align-items-center justify-content-center fw-bold  px-3 py-2 fw-500" style="
+border-radius: 7px;
+flex:1;
+font-size: 16px;
+border: 1px solid #FFB400;
+cursor: pointer;
+background: linear-gradient(143deg, #FFB400 -22.7%, #FF6C02 114.57%);
+background-clip: text;
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;" onclick="${dd.event || ''}">${dd.label}</div>`;
+                                    }
+                                })
+                                    .join('');
+                            })()}
+                                </div>
                                 <div class="p-2 border-bottom  f-flex${vm.template_from === 'plus' ? `d-none` : ``}"
                                      style="">
                                     <div class="input-group mb-2">
@@ -394,7 +441,7 @@ export class AddComponent {
                                             <i class="fa-solid fa-magnifying-glass" style="color:black;"></i>
                                         </span>
                                         <div
-                                                class="bt_gray_stroke"
+                                                class="bt_gray_stroke d-none"
                                                 style="width:50px;"
                                                 onclick="${gvc.event(() => {
                                 navigator.clipboard.readText().then((clipboardText) => {
@@ -418,6 +465,8 @@ export class AddComponent {
                                         </div>
                                     </div>
                                 </div>
+                            
+                               
                             `);
                         }));
                     },
@@ -492,22 +541,19 @@ export class AddComponent {
                                                     }
                                                     else {
                                                         return html `
-                                                        <div  class="w-100"
-                                                                style=" max-height:${(() => {
+                                                        <div class="w-100"
+                                                             style=" max-height:${(() => {
                                                             if (type === 'form_plugin') {
                                                                 return `calc(100vh - 150px)`;
                                                             }
                                                             else {
-                                                                return Storage.select_function === 'user-editor' ? `calc(100vh - 140px)` : `calc(100vh - 160px)`;
+                                                                return Storage.select_function === 'user-editor' ? `calc(100vh - 200px)` : `calc(100vh - 160px)`;
                                                             }
                                                         })()};overflow-y: auto;"
                                                         >
                                                             ${[{
                                                                 title: '基礎設計元件',
                                                                 value: 'basic'
-                                                            }, {
-                                                                title: '包裝容器元件',
-                                                                value: 'container'
                                                             },
                                                             {
                                                                 title: '商品顯示元件',
@@ -515,6 +561,9 @@ export class AddComponent {
                                                             }, {
                                                                 title: '其餘設計模塊',
                                                                 value: 'layout'
+                                                            }, {
+                                                                title: '包裝容器元件',
+                                                                value: 'container'
                                                             }].map((d1) => {
                                                             return gvc.bindView(() => {
                                                                 let vm_c = {
@@ -526,17 +575,17 @@ export class AddComponent {
                                                                     view: () => {
                                                                         const array = [
                                                                             html `
-                                                                                <div class="hoverF2 d-flex align-items-center p-3"
-                                                                                     onclick="${gvc.event(() => {
+                                                                                    <div class="hoverF2 d-flex align-items-center p-3"
+                                                                                         onclick="${gvc.event(() => {
                                                                                 vm_c.toggle = !vm_c.toggle;
                                                                                 gvc.notifyDataChange(vm_c.id);
                                                                             })}">
                                                                                      <span class="fw-500"
                                                                                            style="max-width: calc(100% - 50px);text-overflow: ellipsis;white-space: nowrap;overflow: hidden;">${d1.title}</span>
-                                                                                    <div class="flex-fill"></div>
-                                                                                    ${vm_c.toggle ? ` <i class="fa-solid fa-chevron-down"></i>` : `<i class="fa-solid fa-chevron-right"></i>`}
-                                                                                </div>
-                                                                            `
+                                                                                        <div class="flex-fill"></div>
+                                                                                        ${vm_c.toggle ? ` <i class="fa-solid fa-chevron-down"></i>` : `<i class="fa-solid fa-chevron-right"></i>`}
+                                                                                    </div>
+                                                                                `
                                                                         ];
                                                                         if (vm_c.toggle) {
                                                                             array.push(AddComponent.getComponentDetail({
@@ -561,6 +610,15 @@ export class AddComponent {
                                                                                                 type: '容器',
                                                                                                 name: '垂直排版',
                                                                                             },
+                                                                                            {
+                                                                                                template_config: {
+                                                                                                    image: ['https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sbs8sfs9s0s2ses5_Screenshot2024-08-20at6.19.57 PM.jpg'],
+                                                                                                    tag: [],
+                                                                                                    name: '比例佈局',
+                                                                                                },
+                                                                                                type: '容器',
+                                                                                                name: '比例佈局'
+                                                                                            }
                                                                                         ];
                                                                                     }
                                                                                     else {
@@ -595,7 +653,10 @@ export class AddComponent {
                                                                                         const config = {
                                                                                             id: gvc.glitter.getUUID(),
                                                                                             js: 'http://127.0.0.1:4000/shopnex/official_view_component/official.js',
-                                                                                            css: { class: {}, style: {} },
+                                                                                            css: {
+                                                                                                class: {},
+                                                                                                style: {}
+                                                                                            },
                                                                                             data: {
                                                                                                 attr: [],
                                                                                                 elem: 'div',
@@ -628,7 +689,10 @@ export class AddComponent {
                                                                                         const config = {
                                                                                             id: gvc.glitter.getUUID(),
                                                                                             js: 'http://127.0.0.1:4000/shopnex/official_view_component/official.js',
-                                                                                            css: { class: {}, style: {} },
+                                                                                            css: {
+                                                                                                class: {},
+                                                                                                style: {}
+                                                                                            },
                                                                                             data: {
                                                                                                 attr: [],
                                                                                                 elem: 'div',
@@ -655,6 +719,41 @@ export class AddComponent {
                                                                                             formData: {},
                                                                                         };
                                                                                         config.label = `垂直排版`;
+                                                                                        AddComponent.addWidget(gvc, config);
+                                                                                    }
+                                                                                    else if (dd.title === '比例佈局') {
+                                                                                        const config = {
+                                                                                            id: gvc.glitter.getUUID(),
+                                                                                            js: 'http://127.0.0.1:4000/shopnex/official_view_component/official.js',
+                                                                                            css: {
+                                                                                                class: {},
+                                                                                                style: {}
+                                                                                            },
+                                                                                            data: {
+                                                                                                attr: [],
+                                                                                                elem: 'div',
+                                                                                                list: [],
+                                                                                                inner: '',
+                                                                                                setting: [],
+                                                                                                _ratio_layout_value: '30,70,70,30',
+                                                                                                version: 'v2',
+                                                                                                atrExpand: {},
+                                                                                                elemExpand: {},
+                                                                                                _layout: 'proportion',
+                                                                                                _gap_x: '30',
+                                                                                                _gap_y: '30'
+                                                                                            },
+                                                                                            type: 'container',
+                                                                                            index: 0,
+                                                                                            label: '容器',
+                                                                                            global: [],
+                                                                                            toggle: true,
+                                                                                            preloadEvenet: {},
+                                                                                            refreshAllParameter: {},
+                                                                                            refreshComponentParameter: {},
+                                                                                            formData: {},
+                                                                                        };
+                                                                                        config.label = `比例佈局`;
                                                                                         AddComponent.addWidget(gvc, config);
                                                                                     }
                                                                                     else {
@@ -737,11 +836,16 @@ export class AddComponent {
             }
         })
             .sort((a, b) => {
+            var _a;
+            return (Number(a.template_config.sort) < (Number((_a = b.template_config.sort) !== null && _a !== void 0 ? _a : Infinity))) ? -1 : 1;
+        })
+            .sort((a, b) => {
+            var _a;
             if (a.template_config.name === '空白-嵌入模塊') {
                 return -1;
             }
             else {
-                return 1;
+                return (Number(a.template_config.sort) < (Number((_a = b.template_config.sort) !== null && _a !== void 0 ? _a : Infinity))) ? -1 : 1;
             }
         })
             .map((dd, index) => {
@@ -750,8 +854,8 @@ export class AddComponent {
                                 <div class="col-6  mb-3 ">
                                     <div class="d-flex flex-column  justify-content-center w-100"
                                          style="gap:5px;cursor:pointer;">
-                                        <div class="card w-100 position-relative rounded hoverHidden bgf6 rounded-3"
-                                             style="padding-bottom: 58%;">
+                                        <div class="card w-100 position-relative rounded hoverHidden  rounded-3"
+                                             style="padding-bottom: 58%;overflow: hidden;">
                                             <div class="position-absolute w-100 h-100 d-flex align-items-center justify-content-center"
                                                  style="overflow: hidden;">
                                                 <img class="w-100 "

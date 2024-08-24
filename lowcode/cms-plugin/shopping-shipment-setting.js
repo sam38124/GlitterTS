@@ -58,18 +58,18 @@ export class ShoppingShipmentSetting {
                             }
                         }
                         gvc.addStyle(`
-                                    /* 隱藏 Chrome, Safari, Edge 的箭頭 */
-                                    input[type='number']::-webkit-outer-spin-button,
-                                    input[type='number']::-webkit-inner-spin-button {
-                                        -webkit-appearance: none;
-                                        margin: 0;
-                                    }
+                                        /* 隱藏 Chrome, Safari, Edge 的箭頭 */
+                                        input[type='number']::-webkit-outer-spin-button,
+                                        input[type='number']::-webkit-inner-spin-button {
+                                            -webkit-appearance: none;
+                                            margin: 0;
+                                        }
 
-                                    /* 隱藏 Firefox 的箭頭 */
-                                    input[type='number'] {
-                                        -moz-appearance: textfield;
-                                    }
-                                `);
+                                        /* 隱藏 Firefox 的箭頭 */
+                                        input[type='number'] {
+                                            -moz-appearance: textfield;
+                                        }
+                                    `);
                         resolve(gvc.bindView({
                             bind: 'addShipment',
                             view: () => {
@@ -310,7 +310,7 @@ export class ShoppingShipmentSetting {
                                                                         </div>
                                                                     </div>
                                                                 `)}
-                                                            `, undefined, 'padding: 0; margin: 0 !important; width: 73.5%;'),
+                                                            `, undefined, 'padding: 0; margin: 0 !important; width: 60%;'),
                                     BgWidget.container(html `
                                                                 ${BgWidget.mainCard(html `
                                                                         <div style="gap: 18px;display: flex;flex-direction: column;">
@@ -361,7 +361,7 @@ export class ShoppingShipmentSetting {
                                                                             </div>
                                                                         </div>
                                                                     `, 'summary-card')}
-                                                            `, undefined, 'padding: 0; margin: 0 !important; width: 26.5%; min-width:300px;'),
+                                                            `, undefined, 'padding: 0; margin: 0 !important; width: 40%; min-width: 300px;'),
                                     BgWidget.mbContainer(240),
                                     html ` <div class="update-bar-container">
                                                             ${BgWidget.save(gvc.event(() => {
@@ -372,13 +372,13 @@ export class ShoppingShipmentSetting {
                                         });
                                     }))}
                                                         </div>`,
-                                ].join(''), undefined, `
-                                                    gap: 24px;
-                                                    color: #393939;
-                                                    width: 100%;
-                                                    color: #393939;
-                                                    display: flex;
-                                                `);
+                                ].join(''), BgWidget.getContainerWidth(), `
+                                                        gap: 24px;
+                                                        color: #393939;
+                                                        width: 100%;
+                                                        color: #393939;
+                                                        display: flex;
+                                                    `);
                             },
                             divCreate: { class: `w-100`, style: `` },
                         }));
@@ -410,7 +410,7 @@ export class ShoppingShipmentSetting {
                 divCreate: { class: `d-flex flex-column flex-column-reverse flex-md-row`, style: `gap:10px; padding: 0;` },
             };
         })}
-                `, 900) + BgWidget.mbContainer(240));
+                `, BgWidget.getContainerWidth()) + BgWidget.mbContainer(240));
     }
 }
 window.glitter.setModule(import.meta.url, ShoppingShipmentSetting);

@@ -1991,7 +1991,7 @@ export class ShoppingProductSetting {
                 addProduct: boolean;
                 giveaway: boolean;
             };
-            visible:'true' | 'false';
+            visible: 'true' | 'false';
             content: string;
             preview_image: string[];
             hideIndex: string;
@@ -2013,7 +2013,7 @@ export class ShoppingProductSetting {
                 giveaway: false,
             },
             content: '',
-            visible:"true",
+            visible: 'true',
             status: 'active',
             collection: [],
             hideIndex: 'false',
@@ -2239,7 +2239,7 @@ export class ShoppingProductSetting {
                                     ${BgWidget.grayButton(
                                         document.body.clientWidth > 768 ? '預覽商品' : '預覽',
                                         gvc.event(() => {
-                                            window.open(`https://${(window.parent as any).glitter.share.editorViewModel.domain}/products?product_id=${postMD.id}`, '_blank');
+                                            window.parent.open(`https://${(window.parent as any).glitter.share.editorViewModel.domain}/products?product_id=${postMD.id}`, '_blank');
                                         }),
                                         { icon: document.body.clientWidth > 768 ? 'fa-regular fa-eye' : undefined }
                                     )}
@@ -2309,7 +2309,7 @@ export class ShoppingProductSetting {
                                                                                         obj.gvc.notifyDataChange(id);
                                                                                     },
                                                                                     type: `image/*, video/*`,
-                                                                                    multiple:true
+                                                                                    multiple: true,
                                                                                 });
                                                                             })}"
                                                                         >
@@ -3650,14 +3650,12 @@ color: ${selected.length ? `#393939` : `#DDD`};font-size: 18px;
                                                                 const href = `https://${(window.parent as any).glitter.share.editorViewModel.domain}/products?product_id=${postMD.id}`;
                                                                 return html` <div style="font-weight: 700;" class="mb-3">搜尋引擎列表</div>
                                                                     <div class="fs-6 fw-500" style="color:#1a0dab;">${postMD.seo.title || '尚未設定'}</div>
-                                                                    <a
-                                                                        class="fs-sm fw-500"
-                                                                        style="color:#006621;cursor: pointer;"
-                                                                        onclick="${gvc.event(() => {
+                                                                    ${BgWidget.greenNote(
+                                                                        href,
+                                                                        gvc.event(() => {
                                                                             (window.parent as any).glitter.openNewTab(href);
-                                                                        })}"
-                                                                        >${href}</a
-                                                                    >
+                                                                        })
+                                                                    )}
                                                                     <div class="fs-sm fw-500" style="color:#545454;white-space: normal;">${postMD.seo.content || '尚未設定'}</div>
                                                                     <div class="w-100" style="margin: 18px 0 8px;">SEO標題</div>
                                                                     <input
@@ -3713,9 +3711,9 @@ ${postMD.seo.content ?? ''}</textarea
                                                         })
                                                 ),
                                                 BgWidget.mainCard(
-                                                        html` <div style="font-weight: 700;" class="mb-2">商品顯示</div>` +
-                                                      BgWidget.hint_title('當商品設定為隱藏時，僅能顯示於隱形賣場與一頁商店當中。')+
-                                                        `<div class="my-2"></div>`+
+                                                    html` <div style="font-weight: 700;" class="mb-2">商品顯示</div>` +
+                                                        BgWidget.grayNote('當商品設定為隱藏時，僅能顯示於隱形賣場與一頁商店當中') +
+                                                        html`<div class="my-2"></div>` +
                                                         EditorElem.select({
                                                             gvc: obj.gvc,
                                                             title: '',
@@ -3730,38 +3728,38 @@ ${postMD.seo.content ?? ''}</textarea
                                                         })
                                                 ),
                                                 BgWidget.mainCard(
-                                                        html` <div style="font-weight: 700;" class="mb-2">商品類型</div>` +
-                                                    gvc.bindView({
-                                                        bind: 'productType',
-                                                        view: () => {
-                                                            postMD.productType = postMD.productType ?? {
-                                                                product: true,
-                                                                addProduct: false,
-                                                                giveaway: false,
-                                                            };
-                                                            return ['product', 'addProduct', 'giveaway']
-                                                                .map((dd, index) => {
-                                                                    return html` <div
-                                                                        class="d-flex align-items-center"
-                                                                        style="gap:6px;cursor: pointer;"
-                                                                        onclick="${gvc.event(() => {
-                                                                            (postMD!.productType as any)[dd] = !(postMD!.productType as any)[dd];
-                                                                            gvc.notifyDataChange('productType');
-                                                                        })}"
-                                                                    >
-                                                                        ${(postMD!.productType as any)[dd]
-                                                                            ? html` <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                                                                  <rect width="16" height="16" rx="3" fill="#393939" />
-                                                                                  <path d="M4.5 8.5L7 11L11.5 5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                                                                              </svg>`
-                                                                            : html` <div style="width: 16px;height: 16px;border-radius: 3px;border: 1px solid #DDD;"></div> `}
-                                                                        ${['商品', '加購品', '贈品'][index]}
-                                                                    </div>`;
-                                                                })
-                                                                .join('');
-                                                        },
-                                                        divCreate: { class: `d-flex flex-column `, style: 'gap:12px;' },
-                                                    }),
+                                                    html` <div style="font-weight: 700;" class="mb-2">商品類型</div>` +
+                                                        gvc.bindView({
+                                                            bind: 'productType',
+                                                            view: () => {
+                                                                postMD.productType = postMD.productType ?? {
+                                                                    product: true,
+                                                                    addProduct: false,
+                                                                    giveaway: false,
+                                                                };
+                                                                return ['product', 'addProduct', 'giveaway']
+                                                                    .map((dd, index) => {
+                                                                        return html` <div
+                                                                            class="d-flex align-items-center"
+                                                                            style="gap:6px;cursor: pointer;"
+                                                                            onclick="${gvc.event(() => {
+                                                                                (postMD!.productType as any)[dd] = !(postMD!.productType as any)[dd];
+                                                                                gvc.notifyDataChange('productType');
+                                                                            })}"
+                                                                        >
+                                                                            ${(postMD!.productType as any)[dd]
+                                                                                ? html` <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                                                      <rect width="16" height="16" rx="3" fill="#393939" />
+                                                                                      <path d="M4.5 8.5L7 11L11.5 5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                                                                  </svg>`
+                                                                                : html` <div style="width: 16px;height: 16px;border-radius: 3px;border: 1px solid #DDD;"></div> `}
+                                                                            ${['商品', '加購品', '贈品'][index]}
+                                                                        </div>`;
+                                                                    })
+                                                                    .join('');
+                                                            },
+                                                            divCreate: { class: `d-flex flex-column `, style: 'gap:12px;' },
+                                                        }),
                                                     ''
                                                 ),
                                                 BgWidget.mainCard(

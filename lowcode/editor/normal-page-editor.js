@@ -53,7 +53,7 @@ export class NormalPageEditor {
                         })
                             .join('')}
                         </ol>`,
-                        html ` <div style="height:calc(100vh - 65px); overflow-y: auto; padding-bottom: 100px;">${NormalPageEditor.viewArray[NormalPageEditor.viewArray.length - 1].view}</div>`,
+                        html ` <div style="height:calc(100vh - 65px); overflow-y: auto; ">${NormalPageEditor.viewArray[NormalPageEditor.viewArray.length - 1].view}</div>`,
                     ].join('');
                 },
             };

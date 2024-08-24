@@ -18,28 +18,75 @@ RenderValue.custom_style = {
         return style_string;
     },
     value: (gvc, widget) => {
+        var _a, _b;
         let style_string = '';
-        if (widget.data._layout === 'grid') {
-            (style_string += `display: grid; gap: ${(isNaN(widget.data._gap_x)) ? widget.data._gap_x : `${widget.data._gap_x}px`} ${(isNaN(widget.data._gap_y)) ? widget.data._gap_y : `${widget.data._gap_y}px`}; 
+        if (widget.type === 'container') {
+            if (widget.data._layout === 'grid') {
+                (style_string += `display: grid; gap: ${(isNaN(widget.data._gap_x)) ? widget.data._gap_x : `${widget.data._gap_x}px`} ${(isNaN(widget.data._gap_y)) ? widget.data._gap_y : `${widget.data._gap_y}px`}; 
              grid-template-rows: repeat(${widget.data._y_count}, 1fr);`);
-            if (widget.data._x_count > 1) {
-                style_string += `grid-template-columns: ${(() => {
-                    let view = [];
-                    for (let a = 0; a < parseInt(widget.data._x_count, 10); a++) {
-                        view.push(`calc((100% / ${parseInt(widget.data._x_count, 10)}) - ((${(isNaN(widget.data._gap_y)) ? widget.data._gap_y : `${widget.data._gap_y}px`})*${((parseInt(widget.data._x_count, 10) - 1) / (parseInt(widget.data._x_count, 10))).toFixed(1)}))`);
+                if (widget.data._x_count > 1) {
+                    style_string += `grid-template-columns: ${(() => {
+                        let view = [];
+                        for (let a = 0; a < parseInt(widget.data._x_count, 10); a++) {
+                            view.push(`calc((100% / ${parseInt(widget.data._x_count, 10)}) - ((${(isNaN(widget.data._gap_y)) ? widget.data._gap_y : `${widget.data._gap_y}px`})*${((parseInt(widget.data._x_count, 10) - 1) / (parseInt(widget.data._x_count, 10))).toFixed(1)}))`);
+                        }
+                        return view.join(' ');
+                    })()};`;
+                }
+                else {
+                    style_string += `grid-template-columns:100%;`;
+                }
+            }
+            else if (widget.data._layout === 'vertical') {
+                style_string += css `display: flex;
+                        flex-direction: column;
+                        justify-content: ${widget.data._ver_position || 'center'};`;
+            }
+            else if (widget.data._layout === 'proportion') {
+                style_string += css `flex-wrap: wrap !important;
+                        display: flex;gap: ${(isNaN(widget.data._gap_x)) ? widget.data._gap_x : `${widget.data._gap_x}px`} ${(isNaN(widget.data._gap_y)) ? widget.data._gap_y : `${widget.data._gap_y}px`};`;
+                let horGroup = [];
+                let gIndex = 0;
+                let wCount = 0;
+                for (let index = 0; index < ((_a = widget.data._ratio_layout_value) !== null && _a !== void 0 ? _a : ``).split(',').length; index++) {
+                    if (horGroup[gIndex] === undefined) {
+                        horGroup[gIndex] = [];
+                        wCount = 0;
                     }
-                    return view.join(' ');
-                })()} 0px;`;
+                    const wid = Number(((_b = widget.data._ratio_layout_value) !== null && _b !== void 0 ? _b : ``).split(',')[index] || '0');
+                    if (wCount + wid <= 100) {
+                        wCount = wCount + wid;
+                        horGroup[gIndex].push(index);
+                        if (wCount >= 100) {
+                            gIndex = gIndex + 1;
+                        }
+                    }
+                    else {
+                        gIndex = gIndex + 1;
+                    }
+                }
+                widget.data.setting.map((dd, index) => {
+                    var _a;
+                    if (!dd.code_style) {
+                        let style = '';
+                        Object.defineProperty(dd, 'code_style', {
+                            get: function () {
+                                return style;
+                            },
+                            set(v) {
+                                style = v;
+                            },
+                        });
+                    }
+                    for (const b of horGroup) {
+                        if (b.includes(index)) {
+                            const wid = ((_a = widget.data._ratio_layout_value) !== null && _a !== void 0 ? _a : ``).split(',');
+                            const _gap_y = ((Number(widget.data._gap_y) * (b.length - 1)) / b.length).toFixed(0);
+                            dd.code_style += css `width: calc(${wid[index]}% - ${_gap_y}px) !important;`;
+                        }
+                    }
+                });
             }
-            else {
-                style_string += `grid-template-columns:100%;`;
-            }
-        }
-        else if (widget.data._layout === 'vertical') {
-            style_string += css `display:flex;flex-direction: column;justify-content: ${widget.data._ver_position || 'center'};`;
-        }
-        else if (widget.type === 'container') {
-            return ``;
         }
         if (widget.data && widget.data._style_refer === 'global' && widget.data._style_refer_global) {
             const globalValue = gvc.glitter.share.global_container_theme[parseInt(widget.data._style_refer_global.index, 10)];

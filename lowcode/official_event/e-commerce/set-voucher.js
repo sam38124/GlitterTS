@@ -77,7 +77,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                     res.response.data.voucherList.find((dd) => {
                                         return code && dd.code === code;
                                     })) {
-                                    yield ApiShop.setVoucherCode(code);
+                                    ApiShop.setVoucherCode(code);
                                     yield TriggerEvent.trigger({
                                         gvc: gvc,
                                         widget: widget,
@@ -85,7 +85,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                     });
                                 }
                                 else {
-                                    yield ApiShop.setVoucherCode('');
+                                    ApiShop.setVoucherCode('');
                                     yield TriggerEvent.trigger({
                                         gvc: gvc,
                                         widget: widget,

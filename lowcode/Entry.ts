@@ -53,23 +53,20 @@ export class Entry {
         }
         (window as any).renderClock = (window as any).renderClock ?? clockF();
         console.log(`Entry-time:`, (window as any).renderClock.stop());
-        glitter.share.editerVersion = "V_10.6.9";
+        glitter.share.editerVersion = "V_10.8.7";
         glitter.share.start = (new Date());
         const vm: {
             appConfig: any;
         } = {
             appConfig: [],
         };
-
         (window as any).saasConfig = {
             config: ((window as any).config = config),
             api: ApiPageConfig,
             appConfig: undefined,
         };
-
         // 設定SAAS管理員請求API
         config.token = GlobalUser.saas_token;
-
         // 資源初始化
         Entry.resourceInitial(glitter, vm, async (dd) => {
             glitter.addStyle(`
@@ -131,8 +128,16 @@ export class Entry {
                 .relativePosition {
                     position: relative;
                 }
-            `);
+                .sel_normal {
+    cursor: pointer;
+    border-radius: 7px;
+    border: 1px solid #ddd;
+    padding: 2px 14px;
+    background: #fff;
+    box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.1);
+}
 
+            `);
             // 載入全域資源
             await Entry.globalStyle(glitter, dd);
             if (glitter.getUrlParameter('type') === 'editor') {
