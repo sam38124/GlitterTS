@@ -52,8 +52,8 @@ interface GroupsItem {
 }
 
 export class User {
+    static posEmail = '';
     public app: string;
-
     public token?: IToken;
 
     public async createUser(account: string, pwd: string, userData: any, req: any, pass_verify?: boolean) {

@@ -258,7 +258,7 @@ class Shopping {
         return `${new Date().getTime()}`;
     }
     async toCheckout(data, type = 'add', replace_order_id) {
-        var _a, _b, _c, _d;
+        var _a, _b, _c, _d, _e;
         try {
             if (replace_order_id) {
                 const orderData = (await database_js_1.default.query(`SELECT *
@@ -283,6 +283,20 @@ class Shopping {
             }
             const userClass = new user_js_1.User(this.app);
             const rebateClass = new rebate_js_1.Rebate(this.app);
+            if (type == "POS") {
+                let customerData = await userClass.getUserData('pos@ncdesign.info', 'account');
+                data.email = 'pos@ncdesign.info';
+                data.user_info.email = 'pos@ncdesign.info';
+                data.user_info.name = 'POS機';
+                if (!customerData) {
+                    await new user_js_1.User(this.app).createUser(data.email, tool_js_1.default.randomString(8), {
+                        email: 'pos@ncdesign.info',
+                        name: 'POS機',
+                        phone: '',
+                    }, {}, true);
+                    customerData = await userClass.getUserData(data.email || data.user_info.email, 'account');
+                }
+            }
             if (type !== 'preview' && !(this.token && this.token.userID) && !data.email && !(data.user_info && data.user_info.email)) {
                 throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ToCheckout Error:No email address.', null);
             }
@@ -356,7 +370,8 @@ class Shopping {
                 customer_info: data.customer_info || {},
                 lineItems: [],
                 total: 0,
-                email: (_b = data.email) !== null && _b !== void 0 ? _b : ((data.user_info && data.user_info.email) || ''),
+                realTotal: (_b = data.realTotal) !== null && _b !== void 0 ? _b : 0,
+                email: (_c = data.email) !== null && _c !== void 0 ? _c : ((data.user_info && data.user_info.email) || ''),
                 user_info: data.user_info,
                 shipment_fee: 0,
                 rebate: 0,
@@ -366,10 +381,11 @@ class Shopping {
                 shipment_info: shipment_setting.info,
                 use_wallet: 0,
                 method: data.user_info && data.user_info.method,
-                user_email: (userData && userData.account) || ((_c = data.email) !== null && _c !== void 0 ? _c : ((data.user_info && data.user_info.email) || '')),
+                user_email: (userData && userData.account) || ((_d = data.email) !== null && _d !== void 0 ? _d : ((data.user_info && data.user_info.email) || '')),
                 useRebateInfo: { point: 0 },
                 custom_form_format: data.custom_form_format,
                 custom_form_data: data.custom_form_data,
+                orderSource: "",
             };
             function calculateShipment(dataList, value) {
                 const productValue = parseInt(`${value}`, 10);
@@ -522,24 +538,7 @@ class Shopping {
             }
             if (type === 'preview' || type === 'manual-preview')
                 return { data: carData };
-            if (type !== 'manual') {
-                if (userData && userData.userID) {
-                    await rebateClass.insertRebate(userData.userID, carData.use_rebate * -1, '使用折抵', {
-                        order_id: carData.orderID,
-                    });
-                    if (carData.voucherList && carData.voucherList.length > 0) {
-                        for (const voucher of carData.voucherList) {
-                            await this.insertVoucherHistory(userData.userID, carData.orderID, voucher.id);
-                        }
-                    }
-                    const sum = (await database_js_1.default.query(`SELECT sum(money)
-                                 FROM \`${this.app}\`.t_wallet
-                                 WHERE status in (1, 2)
-                                   and userID = ?`, [userData.userID]))[0]['sum(money)'] || 0;
-                    carData.use_wallet = sum < carData.total ? sum : carData.total;
-                }
-            }
-            else {
+            if (type === 'manual') {
                 let tempVoucher = {
                     discount_total: data.voucher.discount_total,
                     end_ISO_Date: '',
@@ -566,7 +565,7 @@ class Shopping {
                 carData.discount = data.discount;
                 carData.voucherList = [tempVoucher];
                 carData.customer_info = data.customer_info;
-                carData.total = (_d = data.total) !== null && _d !== void 0 ? _d : 0;
+                carData.total = (_e = data.total) !== null && _e !== void 0 ? _e : 0;
                 carData.rebate = tempVoucher.rebate_total;
                 if (tempVoucher.reBackType == 'shipment_free') {
                     carData.shipment_fee = 0;
@@ -590,6 +589,29 @@ class Shopping {
                 return {
                     data: carData,
                 };
+            }
+            else if (type === 'POS') {
+                carData.orderSource = 'POS';
+                await database_js_1.default.execute(`INSERT INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
+                     values (?, ?, ?, ?)`, [carData.orderID, data.pay_status, carData.email, carData]);
+                return { result: "SUCCESS", message: "POS訂單新增成功", data: carData };
+            }
+            else {
+                if (userData && userData.userID) {
+                    await rebateClass.insertRebate(userData.userID, carData.use_rebate * -1, '使用折抵', {
+                        order_id: carData.orderID,
+                    });
+                    if (carData.voucherList && carData.voucherList.length > 0) {
+                        for (const voucher of carData.voucherList) {
+                            await this.insertVoucherHistory(userData.userID, carData.orderID, voucher.id);
+                        }
+                    }
+                    const sum = (await database_js_1.default.query(`SELECT sum(money)
+                                 FROM \`${this.app}\`.t_wallet
+                                 WHERE status in (1, 2)
+                                   and userID = ?`, [userData.userID]))[0]['sum(money)'] || 0;
+                    carData.use_wallet = sum < carData.total ? sum : carData.total;
+                }
             }
             const id = 'redirect_' + tool_js_1.default.randomString(6);
             const return_url = new URL(data.return_url);
@@ -743,10 +765,16 @@ class Shopping {
              values (?, ?, ?, ?)`, [orderID, returnOrderID, email, data.orderData]);
     }
     async putReturnOrder(data) {
-        if (data.orderData.returnProgress == -1 && data.status == 1) {
+        let origData = await database_js_1.default.execute(`SELECT *
+                       FROM \`${this.app}\`.t_return_order
+                       WHERE id = ${data.id}`, []);
+        origData = origData[0];
+        if (origData.status != "1" && origData.orderData.returnProgress != "-1" && data.orderData.returnProgress == "-1" && data.status == "1") {
             const userClass = new user_js_1.User(this.app);
             const rebateClass = new rebate_js_1.Rebate(this.app);
-            const userData = await userClass.getUserData(data.orderData.customer_info.account, 'account');
+            const userData = await userClass.getUserData(data.orderData.customer_info.email, 'account');
+            console.log("fin --- ");
+            console.log(await rebateClass.insertRebate(userData.userID, data.orderData.rebateChange, `退貨單調整-退貨單號${origData.return_order_id}`));
         }
         try {
             await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_return_order\`

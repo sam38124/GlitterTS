@@ -269,7 +269,7 @@ class Rebate {
     async minusCheck(user_id, amount) {
         user_id = parseInt(`${user_id}`, 10);
         const getUserRebate = await this.getOneRebate({ user_id });
-        return getUserRebate && getUserRebate.point + amount >= 0;
+        return getUserRebate && getUserRebate.point + amount > 0;
     }
     async insertRebate(user_id, amount, note, proof) {
         user_id = parseInt(`${user_id}`, 10);

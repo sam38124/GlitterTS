@@ -908,3 +908,35 @@ router.get('/check-login-for-order', async (req: express.Request, resp: express.
         return response.fail(resp, err);
     }
 });
+//POS機相關
+router.post('/pos/checkout', async (req: express.Request, resp: express.Response) => {
+    async function checkoutPos() {
+
+        return response.succ(
+            resp,
+            await new Shopping(req.get('g-app') as string, req.body.token).toCheckout(
+                {
+                    lineItems: req.body.lineItems as any,
+                    email: req.body.customer_info.email,
+                    return_url: req.body.return_url,
+                    user_info: req.body.user_info,
+                    checkOutType: 'POS',
+                    voucher: req.body.voucher,
+                    customer_info: req.body.customer_info,
+                    discount: req.body.discount,
+                    total: req.body.total,
+                    pay_status: req.body.pay_status,
+                    realTotal: req.body.realTotal,
+                },
+                'POS'
+            )
+        );
+    }
+
+    try {
+        let result = await checkoutPos()
+        return response.succ(resp, result);
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});

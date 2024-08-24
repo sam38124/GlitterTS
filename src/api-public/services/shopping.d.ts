@@ -139,7 +139,7 @@ export declare class Shopping {
         code?: string;
         use_rebate?: number;
         use_wallet?: number;
-        checkOutType?: 'manual' | 'auto';
+        checkOutType?: 'manual' | 'auto' | 'POS';
         voucher?: any;
         discount?: number;
         total?: number;
@@ -147,7 +147,8 @@ export declare class Shopping {
         custom_form_format?: any;
         custom_form_data?: any;
         distribution_code?: string;
-    }, type?: 'add' | 'preview' | 'manual' | 'manual-preview', replace_order_id?: string): Promise<{
+        realTotal?: number;
+    }, type?: 'add' | 'preview' | 'manual' | 'manual-preview' | 'POS', replace_order_id?: string): Promise<{
         data: {
             customer_info: any;
             lineItems: {
@@ -162,7 +163,7 @@ export declare class Shopping {
                     type: string;
                     value: number;
                 };
-                discount_price?: number | undefined;
+                discount_price?: number;
             }[];
             discount?: number | undefined;
             total: number;
@@ -187,6 +188,59 @@ export declare class Shopping {
             custom_form_format?: any;
             custom_form_data?: any;
             distribution_id?: number | undefined;
+            orderSource: string;
+            realTotal: number;
+        };
+        result?: undefined;
+        message?: undefined;
+        is_free?: undefined;
+        return_url?: undefined;
+        off_line?: undefined;
+        form?: undefined;
+    } | {
+        result: string;
+        message: string;
+        data: {
+            customer_info: any;
+            lineItems: {
+                id: string;
+                spec: string[];
+                count: number;
+                sale_price: number;
+                collection: string[];
+                title: string;
+                preview_image: string;
+                shipment_obj: {
+                    type: string;
+                    value: number;
+                };
+                discount_price?: number;
+            }[];
+            discount?: number | undefined;
+            total: number;
+            email: string;
+            user_info: any;
+            code?: string | undefined;
+            shipment_fee: number;
+            rebate: number;
+            use_rebate: number;
+            orderID: string;
+            shipment_support: string[];
+            shipment_info: any;
+            use_wallet: number;
+            user_email: string;
+            method: string;
+            useRebateInfo?: {
+                point: number;
+                limit?: number | undefined;
+                condition?: number | undefined;
+            } | undefined;
+            voucherList?: VoucherData[] | undefined;
+            custom_form_format?: any;
+            custom_form_data?: any;
+            distribution_id?: number | undefined;
+            orderSource: string;
+            realTotal: number;
         };
         is_free?: undefined;
         return_url?: undefined;
@@ -196,17 +250,23 @@ export declare class Shopping {
         is_free: boolean;
         return_url: string;
         data?: undefined;
+        result?: undefined;
+        message?: undefined;
         off_line?: undefined;
         form?: undefined;
     } | {
         off_line: boolean;
         return_url: string;
         data?: undefined;
+        result?: undefined;
+        message?: undefined;
         is_free?: undefined;
         form?: undefined;
     } | {
         form: any;
         data?: undefined;
+        result?: undefined;
+        message?: undefined;
         is_free?: undefined;
         return_url?: undefined;
         off_line?: undefined;

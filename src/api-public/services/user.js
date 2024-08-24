@@ -1294,6 +1294,7 @@ class User {
     }
 }
 exports.User = User;
+User.posEmail = '';
 function generateUserID() {
     let userID = '';
     const characters = '0123456789';

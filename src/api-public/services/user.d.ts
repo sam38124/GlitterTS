@@ -28,6 +28,7 @@ interface GroupsItem {
     users: GroupUserItem[];
 }
 export declare class User {
+    static posEmail: string;
     app: string;
     token?: IToken;
     createUser(account: string, pwd: string, userData: any, req: any, pass_verify?: boolean): Promise<any>;

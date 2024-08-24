@@ -140,13 +140,14 @@ export class ShoppingCollections {
             const topLevelCollections = data.collections.map((col) => col.title);
             return flattenCollections(data.collections, [], topLevelCollections);
         };
-
         return gvc.bindView(() => {
             return {
                 bind: vm.id,
                 dataList: [{obj: vm, key: 'type'}],
                 view: () => {
+
                     if (vm.type === 'list') {
+
                         return BgWidget.container(
                             html`
                                 <div class="d-flex w-100 align-items-center">

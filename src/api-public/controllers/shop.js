@@ -840,5 +840,29 @@ router.get('/check-login-for-order', async (req, resp) => {
         return response_1.default.fail(resp, err);
     }
 });
+router.post('/pos/checkout', async (req, resp) => {
+    async function checkoutPos() {
+        return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).toCheckout({
+            lineItems: req.body.lineItems,
+            email: req.body.customer_info.email,
+            return_url: req.body.return_url,
+            user_info: req.body.user_info,
+            checkOutType: 'POS',
+            voucher: req.body.voucher,
+            customer_info: req.body.customer_info,
+            discount: req.body.discount,
+            total: req.body.total,
+            pay_status: req.body.pay_status,
+            realTotal: req.body.realTotal,
+        }, 'POS'));
+    }
+    try {
+        let result = await checkoutPos();
+        return response_1.default.succ(resp, result);
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
 module.exports = router;
 //# sourceMappingURL=shop.js.map

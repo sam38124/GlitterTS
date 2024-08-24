@@ -1972,7 +1972,6 @@ export class ShoppingOrderManager {
                         let selectVariant = product.content.variants[parseInt((_a = product.selectIndex) !== null && _a !== void 0 ? _a : 0)];
                         let productIMG = (typeof selectVariant.preview_image == "string") ? selectVariant.preview_image : selectVariant.preview_image[0];
                         productIMG = (productIMG) ? productIMG : (product.content.preview_image[0]) ? (product.content.preview_image[0]) : "https://jmva.or.jp/wp-content/uploads/2018/07/noimage.png";
-                        console.log("newOrder.productCheck -- ", newOrder.productCheck);
                         selectVariant.qty = selectVariant.qty || 1;
                         returnHTML += html `
                                             <div style="width: 100%;display: flex;align-items: center;position: relative;padding-right: 20px;">
@@ -2281,7 +2280,6 @@ export class ShoppingOrderManager {
                                 }), "取消")}
                                                                     ${BgWidget.save(gvc.event(() => {
                                     newOrder.productTemp = [];
-                                    console.log(newOrder.productArray);
                                     newOrder.productArray.map((product) => {
                                         if (product.select) {
                                             newOrder.productTemp.push(product);

@@ -51,7 +51,6 @@ interface VoucherData {
     target: string;
     targetList: string[];
 }
-
 interface ShipmentConfig {
     volume: { key: string; value: string }[];
     weight: { key: string; value: string }[];
@@ -442,7 +441,7 @@ export class Shopping {
             code?: string;
             use_rebate?: number;
             use_wallet?: number;
-            checkOutType?: 'manual' | 'auto';
+            checkOutType?: 'manual' | 'auto' | 'POS';
             voucher?: any; //自定義的voucher
             discount?: number; //自定義金額
             total?: number; //自定義總額
@@ -450,8 +449,9 @@ export class Shopping {
             custom_form_format?: any; //自定義表單格式
             custom_form_data?: any; //自定義表單資料
             distribution_code?: string; //分銷連結代碼
+            realTotal?:number//實際付款金額
         },
-        type: 'add' | 'preview' | 'manual' | 'manual-preview' = 'add',
+        type: 'add' | 'preview' | 'manual' | 'manual-preview' | 'POS' = 'add',
         replace_order_id?: string
     ) {
         try {
@@ -487,9 +487,34 @@ export class Shopping {
 
             const userClass = new User(this.app);
             const rebateClass = new Rebate(this.app);
+            //POS專屬會員 pos@ncdesign.info
+            if (type == "POS"){
+                let customerData = await userClass.getUserData('pos@ncdesign.info', 'account');
+                data.email = 'pos@ncdesign.info';
+                data.user_info.email = 'pos@ncdesign.info';
+                data.user_info.name = 'POS機';
+                //如果沒有這個POS會員，直接做新增
+                if (!customerData) {
+                    // 找不到data時 新建user
+                    await new User(this.app).createUser(
+                        data.email!,
+                        Tool.randomString(8),
+                        {
+                            email: 'pos@ncdesign.info',
+                            name: 'POS機',
+                            phone: '',
+                        },
+                        {},
+                        true
+                    );
+                    customerData = await userClass.getUserData(data.email! || data.user_info.email, 'account');
+                }
+            }
+
             if (type !== 'preview' && !(this.token && this.token.userID) && !data.email && !(data.user_info && data.user_info.email)) {
                 throw exception.BadRequestError('BAD_REQUEST', 'ToCheckout Error:No email address.', null);
             }
+
             const userData = await (async () => {
                 if (type !== 'preview' || (this.token && this.token.userID)) {
                     return this.token && this.token.userID
@@ -600,10 +625,13 @@ export class Shopping {
                 custom_form_format?: any; //自定義表單格式
                 custom_form_data?: any; //自定義表單資料
                 distribution_id?: number;
+                orderSource:string;
+                realTotal:number;//實際付款金額
             } = {
                 customer_info: data.customer_info || {},
                 lineItems: [],
                 total: 0,
+                realTotal:data.realTotal??0,
                 email: data.email ?? ((data.user_info && data.user_info.email) || ''),
                 user_info: data.user_info,
                 shipment_fee: 0,
@@ -618,6 +646,7 @@ export class Shopping {
                 useRebateInfo: { point: 0 },
                 custom_form_format: data.custom_form_format,
                 custom_form_data: data.custom_form_data,
+                orderSource:"",
             };
 
             function calculateShipment(dataList: { key: string; value: string }[], value: number | string) {
@@ -809,32 +838,7 @@ export class Shopping {
             // ================================ Add DOWN ================================
 
             // 手動結帳地方判定
-            if (type !== 'manual') {
-                //有userID在執行。
-                if (userData && userData.userID) {
-                    await rebateClass.insertRebate(userData.userID, carData.use_rebate * -1, '使用折抵', {
-                        order_id: carData.orderID,
-                    });
-
-                    if (carData.voucherList && carData.voucherList.length > 0) {
-                        for (const voucher of carData.voucherList) {
-                            await this.insertVoucherHistory(userData.userID, carData.orderID, voucher.id);
-                        }
-                    }
-                    // 判斷錢包是否有餘額
-                    const sum =
-                        (
-                            await db.query(
-                                `SELECT sum(money)
-                                 FROM \`${this.app}\`.t_wallet
-                                 WHERE status in (1, 2)
-                                   and userID = ?`,
-                                [userData.userID]
-                            )
-                        )[0]['sum(money)'] || 0;
-                    carData.use_wallet = sum < carData.total ? sum : carData.total;
-                }
-            } else {
+            if (type === 'manual'){
                 let tempVoucher: VoucherData = {
                     discount_total: data.voucher.discount_total,
                     end_ISO_Date: '',
@@ -898,6 +902,39 @@ export class Shopping {
                 return {
                     data: carData,
                 };
+            }else if (type === 'POS'){
+                carData.orderSource = 'POS';
+                await db.execute(
+                    `INSERT INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
+                     values (?, ?, ?, ?)`,
+                    [carData.orderID, data.pay_status, carData.email, carData]
+                );
+                return { result:"SUCCESS" , message : "POS訂單新增成功", data: carData };
+            }else {
+                if (userData && userData.userID) {
+                    await rebateClass.insertRebate(userData.userID, carData.use_rebate * -1, '使用折抵', {
+                        order_id: carData.orderID,
+                    });
+
+                    if (carData.voucherList && carData.voucherList.length > 0) {
+                        for (const voucher of carData.voucherList) {
+                            await this.insertVoucherHistory(userData.userID, carData.orderID, voucher.id);
+                        }
+                    }
+                    // 判斷錢包是否有餘額
+                    const sum =
+                        (
+                            await db.query(
+                                `SELECT sum(money)
+                                 FROM \`${this.app}\`.t_wallet
+                                 WHERE status in (1, 2)
+                                   and userID = ?`,
+                                [userData.userID]
+                            )
+                        )[0]['sum(money)'] || 0;
+                    carData.use_wallet = sum < carData.total ? sum : carData.total;
+                }
+
             }
             const id = 'redirect_' + Tool.randomString(6);
             const return_url = new URL(data.return_url);
