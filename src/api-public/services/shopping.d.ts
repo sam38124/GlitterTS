@@ -194,7 +194,6 @@ export declare class Shopping {
             voucherList?: VoucherData[] | undefined;
             custom_form_format?: any;
             custom_form_data?: any;
-<<<<<<< HEAD
             distribution_id?: number | undefined;
             orderSource: string;
             realTotal: number;
@@ -249,9 +248,6 @@ export declare class Shopping {
             distribution_id?: number | undefined;
             orderSource: string;
             realTotal: number;
-=======
-            distribution_info?: any;
->>>>>>> 7bd88d4f3e43c715623d3ed076b23a6d8f56cbcb
         };
         is_free?: undefined;
         return_url?: undefined;
