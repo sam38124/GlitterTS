@@ -1814,6 +1814,7 @@ ${obj.gvc.bindView({
                 glitter = window.parent.glitter;
             }
             glitter.getModule(new URL('../.././editor/add-component.js', import.meta.url).href, (AddComponent) => {
+                AddComponent.toggle(true);
                 AddComponent.addWidget = (gvc, tdata) => {
                     glitter.share.addWithIndex({
                         data: tdata,
@@ -1858,7 +1859,6 @@ ${obj.gvc.bindView({
                         direction: direction,
                     });
                 };
-                AddComponent.toggle(true);
             });
         }
         return [

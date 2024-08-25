@@ -257,7 +257,7 @@ class Shopping {
         return `${new Date().getTime()}`;
     }
     async toCheckout(data, type = 'add', replace_order_id) {
-        var _a, _b, _c, _d, _e;
+        var _a, _b, _c, _d, _e, _f;
         try {
             if (replace_order_id) {
                 const orderData = (await database_js_1.default.query(`SELECT *
@@ -285,6 +285,7 @@ class Shopping {
             if (type == "POS") {
                 let customerData = await userClass.getUserData('pos@ncdesign.info', 'account');
                 data.email = 'pos@ncdesign.info';
+                data.user_info = (_a = data.user_info) !== null && _a !== void 0 ? _a : {};
                 data.user_info.email = 'pos@ncdesign.info';
                 data.user_info.name = 'POS機';
                 if (!customerData) {
@@ -293,7 +294,6 @@ class Shopping {
                         name: 'POS機',
                         phone: '',
                     }, {}, true);
-                    customerData = await userClass.getUserData(data.email || data.user_info.email, 'account');
                 }
             }
             if (type !== 'preview' && !(this.token && this.token.userID) && !data.email && !(data.user_info && data.user_info.email)) {
@@ -335,10 +335,10 @@ class Shopping {
                     data.use_rebate = 0;
                 }
             }
-            const shipment = ((_a = (await private_config_js_1.Private_config.getConfig({
+            const shipment = ((_b = (await private_config_js_1.Private_config.getConfig({
                 appName: this.app,
                 key: 'glitter_shipment',
-            }))) !== null && _a !== void 0 ? _a : [
+            }))) !== null && _b !== void 0 ? _b : [
                 {
                     value: {
                         volume: [],
@@ -369,8 +369,8 @@ class Shopping {
                 customer_info: data.customer_info || {},
                 lineItems: [],
                 total: 0,
-                realTotal: (_b = data.realTotal) !== null && _b !== void 0 ? _b : 0,
-                email: (_c = data.email) !== null && _c !== void 0 ? _c : ((data.user_info && data.user_info.email) || ''),
+                realTotal: (_c = data.realTotal) !== null && _c !== void 0 ? _c : 0,
+                email: (_d = data.email) !== null && _d !== void 0 ? _d : ((data.user_info && data.user_info.email) || ''),
                 user_info: data.user_info,
                 shipment_fee: 0,
                 rebate: 0,
@@ -380,7 +380,7 @@ class Shopping {
                 shipment_info: shipment_setting.info,
                 use_wallet: 0,
                 method: data.user_info && data.user_info.method,
-                user_email: (userData && userData.account) || ((_d = data.email) !== null && _d !== void 0 ? _d : ((data.user_info && data.user_info.email) || '')),
+                user_email: (userData && userData.account) || ((_e = data.email) !== null && _e !== void 0 ? _e : ((data.user_info && data.user_info.email) || '')),
                 useRebateInfo: { point: 0 },
                 custom_form_format: data.custom_form_format,
                 custom_form_data: data.custom_form_data,
@@ -472,19 +472,21 @@ class Shopping {
                 }
                 catch (e) { }
             }
-            carData.shipment_fee = (() => {
-                let total_volume = 0;
-                let total_weight = 0;
-                carData.lineItems.map((item) => {
-                    if (item.shipment_obj.type === 'volume') {
-                        total_volume += item.shipment_obj.value;
-                    }
-                    if (item.shipment_obj.type === 'weight') {
-                        total_weight += item.shipment_obj.value;
-                    }
-                });
-                return calculateShipment(shipment.volume, total_volume) + calculateShipment(shipment.weight, total_weight);
-            })();
+            if (data.checkOutType !== 'POS') {
+                carData.shipment_fee = (() => {
+                    let total_volume = 0;
+                    let total_weight = 0;
+                    carData.lineItems.map((item) => {
+                        if (item.shipment_obj.type === 'volume') {
+                            total_volume += item.shipment_obj.value;
+                        }
+                        if (item.shipment_obj.type === 'weight') {
+                            total_weight += item.shipment_obj.value;
+                        }
+                    });
+                    return calculateShipment(shipment.volume, total_volume) + calculateShipment(shipment.weight, total_weight);
+                })();
+            }
             carData.total += carData.shipment_fee;
             const f_rebate = await this.formatUseRebate(carData.total, carData.use_rebate);
             carData.useRebateInfo = f_rebate;
@@ -569,7 +571,7 @@ class Shopping {
                 carData.discount = data.discount;
                 carData.voucherList = [tempVoucher];
                 carData.customer_info = data.customer_info;
-                carData.total = (_e = data.total) !== null && _e !== void 0 ? _e : 0;
+                carData.total = (_f = data.total) !== null && _f !== void 0 ? _f : 0;
                 carData.rebate = tempVoucher.rebate_total;
                 if (tempVoucher.reBackType == 'shipment_free') {
                     carData.shipment_fee = 0;
@@ -598,6 +600,7 @@ class Shopping {
                 carData.orderSource = 'POS';
                 await database_js_1.default.execute(`INSERT INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
                      values (?, ?, ?, ?)`, [carData.orderID, data.pay_status, carData.email, carData]);
+                carData.invoice = await new invoice_js_1.Invoice(this.app).postCheckoutInvoice(carData.orderID, true);
                 return { result: "SUCCESS", message: "POS訂單新增成功", data: carData };
             }
             else {
@@ -637,7 +640,7 @@ class Shopping {
                 await database_js_1.default.execute(`INSERT INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
                      values (?, ?, ?, ?)`, [carData.orderID, 1, carData.email, carData]);
                 if (carData.use_wallet > 0) {
-                    new invoice_js_1.Invoice(this.app).postCheckoutInvoice(carData.orderID);
+                    new invoice_js_1.Invoice(this.app).postCheckoutInvoice(carData.orderID, false);
                 }
                 return {
                     is_free: true,
@@ -774,20 +777,6 @@ class Shopping {
         }
     }
     async putReturnOrder(data) {
-<<<<<<< HEAD
-        let origData = await database_js_1.default.execute(`SELECT *
-                       FROM \`${this.app}\`.t_return_order
-                       WHERE id = ${data.id}`, []);
-        origData = origData[0];
-        if (origData.status != "1" && origData.orderData.returnProgress != "-1" && data.orderData.returnProgress == "-1" && data.status == "1") {
-            const userClass = new user_js_1.User(this.app);
-            const rebateClass = new rebate_js_1.Rebate(this.app);
-            const userData = await userClass.getUserData(data.orderData.customer_info.email, 'account');
-            console.log("fin --- ");
-            console.log(await rebateClass.insertRebate(userData.userID, data.orderData.rebateChange, `退貨單調整-退貨單號${origData.return_order_id}`));
-        }
-=======
->>>>>>> 7bd88d4f3e43c715623d3ed076b23a6d8f56cbcb
         try {
             const getData = await database_js_1.default.execute(`SELECT * FROM \`${this.app}\`.t_return_order WHERE id = ${data.id}
                     `, []);
@@ -862,6 +851,7 @@ class Shopping {
         }
     }
     async checkVoucher(cart) {
+        var _a;
         const userClass = new user_js_1.User(this.app);
         cart.discount = 0;
         cart.lineItems.map((dd) => {
@@ -891,10 +881,7 @@ class Shopping {
             }
             return [];
         }
-        const userData = await userClass.getUserData(cart.email, 'account');
-        if (!userData || !userData.userID) {
-            return;
-        }
+        const userData = (_a = (await userClass.getUserData(cart.email, 'account'))) !== null && _a !== void 0 ? _a : { userID: -1 };
         const userLevels = await userClass.getUserLevel([{ email: cart.email }]);
         const allVoucher = (await this.querySql([`(content->>'$.type'='voucher')`], {
             page: 0,
@@ -1413,7 +1400,7 @@ class Shopping {
                 catch (e) {
                     console.error(e);
                 }
-                new invoice_js_1.Invoice(this.app).postCheckoutInvoice(order_id);
+                new invoice_js_1.Invoice(this.app).postCheckoutInvoice(order_id, false);
             }
         }
         catch (error) {
@@ -1497,6 +1484,8 @@ class Shopping {
     async postVariantsAndPriceValue(content) {
         var _a, _b, _c;
         content.variants = (_a = content.variants) !== null && _a !== void 0 ? _a : [];
+        content.min_price = undefined;
+        content.max_price = undefined;
         content.id &&
             (await database_js_1.default.query(`DELETE
              from \`${this.app}\`.t_variants
@@ -1521,6 +1510,13 @@ class Shopping {
                 },
             ]);
         }
+        await database_js_1.default.query(`update \`${this.app}\`.\`t_manager_post\` SET ? where id = ?
+                `, [
+            {
+                content: JSON.stringify(content),
+            },
+            content.id,
+        ]);
     }
     async getDataAnalyze(tags) {
         try {

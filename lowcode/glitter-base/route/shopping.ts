@@ -530,6 +530,7 @@ export class ApiShop {
             count: number;
         }[];
         code?: string;
+        checkOutType?:'manual' | 'auto' | 'POS',
         use_rebate?: number;
         distribution_code?: string;
     }) {

@@ -424,6 +424,33 @@ background-clip: text;
                                 })
                                     .join('');
                             })()}
+                                    <div class="d-flex align-items-center justify-content-center fw-bold    fw-500 " style="
+border-radius: 7px;
+width: 43px;
+font-size: 16px;
+border: 1px solid #FFB400;
+cursor: pointer;
+height: 43px;
+background: linear-gradient(143deg, #FFB400 -22.7%, #FF6C02 114.57%);
+background-clip: text;
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;" onclick="${gvc.event(() => {
+                                navigator.clipboard.readText().then((clipboardText) => {
+                                    try {
+                                        const data = JSON.parse(clipboardText);
+                                        data.id = gvc.glitter.getUUID();
+                                        try {
+                                            AddComponent.addWidget(gvc, data);
+                                        }
+                                        catch (e) {
+                                        }
+                                    }
+                                    catch (e) {
+                                        const dialog = new ShareDialog(gvc.glitter);
+                                        dialog.errorMessage({ text: '請先選擇元件複製!' });
+                                    }
+                                });
+                            })}"><i class="fa-regular fa-paste"></i></div>
                                 </div>
                                 <div class="p-2 border-bottom  f-flex${vm.template_from === 'plus' ? `d-none` : ``}"
                                      style="">

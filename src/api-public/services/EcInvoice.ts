@@ -1,7 +1,10 @@
 import crypto from "crypto";
 import axios from "axios";
-import FormData from 'form-data';
+import FormData, {from} from 'form-data';
 import Tool from "./ezpay/tool.js";
+import {EcPay, EzPay} from "./financial-service.js";
+import db from '../../modules/database';
+import JSDOM from 'jsdom'
 
 export interface EcInvoiceInterface {
     "MerchantID": string,
@@ -12,14 +15,15 @@ export interface EcInvoiceInterface {
     "CustomerAddr": string,
     "CustomerPhone": string,
     "CustomerEmail": string,
-    LoveCode?:string,
+    LoveCode?: string,
+    ClearanceMark?: any,
     "Print": string,
     "Donation": string,
     "TaxType": string,
     "SalesAmount": number,
     "InvType": string,
     CarrierType: string
-    CarrierNum?:string
+    CarrierNum?: string
     "Items": {
         "ItemSeq": number,
         "ItemName": string,
@@ -32,13 +36,23 @@ export interface EcInvoiceInterface {
     }[]
 }
 
+export interface EcPrintInterFace {
+    MerchantID: string,
+    InvoiceNo: string,
+    InvoiceDate: string,
+    PrintStyle: 1 | 2 | 3 | 4 | 5,
+    IsShowingDetail: 1 | 2
+}
+
 export class EcInvoice {
     public static postInvoice(obj: {
         hashKey: string,
         hash_IV: string,
-        merchNO: string
+        merchNO: string,
+        app_name: string,
         invoice_data: EcInvoiceInterface,
-        beta: boolean
+        beta: boolean,
+        print: boolean
     }) {
         const timeStamp = `${new Date().valueOf()}`
         const cipher = crypto.createCipheriv('aes-128-cbc', obj.hashKey, obj.hash_IV);
@@ -62,9 +76,115 @@ export class EcInvoice {
         //PlatformID
         return new Promise<boolean>((resolve, reject) => {
             axios.request(config)
-                .then((response) => {
-                    console.log('invoice-->', JSON.stringify(response.data))
-                    resolve(response.data)
+                .then(async (response) => {
+                    const decipher = crypto.createDecipheriv('aes-128-cbc', obj.hashKey, obj.hash_IV);
+                    let decrypted = decipher.update(response.data.Data, 'base64', 'utf-8');
+                    try {
+                        decrypted += decipher.final('utf-8');
+                    } catch (e) {
+                        e instanceof Error && console.log(e.message);
+                    }
+                    const resp = JSON.parse(decodeURIComponent(decrypted))
+                    console.log(`resp--->`,resp)
+                    await db.query(`insert into \`${obj.app_name}\`.t_invoice_memory set ?`, [
+                        {
+                            order_id: obj.invoice_data.RelateNumber,
+                            invoice_no: resp.InvoiceNo,
+                            invoice_data: JSON.stringify({
+                                original_data: obj.invoice_data,
+                                response: resp
+                            }),
+                            create_date: resp.InvoiceDate
+                        }
+                    ])
+                    if (obj.print) {
+                        resolve(await this.printInvoice({
+                            hashKey: obj.hashKey,
+                            hash_IV: obj.hash_IV,
+                            merchNO: obj.merchNO,
+                            app_name: obj.app_name,
+                            order_id: obj.invoice_data.RelateNumber,
+                            beta: obj.beta
+                        }))
+                    } else {
+                        resolve(response.data)
+                    }
+                })
+                .catch((error) => {
+                    console.log(error)
+                    resolve(false)
+                });
+        })
+    }
+
+    //發票列印
+    public static printInvoice(obj: {
+        hashKey: string,
+        hash_IV: string,
+        merchNO: string,
+        app_name: string,
+        order_id: string,
+        beta: boolean
+    }) {
+        return new Promise<any>(async (resolve, reject) => {
+            const invoice_data = (await db.query(`SELECT *
+                                                  FROM \`${obj.app_name}\`.t_invoice_memory
+                                                  where order_id = ?;`, [obj.order_id]))[0]
+            const send_invoice: EcPrintInterFace = {
+                MerchantID: obj.merchNO,
+                InvoiceNo: invoice_data.invoice_data.response.InvoiceNo,
+                InvoiceDate: `${invoice_data.invoice_data.response.InvoiceDate}`.substring(0, 10),
+                PrintStyle: 3,
+                IsShowingDetail: 1
+            }
+            const timeStamp = `${new Date().valueOf()}`
+            const cipher = crypto.createCipheriv('aes-128-cbc', obj.hashKey, obj.hash_IV);
+            let encryptedData = cipher.update(encodeURIComponent(JSON.stringify(send_invoice)), 'utf-8', 'base64');
+            encryptedData += cipher.final('base64');
+            let config = {
+                method: 'post',
+                maxBodyLength: Infinity,
+                url: (obj.beta) ? 'https://einvoice-stage.ecpay.com.tw/B2CInvoice/InvoicePrint' : 'https://einvoice.ecpay.com.tw/B2CInvoice/InvoicePrint',
+                headers: {},
+                'Content-Type': 'application/json',
+                data: {
+                    MerchantID: obj.merchNO,
+                    RqHeader: {
+                        Timestamp: parseInt(`${timeStamp.substring(0, 10)}`, 10)
+                    },
+                    Data: encryptedData
+                }
+            };
+            axios.request(config)
+                .then(async (response) => {
+                    const decipher = crypto.createDecipheriv('aes-128-cbc', obj.hashKey, obj.hash_IV);
+                    let decrypted = decipher.update(response.data.Data, 'base64', 'utf-8');
+                    try {
+                        decrypted += decipher.final('utf-8');
+                    } catch (e) {
+                        e instanceof Error && console.log(e.message);
+                    }
+                    const resp = JSON.parse(decodeURIComponent(decrypted))
+                    const htmlData = await axios.request({
+                        method: 'get',
+                        maxBodyLength: Infinity,
+                        url: resp.InvoiceHtml
+                    })
+                    console.log(`htmlData=>`, htmlData.data)
+                    console.log(`print-resp=>`, resp)
+                    const dom = new JSDOM.JSDOM(htmlData.data);
+                    const document = dom.window.document;
+                    const inputs = document.querySelectorAll("input");
+                    let qrcode: string[] = []
+                    inputs.forEach(input => {
+                        qrcode.push(input.value)
+                    });
+                    resolve({
+                        qrcode_0: qrcode[0],
+                        link:resp.InvoiceHtml,
+                        qrcode_1: qrcode[1],
+                        bar_code:qrcode[0].substring(10,15)+invoice_data.invoice_data.response.InvoiceNo+invoice_data.invoice_data.response.RandomNumber
+                    })
                 })
                 .catch((error) => {
                     console.log(error)

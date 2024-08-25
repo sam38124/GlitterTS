@@ -277,7 +277,7 @@ gulp publish
 
 ## References
 
-- Payment credit card number IIN https://en.wikipedia.org/wiki/Payment_card_number#Issuer_identification_number_.28IIN.29
+- PaymentPage credit card number IIN https://en.wikipedia.org/wiki/Payment_card_number#Issuer_identification_number_.28IIN.29
 - Google phone numbers formatting https://github.com/googlei18n/libphonenumber
 - Decimal mark and thousands separating style https://en.wikipedia.org/wiki/Decimal_mark#Examples_of_use
 

@@ -74,16 +74,16 @@
 			isa = PBXGroup;
 			children = (
 				CA6D465A2A5A936100DBA4F3 /* proshake */,
-				CA6D46592A5A936100DBA4F3 /* Products */,
+				CA6D46592A5A936100DBA4F3 /* ProductsPage */,
 			);
 			sourceTree = "<group>";
 		};
-		CA6D46592A5A936100DBA4F3 /* Products */ = {
+		CA6D46592A5A936100DBA4F3 /* ProductsPage */ = {
 			isa = PBXGroup;
 			children = (
 				CA6D46582A5A936100DBA4F3 /* proshake.app */,
 			);
-			name = Products;
+			name = ProductsPage;
 			sourceTree = "<group>";
 		};
 		CA6D465A2A5A936100DBA4F3 /* proshake */ = {
@@ -184,7 +184,7 @@
 				CA6D46742A5A95AF00DBA4F3 /* XCRemoteSwiftPackageReference "SnapKit" */,
 				CA6D46782A5A9D8C00DBA4F3 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 			);
-			productRefGroup = CA6D46592A5A936100DBA4F3 /* Products */;
+			productRefGroup = CA6D46592A5A936100DBA4F3 /* ProductsPage */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (

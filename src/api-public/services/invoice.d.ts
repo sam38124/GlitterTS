@@ -3,7 +3,8 @@ export declare class Invoice {
     constructor(appName: string);
     postInvoice(cf: {
         invoice_data: any;
+        print: boolean;
     }): Promise<boolean | undefined>;
-    postCheckoutInvoice(orderID: string): Promise<boolean | undefined>;
+    postCheckoutInvoice(orderID: string, print: boolean): Promise<boolean | undefined>;
     static checkWhiteList(config: any, invoice_data: any): any;
 }

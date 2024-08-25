@@ -41,6 +41,21 @@ class ApiPublic {
                 },
                 {
                     scheme: appName,
+                    table: `t_invoice_memory`,
+                    sql: `(
+  \`id\` int NOT NULL AUTO_INCREMENT,
+  \`order_id\` varchar(45) COLLATE utf8mb4_unicode_ci NOT NULL,
+  \`invoice_no\` varchar(45) COLLATE utf8mb4_unicode_ci NOT NULL,
+  \`invoice_data\` json DEFAULT NULL,
+  \`create_date\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (\`id\`),
+  KEY \`index2\` (\`order_id\`),
+  KEY \`index3\` (\`invoice_no\`),
+  KEY \`index4\` (\`create_date\`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`
+                },
+                {
+                    scheme: appName,
                     table: 't_variants',
                     sql: `(
   \`id\` int NOT NULL AUTO_INCREMENT,

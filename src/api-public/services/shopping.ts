@@ -511,6 +511,7 @@ export class Shopping {
             if (type == "POS"){
                 let customerData = await userClass.getUserData('pos@ncdesign.info', 'account');
                 data.email = 'pos@ncdesign.info';
+                data.user_info=data.user_info??{}
                 data.user_info.email = 'pos@ncdesign.info';
                 data.user_info.name = 'POS機';
                 //如果沒有這個POS會員，直接做新增
@@ -527,7 +528,6 @@ export class Shopping {
                         {},
                         true
                     );
-                    customerData = await userClass.getUserData(data.email! || data.user_info.email, 'account');
                 }
             }
 
@@ -760,21 +760,22 @@ export class Shopping {
                     }
                 } catch (e) {}
             }
+            if(data.checkOutType!=='POS'){
 
-            carData.shipment_fee = (() => {
-                let total_volume = 0;
-                let total_weight = 0;
-                carData.lineItems.map((item) => {
-                    if (item.shipment_obj.type === 'volume') {
-                        total_volume += item.shipment_obj.value;
-                    }
-                    if (item.shipment_obj.type === 'weight') {
-                        total_weight += item.shipment_obj.value;
-                    }
-                });
-                return calculateShipment(shipment.volume, total_volume) + calculateShipment(shipment.weight, total_weight);
-            })();
-
+                carData.shipment_fee = (() => {
+                    let total_volume = 0;
+                    let total_weight = 0;
+                    carData.lineItems.map((item) => {
+                        if (item.shipment_obj.type === 'volume') {
+                            total_volume += item.shipment_obj.value;
+                        }
+                        if (item.shipment_obj.type === 'weight') {
+                            total_weight += item.shipment_obj.value;
+                        }
+                    });
+                    return calculateShipment(shipment.volume, total_volume) + calculateShipment(shipment.weight, total_weight);
+                })();
+            }
             carData.total += carData.shipment_fee;
             const f_rebate = await this.formatUseRebate(carData.total, carData.use_rebate);
             carData.useRebateInfo = f_rebate;
@@ -921,6 +922,8 @@ export class Shopping {
                      values (?, ?, ?, ?)`,
                     [carData.orderID, data.pay_status, carData.email, carData]
                 );
+                //開立電子發票
+                (carData as any).invoice=await new Invoice(this.app).postCheckoutInvoice(carData.orderID,true);
                 return { result:"SUCCESS" , message : "POS訂單新增成功", data: carData };
             }else {
                 if (userData && userData.userID) {
@@ -975,7 +978,7 @@ export class Shopping {
                     [carData.orderID, 1, carData.email, carData]
                 );
                 if (carData.use_wallet > 0) {
-                    new Invoice(this.app).postCheckoutInvoice(carData.orderID);
+                    new Invoice(this.app).postCheckoutInvoice(carData.orderID,false);
                 }
                 return {
                     is_free: true,
@@ -1264,6 +1267,7 @@ export class Shopping {
         };
         code?: string;
     }) {
+
         const userClass = new User(this.app);
         cart.discount = 0;
         cart.lineItems.map((dd) => {
@@ -1300,10 +1304,8 @@ export class Shopping {
         }
 
         // 確認用戶資訊
-        const userData = await userClass.getUserData(cart.email, 'account');
-        if (!userData || !userData.userID) {
-            return;
-        }
+        const userData = (await userClass.getUserData(cart.email, 'account')) ?? {userID:-1};
+
 
         // 取得顧客會員等級
         const userLevels = await userClass.getUserLevel([{ email: cart.email }]);
@@ -1323,9 +1325,11 @@ export class Shopping {
                 return new Date(dd.start_ISO_Date).getTime() < new Date().getTime() && (!dd.end_ISO_Date || new Date(dd.end_ISO_Date).getTime() > new Date().getTime());
             });
 
+
         // 需 async and await 的驗證
         const pass_ids: number[] = [];
         for (const voucher of allVoucher) {
+
             const checkLimited = await this.checkVoucherLimited(userData.userID, voucher.id);
             if (!checkLimited) {
                 continue;
@@ -1342,6 +1346,7 @@ export class Shopping {
                 return pass_ids.includes(dd.id);
             })
             .filter((dd) => {
+
                 // 判斷用戶是否為指定客群
                 if (dd.target === 'customer') {
                     return dd.targetList.includes(userData.userID);
@@ -1368,6 +1373,7 @@ export class Shopping {
             })
             .filter((dd) => {
                 dd.bind = [];
+
                 // 判斷符合商品類型
                 switch (dd.trigger) {
                     case 'auto': // 自動填入
@@ -1387,6 +1393,7 @@ export class Shopping {
                 return dd.bind.length > 0;
             })
             .filter((dd) => {
+
                 // 購物車是否達到優惠條件，與計算優惠觸發次數
                 dd.times = 0;
                 dd.bind_subtotal = 0;
@@ -1949,7 +1956,7 @@ export class Shopping {
                 } catch (e) {
                     console.error(e);
                 }
-                new Invoice(this.app).postCheckoutInvoice(order_id);
+                new Invoice(this.app).postCheckoutInvoice(order_id,false);
             }
         } catch (error) {
             throw exception.BadRequestError('BAD_REQUEST', 'Release Checkout Error:' + e, null);
@@ -2049,6 +2056,8 @@ export class Shopping {
 
     public async postVariantsAndPriceValue(content: any) {
         content.variants = content.variants ?? [];
+        content.min_price=undefined
+        content.max_price=undefined
         content.id &&
             (await db.query(
                 `DELETE
@@ -2079,6 +2088,16 @@ export class Shopping {
                 ]
             );
         }
+        await db.query(
+            `update \`${this.app}\`.\`t_manager_post\` SET ? where id = ?
+                `,
+            [
+                {
+                    content: JSON.stringify(content),
+                },
+                content.id,
+            ]
+        );
     }
 
     async getDataAnalyze(tags: string[]) {

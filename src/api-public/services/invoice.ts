@@ -13,7 +13,7 @@ export class Invoice {
     }
 
     //判斷發票類型開立
-    public async postInvoice(cf: { invoice_data: any }) {
+    public async postInvoice(cf: { invoice_data: any,print:boolean }) {
         try {
             const config = await app.getAdConfig(this.appName, 'invoice_setting');
             switch (config.fincial) {
@@ -30,8 +30,10 @@ export class Invoice {
                         hashKey: config.hashkey,
                         hash_IV: config.hashiv,
                         merchNO: config.merchNO,
+                        app_name:this.appName,
                         invoice_data: cf.invoice_data,
                         beta: config.point === 'beta',
+                        print:cf.print
                     });
             }
         } catch (e: any) {
@@ -40,7 +42,8 @@ export class Invoice {
     }
 
     //訂單開發票
-    public async postCheckoutInvoice(orderID: string) {
+    public async postCheckoutInvoice(orderID: string,print:boolean) {
+        console.log(`開立發票--->orderID:${orderID}`);
         const order: {
             user_info: {
                 name: string;
@@ -104,7 +107,7 @@ export class Invoice {
                 ItemUnit: '-',
                 ItemCount: 1,
                 ItemPrice: order.discount * -1,
-                ItemAmt: order.discount,
+                ItemAmt: order.discount * -1,
             });
         }
         if (order.shipment_fee) {
@@ -145,6 +148,7 @@ export class Invoice {
             };
             return await this.postInvoice({
                 invoice_data: json,
+                print:print
             });
         } else if (config.fincial === 'ecpay') {
             const json: EcInvoiceInterface = {
@@ -177,9 +181,32 @@ export class Invoice {
                     };
                 }),
             };
-            console.log(`invoice_data->`, json);
+           if(print){
+               const cover={
+                   "MerchantID": "2000132",
+                   "RelateNumber": `${new Date().getTime()}`,
+                   "CustomerID": "",
+                   "CustomerIdentifier": "",
+                   "CustomerName": "萊恩設計有限公司",
+                   "CustomerAddr": "427台中市潭子區昌平路三段150巷15弄12號",
+                   "CustomerPhone": "",
+                   "CustomerEmail": "pos@ncdesign.info",
+                   "ClearanceMark": "1",
+                   "Print": "1",
+                   "Donation": "0",
+                   "LoveCode": "",
+                   "CarrierType": "",
+                   "CarrierNum": "",
+                   "TaxType": "1",
+                   "InvType": "07"
+               }
+               Object.keys(cover).map((dd)=>{
+                   (json as any)[dd]=(cover as any)[dd]
+               })
+           }
             return await this.postInvoice({
                 invoice_data: json,
+                print:print
             });
         }
     }

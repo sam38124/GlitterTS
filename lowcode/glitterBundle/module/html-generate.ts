@@ -2307,6 +2307,7 @@ ${e.line}
                 glitter = (window.parent as any).glitter;
             }
             glitter.getModule(new URL('../.././editor/add-component.js', import.meta.url).href, (AddComponent: any) => {
+                AddComponent.toggle(true)
                 AddComponent.addWidget = (gvc: GVC, tdata: any) => {
                     glitter.share.addWithIndex({
                         data: tdata,
@@ -2351,7 +2352,7 @@ ${e.line}
                         direction: direction,
                     });
                 };
-                AddComponent.toggle(true)
+
                 // (window.parent as any).glitter.getModule(new URL('../.././editor/search-idea.js', import.meta.url).href, (SearchIdea: any) => {
                 //
                 //     SearchIdea.open((window.parent as any).glitter.pageConfig[0].gvc);

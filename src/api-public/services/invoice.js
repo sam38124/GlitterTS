@@ -30,8 +30,10 @@ class Invoice {
                         hashKey: config.hashkey,
                         hash_IV: config.hashiv,
                         merchNO: config.merchNO,
+                        app_name: this.appName,
                         invoice_data: cf.invoice_data,
                         beta: config.point === 'beta',
+                        print: cf.print
                     });
             }
         }
@@ -39,7 +41,8 @@ class Invoice {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', e.message, null);
         }
     }
-    async postCheckoutInvoice(orderID) {
+    async postCheckoutInvoice(orderID, print) {
+        console.log(`開立發票--->orderID:${orderID}`);
         const order = (await database_js_1.default.query(`SELECT *
                              FROM \`${this.appName}\`.t_checkout
                              where cart_token = ?`, [orderID]))[0]['orderData'];
@@ -68,7 +71,7 @@ class Invoice {
                 ItemUnit: '-',
                 ItemCount: 1,
                 ItemPrice: order.discount * -1,
-                ItemAmt: order.discount,
+                ItemAmt: order.discount * -1,
             });
         }
         if (order.shipment_fee) {
@@ -109,6 +112,7 @@ class Invoice {
             };
             return await this.postInvoice({
                 invoice_data: json,
+                print: print
             });
         }
         else if (config.fincial === 'ecpay') {
@@ -142,9 +146,32 @@ class Invoice {
                     };
                 }),
             };
-            console.log(`invoice_data->`, json);
+            if (print) {
+                const cover = {
+                    "MerchantID": "2000132",
+                    "RelateNumber": `${new Date().getTime()}`,
+                    "CustomerID": "",
+                    "CustomerIdentifier": "",
+                    "CustomerName": "萊恩設計有限公司",
+                    "CustomerAddr": "427台中市潭子區昌平路三段150巷15弄12號",
+                    "CustomerPhone": "",
+                    "CustomerEmail": "pos@ncdesign.info",
+                    "ClearanceMark": "1",
+                    "Print": "1",
+                    "Donation": "0",
+                    "LoveCode": "",
+                    "CarrierType": "",
+                    "CarrierNum": "",
+                    "TaxType": "1",
+                    "InvType": "07"
+                };
+                Object.keys(cover).map((dd) => {
+                    json[dd] = cover[dd];
+                });
+            }
             return await this.postInvoice({
                 invoice_data: json,
+                print: print
             });
         }
     }

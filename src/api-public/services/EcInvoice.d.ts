@@ -8,6 +8,7 @@ export interface EcInvoiceInterface {
     "CustomerPhone": string;
     "CustomerEmail": string;
     LoveCode?: string;
+    ClearanceMark?: any;
     "Print": string;
     "Donation": string;
     "TaxType": string;
@@ -26,14 +27,31 @@ export interface EcInvoiceInterface {
         "ItemRemark": string;
     }[];
 }
+export interface EcPrintInterFace {
+    MerchantID: string;
+    InvoiceNo: string;
+    InvoiceDate: string;
+    PrintStyle: 1 | 2 | 3 | 4 | 5;
+    IsShowingDetail: 1 | 2;
+}
 export declare class EcInvoice {
     static postInvoice(obj: {
         hashKey: string;
         hash_IV: string;
         merchNO: string;
+        app_name: string;
         invoice_data: EcInvoiceInterface;
         beta: boolean;
+        print: boolean;
     }): Promise<boolean>;
+    static printInvoice(obj: {
+        hashKey: string;
+        hash_IV: string;
+        merchNO: string;
+        app_name: string;
+        order_id: string;
+        beta: boolean;
+    }): Promise<any>;
     static allowance(obj: {
         hashKey: string;
         hash_IV: string;

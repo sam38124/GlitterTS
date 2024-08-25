@@ -195,6 +195,7 @@ export declare class Shopping {
             custom_form_format?: any;
             custom_form_data?: any;
             distribution_id?: number | undefined;
+            distribution_info?: any;
             orderSource: string;
             realTotal: number;
         };
@@ -209,20 +210,7 @@ export declare class Shopping {
         message: string;
         data: {
             customer_info: any;
-            lineItems: {
-                id: string;
-                spec: string[];
-                count: number;
-                sale_price: number;
-                collection: string[];
-                title: string;
-                preview_image: string;
-                shipment_obj: {
-                    type: string;
-                    value: number;
-                };
-                discount_price?: number;
-            }[];
+            lineItems: CartItem[];
             discount?: number | undefined;
             total: number;
             email: string;
@@ -246,6 +234,7 @@ export declare class Shopping {
             custom_form_format?: any;
             custom_form_data?: any;
             distribution_id?: number | undefined;
+            distribution_info?: any;
             orderSource: string;
             realTotal: number;
         };

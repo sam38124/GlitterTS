@@ -108,6 +108,7 @@ router.post('/checkout', async (req: express.Request, resp: express.Response) =>
                 user_info: req.body.user_info,
                 code: req.body.code,
                 customer_info: req.body.customer_info,
+                checkOutType:req.body.checkOutType,
                 use_rebate: (() => {
                     if (req.body.use_rebate && typeof req.body.use_rebate === 'number') {
                         return req.body.use_rebate;
@@ -158,6 +159,7 @@ router.post('/checkout/preview', async (req: express.Request, resp: express.Resp
                             return 0;
                         }
                     })(),
+                    checkOutType:req.body.checkOutType,
                     distribution_code: req.body.distribution_code,
                 },
                 'preview'
