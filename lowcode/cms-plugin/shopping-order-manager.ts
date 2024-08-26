@@ -1444,8 +1444,9 @@ export class ShoppingOrderManager {
                                                                                         })}"
                                                                                 ></i>
                                                                             </div>
+                                                                            
                                                                             <div class="fs-6 w-100 mt-2  lh-lg fw-normal" style="word-break: break-all;white-space:normal;">
-                                                                                ${(orderData.orderData.user_info.note ?? '尚未填寫').replace(/\n/g, `<br>`)}
+                                                                                ${(((orderData.orderData.user_info.note ?? '')+(orderData.orderData.user_info.code_note || '')) || '尚未填寫').replace(/\n/g, `<br>`)}
                                                                             </div>
                                                                         `;
                                                                     },

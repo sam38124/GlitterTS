@@ -553,6 +553,7 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
                     $('#jumpToNav').scroll(function () {
                         glitter.setCookie('jumpToNavScroll', $(`#jumpToNav`).scrollTop());
                     });
+                    Tutorial.intial();
                     function scrollToItem(element) {
                         if (element) {
                             let elementRect = element.getBoundingClientRect();
