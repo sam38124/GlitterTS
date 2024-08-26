@@ -71,7 +71,7 @@ export class Setting_editor {
                                                 },
                                                 {
                                                     icon: '',
-                                                    page: 'shippment-setting',
+                                                    page: 'logistics_setting',
                                                     group: '商店設定',
                                                     title: '運費設定',
                                                     appName: 'cms_system',
