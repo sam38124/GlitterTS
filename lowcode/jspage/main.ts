@@ -446,6 +446,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                         view.push(AddPage.leftNav(gvc));
                         view.push(PageCodeSetting.leftNav(gvc));
                         view.push(NormalPageEditor.leftNav(gvc));
+
                         try {
                             const doc = new Editor(gvc, viewModel);
                             view.push(
@@ -569,7 +570,8 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
                                             return ``;
                                         },
                                         divCreate: {},
-                                    })
+                                    }),
+
                                 )
                             );
                             return view.join('');
@@ -579,7 +581,7 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
                         }
                     }
                 },
-                divCreate: {},
+                divCreate: {class:`editorContainer`},
                 onCreate: () => {
                     $('#jumpToNav').scroll(function () {
                         glitter.setCookie('jumpToNavScroll', $(`#jumpToNav`).scrollTop());
@@ -607,15 +609,15 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
                         scrollToItem(document.querySelector(`.editor_item.active`)!);
                     }, 200);
 
-                    if(!viewModel.loading){
-                        let bgGuide = new BgGuide(gvc,1);
+                    if(!viewModel.loading && Storage.select_function == "backend-manger"){
+                        let bgGuide = new BgGuide(gvc,0);
                         // if (!viewModel.guideAble){
                         //     viewModel.guideAble = true;
                         ApiShop.getGuide().then(r => {
                             // if (r.response.value.first){
 
                             // console.log("test1")
-                            // bgGuide.drawGuide();
+                            bgGuide.drawGuide();
                             // }
                         })
                     }

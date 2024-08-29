@@ -64,7 +64,9 @@ export class BgGuide {
         const handleClick = () => {
             setTimeout(() => {
                 clickEvent();
-                this.eventSet = this.eventSet.filter((d) => { return d !== handleClick; });
+                this.eventSet = this.eventSet.filter((d) => {
+                    return d !== handleClick;
+                });
                 target.removeEventListener('click', handleClick);
             }, 0);
         };
@@ -78,9 +80,7 @@ export class BgGuide {
     leaveGuide(vm) {
         vm.step = -1;
         const element = document.querySelector('.guide-BG');
-        const clickInterface = document.querySelector('.clickInterface');
         element.remove();
-        clickInterface.remove();
     }
     drawFinanceWayGuide() {
         let gvc = this.gvc;
@@ -96,24 +96,31 @@ export class BgGuide {
                 switch (vm.step) {
                     case 2: {
                         BG.style.clipPath = ``;
-                        return ``;
-                    }
-                    default: {
-                        const target = document.querySelector(`.mainRow1`);
+                        const target = document.querySelector(`.guide2-2`);
                         const rect = (target) ? target.getBoundingClientRect() : "";
                         if (rect) {
                             BG.style.clipPath = `polygon(0 0, 100% 0, 100% 100%, 0 100%, 0 ${rect.bottom}px, ${rect.right}px ${rect.bottom}px, ${rect.right}px ${rect.top}px, 0 ${rect.top}px)`;
+                            this.detectClickThrough(`.guide2-2`, () => {
+                                vm.step = 3;
+                                this.gvc.notifyDataChange('financeInit');
+                            });
                             return html `
-                                <div style="padding-left: 18px;width: 350px;height: 113px;flex-shrink: 0;filter: drop-shadow(2px 2px 10px rgba(0, 0, 0, 0.15));position: absolute;top: ${rect.bottom + 14}px;left: ${rect.right + 12}px;transform: translateY(-100%);z-index:1033;">
+                                <div style="padding-left: 18px;width: 350px;height: 113px;flex-shrink: 0;filter: drop-shadow(2px 2px 10px rgba(0, 0, 0, 0.15));position: absolute;top: ${rect.bottom + 12}px;left: ${rect.right + 12}px;transform: translateY(-100%);z-index:1033;">
                                     <div style="position: relative;border-radius: 10px;">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="22" viewBox="0 0 18 22" fill="none" style="position: absolute;bottom: 19px;left: -18px;transform: translateX(-100%;)">
-                                            <path d="M-5.24537e-07 11L18 0.607696L18 21.3923L-5.24537e-07 11Z" fill="white"/>
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="22"
+                                             viewBox="0 0 18 22" fill="none"
+                                             style="position: absolute;bottom: 19px;left: -18px;">
+                                            <path d="M-5.24537e-07 11L18 0.607696L18 21.3923L-5.24537e-07 11Z"
+                                                  fill="white"/>
                                         </svg>
                                         <div style="display: flex;padding: 12px 24px;gap: 10px;width: 100%;background: #FEAD20;border-radius: 10px 10px 0 0;color:white;font-size: 20px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 0.8px;">
-                                            商店設定
-                                            <div class="d-flex ms-auto align-items-center" style="gap:10px;color: #FFF;font-size: 16px;font-style: normal;font-weight: 400;line-height: normal;letter-spacing: 0.64px;">
-                                                步驟 1/6
-                                                <svg style="cursor: pointer;" xmlns="http://www.w3.org/2000/svg" width="14" height="13" viewBox="0 0 14 13" fill="none" onclick="${gvc.event(() => {
+                                            金流設定
+                                            <div class="d-flex ms-auto align-items-center"
+                                                 style="gap:10px;color: #FFF;font-size: 16px;font-style: normal;font-weight: 400;line-height: normal;letter-spacing: 0.64px;">
+                                                步驟 2/6
+                                                <svg style="cursor: pointer;" xmlns="http://www.w3.org/2000/svg"
+                                                     width="14" height="13" viewBox="0 0 14 13" fill="none"
+                                                     onclick="${gvc.event(() => {
                                 this.leaveGuide(vm);
                             })}">
                                                     <path d="M1 0.5L13 12.5" stroke="white" stroke-linecap="round"/>
@@ -122,7 +129,55 @@ export class BgGuide {
                                             </div>
                                         </div>
                                         <div style="background: #FFF;width:100%;padding: 18px 24px;display: flex;align-items: center;border-radius: 0 0 10px 10px;font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%; /* 25.6px */letter-spacing: 0.64px;">
-                                            點擊<span style="font-style: normal;font-weight: 700;line-height: 160%;letter-spacing: 0.64px;">「商店設定」</span> 
+                                            點擊<span
+                                                style="font-style: normal;font-weight: 700;line-height: 160%;letter-spacing: 0.64px;">「金流設定」</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                        return ``;
+                    }
+                    case 3: {
+                        BG.style.clipPath = ``;
+                    }
+                    default: {
+                        const target = document.querySelector(`.mainRow1`);
+                        const rect = (target) ? target.getBoundingClientRect() : "";
+                        console.log("target -- ", target);
+                        if (rect) {
+                            BG.style.clipPath = `polygon(0 0, 100% 0, 100% 100%, 0 100%, 0 ${rect.bottom}px, ${rect.right}px ${rect.bottom}px, ${rect.right}px ${rect.top}px, 0 ${rect.top}px)`;
+                            this.detectClickThrough(`.mainRow1`, () => {
+                                vm.step = 2;
+                                this.gvc.notifyDataChange('financeInit');
+                            });
+                            return html `
+                                <div style="padding-left: 18px;width: 350px;height: 113px;flex-shrink: 0;filter: drop-shadow(2px 2px 10px rgba(0, 0, 0, 0.15));position: absolute;top: ${rect.bottom + 12}px;left: ${rect.right + 12}px;transform: translateY(-100%);z-index:1033;">
+                                    <div style="position: relative;border-radius: 10px;">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="22"
+                                             viewBox="0 0 18 22" fill="none"
+                                             style="position: absolute;bottom: 19px;left: -18px;">
+                                            <path d="M-5.24537e-07 11L18 0.607696L18 21.3923L-5.24537e-07 11Z"
+                                                  fill="white"/>
+                                        </svg>
+                                        <div style="display: flex;padding: 12px 24px;gap: 10px;width: 100%;background: #FEAD20;border-radius: 10px 10px 0 0;color:white;font-size: 20px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 0.8px;">
+                                            金流
+                                            <div class="d-flex ms-auto align-items-center"
+                                                 style="gap:10px;color: #FFF;font-size: 16px;font-style: normal;font-weight: 400;line-height: normal;letter-spacing: 0.64px;">
+                                                步驟 1/6
+                                                <svg style="cursor: pointer;" xmlns="http://www.w3.org/2000/svg"
+                                                     width="14" height="13" viewBox="0 0 14 13" fill="none"
+                                                     onclick="${gvc.event(() => {
+                                this.leaveGuide(vm);
+                            })}">
+                                                    <path d="M1 0.5L13 12.5" stroke="white" stroke-linecap="round"/>
+                                                    <path d="M13 0.5L1 12.5" stroke="white" stroke-linecap="round"/>
+                                                </svg>
+                                            </div>
+                                        </div>
+                                        <div style="background: #FFF;width:100%;padding: 18px 24px;display: flex;align-items: center;border-radius: 0 0 10px 10px;font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%; /* 25.6px */letter-spacing: 0.64px;">
+                                            點擊<span
+                                                style="font-style: normal;font-weight: 700;line-height: 160%;letter-spacing: 0.64px;">「商店設定」</span>
                                         </div>
                                     </div>
                                 </div>
@@ -165,7 +220,9 @@ export class BgGuide {
                         title: "商店訊息",
                         finished: false
                     }];
-                let count = dataList.filter((data) => { return data.finished; }).length;
+                let count = dataList.filter((data) => {
+                    return data.finished;
+                }).length;
                 ApiShop.getGuide().then(r => {
                     dataList = r.response.value.guideList;
                 });
@@ -225,7 +282,8 @@ export class BgGuide {
                             <div class=""
                                  style="width: 317px;height: 157px;position:absolute;top:${rect.bottom + window.scrollY + 12 + 'px'};left : ${rect.left + window.scrollX + 'px'};gap:20px;padding-top: 22px;">
                                 <div class="" style="position: absolute;top: 0;left: 20px;">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="18" viewBox="0 0 22 18" fill="none">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="18" viewBox="0 0 22 18"
+                                         fill="none">
                                         <path d="M11 0L21.3923 18H0.607696L11 0Z" fill="#FEAD20"/>
                                     </svg>
                                 </div>
@@ -233,7 +291,9 @@ export class BgGuide {
                                     <div style="color: #FFF;font-size: 24px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 0.96px;">
                                         這裡可以回顧開店導覽
                                     </div>
-                                    <div class="border border-danger" style="display: flex;padding: 6px 18px;justify-content: center;align-items: center;border-radius: 10px;background: #FFF;color: #FEAD20;font-size: 16px;font-style: normal;font-weight: 700;line-height: normal;" onclick="${gvc.event(() => {
+                                    <div class="border border-danger"
+                                         style="display: flex;padding: 6px 18px;justify-content: center;align-items: center;border-radius: 10px;background: #FFF;color: #FEAD20;font-size: 16px;font-style: normal;font-weight: 700;line-height: normal;"
+                                         onclick="${gvc.event(() => {
                             document.querySelector(`.guide-BG`).remove();
                         })}">
                                         我知道了
@@ -262,7 +322,8 @@ export class BgGuide {
                                 </div>
                                 <div style="width:100%;margin-top: 24px;display: flex;align-items: center;justify-content: space-between;padding: 0 32px;">
                                     <div class="d-flex align-items-end"
-                                         style="cursor:pointer;;height:100%;color: #FFF;font-size: 16px;font-style: normal;font-weight: 400;line-height: normal;text-decoration-line: underline;" onclick="${gvc.event(() => {
+                                         style="cursor:pointer;;height:100%;color: #FFF;font-size: 16px;font-style: normal;font-weight: 400;line-height: normal;text-decoration-line: underline;"
+                                         onclick="${gvc.event(() => {
                             this.leaveGuide(vm);
                         })}">
                                         我已經學會了
@@ -298,7 +359,9 @@ export class BgGuide {
                                         <div class="g-progress"></div>
                                         <div class="g-circle"></div>
                                         <div style="font-size: 25.92px;font-style: normal;font-weight: 700;line-height: normal;color:#393939;position: absolute;left: 50%;top: 50%;transform: translate(-50%,-50%)">
-                                            ${dataList.filter((data) => { return data.finished; }).length}/${dataList.length}
+                                            ${dataList.filter((data) => {
+                            return data.finished;
+                        }).length}/${dataList.length}
                                         </div>
                                     </div>
                                     <div class="d-flex flex-column justify-content-start" style="gap:16px;">
@@ -310,7 +373,8 @@ export class BgGuide {
                             view: () => {
                                 return dataList.map((data) => {
                                     return html `
-                                                        <div style="padding: 6px 18px;border-radius: 10px;border: 1px solid #DDD;background: #FFF;cursor: pointer; ${data.finished ? 'border: 2px solid #393939;color:#393939;' : 'color:#8D8D8D;'}" onclick="${gvc.event(() => {
+                                                        <div style="padding: 6px 18px;border-radius: 10px;border: 1px solid #DDD;background: #FFF;cursor: pointer; ${data.finished ? 'border: 2px solid #393939;color:#393939;' : 'color:#8D8D8D;'}"
+                                                             onclick="${gvc.event(() => {
                                         this.guide = 1;
                                         this.drawBG();
                                     })}">
@@ -411,29 +475,30 @@ export class BgGuide {
         });
     }
     drawBG() {
-        let body = document.querySelector('#glitterPage');
+        let body = document.querySelector('.editorContainer');
         if (body && !document.querySelector('.guide-BG')) {
             body.innerHTML += html `
-                    <div class="guide-BG d-flex align-items-center justify-content-center"
-                         style="width:100vw;height: 100vh;background: rgba(0, 0, 0, 0.60);position: absolute;left: 0;top: 0;z-index:1031;">
+                <div class="guide-BG d-flex align-items-center justify-content-center"
+                     style="width:100vw;height: 100vh;background: rgba(0, 0, 0, 0.60);position: absolute;left: 0;top: 0;z-index:1031;"
+                     onclick="${this.gvc.event(() => {
+            })}">
 
-                    </div>
-                `;
+                </div>
+            `;
         }
         const innerHTML = this.guidePage[this.guide].innerHTML();
         document.querySelector('.guide-BG').innerHTML = innerHTML !== null && innerHTML !== void 0 ? innerHTML : ``;
         return html `
-            `;
+        `;
     }
     drawGuide() {
         const that = this;
         const timer = setInterval(function () {
-            if (!document.querySelector('iframe')) {
+            if (document.querySelector('iframe')) {
                 that.drawBG();
                 clearInterval(timer);
             }
-            console.log("test");
-        }, 100);
+        }, 1000);
         return html ``;
     }
 }

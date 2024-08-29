@@ -581,6 +581,7 @@ export class Setting_editor {
                                                                                             class="w-100 fw-500 d-flex align-items-center  fs-6 hoverBtn h_item  rounded px-2 tx_700 ${dd?.info?.guideClass??''} ${dd.type === 'container' ? ` mainRow${index}` : ''}"
                                                                                             style="gap:7px;color:#393939;${dd.toggle ? `border-radius: 5px;background: #F2F2F2;` : ``}"
                                                                                             onclick="${gvc.event(() => {
+                                                                                                
                                                                                                 if (dd.type === 'container') {
                                                                                                     list.map((d1: any) => {
                                                                                                         d1.toggle = false;

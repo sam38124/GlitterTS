@@ -548,7 +548,7 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
                         }
                     }
                 },
-                divCreate: {},
+                divCreate: { class: `editorContainer` },
                 onCreate: () => {
                     $('#jumpToNav').scroll(function () {
                         glitter.setCookie('jumpToNavScroll', $(`#jumpToNav`).scrollTop());
@@ -570,9 +570,10 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
                     setTimeout(() => {
                         scrollToItem(document.querySelector(`.editor_item.active`));
                     }, 200);
-                    if (!viewModel.loading) {
-                        let bgGuide = new BgGuide(gvc, 1);
+                    if (!viewModel.loading && Storage.select_function == "backend-manger") {
+                        let bgGuide = new BgGuide(gvc, 0);
                         ApiShop.getGuide().then(r => {
+                            bgGuide.drawGuide();
                         });
                     }
                 },
