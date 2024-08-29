@@ -121,7 +121,6 @@ export class BgGuide {
                         const target = document.querySelector(`.mainRow1`) as HTMLElement;
                         const rect = (target)?target!.getBoundingClientRect():"";
                         if (rect){
-
                             BG.style.clipPath = `polygon(0 0, 100% 0, 100% 100%, 0 100%, 0 ${rect.bottom}px, ${rect.right}px ${rect.bottom}px, ${rect.right}px ${rect.top}px, 0 ${rect.top}px)`
                             // this.detectClickThrough(`.mainRow1`,()=>{
 //
@@ -300,12 +299,12 @@ export class BgGuide {
                                 </div>
                                 <div style="width:100%;margin-top: 24px;display: flex;align-items: center;justify-content: space-between;padding: 0 32px;">
                                     <div class="d-flex align-items-end"
-                                         style="height:100%;color: #FFF;font-size: 16px;font-style: normal;font-weight: 400;line-height: normal;text-decoration-line: underline;" onclick="${gvc.event(()=>{
+                                         style="cursor:pointer;;height:100%;color: #FFF;font-size: 16px;font-style: normal;font-weight: 400;line-height: normal;text-decoration-line: underline;" onclick="${gvc.event(()=>{
                             this.leaveGuide(vm);
                         })}">
                                         我已經學會了
                                     </div>
-                                    <div style="display: flex;padding: 6px 18px;justify-content: center;align-items: center;border-radius: 10px;background: #FFF;color: #FEAD20;font-size: 16px;font-weight: 700;line-height: normal;"
+                                    <div style="display: flex;padding: 6px 18px;justify-content: center;align-items: center;border-radius: 10px;background: #FFF;color: #FEAD20;font-size: 16px;font-weight: 700;line-height: normal;cursor:pointer;"
                                          onclick="${gvc.event(() => {
                             vm.step++
                         })}">
@@ -437,10 +436,10 @@ export class BgGuide {
                         </div>
                         <div style="width:100%;margin-top: 24px;display: flex;align-items: center;justify-content: space-between;padding: 0 32px;">
                             <div class="d-flex align-items-end"
-                                 style="height:100%;color: #FFF;font-size: 16px;font-style: normal;font-weight: 400;line-height: normal;text-decoration-line: underline;">
+                                 style="height:100%;color: #FFF;font-size: 16px;font-style: normal;font-weight: 400;line-height: normal;text-decoration-line: underline;cursor: pointer;">
                                 我已經學會了
                             </div>
-                            <div style="display: flex;padding: 6px 18px;justify-content: center;align-items: center;border-radius: 10px;background: #FFF;color: #FEAD20;font-size: 16px;font-weight: 700;line-height: normal;">
+                            <div style="display: flex;padding: 6px 18px;justify-content: center;align-items: center;border-radius: 10px;background: #FFF;color: #FEAD20;font-size: 16px;font-weight: 700;line-height: normal;cursor: pointer;">
                                 開店導覽
                             </div>
                         </div>
@@ -455,7 +454,7 @@ export class BgGuide {
             body!.innerHTML += html`
                     <div class="guide-BG d-flex align-items-center justify-content-center"
                          style="width:100vw;height: 100vh;background: rgba(0, 0, 0, 0.60);position: absolute;left: 0;top: 0;z-index:1031;">
-             
+
                     </div>
                 `
         }
@@ -467,13 +466,14 @@ export class BgGuide {
     }
     public drawGuide() {
         const that=this
+
         const timer = setInterval(function () {
-            if (document.querySelector('iframe')) {
-                console.log('run')
-                that.drawBG();
+            if (!document.querySelector('iframe')) {
+                that.drawBG()
                 clearInterval(timer);
             }
-        }, 400);
+            console.log("test")
+        }, 100);
         return html``
     }
 }

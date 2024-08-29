@@ -548,7 +548,6 @@ export class Setting_editor {
                                                                                             style="gap:7px;color:#393939;${dd.toggle ? `border-radius: 5px;background: #F2F2F2;` : ``}"
                                                                                             onclick="${gvc.event(() => {
                                                                         if (dd.type === 'container') {
-                                                                            alert("test");
                                                                             list.map((d1) => {
                                                                                 d1.toggle = false;
                                                                             });
