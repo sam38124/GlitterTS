@@ -56,6 +56,7 @@ export class BgGuide {
             return this.drawInitGuide()
         }
     }]
+    private eventSet:any = [];
 
     constructor(gvc: GVC, guide: number) {
         this.guide = guide;
@@ -71,11 +72,18 @@ export class BgGuide {
         const handleClick = ()=>{
             setTimeout(() => {
                 clickEvent();
+                this.eventSet=this.eventSet.filter((d:any)=>{return d!==handleClick});
                 target!.removeEventListener('click', handleClick);
             }, 0);
 
         }
         target!.addEventListener("click", handleClick);
+        this.eventSet.push(()=>{
+            target!.removeEventListener('click', handleClick);
+        });
+    }
+    public  deleteEvent(handleClick:void){
+
     }
     public leaveGuide(vm?: any) {
         vm.step = -1;
@@ -97,9 +105,10 @@ export class BgGuide {
             guide: this.guide,
             step: this.step,
         }
+
         return gvc.bindView({
             bind: "financeInit",
-            dataList: [{key: 'step', obj: vm}],
+            dataList: [],
             view: () => {
                 const BG = document.querySelector(`.guide-BG`) as HTMLElement;
                 switch (vm.step) {
@@ -112,10 +121,13 @@ export class BgGuide {
                         const target = document.querySelector(`.mainRow1`) as HTMLElement;
                         const rect = (target)?target!.getBoundingClientRect():"";
                         if (rect){
+
                             BG.style.clipPath = `polygon(0 0, 100% 0, 100% 100%, 0 100%, 0 ${rect.bottom}px, ${rect.right}px ${rect.bottom}px, ${rect.right}px ${rect.top}px, 0 ${rect.top}px)`
-                            this.detectClickThrough(`.mainRow1`,()=>{
-                                vm.step = 2;
-                            });
+                            // this.detectClickThrough(`.mainRow1`,()=>{
+//
+// //                                 vm.step = 2;
+// // this.gvc.notifyDataChange('financeInit')
+//                             });
                             return html`
                                 <div style="padding-left: 18px;width: 350px;height: 113px;flex-shrink: 0;filter: drop-shadow(2px 2px 10px rgba(0, 0, 0, 0.15));position: absolute;top: ${rect.bottom+14}px;left: ${rect.right+12}px;transform: translateY(-100%);z-index:1033;">
                                     <div style="position: relative;border-radius: 10px;">
@@ -438,7 +450,6 @@ export class BgGuide {
         })
     }
     public drawBG() {
-
         let body = document.querySelector('#glitterPage');
         if (body && !document.querySelector('.guide-BG')) {
             body!.innerHTML += html`
@@ -458,6 +469,7 @@ export class BgGuide {
         const that=this
         const timer = setInterval(function () {
             if (document.querySelector('iframe')) {
+                console.log('run')
                 that.drawBG();
                 clearInterval(timer);
             }

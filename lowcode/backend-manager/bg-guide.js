@@ -51,6 +51,7 @@ export class BgGuide {
                     return this.drawInitGuide();
                 }
             }];
+        this.eventSet = [];
         this.guide = guide;
         this.gvc = gvc;
         this.step = 0;
@@ -63,10 +64,16 @@ export class BgGuide {
         const handleClick = () => {
             setTimeout(() => {
                 clickEvent();
+                this.eventSet = this.eventSet.filter((d) => { return d !== handleClick; });
                 target.removeEventListener('click', handleClick);
             }, 0);
         };
         target.addEventListener("click", handleClick);
+        this.eventSet.push(() => {
+            target.removeEventListener('click', handleClick);
+        });
+    }
+    deleteEvent(handleClick) {
     }
     leaveGuide(vm) {
         vm.step = -1;
@@ -83,7 +90,7 @@ export class BgGuide {
         };
         return gvc.bindView({
             bind: "financeInit",
-            dataList: [{ key: 'step', obj: vm }],
+            dataList: [],
             view: () => {
                 const BG = document.querySelector(`.guide-BG`);
                 switch (vm.step) {
@@ -96,9 +103,6 @@ export class BgGuide {
                         const rect = (target) ? target.getBoundingClientRect() : "";
                         if (rect) {
                             BG.style.clipPath = `polygon(0 0, 100% 0, 100% 100%, 0 100%, 0 ${rect.bottom}px, ${rect.right}px ${rect.bottom}px, ${rect.right}px ${rect.top}px, 0 ${rect.top}px)`;
-                            this.detectClickThrough(`.mainRow1`, () => {
-                                vm.step = 2;
-                            });
                             return html `
                                 <div style="padding-left: 18px;width: 350px;height: 113px;flex-shrink: 0;filter: drop-shadow(2px 2px 10px rgba(0, 0, 0, 0.15));position: absolute;top: ${rect.bottom + 14}px;left: ${rect.right + 12}px;transform: translateY(-100%);z-index:1033;">
                                     <div style="position: relative;border-radius: 10px;">
@@ -425,6 +429,7 @@ export class BgGuide {
         const that = this;
         const timer = setInterval(function () {
             if (document.querySelector('iframe')) {
+                console.log('run');
                 that.drawBG();
                 clearInterval(timer);
             }

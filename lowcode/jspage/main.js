@@ -570,10 +570,11 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
                     setTimeout(() => {
                         scrollToItem(document.querySelector(`.editor_item.active`));
                     }, 200);
-                    let bgGuide = new BgGuide(gvc, 1);
-                    ApiShop.getGuide().then(r => {
-                        bgGuide.drawGuide();
-                    });
+                    if (!viewModel.loading) {
+                        let bgGuide = new BgGuide(gvc, 1);
+                        ApiShop.getGuide().then(r => {
+                        });
+                    }
                 },
             });
         },

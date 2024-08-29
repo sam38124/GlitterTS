@@ -607,16 +607,19 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
                         scrollToItem(document.querySelector(`.editor_item.active`)!);
                     }, 200);
 
-                    let bgGuide = new BgGuide(gvc,1);
-                    // if (!viewModel.guideAble){
-                    //     viewModel.guideAble = true;
+                    if(!viewModel.loading){
+                        let bgGuide = new BgGuide(gvc,1);
+                        // if (!viewModel.guideAble){
+                        //     viewModel.guideAble = true;
                         ApiShop.getGuide().then(r => {
                             // if (r.response.value.first){
 
                             // console.log("test1")
-                            bgGuide.drawGuide();
+                            // bgGuide.drawGuide();
                             // }
                         })
+                    }
+
                     // }
 
 
