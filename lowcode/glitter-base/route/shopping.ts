@@ -559,6 +559,7 @@ export class ApiShop {
         checkOutType?:'manual' | 'auto' | 'POS',
         use_rebate?: number;
         distribution_code?: string;
+        user_info?:any
     }) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/checkout/preview`,

@@ -1,17 +1,39 @@
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 import { ShareDialog } from "../../glitterBundle/dialog/ShareDialog.js";
 import { ApiShop } from "../../glitter-base/route/shopping.js";
+import { EditorElem } from "../../glitterBundle/plugins/editor-elem.js";
 const html = String.raw;
 export class PaymentPage {
     static main(obj) {
-        const orderDetail = obj.orderDetail;
         const gvc = obj.gvc;
         const vm = obj.vm;
         const dialog = new ShareDialog(gvc.glitter);
-        let realTotal = orderDetail.total;
-        return html `
-            <div class="${((document.body.offsetWidth < 800)) ? `w-100` : `d-flex flex-column flex-sm-row w-100`}"
-                 style="overflow-y: auto;">
-                <div class="left-panel"
+        PaymentPage.storeHistory(obj.ogOrderData);
+        return gvc.bindView(() => {
+            const id = gvc.glitter.getUUID();
+            return {
+                bind: id,
+                view: () => __awaiter(this, void 0, void 0, function* () {
+                    dialog.dataLoading({ visible: true });
+                    obj.ogOrderData.user_info = {
+                        shipment: obj.ogOrderData.user_info.shipment || 'now'
+                    };
+                    const orderDetail = (yield ApiShop.getCheckout({
+                        line_items: obj.ogOrderData.lineItems,
+                        checkOutType: 'POS',
+                        user_info: obj.ogOrderData.user_info
+                    })).response.data;
+                    dialog.dataLoading({ visible: false });
+                    let realTotal = orderDetail.total;
+                    return ` <div class="left-panel"
                      style="${(document.body.offsetWidth < 800) ? `width:calc(100%);padding: 32px 20px;height:auto;` : `width:calc(100% - 446px);padding: 32px 36px;`}overflow: hidden;">
                     <div style="font-size: 32px;font-style: normal;font-weight: 700;letter-spacing: 3.2px;color:#393939">
                         訂單明細
@@ -30,10 +52,10 @@ export class PaymentPage {
                         </div>
                         <div class="d-flex flex-column">
                             ${(() => {
-            let image = 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg';
-            if (orderDetail.lineItems.length > 0) {
-                return orderDetail.lineItems.map((data) => {
-                    return html `
+                        let image = 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg';
+                        if (orderDetail.lineItems.length > 0) {
+                            return orderDetail.lineItems.map((data) => {
+                                return html `
                                             <div class="d-flex"
                                                  style="margin-top: 26px;">
                                                 <div class="col-6 d-flex align-items-center">
@@ -49,12 +71,12 @@ export class PaymentPage {
                                                                                 letter-spacing: 0.64px;
                                                                                 text-transform: uppercase;">
                                                                                      ${(() => {
-                        return (data.spec.length > 0) ? data.spec.map((spec) => {
-                            return html `
+                                    return (data.spec.length > 0) ? data.spec.map((spec) => {
+                                        return html `
                                                                                                          ${spec}`;
-                        }).join(',')
-                            : html ``;
-                    })()}
+                                    }).join(',')
+                                        : html ``;
+                                })()}
                                                                                 </span>
 
                                                     </div>
@@ -70,10 +92,10 @@ export class PaymentPage {
                                                 </div>
                                             </div>
                                         `;
-                }).join('');
-            }
-            return ``;
-        })()}
+                            }).join('');
+                        }
+                        return ``;
+                    })()}
                         </div>
                     </div>
                 </div>
@@ -86,13 +108,13 @@ export class PaymentPage {
                         付款方式
                     </div>
                     ${gvc.bindView({
-            bind: "payment",
-            dataList: [{ obj: vm, key: 'paySelect' }],
-            view: () => {
-                function drawIcon(black, type) {
-                    switch (type) {
-                        case "cash":
-                            return html `
+                        bind: "payment",
+                        dataList: [{ obj: vm, key: 'paySelect' }],
+                        view: () => {
+                            function drawIcon(black, type) {
+                                switch (type) {
+                                    case "cash":
+                                        return html `
                                             <svg xmlns="http://www.w3.org/2000/svg"
                                                  width="28"
                                                  height="28" viewBox="0 0 28 28"
@@ -101,8 +123,8 @@ export class PaymentPage {
                                                       fill="${black ? `#393939` : `#8D8D8D`}"/>
                                             </svg>
                                         `;
-                        case "creditCard":
-                            return html `
+                                    case "creditCard":
+                                        return html `
                                             <svg xmlns="http://www.w3.org/2000/svg"
                                                  width="28"
                                                  height="28" viewBox="0 0 28 28"
@@ -111,8 +133,8 @@ export class PaymentPage {
                                                       fill="${black ? `#393939` : `#8D8D8D`}"/>
                                             </svg>
                                         `;
-                        default:
-                            return html `
+                                    default:
+                                        return html `
                                             <svg xmlns="http://www.w3.org/2000/svg"
                                                  width="28"
                                                  height="28" viewBox="0 0 28 28"
@@ -129,38 +151,38 @@ export class PaymentPage {
                                                 </defs>
                                             </svg>
                                         `;
-                    }
-                }
-                let btnArray = [
-                    {
-                        title: `現金`,
-                        value: 'cash',
-                        event: () => {
-                            vm.paySelect = 'cash';
-                        }
-                    },
-                    {
-                        title: `刷卡`,
-                        value: 'creditCard',
-                        event: () => {
-                            vm.paySelect = 'creditCard';
-                        }
-                    },
-                    {
-                        title: `其他`,
-                        value: 'other',
-                        event: () => {
-                            vm.paySelect = 'other';
-                        }
-                    },
-                ];
-                return btnArray.map((btn) => {
-                    return html `
+                                }
+                            }
+                            let btnArray = [
+                                {
+                                    title: `現金`,
+                                    value: 'cash',
+                                    event: () => {
+                                        vm.paySelect = 'cash';
+                                    }
+                                },
+                                {
+                                    title: `刷卡`,
+                                    value: 'creditCard',
+                                    event: () => {
+                                        vm.paySelect = 'creditCard';
+                                    }
+                                },
+                                {
+                                    title: `其他`,
+                                    value: 'other',
+                                    event: () => {
+                                        vm.paySelect = 'other';
+                                    }
+                                },
+                            ];
+                            return btnArray.map((btn) => {
+                                return html `
                                     <div style="display: flex;flex-direction: column;justify-content: center;align-items: center;padding: 20px 36px;border-radius: 10px;background: #F6F6F6;${(vm.paySelect == btn.value) ? `color:#393939;border-radius: 10px;border: 3px solid #393939;box-shadow: 2px 2px 15px 0px rgba(0, 0, 0, 0.20);` : 'color:#8D8D8D;'}"
                                          onclick="${gvc.event(() => {
-                        btn.event();
-                        console.log(vm.paySelect);
-                    })}">
+                                    btn.event();
+                                    console.log(vm.paySelect);
+                                })}">
                                         <div style="width: 28px;height: 28px;">
                                             ${drawIcon(vm.paySelect == btn.value, btn.value)}
                                         </div>
@@ -169,13 +191,82 @@ export class PaymentPage {
                                         </div>
                                     </div>
                                 `;
-                }).join('');
-            },
-            divCreate: {
-                class: ``,
-                style: `display: flex;justify-content: space-between;margin-top: 24px;`
-            }
-        })}
+                            }).join('');
+                        },
+                        divCreate: {
+                            class: ``,
+                            style: `display: flex;justify-content: space-between;margin-top: 24px;`
+                        }
+                    })}
+                    <div class="mb-2" style="margin-top: 32px;font-size: 18px;font-weight: 700;letter-spacing: 0.72px;">
+                        配送方式
+                    </div>
+                    ${EditorElem.select({
+                        title: '',
+                        def: (obj.ogOrderData).user_info.shipment,
+                        gvc: gvc,
+                        array: [
+                            {
+                                title: '立即取貨', value: 'now'
+                            },
+                            {
+                                title: '一般宅配', value: 'normal'
+                            },
+                            {
+                                title: '全家店到店', value: 'FAMIC2C'
+                            },
+                            {
+                                title: '萊爾富店到店', value: 'HILIFEC2C'
+                            }, {
+                                title: 'OK超商店到店', value: 'OKMARTC2C'
+                            }, {
+                                title: '7-ELEVEN超商交貨便', value: 'UNIMARTC2C'
+                            },
+                            {
+                                title: '門市取貨', value: 'shop'
+                            }
+                        ],
+                        callback: (text) => {
+                            (obj.ogOrderData).user_info.shipment = text;
+                            PaymentPage.storeHistory(obj.ogOrderData);
+                            gvc.notifyDataChange(id);
+                        }
+                    })}
+                    ${(() => {
+                        if (['FAMIC2C', 'HILIFEC2C', 'OKMARTC2C', 'UNIMARTC2C'].includes(obj.ogOrderData.user_info.shipment)) {
+                            return `<div class="mb-2" style="margin-top: 14px;font-size: 18px;font-weight: 700;letter-spacing: 0.72px;">
+                        門市選擇
+                    </div>
+<div class="btn  w-100 text-white" style="background: ${(decodeURI(gvc.glitter.getUrlParameter('CVSStoreName') || '')) ? `#393939` : `#d6293e`};" onclick="${gvc.event(() => {
+                                ApiShop.selectC2cMap({
+                                    returnURL: location.href,
+                                    logistics: (obj.ogOrderData).user_info.shipment
+                                }).then((res) => __awaiter(this, void 0, void 0, function* () {
+                                    $('body').html(res.response.form);
+                                    document.querySelector('#submit').click();
+                                }));
+                            })}">
+${(decodeURI(gvc.glitter.getUrlParameter('CVSStoreName') || '')) || '請選擇到店門市'}
+</div>
+`;
+                        }
+                        else if (obj.ogOrderData.user_info.shipment === 'normal') {
+                            return `<input class="form-control" >`;
+                        }
+                        else {
+                            return ``;
+                        }
+                    })()}
+                     
+                     <div class="d-flex mt-3">
+                            <div style="font-size: 16px;font-weight: 500;letter-spacing: 0.64px;">
+                                運費
+                            </div>
+                            <div class="ms-auto"
+                                 style="font-size: 16px;font-style: normal;font-weight: 700;letter-spacing: 0.64px;">
+                                ${(Number((orderDetail.shipment_fee))).toLocaleString()}
+                            </div>
+                        </div>
                     <div class="w-100" style="margin: 32px 0;">
                         <svg xmlns="http://www.w3.org/2000/svg" width="398" height="2"
                              viewBox="0 0 398 2" fill="none">
@@ -189,7 +280,7 @@ export class PaymentPage {
                             </div>
                             <div class="ms-auto"
                                  style="font-size: 16px;font-style: normal;font-weight: 700;letter-spacing: 0.64px;">
-                                ${(Number((orderDetail.total)) + Number((orderDetail.discount))).toLocaleString()}
+                                ${(Number((orderDetail.total)) + Number((orderDetail.discount)) - Number((orderDetail.shipment_fee))).toLocaleString()}
                             </div>
                         </div>
                         <div class="d-flex">
@@ -203,8 +294,8 @@ export class PaymentPage {
                         </div>
                         <div class="d-flex align-items-start flex-column mt-1">
                             ${orderDetail.voucherList.map((dd) => {
-            return `<div class="d-flex align-items-center" style="color:#949494;font-size:16px;"><i class="fa-regular fa-ticket me-1"></i>${dd.title}</div>`;
-        }).join(`<div class="my-2"></div>`)}
+                        return `<div class="d-flex align-items-center" style="color:#949494;font-size:16px;"><i class="fa-regular fa-ticket me-1"></i>${dd.title}</div>`;
+                    }).join(`<div class="my-2"></div>`)}
                         </div>
                     </div>
                     <div class="w-100" style="margin: 32px 0;">
@@ -213,19 +304,23 @@ export class PaymentPage {
                             <path d="M0 1H398" stroke="#DDDDDD" stroke-dasharray="8 8"/>
                         </svg>
                     </div>
-
                     ${gvc.bindView(() => {
-            const id = gvc.glitter.getUUID();
-            return {
-                bind: id,
-                view: () => {
-                    return ` <div class="d-flex"
+                        return {
+                            bind: gvc.glitter.getUUID(),
+                            dataList: [
+                                { obj: vm, key: 'paySelect' }
+                            ],
+                            view: () => {
+                                let view = [
+                                    `<div class="d-flex"
                              style="font-size: 16px;font-weight: 400;margin-bottom: 12px;">
                             <div style="">總金額</div>
                             <div class="ms-auto" style="">${parseInt(orderDetail.total, 10).toLocaleString()}
                             </div>
-                        </div>
-                        <div class="d-flex" style="font-size: 16px;font-weight: 400;">
+                        </div>`
+                                ];
+                                if (vm.paySelect === 'cash') {
+                                    view.push(` <div class="d-flex" style="font-size: 16px;font-weight: 400;">
                             <div class="d-flex align-items-center justify-content-center"
                                  style="color: #393939;font-size: 18px;font-weight: 700;letter-spacing: 0.72px;">
                                 收取現金
@@ -233,39 +328,67 @@ export class PaymentPage {
                             <input style="display: flex;width: 143px;height: 51px;padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;"
                                    class="ms-auto" value="${realTotal}"
                                    onchange="${gvc.event((e) => {
-                        realTotal = e.value;
-                        gvc.notifyDataChange(id);
-                    })}">
+                                        realTotal = e.value;
+                                        gvc.notifyDataChange(id);
+                                    })}">
                         </div>
                         <div class="d-flex"
                              style="font-size: 16px;font-weight: 400;margin-bottom: 12px;">
                             <div style="">找零</div>
                             <div class="ms-auto" style="">${realTotal - parseInt(orderDetail.total, 10)}</div>
-                        </div>
+                        </div>`);
+                                }
+                                view.push(html `
+                                    <div style="margin-top: 32px;display: flex;padding: 12px 24px;justify-content: center;align-items: center;border-radius: 10px;background: #393939;color: #FFF;font-size: 18px;font-style: normal;font-weight: 500;line-height: normal;letter-spacing: 0.72px;"
+                                         onclick="${gvc.event(() => {
+                                    if (orderDetail.lineItems.length <= 0) {
+                                        dialog.errorMessage({ text: '請先選擇商品!' });
+                                        return;
+                                    }
+                                    orderDetail.pos_info = {};
+                                    orderDetail.pos_info.payment = vm.paySelect;
+                                    let passData = JSON.parse(JSON.stringify(orderDetail));
+                                    passData.total = orderDetail.total;
+                                    passData.realTotal = (realTotal > 0) ? realTotal : orderDetail.total;
+                                    passData.orderStatus = 1;
+                                    passData.pay_status = 1;
+                                    if (vm.paySelect === 'cash') {
+                                        PaymentPage.cashFinish(gvc, orderDetail, vm, passData);
+                                    }
+                                    else if (vm.paySelect === 'creditCard') {
+                                        PaymentPage.creditFinish(gvc, orderDetail, vm, passData);
+                                    }
+                                    else {
+                                        PaymentPage.selectInvoice(gvc, orderDetail, vm, passData);
+                                    }
+                                })}">前往結賬
+                                    </div>`);
+                                return view.join('');
+                            },
+                            divCreate: {
+                                class: `d-flex flex-column w-100`
+                            }
+                        };
+                    })}
 
-`;
-                },
+
+                </div>`;
+                }),
                 divCreate: {
-                    class: `d-flex flex-column w-100`
+                    class: `${((document.body.offsetWidth < 800)) ? `w-100` : `d-flex flex-column flex-sm-row w-100`}`,
+                    style: `overflow-y: auto;`
                 }
             };
-        })}
-
-                    <div style="margin-top: 32px;display: flex;padding: 12px 24px;justify-content: center;align-items: center;border-radius: 10px;background: #393939;color: #FFF;font-size: 18px;font-style: normal;font-weight: 500;line-height: normal;letter-spacing: 0.72px;"
-                         onclick="${gvc.event(() => {
-            if (orderDetail.lineItems.length < 0) {
-                alert("請先選擇商品");
-                return;
-            }
-            orderDetail.pos_info = {};
-            console.log("orderDetail -- ", orderDetail);
-            orderDetail.pos_info.payment = vm.paySelect;
-            let passData = JSON.parse(JSON.stringify(orderDetail));
-            passData.total = orderDetail.total;
-            passData.realTotal = (realTotal > 0) ? realTotal : orderDetail.total;
-            passData.orderStatus = 1;
-            passData.pay_status = 1;
-            gvc.addStyle(`
+        });
+    }
+    static storeHistory(orderDetail) {
+        localStorage.setItem('pos_order_detail', JSON.stringify(orderDetail));
+    }
+    static clearHistory() {
+        localStorage.removeItem('pos_order_detail');
+    }
+    static cashFinish(gvc, orderDetail, vm, passData) {
+        gvc.addStyle(`
                 .dialog-box {
                     width: 100vw;
                     height: 100vh;
@@ -274,21 +397,6 @@ export class PaymentPage {
                     justify-content: center;
                     background-color: rgba(0, 0, 0, 0.5);
                     z-index: 10000;
-                }
-
-                .dialog-content {
-                    width: 452px;
-                    background: white;
-                    padding: 24px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    flex-direction: column;
-                    border-radius: 0.5rem;
-                    margin: auto;
-                    box-shadow: 0 0.275rem 1.25rem rgba(19, 16, 34, 0.05), 0 0.25rem 0.5625rem rgba(19, 16, 34, 0.03);
-                    color: #393939;
-                    letter-spacing: 1px;
                 }
 
                 .dialog-absolute {
@@ -322,117 +430,339 @@ export class PaymentPage {
                     background-color: #646464;
                 }
             `);
-            gvc.glitter.innerDialog((gvc) => {
-                return html `
-                                     <div class="dialog-box">
-                                         <div class="dialog-content position-relative pb-5"
-                                              style="width: 452px;height: 241px;max-width: calc(100% - 20px);">
-                                             <div class="my-3 fs-6 fw-500 text-center"
-                                                  style="white-space: normal; overflow-wrap: anywhere;font-size: 28px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 2.8px;">
-                                                 請先收取現金後進行結帳
-                                             </div>
-                                             <div style="font-size: 18px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.72px;">
-                                                 本次結帳金額為 <span
-                                                     style="font-size: 28px;font-style: normal;font-weight: 700;line-height: 160%;">$${orderDetail.total.toLocaleString()}</span>
-                                             </div>
-                                             <div class="d-flex align-items-center justify-content-center"
-                                                  style="margin-top: 24px;font-size: 16px;font-weight: 700;letter-spacing: 0.64px;gap:14px;">
-                                                 <div style="border-radius: 10px;border: 1px solid #DDD;background: #FFF;padding: 12px 24px;color: #393939"
-                                                      onclick="${gvc.event(() => {
-                    gvc.glitter.closeDiaLog();
-                })}">取消
-                                                 </div>
-                                                 <div style="border-radius: 10px;background: #393939;padding: 12px 24px;color: #FFF;margin-left: 24px;"
-                                                      onclick="${gvc.event(() => {
-                    gvc.glitter.closeDiaLog();
-                    dialog.dataLoading({
-                        visible: true,
-                        text: `訂單成立中`
-                    });
-                    ApiShop.toPOSCheckout(passData).then(res => {
-                        if (!res.result) {
-                            dialog.dataLoading({ visible: false });
-                            dialog.errorMessage({ text: '系統異常' });
+        const dialog = new ShareDialog(gvc.glitter);
+        gvc.glitter.innerDialog((gvc) => {
+            return html `
+                <div class="dialog-box">
+                    <div class="dialog-content position-relative pb-5"
+                         style="width: 452px;max-width: calc(100% - 20px);">
+                        <div class="my-3 fs-6 fw-500 text-center"
+                             style="white-space: normal; overflow-wrap: anywhere;font-size: 28px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 2.8px;">
+                            請先收取現金後進行結帳
+                        </div>
+                        <div style="font-size: 18px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.72px;">
+                            本次結帳金額為 <span
+                                style="font-size: 28px;font-style: normal;font-weight: 700;line-height: 160%;">$${orderDetail.total.toLocaleString()}</span>
+                        </div>
+                        <div class="d-flex align-items-center justify-content-center"
+                             style="margin-top: 24px;font-size: 16px;font-weight: 700;letter-spacing: 0.64px;">
+                            <div style="border-radius: 10px;border: 1px solid #DDD;background: #FFF;padding: 12px 24px;color: #393939;width:120px;text-align:center;"
+                                 onclick="${gvc.event(() => {
+                gvc.glitter.closeDiaLog();
+            })}">取消
+                            </div>
+                            <div style="border-radius: 10px;background: #393939;padding: 12px 24px;color: #FFF;margin-left: 24px;width:120px;text-align:center;"
+                                 onclick="${gvc.event(() => {
+                gvc.closeDialog();
+                PaymentPage.selectInvoice(gvc, orderDetail, vm, passData);
+            })}">下一步
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }, 'orderFinish', {
+            dismiss: () => {
+            }
+        });
+    }
+    static creditFinish(gvc, orderDetail, vm, passData) {
+        gvc.addStyle(`
+                .dialog-box {
+                    width: 100vw;
+                    height: 100vh;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    background-color: rgba(0, 0, 0, 0.5);
+                    z-index: 10000;
+                }
+
+                .dialog-absolute {
+                    width: 100%;
+                    border-top: 1px solid #e2e5f1;
+                    position: absolute;
+                    left: 0px;
+                    bottom: 0px;
+                    height: 40px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    cursor: pointer;
+                }
+
+                .hover-cancel {
+                    background-color: #fff;
+                    border-radius: 0 0 0 0.5rem;
+                }
+
+                .hover-cancel:hover {
+                    background-color: #e6e6e6;
+                }
+
+                .hover-save {
+                    background-color: #393939;
+                    border-radius: 0 0 0.5rem;
+                }
+
+                .hover-save:hover {
+                    background-color: #646464;
+                }
+            `);
+        const dialog = new ShareDialog(gvc.glitter);
+        gvc.glitter.innerDialog((gvc) => {
+            const timer = setTimeout(() => {
+                gvc.closeDialog();
+                PaymentPage.selectInvoice(gvc, orderDetail, vm, passData);
+            }, 3000);
+            return html `
+                <div class="dialog-box">
+                    <div class="dialog-content position-relative "
+                         style="width: 370px;max-width: calc(100% - 20px);">
+                        <div class="my-3  fw-500 text-center"
+                             style="white-space: normal; overflow-wrap: anywhere;font-size: 20px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 2.8px;">
+                            請感應或插入信用卡進行付款
+                        </div>
+                        <div style="font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.72px;">
+                            若逾時將重新選擇付款方式
+                        </div>
+                        <img class="mt-3" style="max-width:70%;"
+                             src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_scsds7s8sbsfs3s8_b00f1f368f2a9b9fb067a844f940ca2a.gif"></img>
+                        <div class="fw-500 w-100 mt-3"
+                             style="border-radius: 10px;border: 1px solid #DDD;background: #FFF;padding: 12px 24px;color: #393939;width:120px;text-align:center;"
+                             onclick="${gvc.event(() => {
+                clearTimeout(timer);
+                gvc.glitter.closeDiaLog();
+            })}">取消付款
+                        </div>
+                    </div>
+                </div>
+            `;
+        }, 'orderFinish', {
+            dismiss: () => {
+            }
+        });
+    }
+    static selectInvoice(gvc, orderDetail, vm, passData) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const dialog = new ShareDialog(gvc.glitter);
+            const c_vm = {
+                invoice_select: 'print',
+                value: ''
+            };
+            function next() {
+                if (c_vm.invoice_select === 'carry') {
+                    if (!c_vm.value) {
+                        dialog.infoMessage({ text: '請輸入載具!' });
+                        return;
+                    }
+                    else {
+                        passData.user_info = {
+                            send_type: 'carrier',
+                            carrier_num: c_vm.value,
+                            invoice_type: 'me'
+                        };
+                    }
+                }
+                else if (c_vm.invoice_select === 'company') {
+                    if (!c_vm.value) {
+                        dialog.infoMessage({ text: '請輸入統一編號!' });
+                        return;
+                    }
+                    else {
+                        passData.user_info = {
+                            company: 'un_fill',
+                            gui_number: c_vm.value,
+                            invoice_type: 'company'
+                        };
+                    }
+                }
+                gvc.glitter.closeDiaLog();
+                dialog.dataLoading({
+                    visible: true,
+                    text: `訂單成立中`
+                });
+                ApiShop.toPOSCheckout(passData).then(res => {
+                    if (!res.result) {
+                        dialog.dataLoading({ visible: false });
+                        if (c_vm.invoice_select === 'company') {
+                            dialog.errorMessage({ text: '請確認統編是否輸入正確' });
+                        }
+                        else if (c_vm.invoice_select === 'carry') {
+                            dialog.errorMessage({ text: '請確認載具是否輸入正確' });
                         }
                         else {
-                            if (res.response.data.invoice) {
-                                gvc.glitter.runJsInterFace('print_invoice', res.response.data.invoice, () => {
-                                });
-                            }
-                            dialog.dataLoading({ visible: false });
-                            orderDetail.lineItems = [];
-                            gvc.glitter.share.clearOrderData();
-                            vm.type = 'menu';
-                            gvc.glitter.innerDialog((gvc) => {
-                                return html `
-                                                                          <div class="w-100 h-100 d-flex align-items-center justify-content-center" onclick="${gvc.event(() => {
-                                    gvc.closeDialog();
-                                })}">
-                                                                              <div style="position: relative;max-width:calc(100% - 20px);width: 492px;height: 223px;border-radius: 10px;background: #FFF;display: flex;flex-direction: column;align-items: center;justify-content: center;"
-                                                                                   >
-                                                                                  <svg xmlns="http://www.w3.org/2000/svg"
-                                                                                       width="14"
-                                                                                       height="14"
-                                                                                       viewBox="0 0 14 14"
-                                                                                       fill="none"
-                                                                                       style="position: absolute;top: 12px;right: 12px;cursor: pointer;"
-                                                                                       onclick="${gvc.event(() => {
-                                    gvc.glitter.closeDiaLog();
-                                })}">
-                                                                                      <path d="M1 1L13 13"
-                                                                                            stroke="#393939"
-                                                                                            stroke-linecap="round"/>
-                                                                                      <path d="M13 1L1 13"
-                                                                                            stroke="#393939"
-                                                                                            stroke-linecap="round"/>
-                                                                                  </svg>
-
-                                                                                  <svg xmlns="http://www.w3.org/2000/svg"
-                                                                                       width="75"
-                                                                                       height="75"
-                                                                                       viewBox="0 0 75 75"
-                                                                                       fill="none">
-                                                                                      <g clip-path="url(#clip0_9850_171427)">
-                                                                                          <path d="M37.5 7.03125C45.5808 7.03125 53.3307 10.2413 59.0447 15.9553C64.7587 21.6693 67.9688 29.4192 67.9688 37.5C67.9688 45.5808 64.7587 53.3307 59.0447 59.0447C53.3307 64.7587 45.5808 67.9688 37.5 67.9688C29.4192 67.9688 21.6693 64.7587 15.9553 59.0447C10.2413 53.3307 7.03125 45.5808 7.03125 37.5C7.03125 29.4192 10.2413 21.6693 15.9553 15.9553C21.6693 10.2413 29.4192 7.03125 37.5 7.03125ZM37.5 75C47.4456 75 56.9839 71.0491 64.0165 64.0165C71.0491 56.9839 75 47.4456 75 37.5C75 27.5544 71.0491 18.0161 64.0165 10.9835C56.9839 3.95088 47.4456 0 37.5 0C27.5544 0 18.0161 3.95088 10.9835 10.9835C3.95088 18.0161 0 27.5544 0 37.5C0 47.4456 3.95088 56.9839 10.9835 64.0165C18.0161 71.0491 27.5544 75 37.5 75ZM54.0527 30.6152C55.4297 29.2383 55.4297 27.0117 54.0527 25.6494C52.6758 24.2871 50.4492 24.2725 49.0869 25.6494L32.8271 41.9092L25.9424 35.0244C24.5654 33.6475 22.3389 33.6475 20.9766 35.0244C19.6143 36.4014 19.5996 38.6279 20.9766 39.9902L30.3516 49.3652C31.7285 50.7422 33.9551 50.7422 35.3174 49.3652L54.0527 30.6152Z"
-                                                                                                fill="#393939"/>
-                                                                                      </g>
-                                                                                      <defs>
-                                                                                          <clipPath
-                                                                                                  id="clip0_9850_171427">
-                                                                                              <rect width="75"
-                                                                                                    height="75"
-                                                                                                    fill="white"/>
-                                                                                          </clipPath>
-                                                                                      </defs>
-                                                                                  </svg>
-                                                                                  <div style="text-align: center;color: #393939;font-size: 16px;font-weight: 400;line-height: 160%;margin-top: 24px;">
-                                                                                      訂單新增成功！
-                                                                                  </div>
-                                                                              </div>
-                                                                          </div>
-                                                                  `;
-                            }, 'orderFinish', {
-                                dismiss: () => {
-                                }
+                            dialog.errorMessage({ text: '系統異常' });
+                        }
+                    }
+                    else {
+                        if (res.response.data.invoice && (c_vm.invoice_select !== 'carry')) {
+                            gvc.glitter.runJsInterFace('print_invoice', res.response.data.invoice, () => {
                             });
                         }
-                    });
-                })}">確定
-                                                 </div>
-                                             </div>
-                                         </div>
-                                     </div>
-                                 `;
-            }, 'orderFinish', {
-                dismiss: () => {
-                }
-            });
-            return ``;
-        })}">前往結賬
-                    </div>
+                        dialog.dataLoading({ visible: false });
+                        orderDetail.lineItems = [];
+                        gvc.glitter.share.clearOrderData();
+                        vm.type = 'menu';
+                        gvc.glitter.innerDialog((gvc) => {
+                            return html `
+                            <div class="w-100 h-100 d-flex align-items-center justify-content-center"
+                                 onclick="${gvc.event(() => {
+                                gvc.closeDialog();
+                            })}">
+                                <div style="position: relative;max-width:calc(100% - 20px);width: 492px;height: 223px;border-radius: 10px;background: #FFF;display: flex;flex-direction: column;align-items: center;justify-content: center;"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                         width="14"
+                                         height="14"
+                                         viewBox="0 0 14 14"
+                                         fill="none"
+                                         style="position: absolute;top: 12px;right: 12px;cursor: pointer;"
+                                         onclick="${gvc.event(() => {
+                                gvc.glitter.closeDiaLog();
+                            })}">
+                                        <path d="M1 1L13 13"
+                                              stroke="#393939"
+                                              stroke-linecap="round"/>
+                                        <path d="M13 1L1 13"
+                                              stroke="#393939"
+                                              stroke-linecap="round"/>
+                                    </svg>
 
-                </div>
-            </div>
-        `;
+                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                         width="75"
+                                         height="75"
+                                         viewBox="0 0 75 75"
+                                         fill="none">
+                                        <g clip-path="url(#clip0_9850_171427)">
+                                            <path d="M37.5 7.03125C45.5808 7.03125 53.3307 10.2413 59.0447 15.9553C64.7587 21.6693 67.9688 29.4192 67.9688 37.5C67.9688 45.5808 64.7587 53.3307 59.0447 59.0447C53.3307 64.7587 45.5808 67.9688 37.5 67.9688C29.4192 67.9688 21.6693 64.7587 15.9553 59.0447C10.2413 53.3307 7.03125 45.5808 7.03125 37.5C7.03125 29.4192 10.2413 21.6693 15.9553 15.9553C21.6693 10.2413 29.4192 7.03125 37.5 7.03125ZM37.5 75C47.4456 75 56.9839 71.0491 64.0165 64.0165C71.0491 56.9839 75 47.4456 75 37.5C75 27.5544 71.0491 18.0161 64.0165 10.9835C56.9839 3.95088 47.4456 0 37.5 0C27.5544 0 18.0161 3.95088 10.9835 10.9835C3.95088 18.0161 0 27.5544 0 37.5C0 47.4456 3.95088 56.9839 10.9835 64.0165C18.0161 71.0491 27.5544 75 37.5 75ZM54.0527 30.6152C55.4297 29.2383 55.4297 27.0117 54.0527 25.6494C52.6758 24.2871 50.4492 24.2725 49.0869 25.6494L32.8271 41.9092L25.9424 35.0244C24.5654 33.6475 22.3389 33.6475 20.9766 35.0244C19.6143 36.4014 19.5996 38.6279 20.9766 39.9902L30.3516 49.3652C31.7285 50.7422 33.9551 50.7422 35.3174 49.3652L54.0527 30.6152Z"
+                                                  fill="#393939"/>
+                                        </g>
+                                        <defs>
+                                            <clipPath
+                                                    id="clip0_9850_171427">
+                                                <rect width="75"
+                                                      height="75"
+                                                      fill="white"/>
+                                            </clipPath>
+                                        </defs>
+                                    </svg>
+                                    <div style="text-align: center;color: #393939;font-size: 16px;font-weight: 400;line-height: 160%;margin-top: 24px;">
+                                        訂單新增成功！
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        }, 'orderFinish', {
+                            dismiss: () => {
+                            }
+                        });
+                    }
+                });
+            }
+            if ((yield ApiShop.getInvoiceType()).response.method === 'nouse') {
+                next();
+            }
+            else {
+                gvc.glitter.innerDialog((gvc) => {
+                    return html `
+                    <div class="dialog-box">
+                        <div class="dialog-content position-relative"
+                             style="width: 452px;max-width: calc(100% - 20px);">
+                            <div class="mb-3 fs-6 fw-500 text-center"
+                                 style="white-space: normal; overflow-wrap: anywhere;font-size: 28px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 2.8px;">
+                                選擇發票開立方式
+                            </div>
+                            <div class="d-flex align-items-center w-100">
+                                ${(() => {
+                        let btnArray = [
+                            {
+                                title: `列印`,
+                                value: 'print',
+                                icon: `<i class="fa-regular fa-print"></i>`
+                            },
+                            {
+                                title: `載具`,
+                                value: 'carry',
+                                icon: `<i class="fa-regular fa-mobile"></i>`
+                            },
+                            {
+                                title: `統編`,
+                                value: 'company',
+                                icon: `<i class="fa-regular fa-building"></i>`
+                            },
+                        ];
+                        return btnArray.map((btn) => {
+                            return html `
+                                            <div class="flex-fill"
+                                                 style="display: flex;flex-direction: column;justify-content: center;align-items: center;padding:  20px;border-radius: 10px;background: #F6F6F6;${(c_vm.invoice_select == btn.value) ? `color:#393939;border-radius: 10px;border: 3px solid #393939;box-shadow: 2px 2px 15px 0px rgba(0, 0, 0, 0.20);` : 'color:#8D8D8D;'}"
+                                                 onclick="${gvc.event(() => {
+                                c_vm.invoice_select = btn.value;
+                                gvc.recreateView();
+                            })}">
+                                                <div style="" class="fs-2">
+                                                    ${btn.icon}
+                                                </div>
+                                                <div style="font-size: 16px;font-weight: 500;letter-spacing: 0.64px;">
+                                                    ${btn.title}
+                                                </div>
+                                            </div>
+                                        `;
+                        }).join('<div class="mx-2"></div>');
+                    })()}
+                            </div>
+                            ${(() => {
+                        if (c_vm.invoice_select === 'carry') {
+                            c_vm.value = '';
+                            return `  <div class="d-flex w-100 align-items-center mt-3" style="border:1px solid grey;height: 50px;">
+                            <input class="form-control h-100" style="border: none;" placeholder="請輸入或掃描載具" oninput="${gvc.event((e, event) => {
+                                c_vm.value = e.value;
+                            })}">
+                            <div class="flex-fill"></div>
+                            <div style="background: grey;width: 50px;" class="d-flex align-items-center justify-content-center text-white h-100">
+                                <i class="fa-regular fa-barcode-read"></i>
+                            </div>
+                        </div>`;
+                        }
+                        else if (c_vm.invoice_select === 'company') {
+                            return `<div class="d-flex w-100 align-items-center mt-3" style="border:1px solid grey;height: 50px;">
+                            <input class="form-control h-100" style="border: none;" placeholder="請輸入統一編號" oninput="${gvc.event((e, event) => {
+                                c_vm.value = e.value;
+                            })}">
+                            <div class="flex-fill"></div>
+                            <div style="background: grey;width: 50px;" class="d-flex align-items-center justify-content-center text-white h-100">
+                                <i class="fa-regular fa-barcode-read"></i>
+                            </div>
+                        </div>`;
+                        }
+                        else {
+                            return ``;
+                        }
+                    })()}
+                            <div class="d-flex align-items-center justify-content-center w-100"
+                                 style="margin-top: 24px;font-size: 16px;font-weight: 700;letter-spacing: 0.64px;">
+                                <div class="flex-fill"
+                                     style="border-radius: 10px;border: 1px solid #DDD;background: #FFF;padding: 12px 24px;color: #393939;text-align:center;"
+                                     onclick="${gvc.event(() => {
+                        gvc.glitter.closeDiaLog();
+                    })}">取消
+                                </div>
+                                <div class="mx-2"></div>
+                                <div class="flex-fill"
+                                     style="border-radius: 10px;background: #393939;padding: 12px 24px;color: #FFF;text-align:center;"
+                                     onclick="${gvc.event(() => {
+                        next();
+                    })}">確定
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                }, 'selectInvoice', {
+                    dismiss: () => {
+                    }
+                });
+            }
+        });
     }
 }

@@ -5,6 +5,10 @@ import {ShareDialog} from '../glitterBundle/dialog/ShareDialog.js';
 import {PaymentPage} from "./pos-pages/payment-page.js";
 import {OrderDetail, ViewModel} from "./pos-pages/models.js";
 import {ProductsPage} from "./pos-pages/products-page.js";
+import {ShoppingOrderManager} from "./shopping-order-manager.js";
+import {GlobalUser} from "../glitter-base/global/global-user.js";
+import {ApiUser} from "../glitter-base/route/user.js";
+import {NormalPageEditor} from "../editor/normal-page-editor.js";
 
 
 function getConfig() {
@@ -13,9 +17,129 @@ function getConfig() {
 }
 
 export class POSSetting {
+    public static login(gvc: GVC) {
+        const dialog = new ShareDialog(gvc.glitter)
+        return gvc.bindView(() => {
+            const id = gvc.glitter.getUUID()
+            const html = String.raw
+            const vm: {
+                account: string,
+                pwd: string
+            } = {
+                account: '',
+                pwd: ''
+            }
+            return {
+                bind: id,
+                view: () => {
+                    return html`
+                        <section class="vw-100 vh-100"
+                                 style="background: linear-gradient(143deg, #FFB400 -22.7%, #FF6C02 114.57%);    box-sizing: border-box; display: flex;    align-items: center;    justify-content: center; background: linear-gradient(143deg, #FFB400 -22.7%, #FF6C02 114.57%);    padding-top: 120px;    padding-bottom: 130px;">
+                            <div class=""
+                                 style="border-radius: 30px;    background: #FFF;    box-shadow: 5px 5px 20px 0px rgba(0, 0, 0, 0.15);    display: flex;    width: 576px;max-width: calc(100% - 30px);    padding: 40px;    flex-direction: column;    justify-content: center;    align-items: center;    gap: 42px;"
+                            >
+                                <div class=""
+                                     style="color: #393939;        text-align: center;        font-size: 32px;        font-style: normal;        font-weight: 700;        line-height: 140%;    "
+                                >POS系統登入
+                                </div>
+                                <div class=""
+                                     style="width: 100%;    display: flex;    flex-direction: column;    align-items: flex-start;        align-self: stretch;     gap: 32px;"
+                                >
+                                    <div class=""
+                                         style="display: flex;    flex-direction: column;    align-items: flex-start;    gap: 12px;    align-self: stretch;"
+                                    >
+                                        <div class=""
+                                             style="display: flex;    flex-direction: column;    align-items: flex-start;    gap: 4px;    align-self: stretch;"
+                                        >
+                                            <div class="mb-2"
+                                                 style="color: #393939;font-size: 16px;font-style: normal;font-weight: 700;line-height: normal;">
+                                                管理員帳號或員工編號
+                                            </div>
+                                            <input class=""
+                                                   style="display: flex;    padding: 10px 18px;    align-items: center;    gap: 10px;    align-self: stretch;    border-radius: 10px;    border: 1px solid #DDD;    background: #FFF;    width: 100%;    font-size: 16px;    font-style: normal;    font-weight: 400;    line-height: 140%;"
+
+                                                   placeholder="請輸入管理員帳號或員工編號" value=""
+                                                   onchange="${gvc.event((e, event) => {
+                                                       vm.account = e.value
+                                                   })}"></div>
+                                        <div class=""
+                                             style="display: flex;    flex-direction: column;    align-items: flex-start;    gap: 4px;    align-self: stretch;"
+                                        >
+                                            <div class="mb-2"
+                                                 style="color: #393939;        font-size: 16px;        font-style: normal;        font-weight: 700;        line-height: normal;"
+                                            >密碼
+                                            </div>
+                                            <input class=""
+                                                   style="display: flex;    height: 40px;    padding: 10px 18px;    align-items: center;    gap: 10px;    align-self: stretch;    width: 100%;    border-radius: 10px;    border: 1px solid #DDD;    background: #FFF;"
+                                                   placeholder="請輸入密碼" type="password" value=""
+                                                   onchange="${gvc.event((e, event) => {
+                                                       vm.pwd = e.value
+                                                   })}">
+                                        </div>
+                                    </div>
+                                    <div class=""
+                                         style="display: flex;    width: 100%;    padding: 16px ;    gap: 10px;    border-radius: 100px;    background: linear-gradient(233deg, #FFB400 -22.7%, #FF6C02 114.57%);    text-align: center;    align-items: center;    justify-content: center;    color: #FFF;    font-size: 20px;    font-style: normal;    font-weight: 700;    line-height: normal;    letter-spacing: 1.6px;    cursor: pointer;"
+                                         onclick="${gvc.event(() => {
+                                             dialog.dataLoading({visible: true})
+                                             ApiUser.login({
+                                                 app_name: 'shopnex',
+                                                 account: vm.account,
+                                                 pwd: vm.pwd
+                                             }).then(async (r) => {
+                                                 dialog.dataLoading({visible: false})
+                                                 if (r.result) {
+                                                     GlobalUser.saas_token = r.response.token
+                                                     if ((await ApiUser.checkAdminAuth({
+                                                         app: gvc.glitter.getUrlParameter('app-id'),
+                                                         token: GlobalUser.saas_token
+                                                     })).response.result) {
+                                                         gvc.recreateView()
+                                                     } else {
+                                                         dialog.errorMessage({text: '帳號或密碼錯誤!'})
+                                                     }
+                                                 } else {
+                                                     dialog.errorMessage({text: '帳號或密碼錯誤!'})
+                                                 }
+                                             })
+                                         })}">登入
+                                    </div>
+                                </div>
+                        </section>`
+                }
+            }
+        })
+    }
+
     public static main(gvc: GVC) {
-        getConfig().config.appName = 'shop-template-clothing-v3';
-        (window as any).appName = 'shop-template-clothing-v3';
+        POSSetting.initialStyle(gvc);
+        //提供給編輯器使用
+        gvc.glitter.share.NormalPageEditor = NormalPageEditor;
+        getConfig().config.appName = gvc.glitter.getUrlParameter('app-id');
+        (window as any).glitterBase = 'shopnex';
+        (window as any).appName = gvc.glitter.getUrlParameter('app-id');
+        (window as any).saasConfig.config.token = GlobalUser.saas_token;
+        gvc.glitter.addStyleLink('./css/editor.css')
+        return gvc.bindView(() => {
+            const id = gvc.glitter.getUUID()
+            return {
+                bind: id,
+                view: async () => {
+                    const res = await ApiUser.checkAdminAuth({
+                        app: gvc.glitter.getUrlParameter('app-id'),
+                        token: GlobalUser.saas_token
+                    })
+                    if (res.response.result) {
+                        return POSSetting.posView(gvc);
+                    } else {
+                        return POSSetting.login(gvc);
+                    }
+                },
+                divCreate: {}
+            }
+        })
+    }
+
+    public static posView(gvc: GVC) {
         const glitter = gvc.glitter;
         const vm: ViewModel = {
             id: glitter.getUUID(),
@@ -36,9 +160,16 @@ export class POSSetting {
         const html = String.raw;
 
         let orderDetail = new OrderDetail(0, 0);
-glitter.share.clearOrderData=()=>{
-    orderDetail = new OrderDetail(0, 0);
-}
+        glitter.share.clearOrderData = () => {
+            orderDetail = new OrderDetail(0, 0);
+        }
+        if(localStorage.getItem('pos_order_detail')){
+            vm.type='payment'
+            orderDetail=JSON.parse(localStorage.getItem('pos_order_detail') as string)
+        }else{
+            (orderDetail.user_info.shipment as any)='now';
+        }
+
         return gvc.bindView(() => {
             return {
                 bind: vm.id,
@@ -57,7 +188,7 @@ glitter.share.clearOrderData=()=>{
                     return html`
                         <div class="d-flex nav-top"
                              style="z-index:2;height: 86px;width: 100%;background: #FFF;box-shadow: 0 1px 10px 0 rgba(0, 0, 0, 0.10);padding-top: 6px;position: fixed;left: 0;top: 0;">
-                            <div class="POS-logo h-100 d-flex align-items-center justify-content-center mx-2 w-100"
+                            <div class="POS-logo h-100 d-flex align-items-center ${((document.body.offsetWidth < 800)) ? `justify-content-center` : ``} mx-2 w-100"
                                  style="${((document.body.offsetWidth < 800)) ? `gap: 0px;` : `gap: 32px;padding-left: 24px;`}">
                                 ${(document.body.offsetWidth < 800) ? `
                                 <img src="https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/size1440_s*px$_425460019_424417803637934_9083646427244839885_n.jpg" style="width:50px;height: 50px;border-radius: 50%;" >
@@ -96,11 +227,11 @@ glitter.share.clearOrderData=()=>{
                                         </defs>
                                     </svg>
                                 </div>
-                                ${gvc.bindView(()=>{
+                                ${gvc.bindView(() => {
                                     return {
-                                        bind:'cartBtn',
-                                        view:()=>{
-                                            if(!orderDetail.lineItems || orderDetail.lineItems.length===0){
+                                        bind: 'cartBtn',
+                                        view: () => {
+                                            if (!orderDetail.lineItems || orderDetail.lineItems.length === 0) {
                                                 return `<i class="fa-duotone fa-cart-shopping" style="color: #000000;
 cursor: pointer;
  font-size: 20px;"></i>`
@@ -121,10 +252,12 @@ cursor: pointer;
     top: 25px;
     right: 0px;">${orderDetail.lineItems.length}</span></span></span>`
                                         },
-                                        divCreate:{
-                                            class:`nav-link js-cart-count d-sm-none `,style:`cursor: pointer;`,option:[
+                                        divCreate: {
+                                            class: `nav-link js-cart-count d-sm-none `,
+                                            style: `cursor: pointer;`,
+                                            option: [
                                                 {
-                                                    key:'onclick',value:gvc.event(()=>{
+                                                    key: 'onclick', value: gvc.event(() => {
                                                         gvc.glitter.openDrawer()
                                                     })
                                                 }
@@ -134,6 +267,38 @@ cursor: pointer;
                                 })}
                             </div>
                         </div>
+                        ${gvc.bindView({
+                            bind: 'mainView',
+                            view: async () => {
+                                const dialog = new ShareDialog(gvc.glitter);
+                                let view = await (async () => {
+                                    try {
+                                        if (vm.type == "payment") {
+                                            return PaymentPage.main({
+                                                ogOrderData:orderDetail,
+                                                gvc: gvc,
+                                                vm: vm
+                                            })
+                                        } else if (vm.type === 'order') {
+                                            return `<div class="vw-100" style="overflow-y: scroll;">${ShoppingOrderManager.main(gvc, true)}</div>`
+                                        }
+                                        return ProductsPage.main({gvc: gvc, vm: vm, orderDetail: orderDetail})
+                                    } catch (e) {
+                                        console.log(e)
+                                        return `${e}`
+                                    }
+                                })()
+                                if (document.body.clientWidth < 800) {
+                                    view += `<div style="height: 100px;"><div`
+                                }
+                                return view
+
+                            },
+                            divCreate: {
+                                class: `h-100 ${(document.body.clientWidth < 800) ? `` : `d-flex`}`,
+                                style: `background: #F7F7F7;`
+                            }
+                        })}
                         ${gvc.bindView({
                             bind: "nav-slide",
                             dataList: [{obj: vm, key: 'type'}],
@@ -211,11 +376,43 @@ cursor: pointer;
                                             <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28"
                                                  viewBox="0 0 28 28" fill="none">
                                                 <path d="M24.8889 4.375C25.3167 4.375 25.6667 4.76875 25.6667 5.25V7H2.33333V5.25C2.33333 4.76875 2.68333 4.375 3.11111 4.375H24.8889ZM25.6667 12.25V22.75C25.6667 23.2313 25.3167 23.625 24.8889 23.625H3.11111C2.68333 23.625 2.33333 23.2313 2.33333 22.75V12.25H25.6667ZM3.11111 1.75C1.39514 1.75 0 3.31953 0 5.25V22.75C0 24.6805 1.39514 26.25 3.11111 26.25H24.8889C26.6049 26.25 28 24.6805 28 22.75V5.25C28 3.31953 26.6049 1.75 24.8889 1.75H3.11111ZM5.83333 18.375C5.18681 18.375 4.66667 18.9602 4.66667 19.6875C4.66667 20.4148 5.18681 21 5.83333 21H8.16667C8.81319 21 9.33333 20.4148 9.33333 19.6875C9.33333 18.9602 8.81319 18.375 8.16667 18.375H5.83333ZM12.0556 18.375C11.409 18.375 10.8889 18.9602 10.8889 19.6875C10.8889 20.4148 11.409 21 12.0556 21H17.5C18.1465 21 18.6667 20.4148 18.6667 19.6875C18.6667 18.9602 18.1465 18.375 17.5 18.375H12.0556Z"
-                                                      fill="#DDDDDD"/>
+                                                      fill="#8D8D8D"/>
                                             </svg>`,
                                         title: `款項`,
                                         type: `payment`
                                     },
+                                    {
+                                        selectIcon: html`
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="29" height="29"
+                                                 viewBox="0 0 29 29" fill="none">
+                                                <g clip-path="url(#clip0_12544_35571)">
+                                                    <path d="M21.75 4H19.5625H19.0375C18.6328 2.00391 16.8664 0.5 14.75 0.5C12.6336 0.5 10.8672 2.00391 10.4625 4H9.9375H7.75C5.81953 4 4.25 5.56953 4.25 7.5V25C4.25 26.9305 5.81953 28.5 7.75 28.5H21.75C23.6805 28.5 25.25 26.9305 25.25 25V7.5C25.25 5.56953 23.6805 4 21.75 4ZM8.625 6.625V7.9375C8.625 8.66484 9.21016 9.25 9.9375 9.25H14.75H19.5625C20.2898 9.25 20.875 8.66484 20.875 7.9375V6.625H21.75C22.2313 6.625 22.625 7.01875 22.625 7.5V25C22.625 25.4813 22.2313 25.875 21.75 25.875H7.75C7.26875 25.875 6.875 25.4813 6.875 25V7.5C6.875 7.01875 7.26875 6.625 7.75 6.625H8.625ZM13.4375 4.875C13.4375 4.5269 13.5758 4.19306 13.8219 3.94692C14.0681 3.70078 14.4019 3.5625 14.75 3.5625C15.0981 3.5625 15.4319 3.70078 15.6781 3.94692C15.9242 4.19306 16.0625 4.5269 16.0625 4.875C16.0625 5.2231 15.9242 5.55694 15.6781 5.80308C15.4319 6.04922 15.0981 6.1875 14.75 6.1875C14.4019 6.1875 14.0681 6.04922 13.8219 5.80308C13.5758 5.55694 13.4375 5.2231 13.4375 4.875ZM11.6875 15.375C11.6875 15.2026 11.6536 15.032 11.5876 14.8727C11.5216 14.7135 11.425 14.5688 11.3031 14.4469C11.1812 14.325 11.0365 14.2284 10.8773 14.1624C10.718 14.0964 10.5474 14.0625 10.375 14.0625C10.2026 14.0625 10.032 14.0964 9.87273 14.1624C9.71349 14.2284 9.5688 14.325 9.44692 14.4469C9.32505 14.5688 9.22837 14.7135 9.16241 14.8727C9.09645 15.032 9.0625 15.2026 9.0625 15.375C9.0625 15.5474 9.09645 15.718 9.16241 15.8773C9.22837 16.0365 9.32505 16.1812 9.44692 16.3031C9.5688 16.425 9.71349 16.5216 9.87273 16.5876C10.032 16.6536 10.2026 16.6875 10.375 16.6875C10.5474 16.6875 10.718 16.6536 10.8773 16.5876C11.0365 16.5216 11.1812 16.425 11.3031 16.3031C11.425 16.1812 11.5216 16.0365 11.5876 15.8773C11.6536 15.718 11.6875 15.5474 11.6875 15.375ZM13.875 14.5C13.3938 14.5 13 14.8938 13 15.375C13 15.8562 13.3938 16.25 13.875 16.25H19.125C19.6062 16.25 20 15.8562 20 15.375C20 14.8938 19.6062 14.5 19.125 14.5H13.875ZM13.875 19.75C13.3938 19.75 13 20.1437 13 20.625C13 21.1063 13.3938 21.5 13.875 21.5H19.125C19.6062 21.5 20 21.1063 20 20.625C20 20.1437 19.6062 19.75 19.125 19.75H13.875ZM10.375 21.9375C10.7231 21.9375 11.0569 21.7992 11.3031 21.5531C11.5492 21.3069 11.6875 20.9731 11.6875 20.625C11.6875 20.2769 11.5492 19.9431 11.3031 19.6969C11.0569 19.4508 10.7231 19.3125 10.375 19.3125C10.0269 19.3125 9.69306 19.4508 9.44692 19.6969C9.20078 19.9431 9.0625 20.2769 9.0625 20.625C9.0625 20.9731 9.20078 21.3069 9.44692 21.5531C9.69306 21.7992 10.0269 21.9375 10.375 21.9375Z"
+                                                          fill="#393939"/>
+                                                </g>
+                                                <defs>
+                                                    <clipPath id="clip0_12544_35571">
+                                                        <rect width="28" height="28" fill="white"
+                                                              transform="translate(0.75 0.5)"/>
+                                                    </clipPath>
+                                                </defs>
+                                            </svg>`,
+                                        unselectIcon: html`
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="29" height="29"
+                                                 viewBox="0 0 29 29" fill="none">
+                                                <g clip-path="url(#clip0_12544_35571)">
+                                                    <path d="M21.75 4H19.5625H19.0375C18.6328 2.00391 16.8664 0.5 14.75 0.5C12.6336 0.5 10.8672 2.00391 10.4625 4H9.9375H7.75C5.81953 4 4.25 5.56953 4.25 7.5V25C4.25 26.9305 5.81953 28.5 7.75 28.5H21.75C23.6805 28.5 25.25 26.9305 25.25 25V7.5C25.25 5.56953 23.6805 4 21.75 4ZM8.625 6.625V7.9375C8.625 8.66484 9.21016 9.25 9.9375 9.25H14.75H19.5625C20.2898 9.25 20.875 8.66484 20.875 7.9375V6.625H21.75C22.2313 6.625 22.625 7.01875 22.625 7.5V25C22.625 25.4813 22.2313 25.875 21.75 25.875H7.75C7.26875 25.875 6.875 25.4813 6.875 25V7.5C6.875 7.01875 7.26875 6.625 7.75 6.625H8.625ZM13.4375 4.875C13.4375 4.5269 13.5758 4.19306 13.8219 3.94692C14.0681 3.70078 14.4019 3.5625 14.75 3.5625C15.0981 3.5625 15.4319 3.70078 15.6781 3.94692C15.9242 4.19306 16.0625 4.5269 16.0625 4.875C16.0625 5.2231 15.9242 5.55694 15.6781 5.80308C15.4319 6.04922 15.0981 6.1875 14.75 6.1875C14.4019 6.1875 14.0681 6.04922 13.8219 5.80308C13.5758 5.55694 13.4375 5.2231 13.4375 4.875ZM11.6875 15.375C11.6875 15.2026 11.6536 15.032 11.5876 14.8727C11.5216 14.7135 11.425 14.5688 11.3031 14.4469C11.1812 14.325 11.0365 14.2284 10.8773 14.1624C10.718 14.0964 10.5474 14.0625 10.375 14.0625C10.2026 14.0625 10.032 14.0964 9.87273 14.1624C9.71349 14.2284 9.5688 14.325 9.44692 14.4469C9.32505 14.5688 9.22837 14.7135 9.16241 14.8727C9.09645 15.032 9.0625 15.2026 9.0625 15.375C9.0625 15.5474 9.09645 15.718 9.16241 15.8773C9.22837 16.0365 9.32505 16.1812 9.44692 16.3031C9.5688 16.425 9.71349 16.5216 9.87273 16.5876C10.032 16.6536 10.2026 16.6875 10.375 16.6875C10.5474 16.6875 10.718 16.6536 10.8773 16.5876C11.0365 16.5216 11.1812 16.425 11.3031 16.3031C11.425 16.1812 11.5216 16.0365 11.5876 15.8773C11.6536 15.718 11.6875 15.5474 11.6875 15.375ZM13.875 14.5C13.3938 14.5 13 14.8938 13 15.375C13 15.8562 13.3938 16.25 13.875 16.25H19.125C19.6062 16.25 20 15.8562 20 15.375C20 14.8938 19.6062 14.5 19.125 14.5H13.875ZM13.875 19.75C13.3938 19.75 13 20.1437 13 20.625C13 21.1063 13.3938 21.5 13.875 21.5H19.125C19.6062 21.5 20 21.1063 20 20.625C20 20.1437 19.6062 19.75 19.125 19.75H13.875ZM10.375 21.9375C10.7231 21.9375 11.0569 21.7992 11.3031 21.5531C11.5492 21.3069 11.6875 20.9731 11.6875 20.625C11.6875 20.2769 11.5492 19.9431 11.3031 19.6969C11.0569 19.4508 10.7231 19.3125 10.375 19.3125C10.0269 19.3125 9.69306 19.4508 9.44692 19.6969C9.20078 19.9431 9.0625 20.2769 9.0625 20.625C9.0625 20.9731 9.20078 21.3069 9.44692 21.5531C9.69306 21.7992 10.0269 21.9375 10.375 21.9375Z"
+                                                          fill="#8D8D8D"/>
+                                                </g>
+                                                <defs>
+                                                    <clipPath id="clip0_12544_35571">
+                                                        <rect width="28" height="28" fill="white"
+                                                              transform="translate(0.75 0.5)"/>
+                                                    </clipPath>
+                                                </defs>
+                                            </svg>`,
+                                        title: `訂單`,
+                                        type: `order`
+                                    }
                                 ]
                                 return page.map((data) => {
                                     return html`
@@ -229,13 +426,12 @@ cursor: pointer;
                                         </div>
                                     `
                                 }).join('')
-                            }
-                            ,
+                            },
                             divCreate: () => {
                                 if (document.body.offsetWidth < 800) {
                                     return {
-                                        class: `d-flex flex-row`,
-                                        style: `width: 100%;gap:24px;height:100px;position:fixed;bottom:0px;left:0px;background: #FFF;box-shadow: 1px 0px 10px 0px rgba(0, 0, 0, 0.05); justify-content: space-around;`
+                                        class: ` flex-row pos-footer-menu`,
+                                        style: `width: 100%;gap:24px;height:100px;position:fixed;bottom:0px;left:0px;background: #FFF;box-shadow: 1px 0px 10px 0px rgba(0, 0, 0, 0.05); justify-content: space-around;display:flex;`
                                     }
                                 } else {
                                     return {
@@ -245,43 +441,95 @@ cursor: pointer;
                                 }
                             },
                         })}
-                        ${gvc.bindView({
-                            bind: 'mainView',
-                            view: async () => {
-                                try {
-                                    if (vm.type == "payment") {
-                                        const checkOutData = await ApiShop.getCheckout({
-                                            line_items: orderDetail.lineItems,
-                                            checkOutType: 'POS'
-                                        })
-                                        return PaymentPage.main({
-                                            orderDetail: checkOutData.response.data,
-                                            gvc: gvc,
-                                            vm: vm
-                                        })
-                                    }
-                                    return ProductsPage.main({gvc: gvc, vm: vm, orderDetail: orderDetail})
-                                } catch (e) {
-                                    console.log(e)
-                                    return `${e}`
-                                }
-
-                            }, divCreate: {class: `h-100 d-flex w-100`, style: `background: #F7F7F7;`}
-                        })}
                     `
                 },
                 divCreate: () => {
                     if (document.body.offsetWidth > 800) {
                         return {style: `padding: 86px 0 0 103px;height:100vh;width:100vw;color:#393939;`}
                     } else {
-                        return {style: `padding-top:86px;padding-bottom:86px;height:100vh;width:100vw;color:#393939;`}
+                        return {style: `padding-top:86px;padding-bottom:0px;height:100vh;width:100vw;color:#393939;overflow-y:auto;`}
                     }
                 }
 
             };
-        });
+        }) + NormalPageEditor.leftNav(gvc);
     }
 
+    public static initialStyle(gvc: GVC) {
+        const css = String.raw
+        gvc.addStyle(css`
+            .hoverHidden div {
+                display: none;
+            }
+
+            .hoverHidden:hover div {
+                display: flex;
+            }
+
+            .tooltip {
+                z-index: 99999 !important;
+            }
+
+            .scroll-in {
+                left: -120%; /* 將元素移到畫面外 */
+                animation: slideInFromLeft 0.5s ease-out forwards;
+            }
+
+            .scroll-out {
+                left: 0%; /* 將元素移到畫面外 */
+                animation: slideOutFromLeft 0.5s ease-out forwards;
+            }
+
+            /* @keyframes 定義動畫 */
+            @keyframes slideInFromLeft {
+                0% {
+                    left: -120%; /* 起始位置在畫面外 */
+                }
+                100% {
+                    left: 0; /* 結束位置在畫面內 */
+                }
+            }
+            /* @keyframes 定義動畫 */
+            @keyframes slideOutFromLeft {
+                0% {
+                    left: 0; /* 起始位置在畫面外 */
+                }
+                100% {
+                    left: -120%; /* 結束位置在畫面內 */
+                }
+            }
+        `);
+        gvc.addStyle(css`
+            .scroll-right-in {
+                right: -120%; /* 將元素移到畫面外 */
+                animation: slideInRight 0.5s ease-out forwards;
+            }
+
+            .scroll-right-out {
+                right: 0; /* 將元素移到畫面外 */
+                animation: slideOutRight 0.5s ease-out forwards;
+            }
+
+            /* @keyframes 定義動畫 */
+            @keyframes slideInRight {
+                0% {
+                    right: -120%; /* 起始位置在畫面外 */
+                }
+                100% {
+                    right: 0; /* 結束位置在畫面內 */
+                }
+            }
+            /* @keyframes 定義動畫 */
+            @keyframes slideOutRight {
+                0% {
+                    right: 0; /* 起始位置在畫面外 */
+                }
+                100% {
+                    right: -120%; /* 結束位置在畫面內 */
+                }
+            }
+        `);
+    }
 }
 
 (window as any).glitter.setModule(import.meta.url, POSSetting);

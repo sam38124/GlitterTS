@@ -415,6 +415,14 @@ router.get('/notice', async (req, resp) => {
         return response_1.default.fail(resp, err);
     }
 });
+router.get('/check-admin-auth', async (req, resp) => {
+    try {
+        return response_1.default.succ(resp, await new user_1.User(req.get('g-app'), req.body.token || {}).checkAdminPermission());
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
 router.get('/notice/unread/count', async (req, resp) => {
     try {
         return response_1.default.succ(resp, await new user_1.User(req.get('g-app'), req.body.token).getUnreadCount());

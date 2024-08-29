@@ -17,7 +17,7 @@ import { ApiUser } from '../glitter-base/route/user.js';
 import { UserList } from './user-list.js';
 const html = String.raw;
 export class ShoppingOrderManager {
-    static main(gvc) {
+    static main(gvc, pos_page) {
         const filterID = gvc.glitter.getUUID();
         const glitter = gvc.glitter;
         const vm = {
@@ -193,7 +193,7 @@ export class ShoppingOrderManager {
                             vm.filter_type = text;
                             gvc.notifyDataChange(vm.id);
                         })}
-                                ${BgWidget.table({
+                                ${BgWidget.card(BgWidget.tableV2({
                             gvc: gvc,
                             getData: (vmi) => {
                                 ApiShop.getOrder({
@@ -209,6 +209,9 @@ export class ShoppingOrderManager {
                                     vm.dataList = data.response.data;
                                     function getDatalist() {
                                         return data.response.data.map((dd) => {
+                                            var _a;
+                                            dd.orderData.total = dd.orderData.total || 0;
+                                            dd.orderData.customer_info = (_a = dd.orderData.customer_info) !== null && _a !== void 0 ? _a : {};
                                             return [
                                                 {
                                                     key: EditorElem.checkBoxOnly({
@@ -408,7 +411,7 @@ export class ShoppingOrderManager {
                                 };
                             })}
                                     `,
-                        })}
+                        }))}
                             `, 1200);
                     }
                     else if (vm.type == 'replace') {
@@ -565,17 +568,17 @@ export class ShoppingOrderManager {
                     }
                     return BgWidget.container(html `
                             <div class="d-flex flex-column" style="">
-                                ${BgWidget.container(html `
-                                            <div class="d-flex w-100 align-items-center mb-3 ">
+                              <div class="d-flex w-100 align-items-center mb-3 ">
                                                 ${BgWidget.goBack(gvc.event(() => {
                         vm.type = 'list';
                     }))}
+                                  <div class="mx-1 mx-sm-0"></div>
                                                 ${BgWidget.title(html ` <div class="d-flex align-items-center">
                                                     <div class="d-flex flex-column">
                                                         <div class="align-items-center" style="gap:10px;color: #393939;font-size: 24px;font-weight: 700;">#${orderData.cart_token}</div>
-                                                        <div class="d-flex align-items-center" style="color: #8D8D8D;font-size: 16px;font-weight: 400;gap:10px;">
+                                                        <div class="d-flex align-items-sm-center flex-column flex-sm-row" style="color: #8D8D8D;font-size: 16px;font-weight: 400;gap:10px;">
                                                             訂單成立時間 :
-                                                            ${glitter.ut.dateFormat(new Date(orderData.created_time), 'yyyy-MM-dd hh:mm')}${vt.paymentBadge()}${vt.outShipBadge()}${vt.orderStatusBadge()}
+                                                            ${glitter.ut.dateFormat(new Date(orderData.created_time), 'yyyy-MM-dd hh:mm')}<div class="d-flex" style="gap:10px;">${vt.paymentBadge()}${vt.outShipBadge()}${vt.orderStatusBadge()}</div>
                                                         </div>
                                                     </div>
                                                 </div>`)}
@@ -653,8 +656,8 @@ export class ShoppingOrderManager {
                                                     儲存並更改
                                                 </button>
                                             </div>
-                                            <div class="d-flex flex-column  flex-md-row" style="gap:10px;">
-                                                <div style="width:calc(100% - 390px);gap:24px;" class="d-flex flex-column">
+                                            <div class="d-flex flex-column  flex-md-row p-0" style="gap:10px;">
+                                                <div style="width: 100%;max-width:calc(100vw - 20px);gap:24px;" class="d-flex flex-column">
                                                     ${BgWidget.card([
                         html `
                                                                     <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 12px;align-self: stretch;">
@@ -1311,7 +1314,6 @@ export class ShoppingOrderManager {
                     })()}
                                                 </div>
                                             </div>
-                                        `, 1200, `position: relative;`)}
                                 ${BgWidget.mbContainer(240)}
                                 <div
                                         class="testLine d-flex align-items-center justify-content-end"
@@ -1399,7 +1401,7 @@ export class ShoppingOrderManager {
                                     </button>
                                 </div>
                             </div>
-                        `, 1200);
+                        `, 1200, (document.body.clientWidth < 800) ? `padding:0px;padding-top:20px;margin:0px;` : '');
                 }
                 catch (e) {
                     console.log(e);
@@ -1407,6 +1409,12 @@ export class ShoppingOrderManager {
                 }
             },
             divCreate: {},
+            onCreate: () => {
+                $('.pos-footer-menu').hide();
+            },
+            onDestroy: () => {
+                $('.pos-footer-menu').show();
+            }
         });
     }
     static createOrder(gvc, vm) {

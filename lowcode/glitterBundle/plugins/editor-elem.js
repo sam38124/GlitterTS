@@ -991,7 +991,7 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                         editor.toolbar.disable();
                                     }
                                 }, 100);
-                            }, 500);
+                            }, 1000);
                             clearInterval(interval);
                         }
                     }, 200);

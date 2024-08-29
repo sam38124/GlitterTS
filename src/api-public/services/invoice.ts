@@ -4,6 +4,7 @@ import { EzInvoice } from './ezpay/invoice.js';
 import exception from '../../modules/exception.js';
 import db from '../../modules/database.js';
 import { EcInvoice, EcInvoiceInterface } from './EcInvoice.js';
+import {EcPay} from "./financial-service.js";
 
 export class Invoice {
     public appName: string;
@@ -42,8 +43,8 @@ export class Invoice {
     }
 
     //訂單開發票
-    public async postCheckoutInvoice(orderID: string,print:boolean) {
-        console.log(`開立發票--->orderID:${orderID}`);
+    public async postCheckoutInvoice(orderID: string|any ,print:boolean) {
+
         const order: {
             user_info: {
                 name: string;
@@ -74,14 +75,14 @@ export class Invoice {
             use_rebate: number;
             shipment_fee: number;
             discount: number;
-        } = (
+        } = (typeof orderID==='string') ? (
             await db.query(
                 `SELECT *
                              FROM \`${this.appName}\`.t_checkout
                              where cart_token = ?`,
                 [orderID]
             )
-        )[0]['orderData'];
+        )[0]['orderData'] : orderID;
         const config = await app.getAdConfig(this.appName, 'invoice_setting');
         const line_item = order.lineItems.map((dd) => {
             return {
@@ -153,7 +154,7 @@ export class Invoice {
         } else if (config.fincial === 'ecpay') {
             const json: EcInvoiceInterface = {
                 MerchantID: config.merchNO as string,
-                RelateNumber: orderID as string,
+                RelateNumber: (typeof orderID==='string') ? orderID as string : orderID.orderID,
                 CustomerID: order.user_info.email as string,
                 CustomerIdentifier: (order.user_info.invoice_type === 'company' ? order.user_info.gui_number || '' : undefined) as string,
                 CustomerName: (order.user_info.invoice_type === 'company' ? order.user_info.company : order.user_info.name) as string,
@@ -183,12 +184,9 @@ export class Invoice {
             };
            if(print){
                const cover={
-                   "MerchantID": "2000132",
-                   "RelateNumber": `${new Date().getTime()}`,
                    "CustomerID": "",
-                   "CustomerIdentifier": "",
-                   "CustomerName": "萊恩設計有限公司",
-                   "CustomerAddr": "427台中市潭子區昌平路三段150巷15弄12號",
+                   "CustomerName": "無名氏",
+                   "CustomerAddr": "無地址",
                    "CustomerPhone": "",
                    "CustomerEmail": "pos@ncdesign.info",
                    "ClearanceMark": "1",
@@ -200,6 +198,12 @@ export class Invoice {
                    "TaxType": "1",
                    "InvType": "07"
                }
+               if(order.user_info.invoice_type==='company'){
+                   cover.CustomerName=await EcInvoice.getCompanyName({
+                       company_id:order.user_info.gui_number as any,
+                       app_name:this.appName
+                   })
+               }
                Object.keys(cover).map((dd)=>{
                    (json as any)[dd]=(cover as any)[dd]
                })
@@ -208,6 +212,8 @@ export class Invoice {
                 invoice_data: json,
                 print:print
             });
+        }else{
+            return 'no_need'
         }
     }
 

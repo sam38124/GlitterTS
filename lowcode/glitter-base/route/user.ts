@@ -557,15 +557,27 @@ export class ApiUser {
         });
     }
 
-    public static login(json: { account?: string; pwd?: string; login_type?: 'fb' | 'normal' | 'line' | 'google'; google_token?: string; fb_token?: string; line_token?: string; redirect?: string }) {
+    public static login(json: {app_name?:string, account?: string; pwd?: string; login_type?: 'fb' | 'normal' | 'line' | 'google'; google_token?: string; fb_token?: string; line_token?: string; redirect?: string }) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/user/login`,
             type: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'g-app': getConfig().config.appName,
+                'g-app': json.app_name || getConfig().config.appName,
             },
             data: JSON.stringify(json),
+        });
+    }
+
+    public static checkAdminAuth(cg: {app:string,token:string}) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/user/check-admin-auth`,
+            type: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': cg.app,
+                Authorization:cg.token
+            }
         });
     }
 
