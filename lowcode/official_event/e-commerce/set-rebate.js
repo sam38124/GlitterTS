@@ -72,7 +72,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                             }).then((res) => __awaiter(void 0, void 0, void 0, function* () {
                                 var _a;
                                 const data = (_a = res.response) === null || _a === void 0 ? void 0 : _a.data;
-                                if ((rebate == 0 || data.use_rebate >= 0) && data.total - data.shipment_fee >= 0) {
+                                if ((rebate == 0 || data.use_rebate >= 0) && data.total - data.shipment_fee >= 0 && `${data.use_rebate}` === rebate) {
                                     ApiShop.setRebateValue(`${rebate}`);
                                     TriggerEvent.trigger({
                                         gvc: gvc,
