@@ -50,6 +50,7 @@ export class Setting_editor {
                                                     appName: 'cms_system',
                                                     groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716566571091-Property 1=gear-regular.svg',
                                                     moduleName: '商店設計',
+                                                    guideClass:'guide2-1'
                                                 },
                                                 {
                                                     icon: '',
@@ -59,6 +60,7 @@ export class Setting_editor {
                                                     appName: 'cms_system',
                                                     groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716566571091-Property 1=gear-regular.svg',
                                                     moduleName: '金流 / 物流 / 發票',
+                                                    guideClass:'guide2-2'
                                                 },
                                                 {
                                                     icon: '',
@@ -569,13 +571,14 @@ export class Setting_editor {
                                                                 return {
                                                                     bind: id,
                                                                     view: () => {
+                                                                        
                                                                         return list
                                                                             .map((dd: any, index: any) => {
                                                                                 return html`
                                                                                     ${dd.title === '品牌官網' ? `<div class="my-4 border-top"></div>` : ``}
                                                                                     <li>
                                                                                         <div
-                                                                                            class="w-100 fw-500 d-flex align-items-center  fs-6 hoverBtn h_item  rounded px-2 tx_700"
+                                                                                            class="w-100 fw-500 d-flex align-items-center  fs-6 hoverBtn h_item  rounded px-2 tx_700 ${dd?.info?.guideClass??''} ${dd.type === 'container' ? ` mainRow${index}` : ''}"
                                                                                             style="gap:7px;color:#393939;${dd.toggle ? `border-radius: 5px;background: #F2F2F2;` : ``}"
                                                                                             onclick="${gvc.event(() => {
                                                                                                 if (dd.type === 'container') {

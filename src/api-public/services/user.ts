@@ -767,7 +767,8 @@ export class User {
                               });
                           })
                         : users.map((item: { userID: number }) => item.userID);
-                    query.id = ids.filter((id) => id).join(',');
+                    // @ts-ignore
+                    query.id = ids.filter((id:any) => id).join(',');
                 } else {
                     query.id = '0,0';
                 }

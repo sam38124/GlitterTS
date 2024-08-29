@@ -44,6 +44,7 @@ export class Setting_editor {
                                             appName: 'cms_system',
                                             groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716566571091-Property 1=gear-regular.svg',
                                             moduleName: '商店設計',
+                                            guideClass: 'guide2-1'
                                         },
                                         {
                                             icon: '',
@@ -53,6 +54,7 @@ export class Setting_editor {
                                             appName: 'cms_system',
                                             groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716566571091-Property 1=gear-regular.svg',
                                             moduleName: '金流 / 物流 / 發票',
+                                            guideClass: 'guide2-2'
                                         },
                                         {
                                             icon: '',
@@ -537,11 +539,12 @@ export class Setting_editor {
                                                             view: () => {
                                                                 return list
                                                                     .map((dd, index) => {
+                                                                    var _a, _b;
                                                                     return html `
                                                                                     ${dd.title === '品牌官網' ? `<div class="my-4 border-top"></div>` : ``}
                                                                                     <li>
                                                                                         <div
-                                                                                            class="w-100 fw-500 d-flex align-items-center  fs-6 hoverBtn h_item  rounded px-2 tx_700"
+                                                                                            class="w-100 fw-500 d-flex align-items-center  fs-6 hoverBtn h_item  rounded px-2 tx_700 ${(_b = (_a = dd === null || dd === void 0 ? void 0 : dd.info) === null || _a === void 0 ? void 0 : _a.guideClass) !== null && _b !== void 0 ? _b : ''} ${dd.type === 'container' ? ` mainRow${index}` : ''}"
                                                                                             style="gap:7px;color:#393939;${dd.toggle ? `border-radius: 5px;background: #F2F2F2;` : ``}"
                                                                                             onclick="${gvc.event(() => {
                                                                         if (dd.type === 'container') {

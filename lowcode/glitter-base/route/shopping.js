@@ -1,6 +1,32 @@
 import { GlobalUser } from '../global/global-user.js';
 import { BaseApi } from '../../glitterBundle/api/base.js';
 export class ApiShop {
+    static getGuide() {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/manager/config?key=guide`,
+            type: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: GlobalUser.token,
+            },
+        });
+    }
+    static setGuide(json) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/manager/config`,
+            type: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: getConfig().config.token,
+            },
+            data: JSON.stringify({
+                key: 'guide',
+                value: json,
+            }),
+        });
+    }
     static postProduct(cf) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/product`,

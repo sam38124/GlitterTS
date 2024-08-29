@@ -19,6 +19,8 @@ import {NormalPageEditor} from '../editor/normal-page-editor.js';
 import {EditorConfig} from '../editor-config.js';
 import {all} from 'underscore/index.js';
 import {BgCustomerMessage} from '../backend-manager/bg-customer-message.js';
+import {BgGuide} from "../backend-manager/bg-guide.js";
+import {ApiShop} from "../glitter-base/route/shopping.js";
 
 const html = String.raw;
 //
@@ -601,14 +603,28 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
                             });
                         }
                     }
-
                     setTimeout(() => {
                         scrollToItem(document.querySelector(`.editor_item.active`)!);
                     }, 200);
+
+                    let bgGuide = new BgGuide(gvc,1);
+                    // if (!viewModel.guideAble){
+                    //     viewModel.guideAble = true;
+                        ApiShop.getGuide().then(r => {
+                            // if (r.response.value.first){
+
+                            // console.log("test1")
+                            bgGuide.drawGuide();
+                            // }
+                        })
+                    // }
+
+
                 },
             });
         },
         onCreate: () => {
+
         },
     };
 });

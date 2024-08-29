@@ -27,6 +27,8 @@ import { PageCodeSetting } from '../editor/page-code-setting.js';
 import { NormalPageEditor } from '../editor/normal-page-editor.js';
 import { EditorConfig } from '../editor-config.js';
 import { BgCustomerMessage } from '../backend-manager/bg-customer-message.js';
+import { BgGuide } from "../backend-manager/bg-guide.js";
+import { ApiShop } from "../glitter-base/route/shopping.js";
 const html = String.raw;
 const editorContainerID = `HtmlEditorContainer`;
 init(import.meta.url, (gvc, glitter, gBundle) => {
@@ -568,6 +570,10 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
                     setTimeout(() => {
                         scrollToItem(document.querySelector(`.editor_item.active`));
                     }, 200);
+                    let bgGuide = new BgGuide(gvc, 1);
+                    ApiShop.getGuide().then(r => {
+                        bgGuide.drawGuide();
+                    });
                 },
             });
         },
