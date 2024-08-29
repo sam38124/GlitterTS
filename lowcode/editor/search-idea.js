@@ -97,7 +97,7 @@ ${gvc.bindView(() => {
             };
         })}
 </div>
-<div class="" style="width: calc(100% - 200px);">
+<div class="" style="${(document.body.clientWidth < 800) ? `width: calc(100%)` : `width: calc(100% - 200px)`};">
 <div class="bgf6 p-3 w-100 border-bottom">${BgWidget.title('點擊喜愛的區塊進行複製', 'font-size:16px;')}</div>
 ${gvc.bindView(() => {
             return {
@@ -184,7 +184,7 @@ background-clip: text;
                         </div>
             `,
             view: SearchIdea.main(gvc),
-            width: 800
+            width: (document.body.clientWidth < 800) ? document.body.clientWidth : 800
         });
     }
 }

@@ -48,7 +48,9 @@ class Shopping {
                 querySql.push(`(content->>'$.visible' is null || content->>'$.visible' = 'true')`);
             }
             if (query.collection) {
-                const collection_cf = (await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.public_config where \`key\` = 'collection';
+                const collection_cf = (await database_js_1.default.query(`SELECT *
+                         FROM \`${this.app}\`.public_config
+                         where \`key\` = 'collection';
                         `, []))[0]['value'];
                 query.collection = decodeURI(query.collection);
                 query.collection = query.collection
@@ -201,8 +203,8 @@ class Shopping {
     async querySqlByVariants(querySql, query) {
         let sql = `SELECT v.id,
                           v.product_id,
-                          v.content as                                            variant_content,
-                          p.content as                                            product_content,
+                          v.content                                            as variant_content,
+                          p.content                                            as product_content,
                           CAST(JSON_EXTRACT(v.content, '$.stock') AS UNSIGNED) as stock
                    FROM \`${this.app}\`.t_variants AS v
                             JOIN
@@ -257,7 +259,7 @@ class Shopping {
         return `${new Date().getTime()}`;
     }
     async toCheckout(data, type = 'add', replace_order_id) {
-        var _a, _b, _c, _d, _e, _f;
+        var _a, _b, _c, _d, _e;
         try {
             if (replace_order_id) {
                 const orderData = (await database_js_1.default.query(`SELECT *
@@ -335,18 +337,34 @@ class Shopping {
                     data.use_rebate = 0;
                 }
             }
-            const shipment = ((_b = (await private_config_js_1.Private_config.getConfig({
-                appName: this.app,
-                key: 'glitter_shipment',
-            }))) !== null && _b !== void 0 ? _b : [
-                {
+            const shipment = await (async () => {
+                var _a, _b;
+                data.user_info = data.user_info || {};
+                let def = ((_a = (await private_config_js_1.Private_config.getConfig({
+                    appName: this.app,
+                    key: 'glitter_shipment',
+                }))[0]) !== null && _a !== void 0 ? _a : {
                     value: {
                         volume: [],
                         weight: [],
                         selectCalc: 'volume',
                     },
-                },
-            ])[0].value;
+                }).value;
+                let refer = ((_b = (await private_config_js_1.Private_config.getConfig({
+                    appName: this.app,
+                    key: 'glitter_shipment_' + data.user_info.shipment,
+                }))[0]) !== null && _b !== void 0 ? _b : {
+                    value: {
+                        volume: [],
+                        weight: [],
+                        selectCalc: 'def',
+                    },
+                }).value;
+                if (refer.value !== 'def') {
+                    def = refer;
+                }
+                return def;
+            })();
             const shipment_setting = await new Promise(async (resolve, reject) => {
                 var _a;
                 try {
@@ -369,8 +387,8 @@ class Shopping {
                 customer_info: data.customer_info || {},
                 lineItems: [],
                 total: 0,
-                realTotal: (_c = data.realTotal) !== null && _c !== void 0 ? _c : 0,
-                email: (_d = data.email) !== null && _d !== void 0 ? _d : ((data.user_info && data.user_info.email) || ''),
+                realTotal: (_b = data.realTotal) !== null && _b !== void 0 ? _b : 0,
+                email: (_c = data.email) !== null && _c !== void 0 ? _c : ((data.user_info && data.user_info.email) || ''),
                 user_info: data.user_info,
                 shipment_fee: 0,
                 rebate: 0,
@@ -380,22 +398,25 @@ class Shopping {
                 shipment_info: shipment_setting.info,
                 use_wallet: 0,
                 method: data.user_info && data.user_info.method,
-                user_email: (userData && userData.account) || ((_e = data.email) !== null && _e !== void 0 ? _e : ((data.user_info && data.user_info.email) || '')),
+                user_email: (userData && userData.account) || ((_d = data.email) !== null && _d !== void 0 ? _d : ((data.user_info && data.user_info.email) || '')),
                 useRebateInfo: { point: 0 },
                 custom_form_format: data.custom_form_format,
                 custom_form_data: data.custom_form_data,
                 orderSource: "",
             };
             function calculateShipment(dataList, value) {
-                const productValue = parseInt(`${value}`, 10);
+                if (value === 0) {
+                    return 0;
+                }
+                const productValue = parseFloat(`${value}`);
                 if (isNaN(productValue) || dataList.length === 0) {
                     return 0;
                 }
                 for (let i = 0; i < dataList.length; i++) {
-                    const currentKey = parseInt(dataList[i].key);
-                    const currentValue = parseInt(dataList[i].value);
+                    const currentKey = parseFloat(dataList[i].key);
+                    const currentValue = parseFloat(dataList[i].value);
                     if (productValue < currentKey) {
-                        return i === 0 ? 0 : parseInt(dataList[i - 1].value);
+                        return i === 0 ? 0 : parseFloat(dataList[i - 1].value);
                     }
                     else if (productValue === currentKey) {
                         return currentValue;
@@ -470,23 +491,22 @@ class Shopping {
                         }
                     }
                 }
-                catch (e) { }
+                catch (e) {
+                }
             }
-            if (data.checkOutType !== 'POS') {
-                carData.shipment_fee = (() => {
-                    let total_volume = 0;
-                    let total_weight = 0;
-                    carData.lineItems.map((item) => {
-                        if (item.shipment_obj.type === 'volume') {
-                            total_volume += item.shipment_obj.value;
-                        }
-                        if (item.shipment_obj.type === 'weight') {
-                            total_weight += item.shipment_obj.value;
-                        }
-                    });
-                    return calculateShipment(shipment.volume, total_volume) + calculateShipment(shipment.weight, total_weight);
-                })();
-            }
+            carData.shipment_fee = (() => {
+                let total_volume = 0;
+                let total_weight = 0;
+                carData.lineItems.map((item) => {
+                    if (item.shipment_obj.type === 'volume') {
+                        total_volume += item.shipment_obj.value;
+                    }
+                    if (item.shipment_obj.type === 'weight') {
+                        total_weight += item.shipment_obj.value;
+                    }
+                });
+                return calculateShipment(shipment.volume, total_volume) + calculateShipment(shipment.weight, total_weight);
+            })();
             carData.total += carData.shipment_fee;
             const f_rebate = await this.formatUseRebate(carData.total, carData.use_rebate);
             carData.useRebateInfo = f_rebate;
@@ -571,7 +591,7 @@ class Shopping {
                 carData.discount = data.discount;
                 carData.voucherList = [tempVoucher];
                 carData.customer_info = data.customer_info;
-                carData.total = (_f = data.total) !== null && _f !== void 0 ? _f : 0;
+                carData.total = (_e = data.total) !== null && _e !== void 0 ? _e : 0;
                 carData.rebate = tempVoucher.rebate_total;
                 if (tempVoucher.reBackType == 'shipment_free') {
                     carData.shipment_fee = 0;
@@ -598,9 +618,15 @@ class Shopping {
             }
             else if (type === 'POS') {
                 carData.orderSource = 'POS';
-                await database_js_1.default.execute(`INSERT INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
-                     values (?, ?, ?, ?)`, [carData.orderID, data.pay_status, carData.email, carData]);
-                carData.invoice = await new invoice_js_1.Invoice(this.app).postCheckoutInvoice(carData.orderID, true);
+                const trans = await database_js_1.default.Transaction.build();
+                await trans.execute(`INSERT INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
+                     values (?, ?, ?, ?)`, [carData.orderID, data.pay_status, carData.email, JSON.stringify(carData)]);
+                carData.invoice = await new invoice_js_1.Invoice(this.app).postCheckoutInvoice(carData, carData.user_info.send_type !== 'carrier');
+                if (!carData.invoice) {
+                    throw exception_js_1.default.BadRequestError('BAD_REQUEST', '發票開立失敗:' + express_1.default, null);
+                }
+                await trans.commit();
+                await trans.release();
                 return { result: "SUCCESS", message: "POS訂單新增成功", data: carData };
             }
             else {
@@ -770,7 +796,7 @@ class Shopping {
             let orderID = data.cart_token;
             let email = data.email;
             return await database_js_1.default.execute(`INSERT INTO \`${this.app}\`.t_return_order (order_id, return_order_id, email, orderData)
-             values (?, ?, ?, ?)`, [orderID, returnOrderID, email, data.orderData]);
+                 values (?, ?, ?, ?)`, [orderID, returnOrderID, email, data.orderData]);
         }
         catch (e) {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'createReturnOrder Error:' + e, null);
@@ -778,8 +804,10 @@ class Shopping {
     }
     async putReturnOrder(data) {
         try {
-            const getData = await database_js_1.default.execute(`SELECT * FROM \`${this.app}\`.t_return_order WHERE id = ${data.id}
-                    `, []);
+            const getData = await database_js_1.default.execute(`SELECT *
+                 FROM \`${this.app}\`.t_return_order
+                 WHERE id = ${data.id}
+                `, []);
             if (getData[0]) {
                 const origData = getData[0];
                 if (origData.status != '1' && origData.orderData.returnProgress != '-1' && data.orderData.returnProgress == '-1' && data.status == '1') {
@@ -788,7 +816,9 @@ class Shopping {
                     const userData = await userClass.getUserData(data.orderData.customer_info.email, 'account');
                     await rebateClass.insertRebate(userData.userID, data.orderData.rebateChange, `退貨單調整-退貨單號${origData.return_order_id}`);
                 }
-                await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_return_order\` SET ? WHERE id = ?
+                await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_return_order\`
+                     SET ?
+                     WHERE id = ?
                     `, [{ status: data.status, orderData: JSON.stringify(data.orderData) }, data.id]);
                 return {
                     result: 'success',
@@ -1146,7 +1176,9 @@ class Shopping {
             if (data.orderData) {
                 update.orderData = JSON.stringify(data.orderData);
             }
-            const origin = await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_checkout WHERE id = ?;
+            const origin = await database_js_1.default.query(`SELECT *
+                 FROM \`${this.app}\`.t_checkout
+                 WHERE id = ?;
                 `, [data.id]);
             if (update.orderData && JSON.parse(update.orderData)) {
                 const updateProgress = JSON.parse(update.orderData).progress;
@@ -1160,7 +1192,9 @@ class Shopping {
                     await this.releaseCheckout(1, data.orderData.orderID);
                 }
             }
-            await database_js_1.default.query(`UPDATE \`${this.app}\`.t_checkout SET ? WHERE id = ?
+            await database_js_1.default.query(`UPDATE \`${this.app}\`.t_checkout
+                 SET ?
+                 WHERE id = ?
                 `, [update, data.id]);
             return {
                 result: 'success',
@@ -1187,14 +1221,14 @@ class Shopping {
     async proofPurchase(order_id, text) {
         try {
             const orderData = (await database_js_1.default.query(`select orderData
-                                               from \`${this.app}\`.t_checkout
-                                               where cart_token = ?`, [order_id]))[0]['orderData'];
+                     from \`${this.app}\`.t_checkout
+                     where cart_token = ?`, [order_id]))[0]['orderData'];
             orderData.proof_purchase = text;
             new notify_js_1.ManagerNotify(this.app).uploadProof({ orderData: orderData });
             await auto_send_email_js_1.AutoSendEmail.customerOrder(this.app, 'proof-purchase', order_id, orderData.email);
             await database_js_1.default.query(`update \`${this.app}\`.t_checkout
-                            set orderData=?
-                            where cart_token = ?`, [JSON.stringify(orderData), order_id]);
+                 set orderData=?
+                 where cart_token = ?`, [JSON.stringify(orderData), order_id]);
             return {
                 result: true,
             };
@@ -1277,8 +1311,13 @@ class Shopping {
             query.status && querySql.push(`status IN (${query.status})`);
             query.email && querySql.push(`email=${database_js_1.default.escape(query.email)}`);
             query.id && querySql.push(`(content->>'$.id'=${query.id})`);
-            if (query.filter_type === 'true') {
-                querySql.push(`(orderData->>'$.archived'="${query.archived}")`);
+            if (query.filter_type === 'true' || query.archived) {
+                if (query.archived === 'true') {
+                    querySql.push(`(orderData->>'$.archived'="${query.archived}")`);
+                }
+                else {
+                    querySql.push(`((orderData->>'$.archived'="${query.archived}") or (orderData->>'$.archived' is null))`);
+                }
             }
             else if (query.filter_type === 'normal') {
                 querySql.push(`((orderData->>'$.archived' is null) or (orderData->>'$.archived'!='true'))`);
@@ -1510,8 +1549,10 @@ class Shopping {
                 },
             ]);
         }
-        await database_js_1.default.query(`update \`${this.app}\`.\`t_manager_post\` SET ? where id = ?
-                `, [
+        await database_js_1.default.query(`update \`${this.app}\`.\`t_manager_post\`
+             SET ?
+             where id = ?
+            `, [
             {
                 content: JSON.stringify(content),
             },
@@ -2032,7 +2073,8 @@ class Shopping {
         try {
             content.type = 'product';
             this.checkVariantDataType(content.variants);
-            const data = await database_js_1.default.query(`INSERT INTO \`${this.app}\`.\`t_manager_post\` SET ?
+            const data = await database_js_1.default.query(`INSERT INTO \`${this.app}\`.\`t_manager_post\`
+                 SET ?
                 `, [
                 {
                     userID: (_a = this.token) === null || _a === void 0 ? void 0 : _a.userID,
@@ -2040,7 +2082,9 @@ class Shopping {
                 },
             ]);
             content.id = data.insertId;
-            await database_js_1.default.query(`update \`${this.app}\`.\`t_manager_post\` SET ? where id = ?
+            await database_js_1.default.query(`update \`${this.app}\`.\`t_manager_post\`
+                 SET ?
+                 where id = ?
                 `, [
                 {
                     content: JSON.stringify(content),

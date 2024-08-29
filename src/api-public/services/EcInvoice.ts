@@ -5,6 +5,7 @@ import Tool from "./ezpay/tool.js";
 import {EcPay, EzPay} from "./financial-service.js";
 import db from '../../modules/database';
 import JSDOM from 'jsdom'
+import app from "../../app.js";
 
 export interface EcInvoiceInterface {
     "MerchantID": string,
@@ -45,6 +46,54 @@ export interface EcPrintInterFace {
 }
 
 export class EcInvoice {
+    //取得公司名稱
+    public static getCompanyName(obj: {
+        company_id:string,
+        app_name:string
+    }) {
+        return new Promise<any>(async (resolve, reject) => {
+            const cf_ = await app.getAdConfig(obj.app_name, 'invoice_setting');
+            const send_invoice: any = {
+                MerchantID: cf_.merchNO,
+                UnifiedBusinessNo: obj.company_id
+            }
+            const timeStamp = `${new Date().valueOf()}`
+            const cipher = crypto.createCipheriv('aes-128-cbc', cf_.hashkey, cf_.hashiv);
+            let encryptedData = cipher.update(encodeURIComponent(JSON.stringify(send_invoice)), 'utf-8', 'base64');
+            encryptedData += cipher.final('base64');
+            let config = {
+                method: 'post',
+                maxBodyLength: Infinity,
+                url: (cf_.point === 'beta') ? 'https://einvoice-stage.ecpay.com.tw/B2CInvoice/GetCompanyNameByTaxID' : 'https://einvoice.ecpay.com.tw/B2CInvoice/GetCompanyNameByTaxID',
+                headers: {},
+                'Content-Type': 'application/json',
+                data: {
+                    MerchantID: cf_.merchNO,
+                    RqHeader: {
+                        Timestamp: parseInt(`${timeStamp.substring(0, 10)}`, 10)
+                    },
+                    Data: encryptedData
+                }
+            };
+            axios.request(config)
+                .then(async (response) => {
+                    const decipher = crypto.createDecipheriv('aes-128-cbc', cf_.hashkey, cf_.hashiv);
+                    let decrypted = decipher.update(response.data.Data, 'base64', 'utf-8');
+                    try {
+                        decrypted += decipher.final('utf-8');
+                    } catch (e) {
+                        e instanceof Error && console.log(e.message);
+                    }
+                    const resp = JSON.parse(decodeURIComponent(decrypted))
+                    console.log(`resp--->`,resp)
+                    resolve(resp.CompanyName)
+                })
+                .catch((error) => {
+                    console.log(error)
+                    resolve(false)
+                });
+        })
+    }
     public static postInvoice(obj: {
         hashKey: string,
         hash_IV: string,
@@ -135,7 +184,7 @@ export class EcInvoice {
                 InvoiceNo: invoice_data.invoice_data.response.InvoiceNo,
                 InvoiceDate: `${invoice_data.invoice_data.response.InvoiceDate}`.substring(0, 10),
                 PrintStyle: 3,
-                IsShowingDetail: 1
+                IsShowingDetail: 2
             }
             const timeStamp = `${new Date().valueOf()}`
             const cipher = crypto.createCipheriv('aes-128-cbc', obj.hashKey, obj.hash_IV);
@@ -170,8 +219,6 @@ export class EcInvoice {
                         maxBodyLength: Infinity,
                         url: resp.InvoiceHtml
                     })
-                    console.log(`htmlData=>`, htmlData.data)
-                    console.log(`print-resp=>`, resp)
                     const dom = new JSDOM.JSDOM(htmlData.data);
                     const document = dom.window.document;
                     const inputs = document.querySelectorAll("input");

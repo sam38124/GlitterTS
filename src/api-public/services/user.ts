@@ -1,24 +1,24 @@
 import db from '../../modules/database';
 import exception from '../../modules/exception';
-import tool, { getUUID } from '../../services/tool';
+import tool, {getUUID} from '../../services/tool';
 import UserUtil from '../../utils/UserUtil';
 import config from '../../config.js';
-import { sendmail } from '../../services/ses.js';
+import {sendmail} from '../../services/ses.js';
 import App from '../../app.js';
 import redis from '../../modules/redis.js';
 import Tool from '../../modules/tool.js';
 import process from 'process';
-import { UtDatabase } from '../utils/ut-database.js';
-import { CustomCode } from './custom-code.js';
-import { IToken } from '../models/Auth.js';
+import {UtDatabase} from '../utils/ut-database.js';
+import {CustomCode} from './custom-code.js';
+import {IToken} from '../models/Auth.js';
 import axios from 'axios';
-import { AutoSendEmail } from './auto-send-email.js';
+import {AutoSendEmail} from './auto-send-email.js';
 import qs from 'qs';
 import jwt from 'jsonwebtoken';
-import { OAuth2Client } from 'google-auth-library';
-import { Rebate } from './rebate.js';
+import {OAuth2Client} from 'google-auth-library';
+import {Rebate} from './rebate.js';
 import moment from 'moment';
-import { ManagerNotify } from './notify.js';
+import {ManagerNotify} from './notify.js';
 
 interface UserQuery {
     page?: number;
@@ -128,8 +128,8 @@ export class User {
 
         await db.query(
             `update \`${this.app}\`.t_user
-                        set userData=?
-                        where userID = ?`,
+             set userData=?
+             where userID = ?`,
             [
                 JSON.stringify(
                     await this.checkUpdate({
@@ -147,7 +147,7 @@ export class User {
         }
 
         //發送購物金
-        const getRS = await this.getConfig({ key: 'rebate_setting', user_id: 'manager' });
+        const getRS = await this.getConfig({key: 'rebate_setting', user_id: 'manager'});
         const rgs = getRS[0] && getRS[0].value.register ? getRS[0].value.register : {};
         if (rgs && rgs.switch && rgs.value) {
             await new Rebate(this.app).insertRebate(userID, rgs.value, '新加入會員', {
@@ -158,7 +158,7 @@ export class User {
 
         //發送用戶註冊通知
         const manager = new ManagerNotify(this.app);
-        manager.userRegister({ user_id: userID });
+        manager.userRegister({user_id: userID});
     }
 
     public async updateAccount(account: string, userID: string): Promise<any> {
@@ -396,7 +396,7 @@ export class User {
             });
             const oauth2Client = new OAuth2Client(config.id, config.secret, redirect);
             // 使用授权码交换令牌
-            const { tokens } = await oauth2Client.getToken(code);
+            const {tokens} = await oauth2Client.getToken(code);
             oauth2Client.setCredentials(tokens);
 
             // 验证 ID 令牌
@@ -475,7 +475,7 @@ export class User {
             await new CustomCode(this.app).loginHook(cf);
             if (data) {
                 data.pwd = undefined;
-                const userLevel = (await this.getUserLevel([{ userId: data.userID }]))[0];
+                const userLevel = (await this.getUserLevel([{userId: data.userID}]))[0];
                 data.member_level = userLevel.data;
                 data.member_level_status = userLevel.status;
 
@@ -528,7 +528,7 @@ export class User {
                     []
                 )
             ).map((dd: any) => {
-                return { total_amount: parseInt(`${dd.total}`, 10), date: dd.created_time };
+                return {total_amount: parseInt(`${dd.total}`, 10), date: dd.created_time};
             });
             // 判斷是否符合上個等級
             let pass_level = true;
@@ -754,7 +754,7 @@ export class User {
                                 userID: -(index + 1),
                                 email: user.email,
                                 account: user.email,
-                                userData: { email: user.email },
+                                userData: {email: user.email},
                                 status: 1,
                             });
                         }
@@ -762,10 +762,10 @@ export class User {
 
                     const ids = query.id
                         ? query.id.split(',').filter((id) => {
-                              return users.find((item) => {
-                                  return item.userID === parseInt(`${id}`, 10);
-                              });
-                          })
+                            return users.find((item) => {
+                                return item.userID === parseInt(`${id}`, 10);
+                            });
+                        })
                         : users.map((item: { userID: number }) => item.userID);
                     // @ts-ignore
                     query.id = ids.filter((id:any) => id).join(',');
@@ -787,10 +787,10 @@ export class User {
                 if (rebateData && rebateData.total > 0) {
                     const ids = query.id
                         ? query.id.split(',').filter((id) => {
-                              return rebateData.data.find((item) => {
-                                  return item.user_id === parseInt(`${id}`, 10);
-                              });
-                          })
+                            return rebateData.data.find((item) => {
+                                return item.user_id === parseInt(`${id}`, 10);
+                            });
+                        })
                         : rebateData.data.map((item) => item.user_id);
                     query.id = ids.join(',');
                 } else {
@@ -811,10 +811,10 @@ export class User {
                     if (levelIds.length > 0) {
                         const ids = query.id
                             ? query.id.split(',').filter((id) => {
-                                  return levelIds.find((item) => {
-                                      return item === parseInt(`${id}`, 10);
-                                  });
-                              })
+                                return levelIds.find((item) => {
+                                    return item === parseInt(`${id}`, 10);
+                                });
+                            })
                             : levelIds;
                         query.id = ids.join(',');
                     } else {
@@ -916,9 +916,9 @@ export class User {
     ): Promise<
         | { result: false }
         | {
-              result: true;
-              data: GroupsItem[];
-          }
+        result: true;
+        data: GroupsItem[];
+    }
     > {
         try {
             const pass = (text: string) => type === undefined || type.includes(text);
@@ -933,7 +933,7 @@ export class User {
                           \`${this.app}\`.t_user AS u ON s.email = JSON_EXTRACT(u.userData, '$.email');`,
                     []
                 );
-                dataList.push({ type: 'subscriber', title: '電子郵件訂閱者', users: subscriberList });
+                dataList.push({type: 'subscriber', title: '電子郵件訂閱者', users: subscriberList});
             }
 
             // 購買者清單
@@ -950,7 +950,7 @@ export class User {
                 buyingData.map((item1: { userID: number; email: string }) => {
                     const index = buyingList.findIndex((item2) => item2.userID === item1.userID);
                     if (index === -1) {
-                        buyingList.push({ userID: item1.userID, email: item1.email, count: 1 });
+                        buyingList.push({userID: item1.userID, email: item1.email, count: 1});
                     } else {
                         buyingList[index].count++;
                     }
@@ -964,15 +964,15 @@ export class User {
                     `SELECT userID, JSON_UNQUOTE(JSON_EXTRACT(userData, '$.email')) AS email
                      FROM \`${this.app}\`.t_user
                      WHERE userID not in (${buyingList
-                         .map((item) => item.userID)
-                         .concat([-1312])
-                         .join(',')})`,
+                             .map((item) => item.userID)
+                             .concat([-1312])
+                             .join(',')})`,
                     []
                 );
 
                 dataList = dataList.concat([
-                    { type: 'neverBuying', title: '尚未購買過的顧客', users: neverBuyingData },
-                    { type: 'usuallyBuying', title: '已購買多次的顧客', users: usuallyBuyingList },
+                    {type: 'neverBuying', title: '尚未購買過的顧客', users: neverBuyingData},
+                    {type: 'usuallyBuying', title: '已購買多次的顧客', users: usuallyBuyingList},
                 ]);
             }
 
@@ -981,7 +981,7 @@ export class User {
                 const levelData = await this.getLevelConfig();
                 const levels = levelData
                     .map((item: any) => {
-                        return { id: item.id, name: item.tag_name };
+                        return {id: item.id, name: item.tag_name};
                     })
                     .filter((item: any) => {
                         return tag ? item.id === tag : true;
@@ -996,11 +996,12 @@ export class User {
                     });
                 }
 
-                const users = await db.query(`SELECT userID FROM \`${this.app}\`.t_user;`, []);
+                const users = await db.query(`SELECT userID
+                                              FROM \`${this.app}\`.t_user;`, []);
 
                 const levelItems = await this.getUserLevel(
                     users.map((item: { userID: number }) => {
-                        return { userId: item.userID };
+                        return {userId: item.userID};
                     })
                 );
 
@@ -1035,15 +1036,15 @@ export class User {
 
     public normalMember = {
         id: '',
-        duration: { type: 'noLimit', value: 0 },
+        duration: {type: 'noLimit', value: 0},
         tag_name: '一般會員',
-        condition: { type: 'total', value: 0 },
-        dead_line: { type: 'noLimit' },
+        condition: {type: 'total', value: 0},
+        dead_line: {type: 'noLimit'},
         create_date: '2024-01-01T00:00:00.000Z',
     };
 
     public async getLevelConfig() {
-        const levelData = await this.getConfigV2({ key: 'member_level_config', user_id: 'manager' });
+        const levelData = await this.getConfigV2({key: 'member_level_config', user_id: 'manager'});
         const levelList = levelData.levels || [];
         levelList.push(this.normalMember);
         return levelList;
@@ -1069,10 +1070,10 @@ export class User {
         const emailSQL = emailList.length > 0 ? emailList.join(',') : -1111;
 
         const users = await db.query(
-            `SELECT * FROM \`${this.app}\`.t_user 
-                WHERE 
-                    userID in (${idSQL}) OR
-                    JSON_EXTRACT(userData, '$.email') in (${emailSQL})
+            `SELECT *
+             FROM \`${this.app}\`.t_user
+             WHERE userID in (${idSQL})
+                OR JSON_EXTRACT(userData, '$.email') in (${emailSQL})
             `,
             []
         );
@@ -1088,8 +1089,10 @@ export class User {
 
         if (users.length > 0) {
             const memberUpdates = await db.query(
-                `SELECT * FROM \`${this.app}\`.t_user_public_config
-                 WHERE \`key\` = 'member_update' AND user_id in (${idSQL});`,
+                `SELECT *
+                 FROM \`${this.app}\`.t_user_public_config
+                 WHERE \`key\` = 'member_update'
+                   AND user_id in (${idSQL});`,
                 []
             );
 
@@ -1246,7 +1249,7 @@ export class User {
             query.limit = query.limit ?? 50;
             const querySql: any = [];
             query.search &&
-                querySql.push([`(userID in (select userID from \`${this.app}\`.t_user where (UPPER(JSON_UNQUOTE(JSON_EXTRACT(userData, '$.name')) LIKE UPPER('%${query.search}%')))))`].join(` || `));
+            querySql.push([`(userID in (select userID from \`${this.app}\`.t_user where (UPPER(JSON_UNQUOTE(JSON_EXTRACT(userData, '$.name')) LIKE UPPER('%${query.search}%')))))`].join(` || `));
             const data = await new UtDatabase(this.app, `t_fcm`).querySql(querySql, query as any);
             for (const b of data.data) {
                 let userData = (
@@ -1649,6 +1652,23 @@ export class User {
         }
     }
 
+    public async checkAdminPermission() {
+        try {
+            const result = await db.query(`select count(1)
+                                           from ${process.env.GLITTER_DB}.app_config
+                                           where appName = ?
+                                             and user = ?`, [
+                this.app,
+                this.token?.userID
+            ])
+            return {
+                result: result[0]['count(1)'] === 1
+            }
+        } catch (e) {
+
+        }
+    }
+
     public async getNotice(cf: { query: any }) {
         try {
             const query = [`user_id=${this.token?.userID}`];
@@ -1664,7 +1684,7 @@ export class User {
                 await db.query(
                     `insert into \`${this.app}\`.t_user_public_config (user_id, \`key\`, value, updated_at)
                      values (?, ?, ?, ?)`,
-                    [this.token?.userID, 'notice_last_read', JSON.stringify({ time: new Date() }), new Date()]
+                    [this.token?.userID, 'notice_last_read', JSON.stringify({time: new Date()}), new Date()]
                 );
             } else {
                 last_time_read = new Date(last_read_time[0].value.time).getTime();
@@ -1673,7 +1693,7 @@ export class User {
                      set \`value\`=?
                      where user_id = ?
                        and \`key\` = ?`,
-                    [JSON.stringify({ time: new Date() }), `${this.token?.userID}`, 'notice_last_read']
+                    [JSON.stringify({time: new Date()}), `${this.token?.userID}`, 'notice_last_read']
                 );
             }
             const response: any = await new UtDatabase(this.app, `t_notice`).querySql(query, cf.query);

@@ -35,6 +35,10 @@ export interface EcPrintInterFace {
     IsShowingDetail: 1 | 2;
 }
 export declare class EcInvoice {
+    static getCompanyName(obj: {
+        company_id: string;
+        app_name: string;
+    }): Promise<any>;
     static postInvoice(obj: {
         hashKey: string;
         hash_IV: string;

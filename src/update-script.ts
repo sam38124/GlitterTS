@@ -2,9 +2,10 @@ import db from './modules/database';
 
 export class UpdateScript {
     public static async run() {
-        // const migrate_template = (await db.query('SELECT appName FROM glitter.app_config where template_type!=0;', [])).map((dd: any) => {
-        //     return dd.appName
-        // }).concat(['shop-template-clothing-v3'])
+        const migrate_template = (await db.query('SELECT appName FROM glitter.app_config where template_type!=0;', [])).map((dd: any) => {
+            return dd.appName
+        }).concat(['shop-template-clothing-v3','3131_shop'])
+        // this.migrateDialog(migrate_template)
         // UpdateScript.migrateTermsOfService(['3131_shop', 't_1717152410650', 't_1717141688550', 't_1717129048727', 't_1719819344426'])
         // UpdateScript.migrateHeaderAndFooterAndCollection(migrate_template.filter((dd:any)=>{
         //     return dd !=='t_1719819344426'
@@ -16,16 +17,16 @@ export class UpdateScript {
         //     UpdateScript.migrateAccount(dd)
         // })
         // await
-        // await UpdateScript.migratePages(migrate_template.filter((dd:any)=>{
-        //     return dd !=='t_1719819344426'
-        // }),['about-us','privacy','terms','sample1','sample2','sample3'])
+        await UpdateScript.migratePages(migrate_template.filter((dd:any)=>{
+            return dd !=='t_1719819344426'
+        }),['about-us','privacy','terms','sample1','sample2','sample3'])
         // t_1719819344426
         // await this.migrateSinglePage(migrate_template.reverse())
         // await this.migrateInitialConfig(migrate_template.filter((dd:any)=>{
         //     return dd !=='t_1719819344426'
         // }))
         // await this.migrateHomePageFooter(migrate_template)
-        await this.migrate_blogs_toPage()
+        // await this.migrate_blogs_toPage()
     }
 
     public static async migrate_blogs_toPage(){
@@ -443,7 +444,7 @@ JSON.stringify(b.content),
     public static async migrateDialog(appList: string[]) {
         const page_list = (await db.query(`SELECT *
                                            FROM glitter.page_config
-                                           where appName = 'cms_system'
+                                           where appName = 'shop_template_black_style'
                                              and tag in ('loading_dialog', 'toast', 'false_dialog')`, []));
         const global_event = (await db.query(`SELECT *
                                               FROM cms_system.t_global_event;`, []));

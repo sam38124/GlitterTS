@@ -5,6 +5,6 @@ export declare class Invoice {
         invoice_data: any;
         print: boolean;
     }): Promise<boolean | undefined>;
-    postCheckoutInvoice(orderID: string, print: boolean): Promise<boolean | undefined>;
+    postCheckoutInvoice(orderID: string | any, print: boolean): Promise<boolean | "no_need" | undefined>;
     static checkWhiteList(config: any, invoice_data: any): any;
 }

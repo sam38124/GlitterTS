@@ -936,11 +936,13 @@ export class Main_editor {
                     <div class="position-absolute w-100 bottom-0 d-flex align-items-center p-3 shadow justify-content-end border-top bg-white"
                          style="height: 60px;">
                         ${BgWidget.cancel(gvc.event(() => {
+                            glitter.closeDrawer()
                             const dialog = new ShareDialog(gvc.glitter)
                             navigator.clipboard.writeText(JSON.stringify(viewModel.selectItem));
                             dialog.successMessage({text: '複製成功'})
                         }), '複製元件')}
                         ${(viewModel.selectItem.deletable !== 'false') ? ` <div class="mx-2"></div>` + BgWidget.cancel(gvc.event(() => {
+                            glitter.closeDrawer()
                             glitter.htmlGenerate.deleteWidget(glitter.share.editorViewModel.selectContainer, viewModel.selectItem, () => {
 
                             })

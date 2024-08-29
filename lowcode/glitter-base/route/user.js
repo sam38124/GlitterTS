@@ -526,9 +526,20 @@ export class ApiUser {
             type: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'g-app': getConfig().config.appName,
+                'g-app': json.app_name || getConfig().config.appName,
             },
             data: JSON.stringify(json),
+        });
+    }
+    static checkAdminAuth(cg) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/user/check-admin-auth`,
+            type: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': cg.app,
+                Authorization: cg.token
+            }
         });
     }
     static setPublicConfig(cf) {

@@ -188,8 +188,8 @@ export class BgWidget {
     }
 
     static goBack(event: string) {
-        return html` <div class="d-flex align-items-center justify-content-center" style="width: 5px; height: 11px; cursor:pointer; margin-right: 10px;" onclick="${event}">
-            <i class="fa-solid fa-angle-left" style="color: #393939;"></i>
+        return html` <div class="d-flex align-items-center justify-content-center" style="cursor:pointer; margin-right: 10px;" onclick="${event}">
+            <i class="fa-solid fa-angle-left fs-2" style="color: #393939;"></i>
         </div>`;
     }
 
@@ -821,13 +821,13 @@ ${obj.default ?? ''}</textarea
                                     <thead>
                                         ${vm.data.length === 0
                                             ? ''
-                                            : html` <tr>
+                                            : html`<tr>
                                                   ${vm.data[0]
                                                       .map(
                                                           (dd: any, index: number) =>
                                                               html` <th
                                                                   class="${dd.position ?? 'text-start'} tx_normal fw-bold"
-                                                                  style="border:none;padding-bottom: 30px;color:#393939 !important;${obj.style && obj.style![index] ? obj.style![index] : ``}"
+                                                                  style="white-space:nowrap;border:none;padding-bottom: 30px;color:#393939 !important;${obj.style && obj.style![index] ? obj.style![index] : ``}"
                                                               >
                                                                   ${dd.key}
                                                               </th>`
@@ -873,7 +873,7 @@ ${obj.default ?? ''}</textarea
                                 <div>
                                     ${vm.data.length === 0
                                         ? ''
-                                        : ps.pageSplit(
+                                        : ps.pageSplitV2(
                                               vm.pageSize,
                                               vm.page,
                                               (page) => {
@@ -1333,12 +1333,12 @@ ${obj.default ?? ''}</textarea
         callback: (key: string) => void,
         style?: string
     ) {
-        return html` <div style="justify-content: flex-start; align-items: flex-start; gap: 22px; display: inline-flex;cursor: pointer;margin-top: 24px;margin-bottom: 24px; ${style ?? ''}">
+        return html` <div style="justify-content: flex-start; align-items: flex-start; gap: 22px; display: inline-flex;cursor: pointer;margin-top: 24px;margin-bottom: 24px; ${style ?? ''};">
             ${data
                 .map((dd) => {
                     if (select === dd.key) {
                         return html` <div style="flex-direction: column; justify-content: flex-start; align-items: center; gap: 8px; display: inline-flex">
-                            <div style="align-self: stretch; text-align: center; color: #393939; font-size: 18px; font-family: Noto Sans; font-weight: 700; line-height: 18px; word-wrap: break-word">
+                            <div style="align-self: stretch; text-align: center; color: #393939; font-size: 18px; font-family: Noto Sans; font-weight: 700; line-height: 18px; word-wrap: break-word;white-space: nowrap;">
                                 ${dd.title}
                             </div>
                             <div style="align-self: stretch; height: 0px; border: 2px #393939 solid"></div>
@@ -1350,7 +1350,7 @@ ${obj.default ?? ''}</textarea
                                 callback(dd.key);
                             })}"
                         >
-                            <div style="align-self: stretch; text-align: center; color: #393939; font-size: 18px; font-family: Noto Sans; font-weight: 400; line-height: 18px; word-wrap: break-word">
+                            <div style="align-self: stretch; text-align: center; color: #393939; font-size: 18px; font-family: Noto Sans; font-weight: 400; line-height: 18px; word-wrap: break-word;white-space: nowrap;">
                                 ${dd.title}
                             </div>
                             <div style="align-self: stretch; height: 0px"></div>

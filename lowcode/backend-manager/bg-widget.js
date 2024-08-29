@@ -123,8 +123,8 @@ export class BgWidget {
         </div>`;
     }
     static goBack(event) {
-        return html ` <div class="d-flex align-items-center justify-content-center" style="width: 5px; height: 11px; cursor:pointer; margin-right: 10px;" onclick="${event}">
-            <i class="fa-solid fa-angle-left" style="color: #393939;"></i>
+        return html ` <div class="d-flex align-items-center justify-content-center" style="cursor:pointer; margin-right: 10px;" onclick="${event}">
+            <i class="fa-solid fa-angle-left fs-2" style="color: #393939;"></i>
         </div>`;
     }
     static leftLineBar() {
@@ -680,13 +680,13 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                     <thead>
                                         ${vm.data.length === 0
                             ? ''
-                            : html ` <tr>
+                            : html `<tr>
                                                   ${vm.data[0]
                                 .map((dd, index) => {
                                 var _a;
                                 return html ` <th
                                                                   class="${(_a = dd.position) !== null && _a !== void 0 ? _a : 'text-start'} tx_normal fw-bold"
-                                                                  style="border:none;padding-bottom: 30px;color:#393939 !important;${obj.style && obj.style[index] ? obj.style[index] : ``}"
+                                                                  style="white-space:nowrap;border:none;padding-bottom: 30px;color:#393939 !important;${obj.style && obj.style[index] ? obj.style[index] : ``}"
                                                               >
                                                                   ${dd.key}
                                                               </th>`;
@@ -732,7 +732,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                 <div>
                                     ${vm.data.length === 0
                             ? ''
-                            : ps.pageSplit(vm.pageSize, vm.page, (page) => {
+                            : ps.pageSplitV2(vm.pageSize, vm.page, (page) => {
                                 (vm.data = []), (vm.editData = []), (vm.page = page);
                                 (vm.loading = true), gvc.notifyDataChange(id);
                             }, false)}
@@ -1095,12 +1095,12 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         return html ` <div class="main-card ${classString !== null && classString !== void 0 ? classString : ''}" style="${styleString !== null && styleString !== void 0 ? styleString : ''}">${htmlString !== null && htmlString !== void 0 ? htmlString : ''}</div>`;
     }
     static tab(data, gvc, select, callback, style) {
-        return html ` <div style="justify-content: flex-start; align-items: flex-start; gap: 22px; display: inline-flex;cursor: pointer;margin-top: 24px;margin-bottom: 24px; ${style !== null && style !== void 0 ? style : ''}">
+        return html ` <div style="justify-content: flex-start; align-items: flex-start; gap: 22px; display: inline-flex;cursor: pointer;margin-top: 24px;margin-bottom: 24px; ${style !== null && style !== void 0 ? style : ''};">
             ${data
             .map((dd) => {
             if (select === dd.key) {
                 return html ` <div style="flex-direction: column; justify-content: flex-start; align-items: center; gap: 8px; display: inline-flex">
-                            <div style="align-self: stretch; text-align: center; color: #393939; font-size: 18px; font-family: Noto Sans; font-weight: 700; line-height: 18px; word-wrap: break-word">
+                            <div style="align-self: stretch; text-align: center; color: #393939; font-size: 18px; font-family: Noto Sans; font-weight: 700; line-height: 18px; word-wrap: break-word;white-space: nowrap;">
                                 ${dd.title}
                             </div>
                             <div style="align-self: stretch; height: 0px; border: 2px #393939 solid"></div>
@@ -1113,7 +1113,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                     callback(dd.key);
                 })}"
                         >
-                            <div style="align-self: stretch; text-align: center; color: #393939; font-size: 18px; font-family: Noto Sans; font-weight: 400; line-height: 18px; word-wrap: break-word">
+                            <div style="align-self: stretch; text-align: center; color: #393939; font-size: 18px; font-family: Noto Sans; font-weight: 400; line-height: 18px; word-wrap: break-word;white-space: nowrap;">
                                 ${dd.title}
                             </div>
                             <div style="align-self: stretch; height: 0px"></div>

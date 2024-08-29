@@ -586,7 +586,6 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
                     $('#jumpToNav').scroll(function () {
                         glitter.setCookie('jumpToNavScroll', $(`#jumpToNav`).scrollTop());
                     });
-
                     function scrollToItem(element: any) {
                         if (element) {
                             // 获取元素的位置信息

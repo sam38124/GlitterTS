@@ -1,15 +1,14 @@
 export class DynamicCode {
     static fun(gvc, widget, object, subData, element) {
         var _a;
-        try {
-            const queryWhere = `
+        const queryWhere = `
                             /*
       ->Tag->${widget.tag}
       ->Label->${widget.label}
       ->ID->${widget.id}
       */
                             `;
-            const evalString = `
+        const evalString = `
                         return {
                         execute:(gvc,widget,object,subData,element,window,document,glitter,$)=>{
                          return (() => {
@@ -19,6 +18,7 @@ export class DynamicCode {
                         }
                         }
                     `;
+        try {
             const checkSum = getCheckSum(object.code);
             const a = (() => {
                 const preload_code = window.preloadData.eval_code_hash[checkSum];
@@ -35,6 +35,7 @@ export class DynamicCode {
         }
         catch (e) {
             console.log(`eval-end-catch`, new Date().getTime());
+            console.log(e);
             return (_a = object.errorCode) !== null && _a !== void 0 ? _a : false;
         }
     }

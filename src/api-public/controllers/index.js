@@ -49,6 +49,7 @@ router.use(config_1.config.getRoute(config_1.config.public_route.rebate, 'public
 router.use(config_1.config.getRoute(config_1.config.public_route.recommend, 'public'), recommend);
 router.use(config_1.config.getRoute(config_1.config.public_route.graph_api, 'public'), require('./graph-api'));
 const whiteList = [
+    { url: config_1.config.getRoute(config_1.config.public_route.user + '/check-admin-auth', 'public'), method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.public_route.chat, 'public'), method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.public_route.invoice + '/invoice-type', 'public'), method: 'GET' },
     { url: config_1.config.getRoute(config_1.config.public_route.chat + '/message', 'public'), method: 'POST' },

@@ -42,10 +42,9 @@ class Invoice {
         }
     }
     async postCheckoutInvoice(orderID, print) {
-        console.log(`開立發票--->orderID:${orderID}`);
-        const order = (await database_js_1.default.query(`SELECT *
+        const order = (typeof orderID === 'string') ? (await database_js_1.default.query(`SELECT *
                              FROM \`${this.appName}\`.t_checkout
-                             where cart_token = ?`, [orderID]))[0]['orderData'];
+                             where cart_token = ?`, [orderID]))[0]['orderData'] : orderID;
         const config = await app_js_1.default.getAdConfig(this.appName, 'invoice_setting');
         const line_item = order.lineItems.map((dd) => {
             return {
@@ -118,7 +117,7 @@ class Invoice {
         else if (config.fincial === 'ecpay') {
             const json = {
                 MerchantID: config.merchNO,
-                RelateNumber: orderID,
+                RelateNumber: (typeof orderID === 'string') ? orderID : orderID.orderID,
                 CustomerID: order.user_info.email,
                 CustomerIdentifier: (order.user_info.invoice_type === 'company' ? order.user_info.gui_number || '' : undefined),
                 CustomerName: (order.user_info.invoice_type === 'company' ? order.user_info.company : order.user_info.name),
@@ -148,12 +147,9 @@ class Invoice {
             };
             if (print) {
                 const cover = {
-                    "MerchantID": "2000132",
-                    "RelateNumber": `${new Date().getTime()}`,
                     "CustomerID": "",
-                    "CustomerIdentifier": "",
-                    "CustomerName": "萊恩設計有限公司",
-                    "CustomerAddr": "427台中市潭子區昌平路三段150巷15弄12號",
+                    "CustomerName": "無名氏",
+                    "CustomerAddr": "無地址",
                     "CustomerPhone": "",
                     "CustomerEmail": "pos@ncdesign.info",
                     "ClearanceMark": "1",
@@ -165,6 +161,12 @@ class Invoice {
                     "TaxType": "1",
                     "InvType": "07"
                 };
+                if (order.user_info.invoice_type === 'company') {
+                    cover.CustomerName = await EcInvoice_js_1.EcInvoice.getCompanyName({
+                        company_id: order.user_info.gui_number,
+                        app_name: this.appName
+                    });
+                }
                 Object.keys(cover).map((dd) => {
                     json[dd] = cover[dd];
                 });
@@ -173,6 +175,9 @@ class Invoice {
                 invoice_data: json,
                 print: print
             });
+        }
+        else {
+            return 'no_need';
         }
     }
     static checkWhiteList(config, invoice_data) {

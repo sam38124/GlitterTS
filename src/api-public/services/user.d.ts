@@ -172,6 +172,9 @@ export declare class User {
     getUnreadCount(): Promise<{
         count: any;
     }>;
+    checkAdminPermission(): Promise<{
+        result: boolean;
+    } | undefined>;
     getNotice(cf: {
         query: any;
     }): Promise<any>;

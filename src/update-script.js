@@ -7,7 +7,12 @@ exports.UpdateScript = void 0;
 const database_1 = __importDefault(require("./modules/database"));
 class UpdateScript {
     static async run() {
-        await this.migrate_blogs_toPage();
+        const migrate_template = (await database_1.default.query('SELECT appName FROM glitter.app_config where template_type!=0;', [])).map((dd) => {
+            return dd.appName;
+        }).concat(['shop-template-clothing-v3', '3131_shop']);
+        await UpdateScript.migratePages(migrate_template.filter((dd) => {
+            return dd !== 't_1719819344426';
+        }), ['about-us', 'privacy', 'terms', 'sample1', 'sample2', 'sample3']);
     }
     static async migrate_blogs_toPage() {
         const blogs = await database_1.default.query(`SELECT * FROM shopnex.t_manager_post where content->>'$.for_index'='false' and content->>'$.page_type'='blog'`, []);
@@ -407,7 +412,7 @@ class UpdateScript {
     static async migrateDialog(appList) {
         const page_list = (await database_1.default.query(`SELECT *
                                            FROM glitter.page_config
-                                           where appName = 'cms_system'
+                                           where appName = 'shop_template_black_style'
                                              and tag in ('loading_dialog', 'toast', 'false_dialog')`, []));
         const global_event = (await database_1.default.query(`SELECT *
                                               FROM cms_system.t_global_event;`, []));

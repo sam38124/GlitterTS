@@ -86,6 +86,7 @@ export class ProductsPage {
                     });
                 }
                 if (vm.searchable) {
+                    dialog.dataLoading({ visible: true });
                     ApiShop.getProduct({
                         page: 0,
                         collection: (category.key == 'all' ? '' : category.key),
@@ -95,6 +96,7 @@ export class ProductsPage {
                     }).then(res => {
                         vm.searchable = false;
                         vm.productSearch = res.response.data;
+                        dialog.dataLoading({ visible: false });
                         gvc.notifyDataChange(`productShow`);
                     });
                 }

@@ -98,8 +98,8 @@ class User {
     async createUserHook(userID) {
         const usData = await this.getUserData(userID, 'userID');
         await database_1.default.query(`update \`${this.app}\`.t_user
-                        set userData=?
-                        where userID = ?`, [
+             set userData=?
+             where userID = ?`, [
             JSON.stringify(await this.checkUpdate({
                 userID: userID,
                 updateUserData: usData.userData,
@@ -819,7 +819,8 @@ class User {
                         users: [],
                     });
                 }
-                const users = await database_1.default.query(`SELECT userID FROM \`${this.app}\`.t_user;`, []);
+                const users = await database_1.default.query(`SELECT userID
+                                              FROM \`${this.app}\`.t_user;`, []);
                 const levelItems = await this.getUserLevel(users.map((item) => {
                     return { userId: item.userID };
                 }));
@@ -862,10 +863,10 @@ class User {
         const emailList = data.filter((item) => item.email !== undefined).map((item) => `"${item.email}"`);
         const idSQL = idList.length > 0 ? idList.join(',') : -1111;
         const emailSQL = emailList.length > 0 ? emailList.join(',') : -1111;
-        const users = await database_1.default.query(`SELECT * FROM \`${this.app}\`.t_user 
-                WHERE 
-                    userID in (${idSQL}) OR
-                    JSON_EXTRACT(userData, '$.email') in (${emailSQL})
+        const users = await database_1.default.query(`SELECT *
+             FROM \`${this.app}\`.t_user
+             WHERE userID in (${idSQL})
+                OR JSON_EXTRACT(userData, '$.email') in (${emailSQL})
             `, []);
         const levelList = await this.getLevelConfig();
         const normalData = {
@@ -876,8 +877,10 @@ class User {
             dead_line: '',
         };
         if (users.length > 0) {
-            const memberUpdates = await database_1.default.query(`SELECT * FROM \`${this.app}\`.t_user_public_config
-                 WHERE \`key\` = 'member_update' AND user_id in (${idSQL});`, []);
+            const memberUpdates = await database_1.default.query(`SELECT *
+                 FROM \`${this.app}\`.t_user_public_config
+                 WHERE \`key\` = 'member_update'
+                   AND user_id in (${idSQL});`, []);
             for (const user of users) {
                 if (user.userData.level_status === 'manual') {
                     const member_level = levelList.find((item) => {
@@ -1310,6 +1313,23 @@ class User {
         }
         catch (e) {
             throw exception_1.default.BadRequestError('ERROR', 'ERROR.' + e, null);
+        }
+    }
+    async checkAdminPermission() {
+        var _a;
+        try {
+            const result = await database_1.default.query(`select count(1)
+                                           from ${process_1.default.env.GLITTER_DB}.app_config
+                                           where appName = ?
+                                             and user = ?`, [
+                this.app,
+                (_a = this.token) === null || _a === void 0 ? void 0 : _a.userID
+            ]);
+            return {
+                result: result[0]['count(1)'] === 1
+            };
+        }
+        catch (e) {
         }
     }
     async getNotice(cf) {
