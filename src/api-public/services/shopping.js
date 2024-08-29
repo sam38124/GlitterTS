@@ -2079,10 +2079,11 @@ class Shopping {
                          FROM \`${this.app}\`.public_config
                          WHERE \`key\` = 'collection';`, []))[0]) !== null && _a !== void 0 ? _a : {};
             config.value = config.value || [];
+            return;
         }
         catch (e) {
             console.error(e);
-            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'putCollection Error:' + e, null);
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'sortCollection Error:' + e, null);
         }
     }
     checkVariantDataType(variants) {
