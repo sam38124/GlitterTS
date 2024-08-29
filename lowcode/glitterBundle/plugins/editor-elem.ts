@@ -491,7 +491,7 @@ export class EditorElem {
                             },
                             domain
                         );
-                    } else if (event.data.data.callbackID === id) {
+                    } else if (event.data.data && event.data.data.callbackID === id) {
                         if (obj.dontRefactor) {
                             obj.initial = event.data.data.value;
                             obj.callback(event.data.data.value);
@@ -582,7 +582,7 @@ export class EditorElem {
                             },
                             domain
                         );
-                    } else if (event.data.data.callbackID === id) {
+                    } else if (event.data.data && event.data.data.callbackID === id) {
                         obj.initial = event.data.data.value;
                         obj.callback(event.data.data.value);
                     }
@@ -694,7 +694,7 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                             },
                             domain
                         );
-                    } else if (event.data.data && event.data.data.callbackID === id) {
+                    } else if (event.data.data && event.data.data && event.data.data.callbackID === id) {
                         const array = event.data.data.value.split('\n');
                         const data = array
                             .filter((dd: any, index: number) => {
@@ -811,7 +811,7 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                             domain
                                         );
                                     }
-                                } else if (event.data.data.callbackID === id) {
+                                } else if (event.data.data && event.data.data.callbackID === id) {
                                     obj.initial = event.data.data.value;
                                     obj.callback(event.data.data.value);
                                 }

@@ -678,6 +678,19 @@ router.delete('/collection', async (req, resp) => {
         return response_1.default.fail(resp, err);
     }
 });
+router.put('/collection/sort', async (req, resp) => {
+    try {
+        if (await ut_permission_1.UtPermission.isManager(req)) {
+            return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).sortCollection(req.body.list));
+        }
+        else {
+            throw exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null);
+        }
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
 router.get('/product', async (req, resp) => {
     var _a, _b;
     try {
@@ -720,8 +733,8 @@ router.get('/product', async (req, resp) => {
                 }
             })(),
             with_hide_index: req.query.with_hide_index,
-            is_manger: await ut_permission_1.UtPermission.isManager(req),
-            show_hidden: `${req.query.show_hidden}`
+            is_manger: (await ut_permission_1.UtPermission.isManager(req)),
+            show_hidden: `${req.query.show_hidden}`,
         });
         return response_1.default.succ(resp, shopping);
     }

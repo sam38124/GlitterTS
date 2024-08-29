@@ -2688,6 +2688,26 @@ export class Shopping {
         }
     }
 
+    async sortCollection(list: { index: number; title: string }[]) {
+        try {
+            console.log(list);
+            const config =
+                (
+                    await db.query(
+                        `SELECT *
+                         FROM \`${this.app}\`.public_config
+                         WHERE \`key\` = 'collection';`,
+                        []
+                    )
+                )[0] ?? {};
+            config.value = config.value || [];
+            return;
+        } catch (e) {
+            console.error(e);
+            throw exception.BadRequestError('BAD_REQUEST', 'sortCollection Error:' + e, null);
+        }
+    }
+
     checkVariantDataType(variants: any[]) {
         variants.map((dd) => {
             dd.stock && (dd.stock = parseInt(dd.stock, 10));
@@ -2734,7 +2754,6 @@ export class Shopping {
         }
     }
 
-    //輸入collection , 根據/的分層 整理好分類的分層並更新
     async updateCollectionFromUpdateProduct(collection: string[]) {
         //有新類別要處理
         let config =

@@ -468,7 +468,7 @@ export class EditorElem {
                             refactor: !obj.dontRefactor,
                         }, domain);
                     }
-                    else if (event.data.data.callbackID === id) {
+                    else if (event.data.data && event.data.data.callbackID === id) {
                         if (obj.dontRefactor) {
                             obj.initial = event.data.data.value;
                             obj.callback(event.data.data.value);
@@ -549,7 +549,7 @@ export class EditorElem {
                             refactor: !obj.dontRefactor,
                         }, domain);
                     }
-                    else if (event.data.data.callbackID === id) {
+                    else if (event.data.data && event.data.data.callbackID === id) {
                         obj.initial = event.data.data.value;
                         obj.callback(event.data.data.value);
                     }
@@ -649,7 +649,7 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                             structEnd: obj.structEnd,
                         }, domain);
                     }
-                    else if (event.data.data && event.data.data.callbackID === id) {
+                    else if (event.data.data && event.data.data && event.data.data.callbackID === id) {
                         const array = event.data.data.value.split('\n');
                         const data = array
                             .filter((dd, index) => {
@@ -756,7 +756,7 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                         }, domain);
                                     }
                                 }
-                                else if (event.data.data.callbackID === id) {
+                                else if (event.data.data && event.data.data.callbackID === id) {
                                     obj.initial = event.data.data.value;
                                     obj.callback(event.data.data.value);
                                 }

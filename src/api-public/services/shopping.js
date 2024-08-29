@@ -2071,6 +2071,20 @@ class Shopping {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'putCollection Error:' + e, null);
         }
     }
+    async sortCollection(list) {
+        var _a;
+        try {
+            console.log(list);
+            const config = (_a = (await database_js_1.default.query(`SELECT *
+                         FROM \`${this.app}\`.public_config
+                         WHERE \`key\` = 'collection';`, []))[0]) !== null && _a !== void 0 ? _a : {};
+            config.value = config.value || [];
+        }
+        catch (e) {
+            console.error(e);
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'putCollection Error:' + e, null);
+        }
+    }
     checkVariantDataType(variants) {
         variants.map((dd) => {
             dd.stock && (dd.stock = parseInt(dd.stock, 10));
