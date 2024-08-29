@@ -13,6 +13,7 @@ type BindItem = {
 interface VoucherData {
     id: number;
     title: string;
+    code?: string;
     method: 'percent' | 'fixed';
     reBackType: 'rebate' | 'discount' | 'shipment_free';
     trigger: 'auto' | 'code' | 'distribution';
@@ -29,7 +30,6 @@ interface VoucherData {
     endTime?: string;
     status: 0 | 1 | -1;
     type: 'voucher';
-    code?: string;
     overlay: boolean;
     bind: BindItem[];
     bind_subtotal: number;
@@ -40,6 +40,7 @@ interface VoucherData {
     rebate_total: number;
     target: string;
     targetList: string[];
+    device: ('normal' | 'pos')[];
 }
 type Collection = {
     title: string;
@@ -67,6 +68,37 @@ type CartItem = {
         value: number;
     };
     discount_price?: number;
+    rebate: number;
+};
+type Cart = {
+    customer_info: any;
+    lineItems: CartItem[];
+    discount?: number;
+    total: number;
+    email: string;
+    user_info: any;
+    code?: string;
+    shipment_fee: number;
+    rebate: number;
+    use_rebate: number;
+    orderID: string;
+    shipment_support: string[];
+    shipment_info: any;
+    use_wallet: number;
+    user_email: string;
+    method: string;
+    useRebateInfo?: {
+        point: number;
+        limit?: number;
+        condition?: number;
+    };
+    voucherList?: VoucherData[];
+    custom_form_format?: any;
+    custom_form_data?: any;
+    distribution_id?: number;
+    distribution_info?: any;
+    orderSource: '' | 'normal' | 'POS';
+    realTotal: number;
 };
 export declare class Shopping {
     app: string;
@@ -169,36 +201,7 @@ export declare class Shopping {
         distribution_code?: string;
         realTotal?: number;
     }, type?: 'add' | 'preview' | 'manual' | 'manual-preview' | 'POS', replace_order_id?: string): Promise<{
-        data: {
-            customer_info: any;
-            lineItems: CartItem[];
-            discount?: number | undefined;
-            total: number;
-            email: string;
-            user_info: any;
-            code?: string | undefined;
-            shipment_fee: number;
-            rebate: number;
-            use_rebate: number;
-            orderID: string;
-            shipment_support: string[];
-            shipment_info: any;
-            use_wallet: number;
-            user_email: string;
-            method: string;
-            useRebateInfo?: {
-                point: number;
-                limit?: number | undefined;
-                condition?: number | undefined;
-            } | undefined;
-            voucherList?: VoucherData[] | undefined;
-            custom_form_format?: any;
-            custom_form_data?: any;
-            distribution_id?: number | undefined;
-            distribution_info?: any;
-            orderSource: string;
-            realTotal: number;
-        };
+        data: Cart;
         result?: undefined;
         message?: undefined;
         is_free?: undefined;
@@ -208,36 +211,7 @@ export declare class Shopping {
     } | {
         result: string;
         message: string;
-        data: {
-            customer_info: any;
-            lineItems: CartItem[];
-            discount?: number | undefined;
-            total: number;
-            email: string;
-            user_info: any;
-            code?: string | undefined;
-            shipment_fee: number;
-            rebate: number;
-            use_rebate: number;
-            orderID: string;
-            shipment_support: string[];
-            shipment_info: any;
-            use_wallet: number;
-            user_email: string;
-            method: string;
-            useRebateInfo?: {
-                point: number;
-                limit?: number | undefined;
-                condition?: number | undefined;
-            } | undefined;
-            voucherList?: VoucherData[] | undefined;
-            custom_form_format?: any;
-            custom_form_data?: any;
-            distribution_id?: number | undefined;
-            distribution_info?: any;
-            orderSource: string;
-            realTotal: number;
-        };
+        data: Cart;
         is_free?: undefined;
         return_url?: undefined;
         off_line?: undefined;
@@ -306,30 +280,7 @@ export declare class Shopping {
         limit?: number;
         condition?: number;
     }>;
-    checkVoucher(cart: {
-        lineItems: {
-            id: string;
-            spec: string[];
-            count: number;
-            sale_price: number;
-            collection: string[];
-            discount_price?: number;
-            rebate?: number;
-        }[];
-        discount?: number;
-        rebate?: number;
-        total: number;
-        email: string;
-        user_info: any;
-        shipment_fee: number;
-        voucherList?: VoucherData[];
-        distribution_info?: {
-            voucher: number;
-            relative: 'collection' | 'product' | 'all';
-            relative_data: string[];
-        };
-        code?: string;
-    }): Promise<void>;
+    checkVoucher(cart: Cart): Promise<void>;
     putOrder(data: {
         id: string;
         orderData: any;

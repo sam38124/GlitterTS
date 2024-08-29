@@ -41,11 +41,11 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                 element: element,
                             })) || 1;
                         ApiShop.addToCart(pdid as string, count as string);
-
                         ApiShop.getCart();
+
                         resolve(pdid);
-                        for (const b of document.querySelectorAll('.shopping-cart')){
-                            (b as any).recreateView()
+                        for (const b of document.querySelectorAll('.shopping-cart')) {
+                            (b as any).recreateView();
                         }
                     });
                 },

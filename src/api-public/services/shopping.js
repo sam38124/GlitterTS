@@ -279,12 +279,12 @@ class Shopping {
                     data.use_rebate = orderData.orderData.use_rebate;
                 }
                 else {
-                    throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ToCheckout Error:Cant find this orderID.', null);
+                    throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ToCheckout 1 Error:Cant find this orderID.', null);
                 }
             }
             const userClass = new user_js_1.User(this.app);
             const rebateClass = new rebate_js_1.Rebate(this.app);
-            if (type == "POS") {
+            if (type == 'POS') {
                 let customerData = await userClass.getUserData('pos@ncdesign.info', 'account');
                 data.email = 'pos@ncdesign.info';
                 data.user_info = (_a = data.user_info) !== null && _a !== void 0 ? _a : {};
@@ -299,7 +299,7 @@ class Shopping {
                 }
             }
             if (type !== 'preview' && !(this.token && this.token.userID) && !data.email && !(data.user_info && data.user_info.email)) {
-                throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ToCheckout Error:No email address.', null);
+                throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ToCheckout 2 Error:No email address.', null);
             }
             const userData = await (async () => {
                 if (type !== 'preview' || (this.token && this.token.userID)) {
@@ -319,11 +319,11 @@ class Shopping {
                     data.email = data.user_info.email;
                 }
                 else {
-                    throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ToCheckout Error:No email address.', null);
+                    throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ToCheckout 3 Error:No email address.', null);
                 }
             }
             if (!data.email && type !== 'preview') {
-                throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ToCheckout Error:No email address.', null);
+                throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ToCheckout 4 Error:No email address.', null);
             }
             if (data.use_rebate && data.use_rebate > 0) {
                 if (userData) {
@@ -402,7 +402,7 @@ class Shopping {
                 useRebateInfo: { point: 0 },
                 custom_form_format: data.custom_form_format,
                 custom_form_data: data.custom_form_data,
-                orderSource: "",
+                orderSource: '',
             };
             function calculateShipment(dataList, value) {
                 if (value === 0) {
@@ -491,8 +491,7 @@ class Shopping {
                         }
                     }
                 }
-                catch (e) {
-                }
+                catch (e) { }
             }
             carData.shipment_fee = (() => {
                 let total_volume = 0;
@@ -587,6 +586,7 @@ class Shopping {
                     times: 1,
                     counting: 'single',
                     conditionType: 'item',
+                    device: ['normal'],
                 };
                 carData.discount = data.discount;
                 carData.voucherList = [tempVoucher];
@@ -627,7 +627,7 @@ class Shopping {
                 }
                 await trans.commit();
                 await trans.release();
-                return { result: "SUCCESS", message: "POS訂單新增成功", data: carData };
+                return { result: 'SUCCESS', message: 'POS訂單新增成功', data: carData };
             }
             else {
                 if (userData && userData.userID) {
@@ -710,7 +710,7 @@ class Shopping {
         }
         catch (e) {
             console.error(e);
-            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ToCheckout Error:' + e, null);
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ToCheckout 5 Error:' + e, null);
         }
     }
     async getReturnOrder(query) {
@@ -935,7 +935,19 @@ class Shopping {
         const groupList = await userClass.getUserGroups();
         const voucherList = allVoucher
             .filter((dd) => {
-            return pass_ids.includes(dd.id);
+            return pass_ids.includes(dd.id) && dd.status === 1;
+        })
+            .filter((dd) => {
+            if (dd.device.length === 0) {
+                return false;
+            }
+            switch (cart.orderSource) {
+                case '':
+                case 'normal':
+                    return dd.device.includes('normal');
+                case 'POS':
+                    return dd.device.includes('pos');
+            }
         })
             .filter((dd) => {
             if (dd.target === 'customer') {
