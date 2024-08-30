@@ -1,10 +1,6 @@
 {
   "name": "ts-glitter",
-<<<<<<< HEAD
-  "version": "11.0.8",
-=======
-  "version": "11.0.9",
->>>>>>> fbb0ca09 (upload)
+  "version": "11.1.0",
   "description": "",
   "main": "index.js",
   "scripts": {
