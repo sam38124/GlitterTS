@@ -108,6 +108,13 @@ export class ShoppingCollections {
                                 <div class="d-flex w-100 align-items-center">
                                     ${BgWidget.title('商品分類')}
                                     <div class="flex-fill"></div>
+                                    ${BgWidget.grayButton('編輯順序', gvc.event(() => {
+                            return BgWidget.infoDialog({
+                                gvc,
+                                title: '編輯商品類別順序',
+                                innerHTML: '123',
+                            });
+                        }))}
                                     ${BgWidget.darkButton('新增', gvc.event(() => {
                             vm.data = {
                                 title: '',
