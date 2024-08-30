@@ -431,11 +431,15 @@ export class BgGuide {
                                             </svg>
                                         </div>
                                     </div>
-                                    <div style="background: #FFF;width:100%;padding: 18px 24px;display: flex;align-items: center;border-radius: 0 0 10px 10px;font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.64px;">
+                                    <div class="d-flex flex-column w-100" style="background: #FFF;width:100%;padding: 18px 24px;border-radius: 0 0 10px 10px;font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.64px;">
                                         選擇ATM銀行轉帳
-                                        <div class="d-flex align-items-center justify-content-between">
-                                            <div>上一步</div>
-                                            <div>下一步</div>
+                                        <div class="d-flex align-items-center justify-content-between" style="margin-top: 24px;">
+                                            <div style="padding: 6px 18px;border-radius: 10px;border:solid 1px #FEAD20;color: #FEAD20;font-size: 16px;font-style: normal;font-weight: 700;line-height: normal;">
+                                                上一步
+                                            </div>
+                                            <div style="padding: 6px 18px;border-radius: 10px;background: #FEAD20;color: #FFF;font-size: 16px;font-style: normal;font-weight: 700;line-height: normal;">
+                                                下一步
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
