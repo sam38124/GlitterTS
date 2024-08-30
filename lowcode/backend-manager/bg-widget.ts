@@ -827,7 +827,9 @@ ${obj.default ?? ''}</textarea
                                                           (dd: any, index: number) =>
                                                               html` <th
                                                                   class="${dd.position ?? 'text-start'} tx_normal fw-bold"
-                                                                  style="white-space:nowrap;border:none;padding-bottom: 30px;color:#393939 !important;${obj.style && obj.style![index] ? obj.style![index] : ``}"
+                                                                  style="white-space:nowrap;border:none;padding-bottom: 30px;color:#393939 !important;${obj.style && obj.style![index]
+                                                                      ? obj.style![index]
+                                                                      : ``}"
                                                               >
                                                                   ${dd.key}
                                                               </th>`
@@ -1338,7 +1340,9 @@ ${obj.default ?? ''}</textarea
                 .map((dd) => {
                     if (select === dd.key) {
                         return html` <div style="flex-direction: column; justify-content: flex-start; align-items: center; gap: 8px; display: inline-flex">
-                            <div style="align-self: stretch; text-align: center; color: #393939; font-size: 18px; font-family: Noto Sans; font-weight: 700; line-height: 18px; word-wrap: break-word;white-space: nowrap;">
+                            <div
+                                style="align-self: stretch; text-align: center; color: #393939; font-size: 18px; font-family: Noto Sans; font-weight: 700; line-height: 18px; word-wrap: break-word;white-space: nowrap;"
+                            >
                                 ${dd.title}
                             </div>
                             <div style="align-self: stretch; height: 0px; border: 2px #393939 solid"></div>
@@ -1350,7 +1354,9 @@ ${obj.default ?? ''}</textarea
                                 callback(dd.key);
                             })}"
                         >
-                            <div style="align-self: stretch; text-align: center; color: #393939; font-size: 18px; font-family: Noto Sans; font-weight: 400; line-height: 18px; word-wrap: break-word;white-space: nowrap;">
+                            <div
+                                style="align-self: stretch; text-align: center; color: #393939; font-size: 18px; font-family: Noto Sans; font-weight: 400; line-height: 18px; word-wrap: break-word;white-space: nowrap;"
+                            >
                                 ${dd.title}
                             </div>
                             <div style="align-self: stretch; height: 0px"></div>
@@ -1837,7 +1843,7 @@ ${obj.default ?? ''}</textarea
         }, obj.tag);
     }
 
-    static infoDialog(obj: { gvc: GVC; title: string; innerHTML: string }) {
+    static infoDialog(obj: { gvc: GVC; title: string; innerHTML: string; closeCallback?: () => void }) {
         return obj.gvc.glitter.innerDialog((gvc: GVC) => {
             const vm = {
                 id: obj.gvc.glitter.getUUID(),
@@ -1862,6 +1868,9 @@ ${obj.default ?? ''}</textarea
                                 <i
                                     class="fa-regular fa-circle-xmark fs-5 text-dark cursor_pointer"
                                     onclick="${gvc.event(() => {
+                                        if (obj.closeCallback) {
+                                            obj.closeCallback();
+                                        }
                                         gvc.closeDialog();
                                     })}"
                                 ></i>

@@ -363,10 +363,7 @@ export declare class Shopping {
         result: boolean;
         message?: undefined;
     }>;
-    sortCollection(list: {
-        index: number;
-        title: string;
-    }[]): Promise<void>;
+    sortCollection(data: Collection[]): Promise<boolean>;
     checkVariantDataType(variants: any[]): void;
     postProduct(content: any): Promise<any>;
     updateCollectionFromUpdateProduct(collection: string[]): Promise<void>;

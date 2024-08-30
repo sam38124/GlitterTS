@@ -243,7 +243,7 @@ router.get('/order', async (req: express.Request, resp: express.Response) => {
                     status: req.query.status as string,
                     searchType: req.query.searchType as string,
                     shipment: req.query.shipment as string,
-                    is_pos:req.query.is_pos as string,
+                    is_pos: req.query.is_pos as string,
                     progress: req.query.progress as string,
                     orderStatus: req.query.orderStatus as string,
                     created_time: req.query.created_time as string,

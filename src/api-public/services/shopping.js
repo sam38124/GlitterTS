@@ -2063,15 +2063,35 @@ class Shopping {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'putCollection Error:' + e, null);
         }
     }
-    async sortCollection(list) {
-        var _a;
+    async sortCollection(data) {
+        var _a, _b;
         try {
-            console.log(list);
-            const config = (_a = (await database_js_1.default.query(`SELECT *
-                         FROM \`${this.app}\`.public_config
-                         WHERE \`key\` = 'collection';`, []))[0]) !== null && _a !== void 0 ? _a : {};
-            config.value = config.value || [];
-            return;
+            if (data && data[0]) {
+                const parentTitle = (_a = data[0].parentTitles[0]) !== null && _a !== void 0 ? _a : '';
+                const config = (_b = (await database_js_1.default.query(`SELECT *
+                             FROM \`${this.app}\`.public_config
+                             WHERE \`key\` = 'collection';`, []))[0]) !== null && _b !== void 0 ? _b : {};
+                config.value = config.value || [];
+                if (parentTitle === '') {
+                    config.value = data.map((item) => {
+                        return config.value.find((conf) => conf.title === item.title);
+                    });
+                }
+                else {
+                    const index = config.value.findIndex((conf) => conf.title === parentTitle);
+                    const sortList = data.map((item) => {
+                        if (index > -1) {
+                            return config.value[index].array.find((conf) => conf.title === item.title);
+                        }
+                        return { title: '', array: [], code: '' };
+                    });
+                    config.value[index].array = sortList;
+                }
+                await database_js_1.default.execute(`UPDATE \`${this.app}\`.public_config SET value = ? WHERE \`key\` = 'collection';
+                    `, [config.value]);
+                return true;
+            }
+            return false;
         }
         catch (e) {
             console.error(e);

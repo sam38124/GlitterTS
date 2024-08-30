@@ -538,7 +538,6 @@ export class Shopping {
             const userClass = new User(this.app);
             const rebateClass = new Rebate(this.app);
 
-
             if (type !== 'preview' && !(this.token && this.token.userID) && !data.email && !(data.user_info && data.user_info.email)) {
                 throw exception.BadRequestError('BAD_REQUEST', 'ToCheckout 2 Error:No email address.', null);
             }
@@ -890,7 +889,9 @@ export class Shopping {
                 carData.customer_info = data.customer_info;
                 carData.total = data.total ?? 0;
                 carData.rebate = tempVoucher.rebate_total;
-                if (tempVoucher.reBackType == 'shipment_free') {carData.shipment_fee = 0;}
+                if (tempVoucher.reBackType == 'shipment_free') {
+                    carData.shipment_fee = 0;
+                }
 
                 if (tempVoucher.reBackType == 'rebate') {
                     let customerData = await userClass.getUserData(data.email! || data.user_info.email, 'account');
@@ -924,9 +925,9 @@ export class Shopping {
                 };
             } else if (type === 'POS') {
                 carData.orderSource = 'POS';
-                const trans = await db.Transaction.build()
-                if(carData.user_info.shipment==='now'){
-                    (carData as any).progress='finish'
+                const trans = await db.Transaction.build();
+                if (carData.user_info.shipment === 'now') {
+                    (carData as any).progress = 'finish';
                 }
                 await trans.execute(
                     `INSERT INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
@@ -1701,7 +1702,7 @@ export class Shopping {
         filter_type?: string;
         page: number;
         limit: number;
-        is_pos?:string,
+        is_pos?: string;
         id?: string;
         search?: string;
         email?: string;
@@ -1754,8 +1755,8 @@ export class Shopping {
                 querySql.push(`(${temp})`);
             }
 
-            if(query.is_pos==='true'){
-                querySql.push(`orderData->>'$.orderSource'='POS'`)
+            if (query.is_pos === 'true') {
+                querySql.push(`orderData->>'$.orderSource'='POS'`);
             }
             if (query.shipment) {
                 let shipment = query.shipment.split(',');
@@ -2671,20 +2672,46 @@ export class Shopping {
         }
     }
 
-    async sortCollection(list: { index: number; title: string }[]) {
+    async sortCollection(data: Collection[]) {
         try {
-            console.log(list);
-            const config =
-                (
-                    await db.query(
-                        `SELECT *
-                         FROM \`${this.app}\`.public_config
-                         WHERE \`key\` = 'collection';`,
-                        []
-                    )
-                )[0] ?? {};
-            config.value = config.value || [];
-            return;
+            if (data && data[0]) {
+                const parentTitle = data[0].parentTitles[0] ?? '';
+                const config =
+                    (
+                        await db.query(
+                            `SELECT *
+                             FROM \`${this.app}\`.public_config
+                             WHERE \`key\` = 'collection';`,
+                            []
+                        )
+                    )[0] ?? {};
+                config.value = config.value || [];
+
+                if (parentTitle === '') {
+                    config.value = data.map((item) => {
+                        return config.value.find((conf: { title: string }) => conf.title === item.title);
+                    });
+                } else {
+                    const index = config.value.findIndex((conf: { title: string }) => conf.title === parentTitle);
+
+                    const sortList = data.map((item) => {
+                        if (index > -1) {
+                            return config.value[index].array.find((conf: { title: string }) => conf.title === item.title);
+                        }
+                        return { title: '', array: [], code: '' };
+                    });
+
+                    config.value[index].array = sortList;
+                }
+
+                await db.execute(
+                    `UPDATE \`${this.app}\`.public_config SET value = ? WHERE \`key\` = 'collection';
+                    `,
+                    [config.value]
+                );
+                return true;
+            }
+            return false;
         } catch (e) {
             console.error(e);
             throw exception.BadRequestError('BAD_REQUEST', 'sortCollection Error:' + e, null);
