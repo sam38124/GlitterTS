@@ -537,33 +537,7 @@ export class Shopping {
 
             const userClass = new User(this.app);
             const rebateClass = new Rebate(this.app);
-<<<<<<< HEAD
-            //POS專屬會員 pos@ncdesign.info
-            if (type == 'POS') {
-                let customerData = await userClass.getUserData('pos@ncdesign.info', 'account');
-                data.email = 'pos@ncdesign.info';
-                data.user_info = data.user_info ?? {};
-                data.user_info.email = 'pos@ncdesign.info';
-                data.user_info.name = 'POS機';
-                //如果沒有這個POS會員，直接做新增
-                if (!customerData) {
-                    // 找不到data時 新建user
-                    await new User(this.app).createUser(
-                        data.email!,
-                        Tool.randomString(8),
-                        {
-                            email: 'pos@ncdesign.info',
-                            name: 'POS機',
-                            phone: '',
-                        },
-                        {},
-                        true
-                    );
-                }
-            }
-=======
 
->>>>>>> 8548c346 ([update] : glitter version.)
 
             if (type !== 'preview' && !(this.token && this.token.userID) && !data.email && !(data.user_info && data.user_info.email)) {
                 throw exception.BadRequestError('BAD_REQUEST', 'ToCheckout 2 Error:No email address.', null);
@@ -950,14 +924,10 @@ export class Shopping {
                 };
             } else if (type === 'POS') {
                 carData.orderSource = 'POS';
-<<<<<<< HEAD
-                const trans = await db.Transaction.build();
-=======
                 const trans = await db.Transaction.build()
                 if(carData.user_info.shipment==='now'){
                     (carData as any).progress='finish'
                 }
->>>>>>> 8548c346 ([update] : glitter version.)
                 await trans.execute(
                     `INSERT INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
                      values (?, ?, ?, ?)`,

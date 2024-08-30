@@ -284,23 +284,6 @@ class Shopping {
             }
             const userClass = new user_js_1.User(this.app);
             const rebateClass = new rebate_js_1.Rebate(this.app);
-<<<<<<< HEAD
-            if (type == 'POS') {
-                let customerData = await userClass.getUserData('pos@ncdesign.info', 'account');
-                data.email = 'pos@ncdesign.info';
-                data.user_info = (_a = data.user_info) !== null && _a !== void 0 ? _a : {};
-                data.user_info.email = 'pos@ncdesign.info';
-                data.user_info.name = 'POS機';
-                if (!customerData) {
-                    await new user_js_1.User(this.app).createUser(data.email, tool_js_1.default.randomString(8), {
-                        email: 'pos@ncdesign.info',
-                        name: 'POS機',
-                        phone: '',
-                    }, {}, true);
-                }
-            }
-=======
->>>>>>> 8548c346 ([update] : glitter version.)
             if (type !== 'preview' && !(this.token && this.token.userID) && !data.email && !(data.user_info && data.user_info.email)) {
                 throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ToCheckout 2 Error:No email address.', null);
             }
