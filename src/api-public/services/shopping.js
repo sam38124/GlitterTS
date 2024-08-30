@@ -259,7 +259,7 @@ class Shopping {
         return `${new Date().getTime()}`;
     }
     async toCheckout(data, type = 'add', replace_order_id) {
-        var _a, _b, _c, _d, _e;
+        var _a, _b, _c, _d;
         try {
             if (replace_order_id) {
                 const orderData = (await database_js_1.default.query(`SELECT *
@@ -284,6 +284,7 @@ class Shopping {
             }
             const userClass = new user_js_1.User(this.app);
             const rebateClass = new rebate_js_1.Rebate(this.app);
+<<<<<<< HEAD
             if (type == 'POS') {
                 let customerData = await userClass.getUserData('pos@ncdesign.info', 'account');
                 data.email = 'pos@ncdesign.info';
@@ -298,6 +299,8 @@ class Shopping {
                     }, {}, true);
                 }
             }
+=======
+>>>>>>> 8548c346 ([update] : glitter version.)
             if (type !== 'preview' && !(this.token && this.token.userID) && !data.email && !(data.user_info && data.user_info.email)) {
                 throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ToCheckout 2 Error:No email address.', null);
             }
@@ -387,8 +390,8 @@ class Shopping {
                 customer_info: data.customer_info || {},
                 lineItems: [],
                 total: 0,
-                realTotal: (_b = data.realTotal) !== null && _b !== void 0 ? _b : 0,
-                email: (_c = data.email) !== null && _c !== void 0 ? _c : ((data.user_info && data.user_info.email) || ''),
+                realTotal: (_a = data.realTotal) !== null && _a !== void 0 ? _a : 0,
+                email: (_b = data.email) !== null && _b !== void 0 ? _b : ((data.user_info && data.user_info.email) || ''),
                 user_info: data.user_info,
                 shipment_fee: 0,
                 rebate: 0,
@@ -398,7 +401,7 @@ class Shopping {
                 shipment_info: shipment_setting.info,
                 use_wallet: 0,
                 method: data.user_info && data.user_info.method,
-                user_email: (userData && userData.account) || ((_d = data.email) !== null && _d !== void 0 ? _d : ((data.user_info && data.user_info.email) || '')),
+                user_email: (userData && userData.account) || ((_c = data.email) !== null && _c !== void 0 ? _c : ((data.user_info && data.user_info.email) || '')),
                 useRebateInfo: { point: 0 },
                 custom_form_format: data.custom_form_format,
                 custom_form_data: data.custom_form_data,
@@ -591,7 +594,7 @@ class Shopping {
                 carData.discount = data.discount;
                 carData.voucherList = [tempVoucher];
                 carData.customer_info = data.customer_info;
-                carData.total = (_e = data.total) !== null && _e !== void 0 ? _e : 0;
+                carData.total = (_d = data.total) !== null && _d !== void 0 ? _d : 0;
                 carData.rebate = tempVoucher.rebate_total;
                 if (tempVoucher.reBackType == 'shipment_free') {
                     carData.shipment_fee = 0;
@@ -619,6 +622,9 @@ class Shopping {
             else if (type === 'POS') {
                 carData.orderSource = 'POS';
                 const trans = await database_js_1.default.Transaction.build();
+                if (carData.user_info.shipment === 'now') {
+                    carData.progress = 'finish';
+                }
                 await trans.execute(`INSERT INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
                      values (?, ?, ?, ?)`, [carData.orderID, data.pay_status, carData.email, JSON.stringify(carData)]);
                 carData.invoice = await new invoice_js_1.Invoice(this.app).postCheckoutInvoice(carData, carData.user_info.send_type !== 'carrier');
@@ -1285,6 +1291,9 @@ class Shopping {
                 }
                 temp += `JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.progress')) IN (${newArray.map((status) => `"${status}"`).join(',')})`;
                 querySql.push(`(${temp})`);
+            }
+            if (query.is_pos === 'true') {
+                querySql.push(`orderData->>'$.orderSource'='POS'`);
             }
             if (query.shipment) {
                 let shipment = query.shipment.split(',');

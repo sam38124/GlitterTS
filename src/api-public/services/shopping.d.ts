@@ -301,6 +301,7 @@ export declare class Shopping {
         filter_type?: string;
         page: number;
         limit: number;
+        is_pos?: string;
         id?: string;
         search?: string;
         email?: string;

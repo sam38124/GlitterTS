@@ -169,6 +169,9 @@ export class POSSetting {
         else {
             orderDetail.user_info.shipment = 'now';
         }
+        if (!orderDetail.lineItems || orderDetail.lineItems.length === 0) {
+            vm.type = 'products';
+        }
         return gvc.bindView(() => {
             return {
                 bind: vm.id,

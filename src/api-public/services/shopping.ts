@@ -537,6 +537,7 @@ export class Shopping {
 
             const userClass = new User(this.app);
             const rebateClass = new Rebate(this.app);
+<<<<<<< HEAD
             //POS專屬會員 pos@ncdesign.info
             if (type == 'POS') {
                 let customerData = await userClass.getUserData('pos@ncdesign.info', 'account');
@@ -560,6 +561,9 @@ export class Shopping {
                     );
                 }
             }
+=======
+
+>>>>>>> 8548c346 ([update] : glitter version.)
 
             if (type !== 'preview' && !(this.token && this.token.userID) && !data.email && !(data.user_info && data.user_info.email)) {
                 throw exception.BadRequestError('BAD_REQUEST', 'ToCheckout 2 Error:No email address.', null);
@@ -912,9 +916,7 @@ export class Shopping {
                 carData.customer_info = data.customer_info;
                 carData.total = data.total ?? 0;
                 carData.rebate = tempVoucher.rebate_total;
-                if (tempVoucher.reBackType == 'shipment_free') {
-                    carData.shipment_fee = 0;
-                }
+                if (tempVoucher.reBackType == 'shipment_free') {carData.shipment_fee = 0;}
 
                 if (tempVoucher.reBackType == 'rebate') {
                     let customerData = await userClass.getUserData(data.email! || data.user_info.email, 'account');
@@ -948,7 +950,14 @@ export class Shopping {
                 };
             } else if (type === 'POS') {
                 carData.orderSource = 'POS';
+<<<<<<< HEAD
                 const trans = await db.Transaction.build();
+=======
+                const trans = await db.Transaction.build()
+                if(carData.user_info.shipment==='now'){
+                    (carData as any).progress='finish'
+                }
+>>>>>>> 8548c346 ([update] : glitter version.)
                 await trans.execute(
                     `INSERT INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
                      values (?, ?, ?, ?)`,
@@ -1722,6 +1731,7 @@ export class Shopping {
         filter_type?: string;
         page: number;
         limit: number;
+        is_pos?:string,
         id?: string;
         search?: string;
         email?: string;
@@ -1774,6 +1784,9 @@ export class Shopping {
                 querySql.push(`(${temp})`);
             }
 
+            if(query.is_pos==='true'){
+                querySql.push(`orderData->>'$.orderSource'='POS'`)
+            }
             if (query.shipment) {
                 let shipment = query.shipment.split(',');
                 let temp = '';

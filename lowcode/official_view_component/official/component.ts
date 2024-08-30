@@ -196,6 +196,7 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                 if (glitter.share.font_theme[fonts_index]) {
                                                     createOption.style += ` font-family: '${glitter.share.font_theme[fonts_index].value}' !important;`
                                                 }
+                                                // createOption+=widget.
                                                 return createOption
                                             }
 

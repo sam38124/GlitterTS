@@ -10,7 +10,7 @@ import {NormalPageEditor} from "../../editor/normal-page-editor.js";
 import {GlobalWidget} from "./global-widget.js";
 import {RenderValue} from "./render-value.js";
 
-
+const container_style_list=['grid','vertical','proportion' ]
 export const widgetComponent = {
     render: (gvc: GVC, widget: HtmlJson, setting: any, hoverID: string[], sub: any, htmlGenerate: any, document?: any) => {
         const rootHtmlGenerate = htmlGenerate;
@@ -121,7 +121,7 @@ export const widgetComponent = {
                                 classList.push(glitter.htmlGenerate.styleEditor(widget.data, gvc, widget as any, subData).class())
                                 widget.hashTag && classList.push(`glitterTag${widget.hashTag}`);
                                 let style_user = ''
-                                if (widget.type === 'container') {
+                                if (widget.type === 'container' && container_style_list.includes(widget.data._layout)) {
                                     style_user = RenderValue.custom_style.value(gvc, widget)
                                     style_user += RenderValue.custom_style.container_style(gvc, widget);
                                 }
@@ -154,7 +154,7 @@ export const widgetComponent = {
                                                 })
                                             }
                                             setTimeout(() => {
-                                                if ((widget.data._layout === 'grid' || widget.data._layout === 'vertical' || widget.data._layout === 'proportion') && (((gvc.glitter.window.parent as any).editerData !== undefined) || ((gvc.glitter.window as any).editerData !== undefined)) && htmlGenerate.root) {
+                                                if (container_style_list.includes(widget.data._layout) && (((gvc.glitter.window.parent as any).editerData !== undefined) || ((gvc.glitter.window as any).editerData !== undefined)) && htmlGenerate.root) {
                                                     const html = String.raw
                                                     const tempID = gvc.glitter.getUUID()
 

@@ -918,7 +918,14 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                 onCreate: () => {
                     const interval = setInterval(() => {
                         if ((window as any).FroalaEditor) {
-                            gvc.addStyle(`
+                            setTimeout(()=>{
+                                gvc.addStyle(`
+                            #insertImage-1 {
+                            display:none !important;
+                            }
+                              #insertImage-2 {
+                            display:none !important;
+                            }
                                 .fr-sticky-on {
                                     position: relative !important;
                                     z-index: 10;
@@ -927,7 +934,6 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                     display: none !important;
                                 }
                             `);
-                            setTimeout(() => {
                                 const editor = new (window as any).FroalaEditor('#' + richID, {
                                     language: 'zh_tw',
                                     heightMin: 500,
@@ -1008,49 +1014,51 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                     },
                                     key: 'hWA2C-7I2B2C4B3E4E2G3wd1DBKSPF1WKTUCQOa1OURPJ1KDe2F-11D2C2D2D2C3B3C1D6B1C2==',
                                 });
-                                (document.querySelector(`.${richID}-loading`) as any).remove();
+                                if((document.querySelector(`.${richID}-loading`) as any)){
+                                    (document.querySelector(`.${richID}-loading`) as any).remove();
+                                }
                                 setTimeout(() => {
-                                    const target: any = document.querySelector(`#insertImage-1`);
+                                    const target: any = document.querySelector(`#insertImage-1`) || document.querySelector(`#insertImage-2`);
                                     target.outerHTML = html` <button
-                                        id="insertImage-1"
+                                        id="insertImage-replace"
                                         type="button"
                                         tabindex="-1"
                                         role="button"
                                         class="fr-command fr-btn "
                                         data-title="插入圖片 (⌘P)"
                                         onclick="${obj.gvc.event(() => {
-                                            glitter.ut.chooseMediaCallback({
-                                                single: true,
-                                                accept: 'image/*',
-                                                callback(data) {
-                                                    const saasConfig = (window as any).saasConfig;
-                                                    const dialog = new ShareDialog(glitter);
+                                        glitter.ut.chooseMediaCallback({
+                                            single: true,
+                                            accept: 'image/*',
+                                            callback(data) {
+                                                const saasConfig = (window as any).saasConfig;
+                                                const dialog = new ShareDialog(glitter);
+                                                dialog.dataLoading({ visible: true });
+                                                const file = data[0].file;
+                                                saasConfig.api.uploadFile(file.name).then((data: any) => {
+                                                    dialog.dataLoading({ visible: false });
+                                                    const data1 = data.response;
                                                     dialog.dataLoading({ visible: true });
-                                                    const file = data[0].file;
-                                                    saasConfig.api.uploadFile(file.name).then((data: any) => {
+                                                    BaseApi.create({
+                                                        url: data1.url,
+                                                        type: 'put',
+                                                        data: file,
+                                                        headers: {
+                                                            'Content-Type': data1.type,
+                                                        },
+                                                    }).then((res) => {
                                                         dialog.dataLoading({ visible: false });
-                                                        const data1 = data.response;
-                                                        dialog.dataLoading({ visible: true });
-                                                        BaseApi.create({
-                                                            url: data1.url,
-                                                            type: 'put',
-                                                            data: file,
-                                                            headers: {
-                                                                'Content-Type': data1.type,
-                                                            },
-                                                        }).then((res) => {
-                                                            dialog.dataLoading({ visible: false });
-                                                            if (res.result) {
-                                                                editor.html.insert(`<img src="${data1.fullUrl}" style="max-width: 100%;">`);
-                                                                editor.undo.saveStep();
-                                                            } else {
-                                                                dialog.errorMessage({ text: '上傳失敗' });
-                                                            }
-                                                        });
+                                                        if (res.result) {
+                                                            editor.html.insert(`<img src="${data1.fullUrl}" style="max-width: 100%;">`);
+                                                            editor.undo.saveStep();
+                                                        } else {
+                                                            dialog.errorMessage({ text: '上傳失敗' });
+                                                        }
                                                     });
-                                                },
-                                            });
-                                        })}"
+                                                });
+                                            },
+                                        });
+                                    })}"
                                     >
                                         <svg class="fr-svg" focusable="false" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                             <path
@@ -1063,9 +1071,9 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                         editor.edit.off();
                                         editor.toolbar.disable();
                                     }
-                                }, 100);
-                            }, 1000);
-                            clearInterval(interval);
+                                }, 200);
+                                clearInterval(interval);
+                            },1000)
                         }
                     }, 200);
                 },

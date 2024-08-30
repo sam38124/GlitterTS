@@ -7,6 +7,7 @@ export class ProductsPage {
         const vm = obj.vm;
         const orderDetail = obj.orderDetail;
         const dialog = new ShareDialog(gvc.glitter);
+        orderDetail.total = orderDetail.total || 0;
         return html `
             <div class="left-panel"
                  style="${(document.body.offsetWidth < 800) ? `width:calc(100%);padding-top: 32px` : `width:calc(100% - 352px);padding: 32px 36px`};overflow: hidden;">

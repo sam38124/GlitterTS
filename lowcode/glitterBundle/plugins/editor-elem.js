@@ -850,7 +850,14 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                 onCreate: () => {
                     const interval = setInterval(() => {
                         if (window.FroalaEditor) {
-                            gvc.addStyle(`
+                            setTimeout(() => {
+                                gvc.addStyle(`
+                            #insertImage-1 {
+                            display:none !important;
+                            }
+                              #insertImage-2 {
+                            display:none !important;
+                            }
                                 .fr-sticky-on {
                                     position: relative !important;
                                     z-index: 10;
@@ -859,7 +866,6 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                     display: none !important;
                                 }
                             `);
-                            setTimeout(() => {
                                 const editor = new window.FroalaEditor('#' + richID, {
                                     language: 'zh_tw',
                                     heightMin: 500,
@@ -934,11 +940,13 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                     },
                                     key: 'hWA2C-7I2B2C4B3E4E2G3wd1DBKSPF1WKTUCQOa1OURPJ1KDe2F-11D2C2D2D2C3B3C1D6B1C2==',
                                 });
-                                document.querySelector(`.${richID}-loading`).remove();
+                                if (document.querySelector(`.${richID}-loading`)) {
+                                    document.querySelector(`.${richID}-loading`).remove();
+                                }
                                 setTimeout(() => {
-                                    const target = document.querySelector(`#insertImage-1`);
+                                    const target = document.querySelector(`#insertImage-1`) || document.querySelector(`#insertImage-2`);
                                     target.outerHTML = html ` <button
-                                        id="insertImage-1"
+                                        id="insertImage-replace"
                                         type="button"
                                         tabindex="-1"
                                         role="button"
@@ -990,9 +998,9 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                         editor.edit.off();
                                         editor.toolbar.disable();
                                     }
-                                }, 100);
+                                }, 200);
+                                clearInterval(interval);
                             }, 1000);
-                            clearInterval(interval);
                         }
                     }, 200);
                 },

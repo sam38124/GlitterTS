@@ -17,6 +17,29 @@ import { ApiUser } from '../glitter-base/route/user.js';
 import { UserList } from './user-list.js';
 const html = String.raw;
 export class ShoppingOrderManager {
+    static support_shipment_method() {
+        return [
+            {
+                title: '門市立即取貨', value: 'now'
+            },
+            {
+                title: '一般宅配', value: 'normal'
+            },
+            {
+                title: '全家店到店', value: 'FAMIC2C'
+            },
+            {
+                title: '萊爾富店到店', value: 'HILIFEC2C'
+            }, {
+                title: 'OK超商店到店', value: 'OKMARTC2C'
+            }, {
+                title: '7-ELEVEN超商交貨便', value: 'UNIMARTC2C'
+            },
+            {
+                title: '實體門市取貨', value: 'shop'
+            }
+        ];
+    }
     static main(gvc, pos_page) {
         const filterID = gvc.glitter.getUUID();
         const glitter = gvc.glitter;
@@ -30,7 +53,7 @@ export class ShoppingOrderManager {
             orderString: '',
             filter: {},
             filterId: glitter.getUUID(),
-            filter_type: 'normal',
+            filter_type: (pos_page) ? 'pos' : 'normal',
         };
         const ListComp = new BgListComponent(gvc, vm, FilterOptions.orderFilterFrame);
         vm.filter = ListComp.getFilterObject();
@@ -180,13 +203,30 @@ export class ShoppingOrderManager {
                         }))}
                                     </div>
                                 </div>
-                                ${BgWidget.tab([
+                                ${BgWidget.tab((pos_page) ? [
                             {
-                                title: '一般列表',
+                                title: 'POS訂單',
+                                key: 'pos'
+                            },
+                            {
+                                title: '所有訂單',
                                 key: 'normal',
                             },
                             {
-                                title: '封存列表',
+                                title: '已封存訂單',
+                                key: 'block',
+                            },
+                        ] : [
+                            {
+                                title: '所有訂單',
+                                key: 'normal',
+                            },
+                            {
+                                title: 'POS訂單',
+                                key: 'pos'
+                            },
+                            {
+                                title: '已封存訂單',
                                 key: 'block',
                             },
                         ], gvc, vm.filter_type, (text) => {
@@ -203,7 +243,8 @@ export class ShoppingOrderManager {
                                     searchType: vm.queryType || 'name',
                                     orderString: vm.orderString,
                                     filter: vm.filter,
-                                    archived: vm.filter_type === 'normal' ? `false` : `true`,
+                                    archived: (vm.filter_type === 'normal' || vm.filter_type === 'pos') ? `false` : `true`,
+                                    is_pos: (vm.filter_type === 'pos')
                                 }).then((data) => {
                                     vmi.pageSize = Math.ceil(data.response.total / 20);
                                     vm.dataList = data.response.data;
@@ -242,7 +283,14 @@ export class ShoppingOrderManager {
                                                 },
                                                 {
                                                     key: '訂單編號',
-                                                    value: dd.cart_token,
+                                                    value: (() => {
+                                                        if (dd.orderData.orderSource === 'POS') {
+                                                            return `<div class="badge me-2" style="border-radius: 7px;background: #FFD5D0;height: 22px;padding: 4px 6px;font-size: 14px;color:#393939;">POS</div>${dd.cart_token}`;
+                                                        }
+                                                        else {
+                                                            return dd.cart_token;
+                                                        }
+                                                    })(),
                                                 },
                                                 {
                                                     key: '訂單日期',
@@ -250,7 +298,7 @@ export class ShoppingOrderManager {
                                                 },
                                                 {
                                                     key: '訂購人',
-                                                    value: dd.orderData.user_info ? dd.orderData.user_info.name : `匿名`,
+                                                    value: dd.orderData.user_info ? dd.orderData.user_info.name || '未填寫' : `匿名`,
                                                 },
                                                 {
                                                     key: '訂單金額',
@@ -1016,25 +1064,21 @@ export class ShoppingOrderManager {
                                                                                 <div style="color:#393939;font-size: 16px;font-weight: 700;margin-top: 18px;">配送方式</div>
                                                                                 <div style="color: #393939;font-size: 16px;font-weight: 400; line-height: 140%;">
                                                                                     ${(() => {
-                                    let shipment = {
-                                        normal: '宅配',
-                                        UNIMARTC2C: '7-11店到店',
-                                        FAMIC2C: '全家店到店',
-                                        OKMARTC2C: 'OK店到店',
-                                        HILIFEC2C: '萊爾富店到店',
-                                    };
-                                    return shipment[orderData.orderData.user_info.shipment];
+                                    var _a;
+                                    return (_a = ShoppingOrderManager.support_shipment_method().find((dd) => {
+                                        return dd.value === orderData.orderData.user_info.shipment;
+                                    })) === null || _a === void 0 ? void 0 : _a.title;
                                 })()}
                                                                                 </div>
                                                                             </div>
                                                                             <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 12px;align-self: stretch;">
-                                                                                <div style="color:#393939;font-size: 16px;font-weight: 700;margin-top: 18px;">配送資訊</div>
+                                                                               ${['UNIMARTC2C', 'FAMIC2C', 'OKMARTC2C', 'HILIFEC2C', 'normal'].includes(orderData.orderData.user_info.shipment) ? `<div style="color:#393939;font-size: 16px;font-weight: 700;margin-top: 18px;">配送資訊</div>` : ``}
                                                                                 <div class="d-flex flex-column" style="color: #393939;font-size: 16px;font-weight: 400; line-height: 140%;gap: 4px;">
                                                                                     ${(() => {
                                     if (orderData.orderData.user_info.shipment == 'normal') {
                                         return orderData.orderData.user_info.address;
                                     }
-                                    else {
+                                    else if (['UNIMARTC2C', 'FAMIC2C', 'OKMARTC2C', 'HILIFEC2C'].includes(orderData.orderData.user_info.shipment)) {
                                         return html `
                                                                                                 <div class="d-flex flex-wrap">
                                                                                                     <span class="me-2">門市名稱:</span>
@@ -1045,6 +1089,9 @@ export class ShoppingOrderManager {
                                                                                                     地址: ${orderData.orderData.user_info.CVSAddress}
                                                                                                 </div>
                                                                                             `;
+                                    }
+                                    else {
+                                        return ``;
                                     }
                                 })()}
                                                                                 </div>
@@ -1060,7 +1107,7 @@ export class ShoppingOrderManager {
                                     if (vm.mode == 'read') {
                                         return viewModel
                                             .map((item) => {
-                                            return html ` <div>${item[0]}: ${orderData.orderData.user_info[item[1]]}</div> `;
+                                            return html ` <div>${item[0]}: ${orderData.orderData.user_info[item[1]] || '未填寫'}</div> `;
                                         })
                                             .join('');
                                     }
@@ -1189,20 +1236,10 @@ export class ShoppingOrderManager {
                                                                                 <div class="" style="font-size: 16px;font-weight: 700;">配送方式</div>
                                                                                 <div class="" style="color: #393939;line-height: 140%; ">
                                                                                     ${(() => {
-                                    switch (orderData.orderData.user_info.shipment) {
-                                        case 'FAMIC2C':
-                                            return '全家店到店';
-                                        case 'HILIFEC2C':
-                                            return '萊爾富店到店';
-                                        case 'normal':
-                                            return '宅配到府';
-                                        case 'OKMARTC2C':
-                                            return 'OK超商店到店';
-                                        case 'UNIMARTC2C':
-                                            return '7-ELEVEN超商交貨便';
-                                        default:
-                                            return '宅配到府';
-                                    }
+                                    var _a;
+                                    return (_a = ShoppingOrderManager.support_shipment_method().find((dd) => {
+                                        return dd.value === orderData.orderData.user_info.shipment;
+                                    })) === null || _a === void 0 ? void 0 : _a.title;
                                 })()}
                                                                                 </div>
                                                                                 ${(() => {
@@ -2779,6 +2816,9 @@ export class ShoppingOrderManager {
             `, 1200);
     }
     static getPaymentMethodText(key, orderData) {
+        if (orderData.orderSource === 'POS') {
+            return `門市POS付款`;
+        }
         switch (key) {
             case 'off_line':
                 switch (orderData.customer_info.payment_select) {

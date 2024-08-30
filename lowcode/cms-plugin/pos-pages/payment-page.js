@@ -12,6 +12,30 @@ import { ApiShop } from "../../glitter-base/route/shopping.js";
 import { EditorElem } from "../../glitterBundle/plugins/editor-elem.js";
 const html = String.raw;
 export class PaymentPage {
+    static shipment_support(orderDetail) {
+        return [{
+                title: '立即取貨', value: 'now'
+            }].concat([
+            {
+                title: '一般宅配', value: 'normal'
+            },
+            {
+                title: '全家店到店', value: 'FAMIC2C'
+            },
+            {
+                title: '萊爾富店到店', value: 'HILIFEC2C'
+            }, {
+                title: 'OK超商店到店', value: 'OKMARTC2C'
+            }, {
+                title: '7-ELEVEN超商交貨便', value: 'UNIMARTC2C'
+            },
+            {
+                title: '門市取貨', value: 'shop'
+            }
+        ].filter((dd) => {
+            return orderDetail.shipment_support.includes(dd.value);
+        }));
+    }
     static main(obj) {
         const gvc = obj.gvc;
         const vm = obj.vm;
@@ -23,16 +47,19 @@ export class PaymentPage {
                 bind: id,
                 view: () => __awaiter(this, void 0, void 0, function* () {
                     dialog.dataLoading({ visible: true });
-                    obj.ogOrderData.user_info = {
-                        shipment: obj.ogOrderData.user_info.shipment || 'now'
-                    };
+                    obj.ogOrderData.user_info = obj.ogOrderData.user_info || {};
+                    obj.ogOrderData.user_info.shipment = obj.ogOrderData.user_info.shipment || 'now';
                     const orderDetail = (yield ApiShop.getCheckout({
                         line_items: obj.ogOrderData.lineItems,
                         checkOutType: 'POS',
                         user_info: obj.ogOrderData.user_info
                     })).response.data;
                     dialog.dataLoading({ visible: false });
-                    let realTotal = orderDetail.total;
+                    if (!PaymentPage.shipment_support(orderDetail).find((dd) => {
+                        return dd.value === (obj.ogOrderData).user_info.shipment;
+                    })) {
+                        (obj.ogOrderData).user_info.shipment = PaymentPage.shipment_support(orderDetail)[0].value;
+                    }
                     return ` <div class="left-panel"
                      style="${(document.body.offsetWidth < 800) ? `width:calc(100%);padding: 32px 20px;height:auto;` : `width:calc(100% - 446px);padding: 32px 36px;`}overflow: hidden;">
                     <div style="font-size: 32px;font-style: normal;font-weight: 700;letter-spacing: 3.2px;color:#393939">
@@ -56,14 +83,14 @@ export class PaymentPage {
                         if (orderDetail.lineItems.length > 0) {
                             return orderDetail.lineItems.map((data) => {
                                 return html `
-                                            <div class="d-flex"
-                                                 style="margin-top: 26px;">
-                                                <div class="col-6 d-flex align-items-center">
-                                                    <div style="width: 54px;height: 54px;border-radius: 5px;background: 50%/cover url('${data.preview_image}')"></div>
-                                                    <div class="d-flex flex-column"
-                                                         style="font-size: 16px;font-style: normal;font-weight: 500;letter-spacing: 0.64px;margin-left: 12px;">
-                                                        ${data.title}
-                                                        <span style="color: #949494;
+                                    <div class="d-flex"
+                                         style="margin-top: 26px;">
+                                        <div class="col-6 d-flex align-items-center">
+                                            <div style="width: 54px;height: 54px;border-radius: 5px;background: 50%/cover url('${data.preview_image}')"></div>
+                                            <div class="d-flex flex-column"
+                                                 style="font-size: 16px;font-style: normal;font-weight: 500;letter-spacing: 0.64px;margin-left: 12px;">
+                                                ${data.title}
+                                                <span style="color: #949494;
                                                                                 font-size: 16px;
                                                                                 font-style: normal;
                                                                                 font-weight: 500;
@@ -79,19 +106,19 @@ export class PaymentPage {
                                 })()}
                                                                                 </span>
 
-                                                    </div>
-                                                </div>
-                                                <div class="col-2 d-flex align-items-center justify-content-start">
-                                                        $${parseInt(data.sale_price, 10).toLocaleString()}
-                                                </div>
-                                                <div class="col-2 d-flex align-items-center justify-content-center">
-                                                    ${data.count}
-                                                </div>
-                                                <div class="col-2 d-flex align-items-center justify-content-center">
-                                                        $${parseInt(data.sale_price * data.count, 10).toLocaleString()}
-                                                </div>
                                             </div>
-                                        `;
+                                        </div>
+                                        <div class="col-2 d-flex align-items-center justify-content-start">
+                                                $${parseInt(data.sale_price, 10).toLocaleString()}
+                                        </div>
+                                        <div class="col-2 d-flex align-items-center justify-content-center">
+                                            ${data.count}
+                                        </div>
+                                        <div class="col-2 d-flex align-items-center justify-content-center">
+                                                $${parseInt(data.sale_price * data.count, 10).toLocaleString()}
+                                        </div>
+                                    </div>
+                                `;
                             }).join('');
                         }
                         return ``;
@@ -100,7 +127,7 @@ export class PaymentPage {
                     </div>
                 </div>
                 <div class=""
-                     style="width: ${(document.body.offsetWidth < 800) ? `width:100%` : `height: 100%;overflow: auto;`};padding: 36px 24px;background: #FFF;box-shadow: 1px 0 10px 0 rgba(0, 0, 0, 0.10);">
+                     style="${(document.body.offsetWidth < 800) ? `width:100%` : `width: 446px;height: 100%;overflow: auto;`};padding: 36px 24px;background: #FFF;box-shadow: 1px 0 10px 0 rgba(0, 0, 0, 0.10);">
                     <div style="font-size: 32px;font-weight: 700;letter-spacing: 3.2px;">
                         訂單款項
                     </div>
@@ -198,6 +225,7 @@ export class PaymentPage {
                             style: `display: flex;justify-content: space-between;margin-top: 24px;`
                         }
                     })}
+                      ${PaymentPage.spaceView()}
                     <div class="mb-2" style="margin-top: 32px;font-size: 18px;font-weight: 700;letter-spacing: 0.72px;">
                         配送方式
                     </div>
@@ -205,27 +233,7 @@ export class PaymentPage {
                         title: '',
                         def: (obj.ogOrderData).user_info.shipment,
                         gvc: gvc,
-                        array: [
-                            {
-                                title: '立即取貨', value: 'now'
-                            },
-                            {
-                                title: '一般宅配', value: 'normal'
-                            },
-                            {
-                                title: '全家店到店', value: 'FAMIC2C'
-                            },
-                            {
-                                title: '萊爾富店到店', value: 'HILIFEC2C'
-                            }, {
-                                title: 'OK超商店到店', value: 'OKMARTC2C'
-                            }, {
-                                title: '7-ELEVEN超商交貨便', value: 'UNIMARTC2C'
-                            },
-                            {
-                                title: '門市取貨', value: 'shop'
-                            }
-                        ],
+                        array: PaymentPage.shipment_support(orderDetail),
                         callback: (text) => {
                             (obj.ogOrderData).user_info.shipment = text;
                             PaymentPage.storeHistory(obj.ogOrderData);
@@ -233,6 +241,7 @@ export class PaymentPage {
                         }
                     })}
                     ${(() => {
+                        var _a;
                         if (['FAMIC2C', 'HILIFEC2C', 'OKMARTC2C', 'UNIMARTC2C'].includes(obj.ogOrderData.user_info.shipment)) {
                             return `<div class="mb-2" style="margin-top: 14px;font-size: 18px;font-weight: 700;letter-spacing: 0.72px;">
                         門市選擇
@@ -251,28 +260,57 @@ ${(decodeURI(gvc.glitter.getUrlParameter('CVSStoreName') || '')) || '請選擇�
 `;
                         }
                         else if (obj.ogOrderData.user_info.shipment === 'normal') {
-                            return `<input class="form-control" >`;
+                            return `<input class="form-control mt-2" value="${(_a = obj.ogOrderData.user_info.address) !== null && _a !== void 0 ? _a : ""}" onchange="${gvc.event((e, event) => {
+                                obj.ogOrderData.user_info.address = e.value;
+                            })}" placeholder="請輸入宅配地址">`;
                         }
                         else {
                             return ``;
                         }
                     })()}
-                     
-                     <div class="d-flex mt-3">
-                            <div style="font-size: 16px;font-weight: 500;letter-spacing: 0.64px;">
-                                運費
-                            </div>
-                            <div class="ms-auto"
-                                 style="font-size: 16px;font-style: normal;font-weight: 700;letter-spacing: 0.64px;">
-                                ${(Number((orderDetail.shipment_fee))).toLocaleString()}
-                            </div>
-                        </div>
-                    <div class="w-100" style="margin: 32px 0;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="398" height="2"
-                             viewBox="0 0 398 2" fill="none">
-                            <path d="M0 1H398" stroke="#DDDDDD" stroke-dasharray="8 8"/>
-                        </svg>
-                    </div>
+                    ${(() => {
+                        if (obj.ogOrderData.user_info.shipment === 'now') {
+                            return ``;
+                        }
+                        else {
+                            return html `
+                                ${PaymentPage.spaceView()}
+                                <div class="mb-2" style="margin-top: 14px;font-size: 18px;font-weight: 700;letter-spacing: 0.72px;">
+                                    配送資訊
+                                </div>
+                                <div class="row  m-0 p-0 mb-n2">
+                                  ${[{
+                                    title: '收件人姓名',
+                                    col: '6',
+                                    type: 'name',
+                                    key: 'name'
+                                }, {
+                                    title: '收件人電話',
+                                    col: '6',
+                                    type: 'phone',
+                                    key: 'phone'
+                                }, {
+                                    title: '聯絡信箱',
+                                    col: '12',
+                                    type: 'email',
+                                    key: 'email'
+                                }].map((dd) => {
+                                return `<div class="mb-2 col-${dd.col} ps-0" style="">
+                                        <div class="" style="  ">
+                                            <div class="fw-normal mb-2 fs-6" style="color: black;
+margin-bottom: 5px;
+white-space: normal;">${dd.title}
+                                            </div>
+                                            <input class="form-control" style="form-control" placeholder="請輸入${dd.title}"
+                                                   type="${dd.type}" value="${obj.ogOrderData.user_info[dd.key] || ''}" onchange="${gvc.event((e, event) => {
+                                    obj.ogOrderData.user_info[dd.key] = e.value;
+                                })}"></div>
+                                    </div>`;
+                            }).join('')}
+                                </div>`;
+                        }
+                    })()}
+                  ${PaymentPage.spaceView()}
                     <div class="d-flex flex-column w-100">
                         <div class="d-flex">
                             <div style="font-size: 16px;font-weight: 500;letter-spacing: 0.64px;">
@@ -281,6 +319,15 @@ ${(decodeURI(gvc.glitter.getUrlParameter('CVSStoreName') || '')) || '請選擇�
                             <div class="ms-auto"
                                  style="font-size: 16px;font-style: normal;font-weight: 700;letter-spacing: 0.64px;">
                                 ${(Number((orderDetail.total)) + Number((orderDetail.discount)) - Number((orderDetail.shipment_fee))).toLocaleString()}
+                            </div>
+                        </div>
+                          <div class="d-flex ">
+                            <div style="font-size: 16px;font-weight: 500;letter-spacing: 0.64px;">
+                                運費
+                            </div>
+                            <div class="ms-auto"
+                                 style="font-size: 16px;font-style: normal;font-weight: 700;letter-spacing: 0.64px;">
+                                ${(Number((orderDetail.shipment_fee))).toLocaleString()}
                             </div>
                         </div>
                         <div class="d-flex">
@@ -320,22 +367,22 @@ ${(decodeURI(gvc.glitter.getUrlParameter('CVSStoreName') || '')) || '請選擇�
                         </div>`
                                 ];
                                 if (vm.paySelect === 'cash') {
-                                    view.push(` <div class="d-flex" style="font-size: 16px;font-weight: 400;">
+                                    view.push(` <div class="d-flex" style="font-size: 16px;font-weight: 400;margin-bottom: 12px;">
                             <div class="d-flex align-items-center justify-content-center"
                                  style="color: #393939;font-size: 18px;font-weight: 700;letter-spacing: 0.72px;">
                                 收取現金
                             </div>
-                            <input style="display: flex;width: 143px;height: 51px;padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;"
-                                   class="ms-auto" value="${realTotal}"
+                            <input style="display: flex;width: 143px;padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;text-align: right;"
+                                   class="ms-auto" value="${orderDetail.total}"
                                    onchange="${gvc.event((e) => {
-                                        realTotal = e.value;
+                                        orderDetail.total = e.value;
                                         gvc.notifyDataChange(id);
                                     })}">
                         </div>
                         <div class="d-flex"
                              style="font-size: 16px;font-weight: 400;margin-bottom: 12px;">
                             <div style="">找零</div>
-                            <div class="ms-auto" style="">${realTotal - parseInt(orderDetail.total, 10)}</div>
+                            <div class="ms-auto" style="">${orderDetail.total - parseInt(orderDetail.total, 10)}</div>
                         </div>`);
                                 }
                                 view.push(html `
@@ -345,11 +392,20 @@ ${(decodeURI(gvc.glitter.getUrlParameter('CVSStoreName') || '')) || '請選擇�
                                         dialog.errorMessage({ text: '請先選擇商品!' });
                                         return;
                                     }
+                                    if (obj.ogOrderData.user_info.shipment === 'normal' && !obj.ogOrderData.user_info.address) {
+                                        dialog.errorMessage({ text: '請輸入地址!' });
+                                        return;
+                                    }
+                                    if (['FAMIC2C', 'HILIFEC2C', 'OKMARTC2C', 'UNIMARTC2C'].includes(obj.ogOrderData.user_info.shipment) && (!gvc.glitter.getUrlParameter('CVSStoreName'))) {
+                                        dialog.errorMessage({ text: '請選擇到店門市!' });
+                                        return;
+                                    }
                                     orderDetail.pos_info = {};
                                     orderDetail.pos_info.payment = vm.paySelect;
+                                    orderDetail.user_info = obj.ogOrderData.user_info;
                                     let passData = JSON.parse(JSON.stringify(orderDetail));
                                     passData.total = orderDetail.total;
-                                    passData.realTotal = (realTotal > 0) ? realTotal : orderDetail.total;
+                                    passData.orderDetail.total = (orderDetail.total > 0) ? orderDetail.total : orderDetail.total;
                                     passData.orderStatus = 1;
                                     passData.pay_status = 1;
                                     if (vm.paySelect === 'cash') {
@@ -381,11 +437,22 @@ ${(decodeURI(gvc.glitter.getUrlParameter('CVSStoreName') || '')) || '請選擇�
             };
         });
     }
+    static spaceView() {
+        return `  <div class="w-100" style="margin: 16px 0;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="398" height="2"
+                             viewBox="0 0 398 2" fill="none">
+                            <path d="M0 1H398" stroke="#DDDDDD" stroke-dasharray="8 8"/>
+                        </svg>
+                    </div>`;
+    }
     static storeHistory(orderDetail) {
         localStorage.setItem('pos_order_detail', JSON.stringify(orderDetail));
     }
     static clearHistory() {
         localStorage.removeItem('pos_order_detail');
+        const url = new URL(location.href);
+        url.search = `?app-id=${window.glitter.getUrlParameter('app-id')}`;
+        window.history.replaceState({}, document.title, url.href);
     }
     static cashFinish(gvc, orderDetail, vm, passData) {
         gvc.addStyle(`
@@ -577,11 +644,21 @@ ${(decodeURI(gvc.glitter.getUrlParameter('CVSStoreName') || '')) || '請選擇�
                         };
                     }
                 }
+                passData.user_info.shipment = orderDetail.user_info.shipment;
+                if (orderDetail.user_info.shipment === 'normal') {
+                    passData.user_info.address = orderDetail.user_info.address;
+                }
+                else if (['FAMIC2C', 'HILIFEC2C', 'OKMARTC2C', 'UNIMARTC2C'].includes(orderDetail.user_info.shipment)) {
+                    ['CVSAddress', 'CVSOutSide', 'CVSStoreID', 'CVSStoreName', 'LogisticsSubType'].map((dd) => {
+                        passData.user_info[dd] = decodeURIComponent(gvc.glitter.getUrlParameter(dd));
+                    });
+                }
                 gvc.glitter.closeDiaLog();
                 dialog.dataLoading({
                     visible: true,
                     text: `訂單成立中`
                 });
+                passData.user_info.email = passData.user_info.email || 'no-email';
                 ApiShop.toPOSCheckout(passData).then(res => {
                     if (!res.result) {
                         dialog.dataLoading({ visible: false });
@@ -596,6 +673,7 @@ ${(decodeURI(gvc.glitter.getUrlParameter('CVSStoreName') || '')) || '請選擇�
                         }
                     }
                     else {
+                        PaymentPage.clearHistory();
                         if (res.response.data.invoice && (c_vm.invoice_select !== 'carry')) {
                             gvc.glitter.runJsInterFace('print_invoice', res.response.data.invoice, () => {
                             });
