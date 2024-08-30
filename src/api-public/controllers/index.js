@@ -85,7 +85,6 @@ const whiteList = [
     { url: config_1.config.getRoute(config_1.config.public_route.ec + '/product', 'public'), method: 'GET' },
     { url: config_1.config.getRoute(config_1.config.public_route.ec + '/product/variants', 'public'), method: 'GET' },
     { url: config_1.config.getRoute(config_1.config.public_route.ec + '/checkout', 'public'), method: 'POST' },
-    { url: config_1.config.getRoute(config_1.config.public_route.ec + '/pos/checkout', 'public'), method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.public_route.ec + '/checkout/repay', 'public'), method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.public_route.ec + '/checkout/preview', 'public'), method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.public_route.ec + '/redirect', 'public'), method: 'POST' },

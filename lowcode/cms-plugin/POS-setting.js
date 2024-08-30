@@ -158,9 +158,9 @@ export class POSSetting {
             paySelect: "cash"
         };
         const html = String.raw;
-        let orderDetail = new OrderDetail(0, 0);
+        let orderDetail = JSON.parse(JSON.stringify(new OrderDetail(0, 0)));
         glitter.share.clearOrderData = () => {
-            orderDetail = new OrderDetail(0, 0);
+            orderDetail = JSON.parse(JSON.stringify(new OrderDetail(0, 0)));
         };
         if (localStorage.getItem('pos_order_detail')) {
             vm.type = 'payment';
@@ -170,7 +170,7 @@ export class POSSetting {
             orderDetail.user_info.shipment = 'now';
         }
         if (!orderDetail.lineItems || orderDetail.lineItems.length === 0) {
-            vm.type = 'products';
+            vm.type = 'menu';
         }
         return gvc.bindView(() => {
             return {
