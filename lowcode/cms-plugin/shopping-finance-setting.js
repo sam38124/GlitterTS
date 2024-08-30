@@ -59,7 +59,7 @@ export class ShoppingFinanceSetting {
                                 if (data.response.result[0]) {
                                     keyData = data.response.result[0].value;
                                 }
-                                keyData.TYPE = keyData.TYPE || 'newWebPay';
+                                keyData.TYPE = undefined;
                                 resolve(gvc.bindView(() => {
                                     const id = gvc.glitter.getUUID();
                                     return {
@@ -83,9 +83,16 @@ export class ShoppingFinanceSetting {
                                                                         </div>`,
                                                     value: 'ecPay',
                                                 },
+                                                {
+                                                    title: html ` <div class="d-flex flex-column guide2-3 ">
+                                                                            線下付款
+                                                                            <span class="" style="color:#8D8D8D;font-size: 12px;">不執行線上付款，由店家自行與消費者商議付款方式</span>
+                                                                        </div>`,
+                                                    value: 'off_line',
+                                                },
                                             ]
                                                 .map((dd) => {
-                                                return html ` <div>
+                                                return html ` <div class="">
                                                                             ${[
                                                     html ` <div
                                                                                     class="d-flex align-items-center cursor_pointer"
@@ -116,14 +123,14 @@ export class ShoppingFinanceSetting {
                                                                                     <div class="ms-2 border-end position-absolute h-100" style="left: 0px;"></div>
                                                                                     <div class="flex-fill " style="margin-left:30px;max-width: 100%;">
                                                                                         ${(() => {
-                                                        var _a;
                                                         if (keyData.TYPE !== dd.value) {
                                                             return ``;
                                                         }
                                                         else if (keyData.TYPE === 'off_line') {
-                                                            keyData.off_line_support = (_a = keyData.off_line_support) !== null && _a !== void 0 ? _a : {};
+                                                            keyData.off_line_support = {};
                                                             return [
-                                                                BgWidget.inlineCheckBox({
+                                                                html `<div class="guide2-4">
+                                                                                                        ${BgWidget.inlineCheckBox({
                                                                     title: '付款方式(多選)',
                                                                     gvc: gvc,
                                                                     def: ['atm', 'line', 'cash_on_delivery'].filter((dd) => {
@@ -151,7 +158,8 @@ export class ShoppingFinanceSetting {
                                                                         });
                                                                     },
                                                                     type: 'multiple',
-                                                                }),
+                                                                })}
+                                                                                                    </div>`,
                                                                 `<div class="my-3 w-100 border"></div>`,
                                                                 ShoppingFinanceSetting.atm(gvc, keyData),
                                                                 ShoppingFinanceSetting.line_pay(gvc, keyData),
@@ -266,41 +274,10 @@ export class ShoppingFinanceSetting {
                                                                         </div>`;
                                             })
                                                 .join('')}
-                                                                <div class="my-3 border-bottom"></div>
-                                                                <div class="tx_normal fw-bold">線下付款</div>
+<!--                                                                <div class="my-3 border-bottom"></div>-->
+<!--                                                                <div class="tx_normal fw-bold">線下付款</div>-->
                                                                 ${[
-                                                BgWidget.inlineCheckBox({
-                                                    title: '付款方式(多選)',
-                                                    gvc: gvc,
-                                                    def: ['atm', 'line', 'cash_on_delivery'].filter((dd) => {
-                                                        return keyData.off_line_support[dd];
-                                                    }),
-                                                    array: [
-                                                        {
-                                                            title: 'ATM銀行轉帳',
-                                                            value: 'atm',
-                                                        },
-                                                        {
-                                                            title: 'LINE Pay',
-                                                            value: 'line',
-                                                        },
-                                                        {
-                                                            title: '貨到付款',
-                                                            value: 'cash_on_delivery',
-                                                        },
-                                                    ],
-                                                    callback: (array) => {
-                                                        ['atm', 'line', 'cash_on_delivery'].map((dd) => {
-                                                            keyData.off_line_support[dd] = !!array.find((d1) => {
-                                                                return d1 === dd;
-                                                            });
-                                                        });
-                                                    },
-                                                    type: 'multiple',
-                                                }),
-                                                `<div class="my-1 w-100 border-bottom"></div>`,
-                                                ShoppingFinanceSetting.atm(gvc, keyData),
-                                                ShoppingFinanceSetting.line_pay(gvc, keyData),
+                                                `<!--<div class="my-1 w-100 border-bottom"></div>-->`,
                                             ].join('')}
                                                             </div>
                                                         `;
@@ -328,7 +305,7 @@ export class ShoppingFinanceSetting {
                 }))}
                         </div>
                     `, BgWidget.getContainerWidth());
-            },
+            }, divCreate: { class: 'guideOverflow' },
         });
     }
     static line_pay(gvc, keyData) {

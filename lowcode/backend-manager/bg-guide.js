@@ -21,7 +21,7 @@ export class BgGuide {
                     return this.drawInitGuide();
                 }
             }, {
-                value: "shippment-setting",
+                value: "logistics_setting",
                 title: "運費設定",
                 innerHTML: () => {
                     return this.drawInitGuide();
@@ -59,8 +59,8 @@ export class BgGuide {
     showGuideInfo() {
         console.log(this.guidePage[this.guide]);
     }
-    detectClickThrough(targetSelector, clickEvent) {
-        let target = document.querySelector(targetSelector);
+    detectClickThrough(target, clickEvent) {
+        console.log("target -- ", target);
         const handleClick = () => {
             setTimeout(() => {
                 clickEvent();
@@ -80,9 +80,22 @@ export class BgGuide {
     leaveGuide(vm) {
         vm.step = -1;
         const element = document.querySelector('.guide-BG');
+        this.eventSet.forEach((del) => {
+            del();
+        });
         element.remove();
     }
-    drawFinanceWayGuide() {
+    holeBG(left, right, top, bottom) {
+        return `clip-path: polygon(0% 0%, 0% 100%, ${left.toFixed(0)}px 100%, ${left.toFixed(0)}px ${top.toFixed(0)}px, ${right.toFixed(0)}px ${top.toFixed(0)}px, ${right.toFixed(0)}px ${bottom.toFixed(0)}px, ${left.toFixed(0)}px ${bottom.toFixed(0)}px, ${left.toFixed(0)}px 100%, 100% 100%, 100% 0%);`;
+    }
+    preventDefault(e) {
+        e.preventDefault();
+    }
+    findIframeDom(cssSelector) {
+        let iframe = document.querySelector(`iframe`);
+        return iframe === null || iframe === void 0 ? void 0 : iframe.contentWindow.document.querySelector(cssSelector);
+    }
+    drawShipmentGuide() {
         let gvc = this.gvc;
         let vm = {
             guide: this.guide,
@@ -100,7 +113,7 @@ export class BgGuide {
                         const rect = (target) ? target.getBoundingClientRect() : "";
                         if (rect) {
                             BG.style.clipPath = `polygon(0 0, 100% 0, 100% 100%, 0 100%, 0 ${rect.bottom}px, ${rect.right}px ${rect.bottom}px, ${rect.right}px ${rect.top}px, 0 ${rect.top}px)`;
-                            this.detectClickThrough(`.guide2-2`, () => {
+                            this.detectClickThrough(target, () => {
                                 vm.step = 3;
                                 this.gvc.notifyDataChange('financeInit');
                             });
@@ -148,6 +161,255 @@ export class BgGuide {
                         if (rect) {
                             BG.style.clipPath = `polygon(0 0, 100% 0, 100% 100%, 0 100%, 0 ${rect.bottom}px, ${rect.right}px ${rect.bottom}px, ${rect.right}px ${rect.top}px, 0 ${rect.top}px)`;
                             this.detectClickThrough(`.mainRow1`, () => {
+                                vm.step = 2;
+                                this.gvc.notifyDataChange('financeInit');
+                            });
+                            return html `
+                                <div style="padding-left: 18px;width: 350px;height: 113px;flex-shrink: 0;filter: drop-shadow(2px 2px 10px rgba(0, 0, 0, 0.15));position: absolute;top: ${rect.bottom + 12}px;left: ${rect.right + 12}px;transform: translateY(-100%);z-index:1033;">
+                                    <div style="position: relative;border-radius: 10px;">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="22"
+                                             viewBox="0 0 18 22" fill="none"
+                                             style="position: absolute;bottom: 19px;left: -18px;">
+                                            <path d="M-5.24537e-07 11L18 0.607696L18 21.3923L-5.24537e-07 11Z"
+                                                  fill="white"/>
+                                        </svg>
+                                        <div style="display: flex;padding: 12px 24px;gap: 10px;width: 100%;background: #FEAD20;border-radius: 10px 10px 0 0;color:white;font-size: 20px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 0.8px;">
+                                            金流
+                                            <div class="d-flex ms-auto align-items-center"
+                                                 style="gap:10px;color: #FFF;font-size: 16px;font-style: normal;font-weight: 400;line-height: normal;letter-spacing: 0.64px;">
+                                                步驟 1/6
+                                                <svg style="cursor: pointer;" xmlns="http://www.w3.org/2000/svg"
+                                                     width="14" height="13" viewBox="0 0 14 13" fill="none"
+                                                     onclick="${gvc.event(() => {
+                                this.leaveGuide(vm);
+                            })}">
+                                                    <path d="M1 0.5L13 12.5" stroke="white" stroke-linecap="round"/>
+                                                    <path d="M13 0.5L1 12.5" stroke="white" stroke-linecap="round"/>
+                                                </svg>
+                                            </div>
+                                        </div>
+                                        <div style="background: #FFF;width:100%;padding: 18px 24px;display: flex;align-items: center;border-radius: 0 0 10px 10px;font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%; /* 25.6px */letter-spacing: 0.64px;">
+                                            點擊<span
+                                                style="font-style: normal;font-weight: 700;line-height: 160%;letter-spacing: 0.64px;">「商店設定」</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                        return ``;
+                    }
+                }
+            }, divCreate: {}
+        });
+    }
+    drawFinanceWayGuide() {
+        let gvc = this.gvc;
+        let vm = {
+            guide: this.guide,
+            step: this.step,
+        };
+        let tempHTML = ``;
+        return gvc.bindView({
+            bind: "financeInit",
+            dataList: [],
+            view: () => {
+                const that = this;
+                const BG = document.querySelector(`.guide-BG`);
+                switch (vm.step) {
+                    case 2: {
+                        BG.style.clipPath = ``;
+                        const target = document.querySelector(`.guide2-2`);
+                        const rect = (target) ? target.getBoundingClientRect() : "";
+                        if (rect) {
+                            BG.style.clipPath = `polygon(0 0, 100% 0, 100% 100%, 0 100%, 0 ${rect.bottom}px, ${rect.right}px ${rect.bottom}px, ${rect.right}px ${rect.top}px, 0 ${rect.top}px)`;
+                            this.detectClickThrough(target, () => {
+                                vm.step = 3;
+                                this.gvc.notifyDataChange('financeInit');
+                            });
+                            return html `
+                                <div style="padding-left: 18px;width: 350px;height: 113px;flex-shrink: 0;filter: drop-shadow(2px 2px 10px rgba(0, 0, 0, 0.15));position: absolute;top: ${rect.bottom + 12}px;left: ${rect.right + 12}px;transform: translateY(-100%);z-index:1033;">
+                                    <div style="position: relative;border-radius: 10px;">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="22"
+                                             viewBox="0 0 18 22" fill="none"
+                                             style="position: absolute;bottom: 19px;left: -18px;">
+                                            <path d="M-5.24537e-07 11L18 0.607696L18 21.3923L-5.24537e-07 11Z"
+                                                  fill="white"/>
+                                        </svg>
+                                        <div style="display: flex;padding: 12px 24px;gap: 10px;width: 100%;background: #FEAD20;border-radius: 10px 10px 0 0;color:white;font-size: 20px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 0.8px;">
+                                            金流設定
+                                            <div class="d-flex ms-auto align-items-center"
+                                                 style="gap:10px;color: #FFF;font-size: 16px;font-style: normal;font-weight: 400;line-height: normal;letter-spacing: 0.64px;">
+                                                步驟 2/6
+                                                <svg style="cursor: pointer;" xmlns="http://www.w3.org/2000/svg"
+                                                     width="14" height="13" viewBox="0 0 14 13" fill="none"
+                                                     onclick="${gvc.event(() => {
+                                this.leaveGuide(vm);
+                            })}">
+                                                    <path d="M1 0.5L13 12.5" stroke="white" stroke-linecap="round"/>
+                                                    <path d="M13 0.5L1 12.5" stroke="white" stroke-linecap="round"/>
+                                                </svg>
+                                            </div>
+                                        </div>
+                                        <div style="background: #FFF;width:100%;padding: 18px 24px;display: flex;align-items: center;border-radius: 0 0 10px 10px;font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%; /* 25.6px */letter-spacing: 0.64px;">
+                                            點擊<span
+                                                style="font-style: normal;font-weight: 700;line-height: 160%;letter-spacing: 0.64px;">「金流設定」</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                        return ``;
+                    }
+                    case 3: {
+                        function disableScroll() {
+                            that.findIframeDom('.guideOverflow').parentElement.style.overflow = 'hidden';
+                        }
+                        function enableScroll() {
+                            that.findIframeDom('.guideOverflow').parentElement.style.overflow = 'auto';
+                        }
+                        let iframeRect = undefined;
+                        let rect = undefined;
+                        let left = undefined;
+                        let top = undefined;
+                        let right = undefined;
+                        let bottom = undefined;
+                        BG.style.clipPath = ``;
+                        if (tempHTML == ``) {
+                            const timer = setInterval(() => {
+                                let iframe = document.querySelector(`iframe`);
+                                const target = iframe === null || iframe === void 0 ? void 0 : iframe.contentWindow.document.querySelector(`.guide2-3`);
+                                if (iframe && target) {
+                                    iframeRect = iframe.getBoundingClientRect();
+                                    rect = target.parentElement.parentElement.getBoundingClientRect();
+                                    left = rect.left + iframeRect.left;
+                                    top = rect.top + iframeRect.top;
+                                    right = rect.right + iframeRect.left;
+                                    bottom = rect.bottom + iframeRect.top;
+                                    if (target) {
+                                        function close() {
+                                            enableScroll();
+                                            BG.classList.remove(`guide2-3`);
+                                        }
+                                        this.detectClickThrough(target.parentElement.parentElement, () => {
+                                            close();
+                                            vm.step++;
+                                            this.gvc.notifyDataChange('financeInit');
+                                        });
+                                        clearInterval(timer);
+                                        gvc.addStyle(`
+                                            .guide2-3 {
+                                                ${this.holeBG(left, right, top, bottom)}
+                                            }
+                                        `);
+                                        disableScroll();
+                                        BG.classList.add(`guide2-3`);
+                                        tempHTML = html `
+                                            <div class="d-flex flex-column"
+                                                 style="width: 332px;height: 131px;flex-shrink: 0;position: absolute;left: ${left}px;top:${rect.bottom + iframeRect.top + 12}px;">
+
+                                                <div class="w-100" style="padding-left: 20px;height:24px;">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="18"
+                                                         viewBox="0 0 22 18" fill="none">
+                                                        <path d="M11.002 0L21.3943 18L0.609648 18L11.002 0Z"
+                                                              fill="#FEAD20"/>
+                                                    </svg>
+                                                </div>
+                                                <div class="w-100" style="border-radius: 10px;">
+                                                    <div style="display: flex;padding: 12px 24px;gap: 10px;width: 100%;background: #FEAD20;border-radius: 10px 10px 0 0;color:white;font-size: 20px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 0.8px;">
+                                                        選擇線下付款
+                                                        <div class="d-flex ms-auto align-items-center"
+                                                             style="gap:10px;color: #FFF;font-size: 16px;font-style: normal;font-weight: 400;line-height: normal;letter-spacing: 0.64px;">
+                                                            步驟 3/6
+                                                            <svg style="cursor: pointer;"
+                                                                 xmlns="http://www.w3.org/2000/svg"
+                                                                 width="14" height="13" viewBox="0 0 14 13" fill="none"
+                                                                 onclick="${gvc.event(() => {
+                                            this.leaveGuide(vm);
+                                        })}">
+                                                                <path d="M1 0.5L13 12.5" stroke="white"
+                                                                      stroke-linecap="round"/>
+                                                                <path d="M13 0.5L1 12.5" stroke="white"
+                                                                      stroke-linecap="round"/>
+                                                            </svg>
+                                                        </div>
+                                                    </div>
+                                                    <div style="background: #FFF;width:100%;padding: 18px 24px;display: flex;align-items: center;border-radius: 0 0 10px 10px;font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.64px;">
+                                                        點擊線下付款，設定付款方式
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        `;
+                                        gvc.notifyDataChange(`financeInit`);
+                                    }
+                                }
+                            }, 500);
+                        }
+                        return tempHTML;
+                    }
+                    case 4: {
+                        console.log(this.findIframeDom('.guide2-4'));
+                        let iframe = document.querySelector(`iframe`);
+                        let iframeRect = iframe.getBoundingClientRect();
+                        let target = this.findIframeDom('.guide2-4');
+                        let rect = target.getBoundingClientRect();
+                        let left = rect.left + iframeRect.left;
+                        let top = rect.top + iframeRect.top;
+                        let right = rect.right + iframeRect.left;
+                        let bottom = rect.bottom + iframeRect.top;
+                        let position = [];
+                        BG.classList.add(`guide2-4`);
+                        gvc.addStyle(`
+                            .guide2-4 {
+                                ${this.holeBG(left, right, top, bottom)}
+                            }
+                        `);
+                        return html `
+                            <div class="d-flex flex-column"
+                                 style="width: 332px;height: 209px;flex-shrink: 0;position: absolute;left: ${left}px;top:${rect.bottom + iframeRect.top + 24}px;">
+
+                                <div class="w-100" style="padding-left: 20px;height:23px;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="18"
+                                         viewBox="0 0 22 18" fill="none">
+                                        <path d="M11.002 0L21.3943 18L0.609648 18L11.002 0Z"
+                                              fill="#FEAD20"/>
+                                    </svg>
+                                </div>
+                                <div class="w-100" style="border-radius: 10px;">
+                                    <div style="display: flex;padding: 12px 24px;gap: 10px;width: 100%;background: #FEAD20;border-radius: 10px 10px 0 0;color:white;font-size: 20px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 0.8px;">
+                                        付款方式
+                                        <div class="d-flex ms-auto align-items-center"
+                                             style="gap:10px;color: #FFF;font-size: 16px;font-style: normal;font-weight: 400;line-height: normal;letter-spacing: 0.64px;">
+                                            步驟 4/6
+                                            <svg style="cursor: pointer;"
+                                                 xmlns="http://www.w3.org/2000/svg"
+                                                 width="14" height="13" viewBox="0 0 14 13" fill="none"
+                                                 onclick="${gvc.event(() => {
+                            this.leaveGuide(vm);
+                        })}">
+                                                <path d="M1 0.5L13 12.5" stroke="white"
+                                                      stroke-linecap="round"/>
+                                                <path d="M13 0.5L1 12.5" stroke="white"
+                                                      stroke-linecap="round"/>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div style="background: #FFF;width:100%;padding: 18px 24px;display: flex;align-items: center;border-radius: 0 0 10px 10px;font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.64px;">
+                                        選擇ATM銀行轉帳
+                                        <div class="d-flex align-items-center justify-content-between">
+                                            <div>上一步</div>
+                                            <div>下一步</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    default: {
+                        const target = document.querySelector(`.mainRow1`);
+                        const rect = (target) ? target.getBoundingClientRect() : "";
+                        if (rect) {
+                            BG.style.clipPath = `polygon(0 0, 100% 0, 100% 100%, 0 100%, 0 ${rect.bottom}px, ${rect.right}px ${rect.bottom}px, ${rect.right}px ${rect.top}px, 0 ${rect.top}px)`;
+                            this.detectClickThrough(target, () => {
                                 vm.step = 2;
                                 this.gvc.notifyDataChange('financeInit');
                             });
