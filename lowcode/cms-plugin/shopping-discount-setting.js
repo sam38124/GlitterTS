@@ -232,6 +232,7 @@ export class ShoppingDiscountSetting {
             value: '0',
             for: 'all',
             forKey: [],
+            device: ['normal'],
             rule: 'min_price',
             ruleValue: 1000,
             startDate: this.getDateTime().date,
@@ -345,6 +346,7 @@ export class ShoppingDiscountSetting {
             return {
                 bind: viewID,
                 view: () => {
+                    var _a;
                     return BgWidget.container([
                         html `<div class="d-flex w-100 align-items-center">
                                 ${BgWidget.goBack(gvc.event(() => {
@@ -354,120 +356,124 @@ export class ShoppingDiscountSetting {
                             </div>`,
                         html `<div class="d-flex justify-content-center ${document.body.clientWidth < 768 ? 'flex-column' : ''}" style="gap: 24px">
                                 ${BgWidget.container([
-                            BgWidget.mainCard(html ` <div class="tx_700">活動標題</div>
-                                                ${BgWidget.mbContainer(18)}
-                                                ${BgWidget.editeInput({
-                                gvc: gvc,
-                                title: '',
-                                default: voucherData.title,
-                                placeHolder: '請輸入活動標題',
-                                callback: (text) => {
-                                    voucherData.title = text;
-                                },
-                            })}
-                                                ${BgWidget.grayNote('顧客將會在「購物車」與「結帳」看見此標題', 'margin-left: 4px;')}`),
-                            BgWidget.mainCard(html `<div style="display: flex; flex-direction: column; gap: 18px;">
-                                                <div class="gray-bottom-line-18">
-                                                    <div class="tx_700">活動方式</div>
+                            BgWidget.mainCard([
+                                html ` <div class="tx_700">活動標題</div>
+                                                    ${BgWidget.mbContainer(18)}
+                                                    ${BgWidget.editeInput({
+                                    gvc: gvc,
+                                    title: '',
+                                    default: voucherData.title,
+                                    placeHolder: '請輸入活動標題',
+                                    callback: (text) => {
+                                        voucherData.title = text;
+                                    },
+                                })}
+                                                    ${BgWidget.grayNote('顧客將會在「購物車」與「結帳」看見此標題', 'margin-left: 4px;')}`,
+                                html ` <div class="tx_700">活動狀態</div>
+                                                    ${BgWidget.mbContainer(12)}
+                                                    ${BgWidget.switchTextButton(gvc, voucherData.status === 1, { left: '關閉', right: '啟用' }, (bool) => {
+                                    voucherData.status = bool ? 1 : 0;
+                                })}`,
+                            ].join(BgWidget.horizontalLine())),
+                            BgWidget.mainCard([
+                                html `<div class="tx_700">活動方式</div>
                                                     ${BgWidget.mbContainer(18)}
                                                     ${BgWidget.multiCheckboxContainer(gvc, [
-                                {
-                                    key: 'auto',
-                                    name: '自動折扣',
-                                    innerHtml: BgWidget.grayNote('顧客將在結帳時，自動獲得折扣'),
-                                },
-                                {
-                                    key: 'code',
-                                    name: '優惠代碼',
-                                    innerHtml: (() => {
-                                        const id = glitter.getUUID();
-                                        return gvc.bindView({
-                                            bind: id,
-                                            view: () => {
-                                                var _a;
-                                                return gvc.map([
-                                                    BgWidget.grayNote('顧客可在結帳時輸入優惠代碼，來獲得折扣'),
-                                                    BgWidget.editeInput({
-                                                        gvc: gvc,
-                                                        title: '',
-                                                        default: (_a = voucherData.code) !== null && _a !== void 0 ? _a : '',
-                                                        placeHolder: '請輸入優惠券代碼',
-                                                        callback: (text) => {
-                                                            voucherData.code = text;
-                                                        },
-                                                        endText: html `<div class="d-flex justify-content-end">
+                                    {
+                                        key: 'auto',
+                                        name: '自動折扣',
+                                        innerHtml: BgWidget.grayNote('顧客將在結帳時，自動獲得折扣'),
+                                    },
+                                    {
+                                        key: 'code',
+                                        name: '優惠代碼',
+                                        innerHtml: (() => {
+                                            const id = glitter.getUUID();
+                                            return gvc.bindView({
+                                                bind: id,
+                                                view: () => {
+                                                    var _a;
+                                                    return gvc.map([
+                                                        BgWidget.grayNote('顧客可在結帳時輸入優惠代碼，來獲得折扣'),
+                                                        BgWidget.editeInput({
+                                                            gvc: gvc,
+                                                            title: '',
+                                                            default: (_a = voucherData.code) !== null && _a !== void 0 ? _a : '',
+                                                            placeHolder: '請輸入優惠券代碼',
+                                                            callback: (text) => {
+                                                                voucherData.code = text;
+                                                            },
+                                                            endText: html `<div class="d-flex justify-content-end">
                                                                                         ${BgWidget.mbContainer(8)}
                                                                                         ${BgWidget.blueNote(document.body.clientWidth > 768 ? '隨機產生優惠代碼' : '隨機產生', gvc.event(() => {
-                                                            voucherData.code = Tool.randomString(6).toUpperCase();
-                                                            gvc.notifyDataChange(id);
-                                                        }))}
+                                                                voucherData.code = Tool.randomString(6).toUpperCase();
+                                                                gvc.notifyDataChange(id);
+                                                            }))}
                                                                                     </div>`,
-                                                    }),
-                                                ]);
-                                            },
-                                        });
-                                    })(),
-                                },
-                                {
-                                    key: 'distribution',
-                                    name: '供分銷連結或一頁式網頁使用',
-                                },
-                            ], [voucherData.trigger], (text) => {
-                                if (text[0] === 'auto') {
-                                    voucherData.code = undefined;
-                                }
-                                if (text[0] === 'distribution') {
-                                    voucherData.for = 'all';
-                                }
-                                voucherData.trigger = text[0];
-                                gvc.notifyDataChange(viewID);
-                            }, { single: true })}
-                                                </div>
-                                                <div>
-                                                    <div class="tx_700">活動對象</div>
+                                                        }),
+                                                    ]);
+                                                },
+                                            });
+                                        })(),
+                                    },
+                                    {
+                                        key: 'distribution',
+                                        name: '供分銷連結或一頁式網頁使用',
+                                    },
+                                ], [voucherData.trigger], (text) => {
+                                    if (text[0] === 'auto') {
+                                        voucherData.code = undefined;
+                                    }
+                                    if (text[0] === 'distribution') {
+                                        voucherData.for = 'all';
+                                    }
+                                    voucherData.trigger = text[0];
+                                    gvc.notifyDataChange(viewID);
+                                }, { single: true })}`,
+                                html `<div class="tx_700">活動對象</div>
                                                     ${BgWidget.mbContainer(18)}
                                                     ${gvc.bindView(() => {
-                                const id = gvc.glitter.getUUID();
-                                return {
-                                    bind: id,
-                                    view: () => {
-                                        var _a;
-                                        return html `
+                                    const id = gvc.glitter.getUUID();
+                                    return {
+                                        bind: id,
+                                        view: () => {
+                                            var _a;
+                                            return html `
                                                                     <div style="display: flex; flex-direction: column; gap: 8px;">
                                                                         ${BgWidget.selectFilter({
-                                            gvc: gvc,
-                                            callback: (text) => {
-                                                voucherData.target = text;
-                                                gvc.notifyDataChange(id);
-                                            },
-                                            default: (_a = voucherData.target) !== null && _a !== void 0 ? _a : 'all',
-                                            options: [
-                                                { key: 'all', value: '所有顧客' },
-                                                { key: 'customer', value: '特定顧客' },
-                                                { key: 'levels', value: '會員等級' },
-                                                { key: 'group', value: '顧客分群' },
-                                            ],
-                                            style: 'width: 100%;',
-                                        })}
+                                                gvc: gvc,
+                                                callback: (text) => {
+                                                    voucherData.target = text;
+                                                    gvc.notifyDataChange(id);
+                                                },
+                                                default: (_a = voucherData.target) !== null && _a !== void 0 ? _a : 'all',
+                                                options: [
+                                                    { key: 'all', value: '所有顧客' },
+                                                    { key: 'customer', value: '特定顧客' },
+                                                    { key: 'levels', value: '會員等級' },
+                                                    { key: 'group', value: '顧客分群' },
+                                                ],
+                                                style: 'width: 100%;',
+                                            })}
                                                                         <div>
                                                                             ${(() => {
-                                            switch (voucherData.target) {
-                                                case 'all':
-                                                    return '';
-                                                case 'customer':
-                                                    return gvc.bindView(() => {
-                                                        const customVM = {
-                                                            id: gvc.glitter.getUUID(),
-                                                            loading: true,
-                                                            dataList: [],
-                                                        };
-                                                        return {
-                                                            bind: customVM.id,
-                                                            view: () => {
-                                                                if (customVM.loading) {
-                                                                    return BgWidget.spinner();
-                                                                }
-                                                                return html `
+                                                switch (voucherData.target) {
+                                                    case 'all':
+                                                        return '';
+                                                    case 'customer':
+                                                        return gvc.bindView(() => {
+                                                            const customVM = {
+                                                                id: gvc.glitter.getUUID(),
+                                                                loading: true,
+                                                                dataList: [],
+                                                            };
+                                                            return {
+                                                                bind: customVM.id,
+                                                                view: () => {
+                                                                    if (customVM.loading) {
+                                                                        return BgWidget.spinner();
+                                                                    }
+                                                                    return html `
                                                                                                         <div class="d-flex flex-column p-2" style="gap: 18px;">
                                                                                                             <div
                                                                                                                 class="d-flex align-items-center gray-bottom-line-18"
@@ -477,196 +483,208 @@ export class ShoppingDiscountSetting {
                                                                                                                     <div class="tx_normal">顧客名稱</div>
                                                                                                                 </div>
                                                                                                                 ${BgWidget.grayButton('查看全部', gvc.event(() => {
-                                                                    var _a;
-                                                                    BgWidget.selectDropDialog({
-                                                                        gvc: gvc,
-                                                                        title: '搜尋特定顧客',
-                                                                        tag: 'select_users',
-                                                                        updownOptions: FilterOptions.userOrderBy,
-                                                                        callback: (value) => {
-                                                                            voucherData.targetList = value;
-                                                                            customVM.loading = true;
-                                                                            gvc.notifyDataChange(customVM.id);
-                                                                        },
-                                                                        default: (_a = voucherData.targetList) !== null && _a !== void 0 ? _a : [],
-                                                                        api: (data) => {
-                                                                            return new Promise((resolve) => {
-                                                                                ApiUser.getUserListOrders({
-                                                                                    page: 0,
-                                                                                    limit: 99999,
-                                                                                    search: data.query,
-                                                                                    orderString: data.orderString,
-                                                                                }).then((dd) => {
-                                                                                    if (dd.response.data) {
-                                                                                        resolve(dd.response.data.map((item) => {
-                                                                                            var _a;
-                                                                                            return {
-                                                                                                key: item.userID,
-                                                                                                value: (_a = item.userData.name) !== null && _a !== void 0 ? _a : '（尚無姓名）',
-                                                                                                note: item.userData.email,
-                                                                                            };
-                                                                                        }));
-                                                                                    }
+                                                                        var _a;
+                                                                        BgWidget.selectDropDialog({
+                                                                            gvc: gvc,
+                                                                            title: '搜尋特定顧客',
+                                                                            tag: 'select_users',
+                                                                            updownOptions: FilterOptions.userOrderBy,
+                                                                            callback: (value) => {
+                                                                                voucherData.targetList = value;
+                                                                                customVM.loading = true;
+                                                                                gvc.notifyDataChange(customVM.id);
+                                                                            },
+                                                                            default: (_a = voucherData.targetList) !== null && _a !== void 0 ? _a : [],
+                                                                            api: (data) => {
+                                                                                return new Promise((resolve) => {
+                                                                                    ApiUser.getUserListOrders({
+                                                                                        page: 0,
+                                                                                        limit: 99999,
+                                                                                        search: data.query,
+                                                                                        orderString: data.orderString,
+                                                                                    }).then((dd) => {
+                                                                                        if (dd.response.data) {
+                                                                                            resolve(dd.response.data.map((item) => {
+                                                                                                var _a;
+                                                                                                return {
+                                                                                                    key: item.userID,
+                                                                                                    value: (_a = item.userData.name) !== null && _a !== void 0 ? _a : '（尚無姓名）',
+                                                                                                    note: item.userData.email,
+                                                                                                };
+                                                                                            }));
+                                                                                        }
+                                                                                    });
                                                                                 });
-                                                                            });
-                                                                        },
-                                                                        style: 'width: 100%;',
-                                                                    });
-                                                                }), { textStyle: 'font-weight: 400;' })}
+                                                                            },
+                                                                            style: 'width: 100%;',
+                                                                        });
+                                                                    }), { textStyle: 'font-weight: 400;' })}
                                                                                                             </div>
                                                                                                             ${obj.gvc.map(customVM.dataList.map((opt, index) => {
-                                                                    return html `<div class="form-check-label c_updown_label">
+                                                                        return html `<div class="form-check-label c_updown_label">
                                                                                                                         <span class="tx_normal">${index + 1}. ${opt.value}</span>
                                                                                                                         ${opt.note ? html ` <span class="tx_gray_12 ms-2">${opt.note}</span> ` : ''}
                                                                                                                     </div>`;
-                                                                }))}
+                                                                    }))}
                                                                                                         </div>
                                                                                                     `;
-                                                            },
-                                                            onCreate: () => {
-                                                                if (customVM.loading) {
-                                                                    if (voucherData.targetList.length === 0) {
-                                                                        setTimeout(() => {
-                                                                            customVM.dataList = [];
-                                                                            customVM.loading = false;
-                                                                            gvc.notifyDataChange(customVM.id);
-                                                                        }, 200);
+                                                                },
+                                                                onCreate: () => {
+                                                                    if (customVM.loading) {
+                                                                        if (voucherData.targetList.length === 0) {
+                                                                            setTimeout(() => {
+                                                                                customVM.dataList = [];
+                                                                                customVM.loading = false;
+                                                                                gvc.notifyDataChange(customVM.id);
+                                                                            }, 200);
+                                                                        }
+                                                                        else {
+                                                                            ApiUser.getUserList({
+                                                                                page: 0,
+                                                                                limit: 99999,
+                                                                                id: voucherData.targetList.join(','),
+                                                                            }).then((dd) => {
+                                                                                if (dd.response.data) {
+                                                                                    customVM.dataList = dd.response.data.map((item) => {
+                                                                                        return {
+                                                                                            key: item.userID,
+                                                                                            value: item.userData.name,
+                                                                                            note: item.userData.email,
+                                                                                        };
+                                                                                    });
+                                                                                }
+                                                                                customVM.loading = false;
+                                                                                gvc.notifyDataChange(customVM.id);
+                                                                            });
+                                                                        }
+                                                                    }
+                                                                },
+                                                            };
+                                                        });
+                                                    case 'levels':
+                                                        return (() => {
+                                                            const levelVM = {
+                                                                id: gvc.glitter.getUUID(),
+                                                                loading: true,
+                                                                dataList: [],
+                                                            };
+                                                            return gvc.bindView({
+                                                                bind: levelVM.id,
+                                                                view: () => {
+                                                                    var _a;
+                                                                    if (levelVM.loading) {
+                                                                        return BgWidget.spinner({ textNone: true });
                                                                     }
                                                                     else {
-                                                                        ApiUser.getUserList({
-                                                                            page: 0,
-                                                                            limit: 99999,
-                                                                            id: voucherData.targetList.join(','),
-                                                                        }).then((dd) => {
-                                                                            if (dd.response.data) {
-                                                                                customVM.dataList = dd.response.data.map((item) => {
-                                                                                    return {
-                                                                                        key: item.userID,
-                                                                                        value: item.userData.name,
-                                                                                        note: item.userData.email,
-                                                                                    };
-                                                                                });
-                                                                            }
-                                                                            customVM.loading = false;
-                                                                            gvc.notifyDataChange(customVM.id);
+                                                                        return BgWidget.selectDropList({
+                                                                            gvc: gvc,
+                                                                            callback: (value) => {
+                                                                                voucherData.targetList = value;
+                                                                                gvc.notifyDataChange(id);
+                                                                            },
+                                                                            default: (_a = voucherData.targetList) !== null && _a !== void 0 ? _a : [],
+                                                                            options: levelVM.dataList,
+                                                                            style: 'width: 100%;',
                                                                         });
                                                                     }
-                                                                }
-                                                            },
-                                                        };
-                                                    });
-                                                case 'levels':
-                                                    return (() => {
-                                                        const levelVM = {
-                                                            id: gvc.glitter.getUUID(),
-                                                            loading: true,
-                                                            dataList: [],
-                                                        };
-                                                        return gvc.bindView({
-                                                            bind: levelVM.id,
-                                                            view: () => {
-                                                                var _a;
-                                                                if (levelVM.loading) {
-                                                                    return BgWidget.spinner({ textNone: true });
-                                                                }
-                                                                else {
-                                                                    return BgWidget.selectDropList({
-                                                                        gvc: gvc,
-                                                                        callback: (value) => {
-                                                                            voucherData.targetList = value;
-                                                                            gvc.notifyDataChange(id);
-                                                                        },
-                                                                        default: (_a = voucherData.targetList) !== null && _a !== void 0 ? _a : [],
-                                                                        options: levelVM.dataList,
-                                                                        style: 'width: 100%;',
-                                                                    });
-                                                                }
-                                                            },
-                                                            divCreate: {
-                                                                style: 'width: 100%;',
-                                                            },
-                                                            onCreate: () => {
-                                                                if (levelVM.loading) {
-                                                                    ApiUser.getPublicConfig('member_level_config', 'manager').then((dd) => {
-                                                                        if (dd.result && dd.response.value) {
-                                                                            levelVM.dataList = dd.response.value.levels.map((item) => {
-                                                                                return {
-                                                                                    key: item.id,
-                                                                                    value: item.tag_name,
-                                                                                };
-                                                                            });
-                                                                            levelVM.loading = false;
-                                                                            gvc.notifyDataChange(levelVM.id);
-                                                                        }
-                                                                    });
-                                                                }
-                                                            },
-                                                        });
-                                                    })();
-                                                case 'group':
-                                                    return (() => {
-                                                        const levelVM = {
-                                                            id: gvc.glitter.getUUID(),
-                                                            loading: true,
-                                                            dataList: [],
-                                                        };
-                                                        return gvc.bindView({
-                                                            bind: levelVM.id,
-                                                            view: () => {
-                                                                var _a;
-                                                                if (levelVM.loading) {
-                                                                    return BgWidget.spinner({ textNone: true });
-                                                                }
-                                                                else {
-                                                                    return BgWidget.selectDropList({
-                                                                        gvc: gvc,
-                                                                        callback: (value) => {
-                                                                            voucherData.targetList = value;
-                                                                            gvc.notifyDataChange(id);
-                                                                        },
-                                                                        default: (_a = voucherData.targetList) !== null && _a !== void 0 ? _a : [],
-                                                                        options: levelVM.dataList,
-                                                                        style: 'width: 100%;',
-                                                                    });
-                                                                }
-                                                            },
-                                                            divCreate: {
-                                                                style: 'width: 100%;',
-                                                            },
-                                                            onCreate: () => {
-                                                                if (levelVM.loading) {
-                                                                    ApiUser.getUserGroupList().then((dd) => {
-                                                                        if (dd.result && dd.response.data) {
-                                                                            levelVM.dataList = dd.response.data
-                                                                                .filter((item) => {
-                                                                                return item.type !== 'level';
-                                                                            })
-                                                                                .map((item) => {
-                                                                                return {
-                                                                                    key: item.type,
-                                                                                    value: item.title,
-                                                                                };
-                                                                            });
-                                                                            levelVM.loading = false;
-                                                                            gvc.notifyDataChange(levelVM.id);
-                                                                        }
-                                                                    });
-                                                                }
-                                                            },
-                                                        });
-                                                    })();
-                                                default:
-                                                    return '';
-                                            }
-                                        })()}
+                                                                },
+                                                                divCreate: {
+                                                                    style: 'width: 100%;',
+                                                                },
+                                                                onCreate: () => {
+                                                                    if (levelVM.loading) {
+                                                                        ApiUser.getPublicConfig('member_level_config', 'manager').then((dd) => {
+                                                                            if (dd.result && dd.response.value) {
+                                                                                levelVM.dataList = dd.response.value.levels.map((item) => {
+                                                                                    return {
+                                                                                        key: item.id,
+                                                                                        value: item.tag_name,
+                                                                                    };
+                                                                                });
+                                                                                levelVM.loading = false;
+                                                                                gvc.notifyDataChange(levelVM.id);
+                                                                            }
+                                                                        });
+                                                                    }
+                                                                },
+                                                            });
+                                                        })();
+                                                    case 'group':
+                                                        return (() => {
+                                                            const levelVM = {
+                                                                id: gvc.glitter.getUUID(),
+                                                                loading: true,
+                                                                dataList: [],
+                                                            };
+                                                            return gvc.bindView({
+                                                                bind: levelVM.id,
+                                                                view: () => {
+                                                                    var _a;
+                                                                    if (levelVM.loading) {
+                                                                        return BgWidget.spinner({ textNone: true });
+                                                                    }
+                                                                    else {
+                                                                        return BgWidget.selectDropList({
+                                                                            gvc: gvc,
+                                                                            callback: (value) => {
+                                                                                voucherData.targetList = value;
+                                                                                gvc.notifyDataChange(id);
+                                                                            },
+                                                                            default: (_a = voucherData.targetList) !== null && _a !== void 0 ? _a : [],
+                                                                            options: levelVM.dataList,
+                                                                            style: 'width: 100%;',
+                                                                        });
+                                                                    }
+                                                                },
+                                                                divCreate: {
+                                                                    style: 'width: 100%;',
+                                                                },
+                                                                onCreate: () => {
+                                                                    if (levelVM.loading) {
+                                                                        ApiUser.getUserGroupList().then((dd) => {
+                                                                            if (dd.result && dd.response.data) {
+                                                                                levelVM.dataList = dd.response.data
+                                                                                    .filter((item) => {
+                                                                                    return item.type !== 'level';
+                                                                                })
+                                                                                    .map((item) => {
+                                                                                    return {
+                                                                                        key: item.type,
+                                                                                        value: item.title,
+                                                                                    };
+                                                                                });
+                                                                                levelVM.loading = false;
+                                                                                gvc.notifyDataChange(levelVM.id);
+                                                                            }
+                                                                        });
+                                                                    }
+                                                                },
+                                                            });
+                                                        })();
+                                                    default:
+                                                        return '';
+                                                }
+                                            })()}
                                                                         </div>
                                                                     </div>
                                                                 `;
-                                    },
-                                };
-                            })}
-                                                </div>
-                                            </div>`),
+                                        },
+                                    };
+                                })}`,
+                                html `<div class="tx_700">可使用訂單來源</div>
+                                                    ${BgWidget.mbContainer(18)}
+                                                    ${BgWidget.multiCheckboxContainer(gvc, [
+                                    { key: 'normal', name: 'APP & 官網' },
+                                    { key: 'pos', name: 'POS' },
+                                ], (_a = voucherData.device) !== null && _a !== void 0 ? _a : ['normal'], (text) => {
+                                    voucherData.device = text;
+                                    gvc.notifyDataChange(viewID);
+                                }, { single: false })}`,
+                            ]
+                                .map((str) => {
+                                return html `<div>${str}</div>`;
+                            })
+                                .join(BgWidget.horizontalLine())),
                             BgWidget.mainCard(gvc.bindView(() => {
                                 var _a;
                                 const id = glitter.getUUID();

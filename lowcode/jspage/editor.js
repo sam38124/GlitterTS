@@ -169,7 +169,7 @@ color: transparent;"
                 if (Storage.select_function === 'backend-manger') {
                     return html `
                                         <div
-                                                class="t_39_normal border-end px-4 d-none d-sm-flex align-items-center justify-content-center indexGuideBTN"
+                                                class=" t_39_normal border-end px-4 d-none   align-items-center justify-content-center indexGuideBTN"
                                                 style="height: 56px;cursor: pointer;"
                                                 onclick="${gvc.event(() => {
                         gvc.glitter.openNewTab('https://shopnex.cc/blog-home-page');

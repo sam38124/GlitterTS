@@ -26,7 +26,7 @@ export class OrderDetail {
         email: string;
         phone: string;
         address: string;
-        shipment: 'normal' | 'FAMIC2C' | 'UNIMARTC2C' | 'HILIFEC2C' | 'OKMARTC2C';
+        shipment: 'normal' | 'FAMIC2C' | 'UNIMARTC2C' | 'HILIFEC2C' | 'OKMARTC2C' | 'now' | 'shop';
         CVSStoreName: string;
         CVSStoreID: string;
         CVSTelephone: string;

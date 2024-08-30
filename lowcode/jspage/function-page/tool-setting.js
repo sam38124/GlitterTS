@@ -45,25 +45,28 @@ export class ToolSetting {
                     return BgWidget.container(html `
                             <div class="d-flex px-3 align-items-start flex-column">${BgWidget.title('設計元件', 'font-size: 16px;')}</div>
                             <div class="border-bottom  mx-n2 mt-3"></div>
-                            ${vm.data
-                        .map((dd) => {
-                        return gvc.bindView(() => {
-                            const cId = gvc.glitter.getUUID();
-                            return {
-                                bind: cId,
-                                view: () => {
+                            ${gvc.bindView((() => {
+                        const vid = gvc.glitter.getUUID();
+                        return {
+                            bind: vid,
+                            view: () => {
+                                return vm.data
+                                    .map((dd) => {
                                     return BgWidget.container([
                                         html `<div
-                                                            class="px-3 d-flex align-items-center"
-                                                            style="cursor: pointer;"
-                                                            onclick="${gvc.event(() => {
+                                                                class="px-3 d-flex align-items-center"
+                                                                style="cursor: pointer;"
+                                                                onclick="${gvc.event(() => {
+                                            vm.data.map((d2) => {
+                                                d2.toggle = false;
+                                            });
                                             dd.toggle = !dd.toggle;
-                                            gvc.notifyDataChange(cId);
+                                            gvc.notifyDataChange(vid);
                                         })}"
-                                                        >
-                                                            ${BgWidget.title(dd.title, 'font-size: 16px;')}
-                                                            ${dd.toggle ? `<i class="fa-solid fa-angle-down ms-2"></i>` : `<i class="fa-solid fa-angle-right ms-2"></i>`}
-                                                        </div>`,
+                                                            >
+                                                                ${BgWidget.title(dd.title, 'font-size: 16px;')}
+                                                                ${dd.toggle ? `<i class="fa-solid fa-angle-down ms-2"></i>` : `<i class="fa-solid fa-angle-right ms-2"></i>`}
+                                                            </div>`,
                                         html `<div class="px-3 my-2 ${dd.toggle ? `` : `d-none`}">${dd.hint && dd.toggle ? BgWidget.grayNote(dd.hint) : ``}</div>`,
                                         gvc.bindView(() => {
                                             const id = gvc.glitter.getUUID();
@@ -166,26 +169,26 @@ export class ToolSetting {
                                                     }
                                                     try {
                                                         setting_view += html ` <div class="p-2 col-6 " style="">
-                                                                        <div class="w-100 p-2 rounded-3" style="border: 1px solid #393939;background: #F7F7F7;">
-                                                                            <div class="card w-100 position-relative rounded hoverHidden bgf6 rounded-3" style="padding-bottom: 58%;">
-                                                                                <div
-                                                                                    class="position-absolute w-100 h-100 d-flex align-items-center justify-content-center rounded-3"
-                                                                                    style="overflow: hidden;"
-                                                                                >
-                                                                                    <img
-                                                                                        class="w-100 "
-                                                                                        src="${(_a = refer_widget.template_config.image[0]) !== null && _a !== void 0 ? _a : 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713445383494-未命名(1080x1080像素).jpg'}"
-                                                                                    />
-                                                                                </div>
+                                                                            <div class="w-100 p-2 rounded-3" style="border: 1px solid #393939;background: #F7F7F7;">
+                                                                                <div class="card w-100 position-relative rounded hoverHidden bgf6 rounded-3" style="padding-bottom: 58%;">
+                                                                                    <div
+                                                                                        class="position-absolute w-100 h-100 d-flex align-items-center justify-content-center rounded-3"
+                                                                                        style="overflow: hidden;"
+                                                                                    >
+                                                                                        <img
+                                                                                            class="w-100 "
+                                                                                            src="${(_a = refer_widget.template_config.image[0]) !== null && _a !== void 0 ? _a : 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713445383494-未命名(1080x1080像素).jpg'}"
+                                                                                        />
+                                                                                    </div>
 
-                                                                                <div
-                                                                                    class="position-absolute w-100 h-100  align-items-center justify-content-center rounded fs-6 flex-column"
-                                                                                    style="background: rgba(0,0,0,0.5);gap:5px;"
-                                                                                >
-                                                                                    <button
-                                                                                        class="btn btn-sm btn-secondary"
-                                                                                        style="height: 28px;"
-                                                                                        onclick="${gvc.event(() => {
+                                                                                    <div
+                                                                                        class="position-absolute w-100 h-100  align-items-center justify-content-center rounded fs-6 flex-column"
+                                                                                        style="background: rgba(0,0,0,0.5);gap:5px;"
+                                                                                    >
+                                                                                        <button
+                                                                                            class="btn btn-sm btn-secondary"
+                                                                                            style="height: 28px;"
+                                                                                            onclick="${gvc.event(() => {
                                                             if (dd.tag === '商品卡片') {
                                                                 gvc.glitter.share.edit_ittt = widget;
                                                                 gvc.glitter.share.editorViewModel.saveArray[widget.id] = () => {
@@ -210,24 +213,24 @@ export class ToolSetting {
                                                             vm.function = 'edit';
                                                             gvc.notifyDataChange(vm.id);
                                                         })}"
-                                                                                    >
-                                                                                        設定
-                                                                                    </button>
+                                                                                        >
+                                                                                            設定
+                                                                                        </button>
+                                                                                    </div>
                                                                                 </div>
+                                                                                <h3 class="my-auto tx_title text-center w-100 pt-2" style="white-space: nowrap;font-size: 15px;font-weight: 400;">
+                                                                                    <i class="fa-sharp fa-solid fa-circle-dot"></i> ${refer_widget.template_config.name}
+                                                                                </h3>
                                                                             </div>
-                                                                            <h3 class="my-auto tx_title text-center w-100 pt-2" style="white-space: nowrap;font-size: 15px;font-weight: 400;">
-                                                                                <i class="fa-sharp fa-solid fa-circle-dot"></i> ${refer_widget.template_config.name}
-                                                                            </h3>
-                                                                        </div>
-                                                                    </div>`;
+                                                                        </div>`;
                                                     }
                                                     catch (e) { }
                                                     return [setting_view]
                                                         .concat(module_list.map((dd, index) => {
                                                         var _a;
                                                         return html `<div
-                                                                                class="p-2 col-6 "
-                                                                                onclick="${gvc.event(() => {
+                                                                                    class="p-2 col-6 "
+                                                                                    onclick="${gvc.event(() => {
                                                             const dialog = new ShareDialog(gvc.glitter);
                                                             dialog.checkYesOrNot({
                                                                 text: '是否確認替換樣式?',
@@ -281,22 +284,22 @@ export class ToolSetting {
                                                                 },
                                                             });
                                                         })}"
-                                                                            >
-                                                                                <div class="card w-100 position-relative rounded hoverHidden bgf6 rounded-3" style="padding-bottom: 58%;">
-                                                                                    <div
-                                                                                        class="position-absolute w-100 h-100 d-flex align-items-center justify-content-center rounded-3"
-                                                                                        style="overflow: hidden;"
-                                                                                    >
-                                                                                        <img
-                                                                                            class="w-100 "
-                                                                                            src="${(_a = dd.template_config.image[0]) !== null && _a !== void 0 ? _a : 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713445383494-未命名(1080x1080像素).jpg'}"
-                                                                                        />
+                                                                                >
+                                                                                    <div class="card w-100 position-relative rounded hoverHidden bgf6 rounded-3" style="padding-bottom: 58%;">
+                                                                                        <div
+                                                                                            class="position-absolute w-100 h-100 d-flex align-items-center justify-content-center rounded-3"
+                                                                                            style="overflow: hidden;"
+                                                                                        >
+                                                                                            <img
+                                                                                                class="w-100 "
+                                                                                                src="${(_a = dd.template_config.image[0]) !== null && _a !== void 0 ? _a : 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713445383494-未命名(1080x1080像素).jpg'}"
+                                                                                            />
+                                                                                        </div>
                                                                                     </div>
-                                                                                </div>
-                                                                                <h3 class="my-auto tx_title text-center w-100 pt-2" style="white-space: nowrap;font-size: 15px;font-weight: 400;">
-                                                                                    <i class="fa-regular fa-circle me-2"></i>${dd.template_config.name}
-                                                                                </h3>
-                                                                            </div>`;
+                                                                                    <h3 class="my-auto tx_title text-center w-100 pt-2" style="white-space: nowrap;font-size: 15px;font-weight: 400;">
+                                                                                        <i class="fa-regular fa-circle me-2"></i>${dd.template_config.name}
+                                                                                    </h3>
+                                                                                </div>`;
                                                     }))
                                                         .join('');
                                                 });
@@ -313,7 +316,9 @@ export class ToolSetting {
                                                             cvm.loading = false;
                                                             gvc.notifyDataChange(id);
                                                         });
-                                                        return html `<div class="d-flex w-100 align-items-center justify-content-center p-3"><div class="spinner-border"></div></div>`;
+                                                        return html `<div class="d-flex w-100 align-items-center justify-content-center p-3">
+                                                                                <div class="spinner-border"></div>
+                                                                            </div>`;
                                                     }
                                                     else {
                                                         return cvm.html;
@@ -326,14 +331,11 @@ export class ToolSetting {
                                             };
                                         }),
                                     ].join(``), undefined, 'border-bottom:1px solid #DDD;');
-                                },
-                                divCreate: {
-                                    class: `-1`,
-                                },
-                            };
-                        });
-                    })
-                        .join('')}
+                                })
+                                    .join('');
+                            },
+                        };
+                    })())}
                         `);
                 },
                 divCreate: {

@@ -355,6 +355,273 @@ export class UserList {
         });
     }
 
+    public static posSelect(
+        gvc: GVC,
+        obj?: {
+            group?: { type: string; title: string };
+            backButtonEvent?: string;
+            hiddenHeader?: boolean;
+        }
+    ) {
+        const glitter = gvc.glitter;
+
+        const vm: ViewModel = {
+            id: glitter.getUUID(),
+            type: 'list',
+            data: {},
+            dataList: undefined,
+            query: '',
+            queryType: '',
+            orderString: '',
+            filter: {},
+            filter_type: `normal`,
+            filterId: glitter.getUUID(),
+            tableId: glitter.getUUID(),
+        };
+
+        const ListComp = new BgListComponent(gvc, vm, FilterOptions.userFilterFrame);
+
+        vm.filter = ListComp.getFilterObject();
+        let vmi: any = undefined;
+
+        function getDatalist() {
+            return vm.dataList.map((dd: any) => {
+                return [
+                    {
+                        key: EditorElem.checkBoxOnly({
+                            gvc: gvc,
+                            def: !vm.dataList.find((dd: any) => {
+                                return !dd.checked;
+                            }),
+                            callback: (result) => {
+                                vm.dataList.map((dd: any) => {
+                                    dd.checked = result;
+                                });
+                                vmi.data = getDatalist();
+                                vmi.callback();
+                                gvc.notifyDataChange(vm.filterId);
+                            },
+                        }),
+                        value: EditorElem.checkBoxOnly({
+                            gvc: gvc,
+                            def: dd.checked,
+                            callback: (result) => {
+                                dd.checked = result;
+                                vmi.data = getDatalist();
+                                vmi.callback();
+                                gvc.notifyDataChange(vm.filterId);
+                            },
+                            style: 'height:25px;',
+                        }),
+                    },
+                    {
+                        key: '顧客名稱',
+                        value: `<span class="fs-7">${dd.userData.name}</span>`,
+                    },
+                    {
+                        key: '電子信箱',
+                        value: `<span class="fs-7">${dd.userData.email}</span>`,
+                    },
+                    {
+                        key: '訂單',
+                        value: `<span class="fs-7">${dd.checkout_count} 筆</span>`,
+                    },
+                    {
+                        key: '會員等級',
+                        value: `<span class="fs-7">${dd.tag_name}</span>`,
+                    },
+                    {
+                        key: '累積消費',
+                        value: `<span class="fs-7">$ ${parseInt(`${dd.checkout_total}`, 10).toLocaleString()}</span>`,
+                    },
+                    {
+                        key: '建立時間',
+                        value: `<span class="fs-7">${glitter.ut.dateFormat(new Date(dd.created_time), 'yyyy-MM-dd hh:mm')}</span>`,
+                    },
+                    {
+                        key: '用戶狀態',
+                        value: (() => {
+                            if (dd.status === 1) {
+                                return html`<div class="badge bg-info fs-7" style="max-height:34px;">啟用中</div>`;
+                            } else {
+                                return html`<div class="badge bg-danger fs-7" style="max-height:34px;">已停用</div>`;
+                            }
+                        })(),
+                    },
+                ];
+            });
+        }
+
+        return gvc.bindView({
+            bind: vm.id,
+            dataList: [{ obj: vm, key: 'type' }],
+            view: () => {
+                if (vm.type === 'list') {
+                    return   [
+                        (() => {
+                            const id = gvc.glitter.getUUID();
+                            return gvc.bindView({
+                                bind: id,
+                                view: () => {
+                                    const filterList = [
+                                        BgWidget.selectFilter({
+                                            gvc,
+                                            callback: (value: any) => {
+                                                vm.queryType = value;
+                                                gvc.notifyDataChange(vm.tableId);
+                                                gvc.notifyDataChange(id);
+                                            },
+                                            default: vm.queryType || 'name',
+                                            options: FilterOptions.userSelect,
+                                        }),
+                                        BgWidget.searchFilter(
+                                            gvc.event((e) => {
+                                                vm.query = e.value;
+                                                gvc.notifyDataChange(vm.tableId);
+                                                gvc.notifyDataChange(id);
+                                            }),
+                                            vm.query || '',
+                                            '搜尋會員電話/編號/名稱'
+                                        ),
+                                        BgWidget.funnelFilter({
+                                            gvc,
+                                            callback: () => ListComp.showRightMenu(FilterOptions.userFunnel),
+                                        }),
+                                        BgWidget.updownFilter({
+                                            gvc,
+                                            callback: (value: any) => {
+                                                vm.orderString = value;
+                                                gvc.notifyDataChange(vm.tableId);
+                                                gvc.notifyDataChange(id);
+                                            },
+                                            default: vm.orderString || 'default',
+                                            options: FilterOptions.userOrderBy,
+                                        }),
+                                    ];
+
+                                    const filterTags = ListComp.getFilterTags(FilterOptions.userFunnel);
+
+                                    if (document.body.clientWidth < 768) {
+                                        // 手機版
+                                        return html` <div style="display: flex; align-items: center; gap: 10px; width: 100%; justify-content: space-between">
+                                                                <div>${filterList[0]}</div>
+                                                                <div style="display: flex;">
+                                                                    <div class="me-2">${filterList[2]}</div>
+                                                                    ${filterList[3]}
+                                                                </div>
+                                                            </div>
+                                                            <div style="display: flex; margin-top: 8px;">${filterList[1]}</div>
+                                                            <div>${filterTags}</div>`;
+                                    } else {
+                                        // 電腦版
+                                        return html` <div style="display: flex; align-items: center; gap: 10px;">${filterList.join('')}</div>
+                                                            <div>${filterTags}</div>`;
+                                    }
+                                },
+                            });
+                        })(),
+
+                        gvc.bindView({
+                            bind: vm.tableId,
+                            view: () => {
+                                return BgWidget.tableV2({
+                                    gvc: gvc,
+                                    getData: (vd) => {
+                                        vmi = vd;
+                                        const limit = 20;
+                                        ApiUser.getUserListOrders({
+                                            page: vmi.page - 1,
+                                            limit: limit,
+                                            search: vm.query || undefined,
+                                            searchType: vm.queryType || 'name',
+                                            orderString: vm.orderString || '',
+                                            filter: vm.filter,
+                                            filter_type: vm.filter_type,
+                                            group: obj && obj.group ? obj.group : {},
+                                        }).then((data) => {
+                                            vmi.pageSize = Math.ceil(data.response.total / limit);
+                                            vm.dataList = data.response.data;
+                                            vmi.data = getDatalist();
+                                            vmi.callback();
+                                        });
+                                    },
+                                    rowClick: (data, index) => {
+                                        vm.data = vm.dataList[index];
+                                        vm.type = 'replace';
+                                    },
+                                    filter: gvc.bindView(() => {
+                                        return {
+                                            bind: vm.filterId,
+                                            view: () => {
+                                                const dialog = new ShareDialog(gvc.glitter);
+                                                const selCount = vm.dataList.filter((dd: any) => dd.checked).length;
+                                                return BgWidget.selNavbar({
+                                                    count: selCount,
+                                                    buttonList: [
+                                                        BgWidget.selEventButton(
+                                                            '批量移除',
+                                                            gvc.event(() => {
+                                                                dialog.checkYesOrNot({
+                                                                    text: '是否確認刪除所選項目？',
+                                                                    callback: (response) => {
+                                                                        if (response) {
+                                                                            dialog.dataLoading({ visible: true });
+                                                                            ApiUser.deleteUser({
+                                                                                id: vm.dataList
+                                                                                    .filter((dd: any) => {
+                                                                                        return dd.checked;
+                                                                                    })
+                                                                                    .map((dd: any) => {
+                                                                                        return dd.id;
+                                                                                    })
+                                                                                    .join(`,`),
+                                                                            }).then((res) => {
+                                                                                dialog.dataLoading({ visible: false });
+                                                                                if (res.result) {
+                                                                                    vm.dataList = undefined;
+                                                                                    gvc.notifyDataChange(vm.id);
+                                                                                } else {
+                                                                                    dialog.errorMessage({ text: '刪除失敗' });
+                                                                                }
+                                                                            });
+                                                                        }
+                                                                    },
+                                                                });
+                                                            })
+                                                        ),
+                                                    ],
+                                                });
+                                            },
+                                            divCreate: () => {
+                                                const display = !vm.dataList || !vm.dataList.find((dd: any) => dd.checked) ? 'd-none' : '';
+                                                return {
+                                                    class: `d-flex align-items-center p-2 ${display}`,
+                                                    style: ``,
+                                                };
+                                            },
+                                        };
+                                    }),
+                                });
+                            },
+                        }),
+                    ].join('');
+                } else if (vm.type == 'replace') {
+                    return this.userInformationDetail({
+                        userID: vm.data.userID,
+                        callback: () => {
+                            vm.type = 'list';
+                        },
+                        gvc: gvc,
+                    });
+                } else if (vm.type === 'create') {
+                    return this.createUser(gvc, vm);
+                } else {
+                    return ``;
+                }
+            },
+        });
+    }
+
     public static setUserForm(gvc: GVC, callback: () => void) {
         const dialog = new ShareDialog(gvc.glitter);
         const saasConfig: {

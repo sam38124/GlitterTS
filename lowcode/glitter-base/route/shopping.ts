@@ -275,6 +275,7 @@ export class ApiShop {
         order?: string;
         orderString?: string;
         filter?: any;
+        is_pos?:boolean,
         archived?: string;
         returnSearch?: 'true';
     }) {
@@ -293,6 +294,7 @@ export class ApiShop {
                     json.orderString && par.push(`orderString=${json.orderString}`);
                     json.archived && par.push(`archived=${json.archived}`);
                     json.returnSearch && par.push(`returnSearch=${json.returnSearch ?? 'false'}`);
+                    json.is_pos && par.push(`is_pos=${json.is_pos}`);
                     filterString.length > 0 && par.push(filterString.join('&'));
                     return par.join('&');
                 })()}`,

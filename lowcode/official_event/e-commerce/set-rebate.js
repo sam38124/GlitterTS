@@ -37,62 +37,68 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                     ].join(`<div class="my-2"></div>`);
                 },
                 event: () => {
-                    return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
-                        const trigger_rebate = (yield TriggerEvent.trigger({
+                    return new Promise((resolve) => __awaiter(void 0, void 0, void 0, function* () {
+                        const triggerRebate = (yield TriggerEvent.trigger({
                             gvc: gvc,
                             widget: widget,
                             clickEvent: object.rebate,
                             element: element,
                         })) || 0;
-                        const def_rebate = (yield ApiShop.getRebateValue()) || 0;
-                        const rebate = trigger_rebate !== null && trigger_rebate !== void 0 ? trigger_rebate : def_rebate;
-                        ApiShop.getCart().then((res) => __awaiter(void 0, void 0, void 0, function* () {
-                            const cartData = {
-                                line_items: [],
-                                total: 0,
-                            };
-                            for (const b of Object.keys(res)) {
-                                cartData.line_items.push({
-                                    id: b.split('-')[0],
-                                    count: res[b],
-                                    spec: b.split('-').filter((dd, index) => {
-                                        return index !== 0;
+                        const defaultRebate = (yield ApiShop.getRebateValue()) || 0;
+                        const voucherCode = yield ApiShop.getVoucherCode();
+                        ApiShop.getRebate({}).then((reb) => __awaiter(void 0, void 0, void 0, function* () {
+                            var _a, _b;
+                            const remainRebate = (_b = (_a = reb.response) === null || _a === void 0 ? void 0 : _a.sum) !== null && _b !== void 0 ? _b : 0;
+                            ApiShop.getCart().then((res) => __awaiter(void 0, void 0, void 0, function* () {
+                                const cartData = {
+                                    line_items: [],
+                                    total: 0,
+                                };
+                                for (const b of Object.keys(res)) {
+                                    cartData.line_items.push({
+                                        id: b.split('-')[0],
+                                        count: res[b],
+                                        spec: b.split('-').filter((dd, index) => index !== 0),
+                                    });
+                                }
+                                const rebate = triggerRebate !== null && triggerRebate !== void 0 ? triggerRebate : defaultRebate;
+                                ApiShop.getCheckout({
+                                    line_items: cartData.line_items.map((dd) => {
+                                        return {
+                                            id: dd.id,
+                                            spec: dd.spec,
+                                            count: dd.count,
+                                        };
                                     }),
-                                });
-                            }
-                            ApiShop.getCheckout({
-                                line_items: cartData.line_items.map((dd) => {
-                                    return {
-                                        id: dd.id,
-                                        spec: dd.spec,
-                                        count: dd.count,
-                                    };
-                                }),
-                                use_rebate: parseInt(rebate, 10),
-                            }).then((res) => __awaiter(void 0, void 0, void 0, function* () {
-                                var _a;
-                                const data = (_a = res.response) === null || _a === void 0 ? void 0 : _a.data;
-                                if ((rebate == 0 || data.use_rebate >= 0) && data.total - data.shipment_fee >= 0 && `${data.use_rebate}` === rebate) {
-                                    ApiShop.setRebateValue(`${rebate}`);
-                                    TriggerEvent.trigger({
-                                        gvc: gvc,
-                                        widget: widget,
-                                        clickEvent: object.rebateSuccess,
-                                        subData: res.response.data,
-                                        element: element,
-                                    });
-                                }
-                                else {
-                                    ApiShop.setRebateValue('');
-                                    TriggerEvent.trigger({
-                                        gvc: gvc,
-                                        widget: widget,
-                                        clickEvent: object.rebateError,
-                                        subData: res.response.data,
-                                        element: element,
-                                    });
-                                }
-                                resolve(res.response.data);
+                                    code: voucherCode,
+                                    use_rebate: parseInt(rebate, 10),
+                                }).then((res) => __awaiter(void 0, void 0, void 0, function* () {
+                                    var _c;
+                                    const data = (_c = res.response) === null || _c === void 0 ? void 0 : _c.data;
+                                    const useRebate = typeof rebate === 'string' ? parseInt(`${rebate}`, 10) : 0;
+                                    const subtotal = data.total - data.shipment_fee + data.use_rebate;
+                                    if (subtotal > 0 && useRebate >= 0 && subtotal >= useRebate && remainRebate >= useRebate) {
+                                        ApiShop.setRebateValue(`${rebate}`);
+                                        TriggerEvent.trigger({
+                                            gvc: gvc,
+                                            widget: widget,
+                                            clickEvent: object.rebateSuccess,
+                                            subData: res.response.data,
+                                            element: element,
+                                        });
+                                    }
+                                    else {
+                                        ApiShop.setRebateValue('');
+                                        TriggerEvent.trigger({
+                                            gvc: gvc,
+                                            widget: widget,
+                                            clickEvent: object.rebateError,
+                                            subData: res.response.data,
+                                            element: element,
+                                        });
+                                    }
+                                    resolve(res.response.data);
+                                }));
                             }));
                         }));
                     }));

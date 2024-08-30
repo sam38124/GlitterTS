@@ -259,7 +259,7 @@ class Shopping {
         return `${new Date().getTime()}`;
     }
     async toCheckout(data, type = 'add', replace_order_id) {
-        var _a, _b, _c, _d, _e;
+        var _a, _b, _c, _d;
         try {
             if (replace_order_id) {
                 const orderData = (await database_js_1.default.query(`SELECT *
@@ -279,12 +279,13 @@ class Shopping {
                     data.use_rebate = orderData.orderData.use_rebate;
                 }
                 else {
-                    throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ToCheckout Error:Cant find this orderID.', null);
+                    throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ToCheckout 1 Error:Cant find this orderID.', null);
                 }
             }
             const userClass = new user_js_1.User(this.app);
             const rebateClass = new rebate_js_1.Rebate(this.app);
-            if (type == "POS") {
+<<<<<<< HEAD
+            if (type == 'POS') {
                 let customerData = await userClass.getUserData('pos@ncdesign.info', 'account');
                 data.email = 'pos@ncdesign.info';
                 data.user_info = (_a = data.user_info) !== null && _a !== void 0 ? _a : {};
@@ -298,8 +299,10 @@ class Shopping {
                     }, {}, true);
                 }
             }
+=======
+>>>>>>> 8548c346 ([update] : glitter version.)
             if (type !== 'preview' && !(this.token && this.token.userID) && !data.email && !(data.user_info && data.user_info.email)) {
-                throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ToCheckout Error:No email address.', null);
+                throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ToCheckout 2 Error:No email address.', null);
             }
             const userData = await (async () => {
                 if (type !== 'preview' || (this.token && this.token.userID)) {
@@ -319,11 +322,11 @@ class Shopping {
                     data.email = data.user_info.email;
                 }
                 else {
-                    throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ToCheckout Error:No email address.', null);
+                    throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ToCheckout 3 Error:No email address.', null);
                 }
             }
             if (!data.email && type !== 'preview') {
-                throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ToCheckout Error:No email address.', null);
+                throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ToCheckout 4 Error:No email address.', null);
             }
             if (data.use_rebate && data.use_rebate > 0) {
                 if (userData) {
@@ -387,8 +390,8 @@ class Shopping {
                 customer_info: data.customer_info || {},
                 lineItems: [],
                 total: 0,
-                realTotal: (_b = data.realTotal) !== null && _b !== void 0 ? _b : 0,
-                email: (_c = data.email) !== null && _c !== void 0 ? _c : ((data.user_info && data.user_info.email) || ''),
+                realTotal: (_a = data.realTotal) !== null && _a !== void 0 ? _a : 0,
+                email: (_b = data.email) !== null && _b !== void 0 ? _b : ((data.user_info && data.user_info.email) || ''),
                 user_info: data.user_info,
                 shipment_fee: 0,
                 rebate: 0,
@@ -398,11 +401,11 @@ class Shopping {
                 shipment_info: shipment_setting.info,
                 use_wallet: 0,
                 method: data.user_info && data.user_info.method,
-                user_email: (userData && userData.account) || ((_d = data.email) !== null && _d !== void 0 ? _d : ((data.user_info && data.user_info.email) || '')),
+                user_email: (userData && userData.account) || ((_c = data.email) !== null && _c !== void 0 ? _c : ((data.user_info && data.user_info.email) || '')),
                 useRebateInfo: { point: 0 },
                 custom_form_format: data.custom_form_format,
                 custom_form_data: data.custom_form_data,
-                orderSource: "",
+                orderSource: '',
             };
             function calculateShipment(dataList, value) {
                 if (value === 0) {
@@ -491,8 +494,7 @@ class Shopping {
                         }
                     }
                 }
-                catch (e) {
-                }
+                catch (e) { }
             }
             carData.shipment_fee = (() => {
                 let total_volume = 0;
@@ -587,11 +589,12 @@ class Shopping {
                     times: 1,
                     counting: 'single',
                     conditionType: 'item',
+                    device: ['normal'],
                 };
                 carData.discount = data.discount;
                 carData.voucherList = [tempVoucher];
                 carData.customer_info = data.customer_info;
-                carData.total = (_e = data.total) !== null && _e !== void 0 ? _e : 0;
+                carData.total = (_d = data.total) !== null && _d !== void 0 ? _d : 0;
                 carData.rebate = tempVoucher.rebate_total;
                 if (tempVoucher.reBackType == 'shipment_free') {
                     carData.shipment_fee = 0;
@@ -619,6 +622,9 @@ class Shopping {
             else if (type === 'POS') {
                 carData.orderSource = 'POS';
                 const trans = await database_js_1.default.Transaction.build();
+                if (carData.user_info.shipment === 'now') {
+                    carData.progress = 'finish';
+                }
                 await trans.execute(`INSERT INTO \`${this.app}\`.t_checkout (cart_token, status, email, orderData)
                      values (?, ?, ?, ?)`, [carData.orderID, data.pay_status, carData.email, JSON.stringify(carData)]);
                 carData.invoice = await new invoice_js_1.Invoice(this.app).postCheckoutInvoice(carData, carData.user_info.send_type !== 'carrier');
@@ -627,7 +633,7 @@ class Shopping {
                 }
                 await trans.commit();
                 await trans.release();
-                return { result: "SUCCESS", message: "POS訂單新增成功", data: carData };
+                return { result: 'SUCCESS', message: 'POS訂單新增成功', data: carData };
             }
             else {
                 if (userData && userData.userID) {
@@ -710,7 +716,7 @@ class Shopping {
         }
         catch (e) {
             console.error(e);
-            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ToCheckout Error:' + e, null);
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'ToCheckout 5 Error:' + e, null);
         }
     }
     async getReturnOrder(query) {
@@ -935,7 +941,19 @@ class Shopping {
         const groupList = await userClass.getUserGroups();
         const voucherList = allVoucher
             .filter((dd) => {
-            return pass_ids.includes(dd.id);
+            return pass_ids.includes(dd.id) && dd.status === 1;
+        })
+            .filter((dd) => {
+            if (dd.device.length === 0) {
+                return false;
+            }
+            switch (cart.orderSource) {
+                case '':
+                case 'normal':
+                    return dd.device.includes('normal');
+                case 'POS':
+                    return dd.device.includes('pos');
+            }
         })
             .filter((dd) => {
             if (dd.target === 'customer') {
@@ -1273,6 +1291,9 @@ class Shopping {
                 }
                 temp += `JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.progress')) IN (${newArray.map((status) => `"${status}"`).join(',')})`;
                 querySql.push(`(${temp})`);
+            }
+            if (query.is_pos === 'true') {
+                querySql.push(`orderData->>'$.orderSource'='POS'`);
             }
             if (query.shipment) {
                 let shipment = query.shipment.split(',');
@@ -2057,6 +2078,21 @@ class Shopping {
         catch (e) {
             console.error(e);
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'putCollection Error:' + e, null);
+        }
+    }
+    async sortCollection(list) {
+        var _a;
+        try {
+            console.log(list);
+            const config = (_a = (await database_js_1.default.query(`SELECT *
+                         FROM \`${this.app}\`.public_config
+                         WHERE \`key\` = 'collection';`, []))[0]) !== null && _a !== void 0 ? _a : {};
+            config.value = config.value || [];
+            return;
+        }
+        catch (e) {
+            console.error(e);
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'sortCollection Error:' + e, null);
         }
     }
     checkVariantDataType(variants) {

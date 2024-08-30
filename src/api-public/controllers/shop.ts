@@ -108,7 +108,7 @@ router.post('/checkout', async (req: express.Request, resp: express.Response) =>
                 user_info: req.body.user_info,
                 code: req.body.code,
                 customer_info: req.body.customer_info,
-                checkOutType:req.body.checkOutType,
+                checkOutType: req.body.checkOutType,
                 use_rebate: (() => {
                     if (req.body.use_rebate && typeof req.body.use_rebate === 'number') {
                         return req.body.use_rebate;
@@ -159,7 +159,7 @@ router.post('/checkout/preview', async (req: express.Request, resp: express.Resp
                             return 0;
                         }
                     })(),
-                    checkOutType:req.body.checkOutType,
+                    checkOutType: req.body.checkOutType,
                     distribution_code: req.body.distribution_code,
                 },
                 'preview'
@@ -243,6 +243,7 @@ router.get('/order', async (req: express.Request, resp: express.Response) => {
                     status: req.query.status as string,
                     searchType: req.query.searchType as string,
                     shipment: req.query.shipment as string,
+                    is_pos:req.query.is_pos as string,
                     progress: req.query.progress as string,
                     orderStatus: req.query.orderStatus as string,
                     created_time: req.query.created_time as string,
@@ -756,6 +757,17 @@ router.delete('/collection', async (req: express.Request, resp: express.Response
         return response.fail(resp, err);
     }
 });
+router.put('/collection/sort', async (req: express.Request, resp: express.Response) => {
+    try {
+        if (await UtPermission.isManager(req)) {
+            return response.succ(resp, await new Shopping(req.get('g-app') as string, req.body.token).sortCollection(req.body.list));
+        } else {
+            throw exception.BadRequestError('BAD_REQUEST', 'No permission.', null);
+        }
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
 
 // 產品
 router.get('/product', async (req: express.Request, resp: express.Response) => {
@@ -799,8 +811,8 @@ router.get('/product', async (req: express.Request, resp: express.Response) => {
                 }
             })(),
             with_hide_index: req.query.with_hide_index as string,
-            is_manger:await UtPermission.isManager(req) as any,
-            show_hidden:`${req.query.show_hidden as any}`
+            is_manger: (await UtPermission.isManager(req)) as any,
+            show_hidden: `${req.query.show_hidden as any}`,
         });
         return response.succ(resp, shopping);
     } catch (err) {
@@ -913,7 +925,6 @@ router.get('/check-login-for-order', async (req: express.Request, resp: express.
 //POS機相關
 router.post('/pos/checkout', async (req: express.Request, resp: express.Response) => {
     async function checkoutPos() {
-
         return response.succ(
             resp,
             await new Shopping(req.get('g-app') as string, req.body.token).toCheckout(
@@ -936,7 +947,7 @@ router.post('/pos/checkout', async (req: express.Request, resp: express.Response
     }
 
     try {
-        let result = await checkoutPos()
+        let result = await checkoutPos();
         return response.succ(resp, result);
     } catch (err) {
         return response.fail(resp, err);

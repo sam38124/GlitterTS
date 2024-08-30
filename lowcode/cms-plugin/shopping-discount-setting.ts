@@ -24,6 +24,7 @@ export class ShoppingDiscountSetting {
             query: undefined,
         };
         const html = String.raw;
+
         return gvc.bindView(() => {
             const id = glitter.getUUID();
             const filterID = glitter.getUUID();
@@ -259,6 +260,7 @@ export class ShoppingDiscountSetting {
             reBackType: 'rebate' | 'discount' | 'shipment_free';
             method: 'percent' | 'fixed';
             trigger: 'auto' | 'code' | 'distribution';
+            device: ('normal' | 'pos')[];
             value: string;
             for: 'collection' | 'product' | 'all';
             rule: 'min_price' | 'min_count';
@@ -289,6 +291,7 @@ export class ShoppingDiscountSetting {
             value: '0',
             for: 'all',
             forKey: [],
+            device: ['normal'],
             rule: 'min_price',
             ruleValue: 1000,
             startDate: this.getDateTime().date,
@@ -412,23 +415,29 @@ export class ShoppingDiscountSetting {
                                     // 優惠券設定
                                     [
                                         BgWidget.mainCard(
-                                            html` <div class="tx_700">活動標題</div>
-                                                ${BgWidget.mbContainer(18)}
-                                                ${BgWidget.editeInput({
-                                                    gvc: gvc,
-                                                    title: '',
-                                                    default: voucherData.title,
-                                                    placeHolder: '請輸入活動標題',
-                                                    callback: (text) => {
-                                                        voucherData.title = text;
-                                                    },
-                                                })}
-                                                ${BgWidget.grayNote('顧客將會在「購物車」與「結帳」看見此標題', 'margin-left: 4px;')}`
+                                            [
+                                                html` <div class="tx_700">活動標題</div>
+                                                    ${BgWidget.mbContainer(18)}
+                                                    ${BgWidget.editeInput({
+                                                        gvc: gvc,
+                                                        title: '',
+                                                        default: voucherData.title,
+                                                        placeHolder: '請輸入活動標題',
+                                                        callback: (text) => {
+                                                            voucherData.title = text;
+                                                        },
+                                                    })}
+                                                    ${BgWidget.grayNote('顧客將會在「購物車」與「結帳」看見此標題', 'margin-left: 4px;')}`,
+                                                html` <div class="tx_700">活動狀態</div>
+                                                    ${BgWidget.mbContainer(12)}
+                                                    ${BgWidget.switchTextButton(gvc, voucherData.status === 1, { left: '關閉', right: '啟用' }, (bool) => {
+                                                        voucherData.status = bool ? 1 : 0;
+                                                    })}`,
+                                            ].join(BgWidget.horizontalLine())
                                         ),
                                         BgWidget.mainCard(
-                                            html`<div style="display: flex; flex-direction: column; gap: 18px;">
-                                                <div class="gray-bottom-line-18">
-                                                    <div class="tx_700">活動方式</div>
+                                            [
+                                                html`<div class="tx_700">活動方式</div>
                                                     ${BgWidget.mbContainer(18)}
                                                     ${BgWidget.multiCheckboxContainer(
                                                         gvc,
@@ -488,10 +497,8 @@ export class ShoppingDiscountSetting {
                                                             gvc.notifyDataChange(viewID);
                                                         },
                                                         { single: true }
-                                                    )}
-                                                </div>
-                                                <div>
-                                                    <div class="tx_700">活動對象</div>
+                                                    )}`,
+                                                html`<div class="tx_700">活動對象</div>
                                                     ${BgWidget.mbContainer(18)}
                                                     ${gvc.bindView(() => {
                                                         const id = gvc.glitter.getUUID();
@@ -741,9 +748,27 @@ export class ShoppingDiscountSetting {
                                                                 `;
                                                             },
                                                         };
-                                                    })}
-                                                </div>
-                                            </div>`
+                                                    })}`,
+                                                html`<div class="tx_700">可使用訂單來源</div>
+                                                    ${BgWidget.mbContainer(18)}
+                                                    ${BgWidget.multiCheckboxContainer(
+                                                        gvc,
+                                                        [
+                                                            { key: 'normal', name: 'APP & 官網' },
+                                                            { key: 'pos', name: 'POS' },
+                                                        ],
+                                                        voucherData.device ?? ['normal'],
+                                                        (text) => {
+                                                            voucherData.device = text as ('normal' | 'pos')[];
+                                                            gvc.notifyDataChange(viewID);
+                                                        },
+                                                        { single: false }
+                                                    )}`,
+                                            ]
+                                                .map((str) => {
+                                                    return html`<div>${str}</div>`;
+                                                })
+                                                .join(BgWidget.horizontalLine())
                                         ),
                                         BgWidget.mainCard(
                                             gvc.bindView(() => {

@@ -222,7 +222,7 @@ ${addNewlineAfterSemicolon(obj.initial)}
                             },
                             domain
                         );
-                    } else if (event.data.data.callbackID === id) {
+                    } else if (event.data.data && event.data.data.callbackID === id) {
                         if (obj.dontRefactor) {
                             obj.initial = event.data.data.value;
                             obj.callback(event.data.data.value);
@@ -300,7 +300,7 @@ ${obj.initial ?? ''}
                             },
                             domain
                         );
-                    } else if (event.data.data.callbackID === id) {
+                    } else if (event.data.data && event.data.data.callbackID === id) {
                         const array = event.data.data.value.split('\n');
                         const data = array
                             .filter((dd: any, index: number) => {
@@ -376,7 +376,7 @@ ${obj.initial ?? ''}
                             },
                             domain
                         );
-                    } else if (event.data.data.callbackID === id) {
+                    } else if (event.data.data && event.data.data.callbackID === id) {
                         obj.initial = event.data.data.value;
                         obj.callback(event.data.data.value);
                     }

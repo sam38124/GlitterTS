@@ -145,9 +145,7 @@ export class ShoppingCollections {
                 bind: vm.id,
                 dataList: [{ obj: vm, key: 'type' }],
                 view: () => {
-
                     if (vm.type === 'list') {
-
                         return BgWidget.container(
                             html`
                                 <div class="d-flex w-100 align-items-center">

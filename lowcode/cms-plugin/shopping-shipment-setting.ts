@@ -145,28 +145,28 @@ export class ShoppingShipmentSetting {
                                                                                             運費計算方式
                                                                                         </div>
                                                                                         ${EditorElem.select({
-                                                                                            title: '',
-                                                                                            def: (shipmentArray.selectCalc==='def') ? `def`:'custom',
-                                                                                            gvc: gvc,
-                                                                                            array: [
-                                                                                                {
-                                                                                                    title: '參照預設',
-                                                                                                    value: 'def'
-                                                                                                },
-                                                                                                {
-                                                                                                    title: '自定義',
-                                                                                                    value: 'custom'
-                                                                                                }
-                                                                                            ],
-                                                                                            callback: (text) => {
-                                                                                                if (text === 'def') {
-                                                                                                    shipmentArray.selectCalc = 'def'
-                                                                                                } else {
-                                                                                                    shipmentArray.selectCalc = 'weight'
-                                                                                                }
-                                                                                                gvc.notifyDataChange(page_id)
-                                                                                            }
-                                                                                        })}
+                                                                                    title: '',
+                                                                                    def: (shipmentArray.selectCalc==='def') ? `def`:'custom',
+                                                                                    gvc: gvc,
+                                                                                    array: [
+                                                                                        {
+                                                                                            title: '參照預設',
+                                                                                            value: 'def'
+                                                                                        },
+                                                                                        {
+                                                                                            title: '自定義',
+                                                                                            value: 'custom'
+                                                                                        }
+                                                                                    ],
+                                                                                    callback: (text) => {
+                                                                                        if (text === 'def') {
+                                                                                            shipmentArray.selectCalc = 'def'
+                                                                                        } else {
+                                                                                            shipmentArray.selectCalc = 'weight'
+                                                                                        }
+                                                                                        gvc.notifyDataChange(page_id)
+                                                                                    }
+                                                                                })}
                                                                                     </div>
                                                                                 `))
                                                                             }
@@ -466,7 +466,7 @@ export class ShoppingShipmentSetting {
                                                                                         </div>
                                                                                     </div>
                                                                                 `)
-                                                                                ])   
+                                                                                ])
                                                                             }
                                                                             return view.join('<div style="margin-bottom: 24px;"></div>')
                                                                         })(),
@@ -504,7 +504,7 @@ export class ShoppingShipmentSetting {
                                                                                                 >
                                                                                                     ${(() => {
                                                                                                         let returnHTML = ``;
-                                                                                                        shipmentArray.volume.map((data) => {
+                                                                                                        shipmentArray.volume.map((data:any) => {
                                                                                                             returnHTML += html`
                                                                                                                 <div class="">
                                                                                                                     <span style="font-size: 24px;">${data.key}</span>
@@ -525,7 +525,7 @@ export class ShoppingShipmentSetting {
                                                                                                 <div style="border-radius: 10px;border: 1px solid #DDD;color: #393939;font-weight: 400;font-size: 14px;padding: 20px;">
                                                                                                     ${(() => {
                                                                                                         let returnHTML = ``;
-                                                                                                        shipmentArray.weight.map((data) => {
+                                                                                                        shipmentArray.weight.map((data:any) => {
                                                                                                             returnHTML += html`
                                                                                                                 <div class="">
                                                                                                                     <span style="font-size: 24px;">${data.key}</span>
@@ -556,14 +556,14 @@ export class ShoppingShipmentSetting {
                                                                 html`
                                                                     <div class="update-bar-container">
                                                                         ${BgWidget.save(
-                                                                                gvc.event(() => {
-                                                                                    save(() => {
-                                                                                        dialog.successMessage({
-                                                                                            text: '設定成功',
-                                                                                        });
-                                                                                    });
-                                                                                })
-                                                                        )}
+                                                                        gvc.event(() => {
+                                                                            save(() => {
+                                                                                dialog.successMessage({
+                                                                                    text: '設定成功',
+                                                                                });
+                                                                            });
+                                                                        })
+                                                                )}
                                                                     </div>`,
                                                             ].join(''),
                                                             BgWidget.getContainerWidth(),

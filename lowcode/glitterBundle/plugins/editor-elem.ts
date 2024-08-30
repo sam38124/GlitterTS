@@ -491,7 +491,7 @@ export class EditorElem {
                             },
                             domain
                         );
-                    } else if (event.data.data.callbackID === id) {
+                    } else if (event.data.data && event.data.data.callbackID === id) {
                         if (obj.dontRefactor) {
                             obj.initial = event.data.data.value;
                             obj.callback(event.data.data.value);
@@ -582,7 +582,7 @@ export class EditorElem {
                             },
                             domain
                         );
-                    } else if (event.data.data.callbackID === id) {
+                    } else if (event.data.data && event.data.data.callbackID === id) {
                         obj.initial = event.data.data.value;
                         obj.callback(event.data.data.value);
                     }
@@ -694,7 +694,7 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                             },
                             domain
                         );
-                    } else if (event.data.data && event.data.data.callbackID === id) {
+                    } else if (event.data.data && event.data.data && event.data.data.callbackID === id) {
                         const array = event.data.data.value.split('\n');
                         const data = array
                             .filter((dd: any, index: number) => {
@@ -811,7 +811,7 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                             domain
                                         );
                                     }
-                                } else if (event.data.data.callbackID === id) {
+                                } else if (event.data.data && event.data.data.callbackID === id) {
                                     obj.initial = event.data.data.value;
                                     obj.callback(event.data.data.value);
                                 }
@@ -918,7 +918,14 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                 onCreate: () => {
                     const interval = setInterval(() => {
                         if ((window as any).FroalaEditor) {
-                            gvc.addStyle(`
+                            setTimeout(()=>{
+                                gvc.addStyle(`
+                            #insertImage-1 {
+                            display:none !important;
+                            }
+                              #insertImage-2 {
+                            display:none !important;
+                            }
                                 .fr-sticky-on {
                                     position: relative !important;
                                     z-index: 10;
@@ -927,7 +934,6 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                     display: none !important;
                                 }
                             `);
-                            setTimeout(() => {
                                 const editor = new (window as any).FroalaEditor('#' + richID, {
                                     language: 'zh_tw',
                                     heightMin: 500,
@@ -1008,49 +1014,51 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                     },
                                     key: 'hWA2C-7I2B2C4B3E4E2G3wd1DBKSPF1WKTUCQOa1OURPJ1KDe2F-11D2C2D2D2C3B3C1D6B1C2==',
                                 });
-                                (document.querySelector(`.${richID}-loading`) as any).remove();
+                                if((document.querySelector(`.${richID}-loading`) as any)){
+                                    (document.querySelector(`.${richID}-loading`) as any).remove();
+                                }
                                 setTimeout(() => {
-                                    const target: any = document.querySelector(`#insertImage-1`);
+                                    const target: any = document.querySelector(`[data-cmd="insertImage"]`);
                                     target.outerHTML = html` <button
-                                        id="insertImage-1"
+                                        id="insertImage-replace"
                                         type="button"
                                         tabindex="-1"
                                         role="button"
                                         class="fr-command fr-btn "
                                         data-title="插入圖片 (⌘P)"
                                         onclick="${obj.gvc.event(() => {
-                                            glitter.ut.chooseMediaCallback({
-                                                single: true,
-                                                accept: 'image/*',
-                                                callback(data) {
-                                                    const saasConfig = (window as any).saasConfig;
-                                                    const dialog = new ShareDialog(glitter);
+                                        glitter.ut.chooseMediaCallback({
+                                            single: true,
+                                            accept: 'image/*',
+                                            callback(data) {
+                                                const saasConfig = (window as any).saasConfig;
+                                                const dialog = new ShareDialog(glitter);
+                                                dialog.dataLoading({ visible: true });
+                                                const file = data[0].file;
+                                                saasConfig.api.uploadFile(file.name).then((data: any) => {
+                                                    dialog.dataLoading({ visible: false });
+                                                    const data1 = data.response;
                                                     dialog.dataLoading({ visible: true });
-                                                    const file = data[0].file;
-                                                    saasConfig.api.uploadFile(file.name).then((data: any) => {
+                                                    BaseApi.create({
+                                                        url: data1.url,
+                                                        type: 'put',
+                                                        data: file,
+                                                        headers: {
+                                                            'Content-Type': data1.type,
+                                                        },
+                                                    }).then((res) => {
                                                         dialog.dataLoading({ visible: false });
-                                                        const data1 = data.response;
-                                                        dialog.dataLoading({ visible: true });
-                                                        BaseApi.create({
-                                                            url: data1.url,
-                                                            type: 'put',
-                                                            data: file,
-                                                            headers: {
-                                                                'Content-Type': data1.type,
-                                                            },
-                                                        }).then((res) => {
-                                                            dialog.dataLoading({ visible: false });
-                                                            if (res.result) {
-                                                                editor.html.insert(`<img src="${data1.fullUrl}" style="max-width: 100%;">`);
-                                                                editor.undo.saveStep();
-                                                            } else {
-                                                                dialog.errorMessage({ text: '上傳失敗' });
-                                                            }
-                                                        });
+                                                        if (res.result) {
+                                                            editor.html.insert(`<img src="${data1.fullUrl}" style="max-width: 100%;">`);
+                                                            editor.undo.saveStep();
+                                                        } else {
+                                                            dialog.errorMessage({ text: '上傳失敗' });
+                                                        }
                                                     });
-                                                },
-                                            });
-                                        })}"
+                                                });
+                                            },
+                                        });
+                                    })}"
                                     >
                                         <svg class="fr-svg" focusable="false" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                             <path
@@ -1063,8 +1071,8 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                         editor.edit.off();
                                         editor.toolbar.disable();
                                     }
-                                }, 100);
-                            }, 1000);
+                                }, 200);
+                            },1000)
                             clearInterval(interval);
                         }
                     }, 200);
@@ -1622,9 +1630,20 @@ ${obj.gvc.bindView(() => {
                             return {
                                 bind: id2,
                                 view: () => {
-                                    return html`<input
+                                    return html`
+                                        <div class="" style="position: absolute;transform: translateY(-50%);top:50%;left:20px;"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                            <g clip-path="url(#clip0_12704_238948)">
+                                                <path d="M14.375 8.125C14.375 6.4674 13.7165 4.87769 12.5444 3.70558C11.3723 2.53348 9.7826 1.875 8.125 1.875C6.4674 1.875 4.87769 2.53348 3.70558 3.70558C2.53348 4.87769 1.875 6.4674 1.875 8.125C1.875 9.7826 2.53348 11.3723 3.70558 12.5444C4.87769 13.7165 6.4674 14.375 8.125 14.375C9.7826 14.375 11.3723 13.7165 12.5444 12.5444C13.7165 11.3723 14.375 9.7826 14.375 8.125ZM13.168 14.4961C11.7852 15.5938 10.0312 16.25 8.125 16.25C3.63672 16.25 0 12.6133 0 8.125C0 3.63672 3.63672 0 8.125 0C12.6133 0 16.25 3.63672 16.25 8.125C16.25 10.0312 15.5938 11.7852 14.4961 13.168L19.7266 18.3984C20.0938 18.7656 20.0938 19.3594 19.7266 19.7227C19.3594 20.0859 18.7656 20.0898 18.4023 19.7227L13.168 14.4961Z" fill="#8D8D8D"/>
+                                            </g>
+                                            <defs>
+                                                <clipPath id="clip0_12704_238948">
+                                                    <rect width="20" height="20" fill="white"/>
+                                                </clipPath>
+                                            </defs>
+                                        </svg></div>
+                                        <input
                                         class="form-control w-100"
-                                        style="height: 40px;max-height:100%;"
+                                        style="height: 44px;max-height:100%;padding-left:50px;"
                                         placeholder="${obj.placeHolder}"
                                         onfocus="${obj.gvc.event(() => {
                                             gvc.getBindViewElem(id).addClass(`show`);
@@ -1648,7 +1667,7 @@ ${obj.gvc.bindView(() => {
                                         })}"
                                     />`;
                                 },
-                                divCreate: { class: `w-100` },
+                                divCreate: { class: `w-100`,style:'position:relative;' },
                             };
                         })}
                         ${obj.gvc.bindView(() => {
@@ -1681,6 +1700,119 @@ ${obj.gvc.bindView(() => {
                         })}
                     `;
                 })()}
+            </div>
+        `;
+    }
+
+    public static searchInputDynamicV2(obj: {
+        title: string;
+        gvc: any;
+        def: string;
+        callback: (text: string) => void;
+        placeHolder: string;
+        search: (text: string, callback: (data: string[]) => void) => void;
+    }) {
+        const glitter = (window as any).glitter;
+        const gvc = obj.gvc;
+        const $ = glitter.$;
+        let array: string[] = [];
+
+        return html`
+            ${obj.title ? EditorElem.h3(obj.title) : ``}
+            <div class="btn-group dropdown w-100">
+                ${(() => {
+            const id = glitter.getUUID();
+            const id2 = glitter.getUUID();
+
+            function refreshData() {
+                obj.search(obj.def, (data) => {
+                    array = data;
+                    try {
+                        gvc.notifyDataChange(id);
+                        setTimeout(() => {
+                            gvc.getBindViewElem(id).addClass(`position-fixed`);
+                            gvc.getBindViewElem(id).addClass(`show`);
+                        }, 100);
+                    } catch (e) {}
+                });
+            }
+
+            // refreshData()
+            return html`
+                        ${obj.gvc.bindView(() => {
+                return {
+                    bind: id2,
+                    view: () => {
+                        return html`
+                                        <div class="" style="position: absolute;transform: translateY(-50%);top:50%;left:20px;"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                            <g clip-path="url(#clip0_12704_238948)">
+                                                <path d="M14.375 8.125C14.375 6.4674 13.7165 4.87769 12.5444 3.70558C11.3723 2.53348 9.7826 1.875 8.125 1.875C6.4674 1.875 4.87769 2.53348 3.70558 3.70558C2.53348 4.87769 1.875 6.4674 1.875 8.125C1.875 9.7826 2.53348 11.3723 3.70558 12.5444C4.87769 13.7165 6.4674 14.375 8.125 14.375C9.7826 14.375 11.3723 13.7165 12.5444 12.5444C13.7165 11.3723 14.375 9.7826 14.375 8.125ZM13.168 14.4961C11.7852 15.5938 10.0312 16.25 8.125 16.25C3.63672 16.25 0 12.6133 0 8.125C0 3.63672 3.63672 0 8.125 0C12.6133 0 16.25 3.63672 16.25 8.125C16.25 10.0312 15.5938 11.7852 14.4961 13.168L19.7266 18.3984C20.0938 18.7656 20.0938 19.3594 19.7266 19.7227C19.3594 20.0859 18.7656 20.0898 18.4023 19.7227L13.168 14.4961Z" fill="#8D8D8D"/>
+                                            </g>
+                                            <defs>
+                                                <clipPath id="clip0_12704_238948">
+                                                    <rect width="20" height="20" fill="white"/>
+                                                </clipPath>
+                                            </defs>
+                                        </svg></div>
+                                        <input
+                                        class="form-control w-100"
+                                        style="height: 44px;max-height:100%;padding-left:50px;"
+                                        placeholder="${obj.placeHolder}"
+                                        onfocus="${obj.gvc.event(() => {
+                            gvc.getBindViewElem(id).addClass(`show`);
+                            refreshData();
+                        })}"
+                                        onblur="${gvc.event(() => {
+                            setTimeout(() => {
+                                gvc.getBindViewElem(id).removeClass(`show`);
+                            }, 300);
+                        })}"
+                                        oninput="${gvc.event((e: any) => {
+                            obj.def = e.value;
+                            refreshData();
+                        })}"
+                                        value="${obj.def}"
+                                        onchange="${gvc.event((e: any) => {
+                            obj.def = e.value;
+                            setTimeout(() => {
+                                obj.callback(obj.def);
+                            }, 500);
+                        })}"
+                                    />`;
+                    },
+                    divCreate: { class: `w-100`,style:'position:relative;' },
+                };
+            })}
+                        ${obj.gvc.bindView(() => {
+                return {
+                    bind: id,
+                    view: () => {
+                        return array
+                            .filter((d2: any) => {
+                                return d2.toUpperCase().indexOf(obj.def.toUpperCase()) !== -1;
+                            })
+                            .map((d3) => {
+                                return html` <button
+                                                class="dropdown-item"
+                                                onclick="${gvc.event(() => {
+                                    obj.def = d3;
+                                    gvc.notifyDataChange(id2);
+                                    obj.callback(obj.def);
+                                })}"
+                                            >
+                                                ${d3}
+                                            </button>`;
+                            })
+                            .join('');
+                    },
+                    divCreate: {
+                        class: `dropdown-menu`,
+                        style: `transform: translateY(40px);max-height:300px;overflow-y:scroll;`,
+                    },
+                };
+            })}
+                    `;
+        })()}
             </div>
         `;
     }

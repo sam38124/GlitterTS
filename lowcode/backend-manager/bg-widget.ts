@@ -755,7 +755,7 @@ ${obj.default ?? ''}</textarea
     // 頁面
     static maintenance() {
         return html` <div class="d-flex flex-column align-items-center justify-content-center vh-100 vw-100">
-            <iframe src="https://embed.lottiefiles.com/animation/99312" style="width:50vw;height:50vw;"></iframe>
+            <iframe src="https://embed.lottiefiles.com/animation/99312" style="width:40vw;height:40vw;"></iframe>
             <h3 style="margin-top: 36px;">此頁面功能維護中</h3>
         </div>`;
     }
