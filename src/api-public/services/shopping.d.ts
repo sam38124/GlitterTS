@@ -104,6 +104,14 @@ export declare class Shopping {
     app: string;
     token?: IToken;
     constructor(app: string, token?: IToken);
+    workerExample(data: {
+        type: 0 | 1;
+        divisor: number;
+    }): Promise<{
+        type: string;
+        divisor: number;
+        executionTime: string;
+    }>;
     getProduct(query: {
         page: number;
         limit: number;

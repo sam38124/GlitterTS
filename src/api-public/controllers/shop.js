@@ -18,6 +18,17 @@ const post_js_1 = require("../services/post.js");
 const shopping_1 = require("../services/shopping");
 const rebate_1 = require("../services/rebate");
 const router = express_1.default.Router();
+router.post('/worker', async (req, resp) => {
+    try {
+        return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).workerExample({
+            type: req.body.type,
+            divisor: req.body.divisor,
+        }));
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
 router.get('/rebate', async (req, resp) => {
     try {
         const app = req.get('g-app');

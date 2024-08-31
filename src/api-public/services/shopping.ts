@@ -14,6 +14,8 @@ import moment from 'moment';
 import { ManagerNotify } from './notify.js';
 import { AutoSendEmail } from './auto-send-email.js';
 import { Recommend } from './recommend.js';
+import { Worker } from 'worker_threads';
+import { Workers } from './workers.js';
 
 type BindItem = {
     id: string;
@@ -138,6 +140,37 @@ export class Shopping {
     constructor(app: string, token?: IToken) {
         this.app = app;
         this.token = token;
+    }
+
+    public async workerExample(data: { type: 0 | 1; divisor: number }) {
+        // 以 t_voucher_history 更新資料舉例
+        const jsonData = await db.query(`SELECT * FROM \`${this.app}\`.t_voucher_history`, []);
+        const t0 = performance.now();
+
+        // 單線程插入資料
+        if (data.type === 0) {
+            for (const record of jsonData) {
+                await db.query(`UPDATE \`${this.app}\`.\`t_voucher_history\` SET ? WHERE id = ?`, [record, record.id]);
+            }
+            return {
+                type: 'single',
+                divisor: 1,
+                executionTime: `${(performance.now() - t0).toFixed(3)} ms`,
+            };
+        }
+
+        // 多線程插入資料
+        const formatJsonData = jsonData.map((record: any) => {
+            return {
+                sql: `UPDATE \`${this.app}\`.\`t_voucher_history\` SET ? WHERE id = ?`,
+                data: [record, record.id],
+            };
+        });
+        const result = Workers.query({
+            queryList: formatJsonData,
+            divisor: data.divisor,
+        });
+        return result;
     }
 
     public async getProduct(query: {

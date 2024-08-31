@@ -19,10 +19,38 @@ const moment_1 = __importDefault(require("moment"));
 const notify_js_1 = require("./notify.js");
 const auto_send_email_js_1 = require("./auto-send-email.js");
 const recommend_js_1 = require("./recommend.js");
+const workers_js_1 = require("./workers.js");
 class Shopping {
     constructor(app, token) {
         this.app = app;
         this.token = token;
+    }
+    async workerExample(data) {
+        const jsonData = await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_voucher_history`, []);
+        const t0 = performance.now();
+        if (data.type === 0) {
+            for (const record of jsonData) {
+                await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_voucher_history\` SET ? WHERE id = ?`, [record, record.id]);
+            }
+            return {
+                type: 'single',
+                divisor: 1,
+                executionTime: `${(performance.now() - t0).toFixed(3)} ms`,
+            };
+        }
+        else {
+            const formatJsonData = jsonData.map((record) => {
+                return {
+                    sql: `UPDATE \`${this.app}\`.\`t_voucher_history\` SET ? WHERE id = ?`,
+                    data: [record, record.id],
+                };
+            });
+            const result = workers_js_1.Workers.query({
+                queryList: formatJsonData,
+                divisor: data.divisor,
+            });
+            return result;
+        }
     }
     async getProduct(query) {
         var _a;
