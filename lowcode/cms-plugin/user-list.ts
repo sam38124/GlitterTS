@@ -246,7 +246,6 @@ export class UserList {
                                                 },
                                             });
                                         })(),
-
                                         gvc.bindView({
                                             bind: vm.tableId,
                                             view: () => {
@@ -520,7 +519,6 @@ export class UserList {
                                 },
                             });
                         })(),
-
                         gvc.bindView({
                             bind: vm.tableId,
                             view: () => {

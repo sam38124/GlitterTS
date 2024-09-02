@@ -198,8 +198,8 @@ export class BgWidget {
         return html` <div class="ms-2 border-end position-absolute h-100 left-0"></div>`;
     }
 
-    static horizontalLine() {
-        return html` <div class="my-3 w-100" style="border-bottom: 1px solid #DDD"></div>`;
+    static horizontalLine(css?: { color?: string; size?: number; margin?: number }) {
+        return html` <div class="w-100" style="margin: ${css?.margin ?? 1}rem 0; border-bottom: ${css?.size ?? 1}px solid ${css?.color ?? '#DDD'}"></div>`;
     }
 
     static editeInput(obj: {
@@ -1484,9 +1484,9 @@ ${obj.default ?? ''}</textarea
     }
 
     static searchFilter(event: string, vale: string, placeholder: string, margin?: string) {
-        return html` <div class="w-100 position-relative" style="margin: ${margin ?? 0};">
+        return html` <div class="w-100 position-relative" style="height: 40px; margin: ${margin ?? 0};">
             <i class="fa-regular fa-magnifying-glass" style="font-size: 18px; color: #A0A0A0; position: absolute; left: 18px; top: 50%; transform: translateY(-50%);" aria-hidden="true"></i>
-            <input class="form-control h-100" style="border-radius: 10px; border: 1px solid #DDD; padding-left: 50px;" placeholder="${placeholder}" onchange="${event}" value="${vale}" />
+            <input class="form-control h-100" style="border-radius: 10px; border: 1px solid #DDD; padding-left: 50px; height: 100%;" placeholder="${placeholder}" onchange="${event}" value="${vale}" />
         </div>`;
     }
 

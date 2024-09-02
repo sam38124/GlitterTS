@@ -4,10 +4,10 @@ import { PageEditor } from '../../editor/page-editor.js';
 import { ShareDialog } from '../../glitterBundle/dialog/ShareDialog.js';
 import { Storage } from '../../glitterBundle/helper/storage.js';
 import { AddComponent } from '../../editor/add-component.js';
-import { EditorConfig } from "../../editor-config.js";
-import { ToolSetting } from "./tool-setting.js";
-import { BgWidget } from "../../backend-manager/bg-widget.js";
-import { CustomStyle } from "../../glitterBundle/html-component/custom-style.js";
+import { EditorConfig } from '../../editor-config.js';
+import { ToolSetting } from './tool-setting.js';
+import { BgWidget } from '../../backend-manager/bg-widget.js';
+import { CustomStyle } from '../../glitterBundle/html-component/custom-style.js';
 var ViewType;
 (function (ViewType) {
     ViewType["mobile"] = "mobile";
@@ -63,16 +63,15 @@ export class Main_editor {
                         return [
                             html `
                                 <div
-                                        class="px-3   border-bottom pb-3 fw-bold mt-2 pt-2 "
-                                        style="cursor: pointer;color:#393939;"
-                                        onclick="${gvc.event(() => {
+                                    class="px-3   border-bottom pb-3 fw-bold mt-2 pt-2 "
+                                    style="cursor: pointer;color:#393939;"
+                                    onclick="${gvc.event(() => {
                                 Storage.lastSelect = '';
                                 glitter.share.editorViewModel.selectItem = undefined;
                                 glitter.share.selectEditorItem();
                             })}"
                                 >
                                     <span>${viewModel.data.name}</span>
-
                                 </div>
                             `,
                             `    ${(() => {
@@ -92,8 +91,7 @@ export class Main_editor {
                                                 }).config = viewModel.data.config;
                                                 pageConfig = viewModel.data.config;
                                             }
-                                            catch (e) {
-                                            }
+                                            catch (e) { }
                                             viewModel.data.config.container_config = containerConfig;
                                             gvc.notifyDataChange(vid);
                                         }
@@ -139,22 +137,22 @@ export class Main_editor {
                                                             return html `
                                                                         <li>
                                                                             <div
-                                                                                    class="w-100 fw-500 d-flex align-items-center  fs-6 hoverBtn h_item  rounded px-2 hoverF2 mb-1"
-                                                                                    style="gap:5px;color:#393939;${dd.toggle && dd.type === 'container' ? `border-radius: 5px;background: #F2F2F2;` : ``}"
-                                                                                    onclick="${gvc.event(() => {
+                                                                                class="w-100 fw-500 d-flex align-items-center  fs-6 hoverBtn h_item  rounded px-2 hoverF2 mb-1"
+                                                                                style="gap:5px;color:#393939;${dd.toggle && dd.type === 'container' ? `border-radius: 5px;background: #F2F2F2;` : ``}"
+                                                                                onclick="${gvc.event(() => {
                                                                 if (lastClick.stop() > 0.1) {
                                                                     dd.info && (dd.info.toggle = !dd.info.toggle);
                                                                     gvc.notifyDataChange(id);
                                                                     dd.info.editorEvent();
                                                                 }
                                                             })}"
-                                                                                    onmouseover="${gvc.event(() => {
+                                                                                onmouseover="${gvc.event(() => {
                                                                 if (glitter.share.left_block_hover) {
                                                                     return;
                                                                 }
                                                                 dd.info && dd.info.editor_bridge && dd.info.editor_bridge.scrollWithHover();
                                                             })}"
-                                                                                    onmouseout="${gvc.event(() => {
+                                                                                onmouseout="${gvc.event(() => {
                                                                 if (glitter.share.left_block_hover) {
                                                                     return;
                                                                 }
@@ -183,21 +181,23 @@ export class Main_editor {
                                                                                 ${dd.icon ? `<img src="${dd.icon}" style="width:18px;height:18px;">` : ``}
                                                                                 <span>${dd.title}</span>
                                                                                 <div class="flex-fill"></div>
-                                                                                ${(dd.info.deletable !== 'false') ? ` <div
+                                                                                ${dd.info.deletable !== 'false'
+                                                                ? ` <div
                                                                                         class="hoverBtn p-1 child"
                                                                                         onclick="${gvc.event((e, event) => {
-                                                                lastClick.zeroing();
-                                                                event.stopPropagation();
-                                                                glitter.htmlGenerate.deleteWidget(og_array, og_array[index], () => {
-                                                                    setPageConfig();
-                                                                });
-                                                            })}"
+                                                                    lastClick.zeroing();
+                                                                    event.stopPropagation();
+                                                                    glitter.htmlGenerate.deleteWidget(og_array, og_array[index], () => {
+                                                                        setPageConfig();
+                                                                    });
+                                                                })}"
                                                                                 >
                                                                                     <i class="fa-regular fa-trash d-flex align-items-center justify-content-center "></i>
-                                                                                </div>` : ``}
+                                                                                </div>`
+                                                                : ``}
                                                                                 <div
-                                                                                        class="hoverBtn p-1 ${og_array[index].visible ? `child` : ``}"
-                                                                                        onclick="${gvc.event((e, event) => {
+                                                                                    class="hoverBtn p-1 ${og_array[index].visible ? `child` : ``}"
+                                                                                    onclick="${gvc.event((e, event) => {
                                                                 lastClick.zeroing();
                                                                 event.stopPropagation();
                                                                 og_array[index].visible = !og_array[index].visible;
@@ -217,23 +217,26 @@ export class Main_editor {
                                                             })}"
                                                                                 >
                                                                                     <i
-                                                                                            class="${og_array[index].visible
+                                                                                        class="${og_array[index].visible
                                                                 ? `fa-regular fa-eye`
                                                                 : `fa-solid fa-eye-slash`} d-flex align-items-center justify-content-center "
-                                                                                            style="width:15px;height:15px;"
-                                                                                            aria-hidden="true"
+                                                                                        style="width:15px;height:15px;"
+                                                                                        aria-hidden="true"
                                                                                     ></i>
                                                                                 </div>
-                                                                                <div class="hoverBtn p-1 dragItem child"
-                                                                                     onmousedown="${gvc.event(() => {
-                                                                (Storage.view_type !== 'mobile') && $('#editerCenter iframe').addClass('scale_iframe');
-                                                            })}" onmouseup="${gvc.event(() => {
-                                                                (Storage.view_type !== 'mobile') && $('#editerCenter iframe').removeClass('scale_iframe');
-                                                            })}">
+                                                                                <div
+                                                                                    class="hoverBtn p-1 dragItem child"
+                                                                                    onmousedown="${gvc.event(() => {
+                                                                Storage.view_type !== 'mobile' && $('#editerCenter iframe').addClass('scale_iframe');
+                                                            })}"
+                                                                                    onmouseup="${gvc.event(() => {
+                                                                Storage.view_type !== 'mobile' && $('#editerCenter iframe').removeClass('scale_iframe');
+                                                            })}"
+                                                                                >
                                                                                     <i
-                                                                                            class="fa-solid fa-grip-dots-vertical d-flex align-items-center justify-content-center  "
-                                                                                            style="width:15px;height:15px;"
-                                                                                            aria-hidden="true"
+                                                                                        class="fa-solid fa-grip-dots-vertical d-flex align-items-center justify-content-center  "
+                                                                                        style="width:15px;height:15px;"
+                                                                                        aria-hidden="true"
                                                                                     ></i>
                                                                                 </div>
                                                                             </div>
@@ -246,9 +249,9 @@ export class Main_editor {
                                                             .join('') +
                                                             html `
                                                                 <div
-                                                                        class="w-100 fw-500 d-flex align-items-center  fs-6 hoverBtn h_item  rounded px-2 hoverF2 mb-1"
-                                                                        style="color:#36B;gap:10px;"
-                                                                        onclick="${gvc.event(() => {
+                                                                    class="w-100 fw-500 d-flex align-items-center  fs-6 hoverBtn h_item  rounded px-2 hoverF2 mb-1"
+                                                                    style="color:#36B;gap:10px;"
+                                                                    onclick="${gvc.event(() => {
                                                                 function setSelectContainer() {
                                                                     if (root) {
                                                                         glitter.share.editorViewModel.selectContainer = glitter.share.editorViewModel.data.config;
@@ -263,35 +266,35 @@ export class Main_editor {
                                                                 };
                                                                 AddComponent.addEvent = (gvc, tdata) => {
                                                                     glitter.share.addComponent({
-                                                                        "id": gvc.glitter.getUUID(),
-                                                                        "js": "./official_view_component/official.js",
-                                                                        "css": {
-                                                                            "class": {},
-                                                                            "style": {}
+                                                                        id: gvc.glitter.getUUID(),
+                                                                        js: './official_view_component/official.js',
+                                                                        css: {
+                                                                            class: {},
+                                                                            style: {},
                                                                         },
-                                                                        "data": {
-                                                                            'refer_app': tdata.copyApp,
-                                                                            "tag": tdata.copy,
-                                                                            "list": [],
-                                                                            "carryData": {},
+                                                                        data: {
+                                                                            refer_app: tdata.copyApp,
+                                                                            tag: tdata.copy,
+                                                                            list: [],
+                                                                            carryData: {},
                                                                             _style_refer_global: {
-                                                                                index: `0`
-                                                                            }
+                                                                                index: `0`,
+                                                                            },
                                                                         },
-                                                                        "type": "component",
-                                                                        "class": "",
-                                                                        "index": 0,
-                                                                        "label": tdata.title,
-                                                                        "style": "",
-                                                                        "bundle": {},
-                                                                        "global": [],
-                                                                        "toggle": false,
-                                                                        "stylist": [],
-                                                                        "dataType": "static",
-                                                                        "style_from": "code",
-                                                                        "classDataType": "static",
-                                                                        "preloadEvenet": {},
-                                                                        "share": {}
+                                                                        type: 'component',
+                                                                        class: '',
+                                                                        index: 0,
+                                                                        label: tdata.title,
+                                                                        style: '',
+                                                                        bundle: {},
+                                                                        global: [],
+                                                                        toggle: false,
+                                                                        stylist: [],
+                                                                        dataType: 'static',
+                                                                        style_from: 'code',
+                                                                        classDataType: 'static',
+                                                                        preloadEvenet: {},
+                                                                        share: {},
                                                                     });
                                                                 };
                                                                 AddComponent.toggle(true);
@@ -316,9 +319,7 @@ export class Main_editor {
                                                             {
                                                                 src: `https://raw.githack.com/SortableJS/Sortable/master/Sortable.js`,
                                                             },
-                                                        ], () => {
-                                                        }, () => {
-                                                        });
+                                                        ], () => { }, () => { });
                                                         const interval = setInterval(() => {
                                                             if (window.Sortable) {
                                                                 try {
@@ -361,17 +362,16 @@ export class Main_editor {
                                                                             const dd = og_array[evt.newIndex];
                                                                             dd.info && dd.info.editor_bridge && dd.info.editor_bridge.cancelHover();
                                                                             glitter.share.left_block_hover = false;
-                                                                            (Storage.view_type !== 'mobile') && $('#editerCenter iframe').removeClass('scale_iframe');
+                                                                            Storage.view_type !== 'mobile' && $('#editerCenter iframe').removeClass('scale_iframe');
                                                                         },
                                                                         onStart: function (evt) {
                                                                             startIndex = evt.oldIndex;
                                                                             glitter.share.left_block_hover = true;
-                                                                            (Storage.view_type !== 'mobile') && $('#editerCenter iframe').addClass('scale_iframe');
+                                                                            Storage.view_type !== 'mobile' && $('#editerCenter iframe').addClass('scale_iframe');
                                                                         },
                                                                     });
                                                                 }
-                                                                catch (e) {
-                                                                }
+                                                                catch (e) { }
                                                                 clearInterval(interval);
                                                             }
                                                         }, 100);
@@ -379,8 +379,7 @@ export class Main_editor {
                                                 };
                                             });
                                         }
-                                        return html `
-                                            <div class="p-2">${renderItems(list, pageConfig, true)}</div>`;
+                                        return html ` <div class="p-2">${renderItems(list, pageConfig, true)}</div>`;
                                     })(),
                                 ].join('');
                             })()}`,
@@ -388,14 +387,12 @@ export class Main_editor {
                     }
                     else {
                         return html `
-                            <li class="w-100 align-items-center  d-flex editor_item_title  start-0 bg-white z-index-9"
-                                style="z-index: 999;" onclick="${gvc.event(() => {
-                        })}">
+                            <li class="w-100 align-items-center  d-flex editor_item_title  start-0 bg-white z-index-9" style="z-index: 999;" onclick="${gvc.event(() => { })}">
                                 <span style="font-size:14px;">${viewModel.data.name}-區段</span>
                                 <div
-                                        class="hoverBtn d-flex align-items-center justify-content-center   border ms-auto me-2"
-                                        style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
-                                        onclick="${gvc.event(() => {
+                                    class="hoverBtn d-flex align-items-center justify-content-center   border ms-auto me-2"
+                                    style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
+                                    onclick="${gvc.event(() => {
                             glitter.share.editorViewModel.selectContainer = glitter.share.editorViewModel.data.config;
                             AddComponent.toggle(true);
                         })}"
@@ -420,8 +417,7 @@ export class Main_editor {
                                             }).config = viewModel.data.config;
                                             pageConfig = viewModel.data.config;
                                         }
-                                        catch (e) {
-                                        }
+                                        catch (e) { }
                                         gvc.notifyDataChange(vid);
                                     }
                                     return new PageEditor(gvc, 'MainEditorLeft', 'MainEditorRight').renderLineItem(pageConfig, false, pageConfig, {
@@ -464,9 +460,10 @@ export class Main_editor {
                         <div class="" style="">
                             ${(() => {
                         if (vm.type === 'list') {
-                            return [Main_editor.color_list(vm, gvc, id, globalValue),
+                            return [
+                                Main_editor.color_list(vm, gvc, id, globalValue),
                                 CustomStyle.globalContainerList(vm, gvc, id, globalValue),
-                                Main_editor.fonts_list(vm, gvc, id, globalValue)
+                                Main_editor.fonts_list(vm, gvc, id, globalValue),
                             ].join('');
                         }
                         else if (vm.type === 'color_detail') {
@@ -478,7 +475,7 @@ export class Main_editor {
                                 },
                                 name: `調色盤${vm.index + 1}`,
                                 data: vm.data,
-                                index: vm.index
+                                index: vm.index,
                             });
                         }
                         else if (vm.type === 'container_detail') {
@@ -490,7 +487,7 @@ export class Main_editor {
                                 },
                                 name: `容器${vm.index + 1}`,
                                 data: vm.data,
-                                index: vm.index
+                                index: vm.index,
                             });
                         }
                         else {
@@ -510,12 +507,13 @@ export class Main_editor {
         return gvc.bindView(() => {
             const vm_c = {
                 toggle: false,
-                id: gvc.glitter.getUUID()
+                id: gvc.glitter.getUUID(),
             };
             return {
                 bind: vm_c.id,
                 view: () => {
-                    const array = [`<div class="hoverF2 d-flex align-items-center p-3"
+                    const array = [
+                        `<div class="hoverF2 d-flex align-items-center p-3"
                  onclick="${gvc.event(() => {
                             vm_c.toggle = !vm_c.toggle;
                             gvc.notifyDataChange(vm_c.id);
@@ -524,11 +522,13 @@ export class Main_editor {
       style="max-width: calc(100% - 50px);text-overflow: ellipsis;white-space: nowrap;overflow: hidden;">調色盤樣式</span>
                 <div class="flex-fill"></div>
                 ${vm_c.toggle ? ` <i class="fa-solid fa-chevron-down"></i>` : ` <i class="fa-solid fa-chevron-right"></i>`}
-            </div>`];
+            </div>`,
+                    ];
                     if (vm_c.toggle) {
-                        array.push(`<div class="row ${(globalValue.color_theme.length === 0) ? `d-none` : ``}"
+                        array.push(`<div class="row ${globalValue.color_theme.length === 0 ? `d-none` : ``}"
                                              style="margin:18px;">
-                                            ${globalValue.color_theme.map((dd, index) => {
+                                            ${globalValue.color_theme
+                            .map((dd, index) => {
                             return `<div class="col-6 mb-3" style="cursor: pointer;" onclick="${gvc.event(() => {
                                 vm.type = 'color_detail';
                                 vm.data = globalValue.color_theme[index];
@@ -538,14 +538,15 @@ export class Main_editor {
                                                 ${Main_editor.colorCard(globalValue.color_theme[index])}
                                                 <div class="w-100 t_39_16 mt-2" style="text-align: center;">調色盤${index + 1}</div>
                                             </div>`;
-                        }).join('')}
+                        })
+                            .join('')}
                                         </div>`);
-                        array.push(`<div style="padding: 0px 24px 24px;${(globalValue.color_theme.length === 0) ? `margin-top:24px;` : ``}">
+                        array.push(`<div style="padding: 0px 24px 24px;${globalValue.color_theme.length === 0 ? `margin-top:24px;` : ``}">
                                             <div class="bt_border_editor"
                                                  onclick="${gvc.event(() => {
                             vm.data = { id: gvc.glitter.getUUID() };
                             globalValue.color_theme.push(vm.data);
-                            vm.name = ('調色盤' + globalValue.color_theme.length);
+                            vm.name = '調色盤' + globalValue.color_theme.length;
                             vm.type = 'color_detail';
                             vm.index = globalValue.color_theme.length - 1;
                             gvc.notifyDataChange(id);
@@ -557,8 +558,8 @@ export class Main_editor {
                     return array.join('');
                 },
                 divCreate: {
-                    class: `  border-bottom    w-100`
-                }
+                    class: `  border-bottom    w-100`,
+                },
             };
         });
     }
@@ -574,16 +575,18 @@ export class Main_editor {
                     });
                 },
                 divCreate: {
-                    class: `w-100`
-                }
+                    class: `w-100`,
+                },
             };
         });
     }
     static color_detail_custom(vm) {
         const gvc = vm.gvc;
-        return `<div style="">${EditorConfig.color_setting_config.filter((dd) => {
-            return (!vm.filter) || vm.filter(dd.key);
-        }).map((dd) => {
+        return `<div style="">${EditorConfig.color_setting_config
+            .filter((dd) => {
+            return !vm.filter || vm.filter(dd.key);
+        })
+            .map((dd) => {
             vm.data[dd.key] = vm.data[dd.key] || '#FFFFFF';
             return EditorElem.colorSelect({
                 title: dd.title,
@@ -597,18 +600,19 @@ export class Main_editor {
                         try {
                             element[dd].updateAttribute();
                         }
-                        catch (e) {
-                        }
+                        catch (e) { }
                     });
                     if (`${vm.index}` === '0') {
-                        document.querySelector('#editerCenter iframe').contentWindow.document.querySelector('body').style.background = gvc.glitter.share.globalValue[`theme_color.0.background`];
+                        document.querySelector('#editerCenter iframe').contentWindow.document.querySelector('body').style.background =
+                            gvc.glitter.share.globalValue[`theme_color.0.background`];
                     }
                     vm.back();
                 },
                 gvc: gvc,
-                def: vm.data[dd.key]
+                def: vm.data[dd.key],
             });
-        }).join('<div style="height: 15px;"></div>')}</div>`;
+        })
+            .join('<div style="height: 15px;"></div>')}</div>`;
     }
     static color_detail(vm) {
         var _a;
@@ -636,9 +640,11 @@ export class Main_editor {
   </div>
 </div>
                                     `,
-                        `<div style="padding: 18px 24px 24px;">${EditorConfig.color_setting_config.filter((dd) => {
-                            return (!vm.filter) || vm.filter(dd.key);
-                        }).map((dd) => {
+                        `<div style="padding: 18px 24px 24px;">${EditorConfig.color_setting_config
+                            .filter((dd) => {
+                            return !vm.filter || vm.filter(dd.key);
+                        })
+                            .map((dd) => {
                             vm.data[dd.key] = vm.data[dd.key] || '#FFFFFF';
                             return EditorElem.colorSelect({
                                 title: dd.title,
@@ -652,18 +658,19 @@ export class Main_editor {
                                         try {
                                             element[dd].updateAttribute();
                                         }
-                                        catch (e) {
-                                        }
+                                        catch (e) { }
                                     });
                                     if (`${vm.index}` === '0') {
-                                        document.querySelector('#editerCenter iframe').contentWindow.document.querySelector('body').style.background = gvc.glitter.share.globalValue[`theme_color.0.background`];
+                                        document.querySelector('#editerCenter iframe').contentWindow.document.querySelector('body').style.background =
+                                            gvc.glitter.share.globalValue[`theme_color.0.background`];
                                     }
                                     gvc.notifyDataChange(vId);
                                 },
                                 gvc: gvc,
-                                def: vm.data[dd.key]
+                                def: vm.data[dd.key],
                             });
-                        }).join('<div style="height: 15px;"></div>')}</div>`,
+                        })
+                            .join('<div style="height: 15px;"></div>')}</div>`,
                         `<div style="padding: 0px 24px 24px;"> <div class="bt_border_editor"
                                                  onclick="${gvc.event(() => {
                             const dialog = new ShareDialog(gvc.glitter);
@@ -676,13 +683,13 @@ export class Main_editor {
                                         });
                                         vm.back();
                                     }
-                                }
+                                },
                             });
                         })}" >
                                                 刪除配色
-                                            </div></div>`
+                                            </div></div>`,
                     ].join('');
-                }
+                },
             };
         });
     }
@@ -775,9 +782,9 @@ export class Main_editor {
         return [
             html `
                 <div
-                        class="right_scroll"
-                        style="overflow-y:auto;${Storage.select_function === 'user-editor' ? `height:calc(100vh - ${document.body.clientWidth < 800 ? 0 : 56}px)` : `height:calc(100vh - 150px);`}"
-                        onscroll="${gvc.event(() => {
+                    class="right_scroll"
+                    style="overflow-y:auto;${Storage.select_function === 'user-editor' ? `height:calc(100vh - ${document.body.clientWidth < 768 ? 0 : 56}px)` : `height:calc(100vh - 150px);`}"
+                    onscroll="${gvc.event(() => {
                 if (document.querySelector('.right_scroll').scrollTop > 0) {
                     glitter.share.lastRightScrollTop = document.querySelector('.right_scroll').scrollTop;
                 }
@@ -809,7 +816,7 @@ export class Main_editor {
                             dd.refreshAllParameter = undefined;
                             dd.refreshComponentParameter = undefined;
                         });
-                        return (htmlGenerate.editor(gvc, {
+                        return htmlGenerate.editor(gvc, {
                             return_: false,
                             refreshAll: () => {
                                 if (viewModel.selectItem) {
@@ -824,31 +831,30 @@ export class Main_editor {
                                     return undefined;
                                 }
                             })(),
-                            deleteEvent: () => {
-                            },
-                        }));
+                            deleteEvent: () => { },
+                        });
                     },
                     divCreate: {
                         class: `p-2`,
                     },
-                    onCreate: () => {
-                    },
+                    onCreate: () => { },
                 };
             })}
                     <div style="height: 60px;"></div>
-                    <div class="position-absolute w-100 bottom-0 d-flex align-items-center p-3 shadow justify-content-end border-top bg-white"
-                         style="height: 60px;">
+                    <div class="position-absolute w-100 bottom-0 d-flex align-items-center p-3 shadow justify-content-end border-top bg-white" style="height: 60px;">
                         ${BgWidget.cancel(gvc.event(() => {
                 glitter.closeDrawer();
                 const dialog = new ShareDialog(gvc.glitter);
                 navigator.clipboard.writeText(JSON.stringify(viewModel.selectItem));
                 dialog.successMessage({ text: '複製成功' });
             }), '複製元件')}
-                        ${(viewModel.selectItem.deletable !== 'false') ? ` <div class="mx-2"></div>` + BgWidget.cancel(gvc.event(() => {
-                glitter.closeDrawer();
-                glitter.htmlGenerate.deleteWidget(glitter.share.editorViewModel.selectContainer, viewModel.selectItem, () => {
-                });
-            }), '刪除元件') : ``}
+                        ${viewModel.selectItem.deletable !== 'false'
+                ? ` <div class="mx-2"></div>` +
+                    BgWidget.cancel(gvc.event(() => {
+                        glitter.closeDrawer();
+                        glitter.htmlGenerate.deleteWidget(glitter.share.editorViewModel.selectContainer, viewModel.selectItem, () => { });
+                    }), '刪除元件')
+                : ``}
                     </div>
                 </div>
             `,
@@ -859,15 +865,14 @@ export class Main_editor {
                         if (viewModel.selectItem === undefined || viewModel.selectItem.js === undefined) {
                             return ``;
                         }
-                        return html `
+                        return html ` <div
+                            class="w-100  position-absolute bottom-0 border-top d-flex align-items-center ps-3 ${Storage.select_function === 'user-editor' ? `d-none` : ``}"
+                            style="height:50px;background:#f6f6f6;font-size:14px;"
+                        >
                             <div
-                                    class="w-100  position-absolute bottom-0 border-top d-flex align-items-center ps-3 ${Storage.select_function === 'user-editor' ? `d-none` : ``}"
-                                    style="height:50px;background:#f6f6f6;font-size:14px;"
-                            >
-                                <div
-                                        class="hoverBtn fw-bold"
-                                        style="color:#8e1f0b;cursor:pointer;"
-                                        onclick="${gvc.event(() => {
+                                class="hoverBtn fw-bold"
+                                style="color:#8e1f0b;cursor:pointer;"
+                                onclick="${gvc.event(() => {
                             checkSelect(viewModel.data.config);
                             try {
                                 const dialog = new ShareDialog(gvc.glitter);
@@ -889,10 +894,10 @@ export class Main_editor {
                                 alert(e);
                             }
                         })}"
-                                >
-                                    <i class="fa-solid fa-trash-can me-2"></i>移除區塊
-                                </div>
-                            </div>`;
+                            >
+                                <i class="fa-solid fa-trash-can me-2"></i>移除區塊
+                            </div>
+                        </div>`;
                     },
                 };
             }),
@@ -911,11 +916,13 @@ export class Main_editor {
                 divCreate: () => {
                     return {
                         class: Storage.view_type === ViewType.mobile && (Storage.select_function === 'page-editor' || Storage.select_function === 'user-editor')
-                            ? `d-flex align-items-center justify-content-center flex-column mx-auto` : `d-flex align-items-center justify-content-center flex-column`,
+                            ? `d-flex align-items-center justify-content-center flex-column mx-auto`
+                            : `d-flex align-items-center justify-content-center flex-column`,
                         style: Storage.view_type === ViewType.mobile && (Storage.select_function === 'page-editor' || Storage.select_function === 'user-editor')
-                            ? `width: 414px;height: calc(100vh - ${56 + EditorConfig.getPaddingTop(gvc)}px);` : `width: calc(100%);height: calc(100vh - ${56 + EditorConfig.getPaddingTop(gvc)}px);overflow:hidden;`
+                            ? `width: 414px;height: calc(100vh - ${56 + EditorConfig.getPaddingTop(gvc)}px);`
+                            : `width: calc(100%);height: calc(100vh - ${56 + EditorConfig.getPaddingTop(gvc)}px);overflow:hidden;`,
                     };
-                }
+                },
             };
         });
     }
@@ -949,12 +956,10 @@ export class Main_editor {
                                 }
                                 let array = [];
                                 if (!vm.selectItem) {
-                                    array.push(html `
-                                        <div class="d-flex bg-white w-100 border-bottom ${Storage.select_function === 'user-editor' ? `d-none` : ``}">
-                                            <div class="w-100" style="">
-                                                <div style=""
-                                                     class="d-flex align-items-center justify-content-around  w-100 p-2 ">
-                                                    ${(() => {
+                                    array.push(html ` <div class="d-flex bg-white w-100 border-bottom ${Storage.select_function === 'user-editor' ? `d-none` : ``}">
+                                        <div class="w-100" style="">
+                                            <div style="" class="d-flex align-items-center justify-content-around  w-100 p-2 ">
+                                                ${(() => {
                                         const items = [
                                             {
                                                 title: '頁面內容',
@@ -991,30 +996,28 @@ export class Main_editor {
                                         }
                                         return items
                                             .map((dd) => {
-                                            return html `
-                                                                        <div
-                                                                                class=" d-flex align-items-center justify-content-center ${dd.value === vm.select ? `border` : ``} rounded-3"
-                                                                                style="height:36px;width:36px;cursor:pointer;
+                                            return html ` <div
+                                                                class=" d-flex align-items-center justify-content-center ${dd.value === vm.select ? `border` : ``} rounded-3"
+                                                                style="height:36px;width:36px;cursor:pointer;
 ${dd.value === vm.select ? `background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);background:-webkit-linear-gradient(135deg, #667eea 0%, #764ba2 100%);color:white;` : `color:#151515;`}
 "
-                                                                                onclick="${gvc.event(() => {
+                                                                onclick="${gvc.event(() => {
                                                 vm.select = dd.value;
                                                 gvc.notifyDataChange(vm.pageID);
                                             })}"
-                                                                                data-bs-toggle="tooltip"
-                                                                                data-bs-placement="top"
-                                                                                data-bs-custom-class="custom-tooltip"
-                                                                                data-bs-title="${dd.title}"
-                                                                        >
-                                                                            <i class="${dd.icon}"
-                                                                               aria-hidden="true"></i>
-                                                                        </div>`;
+                                                                data-bs-toggle="tooltip"
+                                                                data-bs-placement="top"
+                                                                data-bs-custom-class="custom-tooltip"
+                                                                data-bs-title="${dd.title}"
+                                                            >
+                                                                <i class="${dd.icon}" aria-hidden="true"></i>
+                                                            </div>`;
                                         })
                                             .join(``);
                                     })()}
-                                                </div>
                                             </div>
-                                        </div>`);
+                                        </div>
+                                    </div>`);
                                     (vm.select === 'codeBlock' || vm.select === 'user_editor') &&
                                         array.push(Main_editor.editorContent({
                                             gvc: gvc,
@@ -1127,11 +1130,10 @@ ${dd.value === vm.select ? `background:linear-gradient(135deg, #667eea 0%, #764b
                                                     bind: id,
                                                     view: () => {
                                                         return html `
-                                                            <div class="alert alert-danger flex-fill m-0 p-2 "
-                                                                 style="white-space: normal;word-break:break-all;">
-                                                                此頁面的配置檔包含所有設計模組和觸發事件的代碼配置項目。<br/>建議由熟悉程式開發的工程師進行編輯。
-                                                            </div>
-                                                            ${EditorElem.customCodeEditor({
+                                                                <div class="alert alert-danger flex-fill m-0 p-2 " style="white-space: normal;word-break:break-all;">
+                                                                    此頁面的配置檔包含所有設計模組和觸發事件的代碼配置項目。<br />建議由熟悉程式開發的工程師進行編輯。
+                                                                </div>
+                                                                ${EditorElem.customCodeEditor({
                                                             gvc: gvc,
                                                             height: window.innerHeight - 350,
                                                             initial: value,
@@ -1141,18 +1143,17 @@ ${dd.value === vm.select ? `background:linear-gradient(135deg, #667eea 0%, #764b
                                                             },
                                                             language: 'json',
                                                         })}
-                                                            <div class="d-flex w-100 mb-2 mt-2 justify-content-end"
-                                                                 style="gap:10px;">
-                                                                <button
+                                                                <div class="d-flex w-100 mb-2 mt-2 justify-content-end" style="gap:10px;">
+                                                                    <button
                                                                         class="btn btn-outline-secondary-c "
                                                                         style="flex:1;height:40px; width:calc(50% - 10px);"
                                                                         onclick="${gvc.event(() => {
                                                             navigator.clipboard.writeText(JSON.stringify(json, null, '\t'));
                                                         })}"
-                                                                >
-                                                                    <i class="fa-regular fa-copy me-2"></i>複製到剪貼簿
-                                                                </button>
-                                                                <button
+                                                                    >
+                                                                        <i class="fa-regular fa-copy me-2"></i>複製到剪貼簿
+                                                                    </button>
+                                                                    <button
                                                                         class="btn btn-primary-c "
                                                                         style="flex:1; height:40px; width:calc(50% - 10px);"
                                                                         onclick="${gvc.event(() => {
@@ -1167,11 +1168,11 @@ ${dd.value === vm.select ? `background:linear-gradient(135deg, #667eea 0%, #764b
                                                                 console.log(`${e}${e.stack}${e.line}`);
                                                             }
                                                         })}"
-                                                                >
-                                                                    <i class="fa-regular fa-floppy-disk me-2"></i>儲存
-                                                                </button>
-                                                            </div>
-                                                        `;
+                                                                    >
+                                                                        <i class="fa-regular fa-floppy-disk me-2"></i>儲存
+                                                                    </button>
+                                                                </div>
+                                                            `;
                                                     },
                                                     divCreate: {
                                                         class: `p-2`,
@@ -1194,7 +1195,7 @@ ${dd.value === vm.select ? `background:linear-gradient(135deg, #667eea 0%, #764b
                 },
                 divCreate: option.divCreate || {
                     class: `w-100`,
-                    style: `height:calc(100vh - ${(document.body.clientWidth < 800) ? 0 : 56}px);overflow-y:auto;`,
+                    style: `height:calc(100vh - ${document.body.clientWidth < 768 ? 0 : 56}px);overflow-y:auto;`,
                 },
             };
         });

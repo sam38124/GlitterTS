@@ -130,8 +130,9 @@ export class BgWidget {
     static leftLineBar() {
         return html ` <div class="ms-2 border-end position-absolute h-100 left-0"></div>`;
     }
-    static horizontalLine() {
-        return html ` <div class="my-3 w-100" style="border-bottom: 1px solid #DDD"></div>`;
+    static horizontalLine(css) {
+        var _a, _b, _c;
+        return html ` <div class="w-100" style="margin: ${(_a = css === null || css === void 0 ? void 0 : css.margin) !== null && _a !== void 0 ? _a : 1}rem 0; border-bottom: ${(_b = css === null || css === void 0 ? void 0 : css.size) !== null && _b !== void 0 ? _b : 1}px solid ${(_c = css === null || css === void 0 ? void 0 : css.color) !== null && _c !== void 0 ? _c : '#DDD'}"></div>`;
     }
     static editeInput(obj) {
         var _a, _b, _c, _d, _e, _f;
@@ -1231,9 +1232,9 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         </select>`;
     }
     static searchFilter(event, vale, placeholder, margin) {
-        return html ` <div class="w-100 position-relative" style="margin: ${margin !== null && margin !== void 0 ? margin : 0};">
+        return html ` <div class="w-100 position-relative" style="height: 40px; margin: ${margin !== null && margin !== void 0 ? margin : 0};">
             <i class="fa-regular fa-magnifying-glass" style="font-size: 18px; color: #A0A0A0; position: absolute; left: 18px; top: 50%; transform: translateY(-50%);" aria-hidden="true"></i>
-            <input class="form-control h-100" style="border-radius: 10px; border: 1px solid #DDD; padding-left: 50px;" placeholder="${placeholder}" onchange="${event}" value="${vale}" />
+            <input class="form-control h-100" style="border-radius: 10px; border: 1px solid #DDD; padding-left: 50px; height: 100%;" placeholder="${placeholder}" onchange="${event}" value="${vale}" />
         </div>`;
     }
     static funnelFilter(obj) {
