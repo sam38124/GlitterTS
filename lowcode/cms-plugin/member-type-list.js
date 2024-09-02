@@ -598,7 +598,7 @@ export class MemberTypeList {
                                                                 </div>`;
                                         })
                                             .join('<div class="my-2"></div>')}
-                                                    `)
+                                                    `),
                                     ];
                                     return map.join('<div style="height: 24px;"></div>');
                                 },
@@ -621,19 +621,23 @@ export class MemberTypeList {
                                                     <div class="tx_normal fw-normal" style="margin-top: 18px;">
                                                         會員條件: ${vm.data.condition.type === 'single' ? `單筆消費金額${money}元` : `累計消費金額${money}元`}
                                                     </div>
-                                                    <div class="tx_normal fw-normal" style="margin-top: 12px;margin-bottom: 18px;">
+                                                    <div class="tx_normal fw-normal" style="margin-top: 12px; margin-bottom: 18px;">
                                                         計算期間: ${vm.data.duration.type === 'noLimit' ? `不計算期限` : `${vm.data.duration.value}天內消費`}
                                                     </div>
                                                     <div class="w-100" style="background: #DDD;height: 2px;"></div>
                                                     <div class="tx_normal fw-normal" style="margin-top: 18px;">
                                                         會員期限: ${vm.data.dead_line.type === 'noLimit' ? `沒有期限` : `${vm.data.dead_line.value}天`}
                                                     </div>
-                                                    ${(vm.data.dead_line.type !== 'noLimit') ? `
-                                                     <div class="tx_normal fw-normal" style="margin-top: 18px;">
-                                                        續會條件: ${vm.data.dead_line.value}天內 ${vm.data.renew_condition.type === 'single' ? `單筆消費金額${renew_money}元` : `累計消費金額${renew_money}元`}，即可往後續會${vm.data.dead_line.value}天。 
-                                                    </div>
-                                                    ` : ``}
-                                                   
+                                                    ${vm.data.dead_line.type !== 'noLimit'
+                                        ? html `
+                                                              <div class="tx_normal fw-normal" style="margin-top: 12px;">
+                                                                  續會條件:
+                                                                  ${vm.data.dead_line.value}天內${vm.data.renew_condition.type === 'single'
+                                            ? `單筆消費金額${renew_money}元`
+                                            : `累計消費金額${renew_money}元`}，即可往後續會${vm.data.dead_line.value}天。
+                                                              </div>
+                                                          `
+                                        : ``}
                                                 `);
                                 },
                                 divCreate: { class: 'summary-card p-0' },
