@@ -222,7 +222,6 @@ export class ApiShop {
                     if (location.pathname.includes('/hidden/') || location.pathname.includes('/shop/')) {
                         par.push(`show_hidden=true`);
                     }
-
                     return par.join('&');
                 })()}`,
             type: 'GET',

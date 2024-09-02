@@ -370,6 +370,14 @@ export class Shopping {
                 return product;
             });
 
+            if (query.id_list && query.order_by === 'order by id desc') {
+                products.data = query.id_list.split(',').map((id) => {
+                    return products.data.find((product: { id: number }) => {
+                        return `${product.id}` === `${id}`;
+                    });
+                });
+            }
+
             return products;
         } catch (e) {
             console.error(e);

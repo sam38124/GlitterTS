@@ -287,7 +287,7 @@ BgProduct.getProductOpts = (def) => {
         ApiShop.getProduct({
             page: 0,
             limit: 99999,
-            id_list: def.map((d) => `'${d}'`).join(','),
+            id_list: def.map((d) => `${d}`).join(','),
         }).then((data) => {
             resolve(data.response.data.map((product) => {
                 var _a;

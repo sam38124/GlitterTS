@@ -198,6 +198,13 @@ class Shopping {
                 product.total_sales = record ? record.count : 0;
                 return product;
             });
+            if (query.id_list && query.order_by === 'order by id desc') {
+                products.data = query.id_list.split(',').map((id) => {
+                    return products.data.find((product) => {
+                        return `${product.id}` === `${id}`;
+                    });
+                });
+            }
             return products;
         }
         catch (e) {
