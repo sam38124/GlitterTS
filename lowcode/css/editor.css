@@ -353,19 +353,6 @@ ul {
     font-weight: 400;
 }
 
-.tx_normal_white {
-    font-size: 16px;
-    letter-spacing: 0.64px;
-    color: #fff;
-    font-weight: 400;
-}
-
-.tx_gray_12 {
-    font-size: 12px;
-    color: #8d8d8d;
-    font-weight: 400;
-}
-
 .tx_700 {
     font-size: 16px;
     color: #393939;
@@ -378,20 +365,15 @@ ul {
     font-weight: 700;
 }
 
-.tx_white_sm {
-    font-size: 14px;
-    color: #fff;
-}
-
-.tx_white_lg {
-    font-size: 20px;
-    color: #fff;
-}
-
 .tx_title {
-    color: #393939;
     font-size: 24px;
+    color: #393939;
     font-weight: 700;
+}
+.tx_gray_12 {
+    font-size: 12px;
+    color: #8d8d8d;
+    font-weight: 400;
 }
 
 .c_card {
@@ -555,11 +537,6 @@ ul {
 
 .btn-black:hover {
     background: #646464 !important;
-}
-
-.btn-black-sm {
-    max-height: 28px;
-    padding: 6px 12px;
 }
 
 .btn-black-lg {
@@ -756,13 +733,6 @@ ul {
     cursor: pointer;
 }
 
-@media (max-width: 768px) {
-    .c_select_w_100 {
-        width: 100%;
-        min-height: 42px;
-    }
-}
-
 .c_select:focus {
     outline: 0;
 }
@@ -911,6 +881,31 @@ ul {
     left: 50%;
     top: 0px;
     animation: scale-animation 0.3s ease-out forwards;
+}
+
+@media (max-width: 768px) {
+    .c_select_w_100 {
+        width: 100%;
+        min-height: 42px;
+    }
+
+    .btn-gray,
+    .btn-black,
+    .btn-red,
+    .btn-snow {
+        max-height: 30px;
+        padding: 8px 14px;
+    }
+
+    .btn .tx_700,
+    .btn .tx_700_white {
+        font-size: 14px;
+    }
+
+    .update-bar-container {
+        padding: 10px 16px;
+        gap: 12px;
+    }
 }
 
 /* @keyframes 定義動畫 */

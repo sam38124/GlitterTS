@@ -189,7 +189,7 @@ export class BgWidget {
 
     static goBack(event: string) {
         return html` <div class="d-flex align-items-center justify-content-center" style="cursor:pointer; margin-right: 10px;" onclick="${event}">
-            <i class="fa-solid fa-angle-left fs-2" style="color: #393939;"></i>
+            <i class="fa-solid fa-angle-left" style="margin-top: 0.25rem; color: #393939; font-size: 1.75rem; font-weight: 900;"></i>
         </div>`;
     }
 

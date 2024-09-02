@@ -44,15 +44,15 @@ export class ShoppingRebateSetting {
             loading: true,
             type: 'list',
             data: {
-                main: true,
+                main: false,
                 register: {
-                    switch: true,
+                    switch: false,
                     value: 100,
                     date: 7,
                     unlimited: false,
                 },
                 birth: {
-                    switch: true,
+                    switch: false,
                     type: 'base',
                     value: 100,
                     date: 30,

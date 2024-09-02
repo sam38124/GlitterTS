@@ -285,10 +285,10 @@ export class UserList {
                                                                     count: selCount,
                                                                     buttonList: [
                                                                         BgWidget.selEventButton(
-                                                                            '批量移除',
+                                                                            '批量刪除',
                                                                             gvc.event(() => {
-                                                                                dialog.checkYesOrNot({
-                                                                                    text: '是否確認刪除所選項目？',
+                                                                                dialog.warningMessage({
+                                                                                    text: '您即將批量刪除所選顧客的所有資料<br />此操作無法復原。確定要刪除嗎？',
                                                                                     callback: (response) => {
                                                                                         if (response) {
                                                                                             dialog.dataLoading({ visible: true });
@@ -457,7 +457,7 @@ export class UserList {
             dataList: [{ obj: vm, key: 'type' }],
             view: () => {
                 if (vm.type === 'list') {
-                    return   [
+                    return [
                         (() => {
                             const id = gvc.glitter.getUUID();
                             return gvc.bindView({
@@ -504,18 +504,18 @@ export class UserList {
                                     if (document.body.clientWidth < 768) {
                                         // 手機版
                                         return html` <div style="display: flex; align-items: center; gap: 10px; width: 100%; justify-content: space-between">
-                                                                <div>${filterList[0]}</div>
-                                                                <div style="display: flex;">
-                                                                    <div class="me-2">${filterList[2]}</div>
-                                                                    ${filterList[3]}
-                                                                </div>
-                                                            </div>
-                                                            <div style="display: flex; margin-top: 8px;">${filterList[1]}</div>
-                                                            <div>${filterTags}</div>`;
+                                                <div>${filterList[0]}</div>
+                                                <div style="display: flex;">
+                                                    <div class="me-2">${filterList[2]}</div>
+                                                    ${filterList[3]}
+                                                </div>
+                                            </div>
+                                            <div style="display: flex; margin-top: 8px;">${filterList[1]}</div>
+                                            <div>${filterTags}</div>`;
                                     } else {
                                         // 電腦版
                                         return html` <div style="display: flex; align-items: center; gap: 10px;">${filterList.join('')}</div>
-                                                            <div>${filterTags}</div>`;
+                                            <div>${filterTags}</div>`;
                                     }
                                 },
                             });
@@ -838,74 +838,74 @@ export class UserList {
                         case 'list':
                         default:
                             vm.data = JSON.parse(JSON.stringify(vm.userData));
+                            function getButtonList() {
+                                return html`<div class="ms-auto d-flex" style="gap: 14px;">
+                                    ${BgWidget.grayButton(
+                                        '刪除顧客',
+                                        gvc.event(() => {
+                                            const dialog = new ShareDialog(gvc.glitter);
+                                            dialog.warningMessage({
+                                                text: '您即將刪除此顧客的所有資料，此操作無法復原。確定要刪除嗎？',
+                                                callback: (response) => {
+                                                    if (response) {
+                                                        dialog.dataLoading({ visible: true });
+                                                        ApiUser.deleteUser({ id: `${vm.data.id}` }).then(() => {
+                                                            dialog.dataLoading({ visible: false });
+                                                            dialog.infoMessage({ text: '帳號已刪除完成' });
+                                                            cf.callback();
+                                                        });
+                                                    }
+                                                },
+                                            });
+                                        })
+                                    )}
+                                    ${BgWidget.grayButton(
+                                        vm.data.status ? '加入黑名單' : '解除黑名單',
+                                        gvc.event(() => {
+                                            const dialog = new ShareDialog(gvc.glitter);
+                                            dialog.warningMessage({
+                                                text: vm.data.status
+                                                    ? '加入黑名單之後，此顧客將無法再進行登入、購買及使用其他功能。確定要加入黑名單嗎？'
+                                                    : '解除黑名單後，此顧客將恢復正常權限，確定要解除黑名單嗎？',
+                                                callback: (response) => {
+                                                    if (response) {
+                                                        dialog.dataLoading({ text: '更新中', visible: true });
+                                                        vm.data.userData.type = vm.data.status ? 'block' : 'normal';
+                                                        ApiUser.updateUserDataManager(vm.data, vm.data.userID).then((response) => {
+                                                            dialog.dataLoading({ text: '', visible: false });
+                                                            if (response.result) {
+                                                                regetData();
+                                                                dialog.successMessage({ text: '更新成功' });
+                                                                vm.loading = true;
+                                                                gvc.notifyDataChange(vm.id);
+                                                            } else {
+                                                                dialog.errorMessage({ text: '更新異常' });
+                                                            }
+                                                        });
+                                                    }
+                                                },
+                                            });
+                                        })
+                                    )}
+                                </div>`;
+                            }
                             return BgWidget.container(
                                 [
                                     // 上層導覽
                                     html`
-                                        <div class="d-flex align-items-center w-100">
+                                        <div class="d-flex align-items-center w-100 mb-3">
                                             ${BgWidget.goBack(
                                                 gvc.event(() => {
                                                     cf.callback();
                                                 })
                                             )}
-                                            <div class="d-flex flex-column ">
-                                                ${BgWidget.title(vm.data.userData.name ?? '匿名用戶')}
-                                                <div style="margin-top: 2px">${BgWidget.grayNote(`註冊時間：${gvc.glitter.ut.dateFormat(new Date(vm.data.created_time), 'yyyy-MM-dd hh:mm')}`)}</div>
+                                            <div class="d-flex ${document.body.clientWidth > 768 ? 'flex-column' : ''}">
+                                                <div class="me-3">${BgWidget.title(vm.data.userData.name ?? '匿名用戶')}</div>
+                                                <div style="margin-top: 4px">${BgWidget.grayNote(`註冊時間：${gvc.glitter.ut.dateFormat(new Date(vm.data.created_time), 'yyyy-MM-dd hh:mm')}`)}</div>
                                             </div>
-                                            <div class="ms-auto d-flex" style="gap: 14px;">
-                                                ${BgWidget.grayButton(
-                                                    '刪除顧客',
-                                                    gvc.event(() => {
-                                                        const dialog = new ShareDialog(gvc.glitter);
-
-                                                        dialog.warningMessage({
-                                                            text: '您即將刪除此顧客的所有資料，此操作無法復原。確定要刪除嗎？',
-                                                            callback: (response) => {
-                                                                if (response) {
-                                                                    dialog.dataLoading({ visible: true });
-                                                                    ApiUser.deleteUser({ id: `${vm.data.id}` }).then((r) => {
-                                                                        dialog.dataLoading({ visible: false });
-                                                                        alert('帳號已刪除!');
-                                                                        cf.callback();
-                                                                    });
-                                                                }
-                                                            },
-                                                            icon: 'fa-sharp fa-regular fa-circle-exclamation',
-                                                        });
-                                                    })
-                                                )}
-                                                ${BgWidget.grayButton(
-                                                    vm.data.status ? '加入黑名單' : '解除黑名單',
-                                                    gvc.event(() => {
-                                                        const dialog = new ShareDialog(gvc.glitter);
-
-                                                        dialog.warningMessage({
-                                                            text: vm.data.status
-                                                                ? '加入黑名單之後，此顧客將無法再進行登入、購買及使用其他功能。確定要加入黑名單嗎？'
-                                                                : '解除黑名單後，此顧客將恢復正常權限，確定要解除黑名單嗎？',
-                                                            callback: (response) => {
-                                                                if (response) {
-                                                                    dialog.dataLoading({ text: '更新中', visible: true });
-                                                                    vm.data.userData.type = vm.data.status ? 'block' : 'normal';
-                                                                    ApiUser.updateUserDataManager(vm.data, vm.data.userID).then((response) => {
-                                                                        dialog.dataLoading({ text: '', visible: false });
-                                                                        if (response.result) {
-                                                                            regetData();
-                                                                            dialog.successMessage({ text: '更新成功' });
-                                                                            vm.loading = true;
-                                                                            gvc.notifyDataChange(vm.id);
-                                                                        } else {
-                                                                            dialog.errorMessage({ text: '更新異常' });
-                                                                        }
-                                                                    });
-                                                                }
-                                                            },
-                                                            icon: 'fa-sharp fa-regular fa-circle-exclamation',
-                                                        });
-                                                    })
-                                                )}
-                                            </div>
+                                            ${document.body.clientWidth > 768 ? getButtonList() : ''}
                                         </div>
+                                        ${document.body.clientWidth > 768 ? '' : getButtonList()}
                                     `,
                                     // 左右容器
                                     html` <div class="d-flex justify-content-center ${document.body.clientWidth < 768 ? 'flex-column' : ''}" style="gap: 24px">
@@ -916,16 +916,18 @@ export class UserList {
                                                     const id = gvc.glitter.getUUID();
                                                     const vmi: {
                                                         mode: 'edit' | 'read' | 'block';
-                                                    } = { mode: 'read' };
+                                                    } = {
+                                                        mode: 'read',
+                                                    };
                                                     return {
                                                         bind: id,
                                                         view: () => {
                                                             return BgWidget.mainCard(
-                                                                html` <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                                                html` <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                                                                     <span class="tx_700">顧客資訊</span>
                                                                     <div style="display: flex; gap: 8px;">
                                                                         ${BgWidget.grayButton(
-                                                                            vmi.mode === 'edit' ? '修改關閉' : '修改啟用',
+                                                                            vmi.mode === 'edit' ? '關閉修改' : '啟用修改',
                                                                             gvc.event(() => {
                                                                                 vmi.mode = vmi.mode === 'edit' ? 'read' : 'edit';
                                                                                 gvc.notifyDataChange(id);
@@ -1529,7 +1531,7 @@ export class UserList {
                             )}
                             ${BgWidget.title('新增顧客')}
                         </div>
-                        <div class="d-flex justify-content-center ${document.body.clientWidth < 768 ? 'flex-column' : ''}" style="gap: 24px">
+                        <div class="d-flex justify-content-center ${document.body.clientWidth < 768 ? 'flex-column' : ''}" style="gap: 24px; padding: 0;">
                             ${BgWidget.container(
                                 [
                                     // 顧客資料
@@ -1559,7 +1561,6 @@ export class UserList {
 
                                                                         function loopForm(data: any, refer_obj: any) {
                                                                             let h = '';
-                                                                            const requireKey = ['name', 'email'];
                                                                             data.map((item: any) => {
                                                                                 switch (item.page) {
                                                                                     case 'input':
@@ -1640,7 +1641,7 @@ export class UserList {
                                                 const dialog = new ShareDialog(gvc.glitter);
                                                 ApiUser.getEmailCount(userData.email).then((r) => {
                                                     if (r.response.result) {
-                                                        alert('此信箱已被註冊!');
+                                                        dialog.errorMessage({ text: '此信箱已被註冊' });
                                                     } else {
                                                         dialog.dataLoading({ text: '更新中', visible: true });
                                                         ApiUser.quickRegister({
@@ -1649,7 +1650,7 @@ export class UserList {
                                                             userData: userData,
                                                         }).then((r) => {
                                                             dialog.dataLoading({ visible: false });
-                                                            alert('新增完成!');
+                                                            dialog.infoMessage({ text: '成功新增會員' });
                                                             vm.type = 'list';
                                                         });
                                                     }
@@ -1658,12 +1659,11 @@ export class UserList {
                                         )}
                                     </div>`,
                                 ].join(html` <div style="margin-top: 24px;"></div>`),
-                                undefined,
-                                'width:100%;'
+                                BgWidget.getContainerWidth()
                             )}
                         </div>
                     `,
-                    BgWidget.getContainerWidth()
+                    BgWidget.getContainerWidth() / (document.body.clientWidth > 768 ? 2 : 1)
                 );
             },
             divCreate: {},

@@ -245,9 +245,9 @@ export class UserList {
                                                 return BgWidget.selNavbar({
                                                     count: selCount,
                                                     buttonList: [
-                                                        BgWidget.selEventButton('批量移除', gvc.event(() => {
-                                                            dialog.checkYesOrNot({
-                                                                text: '是否確認刪除所選項目？',
+                                                        BgWidget.selEventButton('批量刪除', gvc.event(() => {
+                                                            dialog.warningMessage({
+                                                                text: '您即將批量刪除所選顧客的所有資料<br />此操作無法復原。確定要刪除嗎？',
                                                                 callback: (response) => {
                                                                     if (response) {
                                                                         dialog.dataLoading({ visible: true });
@@ -441,18 +441,18 @@ export class UserList {
                                     const filterTags = ListComp.getFilterTags(FilterOptions.userFunnel);
                                     if (document.body.clientWidth < 768) {
                                         return html ` <div style="display: flex; align-items: center; gap: 10px; width: 100%; justify-content: space-between">
-                                                                <div>${filterList[0]}</div>
-                                                                <div style="display: flex;">
-                                                                    <div class="me-2">${filterList[2]}</div>
-                                                                    ${filterList[3]}
-                                                                </div>
-                                                            </div>
-                                                            <div style="display: flex; margin-top: 8px;">${filterList[1]}</div>
-                                                            <div>${filterTags}</div>`;
+                                                <div>${filterList[0]}</div>
+                                                <div style="display: flex;">
+                                                    <div class="me-2">${filterList[2]}</div>
+                                                    ${filterList[3]}
+                                                </div>
+                                            </div>
+                                            <div style="display: flex; margin-top: 8px;">${filterList[1]}</div>
+                                            <div>${filterTags}</div>`;
                                     }
                                     else {
                                         return html ` <div style="display: flex; align-items: center; gap: 10px;">${filterList.join('')}</div>
-                                                            <div>${filterTags}</div>`;
+                                            <div>${filterTags}</div>`;
                                     }
                                 },
                             });
@@ -760,35 +760,25 @@ export class UserList {
                         case 'list':
                         default:
                             vm.data = JSON.parse(JSON.stringify(vm.userData));
-                            return BgWidget.container([
-                                html `
-                                        <div class="d-flex align-items-center w-100">
-                                            ${BgWidget.goBack(gvc.event(() => {
-                                    cf.callback();
-                                }))}
-                                            <div class="d-flex flex-column ">
-                                                ${BgWidget.title((_b = vm.data.userData.name) !== null && _b !== void 0 ? _b : '匿名用戶')}
-                                                <div style="margin-top: 2px">${BgWidget.grayNote(`註冊時間：${gvc.glitter.ut.dateFormat(new Date(vm.data.created_time), 'yyyy-MM-dd hh:mm')}`)}</div>
-                                            </div>
-                                            <div class="ms-auto d-flex" style="gap: 14px;">
-                                                ${BgWidget.grayButton('刪除顧客', gvc.event(() => {
+                            function getButtonList() {
+                                return html `<div class="ms-auto d-flex" style="gap: 14px;">
+                                    ${BgWidget.grayButton('刪除顧客', gvc.event(() => {
                                     const dialog = new ShareDialog(gvc.glitter);
                                     dialog.warningMessage({
                                         text: '您即將刪除此顧客的所有資料，此操作無法復原。確定要刪除嗎？',
                                         callback: (response) => {
                                             if (response) {
                                                 dialog.dataLoading({ visible: true });
-                                                ApiUser.deleteUser({ id: `${vm.data.id}` }).then((r) => {
+                                                ApiUser.deleteUser({ id: `${vm.data.id}` }).then(() => {
                                                     dialog.dataLoading({ visible: false });
-                                                    alert('帳號已刪除!');
+                                                    dialog.infoMessage({ text: '帳號已刪除完成' });
                                                     cf.callback();
                                                 });
                                             }
                                         },
-                                        icon: 'fa-sharp fa-regular fa-circle-exclamation',
                                     });
                                 }))}
-                                                ${BgWidget.grayButton(vm.data.status ? '加入黑名單' : '解除黑名單', gvc.event(() => {
+                                    ${BgWidget.grayButton(vm.data.status ? '加入黑名單' : '解除黑名單', gvc.event(() => {
                                     const dialog = new ShareDialog(gvc.glitter);
                                     dialog.warningMessage({
                                         text: vm.data.status
@@ -812,24 +802,38 @@ export class UserList {
                                                 });
                                             }
                                         },
-                                        icon: 'fa-sharp fa-regular fa-circle-exclamation',
                                     });
                                 }))}
+                                </div>`;
+                            }
+                            return BgWidget.container([
+                                html `
+                                        <div class="d-flex align-items-center w-100 mb-3">
+                                            ${BgWidget.goBack(gvc.event(() => {
+                                    cf.callback();
+                                }))}
+                                            <div class="d-flex ${document.body.clientWidth > 768 ? 'flex-column' : ''}">
+                                                <div class="me-3">${BgWidget.title((_b = vm.data.userData.name) !== null && _b !== void 0 ? _b : '匿名用戶')}</div>
+                                                <div style="margin-top: 4px">${BgWidget.grayNote(`註冊時間：${gvc.glitter.ut.dateFormat(new Date(vm.data.created_time), 'yyyy-MM-dd hh:mm')}`)}</div>
                                             </div>
+                                            ${document.body.clientWidth > 768 ? getButtonList() : ''}
                                         </div>
+                                        ${document.body.clientWidth > 768 ? '' : getButtonList()}
                                     `,
                                 html ` <div class="d-flex justify-content-center ${document.body.clientWidth < 768 ? 'flex-column' : ''}" style="gap: 24px">
                                         ${BgWidget.container([
                                     gvc.bindView(() => {
                                         const id = gvc.glitter.getUUID();
-                                        const vmi = { mode: 'read' };
+                                        const vmi = {
+                                            mode: 'read',
+                                        };
                                         return {
                                             bind: id,
                                             view: () => {
-                                                return BgWidget.mainCard(html ` <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                                return BgWidget.mainCard(html ` <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                                                                     <span class="tx_700">顧客資訊</span>
                                                                     <div style="display: flex; gap: 8px;">
-                                                                        ${BgWidget.grayButton(vmi.mode === 'edit' ? '修改關閉' : '修改啟用', gvc.event(() => {
+                                                                        ${BgWidget.grayButton(vmi.mode === 'edit' ? '關閉修改' : '啟用修改', gvc.event(() => {
                                                     vmi.mode = vmi.mode === 'edit' ? 'read' : 'edit';
                                                     gvc.notifyDataChange(id);
                                                 }))}
@@ -1385,7 +1389,7 @@ export class UserList {
                 }))}
                             ${BgWidget.title('新增顧客')}
                         </div>
-                        <div class="d-flex justify-content-center ${document.body.clientWidth < 768 ? 'flex-column' : ''}" style="gap: 24px">
+                        <div class="d-flex justify-content-center ${document.body.clientWidth < 768 ? 'flex-column' : ''}" style="gap: 24px; padding: 0;">
                             ${BgWidget.container([
                     gvc.bindView(() => {
                         const id = gvc.glitter.getUUID();
@@ -1410,7 +1414,6 @@ export class UserList {
                                                     }
                                                     function loopForm(data, refer_obj) {
                                                         let h = '';
-                                                        const requireKey = ['name', 'email'];
                                                         data.map((item) => {
                                                             switch (item.page) {
                                                                 case 'input':
@@ -1483,7 +1486,7 @@ export class UserList {
                         const dialog = new ShareDialog(gvc.glitter);
                         ApiUser.getEmailCount(userData.email).then((r) => {
                             if (r.response.result) {
-                                alert('此信箱已被註冊!');
+                                dialog.errorMessage({ text: '此信箱已被註冊' });
                             }
                             else {
                                 dialog.dataLoading({ text: '更新中', visible: true });
@@ -1493,16 +1496,16 @@ export class UserList {
                                     userData: userData,
                                 }).then((r) => {
                                     dialog.dataLoading({ visible: false });
-                                    alert('新增完成!');
+                                    dialog.infoMessage({ text: '成功新增會員' });
                                     vm.type = 'list';
                                 });
                             }
                         });
                     }))}
                                     </div>`,
-                ].join(html ` <div style="margin-top: 24px;"></div>`), undefined, 'width:100%;')}
+                ].join(html ` <div style="margin-top: 24px;"></div>`), BgWidget.getContainerWidth())}
                         </div>
-                    `, BgWidget.getContainerWidth());
+                    `, BgWidget.getContainerWidth() / (document.body.clientWidth > 768 ? 2 : 1));
             },
             divCreate: {},
         });

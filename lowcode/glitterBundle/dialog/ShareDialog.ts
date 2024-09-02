@@ -5,7 +5,7 @@ export class ShareDialog {
     public infoMessage = (obj: { text?: string }) => {};
     public errorMessage = (obj: { text?: string }) => {};
     public successMessage = (obj: { text?: string }) => {};
-    public warningMessage: (obj: { callback: (response: boolean) => void; text: string; icon?: string }) => void;
+    public warningMessage: (obj: { callback: (response: boolean) => void; text: string }) => void;
     public checkYesOrNot: (obj: { callback: (response: boolean) => void; text: string; icon?: string }) => void;
     public policy: () => void;
 

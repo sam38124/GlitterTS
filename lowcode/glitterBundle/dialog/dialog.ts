@@ -138,7 +138,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                 case 'warningMessage':
                     return html`
                         <div class="dialog-box">
-                            <div class="dialog-content position-relative pb-5" style="width: 494px;padding:36px 64px;">
+                            <div class="dialog-content position-relative" style="width: 494px;padding:36px 64px 26px !important">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="76" height="75" viewBox="0 0 76 75" fill="none">
                                     <g clip-path="url(#clip0_11947_110999)">
                                         <path
@@ -152,7 +152,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                         </clipPath>
                                     </defs>
                                 </svg>
-                                <div class="my-3 fs-6 text-center" style="white-space: normal; font-weight: 400; overflow-wrap: anywhere;">${gBundle.title}</div>
+                                <div class="mt-3 mb-4 fs-6 text-center" style="white-space: normal; font-weight: 400; overflow-wrap: anywhere;">${gBundle.title}</div>
                                 <div class="d-flex " style="gap:14px;font-weight: 700;font-size: 16px;">
                                     <div
                                         style="padding: 6px 18px;border-radius: 10px;border: 1px solid #DDD;background: #FFF;color: #393939;cursor: pointer;"
