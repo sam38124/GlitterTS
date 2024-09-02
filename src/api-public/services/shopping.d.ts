@@ -111,6 +111,12 @@ export declare class Shopping {
         type: string;
         divisor: number;
         executionTime: string;
+        queryStatus: "success" | "error";
+        queryData: any;
+    } | {
+        type: string;
+        divisor: number;
+        executionTime: string;
     }>;
     getProduct(query: {
         page: number;

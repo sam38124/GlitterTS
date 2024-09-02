@@ -11,6 +11,7 @@ const worker_threads_1 = require("worker_threads");
 worker_threads_1.parentPort === null || worker_threads_1.parentPort === void 0 ? void 0 : worker_threads_1.parentPort.on('message', async (name) => {
     try {
         console.info(`Worker Name: ${name}`);
+        const tempArray = [];
         const pool = promise_1.default.createPool({
             connectionLimit: config_1.default.DB_CONN_LIMIT,
             queueLimit: config_1.default.DB_QUEUE_LIMIT,
@@ -22,22 +23,26 @@ worker_threads_1.parentPort === null || worker_threads_1.parentPort === void 0 ?
         });
         for (const work of worker_threads_1.workerData) {
             const connection = await pool.getConnection();
-            await pool.query(work.sql, work.data);
+            const [result] = await pool.query(work.sql, work.data);
+            tempArray.push(result);
             connection.release();
         }
-        worker_threads_1.parentPort === null || worker_threads_1.parentPort === void 0 ? void 0 : worker_threads_1.parentPort.postMessage(`Worker Finish: ${name}`);
+        worker_threads_1.parentPort === null || worker_threads_1.parentPort === void 0 ? void 0 : worker_threads_1.parentPort.postMessage({
+            message: `Worker Finish: ${name}`,
+            tempArray,
+        });
     }
     catch (err) {
         throw exception_js_1.default.ServerError('INTERNAL_SERVER_ERROR', 'Failed to create connection pool.');
     }
 });
 class Workers {
-    static async query(data) {
-        var _a;
+    static query(data) {
         const t0 = performance.now();
-        const divisor = (_a = data.divisor) !== null && _a !== void 0 ? _a : 1;
+        const divisor = data.divisor && data.divisor > 1 ? data.divisor : 1;
         const result = new Promise((resolve) => {
             let completed = 0;
+            let resultArray = [];
             const chunkSize = Math.ceil(data.queryList.length / divisor);
             for (let i = 0; i < data.queryList.length; i += chunkSize) {
                 const chunk = data.queryList.slice(i, i + chunkSize);
@@ -50,23 +55,33 @@ class Workers {
                 const worker = new worker_threads_1.Worker(__filename, {
                     workerData: workerData,
                 });
-                worker.on('message', (message) => {
+                worker.on('message', (response) => {
                     completed += 1;
+                    resultArray = resultArray.concat(response.tempArray);
                     if (completed === Math.ceil(data.queryList.length / chunkSize)) {
-                        console.info(message);
-                        resolve();
+                        console.info(response.message);
+                        resolve({
+                            status: 'success',
+                            resultArray,
+                        });
                     }
                 });
                 worker.on('error', (err) => {
                     console.error('Worker error:', err);
+                    resolve({
+                        status: 'error',
+                        resultArray: [],
+                    });
                 });
                 worker.postMessage(`multi thread example (id ${i})`);
             }
-        }).then(() => {
+        }).then((resp) => {
             return {
                 type: divisor > 1 ? 'multi' : 'single',
                 divisor: divisor,
                 executionTime: `${(performance.now() - t0).toFixed(3)} ms`,
+                queryStatus: resp.status,
+                queryData: resp.resultArray,
             };
         });
         return result;

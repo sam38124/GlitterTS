@@ -26,29 +26,34 @@ class Shopping {
         this.token = token;
     }
     async workerExample(data) {
-        const jsonData = await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_voucher_history`, []);
-        const t0 = performance.now();
-        if (data.type === 0) {
-            for (const record of jsonData) {
-                await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_voucher_history\` SET ? WHERE id = ?`, [record, record.id]);
+        try {
+            const jsonData = await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_voucher_history`, []);
+            const t0 = performance.now();
+            if (data.type === 0) {
+                for (const record of jsonData) {
+                    await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_voucher_history\` SET ? WHERE id = ?`, [record, record.id]);
+                }
+                return {
+                    type: 'single',
+                    divisor: 1,
+                    executionTime: `${(performance.now() - t0).toFixed(3)} ms`,
+                };
             }
-            return {
-                type: 'single',
-                divisor: 1,
-                executionTime: `${(performance.now() - t0).toFixed(3)} ms`,
-            };
+            const formatJsonData = jsonData.map((record) => {
+                return {
+                    sql: `UPDATE \`${this.app}\`.\`t_voucher_history\` SET ? WHERE id = ?`,
+                    data: [record, record.id],
+                };
+            });
+            const result = workers_js_1.Workers.query({
+                queryList: formatJsonData,
+                divisor: data.divisor,
+            });
+            return result;
         }
-        const formatJsonData = jsonData.map((record) => {
-            return {
-                sql: `UPDATE \`${this.app}\`.\`t_voucher_history\` SET ? WHERE id = ?`,
-                data: [record, record.id],
-            };
-        });
-        const result = workers_js_1.Workers.query({
-            queryList: formatJsonData,
-            divisor: data.divisor,
-        });
-        return result;
+        catch (error) {
+            throw exception_js_1.default.BadRequestError('INTERNAL_SERVER_ERROR', 'Worker example is Failed. ' + error, null);
+        }
     }
     async getProduct(query) {
         var _a;
@@ -927,7 +932,7 @@ class Shopping {
             return [];
         }
         const userData = (_a = (await userClass.getUserData(cart.email, 'account'))) !== null && _a !== void 0 ? _a : { userID: -1 };
-        const user_member = await userClass.checkMember(userData, false);
+        const userLevels = await userClass.getUserLevel([{ email: cart.email }]);
         const allVoucher = (await this.querySql([`(content->>'$.type'='voucher')`], {
             page: 0,
             limit: 10000,
@@ -947,13 +952,13 @@ class Shopping {
             pass_ids.push(voucher.id);
         }
         let overlay = false;
-        const groupList = await userClass.getUserGroups(undefined, undefined, true);
+        const groupList = await userClass.getUserGroups();
         const voucherList = allVoucher
             .filter((dd) => {
             return pass_ids.includes(dd.id) && dd.status === 1;
         })
             .filter((dd) => {
-            if ((dd.device || []).length === 0) {
+            if (dd.device.length === 0) {
                 return false;
             }
             switch (cart.orderSource) {
@@ -969,8 +974,8 @@ class Shopping {
                 return dd.targetList.includes(userData.userID);
             }
             if (dd.target === 'levels') {
-                if (user_member[0]) {
-                    return dd.targetList.includes(user_member[0].id);
+                if (userLevels[0]) {
+                    return dd.targetList.includes(userLevels[0].data.id);
                 }
                 return false;
             }

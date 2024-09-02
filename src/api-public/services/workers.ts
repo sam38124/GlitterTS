@@ -3,10 +3,16 @@ import config from '../../config';
 import exception from '../../modules/exception.js';
 import { workerData, parentPort, Worker } from 'worker_threads';
 
+type WorkerResp = {
+    status: 'success' | 'error';
+    resultArray: any;
+};
+
 parentPort?.on('message', async (name) => {
     try {
         console.info(`Worker Name: ${name}`);
 
+        const tempArray = [];
         const pool = mysql.createPool({
             connectionLimit: config.DB_CONN_LIMIT,
             queueLimit: config.DB_QUEUE_LIMIT,
@@ -19,18 +25,22 @@ parentPort?.on('message', async (name) => {
 
         for (const work of workerData) {
             const connection = await pool.getConnection();
-            await pool.query(work.sql, work.data);
+            const [result] = await pool.query(work.sql, work.data);
+            tempArray.push(result);
             connection.release();
         }
 
-        parentPort?.postMessage(`Worker Finish: ${name}`);
+        parentPort?.postMessage({
+            message: `Worker Finish: ${name}`,
+            tempArray,
+        });
     } catch (err) {
         throw exception.ServerError('INTERNAL_SERVER_ERROR', 'Failed to create connection pool.');
     }
 });
 
 export class Workers {
-    public static async query(data: {
+    public static query(data: {
         queryList: {
             sql: string;
             data: any[];
@@ -38,10 +48,11 @@ export class Workers {
         divisor?: number;
     }) {
         const t0 = performance.now();
-        const divisor = data.divisor ?? 1;
+        const divisor = data.divisor && data.divisor > 1 ? data.divisor : 1;
 
-        const result = new Promise<void>((resolve) => {
+        const result = new Promise<WorkerResp>((resolve) => {
             let completed = 0;
+            let resultArray: any[] = [];
             const chunkSize = Math.ceil(data.queryList.length / divisor);
 
             for (let i = 0; i < data.queryList.length; i += chunkSize) {
@@ -58,26 +69,36 @@ export class Workers {
                     workerData: workerData,
                 });
 
-                worker.on('message', (message) => {
+                worker.on('message', (response) => {
                     completed += 1;
+                    resultArray = resultArray.concat(response.tempArray);
                     if (completed === Math.ceil(data.queryList.length / chunkSize)) {
-                        console.info(message);
-                        resolve();
+                        console.info(response.message);
+                        resolve({
+                            status: 'success',
+                            resultArray,
+                        });
                     }
                 });
 
                 worker.on('error', (err: any) => {
                     console.error('Worker error:', err);
+                    resolve({
+                        status: 'error',
+                        resultArray: [],
+                    });
                 });
 
                 // 將訊息傳送給工作線程
                 worker.postMessage(`multi thread example (id ${i})`);
             }
-        }).then(() => {
+        }).then((resp: WorkerResp) => {
             return {
                 type: divisor > 1 ? 'multi' : 'single',
                 divisor: divisor,
                 executionTime: `${(performance.now() - t0).toFixed(3)} ms`,
+                queryStatus: resp.status,
+                queryData: resp.resultArray,
             };
         });
 
