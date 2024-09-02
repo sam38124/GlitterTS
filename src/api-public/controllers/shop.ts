@@ -370,7 +370,7 @@ router.put('/order', async (req: express.Request, resp: express.Response) => {
                 await new Shopping(req.get('g-app') as string, req.body.token).putOrder({
                     id: req.body.id,
                     orderData: req.body.order_data,
-                    status: req.body.status || undefined,
+                    status: req.body.status ,
                 })
             );
         } else {

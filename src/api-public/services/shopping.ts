@@ -1336,7 +1336,7 @@ export class Shopping {
         const userData = (await userClass.getUserData(cart.email, 'account')) ?? { userID: -1 };
 
         // 取得顧客會員等級
-        const userLevels = await userClass.getUserLevel([{ email: cart.email }]);
+        const user_member = await userClass.checkMember(userData,false);
 
         // 所有優惠券
         const allVoucher: VoucherData[] = (
@@ -1365,7 +1365,7 @@ export class Shopping {
 
         // 過濾可使用優惠券
         let overlay = false;
-        const groupList = await userClass.getUserGroups();
+        const groupList = await userClass.getUserGroups(undefined,undefined,true);
         const voucherList = allVoucher
             .filter((dd) => {
                 // 是否啟用與通過 await 的判斷
@@ -1373,7 +1373,7 @@ export class Shopping {
             })
             .filter((dd) => {
                 // 訂單來源判斷
-                if (dd.device.length === 0) {
+                if ((dd.device || []).length === 0) {
                     return false;
                 }
                 switch (cart.orderSource) {
@@ -1390,8 +1390,8 @@ export class Shopping {
                     return dd.targetList.includes(userData.userID);
                 }
                 if (dd.target === 'levels') {
-                    if (userLevels[0]) {
-                        return dd.targetList.includes(userLevels[0].data.id);
+                    if (user_member[0]) {
+                        return dd.targetList.includes(user_member[0].id);
                     }
                     return false;
                 }

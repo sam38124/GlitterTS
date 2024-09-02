@@ -612,13 +612,13 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
                         let bgGuide = new BgGuide(gvc,0);
                         // if (!viewModel.guideAble){
                         //     viewModel.guideAble = true;
-                        ApiShop.getGuide().then(r => {
-                            // if (r.response.value.first){
-
-                            // console.log("test1")
-                            bgGuide.drawGuide();
-                            // }
-                        })
+                        // ApiShop.getGuide().then(r => {
+                        //     // if (r.response.value.first){
+                        //
+                        //     // console.log("test1")
+                        //     bgGuide.drawGuide();
+                        //     // }
+                        // })
                     }
 
                     // }

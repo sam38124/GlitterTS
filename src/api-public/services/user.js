@@ -383,16 +383,18 @@ class User {
             await new custom_code_js_1.CustomCode(this.app).loginHook(cf);
             if (data) {
                 data.pwd = undefined;
+                data.member = (await this.checkMember(data, true));
                 const userLevel = (await this.getUserLevel([{ userId: data.userID }]))[0];
                 data.member_level = userLevel.data;
                 data.member_level_status = userLevel.status;
-                data.member = await this.refreshMember(data);
                 const n = data.member.findIndex((item) => {
                     return data.member_level.id === item.id;
                 });
-                data.member.map((item, index) => {
-                    item.trigger = index >= n;
-                });
+                if (n !== -1) {
+                    data.member.map((item, index) => {
+                        item.trigger = index >= n;
+                    });
+                }
                 data.member.push({
                     id: this.normalMember.id,
                     og: this.normalMember,
@@ -404,17 +406,17 @@ class User {
             return data;
         }
         catch (e) {
+            console.log(e);
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'GET USER DATA Error:' + e, null);
         }
     }
-    async refreshMember(userData) {
+    async checkMember(userData, trigger) {
         const member_update = await this.getConfigV2({
             key: 'member_update',
             user_id: userData.userID,
         });
-        member_update.time = member_update.time || new Date('1997-01-29').toISOString();
-        const update_time = new Date(member_update.time);
-        if (update_time.getTime() < new Date().getTime() - 1000 * 600) {
+        member_update.value = member_update.value || [];
+        if (!member_update.time || trigger) {
             const member_list = (await this.getConfigV2({
                 key: 'member_level_config',
                 user_id: 'manager',
@@ -427,10 +429,11 @@ class User {
                 return { total_amount: parseInt(`${dd.total}`, 10), date: dd.created_time };
             });
             let pass_level = true;
-            const member = member_list.map((dd) => {
+            const member = member_list.map((dd, index) => {
+                dd.index = index;
                 if (dd.condition.type === 'single') {
                     const time = order_list.find((d1) => {
-                        return d1.total_amount >= parseInt(dd.condition.value, 10);
+                        return (d1.total_amount >= parseInt(dd.condition.value, 10));
                     });
                     if (time) {
                         let dead_line = new Date(time.created_time);
@@ -448,7 +451,7 @@ class User {
                             dead_line.setDate(dead_line.getDate() + dd.dead_line.value);
                             return {
                                 id: dd.id,
-                                trigger: pass_level,
+                                trigger: pass_level && dead_line.getTime() > new Date().getTime(),
                                 tag_name: dd.tag_name,
                                 dead_line: dead_line,
                                 og: dd,
@@ -471,71 +474,168 @@ class User {
                     }
                 }
                 else {
-                    const date = this.find30DayPeriodWith3000Spent(order_list, parseInt(dd.condition.value, 10), dd.duration.type === 'noLimit' ? 365 * 10 : dd.duration.value, 365 * 10);
-                    if (date) {
-                        const latest = new Date(date.end_date);
+                    let sum = 0;
+                    let start_with = new Date();
+                    if (dd.duration.type === 'noLimit') {
+                        start_with.setTime(start_with.getTime() - 365 * 1000 * 60 * 60 * 24);
+                    }
+                    else {
+                        start_with.setTime(start_with.getTime() - Number(dd.duration.value) * 1000 * 60 * 60 * 24);
+                    }
+                    const order_match = order_list.filter((d1) => {
+                        return (new Date(d1.date).getTime()) > start_with.getTime();
+                    });
+                    order_match.map((dd) => {
+                        sum += dd.total_amount;
+                    });
+                    if (sum >= Number(dd.condition.value)) {
+                        let dead_line = new Date();
                         if (dd.dead_line.type === 'noLimit') {
-                            latest.setDate(latest.getDate() + 365 * 10);
+                            dead_line.setTime(dead_line.getTime() + 365 * 1000 * 60 * 60 * 24);
                             return {
                                 id: dd.id,
                                 trigger: pass_level,
                                 tag_name: dd.tag_name,
-                                dead_line: latest,
+                                dead_line: dead_line,
                                 og: dd,
                             };
                         }
                         else {
-                            latest.setDate(latest.getDate() + dd.dead_line.value);
+                            dead_line.setTime(dead_line.getTime() + (Number(dd.dead_line.value) * 1000 * 60 * 60 * 24));
                             return {
                                 id: dd.id,
                                 trigger: pass_level,
                                 tag_name: dd.tag_name,
-                                dead_line: latest,
+                                dead_line: dead_line,
                                 og: dd,
                             };
                         }
                     }
                     else {
-                        let leak = parseInt(dd.condition.value, 10);
-                        let sum = 0;
-                        const compareDate = new Date();
-                        compareDate.setDate(compareDate.getDate() - (dd.duration.type === 'noLimit' ? 365 * 10 : dd.duration.value));
-                        order_list.map((dd) => {
-                            if (new Date().getTime() > compareDate.getTime()) {
-                                leak = leak - dd.total_amount;
-                                sum += dd.total_amount;
-                            }
-                        });
-                        if (leak !== 0) {
-                            pass_level = false;
-                        }
+                        let leak = Number(dd.condition.value) - sum;
                         return {
                             id: dd.id,
                             tag_name: dd.tag_name,
                             dead_line: '',
-                            trigger: leak === 0 && pass_level,
-                            leak: leak,
-                            sum: sum,
+                            trigger: false,
                             og: dd,
+                            leak: leak,
                         };
                     }
                 }
+            }).reverse();
+            member.map((dd) => {
+                if (dd.trigger) {
+                    dd.start_with = new Date();
+                }
             });
-            member_update.value = member.reverse();
+            const original_member = member_update.value.find((dd) => { return dd.trigger; });
+            if (original_member) {
+                const calc_member_now = member.find((d1) => { return d1.id === original_member.id; });
+                if (calc_member_now) {
+                    const dd = member_list.find(((dd) => {
+                        return dd.id === original_member.id;
+                    }));
+                    const renew_check_data = (() => {
+                        let start_with = new Date(original_member.start_with);
+                        const order_match = order_list.filter((d1) => {
+                            return (new Date(d1.date).getTime()) > start_with.getTime();
+                        });
+                        const dead_line = new Date(original_member.dead_line);
+                        if ((dd.dead_line.type === 'noLimit')) {
+                            dead_line.setDate(dead_line.getDate() + 365 * 10);
+                            return {
+                                id: dd.id,
+                                trigger: true,
+                                tag_name: dd.tag_name,
+                                dead_line: dead_line,
+                                og: dd,
+                            };
+                        }
+                        else if (dd.renew_condition.type === 'single') {
+                            const time = order_match.find((d1) => {
+                                return (d1.total_amount >= parseInt(dd.renew_condition.value, 10));
+                            });
+                            if (time) {
+                                dead_line.setDate(dead_line.getDate() + parseInt(dd.dead_line.value, 10));
+                                return {
+                                    id: dd.id,
+                                    trigger: true,
+                                    tag_name: dd.tag_name,
+                                    dead_line: dead_line,
+                                    og: dd,
+                                };
+                            }
+                            else {
+                                return {
+                                    id: dd.id,
+                                    trigger: false,
+                                    tag_name: dd.tag_name,
+                                    dead_line: '',
+                                    leak: parseInt(dd.renew_condition.value, 10),
+                                    og: dd,
+                                };
+                            }
+                        }
+                        else {
+                            let sum = 0;
+                            order_match.map((dd) => {
+                                sum += dd.total_amount;
+                            });
+                            if (sum >= parseInt(dd.renew_condition.value, 10)) {
+                                dead_line.setDate(dead_line.getDate() + parseInt(dd.dead_line.value, 10));
+                                return {
+                                    id: dd.id,
+                                    trigger: true,
+                                    tag_name: dd.tag_name,
+                                    dead_line: dead_line,
+                                    og: dd,
+                                };
+                            }
+                            else {
+                                return {
+                                    id: dd.id,
+                                    trigger: false,
+                                    tag_name: dd.tag_name,
+                                    dead_line: '',
+                                    leak: parseInt(dd.renew_condition.value, 10) - sum,
+                                    og: dd,
+                                };
+                            }
+                        }
+                    })();
+                    if (new Date(original_member.dead_line).getTime() > new Date().getTime()) {
+                        calc_member_now.dead_line = original_member.dead_line;
+                        calc_member_now.trigger = true;
+                        calc_member_now.start_with = original_member.start_with || calc_member_now.start_with;
+                        calc_member_now.re_new_member = renew_check_data;
+                    }
+                    else {
+                        if (dd.renew_condition) {
+                            if (renew_check_data.trigger) {
+                                calc_member_now.trigger = true;
+                                calc_member_now.dead_line = renew_check_data.dead_line;
+                                calc_member_now.re_new_member = renew_check_data;
+                            }
+                        }
+                    }
+                }
+            }
+            member_update.value = member;
             member_update.time = new Date();
             await this.setConfig({
                 key: 'member_update',
                 user_id: userData.userID,
                 value: member_update,
             });
-            return member.reverse();
+            return member;
         }
         else {
             return member_update.value;
         }
     }
-    find30DayPeriodWith3000Spent(transactions, total, duration, dead_line) {
-        const ONE_YEAR_MS = dead_line * 24 * 60 * 60 * 1000;
+    find30DayPeriodWith3000Spent(transactions, total, duration) {
+        const ONE_YEAR_MS = duration * 24 * 60 * 60 * 1000;
         const THIRTY_DAYS_MS = duration * 24 * 60 * 60 * 1000;
         const NOW = new Date().getTime();
         const recentTransactions = transactions.filter((transaction) => {
@@ -762,7 +862,8 @@ class User {
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'getUserList Error:' + e, null);
         }
     }
-    async getUserGroups(type, tag) {
+    async getUserGroups(type, tag, hide_level) {
+        console.log(`getUserGroups==>`);
         try {
             const pass = (text) => type === undefined || type.includes(text);
             let dataList = [];
@@ -802,7 +903,7 @@ class User {
                     { type: 'usuallyBuying', title: '已購買多次的顧客', users: usuallyBuyingList },
                 ]);
             }
-            if (pass('level')) {
+            if (!hide_level && pass('level')) {
                 const levelData = await this.getLevelConfig();
                 const levels = levelData
                     .map((item) => {
@@ -858,6 +959,7 @@ class User {
         return levelList;
     }
     async getUserLevel(data) {
+        console.log(`getUserLevel-->`, data);
         const dataList = [];
         const idList = data.filter((item) => item.userId !== undefined).map((item) => item.userId);
         const emailList = data.filter((item) => item.email !== undefined).map((item) => `"${item.email}"`);
@@ -895,7 +997,7 @@ class User {
                     continue;
                 }
                 if (memberUpdates.length > 0) {
-                    const memberUpdate = await this.refreshMember(user);
+                    const memberUpdate = await this.checkMember(user, false);
                     if (memberUpdate.length > 0) {
                         const member_level = memberUpdate.find((v) => v.trigger);
                         if (member_level) {

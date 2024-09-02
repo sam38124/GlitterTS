@@ -38,19 +38,17 @@ class Shopping {
                 executionTime: `${(performance.now() - t0).toFixed(3)} ms`,
             };
         }
-        else {
-            const formatJsonData = jsonData.map((record) => {
-                return {
-                    sql: `UPDATE \`${this.app}\`.\`t_voucher_history\` SET ? WHERE id = ?`,
-                    data: [record, record.id],
-                };
-            });
-            const result = workers_js_1.Workers.query({
-                queryList: formatJsonData,
-                divisor: data.divisor,
-            });
-            return result;
-        }
+        const formatJsonData = jsonData.map((record) => {
+            return {
+                sql: `UPDATE \`${this.app}\`.\`t_voucher_history\` SET ? WHERE id = ?`,
+                data: [record, record.id],
+            };
+        });
+        const result = workers_js_1.Workers.query({
+            queryList: formatJsonData,
+            divisor: data.divisor,
+        });
+        return result;
     }
     async getProduct(query) {
         var _a;
@@ -929,7 +927,7 @@ class Shopping {
             return [];
         }
         const userData = (_a = (await userClass.getUserData(cart.email, 'account'))) !== null && _a !== void 0 ? _a : { userID: -1 };
-        const userLevels = await userClass.getUserLevel([{ email: cart.email }]);
+        const user_member = await userClass.checkMember(userData, false);
         const allVoucher = (await this.querySql([`(content->>'$.type'='voucher')`], {
             page: 0,
             limit: 10000,
@@ -949,13 +947,13 @@ class Shopping {
             pass_ids.push(voucher.id);
         }
         let overlay = false;
-        const groupList = await userClass.getUserGroups();
+        const groupList = await userClass.getUserGroups(undefined, undefined, true);
         const voucherList = allVoucher
             .filter((dd) => {
             return pass_ids.includes(dd.id) && dd.status === 1;
         })
             .filter((dd) => {
-            if (dd.device.length === 0) {
+            if ((dd.device || []).length === 0) {
                 return false;
             }
             switch (cart.orderSource) {
@@ -971,8 +969,8 @@ class Shopping {
                 return dd.targetList.includes(userData.userID);
             }
             if (dd.target === 'levels') {
-                if (userLevels[0]) {
-                    return dd.targetList.includes(userLevels[0].data.id);
+                if (user_member[0]) {
+                    return dd.targetList.includes(user_member[0].id);
                 }
                 return false;
             }

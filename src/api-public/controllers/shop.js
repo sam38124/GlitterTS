@@ -336,7 +336,7 @@ router.put('/order', async (req, resp) => {
             return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).putOrder({
                 id: req.body.id,
                 orderData: req.body.order_data,
-                status: req.body.status || undefined,
+                status: req.body.status,
             }));
         }
         else {

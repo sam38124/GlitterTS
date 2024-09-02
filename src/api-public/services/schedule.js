@@ -48,7 +48,7 @@ class Schedule {
                 if (await this.perload(app)) {
                     const users = await database_1.default.query(`select * from \`${app}\`.t_user  `, []);
                     for (const user of users) {
-                        await new user_1.User(app).refreshMember(user);
+                        await new user_1.User(app).checkMember(user, true);
                     }
                 }
             }

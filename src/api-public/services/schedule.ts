@@ -51,7 +51,7 @@ export class Schedule {
                 if (await this.perload(app)) {
                     const users = await db.query(`select * from \`${app}\`.t_user  `, []);
                     for (const user of users) {
-                        await new User(app).refreshMember(user);
+                        await new User(app).checkMember(user,true);
                     }
                 }
             }
