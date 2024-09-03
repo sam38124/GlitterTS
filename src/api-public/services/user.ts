@@ -663,10 +663,10 @@ export class User {
                 //現在計算出來的會員級數
                 const calc_member_now=member.find((d1:any)=>{return d1.id===original_member.id})
                 if(calc_member_now){
-                    //是否符合續費條件
                     const dd:MemberConfig=member_list.find(((dd)=>{
                         return dd.id === original_member.id
                     }))!;
+                    //是否符合續費條件
                     const renew_check_data=(()=>{
                         //取得續費計算起始時間
                         let start_with = new Date(original_member.start_with);
@@ -750,6 +750,7 @@ export class User {
                             if(renew_check_data.trigger){
                                 calc_member_now!.trigger=true
                                 calc_member_now!.dead_line=renew_check_data.dead_line;
+                                (calc_member_now as any).start_with=new Date();
                                 (calc_member_now as any).re_new_member=renew_check_data;
                             }
                         }

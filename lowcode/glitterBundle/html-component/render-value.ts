@@ -41,7 +41,9 @@ export class RenderValue {
                 } else if (widget.data._layout === 'vertical') {
                     style_string += css`display: flex;
                         flex-direction: column;
-                        justify-content: ${widget.data._ver_position || 'center'};`
+                        justify-content: ${widget.data._ver_position || 'center'};
+                    gap:${widget.data._gap || 0}px;
+                    `
                 } else if (widget.data._layout === 'proportion') {
                     style_string += css`flex-wrap: wrap !important;
                         display: flex;gap: ${(isNaN(widget.data._gap_x)) ? widget.data._gap_x : `${widget.data._gap_x}px`} ${(isNaN(widget.data._gap_y)) ? widget.data._gap_y : `${widget.data._gap_y}px`};`

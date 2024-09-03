@@ -615,6 +615,7 @@ class User {
                             if (renew_check_data.trigger) {
                                 calc_member_now.trigger = true;
                                 calc_member_now.dead_line = renew_check_data.dead_line;
+                                calc_member_now.start_with = new Date();
                                 calc_member_now.re_new_member = renew_check_data;
                             }
                         }

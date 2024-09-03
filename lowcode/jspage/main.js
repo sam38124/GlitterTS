@@ -616,21 +616,23 @@ function initialEditor(gvc, viewModel) {
         let find = {
             widget: undefined,
             container: undefined,
+            container_cf: undefined,
             index: 0,
         };
-        function loop(array) {
+        function loop(array, container_cf) {
             array.map((dd, index) => {
                 if (dd.id === id) {
                     find.widget = dd;
                     find.container = array;
+                    find.container_cf = container_cf;
                     find.index = index;
                 }
                 else if (dd.type === 'container') {
-                    loop(dd.data.setting);
+                    loop(dd.data.setting, dd);
                 }
             });
         }
-        loop(glitter.share.editorViewModel.data.config);
+        loop(glitter.share.editorViewModel.data.config, undefined);
         return find;
     };
     glitter.share.findWidget = (where) => {
@@ -663,6 +665,7 @@ function initialEditor(gvc, viewModel) {
         }
     }
     glitter.share.addComponent = (data) => {
+        console.log(`addComponent`);
         AddComponent.toggle(false);
         resetId(data);
         const url = new URL(location.href);
