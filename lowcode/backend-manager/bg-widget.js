@@ -17,10 +17,6 @@ export class BgWidget {
     static greenNote(text, event = '', style = '') {
         return html `<span style="color: #006621; font-size: 14px; font-weight: 400; cursor:pointer; overflow-wrap: break-word; text-decoration: underline; ${style}" onclick="${event}">${text}</span>`;
     }
-<<<<<<< HEAD
-    static save(event, text = '儲存', customClass) {
-        return html ` <button class="btn btn-black ${customClass !== null && customClass !== void 0 ? customClass : ``}" type="button" onclick="${event}">
-=======
     static taiwanPhoneAlert(str = '請輸入正確的市話或手機號碼格式') {
         return html `
             <div class="text-center">
@@ -31,9 +27,8 @@ export class BgWidget {
             </div>
         `;
     }
-    static save(event, text = '儲存') {
-        return html ` <button class="btn btn-black" type="button" onclick="${event}">
->>>>>>> 8811d144 (verify: order and user from & update product spec event)
+    static save(event, text = '儲存', customClass) {
+        return html ` <button class="btn btn-black ${customClass !== null && customClass !== void 0 ? customClass : ``}" type="button" onclick="${event}">
             <span class="tx_700_white">${text}</span>
         </button>`;
     }
