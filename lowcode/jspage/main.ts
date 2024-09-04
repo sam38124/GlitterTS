@@ -616,7 +616,7 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
                         //     // if (r.response.value.first){
                         //
                         //     // console.log("test1")
-                        //     bgGuide.drawGuide();
+                            bgGuide.drawGuide();
                         //     // }
                         // })
                     }

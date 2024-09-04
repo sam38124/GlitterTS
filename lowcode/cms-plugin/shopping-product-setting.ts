@@ -2251,7 +2251,7 @@ export class ShoppingProductSetting {
                                     ${BgWidget.container(
                                         [
                                             BgWidget.mainCard(html`
-                                                <div class="d-flex flex-column">
+                                                <div class="d-flex flex-column guide5-5">
                                                     <div style="font-weight: 700;">商品名稱</div>
                                                     <input
                                                         class="w-100 mt-2"

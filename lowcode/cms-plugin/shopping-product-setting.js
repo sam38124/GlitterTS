@@ -1942,7 +1942,7 @@ export class ShoppingProductSetting {
                                 <div class="d-flex justify-content-center p-0 ${document.body.clientWidth < 768 ? 'flex-column' : ''}" style="${document.body.clientWidth < 768 ? '' : 'gap: 24px'}">
                                     ${BgWidget.container([
                                 BgWidget.mainCard(html `
-                                                <div class="d-flex flex-column">
+                                                <div class="d-flex flex-column guide5-5">
                                                     <div style="font-weight: 700;">商品名稱</div>
                                                     <input
                                                         class="w-100 mt-2"

@@ -231,7 +231,7 @@ export class BgGuide {
         let winPosition = () => {
             switch (window.alignment) {
                 case "left": {
-                    return `right: 32px;top:${rect.bottom + iframeRect.top + 24}px;`;
+                    return `left: ${right - 332}px;top:${rect.bottom + iframeRect.top + 24}px;`;
                 }
                 default: {
                     return `left: ${mid - 166}px;top:${rect.bottom + iframeRect.top + 24}px;`;
@@ -452,7 +452,10 @@ export class BgGuide {
                                 點擊<span style="font-weight: 700;">新增</span>，填寫商品詳細資訊
                             </div>
                         `;
-                        return this.drawBGwithBelowWindow(BG, vm, '.guide5-3', 'productInit', 3, 9, { width: 332, height: 209, title: "上架商品", content: content, alignment: "left" }, () => {
+                        this.detectClickThrough(target, () => {
+                            vm.step++;
+                        });
+                        return this.drawBGwithBelowWindow(BG, vm, '.guide5-3', 'productInit', 3, 9, { width: 332, height: 209, title: "上架商品", content: content, alignment: "left", next: true }, () => {
                         });
                     }
                     case 4: {
