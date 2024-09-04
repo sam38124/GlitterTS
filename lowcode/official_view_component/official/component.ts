@@ -794,9 +794,13 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                                                                                         })
                                                                                                                     } else {
                                                                                                                         setTimeout(() => {
-                                                                                                                            ogArray.splice(ogArray.findIndex((dd: any) => {
-                                                                                                                                return dd === data
-                                                                                                                            }), 1)
+                                                                                                                            try {
+                                                                                                                                ogArray.splice(ogArray.findIndex((dd: any) => {
+                                                                                                                                    return dd === data
+                                                                                                                                }), 1)
+                                                                                                                            }catch (e) {
+
+                                                                                                                            }
                                                                                                                         })
                                                                                                                     }
                                                                                                                 }
