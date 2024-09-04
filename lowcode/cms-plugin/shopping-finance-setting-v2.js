@@ -59,7 +59,7 @@ export class ShoppingFinanceSetting {
                                 if (data.response.result[0]) {
                                     keyData = data.response.result[0].value;
                                 }
-                                keyData.TYPE = keyData.TYPE || 'newWebPay';
+                                keyData.TYPE = undefined;
                                 resolve(gvc.bindView(() => {
                                     const id = gvc.glitter.getUUID();
                                     return {
@@ -85,7 +85,7 @@ export class ShoppingFinanceSetting {
                                                 },
                                             ]
                                                 .map((dd) => {
-                                                return html ` <div>
+                                                return html ` <div class="">
                                                                                     ${[
                                                     html ` <div
                                                                                                 class="d-flex align-items-center cursor_pointer"
@@ -116,46 +116,8 @@ export class ShoppingFinanceSetting {
                                                                                             <div class="ms-2 border-end position-absolute h-100" style="left: 0px;"></div>
                                                                                             <div class="flex-fill " style="margin-left:30px;max-width: 100%;">
                                                                                                 ${(() => {
-                                                        var _a;
                                                         if (keyData.TYPE !== dd.value) {
                                                             return ``;
-                                                        }
-                                                        else if (keyData.TYPE === 'off_line') {
-                                                            keyData.off_line_support = (_a = keyData.off_line_support) !== null && _a !== void 0 ? _a : {};
-                                                            return [
-                                                                BgWidget.inlineCheckBox({
-                                                                    title: '付款方式(多選)',
-                                                                    gvc: gvc,
-                                                                    def: ['atm', 'line', 'cash_on_delivery'].filter((dd) => {
-                                                                        return keyData.off_line_support[dd];
-                                                                    }),
-                                                                    array: [
-                                                                        {
-                                                                            title: 'ATM銀行轉帳',
-                                                                            value: 'atm',
-                                                                        },
-                                                                        {
-                                                                            title: 'LINE Pay',
-                                                                            value: 'line',
-                                                                        },
-                                                                        {
-                                                                            title: '貨到付款',
-                                                                            value: 'cash_on_delivery',
-                                                                        },
-                                                                    ],
-                                                                    callback: (array) => {
-                                                                        ['atm', 'line', 'cash_on_delivery'].map((dd) => {
-                                                                            keyData.off_line_support[dd] = !!array.find((d1) => {
-                                                                                return d1 === dd;
-                                                                            });
-                                                                        });
-                                                                    },
-                                                                    type: 'multiple',
-                                                                }),
-                                                                `<div class="my-3 w-100 border"></div>`,
-                                                                ShoppingFinanceSetting.atm(gvc, keyData),
-                                                                ShoppingFinanceSetting.line_pay(gvc, keyData),
-                                                            ].join('');
                                                         }
                                                         else {
                                                             return [
@@ -266,8 +228,8 @@ export class ShoppingFinanceSetting {
                                                                                 </div>`;
                                             })
                                                 .join('')}
-                                                                    <div class="my-3 border-bottom"></div>
-                                                                    <div class="tx_normal fw-bold">線下付款</div>
+                                                                    <!--                                                                <div class="my-3 border-bottom"></div>-->
+                                                                    <!--                                                                <div class="tx_normal fw-bold">線下付款</div>-->
                                                                     ${[
                                                 BgWidget.inlineCheckBox({
                                                     title: '付款方式(多選)',
@@ -325,10 +287,10 @@ export class ShoppingFinanceSetting {
                     save(() => {
                         widget.event('success', { title: '設定成功' });
                     });
-                }))}
+                }), '儲存', 'guide2-6')}
                         </div>
                     `, BgWidget.getContainerWidth());
-            },
+            }, divCreate: { class: 'guideOverflow' },
         });
     }
     static line_pay(gvc, keyData) {
@@ -400,7 +362,7 @@ export class ShoppingFinanceSetting {
                     return [
                         BgWidget.title('ATM銀行轉帳', 'font-size: 16px;'),
                         html `<div class="my-3"></div>`,
-                        html `<div class="row w-100">
+                        html `<div class="row me-0 ms-0 w-100">
                             ${[
                             {
                                 key: 'bank_code',
@@ -423,13 +385,14 @@ export class ShoppingFinanceSetting {
                             return html `<div class="col-12 col-md-6 mb-2">
                                             <div class="w-100 mb-1">
                                                 <span style="color: #393939; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word">${dd.title}</span>
-                                                <span style="color: #E80000; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word">*</span>
+                                                <span style="color: #E80000; font-size: 16px; font-family: Noto Sans,serif; font-weight: 400; word-wrap: break-word">*</span>
                                             </div>
                                             <input
                                                     class="form-control w-100"
                                                     placeholder="請輸入${dd.title}"
                                                     value="${keyData.payment_info_atm[dd.key]}"
                                                     onchange="${gvc.event((e, event) => {
+                                gvc.notifyDataChange(`guide2-5`);
                                 keyData.payment_info_atm[dd.key] = e.value;
                             })}"
                                             />
@@ -445,10 +408,11 @@ export class ShoppingFinanceSetting {
                             callback: (text) => {
                                 keyData.payment_info_atm.text = text;
                             },
+                            style: ''
                         }),
                         html `<div class="my-3 border w-100"></div>`,
                     ].join('');
-                },
+                }, divCreate: { class: 'guide2-5', style: '' },
             };
         });
     }
@@ -573,13 +537,13 @@ export class ShoppingFinanceSetting {
                                     .join('');
                             },
                             divCreate: {
-                                class: 'row',
+                                class: 'row guide3-3',
                                 style: 'margin-top:24px;',
                             },
                         };
                     })}
                             ${BgWidget.card([
-                        html `<div class="tx_700">配送說明</div>`,
+                        html `<div class="tx_700 guide3-4">配送說明</div>`,
                         BgWidget.grayNote('於結帳頁面中顯示，告知顧客配送所需要注意的事項'),
                         BgWidget.mbContainer(18),
                         EditorElem.richText({
@@ -599,7 +563,7 @@ export class ShoppingFinanceSetting {
                         save();
                         yield widget.event('loading', { visible: false });
                         yield widget.event('success', { title: '儲存成功' });
-                    })), '儲存')}
+                    })), '儲存', 'guide3-5')}
                             </div>
                             ${BgWidget.mbContainer(240)}
                         `, BgWidget.getContainerWidth(), 'justify-content: center;');

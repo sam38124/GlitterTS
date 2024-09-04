@@ -414,6 +414,8 @@ export class FormWidget {
                         col?: any;
                         col_sm?: any;
                     }) => {
+                        const form_data=formData;
+                        const form_key=dd.key;
                         const labelCSS = glitter.htmlGenerate.editor_component(dd.style_data.label, gvc, obj.widget, obj.subData);
                         const inputCSS = glitter.htmlGenerate.editor_component(dd.style_data.input, gvc, obj.widget as any, obj.subData);
                         const containerCss = glitter.htmlGenerate.editor_component(dd.style_data.container, gvc, obj.widget, obj.subData);

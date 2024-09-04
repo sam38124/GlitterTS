@@ -705,7 +705,7 @@ class Shopping {
                     appName: this.app,
                     key: 'glitter_finance',
                 }))[0].value;
-                if (carData.customer_info.payment_select !== 'ecPay' && carData.customer_info.payment_select !== 'newWebPay') {
+                if (!['ecPay', 'newWebPay'].includes(carData.customer_info.payment_select)) {
                     carData.method = 'off_line';
                     new notify_js_1.ManagerNotify(this.app).checkout({
                         orderData: carData,
@@ -965,6 +965,9 @@ class Shopping {
             return pass_ids.includes(dd.id) && dd.status === 1;
         })
             .filter((dd) => {
+            if (!dd.device) {
+                return true;
+            }
             if (dd.device.length === 0) {
                 return false;
             }
