@@ -17,8 +17,8 @@ export class BgWidget {
     static greenNote(text, event = '', style = '') {
         return html `<span style="color: #006621; font-size: 14px; font-weight: 400; cursor:pointer; overflow-wrap: break-word; text-decoration: underline; ${style}" onclick="${event}">${text}</span>`;
     }
-    static save(event, text = '儲存') {
-        return html ` <button class="btn btn-black" type="button" onclick="${event}">
+    static save(event, text = '儲存', customClass) {
+        return html ` <button class="btn btn-black ${customClass !== null && customClass !== void 0 ? customClass : ``}" type="button" onclick="${event}">
             <span class="tx_700_white">${text}</span>
         </button>`;
     }
@@ -44,15 +44,15 @@ export class BgWidget {
         </button>`;
     }
     static darkButton(text, event, obj) {
-        var _a, _b;
+        var _a, _b, _c;
         const size = { btn: '', font: '' };
         if (obj && obj.size) {
             size.btn = `btn-black-${obj.size}`;
             size.font = `tx_white_${obj.size}`;
         }
-        return html ` <button class="btn btn-black ${size.btn}" type="button" style="${(_a = obj === null || obj === void 0 ? void 0 : obj.style) !== null && _a !== void 0 ? _a : ''}" onclick="${event}">
+        return html ` <button class="btn btn-black ${size.btn} ${(_a = obj === null || obj === void 0 ? void 0 : obj.class) !== null && _a !== void 0 ? _a : ''}" type="button" style="${(_b = obj === null || obj === void 0 ? void 0 : obj.style) !== null && _b !== void 0 ? _b : ''}" onclick="${event}">
             <i class="${obj && obj.icon && obj.icon.length > 0 ? obj.icon : 'd-none'}"></i>
-            <span class="tx_700_white ${size.font}" style="${(_b = obj === null || obj === void 0 ? void 0 : obj.textStyle) !== null && _b !== void 0 ? _b : ''}">${text}</span>
+            <span class="tx_700_white ${size.font}" style="${(_c = obj === null || obj === void 0 ? void 0 : obj.textStyle) !== null && _c !== void 0 ? _c : ''}">${text}</span>
         </button>`;
     }
     static redButton(text, event, obj) {

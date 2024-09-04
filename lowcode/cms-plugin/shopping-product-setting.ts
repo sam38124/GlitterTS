@@ -1096,7 +1096,10 @@ export class ShoppingProductSetting {
                                                                 '新增',
                                                                 gvc.event(() => {
                                                                     vm.type = 'add';
-                                                                })
+                                                                }),
+                                                            {
+                                                                    class : `guide5-3`        
+                                                                }
                                                             ),
                                                         ].join('')}
                                                     </div>

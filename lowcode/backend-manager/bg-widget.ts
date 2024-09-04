@@ -52,8 +52,8 @@ export class BgWidget {
     }
 
     // 按鈕
-    static save(event: string, text: string = '儲存') {
-        return html` <button class="btn btn-black" type="button" onclick="${event}">
+    static save(event: string, text: string = '儲存' , customClass?:string) {
+        return html` <button class="btn btn-black ${customClass??``}" type="button" onclick="${event}">
             <span class="tx_700_white">${text}</span>
         </button>`;
     }
@@ -89,6 +89,7 @@ export class BgWidget {
             textStyle?: string;
             size?: 'sm' | 'lg';
             style?: string;
+            class?: string;
         }
     ) {
         const size = { btn: '', font: '' };
@@ -96,7 +97,7 @@ export class BgWidget {
             size.btn = `btn-black-${obj.size}`;
             size.font = `tx_white_${obj.size}`;
         }
-        return html` <button class="btn btn-black ${size.btn}" type="button" style="${obj?.style ?? ''}" onclick="${event}">
+        return html` <button class="btn btn-black ${size.btn} ${obj?.class??''}" type="button" style="${obj?.style ?? ''}" onclick="${event}">
             <i class="${obj && obj.icon && obj.icon.length > 0 ? obj.icon : 'd-none'}"></i>
             <span class="tx_700_white ${size.font}" style="${obj?.textStyle ?? ''}">${text}</span>
         </button>`;

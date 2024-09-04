@@ -840,7 +840,7 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                 bind: id,
                 view: () => {
                     return html ` <div class="w-100 d-flex align-items-center justify-content-center p-3 ${richID}-loading">
-                            <div class="spinner-border"></div>
+                            <div class="spinner-border" style=""></div>
                         </div>
                         <div id="${richID}">${obj.def}</div>`;
                 },
@@ -868,7 +868,7 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                             `);
                                 const editor = new window.FroalaEditor('#' + richID, {
                                     language: 'zh_tw',
-                                    heightMin: 500,
+                                    heightMin: 350,
                                     content: obj.def,
                                     events: {
                                         imageMaxSize: 5 * 1024 * 1024,

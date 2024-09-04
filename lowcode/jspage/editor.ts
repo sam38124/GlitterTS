@@ -18,6 +18,7 @@ import {GlobalUser} from '../glitter-base/global/global-user.js';
 import {Setting_editor} from './function-page/setting_editor.js';
 import {NormalPageEditor} from "../editor/normal-page-editor.js";
 import {SearchIdea} from "../editor/search-idea.js";
+import {BgGuide} from "../backend-manager/bg-guide.js";
 
 const html = String.raw;
 
@@ -168,10 +169,11 @@ color: transparent;"
                                 if (Storage.select_function === 'backend-manger') {
                                     return html`
                                         <div
-                                                class=" t_39_normal border-end px-4 d-none   align-items-center justify-content-center indexGuideBTN"
+                                                class=" t_39_normal border-end px-4 d-none d-sm-flex align-items-center justify-content-center indexGuideBTN"
                                                 style="height: 56px;cursor: pointer;"
                                                 onclick="${gvc.event(() => {
-                                                    gvc.glitter.openNewTab('https://shopnex.cc/blog-home-page');
+                                                    let bgGuide = new BgGuide(gvc,0);
+                                                    bgGuide.drawGuide();
                                                 })}"
                                         >
                                             開店導覽

@@ -70,6 +70,7 @@ export class Setting_editor {
                                                     appName: 'cms_system',
                                                     groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716566571091-Property 1=gear-regular.svg',
                                                     moduleName: '金流 / 物流 / 發票',
+                                                    guideClass:'guide3-2',
                                                 },
                                                 {
                                                     icon: '',
@@ -79,6 +80,7 @@ export class Setting_editor {
                                                     appName: 'cms_system',
                                                     groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716566571091-Property 1=gear-regular.svg',
                                                     moduleName: '運費設定',
+                                                    guideClass:'guide4-2',
                                                 },
                                                 {
                                                     icon: '',
@@ -106,6 +108,7 @@ export class Setting_editor {
                                                     appName: 'cms_system',
                                                     groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716652645450-boxes-stacked-regular (1).svg',
                                                     moduleName: '商品管理',
+                                                    guideClass:'guide5-2',
                                                 },
                                                 {
                                                     icon: '',
