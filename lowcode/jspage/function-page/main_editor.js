@@ -53,7 +53,6 @@ export class Main_editor {
                         viewModel.selectItem.type !== 'code' &&
                         (viewModel.selectItem.type !== 'widget' ||
                             (viewModel.selectItem.data.elem !== 'style' && viewModel.selectItem.data.elem !== 'link' && viewModel.selectItem.data.elem !== 'script'))) {
-                        console.log(`viewModel.selectItem-is->`, viewModel.selectItem);
                         return Main_editor.pageAndComponent({
                             gvc: gvc,
                             data: viewModel,
@@ -772,6 +771,7 @@ export class Main_editor {
                 }
             });
         }
+        const container_cf = glitter.share.findWidgetIndex(viewModel.selectItem.id).container_cf;
         return [
             html `
                 <div
@@ -836,19 +836,31 @@ export class Main_editor {
                 };
             })}
                     <div style="height: 60px;"></div>
-                    <div class="position-absolute w-100 bottom-0 d-flex align-items-center p-3 shadow justify-content-end border-top bg-white"
+                    <div class="position-absolute w-100 bottom-0 d-flex align-items-center p-3 shadow justify-content-end border-top bg-white "
                          style="height: 60px;">
-                        ${BgWidget.cancel(gvc.event(() => {
-                glitter.closeDrawer();
-                const dialog = new ShareDialog(gvc.glitter);
-                navigator.clipboard.writeText(JSON.stringify(viewModel.selectItem));
-                dialog.successMessage({ text: '複製成功' });
-            }), '複製元件')}
-                        ${(viewModel.selectItem.deletable !== 'false') ? ` <div class="mx-2"></div>` + BgWidget.cancel(gvc.event(() => {
-                glitter.closeDrawer();
-                glitter.htmlGenerate.deleteWidget(glitter.share.editorViewModel.selectContainer, viewModel.selectItem, () => {
-                });
-            }), '刪除元件') : ``}
+                        ${(() => {
+                const view = [];
+                if ((viewModel.selectItem.deletable !== 'false')) {
+                    if (container_cf) {
+                        view.push(BgWidget.cancel(gvc.event(() => {
+                            glitter.htmlGenerate.selectWidget({
+                                widget: container_cf,
+                                widgetComponentID: container_cf.id,
+                                gvc: document.querySelector('.iframe_view').contentWindow.glitter.pageConfig[0].gvc,
+                                scroll_to_hover: true,
+                                glitter: glitter,
+                            });
+                        }), '上一層'));
+                        view.push(`<div class="mx-2"></div>`);
+                    }
+                    view.push(BgWidget.cancel(gvc.event(() => {
+                        glitter.closeDrawer();
+                        glitter.htmlGenerate.deleteWidget(glitter.share.editorViewModel.selectContainer, viewModel.selectItem, () => {
+                        });
+                    }), '刪除元件'));
+                }
+                return view.join('');
+            })()}
                     </div>
                 </div>
             `,
@@ -904,7 +916,7 @@ export class Main_editor {
                 bind: 'iframe_center',
                 view: () => {
                     return `<div class="position-relative" style="width:100%;height: calc(100%);" id="editerCenter">
-                    <iframe class="w-100 h-100  bg-white"
+                    <iframe class="w-100 h-100  bg-white iframe_view"
                             src="${gvc.glitter.root_path}${gvc.glitter.getUrlParameter('page')}?type=htmlEditor&appName=${gvc.glitter.getUrlParameter('appName')}"></iframe>
                 </div>`;
                 },

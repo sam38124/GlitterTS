@@ -40,7 +40,9 @@ RenderValue.custom_style = {
             else if (widget.data._layout === 'vertical') {
                 style_string += css `display: flex;
                         flex-direction: column;
-                        justify-content: ${widget.data._ver_position || 'center'};`;
+                        justify-content: ${widget.data._ver_position || 'center'};
+                    gap:${widget.data._gap || 0}px;
+                    `;
             }
             else if (widget.data._layout === 'proportion') {
                 style_string += css `flex-wrap: wrap !important;

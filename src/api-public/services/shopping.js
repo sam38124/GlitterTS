@@ -19,10 +19,41 @@ const moment_1 = __importDefault(require("moment"));
 const notify_js_1 = require("./notify.js");
 const auto_send_email_js_1 = require("./auto-send-email.js");
 const recommend_js_1 = require("./recommend.js");
+const workers_js_1 = require("./workers.js");
 class Shopping {
     constructor(app, token) {
         this.app = app;
         this.token = token;
+    }
+    async workerExample(data) {
+        try {
+            const jsonData = await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_voucher_history`, []);
+            const t0 = performance.now();
+            if (data.type === 0) {
+                for (const record of jsonData) {
+                    await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_voucher_history\` SET ? WHERE id = ?`, [record, record.id]);
+                }
+                return {
+                    type: 'single',
+                    divisor: 1,
+                    executionTime: `${(performance.now() - t0).toFixed(3)} ms`,
+                };
+            }
+            const formatJsonData = jsonData.map((record) => {
+                return {
+                    sql: `UPDATE \`${this.app}\`.\`t_voucher_history\` SET ? WHERE id = ?`,
+                    data: [record, record.id],
+                };
+            });
+            const result = workers_js_1.Workers.query({
+                queryList: formatJsonData,
+                divisor: data.divisor,
+            });
+            return result;
+        }
+        catch (error) {
+            throw exception_js_1.default.BadRequestError('INTERNAL_SERVER_ERROR', 'Worker example is Failed. ' + error, null);
+        }
     }
     async getProduct(query) {
         var _a;
@@ -167,6 +198,13 @@ class Shopping {
                 product.total_sales = record ? record.count : 0;
                 return product;
             });
+            if (query.id_list && query.order_by === 'order by id desc') {
+                products.data = query.id_list.split(',').map((id) => {
+                    return products.data.find((product) => {
+                        return `${product.id}` === `${id}`;
+                    });
+                });
+            }
             return products;
         }
         catch (e) {
@@ -2063,15 +2101,35 @@ class Shopping {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'putCollection Error:' + e, null);
         }
     }
-    async sortCollection(list) {
-        var _a;
+    async sortCollection(data) {
+        var _a, _b;
         try {
-            console.log(list);
-            const config = (_a = (await database_js_1.default.query(`SELECT *
-                         FROM \`${this.app}\`.public_config
-                         WHERE \`key\` = 'collection';`, []))[0]) !== null && _a !== void 0 ? _a : {};
-            config.value = config.value || [];
-            return;
+            if (data && data[0]) {
+                const parentTitle = (_a = data[0].parentTitles[0]) !== null && _a !== void 0 ? _a : '';
+                const config = (_b = (await database_js_1.default.query(`SELECT *
+                             FROM \`${this.app}\`.public_config
+                             WHERE \`key\` = 'collection';`, []))[0]) !== null && _b !== void 0 ? _b : {};
+                config.value = config.value || [];
+                if (parentTitle === '') {
+                    config.value = data.map((item) => {
+                        return config.value.find((conf) => conf.title === item.title);
+                    });
+                }
+                else {
+                    const index = config.value.findIndex((conf) => conf.title === parentTitle);
+                    const sortList = data.map((item) => {
+                        if (index > -1) {
+                            return config.value[index].array.find((conf) => conf.title === item.title);
+                        }
+                        return { title: '', array: [], code: '' };
+                    });
+                    config.value[index].array = sortList;
+                }
+                await database_js_1.default.execute(`UPDATE \`${this.app}\`.public_config SET value = ? WHERE \`key\` = 'collection';
+                    `, [config.value]);
+                return true;
+            }
+            return false;
         }
         catch (e) {
             console.error(e);

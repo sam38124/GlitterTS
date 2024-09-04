@@ -104,6 +104,20 @@ export declare class Shopping {
     app: string;
     token?: IToken;
     constructor(app: string, token?: IToken);
+    workerExample(data: {
+        type: 0 | 1;
+        divisor: number;
+    }): Promise<{
+        type: string;
+        divisor: number;
+        executionTime: string;
+        queryStatus: "success" | "error";
+        queryData: any;
+    } | {
+        type: string;
+        divisor: number;
+        executionTime: string;
+    }>;
     getProduct(query: {
         page: number;
         limit: number;
@@ -363,10 +377,7 @@ export declare class Shopping {
         result: boolean;
         message?: undefined;
     }>;
-    sortCollection(list: {
-        index: number;
-        title: string;
-    }[]): Promise<void>;
+    sortCollection(data: Collection[]): Promise<boolean>;
     checkVariantDataType(variants: any[]): void;
     postProduct(content: any): Promise<any>;
     updateCollectionFromUpdateProduct(collection: string[]): Promise<void>;

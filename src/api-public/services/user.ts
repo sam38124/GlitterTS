@@ -59,6 +59,27 @@ type MemberLevel = {
     dead_line: { type: string };
     create_date: string;
 };
+type MemberConfig={
+    start_with:string,
+    id: string;
+    tag_name: string;
+    renew_condition:{
+        type: 'total' | 'single';
+        value: string;
+    },
+    condition: {
+        type: 'total' | 'single';
+        value: string;
+    };
+    duration: {
+        type: 'noLimit' | 'day';
+        value: number;
+    };
+    dead_line: {
+        type: 'noLimit' | 'date';
+        value: number;
+    };
+}
 
 export class User {
     static posEmail = '';
@@ -388,6 +409,7 @@ export class User {
         }
     }
 
+
     public async loginWithGoogle(code: string, redirect: string) {
         try {
             const config = await this.getConfigV2({
@@ -475,17 +497,18 @@ export class User {
             await new CustomCode(this.app).loginHook(cf);
             if (data) {
                 data.pwd = undefined;
+                data.member = (await this.checkMember(data,true));
                 const userLevel = (await this.getUserLevel([{userId: data.userID}]))[0];
                 data.member_level = userLevel.data;
                 data.member_level_status = userLevel.status;
-
-                data.member = await this.refreshMember(data);
                 const n = data.member.findIndex((item: { id: string; trigger: boolean }) => {
                     return data.member_level.id === item.id;
-                });
-                data.member.map((item: { id: string; trigger: boolean }, index: number) => {
-                    item.trigger = index >= n;
-                });
+                }) ;
+                if(n!==-1){
+                    data.member.map((item: { id: string; trigger: boolean }, index: number) => {
+                        item.trigger = index >= n;
+                    });
+                }
                 data.member.push({
                     id: this.normalMember.id,
                     og: this.normalMember,
@@ -496,21 +519,22 @@ export class User {
             }
             return data;
         } catch (e) {
+            console.log(e)
             throw exception.BadRequestError('BAD_REQUEST', 'GET USER DATA Error:' + e, null);
         }
     }
 
-    public async refreshMember(userData: any): Promise<{ id: string; tag_name: string; trigger: boolean }[]> {
+    public async checkMember(userData: any,trigger:boolean): Promise<{ id: string; tag_name: string; trigger: boolean }[]> {
+
         const member_update = await this.getConfigV2({
             key: 'member_update',
             user_id: userData.userID,
         });
-        member_update.time = member_update.time || new Date('1997-01-29').toISOString();
-        //上次更新時間(每10分鐘更新一次會級資料)
-        const update_time = new Date(member_update.time);
-        if (update_time.getTime() < new Date().getTime() - 1000 * 600) {
+        member_update.value=member_update.value || []
+        //當沒有會籍資料或者trigger為true時執行
+        if (!member_update.time || trigger) {
             //分級配置檔案
-            const member_list =
+            const member_list:MemberConfig[] =
                 (
                     await this.getConfigV2({
                         key: 'member_level_config',
@@ -530,28 +554,15 @@ export class User {
             ).map((dd: any) => {
                 return {total_amount: parseInt(`${dd.total}`, 10), date: dd.created_time};
             });
+
             // 判斷是否符合上個等級
             let pass_level = true;
             const member = member_list.map(
-                (dd: {
-                    id: string;
-                    tag_name: string;
-                    condition: {
-                        type: 'total' | 'single';
-                        value: string;
-                    };
-                    duration: {
-                        type: 'noLimit' | 'day';
-                        value: number;
-                    };
-                    dead_line: {
-                        type: 'noLimit' | 'date';
-                        value: number;
-                    };
-                }) => {
+                (dd: MemberConfig,index:number) => {
+                    (dd as any).index=index;
                     if (dd.condition.type === 'single') {
                         const time = order_list.find((d1: any) => {
-                            return d1.total_amount >= parseInt(dd.condition.value, 10);
+                            return (d1.total_amount >= parseInt(dd.condition.value, 10)) ;
                         });
                         if (time) {
                             let dead_line = new Date(time.created_time);
@@ -565,10 +576,11 @@ export class User {
                                     og: dd,
                                 };
                             } else {
+                                //最後一筆訂單往後推期限是有效期
                                 dead_line.setDate(dead_line.getDate() + dd.dead_line.value);
                                 return {
                                     id: dd.id,
-                                    trigger: pass_level,
+                                    trigger: pass_level && dead_line.getTime()>new Date().getTime(),
                                     tag_name: dd.tag_name,
                                     dead_line: dead_line,
                                     og: dd,
@@ -589,64 +601,171 @@ export class User {
                             };
                         }
                     } else {
-                        const date = this.find30DayPeriodWith3000Spent(order_list, parseInt(dd.condition.value, 10), dd.duration.type === 'noLimit' ? 365 * 10 : dd.duration.value, 365 * 10);
-                        if (date) {
-                            const latest = new Date(date.end_date);
+                        let sum=0
+                        //計算訂單起始時間
+                        let start_with = new Date();
+                        if(dd.duration.type==='noLimit'){
+                            start_with.setTime(start_with.getTime()-365 * 1000 * 60 * 60 * 24)
+                        }else{
+                            start_with.setTime(start_with.getTime()- Number(dd.duration.value) * 1000 * 60 * 60 * 24)
+                        }
+                        //取得起始時間後的所有訂單
+                        const order_match=order_list.filter((d1:any)=>{
+                            return (new Date(d1.date).getTime())>start_with.getTime()
+                        })
+                        //計算累積金額
+                        order_match.map((dd:any)=>{
+                            sum+=dd.total_amount;
+                        })
+                        if (sum>=Number(dd.condition.value)) {
+                            let dead_line = new Date();
                             if (dd.dead_line.type === 'noLimit') {
-                                latest.setDate(latest.getDate() + 365 * 10);
+                                dead_line.setTime(dead_line.getTime() + 365 * 1000 * 60 * 60 * 24);
                                 return {
                                     id: dd.id,
                                     trigger: pass_level,
                                     tag_name: dd.tag_name,
-                                    dead_line: latest,
+                                    dead_line: dead_line,
                                     og: dd,
                                 };
                             } else {
-                                latest.setDate(latest.getDate() + dd.dead_line.value);
+                                dead_line.setTime(dead_line.getTime()  +(Number(dd.dead_line.value) * 1000 * 60 * 60 * 24));
                                 return {
                                     id: dd.id,
                                     trigger: pass_level,
                                     tag_name: dd.tag_name,
-                                    dead_line: latest,
+                                    dead_line: dead_line,
                                     og: dd,
                                 };
                             }
                         } else {
-                            let leak = parseInt(dd.condition.value, 10);
-                            let sum = 0;
-
-                            const compareDate = new Date();
-                            compareDate.setDate(compareDate.getDate() - (dd.duration.type === 'noLimit' ? 365 * 10 : dd.duration.value));
-                            order_list.map((dd: any) => {
-                                if (new Date().getTime() > compareDate.getTime()) {
-                                    leak = leak - dd.total_amount;
-                                    sum += dd.total_amount;
-                                }
-                            });
-                            if (leak !== 0) {
-                                pass_level = false;
-                            }
+                            let leak = Number(dd.condition.value) - sum;
                             return {
                                 id: dd.id,
                                 tag_name: dd.tag_name,
                                 dead_line: '',
-                                trigger: leak === 0 && pass_level,
-                                leak: leak,
-                                sum: sum,
+                                trigger: false,
                                 og: dd,
+                                leak: leak,
                             };
                         }
                     }
                 }
-            );
-            member_update.value = member.reverse();
+            ).reverse();
+            member.map((dd)=>{
+                if(dd.trigger){
+                    (dd as any).start_with=new Date()
+                }
+            })
+            //原本會員級數
+            const original_member = member_update.value.find((dd:any)=>{return dd.trigger})
+            if(original_member){
+                //現在計算出來的會員級數
+                const calc_member_now=member.find((d1:any)=>{return d1.id===original_member.id})
+                if(calc_member_now){
+                    const dd:MemberConfig=member_list.find(((dd)=>{
+                        return dd.id === original_member.id
+                    }))!;
+                    //是否符合續費條件
+                    const renew_check_data=(()=>{
+                        //取得續費計算起始時間
+                        let start_with = new Date(original_member.start_with);
+                        //取得起始時間後的所有訂單
+                        const order_match=order_list.filter((d1:any)=>{
+                            return (new Date(d1.date).getTime())>start_with.getTime()
+                        })
+                        //過期時間
+                        const dead_line=new Date(original_member.dead_line)
+                        //當判斷有效期為無限期的話，則直接返回無條件續會。
+                        if((dd.dead_line.type === 'noLimit')){
+                            dead_line.setDate(dead_line.getDate()+365*10)
+                            return  {
+                                id: dd.id,
+                                trigger: true,
+                                tag_name: dd.tag_name,
+                                dead_line: dead_line,
+                                og: dd,
+                            }
+                        }else if (dd.renew_condition.type === 'single') {
+                            //單筆消費規則
+                            const time = order_match.find((d1: any) => {
+                                return (d1.total_amount >= parseInt(dd.renew_condition.value, 10)) ;
+                            });
+                            if(time){
+                                dead_line.setDate(dead_line.getDate()+parseInt(dd.dead_line.value as any,10))
+                                return  {
+                                    id: dd.id,
+                                    trigger: true,
+                                    tag_name: dd.tag_name,
+                                    dead_line: dead_line,
+                                    og: dd,
+                                }
+                            }else{
+                                return  {
+                                    id: dd.id,
+                                    trigger: false,
+                                    tag_name: dd.tag_name,
+                                    dead_line:'',
+                                    leak: parseInt(dd.renew_condition.value, 10),
+                                    og: dd,
+                                }
+                            }
+                        } else {
+                            let sum=0
+                            order_match.map((dd:any)=>{
+                                sum+=dd.total_amount;
+                            })
+                            if (sum>=parseInt(dd.renew_condition.value, 10)) {
+                                dead_line.setDate(dead_line.getDate()+parseInt(dd.dead_line.value as any,10))
+                                return {
+                                    id: dd.id,
+                                    trigger: true,
+                                    tag_name: dd.tag_name,
+                                    dead_line: dead_line,
+                                    og: dd,
+                                };
+                            } else {
+                                return {
+                                    id: dd.id,
+                                    trigger: false,
+                                    tag_name: dd.tag_name,
+                                    dead_line: '',
+                                    leak: parseInt(dd.renew_condition.value, 10)-sum,
+                                    og: dd,
+                                };
+                            }
+                        }
+                    })()
+                    //判斷會員還沒過期
+                    if(new Date(original_member.dead_line).getTime() > new Date().getTime()){
+                        calc_member_now.dead_line=original_member.dead_line;
+                        calc_member_now.trigger=true;
+                        //調整會員級數起始時間為原先時間
+                        (calc_member_now as any).start_with = original_member.start_with ||  (calc_member_now as any).start_with;
+                        (calc_member_now as any).re_new_member=renew_check_data
+                    }
+                    //判斷會員過期，如沒續會成功則自動降級
+                    else{
+                        if(dd.renew_condition){
+                            if(renew_check_data.trigger){
+                                calc_member_now!.trigger=true
+                                calc_member_now!.dead_line=renew_check_data.dead_line;
+                                (calc_member_now as any).start_with=new Date();
+                                (calc_member_now as any).re_new_member=renew_check_data;
+                            }
+                        }
+                    }
+                }
+
+            }
+            member_update.value = member;
             member_update.time = new Date();
             await this.setConfig({
                 key: 'member_update',
                 user_id: userData.userID,
                 value: member_update,
             });
-            return member.reverse();
+            return member;
         } else {
             return member_update.value;
         }
@@ -658,10 +777,9 @@ export class User {
             date: string;
         }[],
         total: number,
-        duration: number,
-        dead_line: number
+        duration: number
     ) {
-        const ONE_YEAR_MS = dead_line * 24 * 60 * 60 * 1000;
+        const ONE_YEAR_MS = duration * 24 * 60 * 60 * 1000;
         const THIRTY_DAYS_MS = duration * 24 * 60 * 60 * 1000;
         const NOW = new Date().getTime();
         // 過濾出過去一年內的交易
@@ -912,7 +1030,8 @@ export class User {
 
     public async getUserGroups(
         type?: string[],
-        tag?: string
+        tag?: string,
+        hide_level?:boolean
     ): Promise<
         | { result: false }
         | {
@@ -920,6 +1039,7 @@ export class User {
         data: GroupsItem[];
     }
     > {
+        console.log(`getUserGroups==>`)
         try {
             const pass = (text: string) => type === undefined || type.includes(text);
             let dataList: GroupsItem[] = [];
@@ -977,7 +1097,7 @@ export class User {
             }
 
             // 會員等級
-            if (pass('level')) {
+            if (!hide_level && pass('level')) {
                 const levelData = await this.getLevelConfig();
                 const levels = levelData
                     .map((item: any) => {
@@ -1004,7 +1124,6 @@ export class User {
                         return {userId: item.userID};
                     })
                 );
-
                 for (const levelItem of levelItems) {
                     const n = dataList.findIndex((item) => item.tag === levelItem.data.id);
                     if (n > -1) {
@@ -1063,6 +1182,7 @@ export class User {
             status: 'auto' | 'manual';
         }[]
     > {
+        console.log(`getUserLevel-->`,data)
         const dataList = [];
         const idList = data.filter((item) => item.userId !== undefined).map((item) => item.userId);
         const emailList = data.filter((item) => item.email !== undefined).map((item) => `"${item.email}"`);
@@ -1095,7 +1215,6 @@ export class User {
                    AND user_id in (${idSQL});`,
                 []
             );
-
             for (const user of users) {
                 if (user.userData.level_status === 'manual') {
                     const member_level = levelList.find((item: { id: string }) => {
@@ -1111,7 +1230,7 @@ export class User {
                 }
 
                 if (memberUpdates.length > 0) {
-                    const memberUpdate = await this.refreshMember(user);
+                    const memberUpdate = await this.checkMember(user,false);
                     if (memberUpdate.length > 0) {
                         const member_level = memberUpdate.find((v: { trigger: boolean }) => v.trigger);
                         if (member_level) {

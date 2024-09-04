@@ -78,6 +78,19 @@ export class ApiShop {
         });
     }
 
+    static sortCollections(cf: { data: any; token?: string }) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/ec/collection/sort`,
+            type: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: cf.token || getConfig().config.token,
+            },
+            data: JSON.stringify(cf.data),
+        });
+    }
+
     static deleteCollections(cf: { data: any; token?: string }) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/collection`,
@@ -206,17 +219,16 @@ export class ApiShop {
                     json.id_list && par.push(`id_list=${json.id_list}`);
                     json.with_hide_index && par.push(`with_hide_index=${json.with_hide_index}`);
                     json.searchType && par.push(`searchType=${json.searchType}`);
-                    if(location.pathname.includes('/hidden/') || location.pathname.includes('/shop/')){
+                    if (location.pathname.includes('/hidden/') || location.pathname.includes('/shop/')) {
                         par.push(`show_hidden=true`);
                     }
-                  
                     return par.join('&');
                 })()}`,
             type: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-                'g-app': ((window as any).glitter.getUrlParameter('type')==='find_idea') ? (window as any).appName:encodeURIComponent(getConfig().config.appName),
-                Authorization: ((window.parent as any).glitter.getUrlParameter('type')==='editor' && getConfig().config.token) || GlobalUser.token,
+                'g-app': (window as any).glitter.getUrlParameter('type') === 'find_idea' ? (window as any).appName : encodeURIComponent(getConfig().config.appName),
+                Authorization: ((window.parent as any).glitter.getUrlParameter('type') === 'editor' && getConfig().config.token) || GlobalUser.token,
             },
         });
     }
@@ -275,7 +287,7 @@ export class ApiShop {
         order?: string;
         orderString?: string;
         filter?: any;
-        is_pos?:boolean,
+        is_pos?: boolean;
         archived?: string;
         returnSearch?: 'true';
     }) {
@@ -558,10 +570,10 @@ export class ApiShop {
             count: number;
         }[];
         code?: string;
-        checkOutType?:'manual' | 'auto' | 'POS',
+        checkOutType?: 'manual' | 'auto' | 'POS';
         use_rebate?: number;
         distribution_code?: string;
-        user_info?:any
+        user_info?: any;
     }) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/checkout/preview`,
@@ -844,10 +856,9 @@ function getBaseUrl() {
     return getConfig().config.url;
 }
 
-
-const interVal=setInterval(()=>{
-    if((window as any).glitter){
+const interVal = setInterval(() => {
+    if ((window as any).glitter) {
         clearInterval(interVal);
-        (window as any).glitter.share.ApiShop=ApiShop
+        (window as any).glitter.share.ApiShop = ApiShop;
     }
-},100)
+}, 100);

@@ -353,19 +353,6 @@ ul {
     font-weight: 400;
 }
 
-.tx_normal_white {
-    font-size: 16px;
-    letter-spacing: 0.64px;
-    color: #fff;
-    font-weight: 400;
-}
-
-.tx_gray_12 {
-    font-size: 12px;
-    color: #8d8d8d;
-    font-weight: 400;
-}
-
 .tx_700 {
     font-size: 16px;
     color: #393939;
@@ -378,20 +365,15 @@ ul {
     font-weight: 700;
 }
 
-.tx_white_sm {
-    font-size: 14px;
-    color: #fff;
-}
-
-.tx_white_lg {
-    font-size: 20px;
-    color: #fff;
-}
-
 .tx_title {
-    color: #393939;
     font-size: 24px;
+    color: #393939;
     font-weight: 700;
+}
+.tx_gray_12 {
+    font-size: 12px;
+    color: #8d8d8d;
+    font-weight: 400;
 }
 
 .c_card {
@@ -557,11 +539,6 @@ ul {
     background: #646464 !important;
 }
 
-.btn-black-sm {
-    max-height: 28px;
-    padding: 6px 12px;
-}
-
 .btn-black-lg {
     max-height: 54px;
 }
@@ -669,9 +646,9 @@ ul {
 
 .c_select {
     display: flex;
-    padding: 9px 30px 9px 18px;
+    padding: 7px 30px 7px 18px;
     min-width: 140px;
-    min-height: 42px;
+    max-height: 40px;
     align-items: center;
     gap: 6px;
     border-radius: 10px;
@@ -754,13 +731,6 @@ ul {
     left: 50%;
     color: white;
     cursor: pointer;
-}
-
-@media (max-width: 768px) {
-    .c_select_w_100 {
-        width: 100%;
-        min-height: 42px;
-    }
 }
 
 .c_select:focus {
@@ -911,6 +881,38 @@ ul {
     left: 50%;
     top: 0px;
     animation: scale-animation 0.3s ease-out forwards;
+}
+
+.cursor-move {
+    cursor: move;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+@media (max-width: 768px) {
+    .c_select_w_100 {
+        min-height: 42px;
+    }
+
+    .btn-gray,
+    .btn-black,
+    .btn-red,
+    .btn-snow {
+        max-height: 30px;
+        padding: 8px 14px;
+    }
+
+    .btn .tx_700,
+    .btn .tx_700_white {
+        font-size: 14px;
+    }
+
+    .update-bar-container {
+        padding: 10px 16px;
+        gap: 12px;
+    }
 }
 
 /* @keyframes 定義動畫 */

@@ -168,6 +168,9 @@ export class GlobalWidget {
             const gvc = obj.gvc;
             GlobalWidget.initialShowCaseData({ widget: obj.widget, gvc: obj.gvc });
             function selector(widget, key) {
+                if (obj.hide_selector) {
+                    return ``;
+                }
                 return html `
                     <div class=" mx-n2"
                          style="padding: 18px 18px 10px;">${[
@@ -276,10 +279,10 @@ ${GlobalWidget.switchButton(obj.gvc, obj.widget[key].refer !== 'hide', (bool) =>
     static showCaseData(obj) {
         GlobalWidget.initialShowCaseData({ widget: obj.widget, gvc: obj.gvc });
         if (obj.gvc.glitter.document.body.clientWidth < 800 && obj.widget.mobile.refer === 'hide') {
-            return ``;
+            return obj.empty || '';
         }
         else if (obj.gvc.glitter.document.body.clientWidth >= 800 && obj.widget.desktop.refer === 'hide') {
-            return ``;
+            return obj.empty || '';
         }
         else if (obj.gvc.glitter.document.body.clientWidth < 800 && obj.widget.mobile.refer === 'custom') {
             return obj.view(obj.widget.mobile);

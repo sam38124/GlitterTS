@@ -612,13 +612,13 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
                         let bgGuide = new BgGuide(gvc,0);
                         // if (!viewModel.guideAble){
                         //     viewModel.guideAble = true;
-                        ApiShop.getGuide().then(r => {
-                            // if (r.response.value.first){
-
-                            // console.log("test1")
-                            // bgGuide.drawGuide();
-                            // }
-                        })
+                        // ApiShop.getGuide().then(r => {
+                        //     // if (r.response.value.first){
+                        //
+                        //     // console.log("test1")
+                        //     bgGuide.drawGuide();
+                        //     // }
+                        // })
                     }
 
                     // }
@@ -685,25 +685,28 @@ function initialEditor(gvc: GVC, viewModel: any) {
             widget: any;
             container: any;
             index: number;
+            container_cf:any;
         } = {
             widget: undefined,
             container: undefined,
+            container_cf:undefined,
             index: 0,
         };
 
-        function loop(array: any) {
+        function loop(array: any,container_cf:any) {
             array.map((dd: any, index: number) => {
                 if (dd.id === id) {
                     find.widget = dd;
                     find.container = array;
+                    find.container_cf=container_cf;
                     find.index = index;
                 } else if (dd.type === 'container') {
-                    loop(dd.data.setting);
+                    loop(dd.data.setting,dd);
                 }
             });
         }
 
-        loop(glitter.share.editorViewModel.data.config);
+        loop(glitter.share.editorViewModel.data.config,undefined);
         return find;
     };
 
@@ -746,6 +749,7 @@ function initialEditor(gvc: GVC, viewModel: any) {
 
     //添加Component至當前頁面
     glitter.share.addComponent = (data: any) => {
+        console.log(`addComponent`)
         AddComponent.toggle(false);
         resetId(data);
         const url = new URL(location.href);

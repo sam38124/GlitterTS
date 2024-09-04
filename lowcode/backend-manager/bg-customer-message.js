@@ -12,92 +12,50 @@ import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
 import { ApiUser } from '../glitter-base/route/user.js';
 import { FormWidget } from '../official_view_component/official/form.js';
 import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
-import { BgWidget } from "./bg-widget.js";
-import { CustomerMessageUser } from "../cms-plugin/customer-message-user.js";
+import { BgWidget } from './bg-widget.js';
+import { CustomerMessageUser } from '../cms-plugin/customer-message-user.js';
 export class BgCustomerMessage {
     static leftNav(gvc) {
         const html = String.raw;
-        return `<div id="BgCustomerMessage" class="position-fixed left-0 top-0 h-100 bg-white shadow-lg " style="width:480px;z-index: 99999;right: -120%;">
-                <div class="w-100 d-flex align-items-center p-3 border-bottom">
-                    <h5 class=" offcanvas-title  " style="">客服訊息</h5>
-                    <div class="flex-fill"></div>
-                    <div
-                        class="fs-5 text-black"
-                        style="cursor: pointer;"
-                        onclick="${gvc.event(() => {
+        return html `<div id="BgCustomerMessage" class="position-fixed left-0 top-0 h-100 bg-white shadow-lg " style="width:480px; z-index: 99999; right: -125%;">
+            <div class="w-100 d-flex align-items-center p-3 border-bottom">
+                <h5 class=" offcanvas-title  " style="">客服訊息</h5>
+                <div class="flex-fill"></div>
+                <div
+                    class="fs-5 text-black"
+                    style="cursor: pointer;"
+                    onclick="${gvc.event(() => {
             BgCustomerMessage.toggle(false, gvc);
         })}"
-                    >
-                        <i class="fa-sharp fa-regular fa-circle-xmark" style="color:black;"></i>
-                    </div>
+                >
+                    <i class="fa-sharp fa-regular fa-circle-xmark" style="color:black;"></i>
                 </div>
-                ${BgCustomerMessage.view(gvc)}
-            </div>`;
-        return html `
-            <div
-                    class="avatar-img rounded-circle"
-                    style="background-color: ${BgCustomerMessage.config
-            .color};width: 58px;height: 58px ;cursor: pointer;display: flex;align-items: center;justify-content: center;position: fixed;left: 20px;bottom:20px;z-index: 100;"
-                    onclick="${gvc.event(() => {
-            BgCustomerMessage.toggle(true, gvc);
-        })}"
-            >
-                <i class="fa-solid fa-message-dots" style=" color: white;font-size: 30px;"></i>
-                ${gvc.bindView(() => {
-            const id = gvc.glitter.getUUID();
-            return {
-                bind: id,
-                view: () => {
-                    return new Promise((resolve, reject) => {
-                        Chat.getUnRead({ user_id: 'manager' }).then((data) => {
-                            if (data.response.length === 0) {
-                                resolve('');
-                            }
-                            else {
-                                resolve(` <div class="position-absolute   rounded-circle d-flex align-items-center justify-content-center fw-500 shadow-lg border-danger text-danger" style="background: white;width:28px;height: 28px;top:-5px;right: -10px;border:2px solid red;">${data.response.length}</div>`);
-                            }
-                        });
-                    });
-                },
-                onCreate: () => {
-                    setTimeout(() => {
-                        gvc.notifyDataChange(id);
-                    }, 2000);
-                },
-            };
-        })}
             </div>
-            <div
-                    class="vw-100 vh-100 position-fixed left-0 top-0 d-none"
-                    id="BgCustomerMessageHover"
-                    style="z-index: 99999;background: rgba(0,0,0,0.5);"
-                    onclick="${gvc.event(() => {
-            BgCustomerMessage.toggle(false, gvc);
-        })}"
-            ></div>
-        `;
+            ${BgCustomerMessage.view(gvc)}
+        </div>`;
     }
     static view(gvc) {
         return gvc.bindView(() => {
+            const html = String.raw;
             const vm = BgCustomerMessage.vm;
             return {
                 bind: BgCustomerMessage.id,
                 view: () => {
                     if (!BgCustomerMessage.visible) {
-                        return `  <div class="d-flex align-items-center justify-content-center w-100 flex-column pt-3">
-                                <div class="spinner-border" role="status">
-                                    <span class="sr-only"></span>
-                                </div>
-                                <span class="mt-2">載入中...</span>
-                            </div>`;
+                        return html ` <div class="d-flex align-items-center justify-content-center w-100 flex-column pt-3">
+                            <div class="spinner-border" role="status">
+                                <span class="sr-only"></span>
+                            </div>
+                            <span class="mt-2">載入中...</span>
+                        </div>`;
                     }
                     if (vm.type === 'detail') {
-                        return `<div style="padding-bottom: 70px;">
-${CustomerMessageUser.detail({
+                        return html `<div style="padding-bottom: 70px;">
+                            ${CustomerMessageUser.detail({
                             gvc: gvc,
                             chat: vm.chat_user,
                             user_id: 'manager',
-                            containerHeight: ($('body').height() + 60) + 'px',
+                            containerHeight: $('body').height() + 60 + 'px',
                             document: document,
                             goBack: () => {
                                 vm.type = 'list';
@@ -108,14 +66,14 @@ ${CustomerMessageUser.detail({
                                 vm.type = 'list';
                                 vm.select_bt = 'list';
                                 gvc.notifyDataChange(BgCustomerMessage.id);
-                            }
+                            },
                         })}
-</div>`;
+                        </div>`;
                     }
                     else {
                         let view = [
-                            `<div class="d-flex  py-2 px-2 bg-white align-items-center w-100 justify-content-around border-bottom">
-                            ${(() => {
+                            html `<div class="d-flex  py-2 px-2 bg-white align-items-center w-100 justify-content-around border-bottom">
+                                ${(() => {
                                 let list = [
                                     {
                                         key: 'list',
@@ -131,27 +89,32 @@ ${CustomerMessageUser.detail({
                                         key: 'preview',
                                         label: '預覽樣式',
                                         icon: '<i class="fa-regular fa-eye"></i>',
-                                    }
+                                    },
                                 ];
                                 return list
                                     .map((dd) => {
-                                    return `<div class="d-flex align-items-center justify-content-center hoverBtn  border"
-                                 style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;
-                                 ${BgCustomerMessage.vm.select_bt === dd.key
+                                    return html `<div
+                                                class="d-flex align-items-center justify-content-center hoverBtn  border"
+                                                style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;
+                                                ${BgCustomerMessage.vm.select_bt === dd.key
                                         ? `background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);background:-webkit-linear-gradient(135deg, #667eea 0%, #764ba2 100%);color:white;`
                                         : ``}
-                                 "
-                                 data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip"
-                                 data-bs-title="${dd.label}" onclick="${gvc.event(() => {
+                                                "
+                                                data-bs-toggle="tooltip"
+                                                data-bs-placement="top"
+                                                data-bs-custom-class="custom-tooltip"
+                                                data-bs-title="${dd.label}"
+                                                onclick="${gvc.event(() => {
                                         BgCustomerMessage.vm.select_bt = dd.key;
                                         gvc.notifyDataChange(BgCustomerMessage.id);
-                                    })}">
-                               ${dd.icon}
-                            </div>`;
+                                    })}"
+                                            >
+                                                ${dd.icon}
+                                            </div>`;
                                 })
                                     .join('');
                             })()}
-                        </div>`,
+                            </div>`,
                         ];
                         if (BgCustomerMessage.vm.select_bt === 'list') {
                             view.push(BgCustomerMessage.list(gvc, (user) => {
@@ -177,9 +140,9 @@ ${CustomerMessageUser.detail({
                                                     <div class="position-relative bgf6 d-flex align-items-center justify-content-between m-n2 p-2 border-bottom shadow">
                                                         <span class="fs-6 fw-bold " style="color:black;">自動問答</span>
                                                         <button
-                                                                class="btn btn-primary-c "
-                                                                style="height: 28px;width:40px;font-size:14px;"
-                                                                onclick="${gvc.event(() => {
+                                                            class="btn btn-primary-c "
+                                                            style="height: 28px;width:40px;font-size:14px;"
+                                                            onclick="${gvc.event(() => {
                                                 dialog.dataLoading({ visible: true });
                                                 ApiUser.setPublicConfig({
                                                     key: `robot_auto_reply`,
@@ -263,8 +226,7 @@ ${CustomerMessageUser.detail({
                                                         ],
                                                     },
                                                 ],
-                                                refresh: () => {
-                                                },
+                                                refresh: () => { },
                                                 formData: keyData,
                                             })}
                                                     </div>
@@ -282,7 +244,7 @@ ${CustomerMessageUser.detail({
                                 gvc: gvc,
                                 userID: 'preview',
                                 open: true,
-                                type: 'preview'
+                                type: 'preview',
                             }));
                         }
                         else if (BgCustomerMessage.vm.select_bt === 'setting') {
@@ -299,7 +261,7 @@ ${CustomerMessageUser.detail({
                                             const dialog = new ShareDialog(gvc.glitter);
                                             const vm = {
                                                 message_setting: keyData,
-                                                robot_setting: undefined
+                                                robot_setting: undefined,
                                             };
                                             function save() {
                                                 return __awaiter(this, void 0, void 0, function* () {
@@ -319,27 +281,20 @@ ${CustomerMessageUser.detail({
                                                 });
                                             }
                                             const view = [
-                                                html `
-                                                        <div class="position-relative bgf6 d-flex align-items-center justify-content-between m-n2 p-2 border-bottom shadow">
-                                                            <span class="fs-6 fw-bold "
-                                                                  style="color:black;">功能設定</span>
+                                                html ` <div class="position-relative bgf6 d-flex align-items-center justify-content-between m-n2 p-2 border-bottom shadow">
+                                                            <span class="fs-6 fw-bold " style="color:black;">功能設定</span>
                                                             ${BgWidget.darkButton('儲存', gvc.event(() => {
                                                     save();
                                                 }))}
                                                         </div>
                                                         <div style="margin-top: 10px;" class="p-2">
                                                             ${[
-                                                    html `
-                                                                    <div class="mb-3"
-                                                                         style="display:flex; align-items: center; gap: 4px; margin-bottom: 8px;">
-                                                                        <div class="fw-500"
-                                                                             style="color: #393939;font-size: 15px;">
-                                                                            功能啟用
-                                                                        </div>
-                                                                        ${BgWidget.switchButton(gvc, keyData.toggle, (bool) => {
+                                                    html ` <div class="mb-3" style="display:flex; align-items: center; gap: 4px; margin-bottom: 8px;">
+                                                                    <div class="fw-500" style="color: #393939;font-size: 15px;">功能啟用</div>
+                                                                    ${BgWidget.switchButton(gvc, keyData.toggle, (bool) => {
                                                         keyData.toggle = bool;
                                                     })}
-                                                                    </div>`,
+                                                                </div>`,
                                                     EditorElem.editeInput({
                                                         gvc: gvc,
                                                         title: '客服名稱',
@@ -402,9 +357,10 @@ ${CustomerMessageUser.detail({
                                                                 vm.robot_setting = keyData;
                                                                 const dialog = new ShareDialog(gvc.glitter);
                                                                 resolve(html `
-                                                                        <div class="position-relative bgf6 d-flex align-items-center justify-content-between mx-n2 p-2 py-3 border-top border-bottom mt-2 shadow">
-                                                                            <span class="fs-6 fw-bold "
-                                                                                  style="color:black;">自動問答</span>
+                                                                        <div
+                                                                            class="position-relative bgf6 d-flex align-items-center justify-content-between mx-n2 p-2 py-3 border-top border-bottom mt-2 shadow"
+                                                                        >
+                                                                            <span class="fs-6 fw-bold " style="color:black;">自動問答</span>
                                                                         </div>
                                                                         <div style="margin-top: -30px;" class="mx-n4">
                                                                             ${FormWidget.editorView({
@@ -423,7 +379,7 @@ ${CustomerMessageUser.detail({
                                                                                 },
                                                                                 input: {
                                                                                     class: '',
-                                                                                    style: ''
+                                                                                    style: '',
                                                                                 },
                                                                                 container: {
                                                                                     class: '',
@@ -478,8 +434,7 @@ ${CustomerMessageUser.detail({
                                                                             ],
                                                                         },
                                                                     ],
-                                                                    refresh: () => {
-                                                                    },
+                                                                    refresh: () => { },
                                                                     formData: keyData,
                                                                 })}
                                                                         </div>
@@ -490,7 +445,7 @@ ${CustomerMessageUser.detail({
                                                             class: ``,
                                                         },
                                                     };
-                                                })
+                                                }),
                                             ];
                                             resolve(view.join(''));
                                         }));
@@ -505,7 +460,7 @@ ${CustomerMessageUser.detail({
                     }
                 },
                 divCreate: {
-                    style: `position:relative;`
+                    style: `position:relative;`,
                 },
                 onCreate: () => {
                     $('.tooltip').remove();
@@ -539,7 +494,7 @@ ${CustomerMessageUser.detail({
                         view.push(html `
                             <div class="p-2">
                                 <div class="position-relative">
-                                    <input type="text" class="form-control pe-5" placeholder="搜尋用戶">
+                                    <input type="text" class="form-control pe-5" placeholder="搜尋用戶" />
                                     <i class="bx bx-search fs-xl text-nav position-absolute top-50 end-0 translate-middle-y me-3"></i>
                                 </div>
                             </div>
@@ -552,61 +507,69 @@ ${CustomerMessageUser.detail({
                                 }).length;
                                 if (dd.chat_id)
                                     return html `<a
-                                                                    class="d-flex align-items-center border-bottom text-decoration-none bg-faded-primary-hover py-3 px-4"
-                                                                    style="cursor: pointer;"
-                                                                    onclick="${gvc.event(() => {
+                                                    class="d-flex align-items-center border-bottom text-decoration-none bg-faded-primary-hover py-3 px-4"
+                                                    style="cursor: pointer;"
+                                                    onclick="${gvc.event(() => {
                                         callback(dd);
-                                    })}">
-                                                                <div class="rounded-circle position-relative "
-                                                                     style="width: 40px;height: 40px;">
-                                                                    <div class="rounded-circle text-white bg-danger ${unReadCount ? `` : `d-none`} fw-500 d-flex align-items-center justify-content-center me-2"
-                                                                         style="min-width:18px !important;height: 18px !important;
-position: absolute;right: -15px;top:-5px;font-size:11px;">${unReadCount}
-                                                                    </div>
-                                                                    <img src="${(dd.userData && dd.userData.head) || `https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1704269678588-43.png`}"
-                                                                         class="rounded-circle border" style="border-radius: 50%;" width="40"
-                                                                         alt="Devon Lane">
-                                                                </div>
+                                    })}"
+                                                >
+                                                    <div class="rounded-circle position-relative " style="width: 40px;height: 40px;">
+                                                        <div
+                                                            class="rounded-circle text-white bg-danger ${unReadCount ? `` : `d-none`} fw-500 d-flex align-items-center justify-content-center me-2"
+                                                            style="min-width:18px !important;height: 18px !important;position: absolute;right: -15px;top:-5px;font-size:11px;"
+                                                        >
+                                                            ${unReadCount}
+                                                        </div>
+                                                        <img
+                                                            src="${(dd.userData && dd.userData.head) || `https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1704269678588-43.png`}"
+                                                            class="rounded-circle border"
+                                                            style="border-radius: 50%;"
+                                                            width="40"
+                                                            alt="Devon Lane"
+                                                        />
+                                                    </div>
 
-
-                                                                <div class="w-100 ps-2 ms-1">
-                                                                    <div class="d-flex align-items-center justify-content-between mb-1">
-                                                                        <h6 class="mb-0 me-2">
-                                                                            ${(dd.user_data && dd.user_data.name) || `訪客`}</h6>
-                                                                        <span class="fs-xs  fw-500 text-muted">${gvc.glitter.ut.dateFormat(new Date(dd.topMessage.created_time), 'MM-dd hh:mm')}</span>
-                                                                    </div>
-                                                                    <p class="fs-sm  mb-0 "
-                                                                       style="white-space: normal;${unReadCount ? `color:black;` : `color:#585c7b !important;`}">
-                                                                        ${(dd.topMessage ? dd.topMessage.text : ``).length > 50 ? (dd.topMessage ? dd.topMessage.text : ``).substring(0, 50) + '.....' : dd.topMessage ? dd.topMessage.text : ``}</p>
-                                                                </div>
-                                                            </a>`;
+                                                    <div class="w-100 ps-2 ms-1">
+                                                        <div class="d-flex align-items-center justify-content-between mb-1">
+                                                            <h6 class="mb-0 me-2">${(dd.user_data && dd.user_data.name) || `訪客`}</h6>
+                                                            <span class="fs-xs  fw-500 text-muted">${gvc.glitter.ut.dateFormat(new Date(dd.topMessage.created_time), 'MM-dd hh:mm')}</span>
+                                                        </div>
+                                                        <p class="fs-sm  mb-0 " style="white-space: normal;${unReadCount ? `color:black;` : `color:#585c7b !important;`}">
+                                                            ${(dd.topMessage ? dd.topMessage.text : ``).length > 50
+                                        ? (dd.topMessage ? dd.topMessage.text : ``).substring(0, 50) + '.....'
+                                        : dd.topMessage
+                                            ? dd.topMessage.text
+                                            : ``}
+                                                        </p>
+                                                    </div>
+                                                </a>`;
                             }
                             else {
                                 return ``;
                             }
                         })
                             .join('') ||
-                            `<div class="d-flex align-items-center justify-content-center flex-column w-100"
-                                                         style="width:700px;">
-                                                        <lottie-player style="max-width: 100%;width: 300px;"
-                                                                       src="https://assets10.lottiefiles.com/packages/lf20_rc6CDU.json"
-                                                                       speed="1" loop="true"
-                                                                       background="transparent"></lottie-player>
-                                                        <h3 class="text-dark fs-6 mt-n3 px-2  "
-                                                            style="line-height: 200%;text-align: center;">
-                                                            尚未收到客服訊息。</h3>
-                                                    </div>`}
+                            html `<div class="d-flex align-items-center justify-content-center flex-column w-100" style="width:700px;">
+                                    <lottie-player
+                                        style="max-width: 100%;width: 300px;"
+                                        src="https://assets10.lottiefiles.com/packages/lf20_rc6CDU.json"
+                                        speed="1"
+                                        loop="true"
+                                        background="transparent"
+                                    ></lottie-player>
+                                    <h3 class="text-dark fs-6 mt-n3 px-2" style="line-height: 200%;text-align: center;">尚未收到客服訊息。</h3>
+                                </div>`}
                             </div>
                         `);
                         return view.join('');
                     }
                     else {
-                        return `<div class="d-flex align-items-center justify-content-center w-100 flex-column pt-3">
-                                <div class="spinner-border" role="status">
-                                    <span class="sr-only"></span>
-                                </div>
-                                <span class="mt-2">載入中...</span>
-                            </div>`;
+                        return html `<div class="d-flex align-items-center justify-content-center w-100 flex-column pt-3">
+                            <div class="spinner-border" role="status">
+                                <span class="sr-only"></span>
+                            </div>
+                            <span class="mt-2">載入中...</span>
+                        </div>`;
                     }
                 },
                 divCreate: {},
@@ -658,9 +621,9 @@ position: absolute;right: -15px;top:-5px;font-size:11px;">${unReadCount}
                         type: 'user',
                         participant: [cf.userID, cf.toUser],
                     });
-                    const css = String.raw;
                     const viewId = gvc.glitter.getUUID();
-                    const chatView = `<div class="w-100 h-100" style="position: relative;">${BgCustomerMessage.detail({
+                    const chatView = html `<div class="w-100 h-100" style="position: relative;">
+                        ${BgCustomerMessage.detail({
                         gvc: gvc,
                         chat: {
                             chat_id: chatID,
@@ -677,12 +640,13 @@ position: absolute;right: -15px;top:-5px;font-size:11px;">${unReadCount}
                         }, () => {
                             gvc.notifyDataChange(id);
                         }),
-                    })}</div>`;
+                    })}
+                    </div>`;
                     const baseUrl = new URL('../', import.meta.url);
                     document.querySelector('#' + id).addStyleLink(baseUrl.href + `assets/css/theme.css`);
                     document.querySelector('#' + id).addStyleLink(baseUrl.href + `assets/vendor/boxicons/css/boxicons.min.css`);
                     document.querySelector('#' + id).addStyleLink(`https://kit.fontawesome.com/cccedec0f8.css`);
-                    document.querySelector('#' + id).addStyle(css `
+                    document.querySelector('#' + id).addStyle(`
                         .btn-white-primary {
                             border: 2px solid ${BgCustomerMessage.config.color};
                             justify-content: space-between;
@@ -709,6 +673,7 @@ position: absolute;right: -15px;top:-5px;font-size:11px;">${unReadCount}
     static detail(cf) {
         const gvc = cf.gvc;
         const document = cf.document;
+        const html = String.raw;
         return gvc.bindView(() => {
             const id = gvc.glitter.getUUID();
             return {
@@ -730,9 +695,15 @@ position: absolute;right: -15px;top:-5px;font-size:11px;">${unReadCount}
                                         if (chatRoom.who === 'manager') {
                                             chatRoom.user_data = BgCustomerMessage.config;
                                         }
-                                        resolve(`<div class="navbar  d-flex align-items-center justify-content-between w-100  p-3 ${BgCustomerMessage.config.hideBar ? `d-none` : ``}" style="background: ${BgCustomerMessage.config.color};">
-                      <div class="d-flex align-items-center pe-3 w-100" style="gap:10px;display: flex;align-items: center;">
-                        <i class="fa-solid fa-chevron-left fs-6" style="color:white;cursor: pointer;" onclick="${gvc.event(() => {
+                                        resolve(html `<div
+                                            class="navbar  d-flex align-items-center justify-content-between w-100  p-3 ${BgCustomerMessage.config.hideBar ? `d-none` : ``}"
+                                            style="background: ${BgCustomerMessage.config.color};"
+                                        >
+                                            <div class="d-flex align-items-center pe-3 w-100" style="gap:10px;display: flex;align-items: center;">
+                                                <i
+                                                    class="fa-solid fa-chevron-left fs-6"
+                                                    style="color:white;cursor: pointer;"
+                                                    onclick="${gvc.event(() => {
                                             if (cf.user_id === 'manager') {
                                                 BgCustomerMessage.vm.type = 'list';
                                                 gvc.notifyDataChange(BgCustomerMessage.id);
@@ -740,17 +711,29 @@ position: absolute;right: -15px;top:-5px;font-size:11px;">${unReadCount}
                                             else {
                                                 cf.goBack();
                                             }
-                                        })}"></i>
-                        <img src="${chatRoom.type === 'user'
-                                            ? (chatRoom.user_data && chatRoom.user_data.head) || chatRoom.user_data.head_img || 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1704269678588-43.png'
-                                            : `https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1704269678588-43.png`}" class="rounded-circle border" style="background: white;" width="40" alt="Albert Flores">
-                        <h6 class="mb-0 px-1 text-white">${chatRoom.type === 'user' ? (chatRoom.user_data && chatRoom.user_data.name) || '訪客' : `群組`}</h6>
-                        <div class="flex-fill" style="flex: 1;"></div>
-                      <i class="fa-regular fa-circle-xmark text-white fs-3 ${cf.close ? `` : `d-none`}" onclick="${gvc.event(() => {
+                                        })}"
+                                                ></i>
+                                                <img
+                                                    src="${chatRoom.type === 'user'
+                                            ? (chatRoom.user_data && chatRoom.user_data.head) ||
+                                                chatRoom.user_data.head_img ||
+                                                'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1704269678588-43.png'
+                                            : `https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1704269678588-43.png`}"
+                                                    class="rounded-circle border"
+                                                    style="background: white;"
+                                                    width="40"
+                                                    alt="Albert Flores"
+                                                />
+                                                <h6 class="mb-0 px-1 text-white">${chatRoom.type === 'user' ? (chatRoom.user_data && chatRoom.user_data.name) || '訪客' : `群組`}</h6>
+                                                <div class="flex-fill" style="flex: 1;"></div>
+                                                <i
+                                                    class="fa-regular fa-circle-xmark text-white fs-3 ${cf.close ? `` : `d-none`}"
+                                                    onclick="${gvc.event(() => {
                                             cf.close && cf.close();
-                                        })}"></i>
-                      </div>
-                    </div>`);
+                                        })}"
+                                                ></i>
+                                            </div>
+                                        </div>`);
                                     }));
                                 },
                             };
@@ -816,7 +799,7 @@ position: absolute;right: -15px;top:-5px;font-size:11px;">${unReadCount}
                                         for (const dd of document.querySelectorAll('.time-mute')) {
                                             dd.remove();
                                         }
-                                        document.querySelector(`#message-lines`).innerHTML += (BgCustomerMessage.message_line(data, cf, vm.data.length - 1, vm, gvc));
+                                        document.querySelector(`#message-lines`).innerHTML += BgCustomerMessage.message_line(data, cf, vm.data.length - 1, vm, gvc);
                                         if (st + ofs >= sh - 50) {
                                             element.scrollTop = element.scrollHeight;
                                         }
@@ -848,20 +831,17 @@ position: absolute;right: -15px;top:-5px;font-size:11px;">${unReadCount}
                                         return {
                                             bind: messageID,
                                             view: () => {
-                                                return ` 
-                                                <div class="my-auto flex-fill" id=""></div>
-                                                <div class="w-100" id="message-lines">
-                                                 ${vm.data
+                                                return html ` <div class="my-auto flex-fill" id=""></div>
+                                                        <div class="w-100" id="message-lines">
+                                                            ${vm.data
                                                     .map((dd, index) => {
                                                     return BgCustomerMessage.message_line(dd, cf, index, vm, gvc);
                                                 })
                                                     .join('')}
-</div>
-                                               
-                                            ${vm.data.length === 0
-                                                    ? `
-                                            <div class="w-100 text-center"><div class="badge bg-secondary">尚未展開對話，於下方輸入訊息並傳送。</div></div>
-                                            `
+                                                        </div>
+
+                                                        ${vm.data.length === 0
+                                                    ? html ` <div class="w-100 text-center"><div class="badge bg-secondary">尚未展開對話，於下方輸入訊息並傳送。</div></div> `
                                                     : ``}`;
                                             },
                                             divCreate: {
@@ -988,64 +968,51 @@ position: absolute;right: -15px;top:-5px;font-size:11px;">${unReadCount}
             dd.user_data = BgCustomerMessage.config;
         }
         if (cf.user_id !== dd.user_id) {
-            return html ` <div
-                                                                class="mt-auto d-flex align-items-start ${vm.data[index + 1] && vm.data[index + 1].user_id === dd.user_id ? `mb-1` : `mb-3`}"
-                                                            >
-                                                                <img
-                                                                    src="${(dd.user_data && dd.user_data.head) || `https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1704269678588-43.png`}"
-                                                                    class="rounded-circle border"
-                                                                    width="40"
-                                                                    alt="Albert Flores"
-                                                                />
-                                                                <div class="ps-2 ms-1" style="max-width: 348px;">
-                                                                    <div
-                                                                        class="p-3 mb-1"
-                                                                        style="background:#eeeef1;border-top-right-radius: .5rem; border-bottom-right-radius: .5rem; border-bottom-left-radius: .5rem;white-space: normal;"
-                                                                    >
-                                                                        ${dd.message.text.replace(/\n/g, '<br>')}
-                                                                    </div>
-                                                                    <div class="fs-sm text-muted ${vm.data[index + 1] && vm.data[index + 1].user_id === dd.user_id ? `d-none` : ``}">
-                                                                        ${gvc.glitter.ut.dateFormat(new Date(dd.created_time), 'MM-dd hh:mm')}
-                                                                    </div>
-                                                                </div>
-                                                            </div>`;
+            return html ` <div class="mt-auto d-flex align-items-start ${vm.data[index + 1] && vm.data[index + 1].user_id === dd.user_id ? `mb-1` : `mb-3`}">
+                <img
+                    src="${(dd.user_data && dd.user_data.head) || `https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1704269678588-43.png`}"
+                    class="rounded-circle border"
+                    width="40"
+                    alt="Albert Flores"
+                />
+                <div class="ps-2 ms-1" style="max-width: 348px;">
+                    <div class="p-3 mb-1" style="background:#eeeef1;border-top-right-radius: .5rem; border-bottom-right-radius: .5rem; border-bottom-left-radius: .5rem;white-space: normal;">
+                        ${dd.message.text.replace(/\n/g, '<br>')}
+                    </div>
+                    <div class="fs-sm text-muted ${vm.data[index + 1] && vm.data[index + 1].user_id === dd.user_id ? `d-none` : ``}">
+                        ${gvc.glitter.ut.dateFormat(new Date(dd.created_time), 'MM-dd hh:mm')}
+                    </div>
+                </div>
+            </div>`;
         }
         else {
-            return html ` <div
-                                                                class="d-flex align-items-start justify-content-end ${vm.data[index + 1] && vm.data[index + 1].user_id === dd.user_id
-                ? `mb-1`
-                : `mb-3`}"
-                                                            >
-                                                                <div class="pe-2 me-1" style="max-width: 348px;">
-                                                                    <div
-                                                                        class=" text-light p-3 mb-1"
-                                                                        style="background:${BgCustomerMessage.config
-                .color};border-top-left-radius: .5rem; border-bottom-right-radius: .5rem; border-bottom-left-radius: .5rem;white-space: normal;"
-                                                                    >
-                                                                        ${dd.message.text.replace(/\n/g, '<br>')}
-                                                                    </div>
-                                                                    <div
-                                                                        class="time-mute fw-500 d-flex justify-content-end align-items-center fs-sm text-muted ${vm.data[index + 1] &&
-                vm.data[index + 1].user_id === dd.user_id
-                ? `d-none`
-                : ``}"
-                                                                        style="gap:5px;"
-                                                                    >
-                                                                        <span > ${gvc.glitter.ut.dateFormat(new Date(dd.created_time), 'MM/dd hh:mm')}</span>
-                                                                        ${vm.last_read.find((d2) => {
+            return html ` <div class="d-flex align-items-start justify-content-end ${vm.data[index + 1] && vm.data[index + 1].user_id === dd.user_id ? `mb-1` : `mb-3`}">
+                <div class="pe-2 me-1" style="max-width: 348px;">
+                    <div
+                        class=" text-light p-3 mb-1"
+                        style="background:${BgCustomerMessage.config.color};border-top-left-radius: .5rem; border-bottom-right-radius: .5rem; border-bottom-left-radius: .5rem;white-space: normal;"
+                    >
+                        ${dd.message.text.replace(/\n/g, '<br>')}
+                    </div>
+                    <div
+                        class="time-mute fw-500 d-flex justify-content-end align-items-center fs-sm text-muted ${vm.data[index + 1] && vm.data[index + 1].user_id === dd.user_id ? `d-none` : ``}"
+                        style="gap:5px;"
+                    >
+                        <span> ${gvc.glitter.ut.dateFormat(new Date(dd.created_time), 'MM/dd hh:mm')}</span>
+                        ${vm.last_read.find((d2) => {
                 return d2.user_id !== cf.user_id && new Date(d2.last_read).getTime() >= new Date(dd.created_time).getTime();
             })
                 ? `已讀`
                 : ``}
-                                                                    </div>
-                                                                </div>
-                                                                <img
-                                                                    src="${(dd.user_data && dd.user_data.head) || `https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1704269678588-43.png`}"
-                                                                    class="rounded-circle border"
-                                                                    width="40"
-                                                                    alt="Albert Flores"
-                                                                />
-                                                            </div>`;
+                    </div>
+                </div>
+                <img
+                    src="${(dd.user_data && dd.user_data.head) || `https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1704269678588-43.png`}"
+                    class="rounded-circle border"
+                    width="40"
+                    alt="Albert Flores"
+                />
+            </div>`;
         }
     }
 }

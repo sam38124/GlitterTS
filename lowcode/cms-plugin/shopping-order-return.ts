@@ -88,7 +88,7 @@ export class ShoppingOrderManager {
                 const worksheet = XLSX.utils.json_to_sheet(data, { skipHeader: true });
                 XLSX.utils.sheet_add_aoa(worksheet, [firstRow], { origin: 'A1' });
 
-                // 創建一個新的工作簿
+                // 建立一個新的工作簿
                 const workbook = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
 
@@ -492,7 +492,7 @@ export class ShoppingOrderManager {
         `);
         let userDataLoading = true;
         function formatDateString(isoDate?: string): string {
-            // 使用給定的 ISO 8601 日期字符串，或創建一個當前時間的 Date 對象
+            // 使用給定的 ISO 8601 日期字符串，或建立一個當前時間的 Date 對象
             const date = isoDate ? new Date(isoDate) : new Date();
 
             // 提取年、月、日、時、分

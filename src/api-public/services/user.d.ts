@@ -55,7 +55,7 @@ export declare class User {
     loginWithLine(code: string, redirect: string): Promise<any>;
     loginWithGoogle(code: string, redirect: string): Promise<any>;
     getUserData(query: string, type?: 'userID' | 'account'): Promise<any>;
-    refreshMember(userData: any): Promise<{
+    checkMember(userData: any, trigger: boolean): Promise<{
         id: string;
         tag_name: string;
         trigger: boolean;
@@ -63,7 +63,7 @@ export declare class User {
     find30DayPeriodWith3000Spent(transactions: {
         total_amount: number;
         date: string;
-    }[], total: number, duration: number, dead_line: number): {
+    }[], total: number, duration: number): {
         start_date: string;
         end_date: string;
     } | null;
@@ -81,7 +81,7 @@ export declare class User {
             noRegisterUsers: any[] | undefined;
         };
     }>;
-    getUserGroups(type?: string[], tag?: string): Promise<{
+    getUserGroups(type?: string[], tag?: string, hide_level?: boolean): Promise<{
         result: false;
     } | {
         result: true;

@@ -16,7 +16,7 @@ class ConfigSetting {
 }
 exports.ConfigSetting = ConfigSetting;
 ConfigSetting.is_local = false;
-ConfigSetting.runSchedule = true;
+ConfigSetting.runSchedule = false;
 ConfigSetting.config_path = '';
 exports.saasConfig = {
     get SAAS_NAME() {

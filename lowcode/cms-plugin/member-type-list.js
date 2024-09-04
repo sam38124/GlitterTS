@@ -268,6 +268,7 @@ export class MemberTypeList {
             loading: true,
         };
         ApiUser.getPublicConfig('member_level_config', 'manager').then((dd) => {
+            var _a;
             vm.original_data = dd.response.value || {};
             vm.original_data.levels = (vm.original_data.levels || []).filter((dd) => {
                 return dd;
@@ -287,6 +288,10 @@ export class MemberTypeList {
                 },
                 id: glitter.getUUID(),
                 create_date: new Date(),
+            };
+            vm.data.renew_condition = (_a = vm.data.renew_condition) !== null && _a !== void 0 ? _a : {
+                type: 'total',
+                value: 0,
             };
             vm.original_data.levels.map((dd) => {
                 dd.create_date = dd.create_date || new Date();
@@ -539,6 +544,61 @@ export class MemberTypeList {
                                         })
                                             .join('<div class="my-2"></div>')}
                                                     `),
+                                        BgWidget.mainCard(html `
+                                                        <div class="tx_normal fw-bold" style="margin-bottom: 18px;">續會條件*</div>
+                                                        ${[
+                                            { title: '累積消費金額', value: 'total' },
+                                            { title: '單筆消費金額', value: 'single' },
+                                        ]
+                                            .map((dd) => {
+                                            return html `<div>
+                                                                    ${[
+                                                html ` <div
+                                                                            class="d-flex align-items-center cursor_pointer"
+                                                                            style="gap:8px;"
+                                                                            onclick="${gvc.event(() => {
+                                                    vm.data.renew_condition.type = dd.value;
+                                                    gvc.notifyDataChange(id);
+                                                })}"
+                                                                        >
+                                                                            ${vm.data.renew_condition.type === dd.value
+                                                    ? `<i class="fa-sharp fa-solid fa-circle-dot cl_39"></i>`
+                                                    : ` <div class="c_39_checkbox"></div>`}
+                                                                            <div class="tx_normal fw-normal">${dd.title}</div>
+                                                                        </div>`,
+                                                html ` <div class="d-flex position-relative mt-2" style="">
+                                                                            <div class="ms-2 border-end position-absolute h-100" style="left: 0px;"></div>
+                                                                            <div class="flex-fill w-100 mt-n2 d-flex align-items-center" style="margin-left:30px;max-width: 518px;gap:10px;">
+                                                                                ${(() => {
+                                                    var _a;
+                                                    if (vm.data.renew_condition.type === dd.value) {
+                                                        vm.data.renew_condition.value = (_a = vm.data.renew_condition.value) !== null && _a !== void 0 ? _a : 0;
+                                                        return [
+                                                            BgWidget.editeInput({
+                                                                gvc: gvc,
+                                                                title: '',
+                                                                type: 'number',
+                                                                default: `${vm.data.renew_condition.value || '0'}`,
+                                                                placeHolder: '',
+                                                                callback: (text) => {
+                                                                    vm.data.renew_condition.value = parseInt(text, 10);
+                                                                    gvc.notifyDataChange(id);
+                                                                },
+                                                            }),
+                                                            html `<div class="tx_normal" style="color:#8D8D8D;margin-top: 8px;">元</div>`,
+                                                        ].join('');
+                                                    }
+                                                    else {
+                                                        return ``;
+                                                    }
+                                                })()}
+                                                                            </div>
+                                                                        </div>`,
+                                            ].join('')}
+                                                                </div>`;
+                                        })
+                                            .join('<div class="my-2"></div>')}
+                                                    `),
                                     ];
                                     return map.join('<div style="height: 24px;"></div>');
                                 },
@@ -553,6 +613,7 @@ export class MemberTypeList {
                                 bind: noteID,
                                 view: () => {
                                     const money = parseInt(`${vm.data.condition.value}`, 10).toLocaleString();
+                                    const renew_money = parseInt(`${vm.data.renew_condition.value}`, 10).toLocaleString();
                                     return BgWidget.mainCard(html `
                                                     <div class="tx_normal fw-bold">摘要</div>
                                                     <div class="tx_normal fw-normal" style="margin-top: 18px;margin-bottom: 18px;">會員名稱: ${vm.data.tag_name || '尚未設定'}</div>
@@ -560,13 +621,23 @@ export class MemberTypeList {
                                                     <div class="tx_normal fw-normal" style="margin-top: 18px;">
                                                         會員條件: ${vm.data.condition.type === 'single' ? `單筆消費金額${money}元` : `累計消費金額${money}元`}
                                                     </div>
-                                                    <div class="tx_normal fw-normal" style="margin-top: 12px;margin-bottom: 18px;">
-                                                        計算期間: ${vm.data.duration.type === 'noLimit' ? `不計算期限` : `${vm.data.duration.value}天`} 天內消費
+                                                    <div class="tx_normal fw-normal" style="margin-top: 12px; margin-bottom: 18px;">
+                                                        計算期間: ${vm.data.duration.type === 'noLimit' ? `不計算期限` : `${vm.data.duration.value}天內消費`}
                                                     </div>
                                                     <div class="w-100" style="background: #DDD;height: 2px;"></div>
                                                     <div class="tx_normal fw-normal" style="margin-top: 18px;">
                                                         會員期限: ${vm.data.dead_line.type === 'noLimit' ? `沒有期限` : `${vm.data.dead_line.value}天`}
                                                     </div>
+                                                    ${vm.data.dead_line.type !== 'noLimit'
+                                        ? html `
+                                                              <div class="tx_normal fw-normal" style="margin-top: 12px;">
+                                                                  續會條件:
+                                                                  ${vm.data.dead_line.value}天內${vm.data.renew_condition.type === 'single'
+                                            ? `單筆消費金額${renew_money}元`
+                                            : `累計消費金額${renew_money}元`}，即可往後續會${vm.data.dead_line.value}天。
+                                                              </div>
+                                                          `
+                                        : ``}
                                                 `);
                                 },
                                 divCreate: { class: 'summary-card p-0' },

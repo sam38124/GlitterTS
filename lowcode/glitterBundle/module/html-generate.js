@@ -350,7 +350,7 @@ export class HtmlGenerate {
                                 view.push(HtmlGenerate.getEditorSelectSection({
                                     id: option.editorSection,
                                     gvc: gvc,
-                                    label: '容器',
+                                    label: option.origin_widget.label || '容器',
                                     widget: option.origin_widget
                                 }));
                             }
@@ -1405,6 +1405,7 @@ ${obj.gvc.bindView({
             get: function () {
                 return {
                     scrollWithHover: () => {
+                        gvc.glitter.$(`.editorItemActive`).removeClass('editorItemActive');
                         gvc.glitter.$(`.editor_it_${cf.widget.id}`).addClass('editorItemActive');
                         gvc.glitter.$(`.editor_it_${cf.widget.id}`).get(0).scrollIntoView({
                             behavior: 'smooth',
@@ -1677,13 +1678,16 @@ ${obj.gvc.bindView({
                                                             {
                                                                 key: 'onmouseover',
                                                                 value: gvc.event((e, event) => {
-                                                                    $(e).children('.editorChild').get(0).style.background =
-                                                                        'linear-gradient(143deg, rgba(255, 180, 0, 0.2) -22.7%, rgba(255, 108, 2, 0.2) 114.57%)';
+                                                                    $(e).children('.editorChild').children('.copy-btn').show();
+                                                                    $(e).children('.editorChild').children('.plus_bt').show();
+                                                                    $(e).children('.editorChild').get(0).style.background = 'linear-gradient(143deg, rgba(255, 180, 0, 0.2) -22.7%, rgba(255, 108, 2, 0.2) 114.57%)';
                                                                 }),
                                                             },
                                                             {
                                                                 key: 'onmouseout',
                                                                 value: gvc.event((e, event) => {
+                                                                    $(e).children('.editorChild').children('.copy-btn').hide();
+                                                                    $(e).children('.editorChild').children('.plus_bt').hide();
                                                                     $(e).children('.editorChild').get(0).style.background = 'none';
                                                                 }),
                                                             },
@@ -1808,58 +1812,67 @@ ${obj.gvc.bindView({
         if (cf.gvc.glitter.getUrlParameter('type') !== 'htmlEditor' && (window.glitter.getUrlParameter('type') !== 'find_idea')) {
             return ``;
         }
-        function addWidgetEvent(direction) {
+        function addWidgetEvent(direction, component) {
             let glitter = window.glitter;
             while (!glitter.share.editorViewModel) {
                 glitter = window.parent.glitter;
             }
-            glitter.getModule(new URL('../.././editor/add-component.js', import.meta.url).href, (AddComponent) => {
-                AddComponent.toggle(true);
-                AddComponent.addWidget = (gvc, tdata) => {
-                    glitter.share.addWithIndex({
-                        data: tdata,
-                        index: cf.id,
-                        direction: direction,
-                    });
-                };
-                AddComponent.addEvent = (gvc, tdata) => {
-                    glitter.share.addWithIndex({
-                        data: {
-                            id: gvc.glitter.getUUID(),
-                            js: './official_view_component/official.js',
-                            css: {
-                                class: {},
-                                style: {},
-                            },
+            if (component) {
+                glitter.share.addWithIndex({
+                    data: component,
+                    index: cf.id,
+                    direction: direction,
+                });
+            }
+            else {
+                glitter.getModule(new URL('../.././editor/add-component.js', import.meta.url).href, (AddComponent) => {
+                    AddComponent.toggle(true);
+                    AddComponent.addWidget = (gvc, tdata) => {
+                        glitter.share.addWithIndex({
+                            data: tdata,
+                            index: cf.id,
+                            direction: direction,
+                        });
+                    };
+                    AddComponent.addEvent = (gvc, tdata) => {
+                        glitter.share.addWithIndex({
                             data: {
-                                refer_app: tdata.copyApp,
-                                tag: tdata.copy,
-                                list: [],
-                                carryData: {},
-                                _style_refer_global: {
-                                    index: `0`,
+                                id: gvc.glitter.getUUID(),
+                                js: './official_view_component/official.js',
+                                css: {
+                                    class: {},
+                                    style: {},
                                 },
+                                data: {
+                                    refer_app: tdata.copyApp,
+                                    tag: tdata.copy,
+                                    list: [],
+                                    carryData: {},
+                                    _style_refer_global: {
+                                        index: `0`,
+                                    },
+                                },
+                                type: 'component',
+                                class: 'w-100',
+                                index: 0,
+                                label: tdata.title,
+                                style: '',
+                                bundle: {},
+                                global: [],
+                                toggle: false,
+                                stylist: [],
+                                dataType: 'static',
+                                style_from: 'code',
+                                classDataType: 'static',
+                                preloadEvenet: {},
+                                share: {},
                             },
-                            type: 'component',
-                            class: 'w-100',
-                            index: 0,
-                            label: tdata.title,
-                            style: '',
-                            bundle: {},
-                            global: [],
-                            toggle: false,
-                            stylist: [],
-                            dataType: 'static',
-                            style_from: 'code',
-                            classDataType: 'static',
-                            preloadEvenet: {},
-                            share: {},
-                        },
-                        index: cf.id,
-                        direction: direction,
-                    });
-                };
-            });
+                            index: cf.id,
+                            direction: direction,
+                        });
+                    };
+                });
+            }
         }
         return [
             (() => {
@@ -1893,6 +1906,41 @@ background: white;
                             `;
                         }
                         else {
+                            function getPlusAndPasteView(dir) {
+                                return `<div style=" height: 20px; padding: 10px; background: linear-gradient(143deg, #FFB400 0%, #FF6C02 100%); border-radius: 72.64px; justify-content: flex-start; align-items: center; gap: 10px; display: inline-flex">
+                                        <div style="height: 16px; justify-content: flex-start; align-items: center; gap: 8px; display: flex">
+                                            <div style="text-align: center; color: white; font-size: 12px; font-family: Noto Sans; font-weight: 700; letter-spacing: 0.48px; word-wrap: break-word" onmousedown="${cf.gvc.event((e, event) => {
+                                    HtmlGenerate.block_timer = new Date().getTime();
+                                    addWidgetEvent(dir);
+                                    event.stopPropagation();
+                                    event.preventDefault();
+                                })}">新增</div>
+                                            <div style="width: 0px; height: 12.50px; border: 0.50px white solid"></div>
+                                            <div  style="text-align: center; color: white; font-size: 12px; font-family: Noto Sans; font-weight: 700; letter-spacing: 0.48px; word-wrap: break-word"  onmousedown="${cf.gvc.event(() => {
+                                    HtmlGenerate.block_timer = new Date().getTime();
+                                    const dialog = new ShareDialog(window.parent.glitter);
+                                    function readClipboardContent() {
+                                        return __awaiter(this, void 0, void 0, function* () {
+                                            try {
+                                                const json = JSON.parse(yield navigator.clipboard.readText());
+                                                if (!json.id) {
+                                                    dialog.errorMessage({ text: '請選擇要複製的元件，並按下複製元件。' });
+                                                }
+                                                else {
+                                                    addWidgetEvent(dir, json);
+                                                    window.parent.glitter.share.refreshMainLeftEditor();
+                                                }
+                                            }
+                                            catch (error) {
+                                                dialog.errorMessage({ text: '請選擇要複製的元件，並按下複製元件。' });
+                                            }
+                                        });
+                                    }
+                                    readClipboardContent();
+                                })}">貼上</div>
+                                        </div>
+                                    </div>`;
+                            }
                             return html `
                                 <div
                                         class="position-absolute align-items-center justify-content-center px-3 fw-500 fs-6 badge_it"
@@ -1901,35 +1949,46 @@ background: white;
                                     ${cf.label}
                                 </div>
                                 <div
-                                        class="position-absolute fs-1 plus_btn"
-                                        style="left:50%;transform: translateX(-50%);height:20px;width:20px;top:${Storage.view_type === 'mobile'
+                                        class="position-absolute fs-1 plus_bt"
+                                        style="left:50%;transform: translateX(-50%);height:20px;top:${Storage.view_type === 'mobile'
                                 ? `-30px`
-                                : `-40px`};z-index:99999;cursor: pointer;pointer-events:all;"
-                                        onmousedown="${cf.gvc.event((e, event) => {
-                                HtmlGenerate.block_timer = new Date().getTime();
-                                addWidgetEvent(-1);
-                                event.stopPropagation();
-                                event.preventDefault();
-                            })}"
+                                : `-50px`};z-index:99999;cursor: pointer;pointer-events:all;display: none;"
                                 >
-                                    <img src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1714376322616-Frame 3137.svg"
-                                         class="w-100 h-100"/>
+                                    ${getPlusAndPasteView(-1)}
                                 </div>
                                 <div
-                                        class="position-absolute fs-1 plus_btn"
-                                        style="left:50%;transform: translateX(-50%);height:20px;width:20px;bottom:${Storage.view_type === 'mobile'
+                                        class="position-absolute fs-1 plus_bt"
+                                        style="left:50%;transform: translateX(-50%);height:20px;bottom:${Storage.view_type === 'mobile'
                                 ? `10px`
-                                : `20px`};z-index:99999;cursor: pointer;pointer-events:all;"
-                                        onmousedown="${cf.gvc.event((e, event) => {
-                                HtmlGenerate.block_timer = new Date().getTime();
-                                addWidgetEvent(1);
-                                event.stopPropagation();
-                                event.preventDefault();
-                            })}"
+                                : `25px`};z-index:99999;cursor: pointer;pointer-events:all;display: none;"
                                 >
-                                    <img src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1714376322616-Frame 3137.svg"
-                                         class="w-100 h-100"/>
-                                </div>`;
+                                    ${getPlusAndPasteView(1)}
+                                </div>
+                                <div class="position-absolute px-3 py-2 fw-bold copy-btn" style="
+    justify-content: center;
+    display:none;
+    border-radius: 3px;
+    background: #FFF;
+    right: 10px;
+    top:10px;
+    box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.10);
+    align-items: center;
+    color: #393939;
+    cursor: pointer;
+    text-align: center;
+    font-family: 'Noto Sans';
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: normal;
+    letter-spacing: 0.56px;
+    pointer-events:all;" onmousedown="${cf.gvc.event(() => {
+                                const dialog = new ShareDialog(cf.gvc.glitter);
+                                navigator.clipboard.writeText(JSON.stringify(cf.widget));
+                                dialog.successMessage({ text: '複製成功' });
+                            })}">複製元件
+                                </div>
+                            `;
                         }
                     },
                     divCreate: {

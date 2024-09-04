@@ -671,9 +671,22 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                                                                                                     return html `
                                                                                                                             <i class="fa-solid fa-chevron-left h-100 d-flex align-items-center justify-content-center "
                                                                                                                                onclick="${gvc.event(() => {
-                                                                                                                        Storage.lastSelect = '';
-                                                                                                                        gvc.glitter.share.editorViewModel.selectItem = undefined;
-                                                                                                                        gvc.glitter.share.selectEditorItem();
+                                                                                                                        const select_ = glitter.share.findWidgetIndex(glitter.share.editorViewModel.selectItem.id);
+                                                                                                                        if (select_.container_cf) {
+                                                                                                                            const gvc_ = gvc.glitter.document.querySelector('.iframe_view').contentWindow.glitter.pageConfig[0].gvc;
+                                                                                                                            gvc_.glitter.htmlGenerate.selectWidget({
+                                                                                                                                widget: select_.container_cf,
+                                                                                                                                widgetComponentID: select_.container_cf.id,
+                                                                                                                                gvc: gvc_,
+                                                                                                                                scroll_to_hover: true,
+                                                                                                                                glitter: glitter,
+                                                                                                                            });
+                                                                                                                        }
+                                                                                                                        else {
+                                                                                                                            Storage.lastSelect = '';
+                                                                                                                            gvc.glitter.share.editorViewModel.selectItem = undefined;
+                                                                                                                            gvc.glitter.share.selectEditorItem();
+                                                                                                                        }
                                                                                                                     })}"></i>
                                                                                                                             <span style="max-width: calc(100% - 50px);text-overflow: ellipsis;white-space: nowrap;overflow: hidden;">${widget.label}</span>
                                                                                                                             <div class="flex-fill"></div>

@@ -13,10 +13,24 @@ import { User } from '../services/user.js';
 import { Post } from '../services/post.js';
 import { Shopping } from '../services/shopping';
 import { Rebate, IRebateSearch } from '../services/rebate';
-import { log } from 'winston';
 
 const router: express.Router = express.Router();
 export = router;
+
+// 多線程範例
+router.post('/worker', async (req: express.Request, resp: express.Response) => {
+    try {
+        return response.succ(
+            resp,
+            await new Shopping(req.get('g-app') as string, req.body.token).workerExample({
+                type: req.body.type,
+                divisor: req.body.divisor,
+            })
+        );
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
 
 // 購物金
 router.get('/rebate', async (req: express.Request, resp: express.Response) => {
@@ -243,7 +257,7 @@ router.get('/order', async (req: express.Request, resp: express.Response) => {
                     status: req.query.status as string,
                     searchType: req.query.searchType as string,
                     shipment: req.query.shipment as string,
-                    is_pos:req.query.is_pos as string,
+                    is_pos: req.query.is_pos as string,
                     progress: req.query.progress as string,
                     orderStatus: req.query.orderStatus as string,
                     created_time: req.query.created_time as string,
@@ -356,7 +370,7 @@ router.put('/order', async (req: express.Request, resp: express.Response) => {
                 await new Shopping(req.get('g-app') as string, req.body.token).putOrder({
                     id: req.body.id,
                     orderData: req.body.order_data,
-                    status: req.body.status || undefined,
+                    status: req.body.status ,
                 })
             );
         } else {
@@ -382,7 +396,8 @@ router.delete('/order', async (req: express.Request, resp: express.Response) => 
         return response.fail(resp, err);
     }
 });
-//退貨訂單
+
+// 退貨訂單
 router.get('/returnOrder', async (req: express.Request, resp: express.Response) => {
     try {
         if (await UtPermission.isManager(req)) {
@@ -922,7 +937,8 @@ router.get('/check-login-for-order', async (req: express.Request, resp: express.
         return response.fail(resp, err);
     }
 });
-//POS機相關
+
+// POS機相關
 router.post('/pos/checkout', async (req: express.Request, resp: express.Response) => {
     async function checkoutPos() {
         return response.succ(

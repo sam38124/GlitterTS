@@ -8,6 +8,7 @@ import {PageEditor} from './page-editor.js';
 import {BaseApi} from '../glitterBundle/api/base.js';
 import {EditorConfig} from '../editor-config.js';
 import {SearchIdea} from "./search-idea.js";
+import {BasicComponent} from "./basic-component.js";
 
 export class AddComponent {
     public static addEvent = (gvc: GVC, tdata: any) => {
@@ -207,7 +208,13 @@ export class AddComponent {
                                                             gvc,
                                                             'module',
                                                             (tdata: any) => {
-                                                                AddComponent.addEvent(gvc, tdata);
+                                                                try {
+                                                                    console.log(`AddComponent.addEvent=>`,AddComponent.addEvent)
+                                                                    AddComponent.addEvent(gvc, tdata);
+                                                                }catch (e) {
+                                                                    console.log(e)
+                                                                }
+                                                              
                                                             },
                                                             Storage.select_function !== 'user-editor',
                                                             true
@@ -355,13 +362,13 @@ export class AddComponent {
         const containerID = gvc.glitter.getUUID();
         const html = String.raw;
         const vm: {
-            template_from: 'all' | 'me' | 'project' | 'plus';
+            template_from: 'all' | 'me' | 'project' | 'plus' | 'basic';
             query_tag: string[];
             search: string;
         } = {
-            template_from: 'all',
+            template_from: 'basic',
             query_tag: [],
-            search: '',
+            search: ''
         };
         return (
             gvc.bindView(() => {
@@ -421,9 +428,12 @@ export class AddComponent {
                                     ${(() => {
                                         const list = [
                                             {
-                                                key: 'official',
-                                                label: '找模塊',
-                                                select: true
+                                                key: 'basic',
+                                                label: '基礎設計'
+                                            },
+                                            {
+                                                key: 'all',
+                                                label: '更多設計'
                                             },
                                             {
                                                 key: 'idea',
@@ -436,7 +446,7 @@ export class AddComponent {
                                         ];
                                         return list
                                                 .map((dd) => {
-                                                    if (dd.select) {
+                                                    if (vm.template_from === dd.key) {
                                                         return `<div class="d-flex align-items-center justify-content-center fw-bold px-3 py-2 fw-500" style="
 gap: 10px;
 border-radius: 7px;
@@ -456,7 +466,10 @@ cursor: pointer;
 background: linear-gradient(143deg, #FFB400 -22.7%, #FF6C02 114.57%);
 background-clip: text;
 -webkit-background-clip: text;
--webkit-text-fill-color: transparent;" onclick="${dd.event || ''}">${dd.label}</div>`;
+-webkit-text-fill-color: transparent;" onclick="${dd.event || gvc.event(() => {
+                                                            vm.template_from = dd.key as any
+                                                            gvc.notifyDataChange([searchContainer, containerID])
+                                                        })}">${dd.label}</div>`;
                                                     }
                                                 })
                                                 .join('');
@@ -487,7 +500,7 @@ background-clip: text;
                                         });
                                     })}"><i class="fa-regular fa-paste"></i></div>
                                 </div>
-                                <div class="p-2 border-bottom  f-flex${vm.template_from === 'plus' ? `d-none` : ``}"
+                                <div class="p-2 border-bottom  f-flex ${['plus', 'basic'].includes(vm.template_from) ? `d-none` : ``}"
                                      style="">
                                     <div class="input-group mb-2">
                                         <input
@@ -525,8 +538,8 @@ background-clip: text;
                                         </div>
                                     </div>
                                 </div>
-                            
-                               
+
+
                             `);
                         });
                     },
@@ -538,6 +551,8 @@ background-clip: text;
                     view: () => {
                         if (vm.template_from === 'plus') {
                             return AddComponent.plusView(gvc);
+                        } else if (vm.template_from === 'basic') {
+                            return BasicComponent.main(gvc)
                         } else {
                             return gvc.bindView(() => {
                                 let data: any = undefined;
@@ -617,7 +632,7 @@ background-clip: text;
                                                                 }, {
                                                                     title: '其餘設計模塊',
                                                                     value: 'layout'
-                                                                },{
+                                                                }, {
                                                                     title: '包裝容器元件',
                                                                     value: 'container'
                                                                 }].map((d1) => {
@@ -701,6 +716,7 @@ background-clip: text;
                                                                                     justGetIframe: justGetIframe,
                                                                                     withEmpty: withEmpty,
                                                                                     callback: (dd) => {
+                                                                                       
                                                                                         if (dd.title === '網格容器') {
                                                                                             const config = {
                                                                                                 id: gvc.glitter.getUUID(),
@@ -809,6 +825,7 @@ background-clip: text;
                                                                                             // callback(dd)
                                                                                             AddComponent.addWidget(gvc, config);
                                                                                         } else {
+                                                                                           
                                                                                             callback(dd)
                                                                                         }
                                                                                     },
@@ -889,14 +906,14 @@ background-clip: text;
                                 return 1;
                             }
                         })
-                        .sort((a:any,b:any)=>{
-                            return  (Number(a.template_config.sort) < (Number(b.template_config.sort ?? Infinity))) ? -1:1;
+                        .sort((a: any, b: any) => {
+                            return (Number(a.template_config.sort) < (Number(b.template_config.sort ?? Infinity))) ? -1 : 1;
                         })
                         .sort((a: any, b: any) => {
                             if (a.template_config.name === '空白-嵌入模塊') {
                                 return -1;
                             } else {
-                                return  (Number(a.template_config.sort) < (Number(b.template_config.sort ?? Infinity))) ? -1:1;
+                                return (Number(a.template_config.sort) < (Number(b.template_config.sort ?? Infinity))) ? -1 : 1;
                             }
                         })
                         .map((dd: any, index: number) => {
@@ -952,6 +969,7 @@ background-clip: text;
                                                                 );
                                                             } else {
                                                                 if (justGetIframe) {
+                                                                    
                                                                     callback({
                                                                         copy: dd.tag,
                                                                         copyApp: dd.appName,

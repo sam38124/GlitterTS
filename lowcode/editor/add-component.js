@@ -16,6 +16,7 @@ import { PageEditor } from './page-editor.js';
 import { BaseApi } from '../glitterBundle/api/base.js';
 import { EditorConfig } from '../editor-config.js';
 import { SearchIdea } from "./search-idea.js";
+import { BasicComponent } from "./basic-component.js";
 export class AddComponent {
     static view(gvc) {
         return gvc.bindView(() => {
@@ -185,7 +186,13 @@ export class AddComponent {
                                             break;
                                         case 'official':
                                             AddComponent.addModuleView(gvc, 'module', (tdata) => {
-                                                AddComponent.addEvent(gvc, tdata);
+                                                try {
+                                                    console.log(`AddComponent.addEvent=>`, AddComponent.addEvent);
+                                                    AddComponent.addEvent(gvc, tdata);
+                                                }
+                                                catch (e) {
+                                                    console.log(e);
+                                                }
                                             }, Storage.select_function !== 'user-editor', true).then((res) => {
                                                 resolve(res);
                                             });
@@ -322,9 +329,9 @@ export class AddComponent {
             const containerID = gvc.glitter.getUUID();
             const html = String.raw;
             const vm = {
-                template_from: 'all',
+                template_from: 'basic',
                 query_tag: [],
-                search: '',
+                search: ''
             };
             return (gvc.bindView(() => {
                 const searchContainer = gvc.glitter.getUUID();
@@ -383,9 +390,12 @@ export class AddComponent {
                                     ${(() => {
                                 const list = [
                                     {
-                                        key: 'official',
-                                        label: '找模塊',
-                                        select: true
+                                        key: 'basic',
+                                        label: '基礎設計'
+                                    },
+                                    {
+                                        key: 'all',
+                                        label: '更多設計'
                                     },
                                     {
                                         key: 'idea',
@@ -398,7 +408,7 @@ export class AddComponent {
                                 ];
                                 return list
                                     .map((dd) => {
-                                    if (dd.select) {
+                                    if (vm.template_from === dd.key) {
                                         return `<div class="d-flex align-items-center justify-content-center fw-bold px-3 py-2 fw-500" style="
 gap: 10px;
 border-radius: 7px;
@@ -419,7 +429,10 @@ cursor: pointer;
 background: linear-gradient(143deg, #FFB400 -22.7%, #FF6C02 114.57%);
 background-clip: text;
 -webkit-background-clip: text;
--webkit-text-fill-color: transparent;" onclick="${dd.event || ''}">${dd.label}</div>`;
+-webkit-text-fill-color: transparent;" onclick="${dd.event || gvc.event(() => {
+                                            vm.template_from = dd.key;
+                                            gvc.notifyDataChange([searchContainer, containerID]);
+                                        })}">${dd.label}</div>`;
                                     }
                                 })
                                     .join('');
@@ -452,7 +465,7 @@ background-clip: text;
                                 });
                             })}"><i class="fa-regular fa-paste"></i></div>
                                 </div>
-                                <div class="p-2 border-bottom  f-flex${vm.template_from === 'plus' ? `d-none` : ``}"
+                                <div class="p-2 border-bottom  f-flex ${['plus', 'basic'].includes(vm.template_from) ? `d-none` : ``}"
                                      style="">
                                     <div class="input-group mb-2">
                                         <input
@@ -492,8 +505,8 @@ background-clip: text;
                                         </div>
                                     </div>
                                 </div>
-                            
-                               
+
+
                             `);
                         }));
                     },
@@ -505,6 +518,9 @@ background-clip: text;
                         view: () => {
                             if (vm.template_from === 'plus') {
                                 return AddComponent.plusView(gvc);
+                            }
+                            else if (vm.template_from === 'basic') {
+                                return BasicComponent.main(gvc);
                             }
                             else {
                                 return gvc.bindView(() => {
