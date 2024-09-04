@@ -341,7 +341,7 @@ export class MemberSetting {
                                         gvc.notifyDataChange(vm.id);
                                     })}"
                                                                 >
-                                                                    ${dd.checked ? html `<i class="fa-sharp fa-solid fa-circle-dot cl_39"></i>` : ` <div class="c_39_checkbox"></div>`}
+                                                                    ${dd.checked ? html `<i class="fa-sharp fa-solid fa-circle-dot color39"></i>` : ` <div class="c_39_checkbox"></div>`}
                                                                     <div class="tx_normal fw-normal">${dd.title}</div>
                                                                 </div>`,
                                 ].join('')}

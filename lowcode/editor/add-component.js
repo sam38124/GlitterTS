@@ -15,8 +15,8 @@ import Add_item_dia from '../glitterBundle/plugins/add_item_dia.js';
 import { PageEditor } from './page-editor.js';
 import { BaseApi } from '../glitterBundle/api/base.js';
 import { EditorConfig } from '../editor-config.js';
-import { SearchIdea } from "./search-idea.js";
-import { BasicComponent } from "./basic-component.js";
+import { SearchIdea } from './search-idea.js';
+import { BasicComponent } from './basic-component.js';
 export class AddComponent {
     static view(gvc) {
         return gvc.bindView(() => {
@@ -49,9 +49,9 @@ export class AddComponent {
                             <h5 class="offcanvas-title" style="">新增區塊</h5>
                             <div class="flex-fill"></div>
                             <div
-                                    class="fs-5 text-black"
-                                    style="cursor: pointer;"
-                                    onclick="${gvc.event(() => {
+                                class="fs-5 text-black"
+                                style="cursor: pointer;"
+                                onclick="${gvc.event(() => {
                         AddComponent.toggle(false);
                     })}"
                             >
@@ -260,8 +260,7 @@ export class AddComponent {
         if (visible) {
             window.glitter.closeDrawer();
             AddComponent.refresh();
-            AddComponent.closeEvent = () => {
-            };
+            AddComponent.closeEvent = () => { };
             AddComponent.addWidget = (gvc, cf) => {
                 gvc.glitter.share.addComponent(cf);
                 gvc.glitter.closeDiaLog();
@@ -310,17 +309,15 @@ export class AddComponent {
     }
     static leftNav(gvc) {
         const html = String.raw;
-        return html `
-            <div
-                    class="vw-100 vh-100 position-fixed left-0 top-0 d-none"
-                    id="addComponentViewHover"
-                    style="z-index: 99999;background: rgba(0,0,0,0.5);"
-                    onclick="${gvc.event(() => {
+        return html ` <div
+                class="vw-100 vh-100 position-fixed left-0 top-0 d-none"
+                id="addComponentViewHover"
+                style="z-index: 99999;background: rgba(0,0,0,0.5);"
+                onclick="${gvc.event(() => {
             AddComponent.toggle(false);
         })}"
             ></div>
-            <div id="addComponentView" class="position-fixed left-0 top-0 h-100 bg-white shadow-lg "
-                 style="width:${document.body.clientWidth < 768 ? `100vw` : `400px`};z-index: 99999;left: -100%;">
+            <div id="addComponentView" class="position-fixed left-0 top-0 h-100 bg-white shadow-lg " style="width:${document.body.clientWidth < 768 ? `100vw` : `400px`};z-index: 99999;left: -100%;">
                 ${AddComponent.view(gvc)}
             </div>`;
     }
@@ -331,7 +328,7 @@ export class AddComponent {
             const vm = {
                 template_from: 'basic',
                 query_tag: [],
-                search: ''
+                search: '',
             };
             return (gvc.bindView(() => {
                 const searchContainer = gvc.glitter.getUUID();
@@ -340,12 +337,11 @@ export class AddComponent {
                     view: () => {
                         return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
                             resolve(html `
-                                <div class="p-2 d-flex ${vm.template_from === 'plus' ? `border-bottom` : ``} ${type === 'form_plugin' ? `d-none` : ``} d-none"
-                                     style="gap: 10px;height: 60px;">
+                                <div class="p-2 d-flex ${vm.template_from === 'plus' ? `border-bottom` : ``} ${type === 'form_plugin' ? `d-none` : ``} d-none" style="gap: 10px;height: 60px;">
                                     <div
-                                            class="${vm.template_from === 'all' ? `bt_ffb40` : `bt_ffb40_stroke`}"
-                                            style="flex: 1;"
-                                            onclick="${gvc.event(() => {
+                                        class="${vm.template_from === 'all' ? `bt_ffb40` : `bt_ffb40_stroke`}"
+                                        style="flex: 1;"
+                                        onclick="${gvc.event(() => {
                                 vm.template_from = 'all';
                                 gvc.notifyDataChange([searchContainer, containerID]);
                             })}"
@@ -353,9 +349,9 @@ export class AddComponent {
                                         官方模塊
                                     </div>
                                     <div
-                                            class="${vm.template_from === 'plus' ? `bt_ffb40` : `bt_ffb40_stroke`}"
-                                            style="flex: 1;"
-                                            onclick="${gvc.event(() => {
+                                        class="${vm.template_from === 'plus' ? `bt_ffb40` : `bt_ffb40_stroke`}"
+                                        style="flex: 1;"
+                                        onclick="${gvc.event(() => {
                                 vm.template_from = 'plus';
                                 gvc.notifyDataChange([searchContainer, containerID]);
                             })}"
@@ -363,9 +359,9 @@ export class AddComponent {
                                         元件容器
                                     </div>
                                     <div
-                                            class="bt_ffb40_stroke"
-                                            style="width:50px;"
-                                            onclick="${gvc.event(() => {
+                                        class="bt_ffb40_stroke"
+                                        style="width:50px;"
+                                        onclick="${gvc.event(() => {
                                 navigator.clipboard.readText().then((clipboardText) => {
                                     try {
                                         const data = JSON.parse(clipboardText);
@@ -373,8 +369,7 @@ export class AddComponent {
                                         try {
                                             AddComponent.addWidget(gvc, data);
                                         }
-                                        catch (e) {
-                                        }
+                                        catch (e) { }
                                     }
                                     catch (e) {
                                         const dialog = new ShareDialog(gvc.glitter);
@@ -391,11 +386,11 @@ export class AddComponent {
                                 const list = [
                                     {
                                         key: 'basic',
-                                        label: '基礎設計'
+                                        label: '基礎設計',
                                     },
                                     {
                                         key: 'all',
-                                        label: '更多設計'
+                                        label: '更多設計',
                                     },
                                     {
                                         key: 'idea',
@@ -403,8 +398,8 @@ export class AddComponent {
                                         event: gvc.event(() => {
                                             AddComponent.toggle(false);
                                             SearchIdea.open(gvc);
-                                        })
-                                    }
+                                        }),
+                                    },
                                 ];
                                 return list
                                     .map((dd) => {
@@ -429,15 +424,18 @@ cursor: pointer;
 background: linear-gradient(143deg, #FFB400 -22.7%, #FF6C02 114.57%);
 background-clip: text;
 -webkit-background-clip: text;
--webkit-text-fill-color: transparent;" onclick="${dd.event || gvc.event(() => {
-                                            vm.template_from = dd.key;
-                                            gvc.notifyDataChange([searchContainer, containerID]);
-                                        })}">${dd.label}</div>`;
+-webkit-text-fill-color: transparent;" onclick="${dd.event ||
+                                            gvc.event(() => {
+                                                vm.template_from = dd.key;
+                                                gvc.notifyDataChange([searchContainer, containerID]);
+                                            })}">${dd.label}</div>`;
                                     }
                                 })
                                     .join('');
                             })()}
-                                    <div class="d-flex align-items-center justify-content-center fw-bold    fw-500 " style="
+                                    <div
+                                        class="d-flex align-items-center justify-content-center fw-bold    fw-500 "
+                                        style="
 border-radius: 7px;
 width: 43px;
 font-size: 16px;
@@ -447,7 +445,8 @@ height: 43px;
 background: linear-gradient(143deg, #FFB400 -22.7%, #FF6C02 114.57%);
 background-clip: text;
 -webkit-background-clip: text;
--webkit-text-fill-color: transparent;" onclick="${gvc.event(() => {
+-webkit-text-fill-color: transparent;"
+                                        onclick="${gvc.event(() => {
                                 navigator.clipboard.readText().then((clipboardText) => {
                                     try {
                                         const data = JSON.parse(clipboardText);
@@ -455,35 +454,36 @@ background-clip: text;
                                         try {
                                             AddComponent.addWidget(gvc, data);
                                         }
-                                        catch (e) {
-                                        }
+                                        catch (e) { }
                                     }
                                     catch (e) {
                                         const dialog = new ShareDialog(gvc.glitter);
                                         dialog.errorMessage({ text: '請先選擇元件複製!' });
                                     }
                                 });
-                            })}"><i class="fa-regular fa-paste"></i></div>
+                            })}"
+                                    >
+                                        <i class="fa-regular fa-paste"></i>
+                                    </div>
                                 </div>
-                                <div class="p-2 border-bottom  f-flex ${['plus', 'basic'].includes(vm.template_from) ? `d-none` : ``}"
-                                     style="">
+                                <div class="p-2 border-bottom  f-flex ${['plus', 'basic'].includes(vm.template_from) ? `d-none` : ``}" style="">
                                     <div class="input-group mb-2">
                                         <input
-                                                class="form-control input-sm"
-                                                placeholder="輸入關鍵字或標籤名稱"
-                                                onchange="${gvc.event((e, event) => {
+                                            class="form-control input-sm"
+                                            placeholder="輸入關鍵字或標籤名稱"
+                                            onchange="${gvc.event((e, event) => {
                                 vm.search = e.value;
                                 gvc.notifyDataChange(containerID);
                             })}"
-                                                value="${vm.search || ''}"
+                                            value="${vm.search || ''}"
                                         />
                                         <span class="input-group-text" style="cursor: pointer;border-left:none;">
                                             <i class="fa-solid fa-magnifying-glass" style="color:black;"></i>
                                         </span>
                                         <div
-                                                class="bt_gray_stroke d-none"
-                                                style="width:50px;"
-                                                onclick="${gvc.event(() => {
+                                            class="bt_gray_stroke d-none"
+                                            style="width:50px;"
+                                            onclick="${gvc.event(() => {
                                 navigator.clipboard.readText().then((clipboardText) => {
                                     try {
                                         const data = JSON.parse(clipboardText);
@@ -491,8 +491,7 @@ background-clip: text;
                                         try {
                                             AddComponent.addWidget(gvc, data);
                                         }
-                                        catch (e) {
-                                        }
+                                        catch (e) { }
                                     }
                                     catch (e) {
                                         const dialog = new ShareDialog(gvc.glitter);
@@ -505,8 +504,6 @@ background-clip: text;
                                         </div>
                                     </div>
                                 </div>
-
-
                             `);
                         }));
                     },
@@ -565,27 +562,26 @@ background-clip: text;
                                                     if (data.response.result.data.length === 0) {
                                                         if (!vm.search) {
                                                             return html `
-                                                            <div class="d-flex align-items-center justify-content-center flex-column w-100 py-4"
-                                                                 style="width:700px;gap:10px;">
-                                                                <img src="./img/box-open-solid.svg"/>
-                                                                <span class="cl_39 text-center">尚未自製任何模塊<br/>請前往開發者模式自製專屬模塊</span>
+                                                            <div class="d-flex align-items-center justify-content-center flex-column w-100 py-4" style="width:700px;gap:10px;">
+                                                                <img src="./img/box-open-solid.svg" />
+                                                                <span class="color39 text-center">尚未自製任何模塊<br />請前往開發者模式自製專屬模塊</span>
                                                             </div>
                                                         `;
                                                         }
                                                         else {
                                                             return html `
-                                                            <div class="d-flex align-items-center justify-content-center flex-column w-100 py-4"
-                                                                 style="width:700px;gap:10px;">
-                                                                <img src="./img/box-open-solid.svg"/>
-                                                                <span class="cl_39 text-center">查無相關模塊</span>
+                                                            <div class="d-flex align-items-center justify-content-center flex-column w-100 py-4" style="width:700px;gap:10px;">
+                                                                <img src="./img/box-open-solid.svg" />
+                                                                <span class="color39 text-center">查無相關模塊</span>
                                                             </div>
                                                         `;
                                                         }
                                                     }
                                                     else {
                                                         return html `
-                                                        <div class="w-100"
-                                                             style=" max-height:${(() => {
+                                                        <div
+                                                            class="w-100"
+                                                            style=" max-height:${(() => {
                                                             if (type === 'form_plugin') {
                                                                 return `calc(100vh - 150px)`;
                                                             }
@@ -594,50 +590,63 @@ background-clip: text;
                                                             }
                                                         })()};overflow-y: auto;"
                                                         >
-                                                            ${[{
+                                                            ${[
+                                                            {
                                                                 title: '基礎設計元件',
-                                                                value: 'basic'
+                                                                value: 'basic',
                                                             },
                                                             {
                                                                 title: '商品顯示元件',
-                                                                value: 'product_show'
-                                                            }, {
+                                                                value: 'product_show',
+                                                            },
+                                                            {
                                                                 title: '其餘設計模塊',
-                                                                value: 'layout'
-                                                            }, {
+                                                                value: 'layout',
+                                                            },
+                                                            {
                                                                 title: '包裝容器元件',
-                                                                value: 'container'
-                                                            }].map((d1) => {
+                                                                value: 'container',
+                                                            },
+                                                        ]
+                                                            .map((d1) => {
                                                             return gvc.bindView(() => {
                                                                 let vm_c = {
                                                                     toggle: false,
-                                                                    id: gvc.glitter.getUUID()
+                                                                    id: gvc.glitter.getUUID(),
                                                                 };
                                                                 return {
                                                                     bind: vm_c.id,
                                                                     view: () => {
                                                                         const array = [
                                                                             html `
-                                                                                    <div class="hoverF2 d-flex align-items-center p-3"
-                                                                                         onclick="${gvc.event(() => {
+                                                                                        <div
+                                                                                            class="hoverF2 d-flex align-items-center p-3"
+                                                                                            onclick="${gvc.event(() => {
                                                                                 vm_c.toggle = !vm_c.toggle;
                                                                                 gvc.notifyDataChange(vm_c.id);
-                                                                            })}">
-                                                                                     <span class="fw-500"
-                                                                                           style="max-width: calc(100% - 50px);text-overflow: ellipsis;white-space: nowrap;overflow: hidden;">${d1.title}</span>
-                                                                                        <div class="flex-fill"></div>
-                                                                                        ${vm_c.toggle ? ` <i class="fa-solid fa-chevron-down"></i>` : `<i class="fa-solid fa-chevron-right"></i>`}
-                                                                                    </div>
-                                                                                `
+                                                                            })}"
+                                                                                        >
+                                                                                            <span
+                                                                                                class="fw-500"
+                                                                                                style="max-width: calc(100% - 50px);text-overflow: ellipsis;white-space: nowrap;overflow: hidden;"
+                                                                                                >${d1.title}</span
+                                                                                            >
+                                                                                            <div class="flex-fill"></div>
+                                                                                            ${vm_c.toggle ? ` <i class="fa-solid fa-chevron-down"></i>` : `<i class="fa-solid fa-chevron-right"></i>`}
+                                                                                        </div>
+                                                                                    `,
                                                                         ];
                                                                         if (vm_c.toggle) {
                                                                             array.push(AddComponent.getComponentDetail({
-                                                                                data: data.response.result.data.concat((() => {
+                                                                                data: data.response.result.data
+                                                                                    .concat((() => {
                                                                                     if (d1.value === 'container') {
                                                                                         return [
                                                                                             {
                                                                                                 template_config: {
-                                                                                                    image: ['https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/Screenshot 2024-08-12 at 2.11.09 PM.jpg'],
+                                                                                                    image: [
+                                                                                                        'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/Screenshot 2024-08-12 at 2.11.09 PM.jpg',
+                                                                                                    ],
                                                                                                     tag: [],
                                                                                                     name: '網格容器',
                                                                                                 },
@@ -646,7 +655,9 @@ background-clip: text;
                                                                                             },
                                                                                             {
                                                                                                 template_config: {
-                                                                                                    image: ['https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_Screenshot2024-08-16at5.04.35 PM.jpg'],
+                                                                                                    image: [
+                                                                                                        'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_Screenshot2024-08-16at5.04.35 PM.jpg',
+                                                                                                    ],
                                                                                                     tag: [],
                                                                                                     name: '垂直排版',
                                                                                                 },
@@ -655,19 +666,22 @@ background-clip: text;
                                                                                             },
                                                                                             {
                                                                                                 template_config: {
-                                                                                                    image: ['https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sbs8sfs9s0s2ses5_Screenshot2024-08-20at6.19.57 PM.jpg'],
+                                                                                                    image: [
+                                                                                                        'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sbs8sfs9s0s2ses5_Screenshot2024-08-20at6.19.57 PM.jpg',
+                                                                                                    ],
                                                                                                     tag: [],
                                                                                                     name: '比例佈局',
                                                                                                 },
                                                                                                 type: '容器',
-                                                                                                name: '比例佈局'
-                                                                                            }
+                                                                                                name: '比例佈局',
+                                                                                            },
                                                                                         ];
                                                                                     }
                                                                                     else {
                                                                                         return [];
                                                                                     }
-                                                                                })()).filter((dd) => {
+                                                                                })())
+                                                                                    .filter((dd) => {
                                                                                     var _a, _b, _c;
                                                                                     if (d1.value === 'basic') {
                                                                                         return ((_a = dd.template_config.tag) !== null && _a !== void 0 ? _a : []).find((dd) => {
@@ -698,7 +712,7 @@ background-clip: text;
                                                                                             js: 'http://127.0.0.1:4000/shopnex/official_view_component/official.js',
                                                                                             css: {
                                                                                                 class: {},
-                                                                                                style: {}
+                                                                                                style: {},
                                                                                             },
                                                                                             data: {
                                                                                                 attr: [],
@@ -713,7 +727,7 @@ background-clip: text;
                                                                                                 _x_count: '2',
                                                                                                 _y_count: '2',
                                                                                                 _gap_x: '30',
-                                                                                                _gap_y: '30'
+                                                                                                _gap_y: '30',
                                                                                             },
                                                                                             type: 'container',
                                                                                             index: 0,
@@ -734,7 +748,7 @@ background-clip: text;
                                                                                             js: 'http://127.0.0.1:4000/shopnex/official_view_component/official.js',
                                                                                             css: {
                                                                                                 class: {},
-                                                                                                style: {}
+                                                                                                style: {},
                                                                                             },
                                                                                             data: {
                                                                                                 attr: [],
@@ -749,7 +763,7 @@ background-clip: text;
                                                                                                 _x_count: '2',
                                                                                                 _y_count: '2',
                                                                                                 _gap_x: '30',
-                                                                                                _gap_y: '30'
+                                                                                                _gap_y: '30',
                                                                                             },
                                                                                             type: 'container',
                                                                                             index: 0,
@@ -770,7 +784,7 @@ background-clip: text;
                                                                                             js: 'http://127.0.0.1:4000/shopnex/official_view_component/official.js',
                                                                                             css: {
                                                                                                 class: {},
-                                                                                                style: {}
+                                                                                                style: {},
                                                                                             },
                                                                                             data: {
                                                                                                 attr: [],
@@ -784,7 +798,7 @@ background-clip: text;
                                                                                                 elemExpand: {},
                                                                                                 _layout: 'proportion',
                                                                                                 _gap_x: '30',
-                                                                                                _gap_y: '30'
+                                                                                                _gap_y: '30',
                                                                                             },
                                                                                             type: 'container',
                                                                                             index: 0,
@@ -803,29 +817,28 @@ background-clip: text;
                                                                                         callback(dd);
                                                                                     }
                                                                                 },
-                                                                                type: type
+                                                                                type: type,
                                                                             }));
                                                                         }
                                                                         return array.join(``);
                                                                     },
                                                                     divCreate: {
-                                                                        class: `border-bottom`
-                                                                    }
+                                                                        class: `border-bottom`,
+                                                                    },
                                                                 };
                                                             });
-                                                        }).join('')}
+                                                        })
+                                                            .join('')}
                                                         </div>
                                                     `;
                                                     }
                                                 })();
                                             }
                                             else {
-                                                return html `
-                                                <div class="w-100 p-3 d-flex align-items-center justify-content-center flex-column"
-                                                     style="gap: 10px;">
-                                                    <div class="spinner-border fs-5"></div>
-                                                    <div class="fs-6 fw-500">載入中...</div>
-                                                </div>`;
+                                                return html ` <div class="w-100 p-3 d-flex align-items-center justify-content-center flex-column" style="gap: 10px;">
+                                                <div class="spinner-border fs-5"></div>
+                                                <div class="fs-6 fw-500">載入中...</div>
+                                            </div>`;
                                             }
                                         },
                                         divCreate: {
@@ -847,9 +860,8 @@ background-clip: text;
         const callback = obj.callback;
         const justGetIframe = obj.justGetIframe;
         const html = String.raw;
-        return html `
-            <div class="row m-0 pt-2 w-100">
-                ${data
+        return html ` <div class="row m-0 pt-2 w-100">
+            ${data
             .sort((a, b) => {
             var _a, _b;
             if (['SY00-內文', 'SY00-按鈕連結', 'SY00-圖片元件', 'SY00-影片方塊', 'SY00-標題', 'SY00-商品顯示區塊', 'SY00-富文本區塊'].find((dd) => {
@@ -880,7 +892,7 @@ background-clip: text;
         })
             .sort((a, b) => {
             var _a;
-            return (Number(a.template_config.sort) < (Number((_a = b.template_config.sort) !== null && _a !== void 0 ? _a : Infinity))) ? -1 : 1;
+            return Number(a.template_config.sort) < Number((_a = b.template_config.sort) !== null && _a !== void 0 ? _a : Infinity) ? -1 : 1;
         })
             .sort((a, b) => {
             var _a;
@@ -888,7 +900,7 @@ background-clip: text;
                 return -1;
             }
             else {
-                return (Number(a.template_config.sort) < (Number((_a = b.template_config.sort) !== null && _a !== void 0 ? _a : Infinity))) ? -1 : 1;
+                return Number(a.template_config.sort) < Number((_a = b.template_config.sort) !== null && _a !== void 0 ? _a : Infinity) ? -1 : 1;
             }
         })
             .map((dd, index) => {
@@ -1007,10 +1019,10 @@ background-clip: text;
                                                 bind: id,
                                                 view: () => {
                                                     return html `
-                                                                                                            <div class="alert alert-danger fs-base fw-bold">
-                                                                                                                標籤名稱發生衝突，請選擇以下衝突組件的處理方式。
-                                                                                                            </div>
-                                                                                                            ${res.copy_component
+                                                                                                        <div class="alert alert-danger fs-base fw-bold">
+                                                                                                            標籤名稱發生衝突，請選擇以下衝突組件的處理方式。
+                                                                                                        </div>
+                                                                                                        ${res.copy_component
                                                         .filter((d1) => {
                                                         return gvc.glitter.share.editorViewModel.dataList.find((dd) => {
                                                             return d1.tag === dd.tag;
@@ -1018,12 +1030,9 @@ background-clip: text;
                                                     })
                                                         .map((data, index) => {
                                                         let view = [
-                                                            EditorElem.h3(html `
-                                                                                                                                <span class="text-danger">
-                                                                                                                                                            ${(data.template_config &&
-                                                                data.template_config.name) ||
-                                                                data.name}
-                                                                                                                                                        </span>`),
+                                                            EditorElem.h3(html ` <span class="text-danger">
+                                                                                                                        ${(data.template_config && data.template_config.name) || data.name}
+                                                                                                                    </span>`),
                                                             `<div class="d-flex flex-wrap px-1 align-items-center ">
 ${[
                                                                 {
@@ -1045,8 +1054,7 @@ ${[
                                                                     gvc.notifyDataChange(id);
                                                                 })}">
   <input class="form-check-input" type="checkbox" id="ch-${dd.value}-${index}"   ${dd.value === data.execute ? `checked` : ``} >
-  <label class="form-check-label" for="ch-${dd.value}-${index}" style="color:#5e5e5e;" onclick="${gvc.event(() => {
-                                                                })}">${dd.title}</label>
+  <label class="form-check-label" for="ch-${dd.value}-${index}" style="color:#5e5e5e;" onclick="${gvc.event(() => { })}">${dd.title}</label>
 </div>
                                                         `;
                                                             })
@@ -1066,18 +1074,17 @@ ${[
                                                         return `<div class="border-bottom w-100 ">${view.join('')}</div>`;
                                                     })
                                                         .join('')}
-                                                                                                        `;
+                                                                                                    `;
                                                 },
                                                 divCreate: {
                                                     class: `p-2 `,
                                                 },
                                             };
                                         }),
-                                        html `
-                                                                                                <div class="d-flex align-items-center justify-content-end px-2 ">
-                                                                                                    <button
-                                                                                                            class="btn btn-primary-c btn-sm mb-2 fs-base"
-                                                                                                            onclick="${gvc.event(() => {
+                                        html ` <div class="d-flex align-items-center justify-content-end px-2 ">
+                                                                                            <button
+                                                                                                class="btn btn-primary-c btn-sm mb-2 fs-base"
+                                                                                                onclick="${gvc.event(() => {
                                             const conflict = res.copy_component.filter((d1) => {
                                                 return gvc.glitter.share.editorViewModel.dataList.find((dd) => {
                                                     return d1.tag === dd.tag;
@@ -1132,13 +1139,12 @@ ${[
                                             }
                                             next();
                                         })}"
-                                                                                                    >
-                                                                                                        確認
-                                                                                                    </button>
-                                                                                                </div>`,
+                                                                                            >
+                                                                                                確認
+                                                                                            </button>
+                                                                                        </div>`,
                                     ].join('');
-                                }, () => {
-                                }, 400, '偵測到衝突組件');
+                                }, () => { }, 400, '偵測到衝突組件');
                             }
                             else {
                                 next();
@@ -1170,14 +1176,14 @@ ${[
                                             ${((_b = dd.template_config.tag) !== null && _b !== void 0 ? _b : [])
                 .filter((dd) => {
                 return dd !== '設計元件' && dd !== '基本元件' && dd !== '商品元件';
-            }).map((dd) => {
-                return html `
-                                                            <div
-                                                                    class="d-flex align-items-center justify-content-center p-2   mb-1 bgf6 fw-500 border"
-                                                                    style="color:black;border-radius: 11px;font-size:11px;height:22px;cursor: pointer;"
-                                                            >
-                                                                    #${dd}
-                                                            </div>`;
+            })
+                .map((dd) => {
+                return html ` <div
+                                                        class="d-flex align-items-center justify-content-center p-2   mb-1 bgf6 fw-500 border"
+                                                        style="color:black;border-radius: 11px;font-size:11px;height:22px;cursor: pointer;"
+                                                    >
+                                                        #${dd}
+                                                    </div>`;
             })
                 .join('<div class="me-1"></div>')}
 
@@ -1188,7 +1194,7 @@ ${[
                             `;
         })
             .join('')}
-            </div>`;
+        </div>`;
     }
     static plusView(gvc) {
         const html = String.raw;
@@ -1218,7 +1224,7 @@ ${[
                                                 version: 'v2',
                                                 atrExpand: {},
                                                 elemExpand: {},
-                                                _layout: 'grid'
+                                                _layout: 'grid',
                                             },
                                             type: 'container',
                                             index: 0,
@@ -5620,7 +5626,7 @@ ${[
                     ]
                         .map((dd, index) => {
                         return `
-                        <div class="col-12 mt-3"><span class="cl_39 fs-6 fw-bold">${dd.title}</span></div>
+                        <div class="col-12 mt-3"><span class="color39 fs-6 fw-bold">${dd.title}</span></div>
                         ${dd.array
                             .map((dd) => {
                             return `<div class="col-6" style="margin-top: 12px;cursor: pointer;" onclick="${gvc.event(() => {
@@ -5628,7 +5634,7 @@ ${[
                                 config.label = `容器:${dd.title}`;
                                 AddComponent.addWidget(gvc, config);
                             })}"><img class="w-100" src="${dd.img}"></img>
-<div class="my-1 cl_39 w-100 d-flex align-items-center justify-content-center">${dd.title}</div>
+<div class="my-1 color39 w-100 d-flex align-items-center justify-content-center">${dd.title}</div>
 </div>`;
                         })
                             .join('')}`;
@@ -5674,9 +5680,7 @@ ${[
                 }),
                 EditorElem.searchInput({
                     title: html `${title}分類
-                        <div class="alert alert-info p-2 mt-2" style="word-break: break-all;white-space:normal">可加入 /
-                            進行分類:<br/>例如:首頁／置中版面
-                        </div>`,
+                            <div class="alert alert-info p-2 mt-2" style="word-break: break-all;white-space:normal">可加入 / 進行分類:<br />例如:首頁／置中版面</div>`,
                     gvc: gvc,
                     def: '',
                     array: (() => {
@@ -5700,8 +5704,7 @@ ${[
             })}">確認新增</div>
 </div>
 `;
-        }, () => {
-        }, 400, '編輯' + title);
+        }, () => { }, 400, '編輯' + title);
     }
     static checkLoop(gvc, data) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -5762,12 +5765,8 @@ ${[
         });
     }
 }
-AddComponent.addEvent = (gvc, tdata) => {
-};
-AddComponent.addWidget = (gvc, tdata) => {
-};
-AddComponent.refresh = () => {
-};
-AddComponent.closeEvent = () => {
-};
+AddComponent.addEvent = (gvc, tdata) => { };
+AddComponent.addWidget = (gvc, tdata) => { };
+AddComponent.refresh = () => { };
+AddComponent.closeEvent = () => { };
 window.glitter.setModule(import.meta.url, AddComponent);

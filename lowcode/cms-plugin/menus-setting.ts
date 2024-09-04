@@ -391,7 +391,7 @@ export class MenusSetting {
                                                                                         style="width: 100%;  justify-content: flex-start; align-items: center; gap: 8px; display: flex"
                                                                                     >
                                                                                         <i
-                                                                                            class="ms-2 fa-solid fa-grip-dots-vertical cl_39 dragItem hoverBtn d-flex align-items-center justify-content-center"
+                                                                                            class="ms-2 fa-solid fa-grip-dots-vertical color39 dragItem hoverBtn d-flex align-items-center justify-content-center"
                                                                                             style="cursor: pointer;width:25px;height: 25px;"
                                                                                         ></i>
                                                                                         <div
@@ -405,8 +405,8 @@ export class MenusSetting {
                                                                                                 </div>
                                                                                                 ${dd.items && dd.items.length > 0
                                                                                                     ? !(dd as any).toggle
-                                                                                                        ? `<i class="fa-solid fa-angle-down cl_39"></i>`
-                                                                                                        : `<i class="fa-solid fa-angle-up cl_39"></i>`
+                                                                                                        ? `<i class="fa-solid fa-angle-down color39"></i>`
+                                                                                                        : `<i class="fa-solid fa-angle-up color39"></i>`
                                                                                                     : ``}
                                                                                             </div>
                                                                                             <div

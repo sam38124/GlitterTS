@@ -1085,7 +1085,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                         })}"
                                         style="gap:6px;"
                                     >
-                                        ${isSelect() ? html `<i class="fa-sharp fa-solid fa-circle-dot cl_39"></i>` : html `<div class="c_39_checkbox"></div>`}
+                                        ${isSelect() ? html `<i class="fa-sharp fa-solid fa-circle-dot color39"></i>` : html `<div class="c_39_checkbox"></div>`}
                                         <span class="tx_normal">${dd.title}</span>
                                     </div>
                                     ${obj.def === dd.value && dd.innerHtml ? html `<div class="mt-1">${dd.innerHtml}</div>` : ``}
