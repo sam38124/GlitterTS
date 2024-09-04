@@ -12,7 +12,7 @@ export class ShareDialog {
     constructor(glitter: Glitter) {
         this.dataLoading = (obj: { text?: string; visible: boolean }) => {
             if (obj.visible) {
-                glitter.openDiaLog('glitterBundle/dialog/dialog.js', 'dataLoading', {
+              glitter.openDiaLog('glitterBundle/dialog/dialog.js', 'dataLoading', {
                     type: 'dataLoading',
                     obj: obj,
                 });

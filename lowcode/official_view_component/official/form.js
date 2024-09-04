@@ -354,6 +354,8 @@ export class FormWidget {
             return array
                 .map((dd) => {
                 var _a, _b, _c, _d, _e, _f, _g;
+                const form_data = formData;
+                const form_key = dd.key;
                 const labelCSS = glitter.htmlGenerate.editor_component(dd.style_data.label, gvc, obj.widget, obj.subData);
                 const inputCSS = glitter.htmlGenerate.editor_component(dd.style_data.input, gvc, obj.widget, obj.subData);
                 const containerCss = glitter.htmlGenerate.editor_component(dd.style_data.container, gvc, obj.widget, obj.subData);
