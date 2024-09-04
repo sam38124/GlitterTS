@@ -17,8 +17,23 @@ export class BgWidget {
     static greenNote(text, event = '', style = '') {
         return html `<span style="color: #006621; font-size: 14px; font-weight: 400; cursor:pointer; overflow-wrap: break-word; text-decoration: underline; ${style}" onclick="${event}">${text}</span>`;
     }
+<<<<<<< HEAD
     static save(event, text = '儲存', customClass) {
         return html ` <button class="btn btn-black ${customClass !== null && customClass !== void 0 ? customClass : ``}" type="button" onclick="${event}">
+=======
+    static taiwanPhoneAlert(str = '請輸入正確的市話或手機號碼格式') {
+        return html `
+            <div class="text-center">
+                <div>${str}</div>
+                <div>（ex. 0912666987,</div>
+                <div>02-25660123,</div>
+                <div>04-25881234#78）</div>
+            </div>
+        `;
+    }
+    static save(event, text = '儲存') {
+        return html ` <button class="btn btn-black" type="button" onclick="${event}">
+>>>>>>> 8811d144 (verify: order and user from & update product spec event)
             <span class="tx_700_white">${text}</span>
         </button>`;
     }
@@ -126,6 +141,9 @@ export class BgWidget {
         return html ` <div class="d-flex align-items-center justify-content-center" style="cursor:pointer; margin-right: 10px;" onclick="${event}">
             <i class="fa-solid fa-angle-left" style="margin-top: 0.25rem; color: #393939; font-size: 1.75rem; font-weight: 900;"></i>
         </div>`;
+    }
+    static greenBadge() {
+        return html `<div class="badge" style="border-radius: 7px;background: #D8ECDA;height: 22px;padding: 4px 6px;font-size: 14px;color:#393939;">已付款</div>`;
     }
     static leftLineBar() {
         return html ` <div class="ms-2 border-end position-absolute h-100 left-0"></div>`;

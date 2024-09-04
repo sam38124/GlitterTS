@@ -8,6 +8,7 @@ import { Article } from '../glitter-base/route/article.js';
 import { MenusSetting } from '../cms-plugin/menus-setting.js';
 import { BaseApi } from '../glitterBundle/api/base.js';
 import { BgProduct, OptionsItem } from './bg-product.js';
+import { CheckInput } from '../modules/checkInput.js';
 
 interface MenuItem {
     link: string;
@@ -759,8 +760,7 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any, page_tab: 'page' | 'hidden
                                                                     value="${vm.data.content.tag || ''}"
                                                                     onchange="${gvc.event((e) => {
                                                                         let text = e.value;
-                                                                        const regex = /^[a-zA-Z0-9-]+$/;
-                                                                        if (!regex.test(text)) {
+                                                                        if (!CheckInput.isEnglishNumberHyphen(text)) {
                                                                             const dialog = new ShareDialog(gvc.glitter);
                                                                             dialog.infoMessage({ text: '僅能輸入英文或數字與連接號' });
                                                                             gvc.notifyDataChange(id);
