@@ -2395,7 +2395,7 @@ ${obj.gvc.bindView(() => {
                     if (obj.hoverGray) {
                         gvc.addStyle(`
                             #${parId} :hover :not(.btn-black, .tx_700_white){
-                                background-color:#F7F7F7;
+                                background-color: #F7F7F7;
                             }
                             #${parId} :hover .option{
                                 background-color:#DDD;
@@ -2403,7 +2403,6 @@ ${obj.gvc.bindView(() => {
                             #${parId} :hover .pen{
                                 display:block;
                             }
-                            
                         `);
                     }
                     return {
@@ -2420,7 +2419,7 @@ ${obj.gvc.bindView(() => {
                                     return html`
                                         <li class="btn-group" style="margin-top:1px;margin-bottom:1px;${obj.hr ? `border-bottom: 1px solid #f6f6f6; ` : ``};">
                                             <div
-                                                class="h-auto  align-items-center px-2 my-0 hi me-n1 ${dd.isSelect ? `bgf6 border` : ``}"
+                                                class="h-auto align-items-center px-2 my-0 hi me-n1 ${dd.isSelect ? `bgf6 border` : ``}"
                                                 style="cursor: pointer;min-height:36px;width: calc(100% - 10px);display: flex;font-size: 14px;line-height: 20px;font-weight: 500;text-rendering: optimizelegibility;user-select: none;margin: 5px 10px;"
                                                 onclick="${gvc.event(() => {
                                                     if (!dd.innerHtml) {

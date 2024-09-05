@@ -275,6 +275,8 @@ ul {
 
 .hover-underline {
     text-decoration: none;
+    cursor: pointer;
+    overflow-wrap: anywhere;
 }
 
 .hover-underline:hover {
