@@ -4,6 +4,9 @@ export class ShareDialog {
         this.infoMessage = (obj) => { };
         this.errorMessage = (obj) => { };
         this.successMessage = (obj) => { };
+        if (glitter.getUrlParameter('cms') === 'true') {
+            glitter = window.parent.glitter;
+        }
         this.dataLoading = (obj) => {
             if (obj.visible) {
                 glitter.openDiaLog('glitterBundle/dialog/dialog.js', 'dataLoading', {

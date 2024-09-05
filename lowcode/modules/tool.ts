@@ -34,14 +34,6 @@ export class Tool {
         return text;
     }
 
-    static isURL = (str_url: string) => {
-        try {
-            return Boolean(new URL(str_url));
-        } catch (e) {
-            return false;
-        }
-    };
-
     static convertDateTimeFormat = (dateTimeStr: string) => {
         const dateTime = new Date(dateTimeStr);
         const year = dateTime.getFullYear();

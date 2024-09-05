@@ -16,6 +16,7 @@ import { FilterOptions } from '../cms-plugin/filter-options.js';
 import { BgListComponent } from '../backend-manager/bg-list-component.js';
 import { Tool } from '../modules/tool.js';
 import { BgProduct } from './bg-product.js';
+import { CheckInput } from '../modules/checkInput.js';
 export class BgRecommend {
     static linkList(gvc, widget) {
         const html = String.raw;
@@ -701,8 +702,7 @@ export class BgRecommend {
                                                                                 value="${vm.data.link || ''}"
                                                                                 onchange="${gvc.event((e) => {
                                                             let text = e.value;
-                                                            const regex = /^[a-zA-Z0-9-]+$/;
-                                                            if (!regex.test(text)) {
+                                                            if (!CheckInput.isEnglishNumberHyphen(text)) {
                                                                 const dialog = new ShareDialog(gvc.glitter);
                                                                 dialog.infoMessage({ text: '僅能輸入英文或數字與連接號' });
                                                                 gvc.notifyDataChange(id);
@@ -1435,12 +1435,12 @@ export class BgRecommend {
                                     dialog.infoMessage({ text: '請確實填寫推薦人資訊' });
                                     return;
                                 }
-                                if (!checkEmailPattern(vm.data.recommend_user.email)) {
+                                if (!CheckInput.isEmail(vm.data.recommend_user.email)) {
                                     dialog.infoMessage({ text: '請輸入正確的電子信箱格式' });
                                     return;
                                 }
-                                if (!checkPhonePattern(vm.data.recommend_user.phone)) {
-                                    dialog.infoMessage({ text: '請輸入正確的手機號碼格式' });
+                                if (!CheckInput.isTaiwanPhone(vm.data.recommend_user.phone)) {
+                                    dialog.infoMessage({ text: BgWidget.taiwanPhoneAlert() });
                                     return;
                                 }
                             }
@@ -1691,12 +1691,12 @@ export class BgRecommend {
                                         return;
                                     }
                                 }
-                                if (!checkEmailPattern(vm.data.email)) {
+                                if (!CheckInput.isEmail(vm.data.email)) {
                                     dialog.infoMessage({ text: '請輸入正確的電子信箱格式' });
                                     return;
                                 }
-                                if (!checkPhonePattern(vm.data.phone)) {
-                                    dialog.infoMessage({ text: '請輸入正確的手機號碼格式' });
+                                if (!CheckInput.isTaiwanPhone(vm.data.phone)) {
+                                    dialog.infoMessage({ text: BgWidget.taiwanPhoneAlert() });
                                     return;
                                 }
                                 dialog.dataLoading({ visible: true });
@@ -1833,14 +1833,6 @@ export class BgRecommend {
             },
         });
     }
-}
-function checkEmailPattern(input) {
-    const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    return emailPattern.test(input);
-}
-function checkPhonePattern(input) {
-    const phonePattern = /^09\d{8}$/;
-    return phonePattern.test(input);
 }
 function getRecommender(userList, data) {
     if (data.name && data.name.length > 0) {

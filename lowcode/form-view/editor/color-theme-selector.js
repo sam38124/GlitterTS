@@ -1,6 +1,6 @@
 import { Main_editor } from '../../jspage/function-page/main_editor.js';
 import { NormalPageEditor } from '../../editor/normal-page-editor.js';
-import { EditorConfig } from "../../editor-config.js";
+import { EditorConfig } from '../../editor-config.js';
 const html = String.raw;
 export class ColorThemeSelector {
     static main(cf) {
@@ -33,18 +33,16 @@ export class ColorThemeSelector {
                                 hint: ` <span class="my-2"
                                                   style="color:#8D8D8D;font-size: 13px;white-space: normal;word-break: break-all;line-height: 16px;">可以單獨為元件設置獨特顏色，實現獨一無二的設計效果。</span>`,
                                 value: 'custom',
-                            }
+                            },
                         ]
                             .map((dd) => {
-                            return html `
-                                                <div>
-                                                    ${[
-                                html `
-                                                            <div
-                                                                    class="d-flex  cursor_pointer"
-                                                                    style="gap:8px;"
-                                                                    onclick="${cf.gvc.event(() => {
-                                    const key = ((`${select.id}`.split('-')[0] === 'custom') ? `custom` : `global`);
+                            return html ` <div>
+                                            ${[
+                                html ` <div
+                                                    class="d-flex  cursor_pointer"
+                                                    style="gap:8px;"
+                                                    onclick="${cf.gvc.event(() => {
+                                    const key = `${select.id}`.split('-')[0] === 'custom' ? `custom` : `global`;
                                     if (key === dd.value) {
                                         return;
                                     }
@@ -56,25 +54,22 @@ export class ColorThemeSelector {
                                     }
                                     cf.gvc.notifyDataChange(id);
                                 })}"
-                                                            >
-                                                                ${((`${select.id}`.split('-')[0] === 'custom') ? `custom` : `global`) === dd.value
-                                    ? `<i class="fa-sharp fa-solid fa-circle-dot cl_39" style="margin-top: 5px;"></i>`
+                                                >
+                                                    ${(`${select.id}`.split('-')[0] === 'custom' ? `custom` : `global`) === dd.value
+                                    ? `<i class="fa-sharp fa-solid fa-circle-dot color39" style="margin-top: 5px;"></i>`
                                     : ` <div class="c_39_checkbox " style="margin-top: 5px;"></div>`}
-                                                                <div class="tx_normal fw-normal d-flex flex-column"
-                                                                     style="max-width: calc(100% - 40px);white-space: normal;word-break: break-all;overflow: hidden;line-height: 25px;">
-                                                                    ${dd.title}
-                                                                    ${(((`${select.id}`.split('-')[0] === 'custom') ? `custom` : `global`) === dd.value) ? dd.hint : ``}
-                                                                </div>
-                                                            </div>`,
-                                html `
-                                                            <div class="d-flex position-relative mt-2"
-                                                                 style="">
-                                                                <div class="ms-0 border-end position-absolute h-100"
-                                                                     style="left: 5px;"></div>
-                                                                <div class="flex-fill "
-                                                                     style="margin-left:20px;max-width: 100%;">
-                                                                    ${(() => {
-                                    const key = ((`${select.id}`.split('-')[0] === 'custom') ? `custom` : `global`);
+                                                    <div
+                                                        class="tx_normal fw-normal d-flex flex-column"
+                                                        style="max-width: calc(100% - 40px);white-space: normal;word-break: break-all;overflow: hidden;line-height: 25px;"
+                                                    >
+                                                        ${dd.title} ${(`${select.id}`.split('-')[0] === 'custom' ? `custom` : `global`) === dd.value ? dd.hint : ``}
+                                                    </div>
+                                                </div>`,
+                                html ` <div class="d-flex position-relative mt-2" style="">
+                                                    <div class="ms-0 border-end position-absolute h-100" style="left: 5px;"></div>
+                                                    <div class="flex-fill " style="margin-left:20px;max-width: 100%;">
+                                                        ${(() => {
+                                    const key = `${select.id}`.split('-')[0] === 'custom' ? `custom` : `global`;
                                     if (key !== dd.value) {
                                         return ``;
                                     }
@@ -85,8 +80,7 @@ export class ColorThemeSelector {
                             >
                                 <div style="align-self: stretch; justify-content: flex-start; align-items: center; gap: 10px; display: inline-flex">
                                     <div style="width: 130px;">
-                                        ${Main_editor.colorCard((`${select.id}`.split('-')[0] === 'custom') ? select :
-                                            globalValue.color_theme[parseInt(select.id, 10)])}
+                                        ${Main_editor.colorCard(`${select.id}`.split('-')[0] === 'custom' ? select : globalValue.color_theme[parseInt(select.id, 10)])}
                                     </div>
                                     <div style="flex: 1 1 0; flex-direction: column; justify-content: center; align-items: flex-start; gap: 4px; display: inline-flex">
                                         <div style="align-self: stretch; color: #393939; font-size: 16px;  font-weight: 400; word-wrap: break-word">
@@ -105,7 +99,7 @@ export class ColorThemeSelector {
                                     </div>
 
                                     <div style="cursor: pointer;" onclick="${cf.gvc.event(() => {
-                                            const custom = (`${select.id}`.split('-')[0] === 'custom');
+                                            const custom = `${select.id}`.split('-')[0] === 'custom';
                                             NormalPageEditor.toggle({
                                                 visible: true,
                                                 view: Main_editor.color_detail({
@@ -123,7 +117,7 @@ export class ColorThemeSelector {
                                                     },
                                                     name: custom ? `自定義配色` : `調色盤${parseInt(select.id, 10) + 1}`,
                                                     data: custom ? select : globalValue.color_theme[parseInt(select.id, 10)],
-                                                    index: parseInt(select.id, 10)
+                                                    index: parseInt(select.id, 10),
                                                 }),
                                                 title: '顏色編輯',
                                             });
@@ -172,7 +166,7 @@ export class ColorThemeSelector {
                                                             return true;
                                                         }
                                                         const inf = JSON.stringify(cf.widget.bundle.root_widget).replace(/\s+/g, '');
-                                                        return inf.includes(`.${key}`) || inf.includes(`("${key}`) || inf.includes(`('${key}`) || inf.includes(`['${key}']`) || inf.includes(`["${key}"]`);
+                                                        return (inf.includes(`.${key}`) || inf.includes(`("${key}`) || inf.includes(`('${key}`) || inf.includes(`['${key}']`) || inf.includes(`["${key}"]`));
                                                     },
                                                     name: vm.name,
                                                     data: vm.data,
@@ -202,7 +196,11 @@ export class ColorThemeSelector {
                                                     return true;
                                                 }
                                                 const inf = JSON.stringify(cf.widget.bundle.root_widget).replace(/\s+/g, '');
-                                                return inf.includes(`.${key}`) || inf.includes(`("${key}`) || inf.includes(`('${key}`) || inf.includes(`['${key}']`) || inf.includes(`["${key}"]`);
+                                                return (inf.includes(`.${key}`) ||
+                                                    inf.includes(`("${key}`) ||
+                                                    inf.includes(`('${key}`) ||
+                                                    inf.includes(`['${key}']`) ||
+                                                    inf.includes(`["${key}"]`));
                                             },
                                             name: vm.name,
                                             data: vm.data,
@@ -210,10 +208,10 @@ export class ColorThemeSelector {
                                         });
                                     }
                                 })()}
-                                                                </div>
-                                                            </div>`,
+                                                    </div>
+                                                </div>`,
                             ].join('')}
-                                                </div>`;
+                                        </div>`;
                         })
                             .join(`<div class="my-2"></div>`)}
                             </div>
@@ -231,15 +229,15 @@ export class ColorThemeSelector {
         if (custom && !(cf.widget.bundle.form_data[cf.widget.bundle.form_key].id === `custom-${cf.widget.bundle.form_key}`)) {
             cf.widget.bundle.form_data[cf.widget.bundle.form_key].id = `custom-${cf.widget.bundle.form_key}`;
             const def = {
-                "title": "#030303",
-                "content": "#000000",
-                "sec-title": "#000000",
-                "background": "#ffffff",
-                "sec-background": "#FFFFFF",
-                "solid-button-bg": "#000000",
-                "border-button-bg": "#000000",
-                "solid-button-text": "#ffffff",
-                "border-button-text": "#000000"
+                title: '#030303',
+                content: '#000000',
+                'sec-title': '#000000',
+                background: '#ffffff',
+                'sec-background': '#FFFFFF',
+                'solid-button-bg': '#000000',
+                'border-button-bg': '#000000',
+                'solid-button-text': '#ffffff',
+                'border-button-text': '#000000',
             };
             EditorConfig.color_setting_config.map((dd) => {
                 cf.widget.bundle.form_data[cf.widget.bundle.form_key][dd.key] = def[dd.key];
@@ -267,7 +265,7 @@ padding-left:12px;padding-right: 12px;${`${index}` === select.id ? `background:#
              >
                  <div style="width:100px;">${Main_editor.colorCard(custom ? cf.widget.bundle.form_data[cf.widget.bundle.form_key] : globalValue.color_theme[index])}</div>
                  <div style="width: 100px; flex-direction: column; justify-content: center; align-items: flex-start; gap: 4px; display: inline-flex">
-                     <div style="align-self: stretch; color: #393939; font-size: 16px;  font-weight: 400; word-wrap: break-word">${(custom) ? `自定義配色` : `調色盤${index + 1}`}</div>
+                     <div style="align-self: stretch; color: #393939; font-size: 16px;  font-weight: 400; word-wrap: break-word">${custom ? `自定義配色` : `調色盤${index + 1}`}</div>
                  </div>
                  <div class="flex-fill"></div>
                  ${value.select ? `<i class="fa-solid fa-circle-check " style="color: #393939;font-size:24px;"></i>` : ``}

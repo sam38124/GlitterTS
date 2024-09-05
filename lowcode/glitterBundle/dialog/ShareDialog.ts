@@ -10,6 +10,9 @@ export class ShareDialog {
     public policy: () => void;
 
     constructor(glitter: Glitter) {
+        if (glitter.getUrlParameter('cms') === 'true') {
+            glitter = (window.parent as any).glitter;
+        }
         this.dataLoading = (obj: { text?: string; visible: boolean }) => {
             if (obj.visible) {
               glitter.openDiaLog('glitterBundle/dialog/dialog.js', 'dataLoading', {

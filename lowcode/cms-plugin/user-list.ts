@@ -11,6 +11,7 @@ import { ShoppingOrderManager } from './shopping-order-manager.js';
 import { FilterOptions } from './filter-options.js';
 import { ShoppingRebate } from './shopping-rebate.js';
 import { Tool } from '../modules/tool.js';
+import { CheckInput } from '../modules/checkInput.js';
 
 const html = String.raw;
 
@@ -931,14 +932,6 @@ export class UserList {
                                                                                 gvc.notifyDataChange(id);
                                                                             })
                                                                         )}
-                                                                        ${BgWidget.grayButton(
-                                                                            '自訂資料',
-                                                                            gvc.event(() => {
-                                                                                UserList.setUserForm(gvc, () => {
-                                                                                    gvc.notifyDataChange(id);
-                                                                                });
-                                                                            })
-                                                                        )}
                                                                     </div>
                                                                 </div>` +
                                                                     gvc.bindView(() => {
@@ -1611,7 +1604,7 @@ export class UserList {
 
                                                                         // 預設用戶表單
                                                                         const form_array_view: any = [
-                                                                            html`<div style="display:flex; gap: 18px; flex-direction: column;">${loopForm(data, userData)}</div>`,
+                                                                            html`<div style="display:flex; gap: 12px; flex-direction: column;">${loopForm(data, userData)}</div>`,
                                                                         ];
 
                                                                         resolve(form_array_view.join(`<div class="my-4 border"></div>`));
@@ -1637,11 +1630,32 @@ export class UserList {
                                         ${BgWidget.save(
                                             gvc.event(() => {
                                                 const dialog = new ShareDialog(gvc.glitter);
+
+                                                if (CheckInput.isEmpty(userData.name)) {
+                                                    dialog.infoMessage({ text: '請輸入顧客姓名' });
+                                                    return;
+                                                }
+
+                                                if (!CheckInput.isEmail(userData.email)) {
+                                                    dialog.infoMessage({ text: '請輸入正確的電子信箱格式' });
+                                                    return;
+                                                }
+
+                                                if (!CheckInput.isEmpty(userData.phone) && !CheckInput.isTaiwanPhone(userData.phone)) {
+                                                    dialog.infoMessage({ text: BgWidget.taiwanPhoneAlert() });
+                                                    return;
+                                                }
+
+                                                if (!CheckInput.isBirthString(userData.birth)) {
+                                                    dialog.infoMessage({ text: html` <div class="text-center">生日日期無效，請確認年月日是否正確<br />(ex: 19950107)</div> ` });
+                                                    return;
+                                                }
+
                                                 ApiUser.getEmailCount(userData.email).then((r) => {
                                                     if (r.response.result) {
                                                         dialog.errorMessage({ text: '此信箱已被註冊' });
                                                     } else {
-                                                        dialog.dataLoading({ text: '更新中', visible: true });
+                                                        dialog.dataLoading({ visible: true });
                                                         ApiUser.quickRegister({
                                                             account: userData.email,
                                                             pwd: gvc.glitter.getUUID(),
@@ -1656,7 +1670,7 @@ export class UserList {
                                             })
                                         )}
                                     </div>`,
-                                ].join(html` <div style="margin-top: 24px;"></div>`),
+                                ].join(''),
                                 BgWidget.getContainerWidth()
                             )}
                         </div>

@@ -8,6 +8,7 @@ import { Article } from '../glitter-base/route/article.js';
 import { MenusSetting } from '../cms-plugin/menus-setting.js';
 import { BaseApi } from '../glitterBundle/api/base.js';
 import { BgProduct, OptionsItem } from './bg-product.js';
+import { CheckInput } from '../modules/checkInput.js';
 
 interface MenuItem {
     link: string;
@@ -415,14 +416,14 @@ export class BgBlog {
                                                             return html`
                                                                 <div class="d-flex align-items-center justify-content-center flex-column w-100 py-4" style="width:700px;gap:10px;">
                                                                     <img src="./img/box-open-solid.svg" />
-                                                                    <span class="cl_39 text-center">尚未自製任何模塊<br />請前往開發者模式自製專屬模塊</span>
+                                                                    <span class="color39 text-center">尚未自製任何模塊<br />請前往開發者模式自製專屬模塊</span>
                                                                 </div>
                                                             `;
                                                         } else {
                                                             return html`
                                                                 <div class="d-flex align-items-center justify-content-center flex-column w-100 py-4" style="width:700px;gap:10px;">
                                                                     <img src="./img/box-open-solid.svg" />
-                                                                    <span class="cl_39 text-center">查無相關模塊</span>
+                                                                    <span class="color39 text-center">查無相關模塊</span>
                                                                 </div>
                                                             `;
                                                         }
@@ -759,8 +760,7 @@ function detail(gvc: GVC, cf: any, vm: any, cVm: any, page_tab: 'page' | 'hidden
                                                                     value="${vm.data.content.tag || ''}"
                                                                     onchange="${gvc.event((e) => {
                                                                         let text = e.value;
-                                                                        const regex = /^[a-zA-Z0-9-]+$/;
-                                                                        if (!regex.test(text)) {
+                                                                        if (!CheckInput.isEnglishNumberHyphen(text)) {
                                                                             const dialog = new ShareDialog(gvc.glitter);
                                                                             dialog.infoMessage({ text: '僅能輸入英文或數字與連接號' });
                                                                             gvc.notifyDataChange(id);
@@ -1562,7 +1562,7 @@ function setCollection(cf: {
                                                                             ></div>
                                                                             <div class="hoverF2 pe-2" style="width: 100%;  justify-content: flex-start; align-items: center; gap: 8px; display: flex">
                                                                                 <i
-                                                                                    class="ms-2 fa-solid fa-grip-dots-vertical cl_39 dragItem hoverBtn d-flex align-items-center justify-content-center"
+                                                                                    class="ms-2 fa-solid fa-grip-dots-vertical color39 dragItem hoverBtn d-flex align-items-center justify-content-center"
                                                                                     style="cursor: pointer;width:25px;height: 25px;"
                                                                                 ></i>
                                                                                 <div style="flex-direction: column; justify-content: center; align-items: flex-start; gap: 2px; display: inline-flex">
@@ -1572,8 +1572,8 @@ function setCollection(cf: {
                                                                                         </div>
                                                                                         ${dd.items && dd.items.length > 0
                                                                                             ? !(dd as any).toggle
-                                                                                                ? `<i class="fa-solid fa-angle-down cl_39"></i>`
-                                                                                                : `<i class="fa-solid fa-angle-up cl_39"></i>`
+                                                                                                ? `<i class="fa-solid fa-angle-down color39"></i>`
+                                                                                                : `<i class="fa-solid fa-angle-up color39"></i>`
                                                                                             : ``}
                                                                                     </div>
                                                                                     <div style="justify-content: flex-start; align-items: center; gap: 8px; display: inline-flex">

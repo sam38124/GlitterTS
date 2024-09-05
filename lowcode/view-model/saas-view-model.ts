@@ -111,7 +111,7 @@ export class SaasViewModel {
                                                                                                 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713445383494-未命名(1080x1080像素).jpg'}');"
                                                                                             ></div>`,
                                                                                             html` <div class="d-flex flex-column" style="margin-left: 15px; gap:1px;">
-                                                                                                <div class="fw-500 fs-5 cl_39">${dd.theme_config.name || dd.appName}</div>
+                                                                                                <div class="fw-500 fs-5 color39">${dd.theme_config.name || dd.appName}</div>
                                                                                                 ${(() => {
                                                                                                     const config = dd;
                                                                                                     let planText = '免費試用方案';
@@ -120,7 +120,7 @@ export class SaasViewModel {
                                                                                                     } else if (config.plan === 'web+app') {
                                                                                                         planText = 'Web+App方案';
                                                                                                     }
-                                                                                                    return html` <div class="d-flex flex-column fw-500 cl_39" style="font-size:14px;">
+                                                                                                    return html` <div class="d-flex flex-column fw-500 color39" style="font-size:14px;">
                                                                                                         當前方案 : ${planText}
                                                                                                         <div
                                                                                                             style="font-size: 13px; color: ${new Date(config.dead_line).getTime() < new Date().getTime()
@@ -134,7 +134,7 @@ export class SaasViewModel {
                                                                                                         </div>
                                                                                                     </div>`;
                                                                                                 })()}
-                                                                                                <div class="fw-500 cl_39" style="font-size: 13px;">
+                                                                                                <div class="fw-500 color39" style="font-size: 13px;">
                                                                                                     上次儲存時間：${gvc.glitter.ut.dateFormat(new Date(dd.update_time), 'MM-dd hh:mm')}
                                                                                                 </div>
                                                                                             </div>`,
@@ -327,10 +327,10 @@ export class SaasViewModel {
         gvc.glitter.addStyleLink(gvc.glitter.root_path + `/css/editor.css`);
         const hr = html` <div style="width: 600px;max-width: calc(100vw - 20px); overflow-y: auto;max-height: 100vh;" class="bg-white shadow rounded-3">
             <div class="w-100 d-flex align-items-center p-3 border-bottom">
-                <div class="fw-500 cl_39">建立您的商店</div>
+                <div class="fw-500 color39">建立您的商店</div>
                 <div class="flex-fill"></div>
                 <i
-                    class="fa-regular fa-circle-xmark fs-5 cl_39 ${register ? `d-none` : ``}"
+                    class="fa-regular fa-circle-xmark fs-5 color39 ${register ? `d-none` : ``}"
                     style="cursor:pointer;"
                     onclick="${gvc.event(() => {
                         gvc.closeDialog();
@@ -459,14 +459,14 @@ export class SaasViewModel {
                                                 return html`
                                                     <div class="d-flex align-items-center justify-content-center flex-column w-100 py-4" style="width:700px;gap:10px;">
                                                         <img src="./img/box-open-solid.svg" />
-                                                        <span class="cl_39 text-center">尚未自製任何模塊<br />請前往開發者模式自製專屬模塊</span>
+                                                        <span class="color39 text-center">尚未自製任何模塊<br />請前往開發者模式自製專屬模塊</span>
                                                     </div>
                                                 `;
                                             } else {
                                                 return html`
                                                     <div class="d-flex align-items-center justify-content-center flex-column w-100 py-4" style="width:700px;gap:10px;">
                                                         <img src="./img/box-open-solid.svg" />
-                                                        <span class="cl_39 text-center">查無相關模塊</span>
+                                                        <span class="color39 text-center">查無相關模塊</span>
                                                     </div>
                                                 `;
                                             }

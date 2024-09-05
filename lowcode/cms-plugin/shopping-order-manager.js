@@ -15,9 +15,10 @@ import { BgListComponent } from '../backend-manager/bg-list-component.js';
 import { FilterOptions } from './filter-options.js';
 import { ApiUser } from '../glitter-base/route/user.js';
 import { UserList } from './user-list.js';
+import { CheckInput } from '../modules/checkInput.js';
 const html = String.raw;
 export class ShoppingOrderManager {
-    static support_shipment_method() {
+    static supportShipmentMethod() {
         return [
             {
                 title: '門市立即取貨',
@@ -951,8 +952,9 @@ export class ShoppingOrderManager {
                     })}
                                                 </div>
                                             </div>
+                                            ${BgWidget.mbContainer(18)}
                                             <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 12px;align-self: stretch;">
-                                                <div style="color:#393939;font-size: 16px;font-weight: 700;margin-top: 18px;">付款方式</div>
+                                                <div class="tx_700">付款方式</div>
                                                 <div style="color: #393939;font-size: 16px;font-weight: 400; line-height: 140%;margin-bottom:6px;">
                                                     ${ShoppingOrderManager.getPaymentMethodText(orderData.orderData.method, orderData.orderData)}
                                                 </div>
@@ -1003,11 +1005,11 @@ export class ShoppingOrderManager {
                                                                 </div>
                                                             </div>
                                                             <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 12px;align-self: stretch;">
-                                                                <div style="color:#393939;font-size: 16px;font-weight: 700;margin-top: 18px;">配送方式</div>
+                                                                <div class="tx_700">配送方式</div>
                                                                 <div style="color: #393939;font-size: 16px;font-weight: 400; line-height: 140%;">
                                                                     ${(() => {
                                     var _a;
-                                    return (_a = ShoppingOrderManager.support_shipment_method().find((dd) => {
+                                    return (_a = ShoppingOrderManager.supportShipmentMethod().find((dd) => {
                                         return dd.value === orderData.orderData.user_info.shipment;
                                     })) === null || _a === void 0 ? void 0 : _a.title;
                                 })()}
@@ -1015,7 +1017,7 @@ export class ShoppingOrderManager {
                                                             </div>
                                                             <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 12px;align-self: stretch;">
                                                                 ${['UNIMARTC2C', 'FAMIC2C', 'OKMARTC2C', 'HILIFEC2C', 'normal'].includes(orderData.orderData.user_info.shipment)
-                                    ? `<div style="color:#393939;font-size: 16px;font-weight: 700;margin-top: 18px;">配送資訊</div>`
+                                    ? html `<div class="tx_700">配送資訊</div>`
                                     : ``}
                                                                 <div class="d-flex flex-column" style="color: #393939;font-size: 16px;font-weight: 400; line-height: 140%;gap: 4px;">
                                                                     ${(() => {
@@ -1079,11 +1081,12 @@ export class ShoppingOrderManager {
                                                             </div>
                                                         `;
                             },
-                            divCreate: { class: 'd-flex flex-column' },
+                            divCreate: { class: 'd-flex flex-column', style: 'gap: 18px;' },
                         };
                     }))}
                                         ${BgWidget.mainCard(html `
-                                            <div style="color:#393939;font-size: 16px;font-weight: 700;margin-bottom: 18px">訂單備註</div>
+                                            <div class="tx_700">訂單備註</div>
+                                            ${BgWidget.mbContainer(18)}
                                             <div style="position: relative;">
                                                 ${EditorElem.editeText({
                         gvc: gvc,
@@ -1097,7 +1100,8 @@ export class ShoppingOrderManager {
                                             </div>
                                         `)}
                                         ${BgWidget.mainCard(html `
-                                            <div style="color:#393939;font-size: 16px;font-weight: 700;margin-bottom: 18px">訂單記錄</div>
+                                            <div class="tx_700">訂單記錄</div>
+                                            ${BgWidget.mbContainer(18)}
                                             <div class="d-flex flex-column" style="gap: 8px">
                                                 ${(() => {
                         var _a;
@@ -1175,13 +1179,13 @@ export class ShoppingOrderManager {
                                                                             <div style="color: #4D86DB;font-weight: 400;">${orderData.orderData.user_info.name}</div>
                                                                             <div style="color: #393939;font-weight: 400;">${orderData.orderData.user_info.phone || '電話未填'}</div>
                                                                         </div>
-                                                                        <div class="tx_700">付款方式</div>
+                                                                        <div class="tx_700 mt-2">付款方式</div>
                                                                         <div>${ShoppingOrderManager.getPaymentMethodText(orderData.orderData.method, orderData.orderData)}</div>
-                                                                        <div class="tx_700">配送方式</div>
+                                                                        <div class="tx_700 mt-2">配送方式</div>
                                                                         <div style="color: #393939;line-height: 140%; ">
                                                                             ${(() => {
                                     var _a;
-                                    return (_a = ShoppingOrderManager.support_shipment_method().find((dd) => {
+                                    return (_a = ShoppingOrderManager.supportShipmentMethod().find((dd) => {
                                         return dd.value === orderData.orderData.user_info.shipment;
                                     })) === null || _a === void 0 ? void 0 : _a.title;
                                 })()}
@@ -1231,7 +1235,7 @@ export class ShoppingOrderManager {
                                 var _a;
                                 return html `
                                                             <div class="d-flex align-items-center ">
-                                                                <div class="fw-bold fs-6">用戶備註</div>
+                                                                <div class="tx_700">用戶備註</div>
                                                                 <div class="flex-fill"></div>
                                                                 <i
                                                                     class="fa-solid fa-pencil d-none"
@@ -1808,20 +1812,36 @@ export class ShoppingOrderManager {
                 dialog.infoMessage({ text: '請添加商品' });
                 return false;
             }
-            if (!passData.customer_info.name || !passData.customer_info.email || !passData.customer_info.phone) {
-                dialog.infoMessage({ text: '收件人資訊尚未填寫完畢' });
+            if (!passData.user_info.name || !passData.user_info.email) {
+                dialog.infoMessage({ text: '「顧客資料」尚未填寫完畢' });
                 return false;
             }
-            if (!passData.user_info.name || !passData.user_info.email) {
-                dialog.infoMessage({ text: '顧客資訊尚未填寫完畢' });
+            if (!CheckInput.isEmpty(passData.user_info.phone) && !CheckInput.isTaiwanPhone(passData.user_info.phone)) {
+                dialog.infoMessage({ text: BgWidget.taiwanPhoneAlert('「顧客資料」電話格式有誤') });
+                return false;
+            }
+            if (!CheckInput.isEmail(passData.user_info.email)) {
+                dialog.infoMessage({ text: '「顧客資料」信箱格式錯誤' });
+                return false;
+            }
+            if (!passData.customer_info.name || !passData.customer_info.phone || !passData.customer_info.email) {
+                dialog.infoMessage({ text: '「收件人資料」尚未填寫完畢' });
+                return false;
+            }
+            if (!CheckInput.isTaiwanPhone(passData.customer_info.phone)) {
+                dialog.infoMessage({ text: BgWidget.taiwanPhoneAlert('「收件人資料」電話格式有誤') });
+                return false;
+            }
+            if (!CheckInput.isEmail(passData.customer_info.email)) {
+                dialog.infoMessage({ text: '「收件人資料」信箱格式錯誤' });
                 return false;
             }
             if (passData.user_info.shipment == 'normal' && !passData.user_info.address) {
-                dialog.infoMessage({ text: '請填寫地址' });
+                dialog.infoMessage({ text: '「收件人資料」請填寫宅配地址' });
                 return false;
             }
             if (passData.user_info.shipment != 'normal' && !passData.user_info.CVSAddress) {
-                dialog.infoMessage({ text: '請填寫超商地址' });
+                dialog.infoMessage({ text: '「收件人資料」請選擇取貨門市' });
                 return false;
             }
             return true;
@@ -1904,7 +1924,7 @@ export class ShoppingOrderManager {
                                                     min="0"
                                                     onchange="${gvc.event((e) => {
                             if (e.value < 1) {
-                                gvc.glitter.innerDialog((gvc) => {
+                                window.parent.glitter.innerDialog((gvc) => {
                                     return html `
                                                                     <div
                                                                         style="display: inline-flex;padding: 36px;flex-direction: column;justify-content: center;align-items: center;gap: 24px;background-color: white;"
@@ -2673,7 +2693,7 @@ export class ShoppingOrderManager {
             if (checkOrderEmpty(passData)) {
                 ApiShop.toManualCheckout(passData).then((r) => {
                     dialog.dataLoading({ visible: false });
-                    gvc.glitter.innerDialog((gvc) => {
+                    window.parent.glitter.innerDialog((gvc) => {
                         return html `
                                                 <div
                                                     style="position: relative;width: 492px;height: 223px;border-radius: 10px;background: #FFF;display: flex;flex-direction: column;align-items: center;justify-content: center;"

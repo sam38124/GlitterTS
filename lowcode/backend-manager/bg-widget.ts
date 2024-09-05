@@ -51,9 +51,20 @@ export class BgWidget {
         return html`<span style="color: #006621; font-size: 14px; font-weight: 400; cursor:pointer; overflow-wrap: break-word; text-decoration: underline; ${style}" onclick="${event}">${text}</span>`;
     }
 
+    static taiwanPhoneAlert(str: string = '請輸入正確的市話或手機號碼格式') {
+        return html`
+            <div class="text-center">
+                <div>${str}</div>
+                <div>（ex. 0912666987,</div>
+                <div>02-25660123,</div>
+                <div>04-25881234#78）</div>
+            </div>
+        `;
+    }
+
     // 按鈕
-    static save(event: string, text: string = '儲存' , customClass?:string) {
-        return html` <button class="btn btn-black ${customClass??``}" type="button" onclick="${event}">
+    static save(event: string, text: string = '儲存', customClass?: string) {
+        return html` <button class="btn btn-black ${customClass ?? ``}" type="button" onclick="${event}">
             <span class="tx_700_white">${text}</span>
         </button>`;
     }
@@ -97,7 +108,7 @@ export class BgWidget {
             size.btn = `btn-black-${obj.size}`;
             size.font = `tx_white_${obj.size}`;
         }
-        return html` <button class="btn btn-black ${size.btn} ${obj?.class??''}" type="button" style="${obj?.style ?? ''}" onclick="${event}">
+        return html` <button class="btn btn-black ${size.btn} ${obj?.class ?? ''}" type="button" style="${obj?.style ?? ''}" onclick="${event}">
             <i class="${obj && obj.icon && obj.icon.length > 0 ? obj.icon : 'd-none'}"></i>
             <span class="tx_700_white ${size.font}" style="${obj?.textStyle ?? ''}">${text}</span>
         </button>`;
@@ -192,6 +203,11 @@ export class BgWidget {
         return html` <div class="d-flex align-items-center justify-content-center" style="cursor:pointer; margin-right: 10px;" onclick="${event}">
             <i class="fa-solid fa-angle-left" style="margin-top: 0.25rem; color: #393939; font-size: 1.75rem; font-weight: 900;"></i>
         </div>`;
+    }
+
+    // 標籤
+    static greenBadge() {
+        return html`<div class="badge" style="border-radius: 7px;background: #D8ECDA;height: 22px;padding: 4px 6px;font-size: 14px;color:#393939;">已付款</div>`;
     }
 
     // 元素
@@ -1298,7 +1314,7 @@ ${obj.default ?? ''}</textarea
                                         })}"
                                         style="gap:6px;"
                                     >
-                                        ${isSelect() ? html`<i class="fa-sharp fa-solid fa-circle-dot cl_39"></i>` : html`<div class="c_39_checkbox"></div>`}
+                                        ${isSelect() ? html`<i class="fa-sharp fa-solid fa-circle-dot color39"></i>` : html`<div class="c_39_checkbox"></div>`}
                                         <span class="tx_normal">${dd.title}</span>
                                     </div>
                                     ${obj.def === dd.value && dd.innerHtml ? html`<div class="mt-1">${dd.innerHtml}</div>` : ``}

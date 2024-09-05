@@ -5,6 +5,7 @@ import { ApiShop } from '../glitter-base/route/shopping.js';
 import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
 import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
 import { FilterOptions } from './filter-options.js';
+import { CheckInput } from '../modules/checkInput.js';
 
 type ViewModel = {
     id: string;
@@ -579,8 +580,7 @@ export class ShoppingCollections {
                                                                     value="${vm.data.code || ''}"
                                                                     onchange="${gvc.event((e) => {
                                                                         let text = e.value;
-                                                                        const regex = /^[\u4e00-\u9fa5a-zA-Z0-9-]+$/;
-                                                                        if (!regex.test(text)) {
+                                                                        if (!CheckInput.isChineseEnglishNumberHyphen(text)) {
                                                                             const dialog = new ShareDialog(gvc.glitter);
                                                                             dialog.infoMessage({ text: '連結僅限使用中英文數字與連接號' });
                                                                         } else {
@@ -863,22 +863,23 @@ export class ShoppingCollections {
                                 )}
                                 ${BgWidget.save(
                                     gvc.event(() => {
-                                        const regexTitle = /[\s,\/\\]+/g;
-                                        if (vm.data.title === undefined || vm.data.title === '') {
+                                        if (!CheckInput.isEmpty(vm.data.title)) {
                                             dialog.infoMessage({ text: '標題不可為空' });
                                             return;
                                         }
-                                        if (!vm.data.code) {
-                                            dialog.infoMessage({ text: '請輸入分類連結' });
-                                            return;
-                                        }
+
+                                        const regexTitle = /[\s,\/\\]+/g;
                                         if (regexTitle.test(vm.data.title)) {
                                             dialog.infoMessage({ text: '標題不可包含空白格與以下符號：<br />「 , 」「 / 」「 \\ 」' });
                                             return;
                                         }
 
-                                        const regexCode = /^[\u4e00-\u9fa5a-zA-Z0-9]+$/;
-                                        if (!regexCode.test(vm.data.code)) {
+                                        if (!CheckInput.isEmpty(vm.data.code)) {
+                                            dialog.infoMessage({ text: '請輸入分類連結' });
+                                            return;
+                                        }
+
+                                        if (!CheckInput.isChineseEnglishNumberHyphen(vm.data.code)) {
                                             dialog.infoMessage({ text: '連結僅限使用中英文數字與連接號' });
                                             return;
                                         }

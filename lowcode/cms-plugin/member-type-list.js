@@ -355,7 +355,7 @@ export class MemberTypeList {
                                                 })}"
                                                                         >
                                                                             ${vm.data.condition.type === dd.value
-                                                    ? `<i class="fa-sharp fa-solid fa-circle-dot cl_39"></i>`
+                                                    ? `<i class="fa-sharp fa-solid fa-circle-dot color39"></i>`
                                                     : ` <div class="c_39_checkbox"></div>`}
                                                                             <div class="tx_normal fw-normal">${dd.title}</div>
                                                                         </div>`,
@@ -409,7 +409,7 @@ export class MemberTypeList {
                                                 })}"
                                                                     >
                                                                         ${vm.data.duration.type === dd.value
-                                                    ? `<i class="fa-sharp fa-solid fa-circle-dot cl_39"></i>`
+                                                    ? `<i class="fa-sharp fa-solid fa-circle-dot color39"></i>`
                                                     : ` <div class="c_39_checkbox"></div>`}
                                                                         <div class="tx_normal fw-normal">${dd.title}</div>
                                                                     </div>`,
@@ -462,7 +462,7 @@ export class MemberTypeList {
                                                 })}"
                                                                     >
                                                                         ${vm.data.dead_line.type === dd.value
-                                                    ? `<i class="fa-sharp fa-solid fa-circle-dot cl_39"></i>`
+                                                    ? `<i class="fa-sharp fa-solid fa-circle-dot color39"></i>`
                                                     : ` <div class="c_39_checkbox"></div>`}
                                                                         <div class="tx_normal fw-normal">${dd.title}</div>
                                                                     </div>`,
@@ -562,7 +562,7 @@ export class MemberTypeList {
                                                 })}"
                                                                         >
                                                                             ${vm.data.renew_condition.type === dd.value
-                                                    ? `<i class="fa-sharp fa-solid fa-circle-dot cl_39"></i>`
+                                                    ? `<i class="fa-sharp fa-solid fa-circle-dot color39"></i>`
                                                     : ` <div class="c_39_checkbox"></div>`}
                                                                             <div class="tx_normal fw-normal">${dd.title}</div>
                                                                         </div>`,

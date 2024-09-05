@@ -1,5 +1,5 @@
 import { altX, commentX, lineAttrX } from './regex.js';
-import { isEmpty } from './isEmpty.js';
+import { CheckInput } from './checkInput.js';
 const capComment = 1;
 const capSelector = 2;
 const capEnd = 3;
@@ -22,10 +22,10 @@ export const toJSON = function (cssString, args = defaultArgs) {
         cssString = cssString.replace(commentX, '');
     }
     while ((match = altX.exec(cssString)) != null) {
-        if (!isEmpty(match[capComment]) && args.comments) {
+        if (!CheckInput.isEmpty(match[capComment]) && args.comments) {
             node[count++] = match[capComment].trim();
         }
-        else if (!isEmpty(match[capSelector])) {
+        else if (!CheckInput.isEmpty(match[capSelector])) {
             const name = match[capSelector].trim();
             const newNode = toJSON(cssString, args);
             if (args.ordered) {
@@ -46,10 +46,10 @@ export const toJSON = function (cssString, args = defaultArgs) {
                 }
             }
         }
-        else if (!isEmpty(match[capEnd])) {
+        else if (!CheckInput.isEmpty(match[capEnd])) {
             return node;
         }
-        else if (!isEmpty(match[capAttr])) {
+        else if (!CheckInput.isEmpty(match[capAttr])) {
             const line = match[capAttr].trim();
             const attr = lineAttrX.exec(line);
             if (attr) {

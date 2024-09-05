@@ -727,7 +727,7 @@ export class ShoppingProductSetting {
                                                                                 </div>
                                                                                 <div class="w-100" style="display: flex;flex-direction: column;align-items: flex-start;gap: 24px;padding: 20px;">
                                                                                     <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 16px;align-items: flex-start">
-                                                                                        <div style="">匯出</div>
+                                                                                        <div>匯出</div>
                                                                                         ${BgWidget.multiCheckboxContainer(gvc, [
                                                         { key: 'all', name: '全部商品' },
                                                         { key: 'search', name: '目前搜尋與篩選的結果' },
@@ -737,7 +737,7 @@ export class ShoppingProductSetting {
                                                     }, { single: true })}
                                                                                     </div>
                                                                                     <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 16px;align-self: stretch;">
-                                                                                        <div style="">匯出為</div>
+                                                                                        <div>匯出為</div>
                                                                                         ${BgWidget.multiCheckboxContainer(gvc, [{ key: 'excel', name: 'Excel檔案' }], [check.file], (res) => {
                                                         check.file = res[0];
                                                     }, { single: true })}
@@ -1545,7 +1545,7 @@ export class ShoppingProductSetting {
         })}"
                                         />
                                         <div class="col-6" style="display: flex;align-items: center;gap: 10px;">
-                                            <div class="" style="white-space: nowrap;">單位</div>
+                                            <div style="white-space: nowrap;">單位</div>
                                             <select class="form-select d-flex align-items-center flex-fill" style="border-radius: 10px;border: 1px solid #DDD;padding-left: 18px;">
                                                 <option value="kg">公斤</option>
                                             </select>
@@ -1563,7 +1563,7 @@ export class ShoppingProductSetting {
                 view: () => {
                     var _a, _b;
                     return html `
-                                                    <div class="d-flex flex-column w-100" style="">
+                                                    <div class="d-flex flex-column w-100">
                                                         <div
                                                             class="d-flex align-items-center"
                                                             style="gap:6px;cursor: pointer;"
@@ -2042,6 +2042,7 @@ export class ShoppingProductSetting {
                                 })(),
                                 BgWidget.mainCard(obj.gvc.bindView(() => {
                                     const specid = obj.gvc.glitter.getUUID();
+                                    let editIndex = -1;
                                     return {
                                         bind: specid,
                                         dataList: [{ obj: createPage, key: 'page' }],
@@ -2049,9 +2050,9 @@ export class ShoppingProductSetting {
                                             let returnHTML = ``;
                                             let editSpectPage = [];
                                             if (postMD.specs.length > 0) {
-                                                postMD.specs.map(() => {
+                                                postMD.specs.map((d, index) => {
                                                     editSpectPage.push({
-                                                        type: 'show',
+                                                        type: index === editIndex ? 'edit' : 'show',
                                                     });
                                                 });
                                                 returnHTML += html `
@@ -2093,12 +2094,7 @@ export class ShoppingProductSetting {
                                                             return {
                                                                 title: gvc.bindView({
                                                                     bind: `editSpec${specIndex}`,
-                                                                    dataList: [
-                                                                        {
-                                                                            obj: editSpectPage[specIndex],
-                                                                            key: 'type',
-                                                                        },
-                                                                    ],
+                                                                    dataList: [{ obj: editSpectPage[specIndex], key: 'type' }],
                                                                     view: () => {
                                                                         if (editSpectPage[specIndex].type == 'show') {
                                                                             gvc.addStyle(`
@@ -2113,7 +2109,6 @@ export class ShoppingProductSetting {
                                                                                                     <div style="font-size: 16px;">${dd.title}</div>
                                                                                                     ${(() => {
                                                                                 let returnHTML = ``;
-                                                                                let selectBTN = undefined;
                                                                                 dd.option.map((opt) => {
                                                                                     returnHTML += html `
                                                                                                                 <div class="option" style="border-radius: 5px;;padding: 1px 9px;font-size: 14px;">
@@ -2127,10 +2122,10 @@ export class ShoppingProductSetting {
                                                                                                                 <div
                                                                                                                     class="position-absolute "
                                                                                                                     style="right:12px;top:50%;transform: translateY(-50%);"
-                                                                                                                    onclick="${gvc.event((e) => {
-                                                                                    selectBTN = e.parentElement.parentElement.parentElement.previousElementSibling;
-                                                                                    selectBTN.classList.toggle('d-none');
-                                                                                    editSpectPage[specIndex].type = 'edit';
+                                                                                                                    onclick="${gvc.event(() => {
+                                                                                    createPage.page = 'add';
+                                                                                    editIndex = specIndex;
+                                                                                    gvc.notifyDataChange(specid);
                                                                                 })}"
                                                                                                                 >
                                                                                                                     <svg
@@ -2177,6 +2172,7 @@ export class ShoppingProductSetting {
                                                                                                             ${ShoppingProductSetting.specInput(gvc, temp, {
                                                                             cancel: () => {
                                                                                 editSpectPage[specIndex].type = 'show';
+                                                                                editIndex = -1;
                                                                                 gvc.notifyDataChange(specid);
                                                                             },
                                                                             save: () => {
@@ -2198,37 +2194,22 @@ export class ShoppingProductSetting {
                                                                     return ``;
                                                                 },
                                                                 editTitle: `編輯規格`,
+                                                                draggable: editSpectPage[specIndex].type === 'show',
                                                             };
                                                         });
                                                     },
                                                 })}
                                                                 `;
                                             }
-                                            if (createPage.page == 'add') {
-                                                returnHTML += html `
-                                                                    <div
-                                                                        style="width:100%;display:flex;align-items: center;justify-content: center;color: #36B;gap:6px;cursor: pointer;"
-                                                                        onclick="${gvc.event(() => {
-                                                    createPage.page = 'edit';
-                                                })}"
-                                                                    >
-                                                                        新增規格
-                                                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14" fill="none">
-                                                                            <path d="M1.5 7.23926H12.5" stroke="#3366BB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                                                                            <path d="M6.76172 1.5L6.76172 12.5" stroke="#3366BB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                                                                        </svg>
-                                                                    </div>
-                                                                `;
-                                            }
-                                            else if (createPage.page == 'edit') {
+                                            if (createPage.page == 'edit' && editIndex === -1) {
                                                 let temp = {
                                                     title: '',
                                                     option: [],
                                                 };
                                                 returnHTML += html `
                                                                     ${BgWidget.mainCard(html `
-                                                                        <div style="display: flex;flex-direction: column;align-items: flex-end;gap: 18px;align-self: stretch;" class="">
-                                                                            <div style="width:100%;display: flex;flex-direction: column;align-items: flex-end;gap: 18px;" class="">
+                                                                        <div style="display: flex;flex-direction: column;align-items: flex-end;gap: 18px;align-self: stretch;">
+                                                                            <div style="width:100%;display: flex;flex-direction: column;align-items: flex-end;gap: 18px;">
                                                                                 ${ShoppingProductSetting.specInput(gvc, temp, {
                                                     cancel: () => {
                                                         createPage.page = 'add';
@@ -2244,6 +2225,23 @@ export class ShoppingProductSetting {
                                                                             </div>
                                                                         </div>
                                                                     `)}
+                                                                `;
+                                            }
+                                            else {
+                                                returnHTML += html `
+                                                                    <div
+                                                                        style="width:100%;display:flex;align-items: center;justify-content: center;color: #36B;gap:6px;cursor: pointer;"
+                                                                        onclick="${gvc.event(() => {
+                                                    editIndex = -1;
+                                                    createPage.page = 'edit';
+                                                })}"
+                                                                    >
+                                                                        新增規格
+                                                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14" fill="none">
+                                                                            <path d="M1.5 7.23926H12.5" stroke="#3366BB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                                                            <path d="M6.76172 1.5L6.76172 12.5" stroke="#3366BB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                                                        </svg>
+                                                                    </div>
                                                                 `;
                                             }
                                             return returnHTML;
@@ -2462,7 +2460,7 @@ export class ShoppingProductSetting {
                                                                                             })}"
                                                                                                                           />
                                                                                                                           <div class="col-6" style="display: flex;align-items: center;gap: 10px;">
-                                                                                                                              <div class="" style="white-space: nowrap;">單位</div>
+                                                                                                                              <div style="white-space: nowrap;">單位</div>
                                                                                                                               <select
                                                                                                                                   class="form-select d-flex align-items-center flex-fill"
                                                                                                                                   style="border-radius: 10px;border: 1px solid #DDD;padding-left: 18px;"
@@ -3180,6 +3178,14 @@ color: ${selected.length ? `#393939` : `#DDD`};font-size: 18px;
                                                                                                                                                           style="width: 100%;height: 40px;padding: 0px 18px;border-radius: 10px;border: 1px solid #DDD;background: #FFF;"
                                                                                                                                                           value="${(_a = data[dd]) !== null && _a !== void 0 ? _a : 0}"
                                                                                                                                                           min="0"
+                                                                                                                                                          oninput="${gvc.event((e) => {
+                                                                                                            const regex = /^[0-9]*$/;
+                                                                                                            if (!regex.test(e.value)) {
+                                                                                                                e.value = e.value
+                                                                                                                    .replace(/[^0-9]/g, '')
+                                                                                                                    .replace(/e/gi, '');
+                                                                                                            }
+                                                                                                        })}"
                                                                                                                                                           onchange="${gvc.event((e) => {
                                                                                                             data[dd] = e.value;
                                                                                                             gvc.notifyDataChange(vm.id);
@@ -3384,8 +3390,7 @@ ${(_c = postMD.seo.content) !== null && _c !== void 0 ? _c : ''}</textarea
                                                         if (dd.array && dd.array.length > 0) {
                                                             return html ` <li class="btn-group d-flex flex-column" style="margin-top:1px;margin-bottom:1px;">
                                                                                             <div
-                                                                                                class="editor_item d-flex pe-2 my-0 hi me-n1 "
-                                                                                                style=""
+                                                                                                class="editor_item d-flex pe-2 my-0 hi me-n1"
                                                                                                 onclick="${gvc.event(() => {
                                                                 dd.toogle = !dd.toogle;
                                                                 gvc.recreateView();
@@ -3407,8 +3412,7 @@ ${(_c = postMD.seo.content) !== null && _c !== void 0 ? _c : ''}</textarea
                                                         else {
                                                             return html ` <li class="btn-group d-flex flex-column" style="margin-top:1px;margin-bottom:1px;">
                                                                                             <div
-                                                                                                class="editor_item d-flex   pe-2 my-0 hi  "
-                                                                                                style=""
+                                                                                                class="editor_item d-flex pe-2 my-0 hi"
                                                                                                 onclick="${gvc.event(() => {
                                                                 if (postMD.collection.find((dd) => {
                                                                     return dd === indt;
@@ -3541,6 +3545,10 @@ ${(_c = postMD.seo.content) !== null && _c !== void 0 ? _c : ''}</textarea
     }
     static specInput(gvc, temp, cb) {
         const html = String.raw;
+        const vm = {
+            viewId: Tool.randomString(7),
+            enterId: Tool.randomString(7),
+        };
         let keyboard = '';
         return html ` <div class="bg-white w-100">
             ${[
@@ -3558,7 +3566,7 @@ ${(_c = postMD.seo.content) !== null && _c !== void 0 ? _c : ''}</textarea
                     />
                 </div>`,
             gvc.bindView({
-                bind: 'specInput',
+                bind: vm.viewId,
                 view: () => {
                     return html `
                             <div class="w-100" style="margin-top: 8px;">選項 (輸入完請按enter)</div>
@@ -3580,15 +3588,15 @@ ${(_c = postMD.seo.content) !== null && _c !== void 0 ? _c : ''}</textarea
                                                             style="font-size: 12px;cursor: pointer;"
                                                             onclick="${gvc.event(() => {
                                 temp.option.splice(index, 1);
-                                gvc.notifyDataChange('specInput');
+                                gvc.notifyDataChange(vm.viewId);
                             })}"
                                                         ></i>
                                                     </div>
                                                 `);
                         });
                         tempHTML.push(html `<input
-                                            id="keep-enter"
-                                            class="flex-fill d-flex align-items-center border-0 specInput h-100"
+                                            id="${vm.enterId}"
+                                            class="flex-fill d-flex align-items-center border-0 specInput-${vm.enterId} h-100"
                                             value=""
                                             placeholder="${temp.option.length > 0 ? '請繼續輸入' : ''}"
                                         />`);
@@ -3596,14 +3604,12 @@ ${(_c = postMD.seo.content) !== null && _c !== void 0 ? _c : ''}</textarea
                     })()}
                                 </div>
                                 <div
-                                    class="d-flex align-items-center ${(() => {
-                        return temp.option.length > 0 ? 'd-none' : '';
-                    })()}"
+                                    class="d-flex align-items-center ${temp.option.length > 0 ? 'd-none' : ''}"
                                     style="color: #8D8D8D;width: 100%;height:100%;position: absolute;left: 18px;top: 0"
                                     onclick="${gvc.event((e) => {
                         e.classList.add('d-none');
                         setTimeout(() => {
-                            document.querySelector('.specInput').focus();
+                            document.querySelector('.specInput-${vm.enterId}').focus();
                         }, 100);
                     })}"
                                 >
@@ -3617,20 +3623,26 @@ ${(_c = postMD.seo.content) !== null && _c !== void 0 ? _c : ''}</textarea
                     style: 'display: flex;gap: 8px;flex-direction: column;',
                 },
                 onCreate: () => {
-                    if (keyboard === 'Enter') {
-                        const input = document.getElementById('keep-enter');
-                        input && input.focus();
-                    }
-                    document.removeEventListener('keydown', gvc.glitter.share.keyDownEvent);
-                    gvc.glitter.share.keyDownEvent = function (event) {
-                        const input = document.getElementById('keep-enter');
+                    var _a;
+                    let enterPass = true;
+                    const inputElement = document.getElementById(vm.enterId);
+                    gvc.glitter.share.keyDownEvent = (_a = gvc.glitter.share.keyDownEvent) !== null && _a !== void 0 ? _a : {};
+                    keyboard === 'Enter' && inputElement && inputElement.focus();
+                    inputElement.addEventListener('compositionupdate', function () {
+                        enterPass = false;
+                    });
+                    inputElement.addEventListener('compositionend', function () {
+                        enterPass = true;
+                    });
+                    document.removeEventListener('keydown', gvc.glitter.share.keyDownEvent[vm.enterId]);
+                    gvc.glitter.share.keyDownEvent[vm.enterId] = (event) => {
                         keyboard = event.key;
-                        if (input && input.value.length > 0 && event.key === 'Enter') {
+                        if (enterPass && inputElement && inputElement.value.length > 0 && event.key === 'Enter') {
                             setTimeout(() => {
                                 temp.option.push({
-                                    title: input.value,
+                                    title: inputElement.value,
                                 });
-                                input.value = '';
+                                inputElement.value = '';
                                 temp.option = temp.option.reduce((acc, current) => {
                                     const isTitleExist = acc.find((item) => item.title === current.title);
                                     if (!isTitleExist) {
@@ -3638,11 +3650,11 @@ ${(_c = postMD.seo.content) !== null && _c !== void 0 ? _c : ''}</textarea
                                     }
                                     return acc;
                                 }, []);
-                                gvc.notifyDataChange('specInput');
+                                gvc.notifyDataChange(vm.viewId);
                             }, 30);
                         }
                     };
-                    document.addEventListener('keydown', gvc.glitter.share.keyDownEvent);
+                    document.addEventListener('keydown', gvc.glitter.share.keyDownEvent[vm.enterId]);
                 },
             }),
             html ` <div class="d-flex w-100 justify-content-end align-items-center w-100 bg-white" style="gap:14px; margin-top: 12px;">
