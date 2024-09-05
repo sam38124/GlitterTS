@@ -305,6 +305,7 @@ export class Setting_editor {
                                                     appName: 'cms_system',
                                                     groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716654741305-Component 56 (5).svg',
                                                     moduleName: '商店設計',
+                                                    guideClass:'guide7-2'
                                                 },
                                                 {
                                                     icon: '',

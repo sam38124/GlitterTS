@@ -1,5 +1,6 @@
 import {GVC} from "../glitterBundle/GVController.js";
 import {ApiShop} from "../glitter-base/route/shopping.js";
+import {all} from "underscore/index.js";
 
 const html = String.raw;
 
@@ -47,13 +48,13 @@ export class BgGuide {
         value: "web_theme",
         title: "佈置官網",
         innerHTML: () => {
-            return this.drawInitGuide()
+            return this.drawLayoutGuide()
         }
     }, {
         value: "manage_theme",
         title: "管理主題庫",
         innerHTML: () => {
-            return this.drawInitGuide()
+            return this.drawThemeGuide()
         }
     }]
     private eventSet: any = [];
@@ -62,10 +63,6 @@ export class BgGuide {
         this.guide = guide;
         this.gvc = gvc;
         this.step = 0;
-    }
-
-    public showGuideInfo(): void {
-        console.log(this.guidePage[this.guide]);
     }
 
     public detectClickThrough(target: any, clickEvent: () => void) {
@@ -105,10 +102,6 @@ export class BgGuide {
         });
     }
 
-    public deleteEvent(handleClick: void) {
-
-    }
-
     public leaveGuide(vm?: any) {
         vm.step = -1;
         const element = document.querySelector('.guide-BG');
@@ -127,6 +120,15 @@ export class BgGuide {
 
     public holeBG(left: number, right: number, top: number, bottom: number) {
         return `clip-path: polygon(0% 0%, 0% 100%, ${left.toFixed(0)}px 100%, ${left.toFixed(0)}px ${top.toFixed(0)}px, ${right.toFixed(0)}px ${top.toFixed(0)}px, ${right.toFixed(0)}px ${bottom.toFixed(0)}px, ${left.toFixed(0)}px ${bottom.toFixed(0)}px, ${left.toFixed(0)}px 100%, 100% 100%, 100% 0%);`
+    }
+
+    //畫兩個洞的
+    public holeTwoBG(first: {
+        x1: number, x2: number, y1: number, y2: number
+    }, second: {
+        x1: number, x2: number, y1: number, y2: number
+    }) {
+        return `clip-path: polygon(0 0, 0 ${first.y1}px, ${first.x2}px ${first.y1}px, ${first.x2}px ${first.y2}px, 0 ${first.y2}px, 0 100%, ${second.x1}px 100%, ${second.x1}px ${second.y1}px, ${second.x2}px ${second.y1}px, ${second.x2}px ${second.y2}px, ${second.x1}px ${second.y2}px, ${second.x1}px 100%, 100% 100%, 100% 0%);`
     }
 
     public preventDefault(e: any) {
@@ -158,7 +160,7 @@ export class BgGuide {
     }
 
     // 大部分用於step1，用於點擊左列大項次的教學
-    private drawMainRowBG(BG: HTMLElement, vm: any, targetSelector: string, viewID: string, step: number , title?:string) {
+    private drawMainRowBG(BG: HTMLElement, vm: any, targetSelector: string, viewID: string, step: number, title?: string) {
         const target = document.querySelector(targetSelector) as HTMLElement;
         const rect = (target) ? target!.getBoundingClientRect() : "";
         if (rect) {
@@ -177,7 +179,7 @@ export class BgGuide {
                                   fill="white"/>
                         </svg>
                         <div style="display: flex;padding: 12px 24px;gap: 10px;width: 100%;background: #FEAD20;border-radius: 10px 10px 0 0;color:white;font-size: 20px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 0.8px;">
-                            ${title?title:"商店設定"}
+                            ${title ? title : "商店設定"}
                             <div class="d-flex ms-auto align-items-center"
                                  style="gap:10px;color: #FFF;font-size: 16px;font-style: normal;font-weight: 400;line-height: normal;letter-spacing: 0.64px;">
                                 步驟 1/${step}
@@ -193,7 +195,8 @@ export class BgGuide {
                         </div>
                         <div style="background: #FFF;width:100%;padding: 18px 24px;display: flex;align-items: center;border-radius: 0 0 10px 10px;font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%; /* 25.6px */letter-spacing: 0.64px;">
                             點擊<span
-                                style="font-style: normal;font-weight: 700;line-height: 160%;letter-spacing: 0.64px;">「${title?title:"商店設定"}」</span>
+                                style="font-style: normal;font-weight: 700;line-height: 160%;letter-spacing: 0.64px;">「${title ? title : "商店設定"}
+                            」</span>
                         </div>
                     </div>
                 </div>
@@ -242,7 +245,8 @@ export class BgGuide {
                         </div>
                         <div style="background: #FFF;width:100%;padding: 18px 24px;display: flex;align-items: center;border-radius: 0 0 10px 10px;font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%; /* 25.6px */letter-spacing: 0.64px;">
                             點擊<span
-                                style="font-style: normal;font-weight: 700;line-height: 160%;letter-spacing: 0.64px;">「${title}」</span>
+                                style="font-style: normal;font-weight: 700;line-height: 160%;letter-spacing: 0.64px;">「${title}
+                            」</span>
                         </div>
                     </div>
                 </div>
@@ -258,10 +262,10 @@ export class BgGuide {
         title: string,
         content: string,
         next?: boolean,
-        disable?:boolean,
-        alignment?:string,
-        btnText?:string
-    }, closeEvent?:()=>void) {
+        disable?: boolean,
+        alignment?: string,
+        btnText?: string
+    }, closeEvent?: () => void) {
         let gvc = this.gvc;
 
         function close() {
@@ -281,10 +285,10 @@ export class BgGuide {
         let iframeRect = iframe.getBoundingClientRect();
         let target = this.findIframeDom(`${targetSelector}`);
         let rect = target.getBoundingClientRect();
-        let left = rect.left + iframeRect.left - 12;
-        let top = rect.top + iframeRect.top - 12;
-        let right = rect.right + iframeRect.left + 12;
-        let bottom = rect.bottom + iframeRect.top + 12;
+        let left = rect.left + iframeRect.left - 6;
+        let top = rect.top + iframeRect.top - 6;
+        let right = rect.right + iframeRect.left + 6;
+        let bottom = rect.bottom + iframeRect.top + 6;
         let mid = (right + left) / 2;
         gvc.addStyle(`
                             ${targetSelector} {
@@ -292,19 +296,22 @@ export class BgGuide {
                             }                       
                         `)
         BG.classList.add(`${targetSelector.split('.')[1]}`)
-        let winPosition = ()=>{
-            switch (window.alignment){
-                case "left":{
-                    return `left: ${right - 332}px;top:${rect.bottom + iframeRect.top + 24}px;`
+        let winPosition = () => {
+            switch (window.alignment) {
+                case "left": {
+                    console.log(targetSelector)
+                    console.log(rect.right , iframeRect.left)
+                    console.log(right)
+                    return `left: ${right - window.width}px;top:${rect.bottom + iframeRect.top + 24}px;`
                 }
                 default : {
-                    return `left: ${mid - 166}px;top:${rect.bottom + iframeRect.top + 24}px;`
+                    return `left: ${mid - window.width / 2}px;top:${rect.bottom + iframeRect.top + 24}px;`
                 }
             }
         }
-        let arrowPosition = ()=>{
-            switch (window.alignment){
-                case "left":{
+        let arrowPosition = () => {
+            switch (window.alignment) {
+                case "left": {
                     return window.width - 42;
                 }
                 default : {
@@ -358,15 +365,15 @@ export class BgGuide {
                             </div>
                             <div class="${window.next ? "d-none" : "d-flex"} align-items-center justify-content-center "
                                  style="width: 96px;height: 46px;">
-                                <div class="${window.disable?``:`breathing-light`} "
-                                     style="${window.disable?`opacity: 0.8;background: #FFE9B2`:`background: #FEAD20;cursor: pointer`};padding: 6px 18px;border-radius: 10px;color: #FFF; ;font-size: 16px;font-style: normal;font-weight: 700;line-height: normal;"
+                                <div class="${window.disable ? `` : `breathing-light`} "
+                                     style="${window.disable ? `opacity: 0.8;background: #FFE9B2` : `background: #FEAD20;cursor: pointer`};padding: 6px 18px;border-radius: 10px;color: #FFF; ;font-size: 16px;font-style: normal;font-weight: 700;line-height: normal;"
                                      onclick="${gvc.event(() => {
-                                         if (!window.disable){
+                                         if (!window.disable) {
                                              next();
                                          }
-                                         
+
                                      })}">
-                                    ${window.btnText??"下一步"}
+                                    ${window.btnText ?? "下一步"}
                                 </div>
                             </div>
                         </div>
@@ -456,7 +463,454 @@ export class BgGuide {
             </div>
         `
     }
-    //產品上架設定
+
+    //佈置官網設定
+    public drawLayoutGuide() {
+        let gvc = this.gvc;
+        let vm = {
+            guide: this.guide,
+            step: this.step,
+        }
+        const that = this;
+        let totalStep = 7;
+        return gvc.bindView({
+            bind: "layoutInit",
+            dataList: [],
+            view: () => {
+                let viewID = "layoutInit";
+                let iframe = document.querySelector(`iframe`) as any;
+
+                const BG = document.querySelector(`.guide-BG`) as HTMLElement;
+                gvc.addStyle(`                        
+                    .breathing-light {
+                        position:relative;
+                        z-index: 1;
+                        border: 1px solid rgba(255, 233, 178, 0.5);
+                    }
+                    .breathing-light::before {
+                        content: '';
+                        position: absolute;
+                       top: -5px; /* 控制光效范围 */
+                        left: -5px;
+                        right: -5px;
+                        bottom: -5px;
+                        border: 5px solid #FFE9B2; /* 边框颜色 */
+                        border-radius: inherit; /* 保持和容器一样的圆角 */
+                        filter: blur(2px); /* 模糊程度 */
+                        animation: breathing 1.5s infinite alternate; /* 呼吸灯效果 */
+                    }
+                    @keyframes breathing {
+                        
+                        0% {
+                            opacity: 1;
+                            transform: scale(1); /* 放大效果 */
+                            box-shadow: 0 0 4px 6px rgba(255, 233, 178, 0.8);
+                        }
+                        100% {
+                            opacity: 0.5;
+                            transform: scale(1);
+                            box-shadow: 0 0 4px rgba(255, 233, 178, 0.5);
+                        }
+                    }
+                `)
+                switch (vm.step) {
+                    case 2: {
+                        return this.drawSecondRowBG(BG, vm, `.guide7-2`, viewID, '佈景主題', totalStep);
+                    }
+                    case 3: {
+                        let target = this.findIframeDom(`.guide7-3`);
+                        let check = true;
+                        if (!target) {
+                            const timer = setInterval(() => {
+                                if (this.findIframeDom(`.guide7-3`)) {
+                                    clearInterval(timer);
+                                    gvc.notifyDataChange(viewID);
+                                }
+                            }, 400)
+                        }
+
+                        return this.drawBGwithBelowWindow(BG, vm, '.guide7-3', viewID, totalStep - 1, totalStep,
+                            {
+                                width: 332,
+                                height: 209,
+                                title: "當前主題",
+                                content: "為當前首頁套用的主題資訊"
+                            }, () => {
+                            })
+                    }
+                    case 4: {
+                        let target = this.findIframeDom(`.guide7-4`);
+                        if (!target) {
+                            const timer = setInterval(() => {
+                                if (this.findIframeDom(`.guide7-4`)) {
+                                    clearInterval(timer);
+                                    gvc.notifyDataChange(viewID);
+                                }
+                            }, 400)
+                        }
+                        let content = html`
+                            <div class="d-flex flex-wrap" style="font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.64px;">
+                                點擊<span style="font-weight: 700;">自訂</span>，即可前往<span style="font-weight: 700;">頁面編輯器頁面</span>，自由將官網編輯成您理想中的模樣
+                            </div>
+                        `
+                        return this.drawBGwithBelowWindow(BG, vm, '.guide7-4', viewID, totalStep, totalStep,
+                            {width: 332, height: 235, title: "自訂主題", content: content , alignment:"left" , btnText:"完成"},()=>{
+                                this.leaveGuide(vm);
+                            })
+                    }
+                    default: {
+                        function close(){
+                            BG.classList.remove('guide7-1');
+                        }
+                        let target1 = document.querySelector(`.mainRow9`);
+                        let rect = target1!.getBoundingClientRect();
+
+                        let target2 = this.findIframeDom(`.guide7-1`);
+                        let iframeRect = iframe.getBoundingClientRect();
+
+                        this.detectClickThrough(target1 , ()=>{
+                            close()
+                            totalStep = 4;
+                            vm.step = 2;
+                            gvc.notifyDataChange(viewID);
+                        })
+                        if (target2) {
+                            let rect2 = target2!.getBoundingClientRect();
+                            let cssStyle = this.holeTwoBG({
+                                x1: rect.left,
+                                x2: rect.right,
+                                y1: rect.top,
+                                y2: rect.bottom,
+                            }, {
+                                x1: iframeRect.left + rect2.left - 12,
+                                x2: iframeRect.left + rect2.right + 12,
+                                y1: iframeRect.top + rect2.top - 12,
+                                y2: iframeRect.top + rect2.bottom + 12,
+                            })
+                            BG.classList.add('guide7-1');
+
+                            this.detectClickThrough(target2 , ()=>{
+                                close()
+                                vm.step = 3;
+                                gvc.notifyDataChange(viewID);
+                            })
+                            gvc.addStyle(`
+                                .guide7-1{
+                                    ${cssStyle}
+                                }
+                            `)
+                            return html`
+                                <div style="padding-left: 18px;width: 350px;height: 113px;flex-shrink: 0;filter: drop-shadow(2px 2px 10px rgba(0, 0, 0, 0.15));position: absolute;top: ${(rect.top - 12 + iframeRect.top + rect2.bottom) / 2}px;left: ${(rect.right + iframeRect.left + rect2.left) / 2}px;transform: translate(-50%, -50%);z-index:1033;">
+                                    <div style="position: relative;border-radius: 10px;">
+                                        <div style="display: flex;padding: 12px 24px;gap: 10px;width: 100%;background: #FEAD20;border-radius: 10px 10px 0 0;color:white;font-size: 20px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 0.8px;">
+                                            品牌官網
+                                            <div class="d-flex ms-auto align-items-center"
+                                                 style="gap:10px;color: #FFF;font-size: 16px;font-style: normal;font-weight: 400;line-height: normal;letter-spacing: 0.64px;">
+                                                步驟 1/${totalStep}
+                                                <svg style="cursor: pointer;" xmlns="http://www.w3.org/2000/svg"
+                                                     width="14" height="13" viewBox="0 0 14 13" fill="none"
+                                                     onclick="${this.gvc.event(() => {
+                                                         this.leaveGuide(vm);
+                                                     })}">
+                                                    <path d="M1 0.5L13 12.5" stroke="white" stroke-linecap="round"/>
+                                                    <path d="M13 0.5L1 12.5" stroke="white" stroke-linecap="round"/>
+                                                </svg>
+                                            </div>
+                                        </div>
+                                        <div style="background: #FFF;width:100%;padding: 18px 24px;display: flex;align-items: center;border-radius: 0 0 10px 10px;font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%; /* 25.6px */letter-spacing: 0.64px;">
+                                            點擊<span
+                                                style="font-style: normal;font-weight: 700;line-height: 160%;letter-spacing: 0.64px;">「品牌官網」</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            `
+                        }
+                        return this.drawMainRowBG(BG, vm, `.mainRow9`, viewID, 5, "品牌官網")
+                    }
+                }
+
+
+            }, divCreate: {}
+        })
+    }
+
+    //主題庫設定
+    public drawThemeGuide() {
+        let gvc = this.gvc;
+        let vm = {
+            guide: this.guide,
+            step: this.step,
+        }
+        const that = this;
+        let totalStep = 7;
+        return gvc.bindView({
+            bind: "layoutInit",
+            dataList: [],
+            view: () => {
+                let viewID = "layoutInit";
+                let iframe = document.querySelector(`iframe`) as any;
+
+                const BG = document.querySelector(`.guide-BG`) as HTMLElement;
+                gvc.addStyle(`                        
+                    .breathing-light {
+                        position:relative;
+                        z-index: 1;
+                        border: 1px solid rgba(255, 233, 178, 0.5);
+                    }
+                    .breathing-light::before {
+                        content: '';
+                        position: absolute;
+                       top: -5px; /* 控制光效范围 */
+                        left: -5px;
+                        right: -5px;
+                        bottom: -5px;
+                        border: 5px solid #FFE9B2; /* 边框颜色 */
+                        border-radius: inherit; /* 保持和容器一样的圆角 */
+                        filter: blur(2px); /* 模糊程度 */
+                        animation: breathing 1.5s infinite alternate; /* 呼吸灯效果 */
+                    }
+                    @keyframes breathing {
+                        
+                        0% {
+                            opacity: 1;
+                            transform: scale(1); /* 放大效果 */
+                            box-shadow: 0 0 4px 6px rgba(255, 233, 178, 0.8);
+                        }
+                        100% {
+                            opacity: 0.5;
+                            transform: scale(1);
+                            box-shadow: 0 0 4px rgba(255, 233, 178, 0.5);
+                        }
+                    }
+                `)
+                switch (vm.step) {
+                    case 2: {
+                        return this.drawSecondRowBG(BG, vm, `.guide7-2`, viewID, '佈景主題', totalStep);
+                    }
+                    case 3: {
+                        let target = this.findIframeDom(`.guide7-3`);
+                        let check = true;
+                        if (!target) {
+                            const timer = setInterval(() => {
+                                if (this.findIframeDom(`.guide7-3`)) {
+                                    clearInterval(timer);
+                                    gvc.notifyDataChange(viewID);
+                                }
+                            }, 400)
+                        }
+
+                        return this.drawBGwithBelowWindow(BG, vm, '.guide7-3', viewID, totalStep - 5, totalStep,
+                            {
+                                width: 332,
+                                height: 209,
+                                title: "當前主題",
+                                content: "為當前首頁套用的主題資訊"
+                            }, () => {
+                            })
+                    }
+                    case 4: {
+                        let target = this.findIframeDom(`.guide7-4`);
+                        if (!target) {
+                            const timer = setInterval(() => {
+                                if (this.findIframeDom(`.guide7-4`)) {
+                                    clearInterval(timer);
+                                    gvc.notifyDataChange(viewID);
+                                }
+                            }, 400)
+                        }
+                        let content = html`
+                            <div class="d-flex flex-wrap" style="font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.64px;">
+                                點擊<span style="font-weight: 700;">自訂</span>，可前往<span style="font-weight: 700;">頁面編輯器頁面</span>，自由將官網編輯成您理想中的模樣
+                            </div>
+                        `
+                        return this.drawBGwithBelowWindow(BG, vm, '.guide7-4', viewID, totalStep - 4, totalStep,
+                            {width: 332, height: 235, title: "自訂主題", content: content , alignment:"left" })
+                    }
+                    case 5: {
+                        let target = this.findIframeDom(`.guide8-5`);
+                        if (!target) {
+                            const timer = setInterval(() => {
+                                if (this.findIframeDom(`.guide8-5`)) {
+                                    clearInterval(timer);
+                                    gvc.notifyDataChange(viewID);
+                                }
+                            }, 400)
+                        }
+
+                        let content = html`
+                            <div class="" style="font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.64px;white-space: normal">
+                                在<span style="font-weight: 700;">佈景主題庫</span>儲存並管理多個設計主題，可根據需求靈活切換應用，展現多樣視覺效果，增強品牌吸引力
+                            </div>
+                        `
+                        return this.drawBGwithBelowWindow(BG, vm, '.guide8-5', viewID, totalStep - 3, totalStep,
+                            {width: 439, height: 261, title: "自訂主題", content: content })
+                    }
+                    case 6: {
+                        let target = this.findIframeDom(`.themeGroup`);
+                        if (!target) {
+                            const timer = setInterval(() => {
+                                if (this.findIframeDom(`.themeGroup`)) {
+                                    clearInterval(timer);
+                                    gvc.notifyDataChange(viewID);
+                                }
+                            }, 400)
+                        }
+                        target.parentElement.scrollIntoView();
+
+                        this.detectClickThrough(target.querySelector('.addTheme') , ()=>{
+                            vm.step++;
+                            gvc.notifyDataChange(viewID)
+                        })
+                        let content = html`
+                            <div class="" style="font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.64px;white-space: normal">
+                                滑鼠移入喜歡的主題後點擊<span style="font-weight: 700;">新增</span>
+                            </div>
+                        `
+                        return this.drawBGwithBelowWindow(BG, vm, '.themeGroup', viewID, totalStep - 2, totalStep,
+                            {width: 439, height: 261, title: "選擇主題", content: content })
+                    }
+                    case 7: {
+                        let target = this.findIframeDom(`.guide8-5`);
+                        if (!target) {
+                            const timer = setInterval(() => {
+                                if (this.findIframeDom(`.guide8-5`)) {
+                                    clearInterval(timer);
+                                    gvc.notifyDataChange(viewID);
+                                }
+                            }, 400)
+                        }
+                        target.parentElement.scrollIntoView();
+                        let content = html`
+                            <div class="" style="font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.64px;white-space: normal">
+                                您可以對剛新增的主題進行操作，如自定義樣式、切換、複製及下載等等
+                            </div>
+                        `
+                        return this.drawBGwithBelowWindow(BG, vm, '.guide8-5', viewID, totalStep - 1, totalStep,
+                            {width: 439, height: 261, title: "管理主題庫", content: content })
+                    }
+                    case 8: {
+                        let target = this.findIframeDom(`.themeSwitch`);
+                        if (!target) {
+                            const timer = setInterval(() => {
+                                if (this.findIframeDom(`.themeSwitch`)) {
+                                    clearInterval(timer);
+                                    gvc.notifyDataChange(viewID);
+                                }
+                            }, 400)
+                        }
+                        target.parentElement.scrollIntoView();
+
+                        let content = html`
+                            <div class="" style="font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.64px;white-space: normal">
+                                使用<span style="font-weight: 700;">切換</span>功能，您可以將官網快速切換為主題庫中的其他主題，輕鬆又快速變換官網風格。
+                            </div>
+                        `
+                        return this.drawBGwithBelowWindow(BG, vm, '.themeSwitch', viewID, totalStep , totalStep,
+                            {width: 439, height: 261, title: "切換主題", content: content , alignment:"left" , btnText:"完成"})
+                    }
+                    case 9:{
+                        return html`
+                        <div class="d-flex flex-column align-items-center justify-content-center" style="width: 492px;height: 307px;flex-shrink: 0;border-radius: 10px;background: #FFF;padding: 36px 64px;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="76" height="75" viewBox="0 0 76 75" fill="none">
+                                <g clip-path="url(#clip0_12208_36243)">
+                                    <path d="M38 7.03125C46.0808 7.03125 53.8307 10.2413 59.5447 15.9553C65.2587 21.6693 68.4688 29.4192 68.4688 37.5C68.4688 45.5808 65.2587 53.3307 59.5447 59.0447C53.8307 64.7587 46.0808 67.9688 38 67.9688C29.9192 67.9688 22.1693 64.7587 16.4553 59.0447C10.7413 53.3307 7.53125 45.5808 7.53125 37.5C7.53125 29.4192 10.7413 21.6693 16.4553 15.9553C22.1693 10.2413 29.9192 7.03125 38 7.03125ZM38 75C47.9456 75 57.4839 71.0491 64.5165 64.0165C71.5491 56.9839 75.5 47.4456 75.5 37.5C75.5 27.5544 71.5491 18.0161 64.5165 10.9835C57.4839 3.95088 47.9456 0 38 0C28.0544 0 18.5161 3.95088 11.4835 10.9835C4.45088 18.0161 0.5 27.5544 0.5 37.5C0.5 47.4456 4.45088 56.9839 11.4835 64.0165C18.5161 71.0491 28.0544 75 38 75ZM38 18.75C36.0518 18.75 34.4844 20.3174 34.4844 22.2656V38.6719C34.4844 40.6201 36.0518 42.1875 38 42.1875C39.9482 42.1875 41.5156 40.6201 41.5156 38.6719V22.2656C41.5156 20.3174 39.9482 18.75 38 18.75ZM42.6875 51.5625C42.6875 50.3193 42.1936 49.127 41.3146 48.2479C40.4355 47.3689 39.2432 46.875 38 46.875C36.7568 46.875 35.5645 47.3689 34.6854 48.2479C33.8064 49.127 33.3125 50.3193 33.3125 51.5625C33.3125 52.8057 33.8064 53.998 34.6854 54.8771C35.5645 55.7561 36.7568 56.25 38 56.25C39.2432 56.25 40.4355 55.7561 41.3146 54.8771C42.1936 53.998 42.6875 52.8057 42.6875 51.5625Z" fill="#393939"/>
+                                </g>
+                                <defs>
+                                    <clipPath id="clip0_12208_36243">
+                                        <rect width="75" height="75" fill="white" transform="translate(0.5)"/>
+                                    </clipPath>
+                                </defs>
+                            </svg>
+                            <div style="font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.64px;color:#393939;margin-top: 24px;">是否刪除導覽新增的主題？</div>
+                            <div style="color: #8D8D8D;font-size: 14px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.56px;margin-top: 8px;">
+                                ※您已按照教學導覽新增了一個主題。<br>
+                                若無需使用，建議刪除以保持主題庫整潔。
+                            </div>
+                            <div class="d-flex align-items-center justify-content-center" style="margin-top: 24px;font-size: 16px;font-style: normal;font-weight: 700;line-height: normal;gap:14px;">
+                                <div style="color:#393939;display: flex;padding: 6px 18px;justify-content: center;align-items: center;border-radius: 10px;border: 1px solid #DDD;background: #FFF;" onclick="${gvc.event(()=>{
+                                    this.leaveGuide(vm)
+                                })}">取消</div>
+                                <div style="color:#FFF;display: flex;padding: 6px 18px;justify-content: center;align-items: center;border-radius: 10px;border: 1px solid #DDD;background: #DA1313;">刪除</div>
+                            </div>
+                        </div>`
+                    }
+                    default: {
+                        function close(){
+                            BG.classList.remove('guide7-1');
+                        }
+                        let target1 = document.querySelector(`.mainRow9`);
+                        let rect = target1!.getBoundingClientRect();
+
+                        let target2 = this.findIframeDom(`.guide7-1`);
+                        let iframeRect = iframe.getBoundingClientRect();
+
+                        this.detectClickThrough(target1 , ()=>{
+                            close()
+                            totalStep = 9;
+                            vm.step = 2;
+                            gvc.notifyDataChange(viewID);
+                        })
+                        if (target2) {
+                            let rect2 = target2!.getBoundingClientRect();
+                            let cssStyle = this.holeTwoBG({
+                                x1: rect.left,
+                                x2: rect.right,
+                                y1: rect.top,
+                                y2: rect.bottom,
+                            }, {
+                                x1: iframeRect.left + rect2.left - 12,
+                                x2: iframeRect.left + rect2.right + 12,
+                                y1: iframeRect.top + rect2.top - 12,
+                                y2: iframeRect.top + rect2.bottom + 12,
+                            })
+                            BG.classList.add('guide7-1');
+
+                            this.detectClickThrough(target2 , ()=>{
+                                close()
+                                vm.step = 3;
+                                gvc.notifyDataChange(viewID);
+                            })
+                            gvc.addStyle(`
+                                .guide7-1{
+                                    ${cssStyle}
+                                }
+                            `)
+                            return html`
+                                <div style="padding-left: 18px;width: 350px;height: 113px;flex-shrink: 0;filter: drop-shadow(2px 2px 10px rgba(0, 0, 0, 0.15));position: absolute;top: ${(rect.top - 12 + iframeRect.top + rect2.bottom) / 2}px;left: ${(rect.right + iframeRect.left + rect2.left) / 2}px;transform: translate(-50%, -50%);z-index:1033;">
+                                    <div style="position: relative;border-radius: 10px;">
+                                        <div style="display: flex;padding: 12px 24px;gap: 10px;width: 100%;background: #FEAD20;border-radius: 10px 10px 0 0;color:white;font-size: 20px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 0.8px;">
+                                            品牌官網
+                                            <div class="d-flex ms-auto align-items-center"
+                                                 style="gap:10px;color: #FFF;font-size: 16px;font-style: normal;font-weight: 400;line-height: normal;letter-spacing: 0.64px;">
+                                                步驟 1/${totalStep}
+                                                <svg style="cursor: pointer;" xmlns="http://www.w3.org/2000/svg"
+                                                     width="14" height="13" viewBox="0 0 14 13" fill="none"
+                                                     onclick="${this.gvc.event(() => {
+                                this.leaveGuide(vm);
+                            })}">
+                                                    <path d="M1 0.5L13 12.5" stroke="white" stroke-linecap="round"/>
+                                                    <path d="M13 0.5L1 12.5" stroke="white" stroke-linecap="round"/>
+                                                </svg>
+                                            </div>
+                                        </div>
+                                        <div style="background: #FFF;width:100%;padding: 18px 24px;display: flex;align-items: center;border-radius: 0 0 10px 10px;font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%; /* 25.6px */letter-spacing: 0.64px;">
+                                            點擊<span
+                                                style="font-style: normal;font-weight: 700;line-height: 160%;letter-spacing: 0.64px;">「品牌官網」</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            `
+                        }
+                        return this.drawMainRowBG(BG, vm, `.mainRow9`, viewID, totalStep, "品牌官網")
+                    }
+                }
+
+
+            }, divCreate: {}
+        })
+    }
+
+    //網站資料設定
     public drawMessageGuide() {
         let gvc = this.gvc;
         let vm = {
@@ -510,44 +964,56 @@ export class BgGuide {
                     case 3: {
                         let target = this.findIframeDom(`.guide6-3`);
                         let check = true;
-                        if (!target){
-                            const timer=setInterval(()=>{
-                                if (this.findIframeDom(`.guide6-3`)){
+                        if (!target) {
+                            const timer = setInterval(() => {
+                                if (this.findIframeDom(`.guide6-3`)) {
                                     clearInterval(timer);
                                     gvc.notifyDataChange(viewID);
                                 }
-                            },400)
+                            }, 400)
                         }
 
                         return this.drawBGwithBelowWindow(BG, vm, '.guide6-3', viewID, 3, 5,
-                        {width: 332, height: 209, title: "商店基本資訊", content: "在這裡可以修改商店的基本訊息"  },()=>{
-                        })
+                            {
+                                width: 332,
+                                height: 209,
+                                title: "商店基本資訊",
+                                content: "在這裡可以修改商店的基本訊息"
+                            }, () => {
+                            })
                     }
                     case 4: {
                         let target = this.findIframeDom(`.guide6-4`);
-                        if (!target){
-                            const timer=setInterval(()=>{
-                                if (this.findIframeDom(`.guide6-4`)){
+                        if (!target) {
+                            const timer = setInterval(() => {
+                                if (this.findIframeDom(`.guide6-4`)) {
                                     clearInterval(timer);
                                     gvc.notifyDataChange(viewID);
                                 }
-                            },400)
+                            }, 400)
                         }
                         target.parentElement.parentElement.scrollIntoView();
                         return this.drawBGwithBelowWindow(BG, vm, '.guide6-4', viewID, 4, 5,
-                            {width: 332, height: 209, title: "SEO設定", content: "完善SEO系統，提升網站的曝光度。" })
+                            {width: 332, height: 209, title: "SEO設定", content: "完善SEO系統，提升網站的曝光度。"})
                     }
                     case 5: {
                         let target = this.findIframeDom(`.guide6-5`);
                         target.parentElement.scrollIntoView({})
 
                         return this.drawBGwithBelowWindow(BG, vm, '.guide6-5', viewID, 5, 5,
-                            {width: 332, height: 209, title: "網域設定", content: "您可以選擇使用免費的子網域，或是額外付費申請獨立網域" , btnText:"完成"},()=>{
+                            {
+                                width: 332,
+                                height: 209,
+                                title: "網域設定",
+                                content: "您可以選擇使用免費的子網域，或是額外付費申請獨立網域",
+                                btnText: "完成"
+                            }, () => {
+                                this.finGuide("shop_information")
                                 this.leaveGuide(vm)
                             })
                     }
                     default: {
-                        return this.drawMainRowBG(BG, vm, `.mainRow1`, viewID, 5 )
+                        return this.drawMainRowBG(BG, vm, `.mainRow1`, viewID, 5)
                     }
                 }
 
@@ -555,6 +1021,7 @@ export class BgGuide {
             }, divCreate: {}
         })
     }
+
     //產品上架設定
     public drawProductGuide() {
         let gvc = this.gvc;
@@ -607,33 +1074,46 @@ export class BgGuide {
                     }
                     case 3: {
                         let target = this.findIframeDom(`.guide5-3`);
-                        if (!target){
-                            const timer=setInterval(()=>{
+                        if (!target) {
+                            const timer = setInterval(() => {
                                 console.log("test")
-                                if (this.findIframeDom(`.guide5-3`)){
+                                if (this.findIframeDom(`.guide5-3`)) {
                                     clearInterval(timer);
                                     gvc.notifyDataChange(`productInit`);
                                 }
-                            },400)
+                            }, 400)
                         }
                         let content = html`
                             <div class="d-flex" style="font-weight: 400;line-height: 160%;letter-spacing: 0.64px;">
                                 點擊<span style="font-weight: 700;">新增</span>，填寫商品詳細資訊
                             </div>
                         `
-                        this.detectClickThrough(target,()=>{
+                        this.detectClickThrough(target, () => {
                             vm.step++;
                             BG.classList.remove('guide5-3');
                             gvc.notifyDataChange('productInit');
                         })
                         if (target) {
                             return this.drawBGwithBelowWindow(BG, vm, '.guide5-3', 'productInit', 3, 8,
-                                {width: 332, height: 209, title: "上架商品", content: content , alignment:'left' , next:true },()=>{
+                                {
+                                    width: 332,
+                                    height: 209,
+                                    title: "上架商品",
+                                    content: content,
+                                    alignment: 'left',
+                                    next: true
+                                }, () => {
 
                                 })
-                        }else {
+                        } else {
                             return this.drawBGwithBelowWindow(BG, vm, '.guide5-3', 'productInit', 3, 8,
-                                {width: 332, height: 209, title: "上架商品", content: "輸入商品名稱" , disable:true},()=>{
+                                {
+                                    width: 332,
+                                    height: 209,
+                                    title: "上架商品",
+                                    content: "輸入商品名稱",
+                                    disable: true
+                                }, () => {
 
                                 })
                         }
@@ -641,23 +1121,23 @@ export class BgGuide {
                     }
                     case 4: {
                         let target = this.findIframeDom(`.guide5-4`);
-                        if (!target){
-                            const timer=setInterval(()=>{
-                                if (this.findIframeDom(`.guide5-4`)){
+                        if (!target) {
+                            const timer = setInterval(() => {
+                                if (this.findIframeDom(`.guide5-4`)) {
                                     clearInterval(timer);
                                     gvc.notifyDataChange(`productInit`);
                                 }
-                            },400)
+                            }, 400)
                         }
                         if (target.querySelector('input').value.length > 0) {
                             return this.drawBGwithBelowWindow(BG, vm, '.guide5-4', 'productInit', 4, 8,
-                                {width: 332, height: 209, title: "商品名稱", content: "輸入商品名稱" })
+                                {width: 332, height: 209, title: "商品名稱", content: "輸入商品名稱"})
                         }
-                        this.detectOninputThrough(target.querySelector('input'),()=>{
+                        this.detectOninputThrough(target.querySelector('input'), () => {
                             gvc.notifyDataChange('productInit');
                         })
                         return this.drawBGwithBelowWindow(BG, vm, '.guide5-4', 'productInit', 4, 8,
-                            {width: 332, height: 209, title: "商品名稱", content: "輸入商品名稱" , disable:true})
+                            {width: 332, height: 209, title: "商品名稱", content: "輸入商品名稱", disable: true})
                     }
                     case 5: {
                         let target = this.findIframeDom(`.guide5-5`);
@@ -665,34 +1145,40 @@ export class BgGuide {
 
                         if (target.querySelector('input').value.length > 0 && target.querySelector('input').value != 0) {
                             return this.drawBGwithBelowWindow(BG, vm, '.guide5-5', 'productInit', 5, 8,
-                                {width: 332, height: 209, title: "販售價格", content: "輸入商品的販售價格" })
+                                {width: 332, height: 209, title: "販售價格", content: "輸入商品的販售價格"})
                         }
 
-                        this.detectOninputThrough(target.querySelector('input'),()=>{
+                        this.detectOninputThrough(target.querySelector('input'), () => {
                             gvc.notifyDataChange('productInit');
                         })
 
                         return this.drawBGwithBelowWindow(BG, vm, '.guide5-5', 'productInit', 5, 8,
-                            {width: 332, height: 209, title: "販售價格", content: "輸入商品的販售價格" , disable:true})
+                            {width: 332, height: 209, title: "販售價格", content: "輸入商品的販售價格", disable: true})
                     }
                     case 6: {
                         let target = this.findIframeDom('.guide5-6');
                         target.parentElement.parentElement.parentElement.parentElement.scrollIntoView({})
-                        this.detectClickThrough(target,()=>{
+                        this.detectClickThrough(target, () => {
                             BG.classList.remove('guide5-6');
                             vm.step++;
                             gvc.notifyDataChange('productInit');
                         })
                         return this.drawBGwithBelowWindow(BG, vm, '.guide5-6', 'productInit', 6, 8,
-                            {width: 332, height: 209, title: "運費計算", content: "選擇此商品的運費計算方式" , next:true})
+                            {
+                                width: 332,
+                                height: 209,
+                                title: "運費計算",
+                                content: "選擇此商品的運費計算方式",
+                                next: true
+                            })
                     }
-                    case 7:{
+                    case 7: {
                         let target = this.findIframeDom('.guide5-7');
                         const inputGroup = target.querySelectorAll('input')
                         let check = true;
-                        inputGroup.forEach((el:any) => {
+                        inputGroup.forEach((el: any) => {
                             if (!el.classList.contains('addListener')) {
-                                that.detectOninputThrough(el,()=>{
+                                that.detectOninputThrough(el, () => {
                                     gvc.notifyDataChange('productInit');
                                 })
                                 el.classList.add('addListener')
@@ -702,19 +1188,30 @@ export class BgGuide {
                                 check = false
                             }
                         })
-                        console.log(" check -- " , check);
-                        if (check){
+                        console.log(" check -- ", check);
+                        if (check) {
                             return this.drawBGwithBelowWindow(BG, vm, '.guide5-7', 'productInit', 7, 8,
-                                {width: 350, height: 217, title: "商品材積", content: "由於您在上一步驟選擇依材積計算，此處必須填寫商品的材積"})
+                                {
+                                    width: 350,
+                                    height: 217,
+                                    title: "商品材積",
+                                    content: "由於您在上一步驟選擇依材積計算，此處必須填寫商品的材積"
+                                })
                         }
                         return this.drawBGwithBelowWindow(BG, vm, '.guide5-7', 'productInit', 7, 8,
-                            {width: 350, height: 217, title: "商品材積", content: "由於您在上一步驟選擇依材積計算，此處必須填寫商品的材積" , disable:true})
+                            {
+                                width: 350,
+                                height: 217,
+                                title: "商品材積",
+                                content: "由於您在上一步驟選擇依材積計算，此處必須填寫商品的材積",
+                                disable: true
+                            })
                     }
                     case 8: {
                         return this.drawFinBG(BG, vm, 'guide5-8', 'productInit', 8, "product-manager")
                     }
                     default: {
-                        return this.drawMainRowBG(BG, vm, `.mainRow2`, "productInit", 8 , "商品管理")
+                        return this.drawMainRowBG(BG, vm, `.mainRow2`, "productInit", 8, "商品管理")
                     }
                 }
 
@@ -722,6 +1219,7 @@ export class BgGuide {
             }, divCreate: {}
         })
     }
+
     //運費設定
     public drawLogisticsGuide() {
         let gvc = this.gvc;
@@ -884,7 +1382,7 @@ export class BgGuide {
                     }
                     case 6: {
                         let target = this.findIframeDom('.guide4-6');
-                        const handleClick = (event:any) => {
+                        const handleClick = (event: any) => {
                             this.eventSet = this.eventSet.filter((d: any) => {
                                 return d !== handleClick
                             });
@@ -899,7 +1397,8 @@ export class BgGuide {
                         let content = html`
                             <div class="d-flex align-items-center" style="">
                                 點擊
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14" style="margin:0 6px;"
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14"
+                                     style="margin:0 6px;"
                                      fill="none">
                                     <path d="M1 1L13 13" stroke="#8D8D8D" stroke-linecap="round"/>
                                     <path d="M13 1L1 13" stroke="#8D8D8D" stroke-linecap="round"/>
@@ -908,13 +1407,15 @@ export class BgGuide {
                             </div>
                         `
                         let body = document.querySelector('.editorContainer');
-                        if (body && !document.querySelector('.clickInterface')){
+                        if (body && !document.querySelector('.clickInterface')) {
                             $(body).append(html`
-                                <div class="clickInterface" style="height: 100vh;width: 100vw;position: fixed;left: 0;top: 0;z-index: 1030;cursor: pointer;" onclick="${gvc.event(()=>{
-                                    if (document.querySelector('.breathing-light')){
-                                        (document.querySelector('.breathing-light') as HTMLElement).click();
-                                    }
-                                })}"></div>
+                                <div class="clickInterface"
+                                     style="height: 100vh;width: 100vw;position: fixed;left: 0;top: 0;z-index: 1030;cursor: pointer;"
+                                     onclick="${gvc.event(() => {
+                                         if (document.querySelector('.breathing-light')) {
+                                             (document.querySelector('.breathing-light') as HTMLElement).click();
+                                         }
+                                     })}"></div>
                             `)
                         }
                         return this.drawBGwithBelowWindow(BG, vm, '.guide4-6', 'logisticsInit', 6, 8,
@@ -924,24 +1425,30 @@ export class BgGuide {
                                 title: "刪除計算區間",
                                 content: content,
                                 next: true
-                            },()=>{
+                            }, () => {
                                 if (document.querySelector('.clickInterface')) {
                                     document!.querySelector('.clickInterface')!.remove();
                                 }
                             }
                         )
                     }
-                    case 7:{
+                    case 7: {
                         let target = this.findIframeDom('.guide4-7');
                         let select = this.findIframeDom('.volumeSelect')
-                        if (!select){
-                            this.detectClickThrough(target,()=>{
+                        if (!select) {
+                            this.detectClickThrough(target, () => {
                                 gvc.notifyDataChange(`logisticsInit`)
                             })
                         }
 
                         return this.drawBGwithBelowWindow(BG, vm, '.guide4-7', 'logisticsInit', 7, 8,
-                            {width: 350, height: 217, title: "設為預設計算方式", content: "將「依材積計算」設為預設的運費計算方式，新增商品時將會自動代入" , disable:!select})
+                            {
+                                width: 350,
+                                height: 217,
+                                title: "設為預設計算方式",
+                                content: "將「依材積計算」設為預設的運費計算方式，新增商品時將會自動代入",
+                                disable: !select
+                            })
                     }
                     case 8: {
                         return this.drawFinBG(BG, vm, 'guide4-8', 'logisticsInit', 8, "logistics_setting")
@@ -956,6 +1463,7 @@ export class BgGuide {
             }, divCreate: {}
         })
     }
+
     //配送畫面設定
     public drawShipmentGuide() {
         let gvc = this.gvc;
@@ -1221,6 +1729,7 @@ export class BgGuide {
             }, divCreate: {}
         })
     }
+
     //金流畫面設定
     public drawFinanceWayGuide() {
         let gvc = this.gvc;
@@ -1485,6 +1994,7 @@ export class BgGuide {
 
                             element.remove();
                         }
+
                         setTimeout(() => {
                             let target = this.findIframeDom('.guide2-5');
                             target.scrollIntoView({behavior: 'smooth', block: 'center'})
@@ -1650,6 +2160,7 @@ export class BgGuide {
             }, divCreate: {}
         })
     }
+
     //初始
     public drawInitGuide() {
         let gvc = this.gvc;
@@ -1801,7 +2312,8 @@ export class BgGuide {
                                 <div class="d-flex w-100 align-items-center"
                                      style="height: 51px;padding: 12px 24px;background: #FEAD20;color: #FFF;font-size: 20px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 0.8px;border-radius: 10px 10px 0 0;">
                                     開店導覽
-                                    <svg class="ms-auto" style="cursor: pointer;" xmlns="http://www.w3.org/2000/svg" width="14" height="14"
+                                    <svg class="ms-auto" style="cursor: pointer;" xmlns="http://www.w3.org/2000/svg"
+                                         width="14" height="14"
                                          viewBox="0 0 14 14" fill="none" onclick="${gvc.event(() => {
                                         this.leaveGuide(vm);
                                     })}">
@@ -1852,12 +2364,14 @@ export class BgGuide {
                                                     {
                                                         title: `佈置官網`,
                                                         des: `自定義樣式，打造獨一無二的官網`,
-                                                        url: ``
+                                                        url: ``,
+                                                        guide: 6
                                                     },
                                                     {
                                                         title: `管理主題庫`,
                                                         des: `可根據需求新增及切換官網主題`,
-                                                        url: ``
+                                                        url: ``,
+                                                        guide: 7
                                                     },
                                                 ]
                                                 return html`
@@ -1877,7 +2391,11 @@ export class BgGuide {
                                                                     </div>
                                                                 </div>
                                                                 <div class="ms-auto"
-                                                                     style="color: #FEAD20;font-size: 16px;font-style: normal;font-weight: 700;padding: 6px 18px;border-radius: 10px;border: 1px solid #FEAD20;background: #FFF;">
+                                                                     style="color: #FEAD20;font-size: 16px;font-style: normal;font-weight: 700;padding: 6px 18px;border-radius: 10px;border: 1px solid #FEAD20;background: #FFF;cursor: pointer;"
+                                                                     onclick="${gvc.event(() => {
+                                                                         this.guide = data.guide;
+                                                                         this.drawBG();
+                                                                     })}">
                                                                     前往
                                                                 </div>
                                                             </div>

@@ -571,6 +571,7 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
                     }, 200);
                     if (!viewModel.loading && Storage.select_function == "backend-manger") {
                         let bgGuide = new BgGuide(gvc, 0);
+                        bgGuide.drawGuide();
                     }
                 },
             });
