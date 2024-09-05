@@ -54,7 +54,7 @@ export class Entry {
         }
         window.renderClock = (_a = window.renderClock) !== null && _a !== void 0 ? _a : clockF();
         console.log(`Entry-time:`, window.renderClock.stop());
-        glitter.share.editerVersion = "V_11.2.1";
+        glitter.share.editerVersion = "V_11.2.8";
         glitter.share.start = (new Date());
         const vm = {
             appConfig: [],
@@ -93,7 +93,7 @@ export class Entry {
                     pointer-events: none;
                     
                 }
-
+ 
                 .editorItemActive {
                     display: block !important;
                     border: 2px solid #ffb400 !important;
@@ -134,6 +134,14 @@ export class Entry {
     box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.1);
 }
 
+  ul {
+                                        list-style: none;
+                                      
+                                    }
+                                    li {
+                                      list-style: none;
+                                     
+                                    }
             `);
             yield Entry.globalStyle(glitter, dd);
             if (glitter.getUrlParameter('type') === 'editor') {

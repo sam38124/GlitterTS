@@ -4,7 +4,7 @@ export class ShareDialog {
         this.infoMessage = (obj) => { };
         this.errorMessage = (obj) => { };
         this.successMessage = (obj) => { };
-        if (glitter.getUrlParameter('cms') === 'true') {
+        if (glitter.getUrlParameter('cms') === 'true' || glitter.getUrlParameter('type') === 'htmlEditor') {
             glitter = window.parent.glitter;
         }
         this.dataLoading = (obj) => {

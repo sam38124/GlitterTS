@@ -21,6 +21,7 @@ import {all} from 'underscore/index.js';
 import {BgCustomerMessage} from '../backend-manager/bg-customer-message.js';
 import {BgGuide} from "../backend-manager/bg-guide.js";
 import {ApiShop} from "../glitter-base/route/shopping.js";
+import {StepManager} from "../modules/step-manager.js";
 
 const html = String.raw;
 //
@@ -203,9 +204,41 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                             viewModel.dataList = data.response.result;
                             viewModel.originalData = JSON.parse(JSON.stringify(viewModel.dataList));
                             glitter.share.allPageResource = JSON.parse(JSON.stringify(data.response.result));
-                            const htmlGenerate = new gvc.glitter.htmlGenerate((viewModel.data! as any).config, [Storage.lastSelect], undefined, true);
-                            (window as any).editerData = htmlGenerate;
-                            (window as any).page_config = (viewModel.data! as any).page_config;
+                            //設定子層編輯器
+                            function createGenerator(){
+                                (window as any).editerData = new gvc.glitter.htmlGenerate((viewModel.data! as any).config, [Storage.lastSelect], undefined, true);
+                                (window as any).page_config = (viewModel.data! as any).page_config;
+                            }
+                            createGenerator()
+
+
+// 示例代码
+//                            const manager = new StepManager<()=>void>();
+                            // clearInterval(glitter.share.stepInterVal)
+                            // let lastCompare=JSON.parse(JSON.stringify((viewModel.data! as any).config))
+                            // glitter.share.stepInterVal=setInterval(()=>{
+                            //     if(JSON.stringify(lastCompare)!==JSON.stringify((viewModel.data! as any).config)){
+                            //         const step=JSON.parse(JSON.stringify((viewModel.data! as any).config))
+                            //         manager.addStep(()=>{
+                            //             lastCompare=step;
+                            //             (viewModel.data! as any).config=JSON.parse(JSON.stringify(step));
+                            //             createGenerator();
+                            //             (document.querySelector(`.iframe_view`) as any).contentWindow.glitter.pageConfig[0].gvc.recreateView()
+                            //             gvc.notifyDataChange(editorContainerID);
+                            //             gvc.notifyDataChange('step-container')
+                            //         })
+                            //         lastCompare=step
+                            //         gvc.notifyDataChange('step-container')
+                            //     }
+                            // },500)
+
+                            // glitter.share.stepManager=manager
+                            //
+                            // setTimeout(()=>{
+                            //     (viewModel.data! as any).config=[];
+                            //     createGenerator();
+                            //     gvc.notifyDataChange(editorContainerID);
+                            // },1000*5)
                             if (!data) {
                                 resolve(false);
                             } else {
@@ -426,6 +459,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
             viewModel.selectContainer = undefined;
             lod();
         };
+
     });
     return {
         onCreateView: () => {

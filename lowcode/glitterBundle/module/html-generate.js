@@ -1697,6 +1697,7 @@ ${obj.gvc.bindView({
                                                         return [];
                                                     }
                                                 })()),
+                                                elem: `div`
                                             },
                                             onCreate: () => {
                                                 TriggerEvent.trigger({
@@ -1885,7 +1886,8 @@ ${obj.gvc.bindView({
                     view: () => {
                         if (isIdeaMode()) {
                             return html `
-                                <div class="position-absolute w-100 h-100" style="background:linear-gradient(143deg, rgba(255, 180, 0, 0.2) -22.7%, rgba(255, 108, 2, 0.2) 114.57%);">
+                                <div class="position-absolute w-100 h-100"
+                                     style="background:linear-gradient(143deg, rgba(255, 180, 0, 0.2) -22.7%, rgba(255, 108, 2, 0.2) 114.57%);">
                                     <div class="position-absolute"
                                          style="top:50%;left:50%;transform: translate(-50%,-50%);cursor: pointer;pointer-events:all;">
                                         <button class="py-2 px-4 fw-500" style="display: inline-flex;
@@ -1900,7 +1902,8 @@ background: white;
                                 const add = JSON.parse(JSON.stringify(cf.widget));
                                 add.id = cf.gvc.glitter.getUUID();
                                 window.parent.glitter.share.add_from_idea(add);
-                            })}">確認複製</button>
+                            })}">確認複製
+                                        </button>
                                     </div>
                                 </div>
                             `;
@@ -1909,35 +1912,54 @@ background: white;
                             function getPlusAndPasteView(dir) {
                                 return `<div style=" height: 20px; padding: 10px; background: linear-gradient(143deg, #FFB400 0%, #FF6C02 100%); border-radius: 72.64px; justify-content: flex-start; align-items: center; gap: 10px; display: inline-flex">
                                         <div style="height: 16px; justify-content: flex-start; align-items: center; gap: 8px; display: flex">
-                                            <div style="text-align: center; color: white; font-size: 12px; font-family: Noto Sans; font-weight: 700; letter-spacing: 0.48px; word-wrap: break-word" onmousedown="${cf.gvc.event((e, event) => {
-                                    HtmlGenerate.block_timer = new Date().getTime();
-                                    addWidgetEvent(dir);
-                                    event.stopPropagation();
-                                    event.preventDefault();
-                                })}">新增</div>
-                                            <div style="width: 0px; height: 12.50px; border: 0.50px white solid"></div>
-                                            <div  style="text-align: center; color: white; font-size: 12px; font-family: Noto Sans; font-weight: 700; letter-spacing: 0.48px; word-wrap: break-word"  onmousedown="${cf.gvc.event(() => {
-                                    HtmlGenerate.block_timer = new Date().getTime();
-                                    const dialog = new ShareDialog(window.parent.glitter);
-                                    function readClipboardContent() {
-                                        return __awaiter(this, void 0, void 0, function* () {
-                                            try {
-                                                const json = JSON.parse(yield navigator.clipboard.readText());
-                                                if (!json.id) {
-                                                    dialog.errorMessage({ text: '請選擇要複製的元件，並按下複製元件。' });
-                                                }
-                                                else {
-                                                    addWidgetEvent(dir, json);
-                                                    window.parent.glitter.share.refreshMainLeftEditor();
-                                                }
+                                        ${[
+                                    {
+                                        text: '新增', event: (e, event) => {
+                                            HtmlGenerate.block_timer = new Date().getTime();
+                                            addWidgetEvent(dir);
+                                            event.stopPropagation();
+                                            event.preventDefault();
+                                        }
+                                    },
+                                    {
+                                        text: '複製', event: (e, event) => {
+                                            const dialog = new ShareDialog(cf.gvc.glitter);
+                                            navigator.clipboard.writeText(JSON.stringify(cf.widget));
+                                            dialog.successMessage({ text: '複製成功，滑動至要插入的區塊，並點擊貼上。' });
+                                        }
+                                    },
+                                    {
+                                        text: '貼上', event: (e, event) => {
+                                            HtmlGenerate.block_timer = new Date().getTime();
+                                            const dialog = new ShareDialog(window.parent.glitter);
+                                            function readClipboardContent() {
+                                                return __awaiter(this, void 0, void 0, function* () {
+                                                    try {
+                                                        const json = JSON.parse(yield navigator.clipboard.readText());
+                                                        if (!json.id) {
+                                                            dialog.errorMessage({ text: '請選擇要複製的元件，並按下複製元件後再執行貼上。' });
+                                                        }
+                                                        else {
+                                                            addWidgetEvent(dir, json);
+                                                            window.parent.glitter.share.refreshMainLeftEditor();
+                                                        }
+                                                    }
+                                                    catch (error) {
+                                                        dialog.errorMessage({ text: '請選擇要複製的元件，並按下複製元件。' });
+                                                    }
+                                                });
                                             }
-                                            catch (error) {
-                                                dialog.errorMessage({ text: '請選擇要複製的元件，並按下複製元件。' });
-                                            }
-                                        });
-                                    }
-                                    readClipboardContent();
-                                })}">貼上</div>
+                                            readClipboardContent();
+                                        }
+                                    },
+                                ].map((dd) => {
+                                    return html `
+                                        <div style="text-align: center; color: white; font-size: 12px;  font-weight: 700; letter-spacing: 0.48px; word-wrap: break-word"
+                                             onmousedown="${cf.gvc.event((e, event) => {
+                                        dd.event(e, event);
+                                    })}">${dd.text}
+                                        </div>`;
+                                }).join(`<div style="width: 0px; height: 12.50px; border: 0.50px white solid"></div>`)}
                                         </div>
                                     </div>`;
                             }
@@ -1964,7 +1986,7 @@ background: white;
                                 >
                                     ${getPlusAndPasteView(1)}
                                 </div>
-                                <div class="position-absolute px-3 py-2 fw-bold copy-btn" style="
+                                <div class="position-absolute px-3 py-2 fw-bold copy-btn d-none" style="
     justify-content: center;
     display:none;
     border-radius: 3px;

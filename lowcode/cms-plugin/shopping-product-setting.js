@@ -717,7 +717,7 @@ export class ShoppingProductSetting {
                                                     };
                                                     return html `
                                                                             <div
-                                                                                style="width: 569px;height: 408px;border-radius: 10px;background: #FFF;display: flex;flex-direction: column;color: #393939;"
+                                                                                style="width: 569px; max-width: calc(100% - 20px);height: 408px;border-radius: 10px;background: #FFF;display: flex;flex-direction: column;color: #393939;"
                                                                             >
                                                                                 <div
                                                                                     class="w-100"
@@ -909,7 +909,7 @@ export class ShoppingProductSetting {
                                             BgWidget.darkButton('新增', gvc.event(() => {
                                                 vm.type = 'add';
                                             }), {
-                                                class: `guide5-3`
+                                                class: `guide5-3`,
                                             }),
                                         ].join('')}
                                                     </div>
@@ -1686,7 +1686,12 @@ export class ShoppingProductSetting {
                             });
                         })}"
                                                         >
-                                                            <div class="rounded-3" style="width: 30px;height: 30px;background:50%/cover url('${data.preview_image || BgWidget.noImageURL}')"></div>
+                                                            ${BgWidget.validImageBox({
+                            gvc,
+                            image: data.preview_image || BgWidget.noImageURL,
+                            width: 40,
+                            style: 'border-radius: 10px',
+                        })}
                                                             <div>${data.spec.join(' / ')}</div>
                                                         </div>
                                                     `;
@@ -2993,18 +2998,18 @@ color: ${selected.length ? `#393939` : `#DDD`};font-size: 18px;
                                                                                         })}"
                                                                                                                   ></i>
                                                                                                                   <div
-                                                                                                                      style="flex:1 0 0;font-size: 16px;font-weight: 400;gap:${document.body
-                                                                                            .clientWidth < 800
-                                                                                            ? 10
-                                                                                            : 24}px;display: flex;"
+                                                                                                                      style="flex:1 0 0;font-size: 16px;font-weight: 400;display: flex;align-items: center;
+                                                                                                                      gap:${document.body.clientWidth < 800 ? 10 : 24}px;"
                                                                                                                   >
+                                                                                                                      ${BgWidget.validImageBox({
+                                                                                            gvc,
+                                                                                            image: getPreviewImage(postMD.variants.filter((dd) => dd.spec[0] === spec.title)[0].preview_image),
+                                                                                            width: 50,
+                                                                                            style: 'border-radius: 10px',
+                                                                                        })}
                                                                                                                       <div
-                                                                                                                          style="background:50%/cover url('${getPreviewImage(postMD.variants.filter((dd) => {
-                                                                                            return dd.spec[0] === spec.title;
-                                                                                        })[0].preview_image)}');height: 60px;width: 60px;border-radius: 10px;border: 1px solid #DDD;"
-                                                                                                                      ></div>
-                                                                                                                      <div
-                                                                                                                          style="display: flex;align-items: center;gap: 8px;cursor: pointer;white-space: nowrap;"
+                                                                                                                          class="me-2"
+                                                                                                                          style="display: flex;align-items: center;gap: 8px;cursor: pointer;overflow-wrap: anywhere;"
                                                                                                                           onclick="${gvc.event(() => {
                                                                                             spec.expand = !spec.expand;
                                                                                             gvc.notifyDataChange(vm.id);
@@ -3151,11 +3156,16 @@ color: ${selected.length ? `#393939` : `#DDD`};font-size: 18px;
                                                                                                         gvc.notifyDataChange([vm.id, 'selectFunRow']);
                                                                                                     })}"
                                                                                                                                               ></i>
-                                                                                                                                              <div
-                                                                                                                                                  style="background:50%/cover url('${getPreviewImage(data.preview_image)}');height: 50px;width: 50px;border-radius: 10px;border: 1px solid #DDD;"
-                                                                                                                                              ></div>
-                                                                                                                                              <div style="cursor: pointer;" class="hover-underline">
-                                                                                                                                                  ${data.spec.join(' / ')}
+                                                                                                                                              ${BgWidget.validImageBox({
+                                                                                                        gvc,
+                                                                                                        image: getPreviewImage(data.preview_image),
+                                                                                                        width: 40,
+                                                                                                        style: 'border-radius: 10px',
+                                                                                                    })}
+                                                                                                                                              <div class="hover-underline">
+                                                                                                                                                  <span>
+                                                                                                                                                      ${Tool.truncateString(data.spec.join(' / '), 14)}</span
+                                                                                                                                                  >
                                                                                                                                               </div>
                                                                                                                                           </div>
                                                                                                                                           ${['sale_price', 'stock']
@@ -3552,7 +3562,7 @@ ${(_c = postMD.seo.content) !== null && _c !== void 0 ? _c : ''}</textarea
         let keyboard = '';
         return html ` <div class="bg-white w-100">
             ${[
-            html ` <div class="w-100 " style="display: flex;gap: 8px;flex-direction: column;">
+            html ` <div class="w-100" style="display: flex;gap: 8px;flex-direction: column;">
                     <div style="width: 70px">規格種類</div>
                     <input
                         class="w-100"

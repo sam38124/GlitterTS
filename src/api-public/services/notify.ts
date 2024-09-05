@@ -288,7 +288,7 @@ export class ManagerNotify {
         )[0];
         if (await this.checkNotify('register')) {
             const link = `./index?type=editor&appName=${this.app_name}&function=backend-manger&tab=user_list`;
-            const body = html`新用戶『 ${user_data.userData.name} 』註冊了帳號。`;
+            const body = html`新用戶『 ${user_data.userData.name || user_data.account} 』註冊了帳號。`;
             new Firebase(saas.brand).sendMessage({
                 title: `帳號註冊通知`,
                 userID: saas.user,

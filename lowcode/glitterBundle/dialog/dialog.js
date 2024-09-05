@@ -104,7 +104,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                         >
                             <div class="dialog-content">
                                 <i class="fa-regular fa-circle-check fs-1"></i>
-                                <div class="mt-3 fs-6 fw-500">${(_d = gBundle.obj.text) !== null && _d !== void 0 ? _d : '成功'}</div>
+                                <div class="mt-3 fs-6 fw-500" style="white-space: normal; word-break: break-all;;">${(_d = gBundle.obj.text) !== null && _d !== void 0 ? _d : '成功'}</div>
                             </div>
                         </div>
                     `;

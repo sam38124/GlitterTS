@@ -178,9 +178,11 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                 viewModel.dataList = data.response.result;
                                 viewModel.originalData = JSON.parse(JSON.stringify(viewModel.dataList));
                                 glitter.share.allPageResource = JSON.parse(JSON.stringify(data.response.result));
-                                const htmlGenerate = new gvc.glitter.htmlGenerate(viewModel.data.config, [Storage.lastSelect], undefined, true);
-                                window.editerData = htmlGenerate;
-                                window.page_config = viewModel.data.page_config;
+                                function createGenerator() {
+                                    window.editerData = new gvc.glitter.htmlGenerate(viewModel.data.config, [Storage.lastSelect], undefined, true);
+                                    window.page_config = viewModel.data.page_config;
+                                }
+                                createGenerator();
                                 if (!data) {
                                     resolve(false);
                                 }
