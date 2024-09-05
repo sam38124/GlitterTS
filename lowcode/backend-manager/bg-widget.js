@@ -1041,6 +1041,8 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         var _a;
         obj.type = (_a = obj.type) !== null && _a !== void 0 ? _a : 'single';
         const gvc = obj.gvc;
+        const inputColor = undefined;
+        const randomString = obj.type === 'single' ? this.getWhiteDotClass(gvc, inputColor) : this.getCheckedClass(gvc, inputColor);
         return html `
             ${obj.title ? html `<div class="tx_normal fw-normal">${obj.title}</div>` : ``}
             ${obj.gvc.bindView(() => {
@@ -1062,7 +1064,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                         }
                         return html `
                                     <div
-                                        class="d-flex align-items-center cursor_pointer"
+                                        class="d-flex align-items-center cursor_pointer mb-2"
                                         onclick="${obj.gvc.event(() => {
                             if (obj.type === 'multiple') {
                                 if (obj.def.find((d2) => {
@@ -1085,8 +1087,14 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                         })}"
                                         style="gap:6px;"
                                     >
-                                        ${isSelect() ? html `<i class="fa-sharp fa-solid fa-circle-dot color39"></i>` : html `<div class="c_39_checkbox"></div>`}
-                                        <span class="tx_normal">${dd.title}</span>
+                                        <input
+                                            class="form-check-input ${randomString} cursor_pointer"
+                                            style="margin-top: -2px;"
+                                            type="${obj.type === 'single' ? 'radio' : 'checkbox'}"
+                                            id="${id}_${dd.value}"
+                                            ${isSelect() ? 'checked' : ''}
+                                        />
+                                        <label class="form-check-label cursor_pointer" for="${id}_${dd.value}" style="font-size: 16px; color: #393939;">${dd.title}</label>
                                     </div>
                                     ${obj.def === dd.value && dd.innerHtml ? html `<div class="mt-1">${dd.innerHtml}</div>` : ``}
                                 `;
