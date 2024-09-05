@@ -57,6 +57,9 @@ export const widgetComponent = {
                         })}`,
                         view: (widget) => {
                             var _a;
+                            function isEditorMode() {
+                                return ((window.parent.editerData !== undefined) || (window.editerData !== undefined));
+                            }
                             try {
                                 let innerText = (() => {
                                     if ((widget.data.dataFrom === "code") || (widget.data.dataFrom === "code_text")) {
@@ -137,7 +140,8 @@ export const widgetComponent = {
                                         option.push({ key: 'value', value: innerText });
                                     }
                                     let classList = [];
-                                    if ((((window.parent.editerData !== undefined) || (window.editerData !== undefined)) && htmlGenerate.root)) {
+                                    let elem = widget.data.elem;
+                                    if (isEditorMode() && htmlGenerate.root) {
                                         classList.push(`editorParent`);
                                         classList.push(`relativePosition`);
                                         classList.push(view_container_id);
@@ -165,7 +169,7 @@ export const widgetComponent = {
                                     }
                                     style_user += widget.code_style || '';
                                     return {
-                                        elem: widget.data.elem,
+                                        elem: elem,
                                         class: classList.join(' '),
                                         style: glitter.htmlGenerate.styleEditor(widget.data, gvc, widget, subData).style() + ` ${(window.parent.editerData !== undefined) ? `${(widget.visible === false) ? `display:none;` : ``}` : ``} ${style_user}`,
                                         option: option.concat(htmlGenerate.option),

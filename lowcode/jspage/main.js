@@ -28,6 +28,7 @@ import { NormalPageEditor } from '../editor/normal-page-editor.js';
 import { EditorConfig } from '../editor-config.js';
 import { BgCustomerMessage } from '../backend-manager/bg-customer-message.js';
 import { BgGuide } from "../backend-manager/bg-guide.js";
+import { StepManager } from "../modules/step-manager.js";
 const html = String.raw;
 const editorContainerID = `HtmlEditorContainer`;
 init(import.meta.url, (gvc, glitter, gBundle) => {
@@ -178,9 +179,30 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                 viewModel.dataList = data.response.result;
                                 viewModel.originalData = JSON.parse(JSON.stringify(viewModel.dataList));
                                 glitter.share.allPageResource = JSON.parse(JSON.stringify(data.response.result));
-                                const htmlGenerate = new gvc.glitter.htmlGenerate(viewModel.data.config, [Storage.lastSelect], undefined, true);
-                                window.editerData = htmlGenerate;
-                                window.page_config = viewModel.data.page_config;
+                                function createGenerator() {
+                                    window.editerData = new gvc.glitter.htmlGenerate(viewModel.data.config, [Storage.lastSelect], undefined, true);
+                                    window.page_config = viewModel.data.page_config;
+                                }
+                                createGenerator();
+                                const manager = new StepManager();
+                                clearInterval(glitter.share.stepInterVal);
+                                let lastCompare = JSON.parse(JSON.stringify(viewModel.data.config));
+                                glitter.share.stepInterVal = setInterval(() => {
+                                    if (JSON.stringify(lastCompare) !== JSON.stringify(viewModel.data.config)) {
+                                        const step = JSON.parse(JSON.stringify(viewModel.data.config));
+                                        manager.addStep(() => {
+                                            lastCompare = step;
+                                            viewModel.data.config = JSON.parse(JSON.stringify(step));
+                                            createGenerator();
+                                            document.querySelector(`.iframe_view`).contentWindow.glitter.pageConfig[0].gvc.recreateView();
+                                            gvc.notifyDataChange(editorContainerID);
+                                            gvc.notifyDataChange('step-container');
+                                        });
+                                        lastCompare = step;
+                                        gvc.notifyDataChange('step-container');
+                                    }
+                                }, 500);
+                                glitter.share.stepManager = manager;
                                 if (!data) {
                                     resolve(false);
                                 }

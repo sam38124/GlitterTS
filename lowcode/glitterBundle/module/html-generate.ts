@@ -1086,6 +1086,7 @@ ${obj.gvc.bindView({
                         );
                         if (isEditMode()) {
                             elem_.class = `${elem_.class} editor_it_${container_id} `;
+                            // elem_.elem=``
                         }
 
                         return elem_;
@@ -1101,6 +1102,7 @@ ${obj.gvc.bindView({
 
                         gvc.glitter.deBugMessage(`RenderFinish-time:(start:${renderStart})-(end:${(window as any).renderClock.stop()})`);
                         option.onCreate && option.onCreate();
+
                     },
                     onDestroy: () => {
                         option.onDestroy && option.onDestroy();
@@ -1907,7 +1909,7 @@ ${e.line}
                                 };
 
                                 function addCreateOption(option: any, widgetComponentID: string) {
-                                    if ((isEditMode() || isIdeaMode()) && !child_container && root ) {
+                                    if ((isEditMode() || isIdeaMode()) && !child_container && root) {
                                         option.push({
                                             key: 'onclick',
                                             value: (() => {
@@ -1922,7 +1924,7 @@ ${e.line}
                                                     scrollToHover(gvc.glitter.$(`.editor_it_${cf.widget.id}`).get(0));
                                                 };
                                                 return gvc.editorEvent((e, event) => {
-                                                    if(!isIdeaMode()){
+                                                    if (!isIdeaMode()) {
                                                         HtmlGenerate.selectWidget({
                                                             gvc: gvc,
                                                             widget: widget,
@@ -2060,7 +2062,7 @@ ${e.line}
                                                         scrollToHover(gvc.glitter.$(`.editor_it_${cf.widget.id}`).get(0));
                                                     };
                                                     return gvc.editorEvent((e, event) => {
-                                                        if(!isIdeaMode()){
+                                                        if (!isIdeaMode()) {
                                                             HtmlGenerate.selectWidget({
                                                                 gvc: gvc,
                                                                 widget: widget,
@@ -2150,7 +2152,7 @@ ${e.line}
                                                                 `,
                                                 option: option.concat(
                                                     (() => {
-                                                        if (root && isEditMode() ) {
+                                                        if (root && isEditMode()) {
                                                             return [
                                                                 {
                                                                     key: 'onmouseover',
@@ -2174,8 +2176,10 @@ ${e.line}
                                                         }
                                                     })()
                                                 ),
+                                                elem:`div`
                                             },
                                             onCreate: () => {
+
                                                 TriggerEvent.trigger({
                                                     gvc,
                                                     widget: widget as any,
@@ -2301,18 +2305,19 @@ ${e.line}
         if (cf.gvc.glitter.getUrlParameter('type') !== 'htmlEditor' && ((window as any).glitter.getUrlParameter('type') !== 'find_idea')) {
             return ``;
         }
-        function addWidgetEvent(direction:number,component?:any){
+
+        function addWidgetEvent(direction: number, component?: any) {
             let glitter = (window as any).glitter;
             while (!glitter.share.editorViewModel) {
                 glitter = (window.parent as any).glitter;
             }
-            if(component){
+            if (component) {
                 glitter.share.addWithIndex({
                     data: component,
                     index: cf.id,
                     direction: direction,
                 });
-            }else{
+            } else {
                 glitter.getModule(new URL('../.././editor/add-component.js', import.meta.url).href, (AddComponent: any) => {
                     AddComponent.toggle(true)
                     AddComponent.addWidget = (gvc: GVC, tdata: any) => {
@@ -2368,6 +2373,7 @@ ${e.line}
             }
 
         }
+
         return [
             (() => {
                 return ``
@@ -2379,7 +2385,8 @@ ${e.line}
                     view: () => {
                         if (isIdeaMode()) {
                             return html`
-                                <div class="position-absolute w-100 h-100" style="background:linear-gradient(143deg, rgba(255, 180, 0, 0.2) -22.7%, rgba(255, 108, 2, 0.2) 114.57%);">
+                                <div class="position-absolute w-100 h-100"
+                                     style="background:linear-gradient(143deg, rgba(255, 180, 0, 0.2) -22.7%, rgba(255, 108, 2, 0.2) 114.57%);">
                                     <div class="position-absolute"
                                          style="top:50%;left:50%;transform: translate(-50%,-50%);cursor: pointer;pointer-events:all;">
                                         <button class="py-2 px-4 fw-500" style="display: inline-flex;
@@ -2390,47 +2397,75 @@ border-radius: 12px;
 color: #FF6C02;
 border: 2px solid #FF6C02;
 background: white;
-" onmousedown="${cf.gvc.event(()=>{
-                                            const add =JSON.parse(JSON.stringify(cf.widget))
-                                            add.id=cf.gvc.glitter.getUUID();
+" onmousedown="${cf.gvc.event(() => {
+                                            const add = JSON.parse(JSON.stringify(cf.widget))
+                                            add.id = cf.gvc.glitter.getUUID();
                                             (window.parent as any).glitter.share.add_from_idea(add)
-                                        })}">確認複製</button>
+                                        })}">確認複製
+                                        </button>
                                     </div>
                                 </div>
                             `
                         } else {
-   function getPlusAndPasteView(dir:number){
-       return `<div style=" height: 20px; padding: 10px; background: linear-gradient(143deg, #FFB400 0%, #FF6C02 100%); border-radius: 72.64px; justify-content: flex-start; align-items: center; gap: 10px; display: inline-flex">
+                            function getPlusAndPasteView(dir: number) {
+                                return `<div style=" height: 20px; padding: 10px; background: linear-gradient(143deg, #FFB400 0%, #FF6C02 100%); border-radius: 72.64px; justify-content: flex-start; align-items: center; gap: 10px; display: inline-flex">
                                         <div style="height: 16px; justify-content: flex-start; align-items: center; gap: 8px; display: flex">
-                                            <div style="text-align: center; color: white; font-size: 12px; font-family: Noto Sans; font-weight: 700; letter-spacing: 0.48px; word-wrap: break-word" onmousedown="${cf.gvc.event((e,event)=>{
-           HtmlGenerate.block_timer = new Date().getTime();
-           addWidgetEvent(dir)
-           event.stopPropagation();
-           event.preventDefault();
-       })}">新增</div>
-                                            <div style="width: 0px; height: 12.50px; border: 0.50px white solid"></div>
-                                            <div  style="text-align: center; color: white; font-size: 12px; font-family: Noto Sans; font-weight: 700; letter-spacing: 0.48px; word-wrap: break-word"  onmousedown="${cf.gvc.event(()=>{
-           HtmlGenerate.block_timer = new Date().getTime();
-           const dialog = new ShareDialog((window.parent as any).glitter)
-           async function readClipboardContent() {
-               try {
-                   // 使用 navigator.clipboard.readText() 方法取得剪貼簿的文字內容
-                   const json: any = JSON.parse(await navigator.clipboard.readText());
-                   if(!json.id){
-                       dialog.errorMessage({text:'請選擇要複製的元件，並按下複製元件。'})
-                   }else{
-                       addWidgetEvent(dir,json);
-                       (window.parent as any).glitter.share.refreshMainLeftEditor()
-                   }
-               } catch (error) {
-                   dialog.errorMessage({text:'請選擇要複製的元件，並按下複製元件。'})
-               }
-           }
-           readClipboardContent()
-       })}">貼上</div>
+                                        ${[
+                                    {
+                                        text: '新增', event: (e: any, event: any) => {
+                                            HtmlGenerate.block_timer = new Date().getTime();
+                                            addWidgetEvent(dir)
+                                            event.stopPropagation();
+                                            event.preventDefault();
+                                        }
+                                    },
+                                    {
+                                        text: '複製', event: (e: any, event: any) => {
+                                            const dialog = new ShareDialog(cf.gvc.glitter)
+                                            navigator.clipboard.writeText(JSON.stringify(cf.widget));
+                                            dialog.successMessage({text: '複製成功，滑動至要插入的區塊，並點擊貼上。'})
+                                        }
+                                    },
+                                    {
+                                        text: '貼上', event: (e: any, event: any) => {
+                                            HtmlGenerate.block_timer = new Date().getTime();
+                                            const dialog = new ShareDialog((window.parent as any).glitter)
+
+                                            async function readClipboardContent() {
+                                                try {
+                                                    // 使用 navigator.clipboard.readText() 方法取得剪貼簿的文字內容
+                                                    const json: any = JSON.parse(await navigator.clipboard.readText());
+                                                    if (!json.id) {
+                                                        dialog.errorMessage({text: '請選擇要複製的元件，並按下複製元件後再執行貼上。'})
+                                                    } else {
+                                                        addWidgetEvent(dir, json);
+                                                        (window.parent as any).glitter.share.refreshMainLeftEditor()
+                                                    }
+                                                } catch (error) {
+                                                    dialog.errorMessage({text: '請選擇要複製的元件，並按下複製元件。'})
+                                                }
+                                            }
+
+                                            readClipboardContent()
+                                        }
+                                    },
+                                    // {
+                                    //     text: '拖曳', event: (e: any, event: any) => {
+                                    //     
+                                    //     }
+                                    // },
+                                ].map((dd) => {
+                                    return html`
+                                        <div style="text-align: center; color: white; font-size: 12px;  font-weight: 700; letter-spacing: 0.48px; word-wrap: break-word"
+                                             onmousedown="${cf.gvc.event((e, event) => {
+                                                 dd.event(e, event)
+                                             })}">${dd.text}
+                                        </div>`
+                                }).join(`<div style="width: 0px; height: 12.50px; border: 0.50px white solid"></div>`)}
                                         </div>
                                     </div>`
-   }
+                            }
+
                             return html`
                                 <div
                                         class="position-absolute align-items-center justify-content-center px-3 fw-500 fs-6 badge_it"
@@ -2454,7 +2489,7 @@ background: white;
                                 >
                                     ${getPlusAndPasteView(1)}
                                 </div>
-                                <div class="position-absolute px-3 py-2 fw-bold copy-btn" style="
+                                <div class="position-absolute px-3 py-2 fw-bold copy-btn d-none" style="
     justify-content: center;
     display:none;
     border-radius: 3px;

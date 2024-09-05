@@ -19,6 +19,7 @@ import {Setting_editor} from './function-page/setting_editor.js';
 import {NormalPageEditor} from "../editor/normal-page-editor.js";
 import {SearchIdea} from "../editor/search-idea.js";
 import {BgGuide} from "../backend-manager/bg-guide.js";
+import {StepManager} from "../modules/step-manager.js";
 
 const html = String.raw;
 
@@ -169,10 +170,10 @@ color: transparent;"
                                 if (Storage.select_function === 'backend-manger') {
                                     return html`
                                         <div
-                                                class=" t_39_normal border-end px-4 d-none d-sm-flex align-items-center justify-content-center indexGuideBTN"
+                                                class=" t_39_normal border-end px-4  align-items-center justify-content-center indexGuideBTN d-none"
                                                 style="height: 56px;cursor: pointer;"
                                                 onclick="${gvc.event(() => {
-                                                    let bgGuide = new BgGuide(gvc,0);
+                                                    let bgGuide = new BgGuide(gvc, 0);
                                                     bgGuide.drawGuide();
                                                 })}"
                                         >
@@ -187,7 +188,7 @@ color: transparent;"
                                         >
                                             教學文章
                                         </div>
-                                        
+
                                     `;
                                 } else {
                                     return ``;
@@ -214,18 +215,18 @@ color: transparent;"
                                                 //     <i class="fa-solid fa-thought-bubble"></i>
                                                 // </div>`,
                                                 html`
-                                                <div class="hoverBtn  d-flex align-items-center justify-content-center   border ${Storage.select_function === 'user-editor' ? `d-none` : ``}"
-                                                     style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
-                                                     onclick="${gvc.event(() => {
-                                                         SetGlobalValue.toggle(true);
-                                                     })}"
-                                                     data-bs-toggle="tooltip"
-                                                     data-bs-placement="top"
-                                                     data-bs-custom-class="custom-tooltip"
-                                                     data-bs-title="全域設置"
-                                                >
-                                                    <i class="fa-solid fa-bars"></i>
-                                                </div>`
+                                                    <div class="hoverBtn  d-flex align-items-center justify-content-center   border ${Storage.select_function === 'user-editor' ? `d-none` : ``}"
+                                                         style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
+                                                         onclick="${gvc.event(() => {
+                                                             SetGlobalValue.toggle(true);
+                                                         })}"
+                                                         data-bs-toggle="tooltip"
+                                                         data-bs-placement="top"
+                                                         data-bs-custom-class="custom-tooltip"
+                                                         data-bs-title="全域設置"
+                                                    >
+                                                        <i class="fa-solid fa-bars"></i>
+                                                    </div>`
                                             ].join('');
                                         },
                                         onCreate: () => {
@@ -537,23 +538,31 @@ ${glitter.getUrlParameter('tab') === 'page_manager' ? `d-none` : `${glitter.shar
                                 >
                                     <i class="fa-regular fa-house"></i>
                                 </div>
-                                <div
-                                        class=" align-items-center justify-content-center hoverBtn me-2 border
-${glitter.getUrlParameter('tab') === 'page_manager' ? `d-none` : `d-none d-sm-flex`}"
-                                        style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
-                                        data-bs-toggle="tooltip"
-                                        data-bs-placement="top"
-                                        data-bs-custom-class="custom-tooltip"
-                                        data-bs-title="預覽應用"
-                                        onclick="${gvc.event(() => {
-                                            const url = new URL('', glitter.share.editorViewModel.domain ? `https://${glitter.share.editorViewModel.domain}/?page=index` : location.href);
-                                            url.searchParams.delete('type');
-                                            url.searchParams.set('page', glitter.getUrlParameter('page'));
-                                            glitter.openNewTab(url.href);
-                                        })}"
-                                >
-                                    <i class="fa-regular fa-eye"></i>
-                                </div>
+                                ${gvc.bindView(() => {
+                                    return {
+                                        bind: 'step-container',
+                                        view: () => {
+                                            const stepManager: StepManager<() => void> = glitter.share.stepManager;
+                                            return html`
+                                                <div class="fs-5" style="cursor: pointer;color: ${(!stepManager.canGoBack()) ? `#DDDDDD`:`#393939`};"
+                                                     onclick="${gvc.event(() => {
+                                                        
+                                                         (stepManager.previousStep())!()
+                                                     })}">
+                                                    <i class="fa-solid fa-arrow-rotate-left"></i>
+                                                </div>
+                                                <div class=" fs-5" style="cursor: pointer;color: ${(!stepManager.canGoForward()) ? `#DDDDDD`:`#393939`};"
+                                                     onclick="${gvc.event(() => {
+                                                        (stepManager.nextStep())!()
+                                                     })}">
+                                                    <i class="fa-solid fa-arrow-rotate-right"></i>
+                                                </div>`
+                                        },
+                                        divCreate:{
+                                            class:`d-flex me-3`,style:`gap:10px;`
+                                        }
+                                    }
+                                })}
 
                                 ${gvc.bindView({
                                     bind: `showViewIcon`,
@@ -579,7 +588,7 @@ ${glitter.getUrlParameter('tab') === 'page_manager' ? `d-none` : `d-none d-sm-fl
                                                     })(),
                                                     {icon: 'fa-regular fa-desktop', type: ViewType.desktop},
                                                     {icon: 'fa-regular fa-mobile', type: ViewType.mobile},
-                                                    {icon: 'fa-solid fa-expand', type: ViewType.fullScreen},
+                                                    // {icon: 'fa-solid fa-expand', type: ViewType.fullScreen},
                                                 ]
                                                         .map((dd) => {
                                                             if (dd.type === Storage.view_type) {
@@ -630,13 +639,39 @@ color:white;"
                                             </button>
                                         `
                                         : html`
+
                                             <button
-                                                    class=" btn ms-2  ${glitter.getUrlParameter('editorPosition') === '2' ? `d-none` : ``}"
-                                                    style="height: 42px;display: inline-flex;
+                                                    class="ms-2 btn   ${glitter.getUrlParameter('editorPosition') === '2' ? `d-none` : ``} ${glitter.getUrlParameter('tab') === 'page_manager' ? `d-none` : `d-none d-sm-flex`}"
+                                                    style="height: 42px;
+display: inline-flex;
 padding: 10px 22px 10px 23px;
 justify-content: center;
 align-items: center;
-border-radius: 12px;
+border-radius: 10px;;
+border: 1px solid ${EditorConfig.editor_layout.main_color};
+color:${EditorConfig.editor_layout.main_color};
+"
+                                                    onclick="${gvc.event(() => {
+                                                        const url = new URL('', glitter.share.editorViewModel.domain ? `https://${glitter.share.editorViewModel.domain}/?page=index` : location.href);
+                                                        url.searchParams.delete('type');
+                                                        url.searchParams.set('page', glitter.getUrlParameter('page'));
+                                                        glitter.openNewTab(url.href);
+                                                    })}"
+                                            >
+                                                <div style="background: ${EditorConfig.editor_layout.btn_background};
+background-clip: text;
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;">預覽
+                                                </div>
+                                            </button>
+                                            <button
+                                                    class=" btn ms-2  ${glitter.getUrlParameter('editorPosition') === '2' ? `d-none` : ``}"
+                                                    style="height: 42px;
+display: inline-flex;
+padding: 10px 22px 10px 23px;
+border-radius: 10px;;
+justify-content: center;
+align-items: center;
 border:none;
 background: ${EditorConfig.editor_layout.btn_background};
 color:white;

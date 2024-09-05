@@ -10,7 +10,7 @@ export class ShareDialog {
     public policy: () => void;
 
     constructor(glitter: Glitter) {
-        if (glitter.getUrlParameter('cms') === 'true') {
+        if (glitter.getUrlParameter('cms') === 'true' || glitter.getUrlParameter('type')==='htmlEditor') {
             glitter = (window.parent as any).glitter;
         }
         this.dataLoading = (obj: { text?: string; visible: boolean }) => {
