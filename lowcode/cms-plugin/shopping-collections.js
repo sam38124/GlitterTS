@@ -739,7 +739,7 @@ export class ShoppingCollections {
                             vm.type = 'list';
                         }))}
                                 ${BgWidget.save(gvc.event(() => {
-                            if (!CheckInput.isEmpty(vm.data.title)) {
+                            if (CheckInput.isEmpty(vm.data.title)) {
                                 dialog.infoMessage({ text: '標題不可為空' });
                                 return;
                             }
@@ -748,7 +748,7 @@ export class ShoppingCollections {
                                 dialog.infoMessage({ text: '標題不可包含空白格與以下符號：<br />「 , 」「 / 」「 \\ 」' });
                                 return;
                             }
-                            if (!CheckInput.isEmpty(vm.data.code)) {
+                            if (CheckInput.isEmpty(vm.data.code)) {
                                 dialog.infoMessage({ text: '請輸入分類連結' });
                                 return;
                             }

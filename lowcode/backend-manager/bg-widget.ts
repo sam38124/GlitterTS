@@ -1193,13 +1193,14 @@ ${obj.default ?? ''}</textarea
             name: string;
             innerHtml?: string;
             hiddenLeftLine?: boolean;
-            customerClass?:string;
+            customerClass?: string;
         }[],
         def: string[],
         callback: (value: string[]) => void,
         obj?: {
             readonly?: boolean;
             single?: boolean;
+            zeroOption?: boolean;
         }
     ) {
         const id = gvc.glitter.getUUID();
@@ -1215,15 +1216,14 @@ ${obj.default ?? ''}</textarea
                     checkboxHTML += html`
                         <div>
                             <div
-                                class="form-check ${item?.customerClass??''}"
+                                class="form-check ${item?.customerClass ?? ''}"
                                 onclick="${gvc.event((e, evt) => {
                                     if (obj && obj.readonly) {
                                         evt.preventDefault();
                                         return;
                                     }
                                     if (obj && obj.single) {
-                                        def = [item.key];
-                                        callback([item.key]);
+                                        def = def[0] === item.key && obj.zeroOption ? [] : [item.key];
                                     } else {
                                         if (!def.find((d) => d === item.key)) {
                                             def.push(item.key);
@@ -1231,8 +1231,8 @@ ${obj.default ?? ''}</textarea
                                             def = def.filter((d) => d !== item.key);
                                         }
                                         def = def.filter((d) => data.map((item2) => item2.key).includes(d));
-                                        callback(def);
                                     }
+                                    callback(def);
                                     gvc.notifyDataChange(viewId);
                                 })}"
                             >

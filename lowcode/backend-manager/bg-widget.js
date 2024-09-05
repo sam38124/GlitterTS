@@ -1000,8 +1000,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                             return;
                         }
                         if (obj && obj.single) {
-                            def = [item.key];
-                            callback([item.key]);
+                            def = def[0] === item.key && obj.zeroOption ? [] : [item.key];
                         }
                         else {
                             if (!def.find((d) => d === item.key)) {
@@ -1011,8 +1010,8 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                 def = def.filter((d) => d !== item.key);
                             }
                             def = def.filter((d) => data.map((item2) => item2.key).includes(d));
-                            callback(def);
                         }
+                        callback(def);
                         gvc.notifyDataChange(viewId);
                     })}"
                             >
