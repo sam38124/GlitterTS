@@ -36,7 +36,7 @@ export class BgGuide {
                 value: "shop_information",
                 title: "商店訊息",
                 innerHTML: () => {
-                    return this.drawInitGuide();
+                    return this.drawMessageGuide();
                 }
             }, {
                 value: "web_theme",
@@ -72,6 +72,23 @@ export class BgGuide {
         target.addEventListener("click", handleClick);
         this.eventSet.push(() => {
             target.removeEventListener('click', handleClick);
+        });
+    }
+    detectOninputThrough(target, clickEvent) {
+        const handleClick = () => {
+            setTimeout(() => {
+                if (target.value.length > 0) {
+                    clickEvent();
+                    this.eventSet = this.eventSet.filter((d) => {
+                        return d !== handleClick;
+                    });
+                    target.removeEventListener('input', handleClick);
+                }
+            }, 0);
+        };
+        target.addEventListener("input", handleClick);
+        this.eventSet.push(() => {
+            target.removeEventListener('input', handleClick);
         });
     }
     deleteEvent(handleClick) {
@@ -191,8 +208,7 @@ export class BgGuide {
                         </div>
                         <div style="background: #FFF;width:100%;padding: 18px 24px;display: flex;align-items: center;border-radius: 0 0 10px 10px;font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%; /* 25.6px */letter-spacing: 0.64px;">
                             點擊<span
-                                style="font-style: normal;font-weight: 700;line-height: 160%;letter-spacing: 0.64px;">「${title}
-                            」</span>
+                                style="font-style: normal;font-weight: 700;line-height: 160%;letter-spacing: 0.64px;">「${title}」</span>
                         </div>
                     </div>
                 </div>
@@ -201,6 +217,7 @@ export class BgGuide {
         return ``;
     }
     drawBGwithBelowWindow(BG, vm, targetSelector, viewID, step, allStep, window, closeEvent) {
+        var _a;
         let gvc = this.gvc;
         function close() {
             if (closeEvent) {
@@ -241,7 +258,7 @@ export class BgGuide {
         let arrowPosition = () => {
             switch (window.alignment) {
                 case "left": {
-                    return window.width - 32;
+                    return window.width - 42;
                 }
                 default: {
                     return window.width / 2 - 11;
@@ -301,7 +318,7 @@ export class BgGuide {
                 next();
             }
         })}">
-                                    下一步
+                                    ${(_a = window.btnText) !== null && _a !== void 0 ? _a : "下一步"}
                                 </div>
                             </div>
                         </div>
@@ -388,6 +405,97 @@ export class BgGuide {
             </div>
         `;
     }
+    drawMessageGuide() {
+        let gvc = this.gvc;
+        let vm = {
+            guide: this.guide,
+            step: this.step,
+        };
+        const that = this;
+        return gvc.bindView({
+            bind: "messageInit",
+            dataList: [],
+            view: () => {
+                let viewID = "messageInit";
+                let iframe = document.querySelector(`iframe`);
+                const BG = document.querySelector(`.guide-BG`);
+                gvc.addStyle(`                        
+                    .breathing-light {
+                        position:relative;
+                        z-index: 1;
+                        border: 1px solid rgba(255, 233, 178, 0.5);
+                    }
+                    .breathing-light::before {
+                        content: '';
+                        position: absolute;
+                       top: -5px; /* 控制光效范围 */
+                        left: -5px;
+                        right: -5px;
+                        bottom: -5px;
+                        border: 5px solid #FFE9B2; /* 边框颜色 */
+                        border-radius: inherit; /* 保持和容器一样的圆角 */
+                        filter: blur(2px); /* 模糊程度 */
+                        animation: breathing 1.5s infinite alternate; /* 呼吸灯效果 */
+                    }
+                    @keyframes breathing {
+                        
+                        0% {
+                            opacity: 1;
+                            transform: scale(1); /* 放大效果 */
+                            box-shadow: 0 0 4px 6px rgba(255, 233, 178, 0.8);
+                        }
+                        100% {
+                            opacity: 0.5;
+                            transform: scale(1);
+                            box-shadow: 0 0 4px rgba(255, 233, 178, 0.5);
+                        }
+                    }
+                `);
+                switch (vm.step) {
+                    case 2: {
+                        return this.drawSecondRowBG(BG, vm, `.guide6-2`, viewID, '商店訊息', 5);
+                    }
+                    case 3: {
+                        let target = this.findIframeDom(`.guide6-3`);
+                        let check = true;
+                        if (!target) {
+                            const timer = setInterval(() => {
+                                if (this.findIframeDom(`.guide6-3`)) {
+                                    clearInterval(timer);
+                                    gvc.notifyDataChange(viewID);
+                                }
+                            }, 400);
+                        }
+                        return this.drawBGwithBelowWindow(BG, vm, '.guide6-3', viewID, 3, 5, { width: 332, height: 209, title: "商店基本資訊", content: "在這裡可以修改商店的基本訊息" }, () => {
+                        });
+                    }
+                    case 4: {
+                        let target = this.findIframeDom(`.guide6-4`);
+                        if (!target) {
+                            const timer = setInterval(() => {
+                                if (this.findIframeDom(`.guide6-4`)) {
+                                    clearInterval(timer);
+                                    gvc.notifyDataChange(viewID);
+                                }
+                            }, 400);
+                        }
+                        target.parentElement.parentElement.scrollIntoView();
+                        return this.drawBGwithBelowWindow(BG, vm, '.guide6-4', viewID, 4, 5, { width: 332, height: 209, title: "SEO設定", content: "完善SEO系統，提升網站的曝光度。" });
+                    }
+                    case 5: {
+                        let target = this.findIframeDom(`.guide6-5`);
+                        target.parentElement.scrollIntoView({});
+                        return this.drawBGwithBelowWindow(BG, vm, '.guide6-5', viewID, 5, 5, { width: 332, height: 209, title: "網域設定", content: "您可以選擇使用免費的子網域，或是額外付費申請獨立網域", btnText: "完成" }, () => {
+                            this.leaveGuide(vm);
+                        });
+                    }
+                    default: {
+                        return this.drawMainRowBG(BG, vm, `.mainRow1`, viewID, 5);
+                    }
+                }
+            }, divCreate: {}
+        });
+    }
     drawProductGuide() {
         let gvc = this.gvc;
         let vm = {
@@ -435,17 +543,18 @@ export class BgGuide {
                 `);
                 switch (vm.step) {
                     case 2: {
-                        return this.drawSecondRowBG(BG, vm, `.guide5-2`, 'productInit', '商品列表', 9);
+                        return this.drawSecondRowBG(BG, vm, `.guide5-2`, 'productInit', '商品列表', 8);
                     }
                     case 3: {
                         let target = this.findIframeDom(`.guide5-3`);
                         if (!target) {
                             const timer = setInterval(() => {
+                                console.log("test");
                                 if (this.findIframeDom(`.guide5-3`)) {
                                     clearInterval(timer);
                                     gvc.notifyDataChange(`productInit`);
                                 }
-                            });
+                            }, 400);
                         }
                         let content = html `
                             <div class="d-flex" style="font-weight: 400;line-height: 160%;letter-spacing: 0.64px;">
@@ -454,77 +563,83 @@ export class BgGuide {
                         `;
                         this.detectClickThrough(target, () => {
                             vm.step++;
+                            BG.classList.remove('guide5-3');
+                            gvc.notifyDataChange('productInit');
                         });
-                        return this.drawBGwithBelowWindow(BG, vm, '.guide5-3', 'productInit', 3, 9, { width: 332, height: 209, title: "上架商品", content: content, alignment: "left", next: true }, () => {
-                        });
+                        if (target) {
+                            return this.drawBGwithBelowWindow(BG, vm, '.guide5-3', 'productInit', 3, 8, { width: 332, height: 209, title: "上架商品", content: content, alignment: 'left', next: true }, () => {
+                            });
+                        }
+                        else {
+                            return this.drawBGwithBelowWindow(BG, vm, '.guide5-3', 'productInit', 3, 8, { width: 332, height: 209, title: "上架商品", content: "輸入商品名稱", disable: true }, () => {
+                            });
+                        }
                     }
                     case 4: {
-                        return this.drawBGwithBelowWindow(BG, vm, '.guide4-4', 'logisticsInit', 4, 8, { width: 332, height: 209, title: "填寫材積區間", content: "填寫材積的運費計算區間" });
+                        let target = this.findIframeDom(`.guide5-4`);
+                        if (!target) {
+                            const timer = setInterval(() => {
+                                if (this.findIframeDom(`.guide5-4`)) {
+                                    clearInterval(timer);
+                                    gvc.notifyDataChange(`productInit`);
+                                }
+                            }, 400);
+                        }
+                        if (target.querySelector('input').value.length > 0) {
+                            return this.drawBGwithBelowWindow(BG, vm, '.guide5-4', 'productInit', 4, 8, { width: 332, height: 209, title: "商品名稱", content: "輸入商品名稱" });
+                        }
+                        this.detectOninputThrough(target.querySelector('input'), () => {
+                            gvc.notifyDataChange('productInit');
+                        });
+                        return this.drawBGwithBelowWindow(BG, vm, '.guide5-4', 'productInit', 4, 8, { width: 332, height: 209, title: "商品名稱", content: "輸入商品名稱", disable: true });
                     }
                     case 5: {
-                        return this.drawBGwithBelowWindow(BG, vm, '.guide4-5', 'logisticsInit', 5, 8, { width: 332, height: 209, title: "新增計算區間", content: "點擊藍字即可新增一個計算區間" });
+                        let target = this.findIframeDom(`.guide5-5`);
+                        target.parentElement.parentElement.scrollIntoView({});
+                        if (target.querySelector('input').value.length > 0 && target.querySelector('input').value != 0) {
+                            return this.drawBGwithBelowWindow(BG, vm, '.guide5-5', 'productInit', 5, 8, { width: 332, height: 209, title: "販售價格", content: "輸入商品的販售價格" });
+                        }
+                        this.detectOninputThrough(target.querySelector('input'), () => {
+                            gvc.notifyDataChange('productInit');
+                        });
+                        return this.drawBGwithBelowWindow(BG, vm, '.guide5-5', 'productInit', 5, 8, { width: 332, height: 209, title: "販售價格", content: "輸入商品的販售價格", disable: true });
                     }
                     case 6: {
-                        let target = this.findIframeDom('.guide4-6');
-                        const handleClick = (event) => {
-                            this.eventSet = this.eventSet.filter((d) => {
-                                return d !== handleClick;
-                            });
-                            target.removeEventListener('click', handleClick);
-                            return;
-                        };
-                        target.addEventListener("click", handleClick);
-                        this.eventSet.push(() => {
-                            target.removeEventListener('click', handleClick);
+                        let target = this.findIframeDom('.guide5-6');
+                        target.parentElement.parentElement.parentElement.parentElement.scrollIntoView({});
+                        this.detectClickThrough(target, () => {
+                            BG.classList.remove('guide5-6');
+                            vm.step++;
+                            gvc.notifyDataChange('productInit');
                         });
-                        let content = html `
-                            <div class="d-flex align-items-center" style="">
-                                點擊
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14" style="margin:0 6px;"
-                                     fill="none">
-                                    <path d="M1 1L13 13" stroke="#8D8D8D" stroke-linecap="round"/>
-                                    <path d="M13 1L1 13" stroke="#8D8D8D" stroke-linecap="round"/>
-                                </svg>
-                                可以刪除計算區間
-                            </div>
-                        `;
-                        let body = document.querySelector('.editorContainer');
-                        if (body && !document.querySelector('.clickInterface')) {
-                            $(body).append(html `
-                                <div class="clickInterface" style="height: 100vh;width: 100vw;position: fixed;left: 0;top: 0;z-index: 1030;cursor: pointer;" onclick="${gvc.event(() => {
-                                if (document.querySelector('.breathing-light')) {
-                                    document.querySelector('.breathing-light').click();
-                                }
-                            })}"></div>
-                            `);
-                        }
-                        return this.drawBGwithBelowWindow(BG, vm, '.guide4-6', 'logisticsInit', 6, 8, {
-                            width: 332,
-                            height: 209,
-                            title: "刪除計算區間",
-                            content: content,
-                            next: true
-                        }, () => {
-                            if (document.querySelector('.clickInterface')) {
-                                document.querySelector('.clickInterface').remove();
-                            }
-                        });
+                        return this.drawBGwithBelowWindow(BG, vm, '.guide5-6', 'productInit', 6, 8, { width: 332, height: 209, title: "運費計算", content: "選擇此商品的運費計算方式", next: true });
                     }
                     case 7: {
-                        let target = this.findIframeDom('.guide4-7');
-                        let select = this.findIframeDom('.volumeSelect');
-                        if (!select) {
-                            this.detectClickThrough(target, () => {
-                                gvc.notifyDataChange(`logisticsInit`);
-                            });
+                        let target = this.findIframeDom('.guide5-7');
+                        const inputGroup = target.querySelectorAll('input');
+                        let check = true;
+                        inputGroup.forEach((el) => {
+                            if (!el.classList.contains('addListener')) {
+                                that.detectOninputThrough(el, () => {
+                                    gvc.notifyDataChange('productInit');
+                                });
+                                el.classList.add('addListener');
+                            }
+                            if (el.value.length < 0 || el.value == 0) {
+                                check = false;
+                            }
+                        });
+                        console.log(" check -- ", check);
+                        if (check) {
+                            return this.drawBGwithBelowWindow(BG, vm, '.guide5-7', 'productInit', 7, 8, { width: 350, height: 217, title: "商品材積", content: "由於您在上一步驟選擇依材積計算，此處必須填寫商品的材積" });
                         }
-                        return this.drawBGwithBelowWindow(BG, vm, '.guide4-7', 'logisticsInit', 7, 8, { width: 350, height: 217, title: "設為預設計算方式", content: "將「依材積計算」設為預設的運費計算方式，新增商品時將會自動代入", disable: !select });
+                        return this.drawBGwithBelowWindow(BG, vm, '.guide5-7', 'productInit', 7, 8, { width: 350, height: 217, title: "商品材積", content: "由於您在上一步驟選擇依材積計算，此處必須填寫商品的材積", disable: true });
                     }
                     case 8: {
-                        return this.drawFinBG(BG, vm, 'guide4-8', 'logisticsInit', 8, "logistics_setting");
+                        return this.drawFinBG(BG, vm, 'guide5-8', 'productInit', 8, "product-manager");
                     }
                     default: {
-                        return this.drawMainRowBG(BG, vm, `.mainRow2`, "productInit", 9, "商品管理");
+                        return this.drawMainRowBG(BG, vm, `.mainRow2`, "productInit", 8, "商品管理");
                     }
                 }
             }, divCreate: {}

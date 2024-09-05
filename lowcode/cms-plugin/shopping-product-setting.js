@@ -1402,7 +1402,7 @@ export class ShoppingProductSetting {
                                 <div class="w-100" style="display: flex;gap: 18px;flex-direction: column;">
                                     <div style="font-weight: 700;">定價</div>
                                     <div class="d-flex w-100" style="gap:18px;">
-                                        <div class="d-flex w-50 flex-column" style="gap: 8px;">
+                                        <div class="d-flex w-50 flex-column guide5-5" style="gap: 8px;">
                                             <div>販售價格*</div>
                                             <input
                                                 style="width: 100%;border-radius: 10px;border: 1px solid #DDD;height: 40px;padding: 0px 18px;"
@@ -1471,6 +1471,7 @@ export class ShoppingProductSetting {
                         {
                             key: 'volume',
                             name: '依材積計算',
+                            customerClass: 'guide5-6'
                         },
                         {
                             key: 'weight',
@@ -1486,16 +1487,17 @@ export class ShoppingProductSetting {
                     }, { single: true })}`;
                 },
                 divCreate: {
-                    class: `d-flex flex-column`,
+                    class: `d-flex flex-column `,
                     style: `gap:12px;`,
                 },
             };
         }))}
                             ${BgWidget.mainCard(html `
-                                <div class="d-flex flex-column" style="gap:18px;">
-                                    <div style="font-weight: 700;">商品材積</div>
-                                    <div class="row">
-                                        ${[
+                                <div class="d-flex flex-column " style="gap:18px;">
+                                    <div class="d-flex flex-column guide5-7" style="gap:18px;">
+                                        <div style="font-weight: 700;">商品材積</div>
+                                        <div class="row">
+                                            ${[
             {
                 title: '長度',
                 value: 'v_length',
@@ -1528,7 +1530,9 @@ export class ShoppingProductSetting {
                                                 </div>`;
         })
             .join('')}
+                                        </div>
                                     </div>
+                                    
                                     <div style="font-weight: 700;">商品重量</div>
                                     <div class="w-100 row m-0" style="color:#393939;">
                                         <input
@@ -1942,7 +1946,7 @@ export class ShoppingProductSetting {
                                 <div class="d-flex justify-content-center p-0 ${document.body.clientWidth < 768 ? 'flex-column' : ''}" style="${document.body.clientWidth < 768 ? '' : 'gap: 24px'}">
                                     ${BgWidget.container([
                                 BgWidget.mainCard(html `
-                                                <div class="d-flex flex-column guide5-5">
+                                                <div class="d-flex flex-column guide5-4">
                                                     <div style="font-weight: 700;">商品名稱</div>
                                                     <input
                                                         class="w-100 mt-2"
@@ -3523,7 +3527,7 @@ ${(_c = postMD.seo.content) !== null && _c !== void 0 ? _c : ''}</textarea
                                         ShoppingProductSetting.postEvent(postMD, obj.gvc, obj.vm);
                                     }
                                 }, 500);
-                            }))}
+                            }), "儲存", "guide5-8")}
                         </div>`,
                         ].join('');
                     },

@@ -976,10 +976,11 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             view: () => {
                 let checkboxHTML = '';
                 data.map((item) => {
+                    var _a;
                     checkboxHTML += html `
                         <div>
                             <div
-                                class="form-check"
+                                class="form-check ${(_a = item === null || item === void 0 ? void 0 : item.customerClass) !== null && _a !== void 0 ? _a : ''}"
                                 onclick="${gvc.event((e, evt) => {
                         if (obj && obj.readonly) {
                             evt.preventDefault();

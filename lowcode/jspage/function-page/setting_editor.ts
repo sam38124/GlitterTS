@@ -50,7 +50,7 @@ export class Setting_editor {
                                                     appName: 'cms_system',
                                                     groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716566571091-Property 1=gear-regular.svg',
                                                     moduleName: '商店設計',
-                                                    guideClass:'guide2-1'
+                                                    guideClass:'guide6-2'
                                                 },
                                                 {
                                                     icon: '',

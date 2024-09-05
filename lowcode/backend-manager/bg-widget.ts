@@ -1177,6 +1177,7 @@ ${obj.default ?? ''}</textarea
             name: string;
             innerHtml?: string;
             hiddenLeftLine?: boolean;
+            customerClass?:string;
         }[],
         def: string[],
         callback: (value: string[]) => void,
@@ -1198,7 +1199,7 @@ ${obj.default ?? ''}</textarea
                     checkboxHTML += html`
                         <div>
                             <div
-                                class="form-check"
+                                class="form-check ${item?.customerClass??''}"
                                 onclick="${gvc.event((e, evt) => {
                                     if (obj && obj.readonly) {
                                         evt.preventDefault();

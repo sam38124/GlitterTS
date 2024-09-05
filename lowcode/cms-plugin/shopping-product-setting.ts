@@ -1641,7 +1641,7 @@ export class ShoppingProductSetting {
                                 <div class="w-100" style="display: flex;gap: 18px;flex-direction: column;">
                                     <div style="font-weight: 700;">定價</div>
                                     <div class="d-flex w-100" style="gap:18px;">
-                                        <div class="d-flex w-50 flex-column" style="gap: 8px;">
+                                        <div class="d-flex w-50 flex-column guide5-5" style="gap: 8px;">
                                             <div>販售價格*</div>
                                             <input
                                                 style="width: 100%;border-radius: 10px;border: 1px solid #DDD;height: 40px;padding: 0px 18px;"
@@ -1713,6 +1713,7 @@ export class ShoppingProductSetting {
                                                         {
                                                             key: 'volume',
                                                             name: '依材積計算',
+                                                            customerClass:'guide5-6'
                                                         },
                                                         {
                                                             key: 'weight',
@@ -1732,35 +1733,36 @@ export class ShoppingProductSetting {
                                                 )}`;
                                         },
                                         divCreate: {
-                                            class: `d-flex flex-column`,
+                                            class: `d-flex flex-column `,
                                             style: `gap:12px;`,
                                         },
                                     };
                                 })
                             )}
                             ${BgWidget.mainCard(html`
-                                <div class="d-flex flex-column" style="gap:18px;">
-                                    <div style="font-weight: 700;">商品材積</div>
-                                    <div class="row">
-                                        ${[
-                                            {
-                                                title: '長度',
-                                                value: 'v_length',
-                                                unit: '公分',
-                                            },
-                                            {
-                                                title: '寬度',
-                                                value: 'v_width',
-                                                unit: '公分',
-                                            },
-                                            {
-                                                title: '高度',
-                                                value: 'v_height',
-                                                unit: '公分',
-                                            },
-                                        ]
-                                            .map((dd) => {
-                                                return html` <div style="display: flex;justify-content: center;align-items: center;gap: 10px;position: relative;" class=" col-12 col-sm-4 mb-2">
+                                <div class="d-flex flex-column " style="gap:18px;">
+                                    <div class="d-flex flex-column guide5-7" style="gap:18px;">
+                                        <div style="font-weight: 700;">商品材積</div>
+                                        <div class="row">
+                                            ${[
+                                                {
+                                                    title: '長度',
+                                                    value: 'v_length',
+                                                    unit: '公分',
+                                                },
+                                                {
+                                                    title: '寬度',
+                                                    value: 'v_width',
+                                                    unit: '公分',
+                                                },
+                                                {
+                                                    title: '高度',
+                                                    value: 'v_height',
+                                                    unit: '公分',
+                                                },
+                                            ]
+                                                    .map((dd) => {
+                                                        return html` <div style="display: flex;justify-content: center;align-items: center;gap: 10px;position: relative;" class=" col-12 col-sm-4 mb-2">
                                                     <div style="white-space: nowrap;">${dd.title}</div>
                                                     <input
                                                         class="ps-3"
@@ -1773,9 +1775,11 @@ export class ShoppingProductSetting {
                                                     />
                                                     <div style="color: #8D8D8D;position: absolute;right: 25px;top: 7px;">${dd.unit}</div>
                                                 </div>`;
-                                            })
-                                            .join('')}
+                                                    })
+                                                    .join('')}
+                                        </div>
                                     </div>
+                                    
                                     <div style="font-weight: 700;">商品重量</div>
                                     <div class="w-100 row m-0" style="color:#393939;">
                                         <input
@@ -1978,7 +1982,7 @@ export class ShoppingProductSetting {
                         } else {
                             obj.vm.type = 'replace';
                         }
-                    })
+                    }),
                 )}
             </div>
         </div>`;
@@ -2251,7 +2255,7 @@ export class ShoppingProductSetting {
                                     ${BgWidget.container(
                                         [
                                             BgWidget.mainCard(html`
-                                                <div class="d-flex flex-column guide5-5">
+                                                <div class="d-flex flex-column guide5-4">
                                                     <div style="font-weight: 700;">商品名稱</div>
                                                     <input
                                                         class="w-100 mt-2"
@@ -3950,7 +3954,7 @@ ${postMD.seo.content ?? ''}</textarea
                                         }
                                     }, 500);
                                 })
-                            )}
+                            ,"儲存" , "guide5-8")}
                         </div>`,
                     ].join('');
                 },
