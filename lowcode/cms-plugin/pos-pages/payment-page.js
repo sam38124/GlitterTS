@@ -486,7 +486,6 @@ text-transform: uppercase;">${dd.title}</div>`;
                                     orderDetail.user_info = obj.ogOrderData.user_info;
                                     let passData = JSON.parse(JSON.stringify(orderDetail));
                                     passData.total = orderDetail.total;
-                                    passData.orderDetail.total = (orderDetail.total > 0) ? orderDetail.total : orderDetail.total;
                                     passData.orderStatus = 1;
                                     passData.pay_status = 1;
                                     if (vm.paySelect === 'cash') {

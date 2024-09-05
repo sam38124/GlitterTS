@@ -213,26 +213,26 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
 
 
 // 示例代码
-                            const manager = new StepManager<()=>void>();
-                            clearInterval(glitter.share.stepInterVal)
-                            let lastCompare=JSON.parse(JSON.stringify((viewModel.data! as any).config))
-                            glitter.share.stepInterVal=setInterval(()=>{
-                                if(JSON.stringify(lastCompare)!==JSON.stringify((viewModel.data! as any).config)){
-                                    const step=JSON.parse(JSON.stringify((viewModel.data! as any).config))
-                                    manager.addStep(()=>{
-                                        lastCompare=step;
-                                        (viewModel.data! as any).config=JSON.parse(JSON.stringify(step));
-                                        createGenerator();
-                                        (document.querySelector(`.iframe_view`) as any).contentWindow.glitter.pageConfig[0].gvc.recreateView()
-                                        gvc.notifyDataChange(editorContainerID);
-                                        gvc.notifyDataChange('step-container')
-                                    })
-                                    lastCompare=step
-                                    gvc.notifyDataChange('step-container')
-                                }
-                            },500)
+//                            const manager = new StepManager<()=>void>();
+                            // clearInterval(glitter.share.stepInterVal)
+                            // let lastCompare=JSON.parse(JSON.stringify((viewModel.data! as any).config))
+                            // glitter.share.stepInterVal=setInterval(()=>{
+                            //     if(JSON.stringify(lastCompare)!==JSON.stringify((viewModel.data! as any).config)){
+                            //         const step=JSON.parse(JSON.stringify((viewModel.data! as any).config))
+                            //         manager.addStep(()=>{
+                            //             lastCompare=step;
+                            //             (viewModel.data! as any).config=JSON.parse(JSON.stringify(step));
+                            //             createGenerator();
+                            //             (document.querySelector(`.iframe_view`) as any).contentWindow.glitter.pageConfig[0].gvc.recreateView()
+                            //             gvc.notifyDataChange(editorContainerID);
+                            //             gvc.notifyDataChange('step-container')
+                            //         })
+                            //         lastCompare=step
+                            //         gvc.notifyDataChange('step-container')
+                            //     }
+                            // },500)
 
-                            glitter.share.stepManager=manager
+                            // glitter.share.stepManager=manager
                             //
                             // setTimeout(()=>{
                             //     (viewModel.data! as any).config=[];

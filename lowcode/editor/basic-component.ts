@@ -97,7 +97,7 @@ image: `https://liondesign-prd.s3.amazonaws.com/Screenshot+2024-09-03+at+12.17.4
                                                     <button class="btn btn-primary-c  d-flex align-items-center"
                                                             style="height: 28px;width: 75px;gap:5px;" onclick="${gvc.event(()=>{
                                             dd.config.label=dd.title;
-                                            AddComponent.addWidget(gvc, dd.config);
+                                            AddComponent.addWidget(gvc, JSON.parse(JSON.stringify(dd.config)));
                                         })}">
                                                         <i class="fa-regular fa-circle-plus " aria-hidden="true" ></i>新增
                                                     </button>
