@@ -8,7 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { NormalPageEditor } from '../../editor/normal-page-editor.js';
-import { ShareDialog } from "../../dialog/ShareDialog.js";
+import { ShareDialog } from "../../glitterBundle/dialog/ShareDialog.js";
 const html = String.raw;
 export class ArrayItems {
     static main(cf) {
@@ -50,6 +50,7 @@ export class ArrayItems {
                                                 if (b) {
                                                     cf.formData[cf.key].splice(index, 1);
                                                     cf.callback({});
+                                                    gvc.notifyDataChange(id);
                                                 }
                                             }
                                         });

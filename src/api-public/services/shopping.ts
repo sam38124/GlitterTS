@@ -375,6 +375,8 @@ export class Shopping {
                     return products.data.find((product: { id: number }) => {
                         return `${product.id}` === `${id}`;
                     });
+                }).filter((dd)=>{
+                    return dd
                 });
             }
 

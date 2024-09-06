@@ -5,6 +5,7 @@ import {ApiShop} from "../../glitter-base/route/shopping.js";
 import {EditorElem} from "../../glitterBundle/plugins/editor-elem.js";
 import {PosWidget} from "../pos-widget.js";
 import {UserList} from "../user-list.js";
+import {LinePay} from "./pay-method/line-pay.js";
 
 const html = String.raw
 
@@ -58,7 +59,7 @@ export class PaymentPage {
                     if (!PaymentPage.shipment_support(orderDetail).find((dd) => {
                         return dd.value === (obj.ogOrderData).user_info.shipment
                     })) {
-                        ((obj.ogOrderData).user_info.shipment as any) = PaymentPage.shipment_support(orderDetail)[0].value;
+                        ((obj.ogOrderData).user_info.shipment as any) = 'now';
                     }
                     let interval:any=0
                     return `<div class="left-panel"
@@ -258,16 +259,16 @@ flex-shrink: 0;">
                                     }
                                 },
                                 {
-                                    title: `其他`,
-                                    value: 'other',
+                                    title: `Line pay`,
+                                    value: 'line',
                                     event: () => {
-                                        vm.paySelect = 'other';
+                                        vm.paySelect = 'line';
                                     }
                                 },
                             ]
                             return btnArray.map((btn) => {
                                 return html`
-                                    <div style="display: flex;flex-direction: column;justify-content: center;align-items: center;padding: 20px 36px;border-radius: 10px;background: #F6F6F6;${(vm.paySelect == btn.value) ? `color:#393939;border-radius: 10px;border: 3px solid #393939;box-shadow: 2px 2px 15px 0px rgba(0, 0, 0, 0.20);` : 'color:#8D8D8D;'}"
+                                    <div style="flex:1;display: flex;flex-direction: column;justify-content: center;align-items: center;padding: 20px 20px;border-radius: 10px;background: #F6F6F6;${(vm.paySelect == btn.value) ? `color:#393939;border-radius: 10px;border: 3px solid #393939;box-shadow: 2px 2px 15px 0px rgba(0, 0, 0, 0.20);` : 'color:#8D8D8D;'}"
                                          onclick="${gvc.event(() => {
                                              btn.event();
                                              console.log(vm.paySelect);
@@ -284,7 +285,7 @@ flex-shrink: 0;">
                         },
                         divCreate: {
                             class: ``,
-                            style: `display: flex;justify-content: space-between;margin-top: 24px;`
+                            style: `display: flex;justify-content: space-between;margin-top: 24px;gap:15px;`
                         }
                     })}
                       ${PaymentPage.spaceView()}
@@ -496,7 +497,9 @@ text-transform: uppercase;">${dd.title}</div>`
                                                  PaymentPage.cashFinish(gvc, orderDetail, vm, passData)
                                              } else if (vm.paySelect === 'creditCard') {
                                                  PaymentPage.creditFinish(gvc, orderDetail, vm, passData)
-                                             } else {
+                                             } else if (vm.paySelect === 'line'){
+                                                 PaymentPage.lineFinish(gvc, orderDetail, vm, passData)
+                                             }else{
                                                  PaymentPage.selectInvoice(gvc, orderDetail, vm, passData)
                                              }
 
@@ -665,11 +668,24 @@ text-transform: uppercase;">${dd.title}</div>`
                 }
             `);
         const dialog = new ShareDialog(gvc.glitter)
+        function next(){
+            PaymentPage.selectInvoice(gvc, orderDetail, vm, passData)
+        }
         gvc.glitter.innerDialog((gvc: GVC) => {
-            const timer = setTimeout(() => {
-                gvc.closeDialog()
-                PaymentPage.selectInvoice(gvc, orderDetail, vm, passData)
-            }, 3000)
+            gvc.glitter.runJsInterFace('credit_card', {
+                amount:`${orderDetail.total}`,
+                memo:orderDetail.lineItems.map((data:any)=>{
+                    return `${data.title} * ${data.count}`
+                }).join(',')
+            }, (res:any) => {
+                if(res.result){
+                    gvc.closeDialog()
+                    next()
+                }else{
+                    gvc.closeDialog()
+                    dialog.errorMessage({text:'交易失敗'})
+                }
+            });
             return html`
                 <div class="dialog-box">
                     <div class="dialog-content position-relative "
@@ -686,7 +702,7 @@ text-transform: uppercase;">${dd.title}</div>`
                         <div class="fw-500 w-100 mt-3"
                              style="border-radius: 10px;border: 1px solid #DDD;background: #FFF;padding: 12px 24px;color: #393939;width:120px;text-align:center;"
                              onclick="${gvc.event(() => {
-                                 clearTimeout(timer)
+                                 // clearTimeout(timer)
                                  gvc.glitter.closeDiaLog()
                              })}">取消付款
                         </div>
@@ -696,6 +712,102 @@ text-transform: uppercase;">${dd.title}</div>`
         }, 'orderFinish', {
             dismiss: () => {
                 // vm.type = "list";
+            }
+        })
+    }
+
+    public static lineFinish(gvc: GVC, orderDetail: any, vm: any, passData: any) {
+        gvc.addStyle(`
+                .dialog-box {
+                    width: 100vw;
+                    height: 100vh;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    background-color: rgba(0, 0, 0, 0.5);
+                    z-index: 10000;
+                }
+
+                .dialog-absolute {
+                    width: 100%;
+                    border-top: 1px solid #e2e5f1;
+                    position: absolute;
+                    left: 0px;
+                    bottom: 0px;
+                    height: 40px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    cursor: pointer;
+                }
+
+                .hover-cancel {
+                    background-color: #fff;
+                    border-radius: 0 0 0 0.5rem;
+                }
+
+                .hover-cancel:hover {
+                    background-color: #e6e6e6;
+                }
+
+                .hover-save {
+                    background-color: #393939;
+                    border-radius: 0 0 0.5rem;
+                }
+
+                .hover-save:hover {
+                    background-color: #646464;
+                }
+            `);
+        const dialog = new ShareDialog(gvc.glitter)
+        function next(){
+            PaymentPage.selectInvoice(gvc, orderDetail, vm, passData)
+        }
+
+        gvc.glitter.innerDialog((gvc: GVC) => {
+            gvc.glitter.share.scan_back=(text:string)=>{
+                LinePay.pay(orderDetail.orderID,orderDetail.lineItems.map((data:any)=>{
+                    return `${data.title} * ${data.count}`
+                }).join(','),orderDetail.total,text)
+            }
+            // gvc.glitter.runJsInterFace('credit_card', {
+            //     amount:`${orderDetail.total}`,
+            //     memo:orderDetail.lineItems.map((data:any)=>{
+            //         return `${data.title} * ${data.count}`
+            //     }).join(',')
+            // }, (res:any) => {
+            //     if(res.result){
+            //         gvc.closeDialog()
+            //         next()
+            //     }else{
+            //         gvc.closeDialog()
+            //         dialog.errorMessage({text:'交易失敗'})
+            //     }
+            // });
+            return html`
+                <div class="dialog-box">
+                    <div class="dialog-content position-relative "
+                         style="width: 370px;max-width: calc(100% - 20px);">
+                        <div class="my-3  fw-500 text-center"
+                             style="white-space: normal; overflow-wrap: anywhere;font-size: 20px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 2.8px;">
+                            請掃描LINE付款條碼
+                        </div>
+                        <img class="mt-3" style="max-width:70%;"
+                             src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_s6sfs4scs5s3s0sa_Screenshot2024-09-06at12.28.00 PM.jpg"></img>
+                        <div class="fw-500 w-100 mt-3"
+                             style="border-radius: 10px;border: 1px solid #DDD;background: #FFF;padding: 12px 24px;color: #393939;width:120px;text-align:center;"
+                             onclick="${gvc.event(() => {
+                // clearTimeout(timer)
+                gvc.glitter.closeDiaLog()
+            })}">取消付款
+                        </div>
+                    </div>
+                </div>
+            `
+        }, 'orderFinish', {
+            dismiss: () => {
+                // vm.type = "list";
+                gvc.glitter.share.scan_back=()=>{}
             }
         })
     }
@@ -761,8 +873,7 @@ text-transform: uppercase;">${dd.title}</div>`
                 } else {
                     PaymentPage.clearHistory()
                     if (res.response.data.invoice && (c_vm.invoice_select !== 'carry')) {
-                        gvc.glitter.runJsInterFace('print_invoice', res.response.data.invoice, () => {
-                        });
+                        gvc.glitter.runJsInterFace('print_invoice', res.response.data.invoice, () => {});
                     }
                     dialog.dataLoading({visible: false})
                     orderDetail.lineItems = [];

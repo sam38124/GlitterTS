@@ -993,9 +993,9 @@ onclick="${gvc.event(() => {
                                                     }),
                                                     EditorElem.editeInput({
                                                         gvc: gvc,
-                                                        title: `X軸間距`,
+                                                        title: `上下間隔`,
                                                         default: widget.data._gap_x,
-                                                        placeHolder: '請輸入X軸間距',
+                                                        placeHolder: '請輸入上下間隔',
                                                         callback: (text) => {
                                                             widget.data._gap_x = text;
                                                             widget.refreshComponent();
@@ -1003,9 +1003,9 @@ onclick="${gvc.event(() => {
                                                     }),
                                                     EditorElem.editeInput({
                                                         gvc: gvc,
-                                                        title: `Y軸間距`,
+                                                        title: `左右間隔`,
                                                         default: widget.data._gap_y,
-                                                        placeHolder: '請輸入Y軸間距',
+                                                        placeHolder: '請輸入左右間隔',
                                                         callback: (text) => {
                                                             widget.data._gap_y = text;
                                                             widget.refreshComponent();
@@ -1032,9 +1032,9 @@ onclick="${gvc.event(() => {
                                                 array = array.concat([
                                                     EditorElem.editeInput({
                                                         gvc: gvc,
-                                                        title: `X軸間距`,
+                                                        title: `上下間隔`,
                                                         default: widget.data._gap_x,
-                                                        placeHolder: '請輸入X軸間距',
+                                                        placeHolder: '請輸入上下間隔',
                                                         callback: (text) => {
                                                             widget.data._gap_x = text;
                                                             widget.refreshComponent();
@@ -1042,9 +1042,9 @@ onclick="${gvc.event(() => {
                                                     }),
                                                     EditorElem.editeInput({
                                                         gvc: gvc,
-                                                        title: `Y軸間距`,
+                                                        title: `左右間隔`,
                                                         default: widget.data._gap_y,
-                                                        placeHolder: '請輸入Y軸間距',
+                                                        placeHolder: '請輸入左右間隔',
                                                         callback: (text) => {
                                                             widget.data._gap_y = text;
                                                             widget.refreshComponent();

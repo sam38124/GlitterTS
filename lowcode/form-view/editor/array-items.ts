@@ -3,7 +3,8 @@ import {Storage} from '../../glitterBundle/helper/storage.js';
 import {Main_editor} from '../../jspage/function-page/main_editor.js';
 import {NormalPageEditor} from '../../editor/normal-page-editor.js';
 import {EditorConfig} from "../../editor-config.js";
-import {ShareDialog} from "../../dialog/ShareDialog.js";
+import {ShareDialog} from "../../glitterBundle/dialog/ShareDialog.js";
+
 
 const html = String.raw;
 
@@ -48,6 +49,7 @@ const gvc=cf.gvc;
                                                 if (b) {
                                                     cf.formData[cf.key].splice(index,1)
                                                     cf.callback({})
+                                                    gvc.notifyDataChange(id)
                                                 }
                                             }
                                         })
