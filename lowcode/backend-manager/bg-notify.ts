@@ -682,7 +682,6 @@ export class BgNotify {
 
     public static emailEditor(obj: { vm: any; gvc: GVC; type?: 'add' | 'replace'; defData?: any; readonly?: boolean }) {
         const gvc = obj.gvc;
-        const glitter = gvc.glitter;
         const vm = obj.vm;
         const postData: {
             id: string;
@@ -696,12 +695,6 @@ export class BgNotify {
             type: 'notify-email-config',
             name: '',
         };
-        gvc.addStyle(`
-            .bg-warning {
-                background: #ffef9d !important;
-                color: black !important;
-            }
-        `);
 
         return BgWidget.container(
             html`
@@ -964,12 +957,6 @@ export class BgNotify {
             sendTime: { date: startDate, time: startTime },
             sendGroup: [],
         };
-        gvc.addStyle(`
-            .bg-warning {
-                background: #ffef9d !important;
-                color: black !important;
-            }
-        `);
 
         async function getOptions(tag: string) {
             if (tag === 'level') {
@@ -1775,12 +1762,6 @@ export class BgNotify {
             type: 'notify-message-config',
             name: '',
         };
-        gvc.addStyle(`
-            .bg-warning {
-                background: #ffef9d !important;
-                color: black !important;
-            }
-        `);
 
         return BgWidget.container(
             html`

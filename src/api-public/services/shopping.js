@@ -376,7 +376,7 @@ class Shopping {
                         selectCalc: 'volume',
                     },
                 }).value;
-                let refer = ((_b = (await private_config_js_1.Private_config.getConfig({
+                const refer = ((_b = (await private_config_js_1.Private_config.getConfig({
                     appName: this.app,
                     key: 'glitter_shipment_' + data.user_info.shipment,
                 }))[0]) !== null && _b !== void 0 ? _b : {
@@ -386,7 +386,7 @@ class Shopping {
                         selectCalc: 'def',
                     },
                 }).value;
-                if (refer.value !== 'def') {
+                if (refer.selectCalc !== 'def') {
                     def = refer;
                 }
                 return def;

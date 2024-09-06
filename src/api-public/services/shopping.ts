@@ -647,7 +647,7 @@ export class Shopping {
                 ).value;
 
                 //參照運費設定
-                let refer = (
+                const refer = (
                     (
                         await Private_config.getConfig({
                             appName: this.app,
@@ -661,7 +661,8 @@ export class Shopping {
                         },
                     }
                 ).value;
-                if (refer.value !== 'def') {
+
+                if (refer.selectCalc !== 'def') {
                     def = refer;
                 }
                 return def;
@@ -1054,7 +1055,7 @@ export class Shopping {
                     })
                 )[0].value;
                 // 線下付款
-                if (!['ecPay','newWebPay'].includes(carData.customer_info.payment_select)) {
+                if (!['ecPay', 'newWebPay'].includes(carData.customer_info.payment_select)) {
                     carData.method = 'off_line';
                     // 訂單成立信件通知
                     new ManagerNotify(this.app).checkout({
@@ -1386,8 +1387,8 @@ export class Shopping {
             })
             .filter((dd) => {
                 // 訂單來源判斷
-                if(!dd.device){
-                    return  true
+                if (!dd.device) {
+                    return true;
                 }
                 if (dd.device.length === 0) {
                     return false;

@@ -285,11 +285,6 @@ ${vm.plugin.homePage === vm.select_page ? `d-none` : ``}"
 }
 
 function uploadImage(obj: { title: string; gvc: any; def: string; callback: (data: string) => void }) {
-    obj.gvc.addStyle(`
-        .p-hover-image:hover {
-            opacity: 1 !important;
-        }
-    `);
     const glitter = (window as any).glitter;
     const id = glitter.getUUID();
     const html = String.raw;

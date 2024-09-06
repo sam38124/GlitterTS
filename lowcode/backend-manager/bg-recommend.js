@@ -625,7 +625,7 @@ export class BgRecommend {
                 bind: vm.id,
                 view: () => {
                     if (vm.loading) {
-                        return BgWidget.spinner({ textNone: true });
+                        return BgWidget.spinner({ text: { visible: false } });
                     }
                     return BgWidget.container([
                         html ` <div class="d-flex w-100 align-items-center mb-3 ">
@@ -1561,7 +1561,7 @@ export class BgRecommend {
                 dataList: [{ obj: vm, key: 'type' }],
                 view: () => {
                     if (vm.loading) {
-                        return BgWidget.spinner({ textNone: true });
+                        return BgWidget.spinner({ text: { visible: false } });
                     }
                     if (vm.type === 'user') {
                         return BgWidget.container([

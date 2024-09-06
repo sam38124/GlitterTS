@@ -651,7 +651,7 @@ export class ShoppingDiscountSetting {
                                                                                                 bind: levelVM.id,
                                                                                                 view: () => {
                                                                                                     if (levelVM.loading) {
-                                                                                                        return BgWidget.spinner({ textNone: true });
+                                                                                                        return BgWidget.spinner({ text: { visible: false } });
                                                                                                     } else {
                                                                                                         return BgWidget.selectDropList({
                                                                                                             gvc: gvc,
@@ -700,7 +700,7 @@ export class ShoppingDiscountSetting {
                                                                                                 bind: levelVM.id,
                                                                                                 view: () => {
                                                                                                     if (levelVM.loading) {
-                                                                                                        return BgWidget.spinner({ textNone: true });
+                                                                                                        return BgWidget.spinner({ text: { visible: false } });
                                                                                                     } else {
                                                                                                         return BgWidget.selectDropList({
                                                                                                             gvc: gvc,

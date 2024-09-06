@@ -621,6 +621,9 @@ export class ApiShop {
             spec: string[];
             count: number;
         }[];
+        user_info: {
+            shipment: string;
+        };
         code?: string;
         use_rebate?: number;
     }) {
