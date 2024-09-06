@@ -163,6 +163,7 @@ export class POSSetting {
         let orderDetail = JSON.parse(JSON.stringify(new OrderDetail(0, 0)));
         glitter.share.clearOrderData = () => {
             orderDetail = JSON.parse(JSON.stringify(new OrderDetail(0, 0)));
+            orderDetail.user_info.shipment = 'now';
         };
         if (localStorage.getItem('pos_order_detail')) {
             vm.type = 'payment';
@@ -173,6 +174,7 @@ export class POSSetting {
         }
         if (!orderDetail.lineItems || orderDetail.lineItems.length === 0) {
             vm.type = 'menu';
+            orderDetail.user_info.shipment = 'now';
         }
         return (gvc.bindView(() => {
             return {
@@ -294,6 +296,8 @@ cursor: pointer;
                             const dialog = new ShareDialog(gvc.glitter);
                             let view = yield (() => __awaiter(this, void 0, void 0, function* () {
                                 try {
+                                    orderDetail.user_info.shipment = orderDetail.user_info.shipment || 'now';
+                                    console.log(`orderDetail.user_info=>`, orderDetail.user_info);
                                     if (vm.type == 'payment') {
                                         return PaymentPage.main({
                                             ogOrderData: orderDetail,

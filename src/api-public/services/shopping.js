@@ -203,6 +203,8 @@ class Shopping {
                     return products.data.find((product) => {
                         return `${product.id}` === `${id}`;
                     });
+                }).filter((dd) => {
+                    return dd;
                 });
             }
             return products;
