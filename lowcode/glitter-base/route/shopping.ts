@@ -2,6 +2,34 @@ import { GlobalUser } from '../global/global-user.js';
 import { BaseApi } from '../../glitterBundle/api/base.js';
 
 export class ApiShop {
+    static getGuideable() {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/manager/config?key=guideable`,
+            type: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: GlobalUser.token,
+            },
+        });
+    }
+    static setGuideable(json: any) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/manager/config`,
+            type: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: getConfig().config.token,
+            },
+            data: JSON.stringify({
+                key: 'guideable',
+                value: {
+                    view : true
+                },
+            }),
+        });
+    }
     static getGuide() {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/manager/config?key=guide`,

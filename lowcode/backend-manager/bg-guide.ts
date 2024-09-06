@@ -65,7 +65,8 @@ export class BgGuide {
         this.step = 0;
     }
 
-    public detectClickThrough(target: any, clickEvent: () => void) {
+    public detectClickThrough(target: any, clickEvent: () => void, cover?: boolean) {
+        target.classList.add('guideClickListen');
         const handleClick = () => {
             setTimeout(() => {
                 clickEvent();
@@ -104,16 +105,26 @@ export class BgGuide {
 
     public leaveGuide(vm?: any) {
         vm.step = -1;
-        const element = document.querySelector('.guide-BG');
+        if(vm.guide == 0){
+
+        }else {
+            const element = document.querySelector('.guide-BG');
+
+            this.eventSet.forEach((del: any) => {
+                del();
+            })
+            element!.remove();
+            vm.step = 1;
+            this.guide = 0;
+            this.drawBG();
+        }
+
         // const clickInterface = document.querySelector('.clickInterface');
         // if (element) {
         //     if (vm.step){
         //         vm.step = -1;
         //     }
-        this.eventSet.forEach((del: any) => {
-            del();
-        })
-        element!.remove();
+
         // clickInterface!.remove()
         // }
     }
@@ -264,13 +275,22 @@ export class BgGuide {
         next?: boolean,
         disable?: boolean,
         alignment?: string,
-        btnText?: string
+        btnText?: string,
+        preview?: boolean,
+        previewEvent?: () => void,
+        nextEvent?: () => void,
+        cover?: boolean
     }, closeEvent?: () => void) {
         let gvc = this.gvc;
 
         function close() {
             if (closeEvent) {
                 closeEvent();
+            }
+            if (window.cover) {
+                if (document.querySelector('.clickInterface')) {
+                    document!.querySelector('.clickInterface')!.remove();
+                }
             }
             BG.classList.remove(`${targetSelector.split('.')[1]}`);
         }
@@ -295,13 +315,23 @@ export class BgGuide {
                                 ${this.holeBG(left, right, top, bottom)}
                             }                       
                         `)
+        if (window.cover) {
+            let body = document.querySelector('.editorContainer');
+            if (body && !document.querySelector('.clickInterface')) {
+                $(body).append(html`
+                    <div class="clickInterface"
+                         style="height: 100vh;width: 100vw;position: fixed;left: 0;top: 0;z-index: 1030;cursor: pointer;"
+                         onclick="${gvc.event(() => {
+                   
+                         })}"></div>
+                `)
+            }
+        }
+
         BG.classList.add(`${targetSelector.split('.')[1]}`)
         let winPosition = () => {
             switch (window.alignment) {
                 case "left": {
-                    console.log(targetSelector)
-                    console.log(rect.right , iframeRect.left)
-                    console.log(right)
                     return `left: ${right - window.width}px;top:${rect.bottom + iframeRect.top + 24}px;`
                 }
                 default : {
@@ -353,17 +383,22 @@ export class BgGuide {
                     <div class="d-flex flex-column w-100"
                          style="background: #FFF;width:100%;padding: 18px 24px;border-radius: 0 0 10px 10px;font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.64px;white-space: normal">
                         ${window.content}
-                        <div class="d-flex align-items-center justify-content-between"
+                        <div class="d-flex align-items-center justify-content-between w-100"
                              style="margin-top: 24px;height:52px;">
-                            <div style="padding: 6px 18px;border-radius: 10px;border:solid 1px #FEAD20;color: #FEAD20;font-size: 16px;font-style: normal;font-weight: 700;line-height: normal;cursor: pointer;"
+                            <div class="${(window.preview) ? 'd-none' : ''}"
+                                 style="padding: 6px 18px;border-radius: 10px;border:solid 1px #FEAD20;color: #FEAD20;font-size: 16px;font-style: normal;font-weight: 700;line-height: normal;cursor: pointer;"
                                  onclick="${gvc.event(() => {
                                      vm.step--;
                                      close()
+                                     if (window.previewEvent) {
+                                         window.previewEvent();
+                                     }
+
                                      gvc.notifyDataChange(viewID);
                                  })}">
                                 上一步
                             </div>
-                            <div class="${window.next ? "d-none" : "d-flex"} align-items-center justify-content-center "
+                            <div class="${window.next ? "d-none" : "d-flex"} align-items-center justify-content-center ms-auto"
                                  style="width: 96px;height: 46px;">
                                 <div class="${window.disable ? `` : `breathing-light`} "
                                      style="${window.disable ? `opacity: 0.8;background: #FFE9B2` : `background: #FEAD20;cursor: pointer`};padding: 6px 18px;border-radius: 10px;color: #FFF; ;font-size: 16px;font-style: normal;font-weight: 700;line-height: normal;"
@@ -371,7 +406,9 @@ export class BgGuide {
                                          if (!window.disable) {
                                              next();
                                          }
-
+                                        if (window.nextEvent){
+                                            window.nextEvent();
+                                        }
                                      })}">
                                     ${window.btnText ?? "下一步"}
                                 </div>
@@ -386,7 +423,7 @@ export class BgGuide {
     // 用於按下儲存按鈕的教學
     private drawFinBG(BG: HTMLElement, vm: any, targetSelector: string, viewID: string, step: number, key: string) {
         function close() {
-            BG.classList.remove(`guide2-6`);
+            BG.classList.remove(targetSelector);
         }
 
         const gvc = this.gvc;
@@ -534,7 +571,8 @@ export class BgGuide {
                                 width: 332,
                                 height: 209,
                                 title: "當前主題",
-                                content: "為當前首頁套用的主題資訊"
+                                content: "為當前首頁套用的主題資訊",
+                                cover: true
                             }, () => {
                             })
                     }
@@ -549,26 +587,37 @@ export class BgGuide {
                             }, 400)
                         }
                         let content = html`
-                            <div class="d-flex flex-wrap" style="font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.64px;">
+                            <div class="d-flex flex-wrap"
+                                 style="font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.64px;">
                                 點擊<span style="font-weight: 700;">自訂</span>，即可前往<span style="font-weight: 700;">頁面編輯器頁面</span>，自由將官網編輯成您理想中的模樣
                             </div>
                         `
                         return this.drawBGwithBelowWindow(BG, vm, '.guide7-4', viewID, totalStep, totalStep,
-                            {width: 332, height: 235, title: "自訂主題", content: content , alignment:"left" , btnText:"完成"},()=>{
-                                this.leaveGuide(vm);
+                            {
+                                width: 332,
+                                height: 235,
+                                title: "自訂主題",
+                                content: content,
+                                alignment: "left",
+                                btnText: "完成",
+                                cover: true,
+                                nextEvent:()=>{
+                                    this.leaveGuide(vm);
+                                }
                             })
                     }
                     default: {
-                        function close(){
+                        function close() {
                             BG.classList.remove('guide7-1');
                         }
+
                         let target1 = document.querySelector(`.mainRow9`);
                         let rect = target1!.getBoundingClientRect();
 
                         let target2 = this.findIframeDom(`.guide7-1`);
                         let iframeRect = iframe.getBoundingClientRect();
 
-                        this.detectClickThrough(target1 , ()=>{
+                        this.detectClickThrough(target1, () => {
                             close()
                             totalStep = 4;
                             vm.step = 2;
@@ -589,7 +638,7 @@ export class BgGuide {
                             })
                             BG.classList.add('guide7-1');
 
-                            this.detectClickThrough(target2 , ()=>{
+                            this.detectClickThrough(target2, () => {
                                 close()
                                 vm.step = 3;
                                 gvc.notifyDataChange(viewID);
@@ -704,7 +753,8 @@ export class BgGuide {
                                 width: 332,
                                 height: 209,
                                 title: "當前主題",
-                                content: "為當前首頁套用的主題資訊"
+                                content: "為當前首頁套用的主題資訊",
+                                cover:true,
                             }, () => {
                             })
                     }
@@ -719,12 +769,13 @@ export class BgGuide {
                             }, 400)
                         }
                         let content = html`
-                            <div class="d-flex flex-wrap" style="font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.64px;">
+                            <div class="d-flex flex-wrap"
+                                 style="font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.64px;">
                                 點擊<span style="font-weight: 700;">自訂</span>，可前往<span style="font-weight: 700;">頁面編輯器頁面</span>，自由將官網編輯成您理想中的模樣
                             </div>
                         `
                         return this.drawBGwithBelowWindow(BG, vm, '.guide7-4', viewID, totalStep - 4, totalStep,
-                            {width: 332, height: 235, title: "自訂主題", content: content , alignment:"left" })
+                            {width: 332, height: 235, title: "自訂主題", content: content, alignment: "left" , cover: true})
                     }
                     case 5: {
                         let target = this.findIframeDom(`.guide8-5`);
@@ -738,12 +789,13 @@ export class BgGuide {
                         }
 
                         let content = html`
-                            <div class="" style="font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.64px;white-space: normal">
+                            <div class=""
+                                 style="font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.64px;white-space: normal">
                                 在<span style="font-weight: 700;">佈景主題庫</span>儲存並管理多個設計主題，可根據需求靈活切換應用，展現多樣視覺效果，增強品牌吸引力
                             </div>
                         `
                         return this.drawBGwithBelowWindow(BG, vm, '.guide8-5', viewID, totalStep - 3, totalStep,
-                            {width: 439, height: 261, title: "自訂主題", content: content })
+                            {width: 439, height: 261, title: "自訂主題", content: content , cover: true})
                     }
                     case 6: {
                         let target = this.findIframeDom(`.themeGroup`);
@@ -757,17 +809,18 @@ export class BgGuide {
                         }
                         target.parentElement.scrollIntoView();
 
-                        this.detectClickThrough(target.querySelector('.addTheme') , ()=>{
+                        this.detectClickThrough(target.querySelector('.addTheme'), () => {
                             vm.step++;
                             gvc.notifyDataChange(viewID)
                         })
                         let content = html`
-                            <div class="" style="font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.64px;white-space: normal">
+                            <div class=""
+                                 style="font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.64px;white-space: normal">
                                 滑鼠移入喜歡的主題後點擊<span style="font-weight: 700;">新增</span>
                             </div>
                         `
                         return this.drawBGwithBelowWindow(BG, vm, '.themeGroup', viewID, totalStep - 2, totalStep,
-                            {width: 439, height: 261, title: "選擇主題", content: content })
+                            {width: 439, height: 261, title: "選擇主題", content: content})
                     }
                     case 7: {
                         let target = this.findIframeDom(`.guide8-5`);
@@ -781,12 +834,13 @@ export class BgGuide {
                         }
                         target.parentElement.scrollIntoView();
                         let content = html`
-                            <div class="" style="font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.64px;white-space: normal">
+                            <div class=""
+                                 style="font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.64px;white-space: normal">
                                 您可以對剛新增的主題進行操作，如自定義樣式、切換、複製及下載等等
                             </div>
                         `
                         return this.drawBGwithBelowWindow(BG, vm, '.guide8-5', viewID, totalStep - 1, totalStep,
-                            {width: 439, height: 261, title: "管理主題庫", content: content })
+                            {width: 439, height: 261, title: "管理主題庫", content: content})
                     }
                     case 8: {
                         let target = this.findIframeDom(`.themeSwitch`);
@@ -801,50 +855,72 @@ export class BgGuide {
                         target.parentElement.scrollIntoView();
 
                         let content = html`
-                            <div class="" style="font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.64px;white-space: normal">
+                            <div class=""
+                                 style="font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.64px;white-space: normal">
                                 使用<span style="font-weight: 700;">切換</span>功能，您可以將官網快速切換為主題庫中的其他主題，輕鬆又快速變換官網風格。
                             </div>
                         `
-                        return this.drawBGwithBelowWindow(BG, vm, '.themeSwitch', viewID, totalStep , totalStep,
-                            {width: 439, height: 261, title: "切換主題", content: content , alignment:"left" , btnText:"完成"})
+                        return this.drawBGwithBelowWindow(BG, vm, '.themeSwitch', viewID, totalStep, totalStep,
+                            {
+                                width: 439,
+                                height: 261,
+                                title: "切換主題",
+                                content: content,
+                                alignment: "left",
+                                btnText: "完成",
+                                nextEvent:()=>{
+                                    this.leaveGuide(vm);
+                                }
+                            })
                     }
-                    case 9:{
+                    case 9: {
                         return html`
-                        <div class="d-flex flex-column align-items-center justify-content-center" style="width: 492px;height: 307px;flex-shrink: 0;border-radius: 10px;background: #FFF;padding: 36px 64px;">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="76" height="75" viewBox="0 0 76 75" fill="none">
-                                <g clip-path="url(#clip0_12208_36243)">
-                                    <path d="M38 7.03125C46.0808 7.03125 53.8307 10.2413 59.5447 15.9553C65.2587 21.6693 68.4688 29.4192 68.4688 37.5C68.4688 45.5808 65.2587 53.3307 59.5447 59.0447C53.8307 64.7587 46.0808 67.9688 38 67.9688C29.9192 67.9688 22.1693 64.7587 16.4553 59.0447C10.7413 53.3307 7.53125 45.5808 7.53125 37.5C7.53125 29.4192 10.7413 21.6693 16.4553 15.9553C22.1693 10.2413 29.9192 7.03125 38 7.03125ZM38 75C47.9456 75 57.4839 71.0491 64.5165 64.0165C71.5491 56.9839 75.5 47.4456 75.5 37.5C75.5 27.5544 71.5491 18.0161 64.5165 10.9835C57.4839 3.95088 47.9456 0 38 0C28.0544 0 18.5161 3.95088 11.4835 10.9835C4.45088 18.0161 0.5 27.5544 0.5 37.5C0.5 47.4456 4.45088 56.9839 11.4835 64.0165C18.5161 71.0491 28.0544 75 38 75ZM38 18.75C36.0518 18.75 34.4844 20.3174 34.4844 22.2656V38.6719C34.4844 40.6201 36.0518 42.1875 38 42.1875C39.9482 42.1875 41.5156 40.6201 41.5156 38.6719V22.2656C41.5156 20.3174 39.9482 18.75 38 18.75ZM42.6875 51.5625C42.6875 50.3193 42.1936 49.127 41.3146 48.2479C40.4355 47.3689 39.2432 46.875 38 46.875C36.7568 46.875 35.5645 47.3689 34.6854 48.2479C33.8064 49.127 33.3125 50.3193 33.3125 51.5625C33.3125 52.8057 33.8064 53.998 34.6854 54.8771C35.5645 55.7561 36.7568 56.25 38 56.25C39.2432 56.25 40.4355 55.7561 41.3146 54.8771C42.1936 53.998 42.6875 52.8057 42.6875 51.5625Z" fill="#393939"/>
-                                </g>
-                                <defs>
-                                    <clipPath id="clip0_12208_36243">
-                                        <rect width="75" height="75" fill="white" transform="translate(0.5)"/>
-                                    </clipPath>
-                                </defs>
-                            </svg>
-                            <div style="font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.64px;color:#393939;margin-top: 24px;">是否刪除導覽新增的主題？</div>
-                            <div style="color: #8D8D8D;font-size: 14px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.56px;margin-top: 8px;">
-                                ※您已按照教學導覽新增了一個主題。<br>
-                                若無需使用，建議刪除以保持主題庫整潔。
-                            </div>
-                            <div class="d-flex align-items-center justify-content-center" style="margin-top: 24px;font-size: 16px;font-style: normal;font-weight: 700;line-height: normal;gap:14px;">
-                                <div style="color:#393939;display: flex;padding: 6px 18px;justify-content: center;align-items: center;border-radius: 10px;border: 1px solid #DDD;background: #FFF;" onclick="${gvc.event(()=>{
-                                    this.leaveGuide(vm)
-                                })}">取消</div>
-                                <div style="color:#FFF;display: flex;padding: 6px 18px;justify-content: center;align-items: center;border-radius: 10px;border: 1px solid #DDD;background: #DA1313;">刪除</div>
-                            </div>
-                        </div>`
+                            <div class="d-flex flex-column align-items-center justify-content-center"
+                                 style="width: 492px;height: 307px;flex-shrink: 0;border-radius: 10px;background: #FFF;padding: 36px 64px;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="76" height="75" viewBox="0 0 76 75"
+                                     fill="none">
+                                    <g clip-path="url(#clip0_12208_36243)">
+                                        <path d="M38 7.03125C46.0808 7.03125 53.8307 10.2413 59.5447 15.9553C65.2587 21.6693 68.4688 29.4192 68.4688 37.5C68.4688 45.5808 65.2587 53.3307 59.5447 59.0447C53.8307 64.7587 46.0808 67.9688 38 67.9688C29.9192 67.9688 22.1693 64.7587 16.4553 59.0447C10.7413 53.3307 7.53125 45.5808 7.53125 37.5C7.53125 29.4192 10.7413 21.6693 16.4553 15.9553C22.1693 10.2413 29.9192 7.03125 38 7.03125ZM38 75C47.9456 75 57.4839 71.0491 64.5165 64.0165C71.5491 56.9839 75.5 47.4456 75.5 37.5C75.5 27.5544 71.5491 18.0161 64.5165 10.9835C57.4839 3.95088 47.9456 0 38 0C28.0544 0 18.5161 3.95088 11.4835 10.9835C4.45088 18.0161 0.5 27.5544 0.5 37.5C0.5 47.4456 4.45088 56.9839 11.4835 64.0165C18.5161 71.0491 28.0544 75 38 75ZM38 18.75C36.0518 18.75 34.4844 20.3174 34.4844 22.2656V38.6719C34.4844 40.6201 36.0518 42.1875 38 42.1875C39.9482 42.1875 41.5156 40.6201 41.5156 38.6719V22.2656C41.5156 20.3174 39.9482 18.75 38 18.75ZM42.6875 51.5625C42.6875 50.3193 42.1936 49.127 41.3146 48.2479C40.4355 47.3689 39.2432 46.875 38 46.875C36.7568 46.875 35.5645 47.3689 34.6854 48.2479C33.8064 49.127 33.3125 50.3193 33.3125 51.5625C33.3125 52.8057 33.8064 53.998 34.6854 54.8771C35.5645 55.7561 36.7568 56.25 38 56.25C39.2432 56.25 40.4355 55.7561 41.3146 54.8771C42.1936 53.998 42.6875 52.8057 42.6875 51.5625Z"
+                                              fill="#393939"/>
+                                    </g>
+                                    <defs>
+                                        <clipPath id="clip0_12208_36243">
+                                            <rect width="75" height="75" fill="white" transform="translate(0.5)"/>
+                                        </clipPath>
+                                    </defs>
+                                </svg>
+                                <div style="font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.64px;color:#393939;margin-top: 24px;">
+                                    是否刪除導覽新增的主題？
+                                </div>
+                                <div style="color: #8D8D8D;font-size: 14px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.56px;margin-top: 8px;">
+                                    ※您已按照教學導覽新增了一個主題。<br>
+                                    若無需使用，建議刪除以保持主題庫整潔。
+                                </div>
+                                <div class="d-flex align-items-center justify-content-center"
+                                     style="margin-top: 24px;font-size: 16px;font-style: normal;font-weight: 700;line-height: normal;gap:14px;">
+                                    <div style="color:#393939;display: flex;padding: 6px 18px;justify-content: center;align-items: center;border-radius: 10px;border: 1px solid #DDD;background: #FFF;"
+                                         onclick="${gvc.event(() => {
+                                             this.leaveGuide(vm)
+                                         })}">取消
+                                    </div>
+                                    <div style="color:#FFF;display: flex;padding: 6px 18px;justify-content: center;align-items: center;border-radius: 10px;border: 1px solid #DDD;background: #DA1313;">
+                                        刪除
+                                    </div>
+                                </div>
+                            </div>`
                     }
                     default: {
-                        function close(){
+                        function close() {
                             BG.classList.remove('guide7-1');
                         }
+
                         let target1 = document.querySelector(`.mainRow9`);
                         let rect = target1!.getBoundingClientRect();
 
                         let target2 = this.findIframeDom(`.guide7-1`);
                         let iframeRect = iframe.getBoundingClientRect();
 
-                        this.detectClickThrough(target1 , ()=>{
+                        this.detectClickThrough(target1, () => {
                             close()
                             totalStep = 9;
                             vm.step = 2;
@@ -865,7 +941,7 @@ export class BgGuide {
                             })
                             BG.classList.add('guide7-1');
 
-                            this.detectClickThrough(target2 , ()=>{
+                            this.detectClickThrough(target2, () => {
                                 close()
                                 vm.step = 3;
                                 gvc.notifyDataChange(viewID);
@@ -886,8 +962,8 @@ export class BgGuide {
                                                 <svg style="cursor: pointer;" xmlns="http://www.w3.org/2000/svg"
                                                      width="14" height="13" viewBox="0 0 14 13" fill="none"
                                                      onclick="${this.gvc.event(() => {
-                                this.leaveGuide(vm);
-                            })}">
+                                                         this.leaveGuide(vm);
+                                                     })}">
                                                     <path d="M1 0.5L13 12.5" stroke="white" stroke-linecap="round"/>
                                                     <path d="M13 0.5L1 12.5" stroke="white" stroke-linecap="round"/>
                                                 </svg>
@@ -1131,13 +1207,20 @@ export class BgGuide {
                         }
                         if (target.querySelector('input').value.length > 0) {
                             return this.drawBGwithBelowWindow(BG, vm, '.guide5-4', 'productInit', 4, 8,
-                                {width: 332, height: 209, title: "商品名稱", content: "輸入商品名稱"})
+                                {width: 332, height: 209, title: "商品名稱", content: "輸入商品名稱", preview: true})
                         }
                         this.detectOninputThrough(target.querySelector('input'), () => {
                             gvc.notifyDataChange('productInit');
                         })
                         return this.drawBGwithBelowWindow(BG, vm, '.guide5-4', 'productInit', 4, 8,
-                            {width: 332, height: 209, title: "商品名稱", content: "輸入商品名稱", disable: true})
+                            {
+                                width: 332,
+                                height: 209,
+                                title: "商品名稱",
+                                content: "輸入商品名稱",
+                                disable: true,
+                                preview: true
+                            })
                     }
                     case 5: {
                         let target = this.findIframeDom(`.guide5-5`);
@@ -1145,7 +1228,15 @@ export class BgGuide {
 
                         if (target.querySelector('input').value.length > 0 && target.querySelector('input').value != 0) {
                             return this.drawBGwithBelowWindow(BG, vm, '.guide5-5', 'productInit', 5, 8,
-                                {width: 332, height: 209, title: "販售價格", content: "輸入商品的販售價格"})
+                                {
+                                    width: 332,
+                                    height: 209,
+                                    title: "販售價格",
+                                    content: "輸入商品的販售價格",
+                                    previewEvent: () => {
+                                        this.findIframeDom('.guide5-4').parentElement.parentElement.scrollIntoView()
+                                    }
+                                })
                         }
 
                         this.detectOninputThrough(target.querySelector('input'), () => {
@@ -1153,7 +1244,16 @@ export class BgGuide {
                         })
 
                         return this.drawBGwithBelowWindow(BG, vm, '.guide5-5', 'productInit', 5, 8,
-                            {width: 332, height: 209, title: "販售價格", content: "輸入商品的販售價格", disable: true})
+                            {
+                                width: 332,
+                                height: 209,
+                                title: "販售價格",
+                                content: "輸入商品的販售價格",
+                                disable: true,
+                                previewEvent: () => {
+                                    this.findIframeDom('.guide5-4').parentElement.parentElement.scrollIntoView()
+                                }
+                            })
                     }
                     case 6: {
                         let target = this.findIframeDom('.guide5-6');
@@ -1175,6 +1275,7 @@ export class BgGuide {
                     case 7: {
                         let target = this.findIframeDom('.guide5-7');
                         const inputGroup = target.querySelectorAll('input')
+                        target.parentElement.parentElement.scrollIntoView({})
                         let check = true;
                         inputGroup.forEach((el: any) => {
                             if (!el.classList.contains('addListener')) {
@@ -1188,8 +1289,8 @@ export class BgGuide {
                                 check = false
                             }
                         })
-                        console.log(" check -- ", check);
                         if (check) {
+
                             return this.drawBGwithBelowWindow(BG, vm, '.guide5-7', 'productInit', 7, 8,
                                 {
                                     width: 350,
@@ -1536,8 +1637,6 @@ export class BgGuide {
                                 }
                             }, 500)
                         }
-
-
                         let rect = target.getBoundingClientRect();
                         let left = rect.left + iframeRect.left;
                         let top = rect.top + iframeRect.top;
@@ -1549,12 +1648,9 @@ export class BgGuide {
                             .guide3-3 {
                                 ${this.holeBG(left, right, top, bottom)}
                             }
-                           
                         `)
                         const timer = setInterval(() => {
                             checked = target.querySelector('input[checked]');
-
-
                         }, 500)
                         BG.classList.add(`guide3-3`)
                         return html`
@@ -1633,7 +1729,7 @@ export class BgGuide {
                         }
 
                         let iframeRect = iframe.getBoundingClientRect();
-                        let target = this.findIframeDom('.guide3-4').parentElement;
+                        let target = this.findIframeDom('.guide3-4');
                         target.scrollIntoView({});
 
                         let rect = target.getBoundingClientRect();
@@ -1692,7 +1788,7 @@ export class BgGuide {
                                                          onclick="${child_gvc.event(() => {
                                                              vm.step--;
                                                              close()
-                                                             that.findIframeDom('.guide3-3')!.scrollIntoView({});
+                                                             that.findIframeDom('.guide3-3').parentElement!.scrollIntoView({});
                                                              gvc.notifyDataChange('shipInit');
                                                          })}">
                                                         上一步
@@ -1718,7 +1814,6 @@ export class BgGuide {
                     }
                     case 5: {
                         return this.drawFinBG(BG, vm, 'guide3-5', 'shipInit', 5, "shippment_setting")
-
                     }
                     default: {
                         return this.drawMainRowBG(BG, vm, `.mainRow1`, "shipInit", 5)
@@ -1737,9 +1832,10 @@ export class BgGuide {
             guide: this.guide,
             step: this.step,
         }
+        let viewID = "financeInit"
         let tempHTML = ``;
         return gvc.bindView({
-            bind: "financeInit",
+            bind: viewID,
             dataList: [],
             view: () => {
                 const that = this;
@@ -1781,223 +1877,93 @@ export class BgGuide {
                         return this.drawSecondRowBG(BG, vm, `.guide2-2`, 'financeInit', '金流設定', 6);
                     }
                     case 3: {
-                        let iframeRect: any = undefined;
-                        let rect = undefined;
-                        let left = undefined;
-                        let top = undefined;
-                        let right = undefined;
-                        let bottom = undefined;
-                        BG.style.clipPath = ``;
-                        if (tempHTML == ``) {
+                        let target = this.findIframeDom(`.guide2-3`);
+
+                        if (!target) {
                             const timer = setInterval(() => {
-                                let iframe = document.querySelector(`iframe`) as any;
-                                const target = iframe?.contentWindow.document.querySelector(`.guide2-3`) as HTMLElement;
-                                if (iframe && target) {
-                                    iframeRect = iframe.getBoundingClientRect();
-                                    rect = target!.parentElement!.parentElement!.getBoundingClientRect();
-                                    left = rect.left + iframeRect.left;
-                                    top = rect.top + iframeRect.top;
-                                    right = rect.right + iframeRect.left;
-                                    bottom = rect.bottom + iframeRect.top;
-                                    if (target) {
-                                        function close() {
-                                            that.enableScroll();
-                                            tempHTML = ``;
-                                            BG.classList.remove(`guide2-3`)
-                                        }
-
-                                        this.detectClickThrough(target!.parentElement!.parentElement, () => {
-                                            close();
-                                            vm.step++;
-                                            this.gvc.notifyDataChange('financeInit')
-
-                                        })
-                                        clearInterval(timer);
-                                        gvc.addStyle(`
-                                            .guide2-3 {
-                                                ${this.holeBG(left, right, top, bottom)}
-                                            }
-                                        `)
-                                        this.disableScroll()
-                                        BG.classList.add(`guide2-3`)
-                                        tempHTML = html`
-                                            <div class="d-flex flex-column"
-                                                 style="width: 332px;height: 131px;flex-shrink: 0;position: absolute;left: ${left}px;top:${rect.bottom + iframeRect.top + 12}px;">
-
-                                                <div class="w-100" style="padding-left: 20px;height:24px;">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="18"
-                                                         viewBox="0 0 22 18" fill="none">
-                                                        <path d="M11.002 0L21.3943 18L0.609648 18L11.002 0Z"
-                                                              fill="#FEAD20"/>
-                                                    </svg>
-                                                </div>
-                                                <div class="w-100" style="border-radius: 10px;">
-                                                    <div style="display: flex;padding: 12px 24px;gap: 10px;width: 100%;background: #FEAD20;border-radius: 10px 10px 0 0;color:white;font-size: 20px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 0.8px;">
-                                                        選擇線下付款
-                                                        <div class="d-flex ms-auto align-items-center"
-                                                             style="gap:10px;color: #FFF;font-size: 16px;font-style: normal;font-weight: 400;line-height: normal;letter-spacing: 0.64px;">
-                                                            步驟 3/6
-                                                            <svg style="cursor: pointer;"
-                                                                 xmlns="http://www.w3.org/2000/svg"
-                                                                 width="14" height="13" viewBox="0 0 14 13" fill="none"
-                                                                 onclick="${gvc.event(() => {
-                                                                     this.leaveGuide(vm);
-                                                                 })}">
-                                                                <path d="M1 0.5L13 12.5" stroke="white"
-                                                                      stroke-linecap="round"/>
-                                                                <path d="M13 0.5L1 12.5" stroke="white"
-                                                                      stroke-linecap="round"/>
-                                                            </svg>
-                                                        </div>
-                                                    </div>
-                                                    <div style="background: #FFF;width:100%;padding: 18px 24px;display: flex;align-items: center;border-radius: 0 0 10px 10px;font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.64px;">
-                                                        點擊線下付款，設定付款方式
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        `
-                                        gvc.notifyDataChange(`financeInit`);
-                                    }
+                                if (this.findIframeDom(`.guide2-3`)) {
+                                    clearInterval(timer);
+                                    gvc.notifyDataChange(`financeInit`);
                                 }
-                            }, 200)
+                            }, 400)
+                        }
+                        if ((target.querySelector('input') as HTMLInputElement).checked) {
+                            let body = document.querySelector('.editorContainer');
+                            if (body && !document.querySelector('.clickInterface')) {
+                                $(body).append(html`
+                                    <div class="clickInterface"
+                                         style="height: 100vh;width: 100vw;position: fixed;left: 0;top: 0;z-index: 1030;cursor: pointer;"
+                                         onclick="${gvc.event(() => {
+                                             if (document.querySelector('.breathing-light')) {
+                                                 (document.querySelector('.breathing-light') as HTMLElement).click();
+                                             }
+                                         })}"></div>
+                                `)
+                            }
+                        } else {
+                            this.detectClickThrough(target, () => {
+                                (target.querySelector('input') as HTMLInputElement).checked = true;
+                                vm.step++;
+                                gvc.notifyDataChange(`financeInit`);
+                            })
                         }
 
-                        return tempHTML
+                        return this.drawBGwithBelowWindow(BG, vm, ".guide2-3", "financeInit", 3, 6, {
+                            width: 332, height: 199, title: "付款方式", content: "選擇ATM銀行轉帳", next: true
+                        }, () => {
+                            if (document.querySelector('.clickInterface')) {
+                                document!.querySelector('.clickInterface')!.remove();
+                            }
+                        })
                     }
                     case 4 : {
-                        let iframe = document.querySelector(`iframe`) as any;
-                        let iframeRect = iframe.getBoundingClientRect();
-                        let target = this.findIframeDom('.guide2-4');
-                        let rect = target.getBoundingClientRect();
-                        let left = rect.left + iframeRect.left;
-                        let top = rect.top + iframeRect.top;
-                        let right = rect.right + iframeRect.left;
-                        let bottom = rect.bottom + iframeRect.top;
-
-                        function close() {
-                            BG.classList.remove(`guide2-4`)
-                        }
-
-                        function next() {
-                            vm.step++;
-                            close()
-                            gvc.notifyDataChange('financeInit');
-                        }
-
-                        // this.holeBG()
-                        BG.classList.add(`guide2-4`);
-                        gvc.addStyle(`
-                            .guide2-4 {
-                                ${this.holeBG(left, right, top, bottom)}
-                            }
-                            .breathing-light {
-                                position:relative;
-                                z-index: 1;
-                                border: 1px solid rgba(255, 233, 178, 0.5);
-                            }
-                            .breathing-light::before {
-                                content: '';
-                                position: absolute;
-                               top: -5px; /* 控制光效范围 */
-                                left: -5px;
-                                right: -5px;
-                                bottom: -5px;
-                                border: 5px solid #FFE9B2; /* 边框颜色 */
-                                border-radius: inherit; /* 保持和容器一样的圆角 */
-                                filter: blur(2px); /* 模糊程度 */
-                                animation: breathing 1.5s infinite alternate; /* 呼吸灯效果 */
-                            }
-                            @keyframes breathing {
-                                
-                                0% {
-                                    opacity: 1;
-                                    transform: scale(1); /* 放大效果 */
-                                    box-shadow: 0 0 4px 6px rgba(255, 233, 178, 0.8);
+                        let targetSelector = ".guide2-4";
+                        let target = this.findIframeDom(targetSelector);
+                        if (!target) {
+                            const timer = setInterval(() => {
+                                if (this.findIframeDom(targetSelector)) {
+                                    clearInterval(timer);
+                                    gvc.notifyDataChange(viewID);
                                 }
-                                100% {
-                                    opacity: 0.5;
-                                    transform: scale(1);
-                                    box-shadow: 0 0 4px rgba(255, 233, 178, 0.5);
-                                }
-                            }
-                        `)
+                            }, 400)
+                        }
                         this.detectClickThrough(target, () => {
-                            next()
+                            BG.classList.remove('guide2-4')
+                            vm.step++;
+                            gvc.notifyDataChange(`financeInit`);
                         })
-                        return html`
-                            <div class="d-flex flex-column"
-                                 style="width: 332px;height: 209px;flex-shrink: 0;position: absolute;left: ${left}px;top:${rect.bottom + iframeRect.top + 24}px;">
-
-                                <div class="w-100" style="padding-left: 20px;height:23px;">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="18"
-                                         viewBox="0 0 22 18" fill="none">
-                                        <path d="M11.002 0L21.3943 18L0.609648 18L11.002 0Z"
-                                              fill="#FEAD20"/>
-                                    </svg>
-                                </div>
-                                <div class="w-100" style="border-radius: 10px;">
-                                    <div style="display: flex;padding: 12px 24px;gap: 10px;width: 100%;background: #FEAD20;border-radius: 10px 10px 0 0;color:white;font-size: 20px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 0.8px;">
-                                        付款方式
-                                        <div class="d-flex ms-auto align-items-center"
-                                             style="gap:10px;color: #FFF;font-size: 16px;font-style: normal;font-weight: 400;line-height: normal;letter-spacing: 0.64px;">
-                                            步驟 4/6
-                                            <svg style="cursor: pointer;"
-                                                 xmlns="http://www.w3.org/2000/svg"
-                                                 width="14" height="13" viewBox="0 0 14 13" fill="none"
-                                                 onclick="${gvc.event(() => {
-                                                     close();
-                                                     this.leaveGuide(vm);
-                                                 })}">
-                                                <path d="M1 0.5L13 12.5" stroke="white"
-                                                      stroke-linecap="round"/>
-                                                <path d="M13 0.5L1 12.5" stroke="white"
-                                                      stroke-linecap="round"/>
-                                            </svg>
-                                        </div>
-                                    </div>
-                                    <div class="d-flex flex-column w-100"
-                                         style="background: #FFF;width:100%;padding: 18px 24px;border-radius: 0 0 10px 10px;font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.64px;">
-                                        選擇ATM銀行轉帳，或點選下一步
-                                        <div class="d-flex align-items-center justify-content-between"
-                                             style="margin-top: 24px;height:52px;">
-                                            <div style="padding: 6px 18px;border-radius: 10px;border:solid 1px #FEAD20;color: #FEAD20;font-size: 16px;font-style: normal;font-weight: 700;line-height: normal;"
-                                                 onclick="${gvc.event(() => {
-                                                     vm.step--;
-                                                     close()
-                                                     gvc.notifyDataChange('financeInit');
-                                                 })}">
-                                                上一步
-                                            </div>
-                                            <div class="d-flex align-items-center justify-content-center"
-                                                 style="width: 96px;height: 46px;">
-                                                <div class="breathing-light"
-                                                     style="padding: 6px 18px;border-radius: 10px;background: #FEAD20;color: #FFF;font-size: 16px;font-style: normal;font-weight: 700;line-height: normal;"
-                                                     onclick="${gvc.event(() => {
-                                                         next()
-                                                     })}">
-                                                    下一步
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                        target.parentElement.parentElement.scrollIntoView();
+                        let content = html`
+                            <div class="d-flex align-items-center">
+                                點擊
+                                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="8" viewBox="0 0 13 8"
+                                     fill="none" style="margin: 0 6px;">
+                                    <path d="M12 1.5L6.5 6.5L1 1.5" stroke="#393939" stroke-width="2"
+                                          stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                展開，填寫付款資訊
                             </div>
                         `
+                        return this.drawBGwithBelowWindow(BG, vm, targetSelector, viewID, 4, 6, {
+                            width: 332, height: 199, title: "付款方式", content: content, next: true
+                        })
                     }
                     case 5 : {
+                        let targetSelector = ".guide2-5";
+
                         function close() {
                             let target = that.findIframeDom('.guide2-5');
-                            that.enableScroll();
+
+                            // that.enableScroll();
                             BG.classList.remove(`guide2-5`);
                             target.classList.remove(`position-relative`);
                             let element = that.findIframeDom('.innerGuide')
-
                             element.remove();
                         }
 
                         setTimeout(() => {
-                            let target = this.findIframeDom('.guide2-5');
-                            target.scrollIntoView({behavior: 'smooth', block: 'center'})
+                            let target = this.findIframeDom(".guide2-5");
+                            target.parentElement.parentElement.scrollIntoView()
                             let iframe = document.querySelector(`iframe`) as any;
                             let iframeRect = iframe.getBoundingClientRect();
                             let rect = target.getBoundingClientRect();
@@ -2005,8 +1971,8 @@ export class BgGuide {
                             let top = iframeRect.top + 70;
                             let right = rect.right + iframeRect.left + 12;
                             let bottom = iframeRect.bottom - 75;
-                            this.disableScroll();
-                            BG.classList.add(`guide2-5`);
+                            // this.disableScroll();
+                            BG.classList.add("guide2-5");
                             target.classList.add(`position-relative`);
                             const child_gvc: GVC = (document.querySelector(`iframe`)!.contentWindow as any).glitter.pageConfig[0].gvc;
                             gvc.addStyle(`
@@ -2018,7 +1984,7 @@ export class BgGuide {
                                     border: 1px solid rgba(255, 233, 178, 0.5);
                                 }
                                 
-                        `)
+                            `)
                             child_gvc.addStyle(`
                                 .breathing-light {
                                     position:relative;
@@ -2060,21 +2026,22 @@ export class BgGuide {
                                     inputGroup.forEach((el: HTMLInputElement) => {
                                         if (el.value.length == 0) {
                                             allCheck = false;
+                                            this.detectOninputThrough(el, () => {
+                                                child_gvc.notifyDataChange(`guide2-5`);
+                                            })
                                         }
+
                                     })
                                     return html`
-                                        <div class="d-flex flex-column "
-                                             style="width: 332px;height: 220px;flex-shrink: 0;position: absolute;left: 50%;bottom:0;transform: translate(-50% , -32%);z-index:1;">
-
-                                            <div class="w-100"
-                                                 style="padding-left: 155px;height:23px;filter: drop-shadow(2px 2px 10px rgba(0, 0, 0, 0.15));">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="18"
-                                                     viewBox="0 0 22 18" fill="none">
-                                                    <path d="M11.002 0L21.3943 18L0.609648 18L11.002 0Z"
-                                                          fill="#FEAD20"/>
+                                        <div class="d-flex  "
+                                             style="width: 457px;height: 191px;flex-shrink: 0;position: absolute;right: 32px;bottom:88px;z-index:1;">
+                                            <div class="h-100 d-flex align-items-center justify-content-center" style="width: 24px;">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="22" viewBox="0 0 18 22" fill="none">
+                                                    <path d="M-5.24537e-07 11L18 0.607696L18 21.3923L-5.24537e-07 11Z" fill="white"/>
                                                 </svg>
                                             </div>
-                                            <div class="w-100 "
+                                            
+                                            <div class="flex-fill "
                                                  style="border-radius: 10px;filter: drop-shadow(2px 2px 10px rgba(0, 0, 0, 0.15));">
                                                 <div style="display: flex;padding: 12px 24px;gap: 10px;width: 100%;background: #FEAD20;border-radius: 10px 10px 0 0;color:white;font-size: 20px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 0.8px;">
                                                     填寫付款資訊
@@ -2102,15 +2069,19 @@ export class BgGuide {
                                                          style="margin-top: 24px;height:52px;">
                                                         <div style="padding: 6px 18px;border-radius: 10px;border:solid 1px #FEAD20;color: #FEAD20;font-size: 16px;font-style: normal;font-weight: 700;line-height: normal;cursor: pointer;"
                                                              onclick="${child_gvc.event(() => {
-                                                                 this.findIframeDom('.guide2-4').scrollIntoView({
-                                                                     behavior: 'smooth',
-                                                                     block: 'center'
+                                                                 let iframe = document.querySelector(`iframe`) as any;
+                                                                 const openGroup = iframe?.contentWindow.document.querySelectorAll('.openIt')
+                                                                 openGroup.forEach((el: any) => {
+                                                                     el.classList.toggle('openIt');
                                                                  })
-                                                                 vm.step--;
                                                                  close();
                                                                  setTimeout(() => {
+                                                                     this.findIframeDom('.guide2-4').scrollIntoView({})
+                                                                     vm.step--;
+
                                                                      gvc.notifyDataChange('financeInit');
-                                                                 }, 450);
+                                                                 }, 400)
+
                                                              })}">
                                                             上一步
                                                         </div>
@@ -2174,16 +2145,43 @@ export class BgGuide {
             dataList: [{key: 'step', obj: vm}],
             view: () => {
                 if (vm.progress.length == 0) {
+
                     ApiShop.getGuide().then(r => {
                         // if (!r.response.value.guideList){
-                        //     ApiShop.setGuide({
-                        //         guideList:dataList,
-                        //     }).then(r => {
-                        //         console.log("r -- " , r)
-                        //     })
-                        // }
 
+                        // }
                         vm.progress = r.response.value;
+                        if (vm.progress.length == 0) {
+                            (vm.progress as any) = [
+                                {
+                                    title: "金流設定",
+                                    value: "setFinanceWay",
+                                    finished: false
+                                },
+                                {
+                                    title: "配送設定",
+                                    value: "shippment_setting",
+                                    finished: false
+                                },
+                                {
+                                    title: "運費設定",
+                                    value: "logistics_setting",
+                                    finished: false
+                                },
+                                {
+                                    title: "商品上架",
+                                    value: "product-manager",
+                                    finished: false
+                                },
+                                {
+                                    title: "商店訊息",
+                                    value: "shop_information",
+                                    finished: false
+                                }
+                            ]
+                            ApiShop.setGuide(vm.progress).then(r => {
+                            })
+                        }
                         gvc.notifyDataChange('init');
                     })
                 }
@@ -2238,13 +2236,15 @@ export class BgGuide {
                 switch (vm.step) {
                     case -1: {
                         const target = document.querySelector(`.indexGuideBTN`);
+                        const BG = document.querySelector(`.guide-BG`) as HTMLElement;
                         const rect = target!.getBoundingClientRect();
                         gvc.addStyle(`
-                            .guide-BG {
+                            .leave-guide-BG {
                                 clip-path: polygon(0 0, ${rect.left}px 0, ${rect.left}px ${rect.bottom}px, ${rect.right}px ${rect.bottom}px, ${rect.right}px 0, 100% 0, 100% 100%, 0 100%);
 
                             }
                         `)
+                        BG.classList.add('leave-guide-BG');
                         return html`
                             <div class=""
                                  style="width: 317px;height: 157px;position:absolute;top:${rect.bottom + window.scrollY + 12 + 'px'};left : ${rect.left + window.scrollX + 'px'};gap:20px;padding-top: 22px;">
@@ -2259,9 +2259,10 @@ export class BgGuide {
                                         這裡可以回顧開店導覽
                                     </div>
                                     <div class="border border-danger"
-                                         style="display: flex;padding: 6px 18px;justify-content: center;align-items: center;border-radius: 10px;background: #FFF;color: #FEAD20;font-size: 16px;font-style: normal;font-weight: 700;line-height: normal;"
+                                         style="display: flex;padding: 6px 18px;justify-content: center;align-items: center;border-radius: 10px;background: #FFF;color: #FEAD20;font-size: 16px;font-style: normal;font-weight: 700;line-height: normal;cursor: pointer;"
                                          onclick="${gvc.event(() => {
                                              document.querySelector(`.guide-BG`)!.remove()
+                                             ApiShop.setGuideable({})
                                          })}">
                                         我知道了
                                     </div>
@@ -2341,11 +2342,16 @@ export class BgGuide {
                                             view: () => {
                                                 return vm.progress.map((data: any, index: number) => {
                                                     return html`
-                                                        <div style="padding: 6px 18px;border-radius: 10px;border: 1px solid #DDD;background: #FFF;cursor: pointer; ${data.finished ? 'border: 2px solid #393939;color:#393939;' : 'color:#8D8D8D;'}"
+                                                        <div style="padding: 6px 18px;border-radius: 10px;border: 1px solid #DDD;background: #FFF;cursor: pointer; position: relative; ${data.finished ? 'border: 2px solid #393939;color:#393939;' : 'color:#8D8D8D;'}"
                                                              onclick="${gvc.event(() => {
                                                                  this.guide = index + 1;
                                                                  this.drawBG();
                                                              })}">
+                                                            <svg style="position: absolute;right: -12px;top: -12px;${data.finished ? '' : 'display:none'}" xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 25 25" fill="none">
+                                                                <rect x="1" y="1" width="23" height="23" rx="11.5" fill="#FEAD20"/>
+                                                                <rect x="1" y="1" width="23" height="23" rx="11.5" stroke="#393939" stroke-width="2"/>
+                                                                <path d="M9 13.5L11.5 16L16 10" stroke="#393939" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                            </svg>
                                                             ${data.title}
                                                         </div>
                                                     `
@@ -2477,7 +2483,7 @@ export class BgGuide {
                 that.drawBG()
                 clearInterval(timer);
             }
-        }, 1000);
+        }, 500);
         return html``
     }
 }

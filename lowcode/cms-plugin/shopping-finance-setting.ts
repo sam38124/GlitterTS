@@ -7,7 +7,7 @@ import { Tool } from '../modules/tool.js';
 const html = String.raw;
 
 export class ShoppingFinanceSetting {
-    public static OpenBoxCont(obj: { gvc: GVC; title: string; innerHTML: string; openHeight?: number }): string {
+    public static OpenBoxCont(obj: { gvc: GVC; title: string; innerHTML: string; openHeight?: number ; guideClass?:string }): string {
         const text = Tool.randomString(5);
         obj.gvc.addStyle(`
                 .arrow-icon-${text} {
@@ -35,7 +35,7 @@ export class ShoppingFinanceSetting {
                     height: ${obj.openHeight ?? 480}px;
                 }
             `);
-        return html`<div class="box-container-${text}" style="border-radius: 10px;border: 1px solid #DDD;">
+        return html`<div class="box-container-${text} ${obj.guideClass??''}" style="border-radius: 10px;border: 1px solid #DDD;">
             <div
                 style="min-height: 22px; display: flex;padding: 16px 20px;align-items: flex-start;
                 justify-content: space-between"
@@ -44,9 +44,9 @@ export class ShoppingFinanceSetting {
                     <span class="tx_700 me-1">${obj.title}</span>
                     <span class="fw-bold" style="color: red; font-size: 18px; font-weight: 300;">*</span>
                 </div>
-                <div class="d-flex">
+                <div class="d-flex ">
                     <button
-                        class="arrow-icon-${text}"
+                        class="arrow-icon-${text} guidePreview"
                         onclick="${obj.gvc.event((e) => {
                             e.classList.toggle('openIt');
                             e.parentElement.parentElement.parentElement.classList.toggle('openIt');
@@ -275,7 +275,7 @@ export class ShoppingFinanceSetting {
                                             ${BgWidget.multiCheckboxContainer(
                                                 gvc,
                                                 [
-                                                    { key: 'atm', name: 'ATM銀行轉帳' },
+                                                    { key: 'atm', name: 'ATM銀行轉帳' , customerClass: 'guide2-3' },
                                                     { key: 'line', name: 'LINE Pay' },
                                                     { key: 'cash_on_delivery', name: '貨到付款' },
                                                 ],
@@ -288,6 +288,7 @@ export class ShoppingFinanceSetting {
                                                             return d === key;
                                                         });
                                                     });
+                                                    
                                                     gvc.notifyDataChange(vm.offCardId);
                                                 },
                                                 { single: false }
@@ -299,7 +300,6 @@ export class ShoppingFinanceSetting {
                                                         return (keyData.off_line_support as any)[key];
                                                     });
 
-                                                    console.log(offData);
                                                     if (!offData) {
                                                         return '';
                                                     }
@@ -319,6 +319,7 @@ export class ShoppingFinanceSetting {
                                                                         title: 'ATM銀行轉帳',
                                                                         innerHTML: ShoppingFinanceSetting.atm(gvc, keyData),
                                                                         openHeight: 800,
+                                                                        guideClass: 'guide2-4',
                                                                     });
                                                                 }
                                                                 if (key === 'line') {
@@ -381,7 +382,7 @@ export class ShoppingFinanceSetting {
                                 }, 300);
                             });
                         })
-                    )}
+                        ,"儲存" , "guide2-6")}
                 </div>
             `,
             BgWidget.getContainerWidth()
@@ -490,7 +491,7 @@ export class ShoppingFinanceSetting {
                                 })
                                 .join('')}
                         </div>`,
-                        html`<div style="color: #393939; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word" class="pb-3">付款說明</div>`,
+                        html`<div style="color: #393939; font-size: 16px; font-weight: 400; word-wrap: break-word" class="pb-3">付款說明</div>`,
                         ``,
                         EditorElem.richText({
                             gvc: gvc,
@@ -500,7 +501,7 @@ export class ShoppingFinanceSetting {
                             },
                         }),
                     ].join('');
-                },
+                },divCreate:{class:'guide2-5'}
             };
         });
     }
@@ -638,8 +639,8 @@ export class ShoppingFinanceSetting {
                                             .join('');
                                     },
                                     divCreate: {
-                                        class: 'row',
-                                        style: 'margin-top:24px;',
+                                        class: 'row guide3-3',
+                                        style: 'margin-top:24px; ',
                                     },
                                 };
                             })}
@@ -657,7 +658,7 @@ export class ShoppingFinanceSetting {
                                         },
                                     }),
                                 ].join(`<div class="my-2"></div>`)
-                            )}
+                            ,'p-3 bg-white rounded-3 shadow border w-100 guide3-4')}
                             <div
                                 style="width: 100%;padding: 14px 16px;background: #FFF;box-shadow: 0px 1px 10px 0px rgba(0, 0, 0, 0.15);display: flex;justify-content: end;position: fixed;bottom: 0;right: 0;z-index:1;gap:14px;"
                             >
@@ -668,7 +669,7 @@ export class ShoppingFinanceSetting {
                                         await widget.event('loading', { visible: false });
                                         await widget.event('success', { title: '儲存成功' });
                                     }),
-                                    '儲存'
+                                    '儲存','guide3-5'
                                 )}
                             </div>
                             ${BgWidget.mbContainer(240)}

@@ -28,6 +28,7 @@ import { NormalPageEditor } from '../editor/normal-page-editor.js';
 import { EditorConfig } from '../editor-config.js';
 import { BgCustomerMessage } from '../backend-manager/bg-customer-message.js';
 import { BgGuide } from "../backend-manager/bg-guide.js";
+import { ApiShop } from "../glitter-base/route/shopping.js";
 const html = String.raw;
 const editorContainerID = `HtmlEditorContainer`;
 init(import.meta.url, (gvc, glitter, gBundle) => {
@@ -573,7 +574,13 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
                     }, 200);
                     if (!viewModel.loading && Storage.select_function == "backend-manger") {
                         let bgGuide = new BgGuide(gvc, 0);
-                        bgGuide.drawGuide();
+                        ApiShop.getGuideable().then(r => {
+                            console.log(r);
+                            console.log(r.response);
+                            if (!r.response.value) {
+                                bgGuide.drawGuide();
+                            }
+                        });
                     }
                 },
             });

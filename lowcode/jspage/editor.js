@@ -168,10 +168,9 @@ color: transparent;"
 
                             ${(() => {
                 if (Storage.select_function === 'backend-manger') {
-                    return ``;
                     return html `
                                         <div
-                                                class=" t_39_normal border-end px-4  align-items-center justify-content-center indexGuideBTN d-none"
+                                                class=" t_39_normal border-end px-4  d-flex align-items-center justify-content-center indexGuideBTN "
                                                 style="height: 56px;cursor: pointer;"
                                                 onclick="${gvc.event(() => {
                         let bgGuide = new BgGuide(gvc, 0);
