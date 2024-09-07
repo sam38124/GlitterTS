@@ -1631,7 +1631,7 @@ ${obj.default ?? ''}</textarea
                     <button class="box-tag-${obj.tag} arrow-icon-${text}"></button>
                 </div>
             </div>
-            <div class="box-inside-${text}">${obj.insideHTML}</div>
+            <div class="box-inside-${text} ${obj.guideClass ? `box-inside-${obj.guideClass}` : ''}">${obj.insideHTML}</div>
         </div>`;
     }
 
