@@ -114,6 +114,48 @@ export class POSSetting {
     }
 
     public static main(gvc: GVC) {
+        gvc.addStyle(`
+                .dialog-box {
+                    width: 100vw;
+                    height: 100vh;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    background-color: rgba(0, 0, 0, 0.5);
+                    z-index: 10000;
+                }
+
+                .dialog-absolute {
+                    width: 100%;
+                    border-top: 1px solid #e2e5f1;
+                    position: absolute;
+                    left: 0px;
+                    bottom: 0px;
+                    height: 40px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    cursor: pointer;
+                }
+
+                .hover-cancel {
+                    background-color: #fff;
+                    border-radius: 0 0 0 0.5rem;
+                }
+
+                .hover-cancel:hover {
+                    background-color: #e6e6e6;
+                }
+
+                .hover-save {
+                    background-color: #393939;
+                    border-radius: 0 0 0.5rem;
+                }
+
+                .hover-save:hover {
+                    background-color: #646464;
+                }
+            `);
         POSSetting.initialStyle(gvc);
         //提供給編輯器使用
         gvc.glitter.share.NormalPageEditor = NormalPageEditor;

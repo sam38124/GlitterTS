@@ -14,13 +14,13 @@ export class LinePay {
                 "X-LINE-ChannelId": PayConfig.linePay["X-LINE-ChannelId"],
                 "X-LINE-ChannelSecret": PayConfig.linePay["X-LINE-ChannelSecret"]
             },
-            "data":{
+            "data":JSON.stringify({
                 "amount": amount,
                 "currency": "TWD",
                 "orderId": order_id,
                 "productName": product_name,
                 "oneTimeKey": oneTimeKey
-            }
+            })
         })
     }
 }

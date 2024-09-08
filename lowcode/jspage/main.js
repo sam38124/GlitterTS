@@ -165,10 +165,14 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                 appName: gBundle.appName,
                                 type: 'template',
                             });
-                            viewModel.data = (yield ApiPageConfig.getPage({
-                                appName: gBundle.appName,
-                                tag: glitter.getUrlParameter('page'),
-                            })).response.result[0];
+                            viewModel.data = yield new Promise((resolve, reject) => {
+                                (window.glitterInitialHelper).getPageData({
+                                    tag: glitter.getUrlParameter('page'),
+                                    appName: gBundle.appName
+                                }, (d2) => {
+                                    resolve(d2.response.result[0]);
+                                });
+                            });
                             Storage.select_page_type = viewModel.data.page_type;
                             if (data.result) {
                                 data.response.result.map((dd) => {
@@ -206,6 +210,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                     return yield new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
                         var _a, _b, _c, _d, _e, _f, _g;
                         const data = glitter.share.appConfigresponse;
+                        data.result = true;
                         if (data.result) {
                             viewModel.appConfig = data.response.data;
                             viewModel.originalConfig = JSON.parse(JSON.stringify(viewModel.appConfig));
@@ -267,6 +272,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                         }
                         else {
                             resolve(false);
+                            console.log(`falseIn`, waitGetData.findIndex((dd) => { return dd === a; }));
                         }
                         if (count === waitGetData.length) {
                             resolve(true);
@@ -575,8 +581,6 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
                     if (!viewModel.loading && Storage.select_function == "backend-manger") {
                         let bgGuide = new BgGuide(gvc, 0);
                         ApiShop.getGuideable().then(r => {
-                            console.log(r);
-                            console.log(r.response);
                             if (!r.response.value) {
                                 bgGuide.drawGuide();
                             }

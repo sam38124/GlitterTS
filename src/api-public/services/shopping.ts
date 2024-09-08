@@ -15,6 +15,7 @@ import { ManagerNotify } from './notify.js';
 import { AutoSendEmail } from './auto-send-email.js';
 import { Recommend } from './recommend.js';
 import { Workers } from './workers.js';
+import axios from "axios";
 
 type BindItem = {
     id: string;
@@ -128,7 +129,7 @@ type Cart = {
     distribution_id?: number;
     distribution_info?: any;
     orderSource: '' | 'normal' | 'POS';
-    realTotal: number;
+    code_array:string[]
 };
 
 export class Shopping {
@@ -514,6 +515,28 @@ export class Shopping {
         return `${new Date().getTime()}`;
     }
 
+    public async linePay(data:any){
+        return new Promise(async (resolve, reject)=>{
+            let config = {
+                method: 'post',
+                maxBodyLength: Infinity,
+                url: 'https://sandbox-api-pay.line.me/v2/payments/oneTimeKeys/pay',
+                headers: {
+                    'X-LINE-ChannelId': '2006263059',
+                    'X-LINE-ChannelSecret': '9bcca1d8f66b9ec60cd1a3498be253e2',
+                    'Content-Type': 'application/json'
+                },
+                data : JSON.stringify(data)
+            };
+            axios.request(config)
+                .then((response) => {
+                    resolve(response.data.returnCode==='0000')
+                })
+                .catch((error) => {
+                    resolve(false)
+                });
+        })
+    }
     public async toCheckout(
         data: {
             lineItems: {
@@ -545,7 +568,7 @@ export class Shopping {
             custom_form_format?: any; //自定義表單格式
             custom_form_data?: any; //自定義表單資料
             distribution_code?: string; //分銷連結代碼
-            realTotal?: number; //實際付款金額
+            code_array:string[] // 優惠券代碼列表
         },
         type: 'add' | 'preview' | 'manual' | 'manual-preview' | 'POS' = 'add',
         replace_order_id?: string
@@ -693,13 +716,12 @@ export class Shopping {
                 customer_info: data.customer_info || {},
                 lineItems: [],
                 total: 0,
-                realTotal: data.realTotal ?? 0,
                 email: data.email ?? ((data.user_info && data.user_info.email) || ''),
                 user_info: data.user_info,
                 shipment_fee: 0,
                 rebate: 0,
                 use_rebate: data.use_rebate || 0,
-                orderID: this.generateOrderID(),
+                orderID: (data as any).orderID || this.generateOrderID(),
                 shipment_support: shipment_setting.support as any,
                 shipment_info: shipment_setting.info as any,
                 use_wallet: 0,
@@ -708,7 +730,8 @@ export class Shopping {
                 useRebateInfo: { point: 0 },
                 custom_form_format: data.custom_form_format,
                 custom_form_data: data.custom_form_data,
-                orderSource: '',
+                orderSource: (data.checkOutType === 'POS') ? `POS`:``,
+                code_array:data.code_array
             };
 
             function calculateShipment(dataList: { key: string; value: string }[], value: number | string) {
@@ -896,6 +919,11 @@ export class Shopping {
                 carData.total = subtotal + carData.shipment_fee;
             }
 
+            carData.code_array=(carData.code_array || []).filter((code)=>{
+return (carData.voucherList || []).find((dd)=>{
+    return dd.code===code
+})
+            })
             // ================================ Preview UP ================================
             if (type === 'preview' || type === 'manual-preview') return { data: carData };
             // ================================ Add DOWN ================================
@@ -1434,7 +1462,7 @@ export class Shopping {
                         dd.bind = switchValidProduct(dd.for, dd.forKey);
                         break;
                     case 'code': // 輸入代碼
-                        if (dd.code === `${cart.code}`) {
+                        if (dd.code === `${cart.code}` || ((cart.code_array || []).includes(`${dd.code}`))) {
                             dd.bind = switchValidProduct(dd.for, dd.forKey);
                         }
                         break;

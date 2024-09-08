@@ -86,7 +86,7 @@ export class BgWidget {
     }
 
     static grayButton(text: string, event: string, obj?: { icon?: string; textStyle?: string }) {
-        return html` <button class="btn btn-gray" type="button" onclick="${event}">
+        return html` <button class="btn btn-gray" style="" type="button" onclick="${event}">
             <i class="${obj && obj.icon && obj.icon.length > 0 ? obj.icon : 'd-none'}" style="color: #393939"></i>
             ${text.length > 0 ? html`<span class="tx_700" style="${obj?.textStyle ?? ''}">${text}</span>` : ''}
         </button>`;
@@ -1831,12 +1831,14 @@ ${obj.default ?? ''}</textarea
         gvc: GVC;
         title: string;
         tag: string;
+        single?:boolean,
         default: string[];
         updownOptions?: OptionsItem[];
         api: (obj: { query: string; orderString: string }) => Promise<OptionsItem[]>;
         callback: (value: any) => void;
         style?: string;
         readonly?: boolean;
+        custom_line_items?:(data:any)=>string
     }) {
         return obj.gvc.glitter.innerDialog((gvc: GVC) => {
             const vm = {
@@ -1902,6 +1904,9 @@ ${obj.default ?? ''}</textarea
                                               </div>`}
                                         ${obj.gvc.map(
                                             vm.options.map((opt: OptionsItem, index: number) => {
+                                                if(obj.custom_line_items){
+                                                    return  obj.custom_line_items(opt)
+                                                }
                                                 function call() {
                                                     vm.selectKey = {
                                                         name: opt.key,
@@ -1915,8 +1920,14 @@ ${obj.default ?? ''}</textarea
                                                     obj.gvc.notifyDataChange(vm.id);
                                                 }
 
-                                                return html` <div class="d-flex align-items-center" style="gap: 24px">
-                                                    ${obj.readonly
+                                                return html` <div class="d-flex align-items-center" style="gap: 24px" onclick="${gvc.event(()=>{
+                                                    if(obj.single){
+                                                        obj.callback(opt.key)
+                                                        gvc.closeDialog()
+                                                    }
+                                                   
+                                                })}">
+                                                    ${obj.readonly || obj.single
                                                         ? ''
                                                         : html`<input
                                                               class="form-check-input mt-0 ${vm.checkClass}"
@@ -1941,7 +1952,7 @@ ${obj.default ?? ''}</textarea
                                             })
                                         )}
                                     </div>
-                                    ${obj.readonly
+                                    ${obj.readonly || obj.single
                                         ? ''
                                         : html` <div class="c_dialog_bar">
                                               ${BgWidget.cancel(
@@ -2007,6 +2018,7 @@ ${obj.default ?? ''}</textarea
             </div>`;
         }, obj.tag);
     }
+
 
     static infoDialog(obj: { gvc: GVC; title: string; innerHTML: string; closeCallback?: () => void }) {
         return obj.gvc.glitter.innerDialog((gvc: GVC) => {

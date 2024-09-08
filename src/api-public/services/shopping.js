@@ -20,6 +20,7 @@ const notify_js_1 = require("./notify.js");
 const auto_send_email_js_1 = require("./auto-send-email.js");
 const recommend_js_1 = require("./recommend.js");
 const workers_js_1 = require("./workers.js");
+const axios_1 = __importDefault(require("axios"));
 class Shopping {
     constructor(app, token) {
         this.app = app;
@@ -298,8 +299,30 @@ class Shopping {
     generateOrderID() {
         return `${new Date().getTime()}`;
     }
+    async linePay(data) {
+        return new Promise(async (resolve, reject) => {
+            let config = {
+                method: 'post',
+                maxBodyLength: Infinity,
+                url: 'https://sandbox-api-pay.line.me/v2/payments/oneTimeKeys/pay',
+                headers: {
+                    'X-LINE-ChannelId': '2006263059',
+                    'X-LINE-ChannelSecret': '9bcca1d8f66b9ec60cd1a3498be253e2',
+                    'Content-Type': 'application/json'
+                },
+                data: JSON.stringify(data)
+            };
+            axios_1.default.request(config)
+                .then((response) => {
+                resolve(response.data.returnCode === '0000');
+            })
+                .catch((error) => {
+                resolve(false);
+            });
+        });
+    }
     async toCheckout(data, type = 'add', replace_order_id) {
-        var _a, _b, _c, _d;
+        var _a, _b, _c;
         try {
             if (replace_order_id) {
                 const orderData = (await database_js_1.default.query(`SELECT *
@@ -413,22 +436,22 @@ class Shopping {
                 customer_info: data.customer_info || {},
                 lineItems: [],
                 total: 0,
-                realTotal: (_a = data.realTotal) !== null && _a !== void 0 ? _a : 0,
-                email: (_b = data.email) !== null && _b !== void 0 ? _b : ((data.user_info && data.user_info.email) || ''),
+                email: (_a = data.email) !== null && _a !== void 0 ? _a : ((data.user_info && data.user_info.email) || ''),
                 user_info: data.user_info,
                 shipment_fee: 0,
                 rebate: 0,
                 use_rebate: data.use_rebate || 0,
-                orderID: this.generateOrderID(),
+                orderID: data.orderID || this.generateOrderID(),
                 shipment_support: shipment_setting.support,
                 shipment_info: shipment_setting.info,
                 use_wallet: 0,
                 method: data.user_info && data.user_info.method,
-                user_email: (userData && userData.account) || ((_c = data.email) !== null && _c !== void 0 ? _c : ((data.user_info && data.user_info.email) || '')),
+                user_email: (userData && userData.account) || ((_b = data.email) !== null && _b !== void 0 ? _b : ((data.user_info && data.user_info.email) || '')),
                 useRebateInfo: { point: 0 },
                 custom_form_format: data.custom_form_format,
                 custom_form_data: data.custom_form_data,
-                orderSource: '',
+                orderSource: (data.checkOutType === 'POS') ? `POS` : ``,
+                code_array: data.code_array
             };
             function calculateShipment(dataList, value) {
                 if (value === 0) {
@@ -582,6 +605,11 @@ class Shopping {
                 carData.use_rebate = 0;
                 carData.total = subtotal + carData.shipment_fee;
             }
+            carData.code_array = (carData.code_array || []).filter((code) => {
+                return (carData.voucherList || []).find((dd) => {
+                    return dd.code === code;
+                });
+            });
             if (type === 'preview' || type === 'manual-preview')
                 return { data: carData };
             if (type === 'manual') {
@@ -617,7 +645,7 @@ class Shopping {
                 carData.discount = data.discount;
                 carData.voucherList = [tempVoucher];
                 carData.customer_info = data.customer_info;
-                carData.total = (_d = data.total) !== null && _d !== void 0 ? _d : 0;
+                carData.total = (_c = data.total) !== null && _c !== void 0 ? _c : 0;
                 carData.rebate = tempVoucher.rebate_total;
                 if (tempVoucher.reBackType == 'shipment_free') {
                     carData.shipment_fee = 0;
@@ -1012,7 +1040,7 @@ class Shopping {
                     dd.bind = switchValidProduct(dd.for, dd.forKey);
                     break;
                 case 'code':
-                    if (dd.code === `${cart.code}`) {
+                    if (dd.code === `${cart.code}` || ((cart.code_array || []).includes(`${dd.code}`))) {
                         dd.bind = switchValidProduct(dd.for, dd.forKey);
                     }
                     break;

@@ -189,12 +189,21 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                             appName: gBundle.appName,
                             type: 'template',
                         });
-                        viewModel.data = (
-                            await ApiPageConfig.getPage({
-                                appName: gBundle.appName,
+                        viewModel.data=await new Promise((resolve, reject)=>{
+                            ((window as any).glitterInitialHelper).getPageData({
                                 tag: glitter.getUrlParameter('page'),
+                                appName: gBundle.appName
+                            }, (d2: any) => {
+                                resolve(d2.response.result[0])
                             })
-                        ).response.result[0];
+                        })
+
+                        // viewModel.data = (
+                        //     await ApiPageConfig.getPage({
+                        //         appName: gBundle.appName,
+                        //         tag: glitter.getUrlParameter('page'),
+                        //     })
+                        // ).response.result[0];
                         Storage.select_page_type = viewModel.data.page_type;
                         if (data.result) {
                             data.response.result.map((dd: any) => {
@@ -258,6 +267,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
             async () => {
                 return await new Promise(async (resolve) => {
                     const data = glitter.share.appConfigresponse;
+                    data.result=true
                     if (data.result) {
                         viewModel.appConfig = data.response.data;
                         viewModel.originalConfig = JSON.parse(JSON.stringify(viewModel.appConfig));
@@ -316,11 +326,13 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
         let count = 0;
         let result = await new Promise((resolve, reject) => {
             for (const a of waitGetData) {
+
                 a().then((result) => {
                     if (result) {
                         count++;
                     } else {
                         resolve(false);
+                        console.log(`falseIn`,waitGetData.findIndex((dd)=>{return dd===a}))
                     }
                     if (count === waitGetData.length) {
                         resolve(true);
@@ -444,7 +456,6 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                 callback && callback();
             });
         };
-
         glitter.share.selectEditorItem = () => {
             localStorage.setItem('rightSelect', 'module');
             glitter.share.selectEditorItemTimer && clearInterval(glitter.share.selectEditorItemTimer);
@@ -644,10 +655,7 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
 
                     if(!viewModel.loading && Storage.select_function == "backend-manger"){
                         let bgGuide = new BgGuide(gvc,0);
-
                         ApiShop.getGuideable().then(r => {
-                            console.log(r)
-                            console.log(r.response)
                             if (!r.response.value){
                                 bgGuide.drawGuide();
                             }

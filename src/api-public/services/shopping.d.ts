@@ -98,7 +98,7 @@ type Cart = {
     distribution_id?: number;
     distribution_info?: any;
     orderSource: '' | 'normal' | 'POS';
-    realTotal: number;
+    code_array: string[];
 };
 export declare class Shopping {
     app: string;
@@ -183,6 +183,7 @@ export declare class Shopping {
         result: boolean;
     }>;
     private generateOrderID;
+    linePay(data: any): Promise<unknown>;
     toCheckout(data: {
         lineItems: {
             id: string;
@@ -213,7 +214,7 @@ export declare class Shopping {
         custom_form_format?: any;
         custom_form_data?: any;
         distribution_code?: string;
-        realTotal?: number;
+        code_array: string[];
     }, type?: 'add' | 'preview' | 'manual' | 'manual-preview' | 'POS', replace_order_id?: string): Promise<{
         data: Cart;
         result?: undefined;

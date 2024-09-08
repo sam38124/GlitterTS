@@ -48,7 +48,7 @@ export class BgWidget {
     }
     static grayButton(text, event, obj) {
         var _a;
-        return html ` <button class="btn btn-gray" type="button" onclick="${event}">
+        return html ` <button class="btn btn-gray" style="" type="button" onclick="${event}">
             <i class="${obj && obj.icon && obj.icon.length > 0 ? obj.icon : 'd-none'}" style="color: #393939"></i>
             ${text.length > 0 ? html `<span class="tx_700" style="${(_a = obj === null || obj === void 0 ? void 0 : obj.textStyle) !== null && _a !== void 0 ? _a : ''}">${text}</span>` : ''}
         </button>`;
@@ -1590,6 +1590,9 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                             : ''}
                                               </div>`}
                                         ${obj.gvc.map(vm.options.map((opt, index) => {
+                        if (obj.custom_line_items) {
+                            return obj.custom_line_items(opt);
+                        }
                         function call() {
                             vm.selectKey = {
                                 name: opt.key,
@@ -1603,8 +1606,13 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                             }
                             obj.gvc.notifyDataChange(vm.id);
                         }
-                        return html ` <div class="d-flex align-items-center" style="gap: 24px">
-                                                    ${obj.readonly
+                        return html ` <div class="d-flex align-items-center" style="gap: 24px" onclick="${gvc.event(() => {
+                            if (obj.single) {
+                                obj.callback(opt.key);
+                                gvc.closeDialog();
+                            }
+                        })}">
+                                                    ${obj.readonly || obj.single
                             ? ''
                             : html `<input
                                                               class="form-check-input mt-0 ${vm.checkClass}"
@@ -1628,7 +1636,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                                 </div>`;
                     }))}
                                     </div>
-                                    ${obj.readonly
+                                    ${obj.readonly || obj.single
                         ? ''
                         : html ` <div class="c_dialog_bar">
                                               ${BgWidget.cancel(obj.gvc.event(() => {

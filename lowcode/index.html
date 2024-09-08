@@ -422,10 +422,10 @@
     if (loc.searchParams.get('isIframe') === 'true') {
         (window).glitterInitialHelper = (window.parent).glitterInitialHelper;
     } else if (loc.searchParams.get('type') === 'editor') {
-        glitterInitialHelper.getPlugin()
-        glitterInitialHelper.getPageData((window).glitter_page, (data) => {
-            preload(data)
-        })
+        // glitterInitialHelper.getPlugin()
+        // glitterInitialHelper.getPageData((window).glitter_page, (data) => {
+        //     preload(data)
+        // })
     }
 </script>
 
