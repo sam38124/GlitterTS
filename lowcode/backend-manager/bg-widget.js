@@ -155,6 +155,9 @@ export class BgWidget {
     static notifyInsignia(text) {
         return html `<div class="insignia insignia-notify">${text}</div>`;
     }
+    static secondaryInsignia(text) {
+        return html `<div class="insignia insignia-secondary">${text}</div>`;
+    }
     static leftLineBar() {
         return html ` <div class="ms-2 border-end position-absolute h-100 left-0"></div>`;
     }
@@ -852,7 +855,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                 .map((dd, index) => {
                                 var _a;
                                 return html ` <th
-                                                                  class="${(_a = dd.position) !== null && _a !== void 0 ? _a : 'text-start'} tx_700"
+                                                                  class="${(_a = dd.position) !== null && _a !== void 0 ? _a : 'text-start'} tx_700 px-1"
                                                                   style="white-space:nowrap;border:none; color:#393939 !important; ${obj.style && obj.style[index] ? obj.style[index] : ``}"
                                                               >
                                                                   ${dd.key}
@@ -883,7 +886,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                     .map((d3, index) => {
                                     var _a;
                                     return html ` <td
-                                                                          class="${(_a = d3.position) !== null && _a !== void 0 ? _a : 'text-start'} tx_normal"
+                                                                          class="${(_a = d3.position) !== null && _a !== void 0 ? _a : 'text-start'} tx_normal px-1"
                                                                           ${d3.key === '●' || d3.stopDialog ? '' : html ` onclick="${gvc.event(() => { })}"`}
                                                                           style="color:#393939 !important;border:none;vertical-align: middle;${obj.style && obj.style[index] ? obj.style[index] : ``}"
                                                                       >
@@ -1160,6 +1163,9 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                 return html ` <div style="flex-direction: column; justify-content: flex-start; align-items: center; gap: 8px; display: inline-flex">
                             <div
                                 style="align-self: stretch; text-align: center; color: #393939; font-size: 18px; font-family: Noto Sans; font-weight: 700; line-height: 18px; word-wrap: break-word;white-space: nowrap;"
+                                onclick="${gvc.event(() => {
+                    callback(dd.key);
+                })}"
                             >
                                 ${dd.title}
                             </div>
@@ -1606,12 +1612,16 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                             }
                             obj.gvc.notifyDataChange(vm.id);
                         }
-                        return html ` <div class="d-flex align-items-center" style="gap: 24px" onclick="${gvc.event(() => {
+                        return html ` <div
+                                                    class="d-flex align-items-center"
+                                                    style="gap: 24px"
+                                                    onclick="${gvc.event(() => {
                             if (obj.single) {
                                 obj.callback(opt.key);
                                 gvc.closeDialog();
                             }
-                        })}">
+                        })}"
+                                                >
                                                     ${obj.readonly || obj.single
                             ? ''
                             : html `<input

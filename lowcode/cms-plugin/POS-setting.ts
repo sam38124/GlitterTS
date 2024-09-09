@@ -1,6 +1,4 @@
 import { GVC } from '../glitterBundle/GVController.js';
-
-import { ApiShop } from '../glitter-base/route/shopping.js';
 import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
 import { PaymentPage } from './pos-pages/payment-page.js';
 import { OrderDetail, ViewModel } from './pos-pages/models.js';
@@ -343,8 +341,8 @@ cursor: pointer;
                                     const dialog = new ShareDialog(gvc.glitter);
                                     let view = await (async () => {
                                         try {
-                                            (orderDetail.user_info.shipment as any)=(orderDetail.user_info.shipment as any)||'now';
-                                            console.log(`orderDetail.user_info=>`,orderDetail.user_info)
+                                            (orderDetail.user_info.shipment as any) = (orderDetail.user_info.shipment as any) || 'now';
+                                            console.log(`orderDetail.user_info=>`, orderDetail.user_info);
                                             if (vm.type == 'payment') {
                                                 return PaymentPage.main({
                                                     ogOrderData: orderDetail,
@@ -352,7 +350,7 @@ cursor: pointer;
                                                     vm: vm,
                                                 });
                                             } else if (vm.type === 'order') {
-                                                return `<div class="vw-100" style="overflow-y: scroll;">${ShoppingOrderManager.main(gvc, true)}</div>`;
+                                                return `<div class="vw-100" style="overflow-y: scroll;">${ShoppingOrderManager.main(gvc, { isPOS: true })}</div>`;
                                             }
                                             return ProductsPage.main({ gvc: gvc, vm: vm, orderDetail: orderDetail });
                                         } catch (e) {

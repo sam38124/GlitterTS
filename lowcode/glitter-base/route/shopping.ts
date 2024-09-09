@@ -25,7 +25,7 @@ export class ApiShop {
             data: JSON.stringify({
                 key: 'guideable',
                 value: {
-                    view : true
+                    view: true,
                 },
             }),
         });
@@ -334,7 +334,9 @@ export class ApiShop {
                     json.orderString && par.push(`orderString=${json.orderString}`);
                     json.archived && par.push(`archived=${json.archived}`);
                     json.returnSearch && par.push(`returnSearch=${json.returnSearch ?? 'false'}`);
-                    json.is_pos && par.push(`is_pos=${json.is_pos}`);
+                    if (json.is_pos === true || json.is_pos === false) {
+                        par.push(`is_pos=${json.is_pos}`);
+                    }
                     filterString.length > 0 && par.push(filterString.join('&'));
                     return par.join('&');
                 })()}`,
@@ -602,7 +604,7 @@ export class ApiShop {
         use_rebate?: number;
         distribution_code?: string;
         user_info?: any;
-        code_array?:string[]
+        code_array?: string[];
     }) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/checkout/preview`,

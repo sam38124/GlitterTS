@@ -230,6 +230,10 @@ export class BgWidget {
         return html`<div class="insignia insignia-notify">${text}</div>`;
     }
 
+    static secondaryInsignia(text: string) {
+        return html`<div class="insignia insignia-secondary">${text}</div>`;
+    }
+
     // 元素
     static leftLineBar() {
         return html` <div class="ms-2 border-end position-absolute h-100 left-0"></div>`;
@@ -1036,7 +1040,7 @@ ${obj.default ?? ''}</textarea
                                                       .map(
                                                           (dd: any, index: number) =>
                                                               html` <th
-                                                                  class="${dd.position ?? 'text-start'} tx_700"
+                                                                  class="${dd.position ?? 'text-start'} tx_700 px-1"
                                                                   style="white-space:nowrap;border:none; color:#393939 !important; ${obj.style && obj.style![index] ? obj.style![index] : ``}"
                                                               >
                                                                   ${dd.key}
@@ -1067,7 +1071,7 @@ ${obj.default ?? ''}</textarea
                                                               .map(
                                                                   (d3: any, index: number) =>
                                                                       html` <td
-                                                                          class="${d3.position ?? 'text-start'} tx_normal"
+                                                                          class="${d3.position ?? 'text-start'} tx_normal px-1"
                                                                           ${d3.key === '●' || d3.stopDialog ? '' : html` onclick="${gvc.event(() => {})}"`}
                                                                           style="color:#393939 !important;border:none;vertical-align: middle;${obj.style && obj.style![index] ? obj.style![index] : ``}"
                                                                       >
@@ -1421,6 +1425,9 @@ ${obj.default ?? ''}</textarea
                         return html` <div style="flex-direction: column; justify-content: flex-start; align-items: center; gap: 8px; display: inline-flex">
                             <div
                                 style="align-self: stretch; text-align: center; color: #393939; font-size: 18px; font-family: Noto Sans; font-weight: 700; line-height: 18px; word-wrap: break-word;white-space: nowrap;"
+                                onclick="${gvc.event(() => {
+                                    callback(dd.key);
+                                })}"
                             >
                                 ${dd.title}
                             </div>
@@ -1831,14 +1838,14 @@ ${obj.default ?? ''}</textarea
         gvc: GVC;
         title: string;
         tag: string;
-        single?:boolean,
+        single?: boolean;
         default: string[];
         updownOptions?: OptionsItem[];
         api: (obj: { query: string; orderString: string }) => Promise<OptionsItem[]>;
         callback: (value: any) => void;
         style?: string;
         readonly?: boolean;
-        custom_line_items?:(data:any)=>string
+        custom_line_items?: (data: any) => string;
     }) {
         return obj.gvc.glitter.innerDialog((gvc: GVC) => {
             const vm = {
@@ -1904,8 +1911,8 @@ ${obj.default ?? ''}</textarea
                                               </div>`}
                                         ${obj.gvc.map(
                                             vm.options.map((opt: OptionsItem, index: number) => {
-                                                if(obj.custom_line_items){
-                                                    return  obj.custom_line_items(opt)
+                                                if (obj.custom_line_items) {
+                                                    return obj.custom_line_items(opt);
                                                 }
                                                 function call() {
                                                     vm.selectKey = {
@@ -1920,13 +1927,16 @@ ${obj.default ?? ''}</textarea
                                                     obj.gvc.notifyDataChange(vm.id);
                                                 }
 
-                                                return html` <div class="d-flex align-items-center" style="gap: 24px" onclick="${gvc.event(()=>{
-                                                    if(obj.single){
-                                                        obj.callback(opt.key)
-                                                        gvc.closeDialog()
-                                                    }
-                                                   
-                                                })}">
+                                                return html` <div
+                                                    class="d-flex align-items-center"
+                                                    style="gap: 24px"
+                                                    onclick="${gvc.event(() => {
+                                                        if (obj.single) {
+                                                            obj.callback(opt.key);
+                                                            gvc.closeDialog();
+                                                        }
+                                                    })}"
+                                                >
                                                     ${obj.readonly || obj.single
                                                         ? ''
                                                         : html`<input
@@ -2018,7 +2028,6 @@ ${obj.default ?? ''}</textarea
             </div>`;
         }, obj.tag);
     }
-
 
     static infoDialog(obj: { gvc: GVC; title: string; innerHTML: string; closeCallback?: () => void }) {
         return obj.gvc.glitter.innerDialog((gvc: GVC) => {

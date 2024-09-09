@@ -15,7 +15,7 @@ import { ManagerNotify } from './notify.js';
 import { AutoSendEmail } from './auto-send-email.js';
 import { Recommend } from './recommend.js';
 import { Workers } from './workers.js';
-import axios from "axios";
+import axios from 'axios';
 
 type BindItem = {
     id: string;
@@ -128,8 +128,8 @@ type Cart = {
     custom_form_data?: any;
     distribution_id?: number;
     distribution_info?: any;
-    orderSource: '' | 'normal' | 'POS';
-    code_array:string[]
+    orderSource: '' | 'manual' | 'normal' | 'POS';
+    code_array: string[];
 };
 
 export class Shopping {
@@ -372,13 +372,16 @@ export class Shopping {
             });
 
             if (query.id_list && query.order_by === 'order by id desc') {
-                products.data = query.id_list.split(',').map((id) => {
-                    return products.data.find((product: { id: number }) => {
-                        return `${product.id}` === `${id}`;
+                products.data = query.id_list
+                    .split(',')
+                    .map((id) => {
+                        return products.data.find((product: { id: number }) => {
+                            return `${product.id}` === `${id}`;
+                        });
+                    })
+                    .filter((dd) => {
+                        return dd;
                     });
-                }).filter((dd)=>{
-                    return dd
-                });
             }
 
             return products;
@@ -515,8 +518,8 @@ export class Shopping {
         return `${new Date().getTime()}`;
     }
 
-    public async linePay(data:any){
-        return new Promise(async (resolve, reject)=>{
+    public async linePay(data: any) {
+        return new Promise(async (resolve, reject) => {
             let config = {
                 method: 'post',
                 maxBodyLength: Infinity,
@@ -524,18 +527,19 @@ export class Shopping {
                 headers: {
                     'X-LINE-ChannelId': '2006263059',
                     'X-LINE-ChannelSecret': '9bcca1d8f66b9ec60cd1a3498be253e2',
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
                 },
-                data : JSON.stringify(data)
+                data: JSON.stringify(data),
             };
-            axios.request(config)
+            axios
+                .request(config)
                 .then((response) => {
-                    resolve(response.data.returnCode==='0000')
+                    resolve(response.data.returnCode === '0000');
                 })
                 .catch((error) => {
-                    resolve(false)
+                    resolve(false);
                 });
-        })
+        });
     }
     public async toCheckout(
         data: {
@@ -568,7 +572,7 @@ export class Shopping {
             custom_form_format?: any; //自定義表單格式
             custom_form_data?: any; //自定義表單資料
             distribution_code?: string; //分銷連結代碼
-            code_array:string[] // 優惠券代碼列表
+            code_array: string[]; // 優惠券代碼列表
         },
         type: 'add' | 'preview' | 'manual' | 'manual-preview' | 'POS' = 'add',
         replace_order_id?: string
@@ -730,8 +734,8 @@ export class Shopping {
                 useRebateInfo: { point: 0 },
                 custom_form_format: data.custom_form_format,
                 custom_form_data: data.custom_form_data,
-                orderSource: (data.checkOutType === 'POS') ? `POS`:``,
-                code_array:data.code_array
+                orderSource: data.checkOutType === 'POS' ? `POS` : ``,
+                code_array: data.code_array,
             };
 
             function calculateShipment(dataList: { key: string; value: string }[], value: number | string) {
@@ -919,17 +923,18 @@ export class Shopping {
                 carData.total = subtotal + carData.shipment_fee;
             }
 
-            carData.code_array=(carData.code_array || []).filter((code)=>{
-return (carData.voucherList || []).find((dd)=>{
-    return dd.code===code
-})
-            })
+            carData.code_array = (carData.code_array || []).filter((code) => {
+                return (carData.voucherList || []).find((dd) => {
+                    return dd.code === code;
+                });
+            });
             // ================================ Preview UP ================================
             if (type === 'preview' || type === 'manual-preview') return { data: carData };
             // ================================ Add DOWN ================================
 
             // 手動結帳地方判定
             if (type === 'manual') {
+                carData.orderSource = 'manual';
                 let tempVoucher: VoucherData = {
                     discount_total: data.voucher.discount_total,
                     end_ISO_Date: '',
@@ -1423,6 +1428,7 @@ return (carData.voucherList || []).find((dd)=>{
                 }
                 switch (cart.orderSource) {
                     case '':
+                    case 'manual':
                     case 'normal':
                         return dd.device.includes('normal');
                     case 'POS':
@@ -1462,7 +1468,7 @@ return (carData.voucherList || []).find((dd)=>{
                         dd.bind = switchValidProduct(dd.for, dd.forKey);
                         break;
                     case 'code': // 輸入代碼
-                        if (dd.code === `${cart.code}` || ((cart.code_array || []).includes(`${dd.code}`))) {
+                        if (dd.code === `${cart.code}` || (cart.code_array || []).includes(`${dd.code}`)) {
                             dd.bind = switchValidProduct(dd.for, dd.forKey);
                         }
                         break;
@@ -1797,6 +1803,7 @@ return (carData.voucherList || []).find((dd)=>{
         try {
             let querySql = ['1=1'];
             let orderString = 'order by id desc';
+
             if (query.search && query.searchType) {
                 switch (query.searchType) {
                     case 'cart_token':
@@ -1814,6 +1821,7 @@ return (carData.voucherList || []).find((dd)=>{
                     }
                 }
             }
+
             if (query.orderStatus) {
                 let orderArray = query.orderStatus.split(',');
                 let temp = '';
@@ -1823,6 +1831,7 @@ return (carData.voucherList || []).find((dd)=>{
                 temp += `JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) IN (${query.orderStatus})`;
                 querySql.push(`(${temp})`);
             }
+
             if (query.progress) {
                 let newArray = query.progress.split(',');
                 let temp = '';
@@ -1835,7 +1844,10 @@ return (carData.voucherList || []).find((dd)=>{
 
             if (query.is_pos === 'true') {
                 querySql.push(`orderData->>'$.orderSource'='POS'`);
+            } else if (query.is_pos === 'false') {
+                querySql.push(`orderData->>'$.orderSource'<>'POS'`);
             }
+
             if (query.shipment) {
                 let shipment = query.shipment.split(',');
                 let temp = '';
@@ -1872,6 +1884,7 @@ return (carData.voucherList || []).find((dd)=>{
                         break;
                 }
             }
+
             query.status && querySql.push(`status IN (${query.status})`);
             query.email && querySql.push(`email=${db.escape(query.email)}`);
             query.id && querySql.push(`(content->>'$.id'=${query.id})`);
@@ -1918,6 +1931,7 @@ return (carData.voucherList || []).find((dd)=>{
                 }
                 return data[0];
             }
+
             if (query.id) {
                 const data = (
                     await db.query(

@@ -50,7 +50,7 @@ export class Setting_editor {
                                                     appName: 'cms_system',
                                                     groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716566571091-Property 1=gear-regular.svg',
                                                     moduleName: '商店設計',
-                                                    guideClass:'guide6-2'
+                                                    guideClass: 'guide6-2',
                                                 },
                                                 {
                                                     icon: '',
@@ -60,7 +60,7 @@ export class Setting_editor {
                                                     appName: 'cms_system',
                                                     groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716566571091-Property 1=gear-regular.svg',
                                                     moduleName: '金流 / 物流 / 發票',
-                                                    guideClass:'guide2-2'
+                                                    guideClass: 'guide2-2',
                                                 },
                                                 {
                                                     icon: '',
@@ -70,7 +70,7 @@ export class Setting_editor {
                                                     appName: 'cms_system',
                                                     groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716566571091-Property 1=gear-regular.svg',
                                                     moduleName: '金流 / 物流 / 發票',
-                                                    guideClass:'guide3-2',
+                                                    guideClass: 'guide3-2',
                                                 },
                                                 {
                                                     icon: '',
@@ -80,7 +80,7 @@ export class Setting_editor {
                                                     appName: 'cms_system',
                                                     groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716566571091-Property 1=gear-regular.svg',
                                                     moduleName: '運費設定',
-                                                    guideClass:'guide4-2',
+                                                    guideClass: 'guide4-2',
                                                 },
                                                 {
                                                     icon: '',
@@ -108,7 +108,7 @@ export class Setting_editor {
                                                     appName: 'cms_system',
                                                     groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716652645450-boxes-stacked-regular (1).svg',
                                                     moduleName: '商品管理',
-                                                    guideClass:'guide5-2',
+                                                    guideClass: 'guide5-2',
                                                 },
                                                 {
                                                     icon: '',
@@ -130,12 +130,20 @@ export class Setting_editor {
                                                     icon: '',
                                                     page: 'order_list',
                                                     group: '訂單管理',
-                                                    title: '訂單列表',
+                                                    title: '訂單',
                                                     appName: 'cms_system',
                                                     groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716652949790-Component 56 (3).svg',
                                                     moduleName: '訂單列表',
                                                 },
-
+                                                {
+                                                    icon: '',
+                                                    page: 'order_list_archive',
+                                                    group: '訂單管理',
+                                                    title: '已封存訂單',
+                                                    appName: 'cms_system',
+                                                    groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716652949790-Component 56 (3).svg',
+                                                    moduleName: '訂單列表',
+                                                },
                                                 {
                                                     icon: '',
                                                     page: 'out-delivery',
@@ -305,7 +313,7 @@ export class Setting_editor {
                                                     appName: 'cms_system',
                                                     groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716654741305-Component 56 (5).svg',
                                                     moduleName: '商店設計',
-                                                    guideClass:'guide7-2'
+                                                    guideClass: 'guide7-2',
                                                 },
                                                 {
                                                     icon: '',
@@ -575,17 +583,16 @@ export class Setting_editor {
                                                                 return {
                                                                     bind: id,
                                                                     view: () => {
-                                                                        
                                                                         return list
                                                                             .map((dd: any, index: any) => {
                                                                                 return html`
                                                                                     ${dd.title === '品牌官網' ? `<div class="my-4 border-top"></div>` : ``}
                                                                                     <li>
                                                                                         <div
-                                                                                            class="w-100 fw-500 d-flex align-items-center  fs-6 hoverBtn h_item  rounded px-2 tx_700 ${dd?.info?.guideClass??''} ${dd.type === 'container' ? ` mainRow${index}` : ''}"
+                                                                                            class="w-100 fw-500 d-flex align-items-center  fs-6 hoverBtn h_item  rounded px-2 tx_700 ${dd?.info
+                                                                                                ?.guideClass ?? ''} ${dd.type === 'container' ? ` mainRow${index}` : ''}"
                                                                                             style="gap:7px;color:#393939;${dd.toggle ? `border-radius: 5px;background: #F2F2F2;` : ``}"
                                                                                             onclick="${gvc.event(() => {
-                                                                                                
                                                                                                 if (dd.type === 'container') {
                                                                                                     list.map((d1: any) => {
                                                                                                         d1.toggle = false;
@@ -974,10 +981,7 @@ export class Setting_editor {
                                             Sortable.create(document.getElementById(id), {
                                                 group: gvc.glitter.getUUID(),
                                                 animation: 100,
-                                                // Called when dragging element changes position
-                                                onChange: function (evt: any) {
-                                                    // swapArr(original, startIndex, evt.newIndex)
-                                                },
+                                                onChange: function (evt: any) {},
                                                 onEnd: (evt: any) => {
                                                     let changeItemStart = 0;
                                                     let changeItemEnd = 0;
@@ -1064,156 +1068,5 @@ export class Setting_editor {
             })(),
             width: 350,
         });
-
-        //         gvc.glitter.innerDialog((gvc: GVC) => {
-        //             const vm: {
-        //                 loading: boolean,
-        //                 data: any
-        //             } = {
-        //                 loading: true,
-        //                 data: {
-        //                     array: []
-        //                 },
-        //
-        //             }
-        //             const did = gvc.glitter.getUUID()
-        //             saasConfig.api.getPrivateConfig(saasConfig.config.appName, "glitter_backend_plugin").then((r: { response: any, result: boolean }) => {
-        //                 if (r.response.result[0]) {
-        //                     vm.data = r.response.result[0].value
-        //                 }
-        //                 vm.loading = false
-        //                 gvc.notifyDataChange(did)
-        //             });
-        //             return gvc.bindView(() => {
-        //                 return {
-        //                     bind: did,
-        //                     view: () => {
-        //                         return ` <div class="w-100 d-flex align-items-center border-bottom justify-content-center position-relative" style="height: 68px;">
-        //         <h3 class="modal-title fs-4">客製化後台套件</h3>
-        //         <i class="fa-solid fa-xmark text-dark position-absolute " style="font-size:20px;transform: translateY(-50%);right: 20px;top: 50%;cursor: pointer;"
-        //         onclick="${gvc.event(() => {
-        //                             gvc.closeDialog()
-        //                         })}"></i>
-        // </div>
-        //
-        // <div class="mt-2 border border-white p-2 fw-500 fs-6">
-        // <div class="alert alert-info " style="white-space:normal;">
-        // 您可以透過添加插件來拓展你的後台系統應用．
-        // </div>
-        // ${(() => {
-        //                             if (vm.loading) {
-        //                                 return `  <div class="w-100 d-flex align-items-center justify-content-center">
-        //   <div class="spinner-border " role="status">
-        //   <span class="sr-only"></span>
-        // </div>
-        // </div>`
-        //                             } else {
-        //                                 return gvc.bindView(() => {
-        //                                     const id = gvc.glitter.getUUID()
-        //                                     return {
-        //                                         bind: id,
-        //                                         view: () => {
-        //                                             return EditorElem.arrayItem({
-        //                                                 originalArray: vm.data.array,
-        //                                                 gvc: gvc,
-        //                                                 title: '後台套件設定',
-        //                                                 array: () => {
-        //                                                     return vm.data.array.map((obj: any, index: number) => {
-        //                                                         return {
-        //                                                             title: obj.title ?? `第${index + 1}個後台插件`,
-        //                                                             expand: obj,
-        //                                                             innerHtml: (gvc: GVC) => {
-        //                                                                 const selectID = gvc.glitter.getUUID()
-        //                                                                 return gvc.bindView(() => {
-        //                                                                     return {
-        //                                                                         bind: selectID,
-        //                                                                         view: () => {
-        //                                                                             return [
-        //                                                                                 EditorElem.fontawesome({
-        //                                                                                     title: 'ICON圖示',
-        //                                                                                     gvc: gvc,
-        //                                                                                     def: obj.icon ?? "",
-        //                                                                                     callback: (text) => {
-        //                                                                                         obj.icon = text
-        //                                                                                     }
-        //                                                                                 }),
-        //                                                                                 EditorElem.editeInput({
-        //                                                                                     gvc: gvc,
-        //                                                                                     title: "插件名稱",
-        //                                                                                     default: obj.title ?? "",
-        //                                                                                     placeHolder: "請輸入插件名稱",
-        //                                                                                     callback: (text) => {
-        //                                                                                         obj.title = text
-        //                                                                                     }
-        //                                                                                 }),
-        //                                                                                 EditorElem.pageSelect(gvc, '選擇頁面', obj.page ?? "", (data) => {
-        //                                                                                     obj.page = data
-        //                                                                                 }, (dd) => {
-        //                                                                                     return dd.page_type === 'backend'
-        //                                                                                 })
-        //                                                                             ].join('')
-        //                                                                         },
-        //                                                                         divCreate: {
-        //                                                                             class:`mb-2`
-        //                                                                         }
-        //                                                                     }
-        //                                                                 })
-        //                                                             },
-        //                                                             saveEvent: () => {
-        //                                                                 gvc.notifyDataChange(id)
-        //                                                             },
-        //                                                             minus: gvc.event(() => {
-        //                                                                 vm.data.array.splice(index, 1);
-        //                                                                 gvc.notifyDataChange(did)
-        //                                                             }),
-        //                                                             width: "400px"
-        //                                                         };
-        //                                                     })
-        //                                                 },
-        //                                                 expand: {expand: true},
-        //                                                 plus: {
-        //                                                     title: '添加後台插件',
-        //                                                     event: gvc.event(() => {
-        //                                                         vm.data.array.push({});
-        //                                                         gvc.notifyDataChange(did)
-        //                                                     }),
-        //                                                 },
-        //                                                 refreshComponent: () => {
-        //                                                     gvc.notifyDataChange(id)
-        //                                                 }
-        //                                             })
-        //                                         },
-        //                                         divCreate: {
-        //                                             class: `mx-n2`
-        //                                         }
-        //                                     }
-        //                                 })
-        //                             }
-        //                         })()}
-        // </div>
-        // <div class="d-flex pb-2 px-2 justify-content-end">
-        // <button class="btn btn-primary-c d-flex align-items-center " style="height:40px;" onclick="${gvc.event(() => {
-        //                             const dialog = new ShareDialog(gvc.glitter)
-        //                             dialog.dataLoading({text: '設定中', visible: true})
-        //                             saasConfig.api.setPrivateConfig(saasConfig.config.appName, "glitter_backend_plugin", vm.data).then((r: { response: any, result: boolean }) => {
-        //                                 dialog.dataLoading({visible: false})
-        //                                 if (r.response) {
-        //                                     callback()
-        //                                     dialog.successMessage({text: "儲存成功"})
-        //                                 } else {
-        //                                     dialog.errorMessage({text: "儲存失敗"})
-        //                                 }
-        //                             })
-        //                         })}"><i class="fa-solid fa-floppy-disk me-2"></i>儲存</button>
-        // </div>
-        // `
-        //                     },
-        //                     divCreate: {
-        //                         class: `m-auto bg-white shadow rounded overflow-auto`,
-        //                         style: `max-width: 100%;max-height: calc(100% - 20px);width:400px;`
-        //                     }
-        //                 }
-        //             })
-        //         }, 'addPlugin')
     }
 }

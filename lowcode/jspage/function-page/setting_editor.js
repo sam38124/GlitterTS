@@ -44,7 +44,7 @@ export class Setting_editor {
                                             appName: 'cms_system',
                                             groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716566571091-Property 1=gear-regular.svg',
                                             moduleName: '商店設計',
-                                            guideClass: 'guide6-2'
+                                            guideClass: 'guide6-2',
                                         },
                                         {
                                             icon: '',
@@ -54,7 +54,7 @@ export class Setting_editor {
                                             appName: 'cms_system',
                                             groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716566571091-Property 1=gear-regular.svg',
                                             moduleName: '金流 / 物流 / 發票',
-                                            guideClass: 'guide2-2'
+                                            guideClass: 'guide2-2',
                                         },
                                         {
                                             icon: '',
@@ -124,7 +124,16 @@ export class Setting_editor {
                                             icon: '',
                                             page: 'order_list',
                                             group: '訂單管理',
-                                            title: '訂單列表',
+                                            title: '訂單',
+                                            appName: 'cms_system',
+                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716652949790-Component 56 (3).svg',
+                                            moduleName: '訂單列表',
+                                        },
+                                        {
+                                            icon: '',
+                                            page: 'order_list_archive',
+                                            group: '訂單管理',
+                                            title: '已封存訂單',
                                             appName: 'cms_system',
                                             groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716652949790-Component 56 (3).svg',
                                             moduleName: '訂單列表',
@@ -298,7 +307,7 @@ export class Setting_editor {
                                             appName: 'cms_system',
                                             groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716654741305-Component 56 (5).svg',
                                             moduleName: '商店設計',
-                                            guideClass: 'guide7-2'
+                                            guideClass: 'guide7-2',
                                         },
                                         {
                                             icon: '',
@@ -908,8 +917,7 @@ export class Setting_editor {
                                             Sortable.create(document.getElementById(id), {
                                                 group: gvc.glitter.getUUID(),
                                                 animation: 100,
-                                                onChange: function (evt) {
-                                                },
+                                                onChange: function (evt) { },
                                                 onEnd: (evt) => {
                                                     let changeItemStart = 0;
                                                     let changeItemEnd = 0;

@@ -97,7 +97,7 @@ type Cart = {
     custom_form_data?: any;
     distribution_id?: number;
     distribution_info?: any;
-    orderSource: '' | 'normal' | 'POS';
+    orderSource: '' | 'manual' | 'normal' | 'POS';
     code_array: string[];
 };
 export declare class Shopping {

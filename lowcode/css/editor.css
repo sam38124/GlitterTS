@@ -20,6 +20,7 @@
     --main-gray-1: #dddddd;
     --main-gray-2: #aeaeae;
     --main-gray-3: #8d8d8d;
+    --main-gray-4: #7e7e7e;
 
     --main-white: #fff;
     --main-white-hover: #d5d5d5;
@@ -931,6 +932,11 @@ ul {
 .insignia-notify {
     background: var(--item-notify);
     color: var(--main-black);
+}
+
+.insignia-secondary {
+    background: var(--main-gray-4);
+    color: var(--main-white);
 }
 
 /* 行動端頁面 */

@@ -200,11 +200,14 @@ class Shopping {
                 return product;
             });
             if (query.id_list && query.order_by === 'order by id desc') {
-                products.data = query.id_list.split(',').map((id) => {
+                products.data = query.id_list
+                    .split(',')
+                    .map((id) => {
                     return products.data.find((product) => {
                         return `${product.id}` === `${id}`;
                     });
-                }).filter((dd) => {
+                })
+                    .filter((dd) => {
                     return dd;
                 });
             }
@@ -308,11 +311,12 @@ class Shopping {
                 headers: {
                     'X-LINE-ChannelId': '2006263059',
                     'X-LINE-ChannelSecret': '9bcca1d8f66b9ec60cd1a3498be253e2',
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
                 },
-                data: JSON.stringify(data)
+                data: JSON.stringify(data),
             };
-            axios_1.default.request(config)
+            axios_1.default
+                .request(config)
                 .then((response) => {
                 resolve(response.data.returnCode === '0000');
             })
@@ -450,8 +454,8 @@ class Shopping {
                 useRebateInfo: { point: 0 },
                 custom_form_format: data.custom_form_format,
                 custom_form_data: data.custom_form_data,
-                orderSource: (data.checkOutType === 'POS') ? `POS` : ``,
-                code_array: data.code_array
+                orderSource: data.checkOutType === 'POS' ? `POS` : ``,
+                code_array: data.code_array,
             };
             function calculateShipment(dataList, value) {
                 if (value === 0) {
@@ -613,6 +617,7 @@ class Shopping {
             if (type === 'preview' || type === 'manual-preview')
                 return { data: carData };
             if (type === 'manual') {
+                carData.orderSource = 'manual';
                 let tempVoucher = {
                     discount_total: data.voucher.discount_total,
                     end_ISO_Date: '',
@@ -1003,6 +1008,7 @@ class Shopping {
             }
             switch (cart.orderSource) {
                 case '':
+                case 'manual':
                 case 'normal':
                     return dd.device.includes('normal');
                 case 'POS':
@@ -1040,7 +1046,7 @@ class Shopping {
                     dd.bind = switchValidProduct(dd.for, dd.forKey);
                     break;
                 case 'code':
-                    if (dd.code === `${cart.code}` || ((cart.code_array || []).includes(`${dd.code}`))) {
+                    if (dd.code === `${cart.code}` || (cart.code_array || []).includes(`${dd.code}`)) {
                         dd.bind = switchValidProduct(dd.for, dd.forKey);
                     }
                     break;
@@ -1348,6 +1354,9 @@ class Shopping {
             }
             if (query.is_pos === 'true') {
                 querySql.push(`orderData->>'$.orderSource'='POS'`);
+            }
+            else if (query.is_pos === 'false') {
+                querySql.push(`orderData->>'$.orderSource'<>'POS'`);
             }
             if (query.shipment) {
                 let shipment = query.shipment.split(',');

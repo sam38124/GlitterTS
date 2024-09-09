@@ -348,7 +348,7 @@ cursor: pointer;
                                         });
                                     }
                                     else if (vm.type === 'order') {
-                                        return `<div class="vw-100" style="overflow-y: scroll;">${ShoppingOrderManager.main(gvc, true)}</div>`;
+                                        return `<div class="vw-100" style="overflow-y: scroll;">${ShoppingOrderManager.main(gvc, { isPOS: true })}</div>`;
                                     }
                                     return ProductsPage.main({ gvc: gvc, vm: vm, orderDetail: orderDetail });
                                 }

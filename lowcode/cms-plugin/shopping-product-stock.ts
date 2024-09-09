@@ -125,11 +125,12 @@ export class StockList {
                             ${BgWidget.validImageBox({
                                 gvc,
                                 image: dd.product_content.preview_image[0],
-                                width: 45,
+                                width: 40,
+                                class: 'rounded border ms-1',
                             })}
                             <div class="d-flex flex-column">
                                 <span class="tx_normal">${Tool.truncateString(dd.product_content.title)}</span>
-                                ${BgWidget.grayNote(dd.variant_content.spec.length > 0 ? dd.variant_content.spec.join(' / ') : '單一規格', 'font-size: 16px;')}
+                                ${BgWidget.grayNote(Tool.truncateString(dd.variant_content.spec.length > 0 ? dd.variant_content.spec.join(' / ') : '單一規格', 25), 'font-size: 16px;')}
                             </div>
                         </div>`,
                     },
