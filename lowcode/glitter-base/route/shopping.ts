@@ -602,6 +602,7 @@ export class ApiShop {
         use_rebate?: number;
         distribution_code?: string;
         user_info?: any;
+        code_array?:string[]
     }) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/checkout/preview`,
@@ -621,6 +622,9 @@ export class ApiShop {
             spec: string[];
             count: number;
         }[];
+        user_info: {
+            shipment: string;
+        };
         code?: string;
         use_rebate?: number;
     }) {
@@ -651,6 +655,18 @@ export class ApiShop {
     static toPOSCheckout(passData: any) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/pos/checkout/`,
+            type: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: getConfig().config.token,
+            },
+            data: JSON.stringify(passData),
+        });
+    }
+    static toPOSLinePay(passData: any) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/ec/pos/linePay`,
             type: 'POST',
             headers: {
                 'Content-Type': 'application/json',

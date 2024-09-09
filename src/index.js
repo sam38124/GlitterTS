@@ -185,7 +185,7 @@ async function createAPP(dd) {
                         else if (d.type !== 'custom') {
                             data = await seo_js_1.Seo.getPageInfo(appName, data.config.homePage);
                         }
-                        const preload = req.query.type === 'editor' || req.query.isIframe === 'true' ? {} : await app_js_1.App.preloadPageData(appName, req.query.page);
+                        const preload = req.query.isIframe === 'true' ? {} : await app_js_1.App.preloadPageData(appName, req.query.page);
                         data.page_config = (_h = data.page_config) !== null && _h !== void 0 ? _h : {};
                         data.page_config.seo = (_j = data.page_config.seo) !== null && _j !== void 0 ? _j : {};
                         const seo_detail = await getSeoDetail(appName, req);

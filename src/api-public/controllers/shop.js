@@ -130,6 +130,7 @@ router.post('/checkout', async (req, resp) => {
             custom_form_format: req.body.custom_form_format,
             custom_form_data: req.body.custom_form_data,
             distribution_code: req.body.distribution_code,
+            code_array: req.body.code_array
         }));
     }
     catch (err) {
@@ -164,6 +165,7 @@ router.post('/checkout/preview', async (req, resp) => {
             })(),
             checkOutType: req.body.checkOutType,
             distribution_code: req.body.distribution_code,
+            code_array: req.body.code_array
         }, 'preview'));
     }
     catch (err) {
@@ -184,6 +186,7 @@ router.post('/manager/checkout', async (req, resp) => {
                 discount: req.body.discount,
                 total: req.body.total,
                 pay_status: req.body.pay_status,
+                code_array: req.body.code_array
             }, 'manual'));
         }
         else {
@@ -210,6 +213,7 @@ router.post('/manager/checkout/preview', async (req, resp) => {
                         return 0;
                     }
                 })(),
+                code_array: req.body.code_array
             }, 'manual-preview'));
         }
         else {
@@ -880,12 +884,20 @@ router.post('/pos/checkout', async (req, resp) => {
             discount: req.body.discount,
             total: req.body.total,
             pay_status: req.body.pay_status,
-            realTotal: req.body.realTotal,
+            code_array: req.body.code_array
         }, 'POS'));
     }
     try {
         let result = await checkoutPos();
         return response_1.default.succ(resp, result);
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.post('/pos/linePay', async (req, resp) => {
+    try {
+        return response_1.default.succ(resp, { result: await new shopping_1.Shopping(req.get('g-app'), req.body.token).linePay(req.body) });
     }
     catch (err) {
         return response_1.default.fail(resp, err);

@@ -189,12 +189,21 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                             appName: gBundle.appName,
                             type: 'template',
                         });
-                        viewModel.data = (
-                            await ApiPageConfig.getPage({
-                                appName: gBundle.appName,
+                        viewModel.data=await new Promise((resolve, reject)=>{
+                            ((window as any).glitterInitialHelper).getPageData({
                                 tag: glitter.getUrlParameter('page'),
+                                appName: gBundle.appName
+                            }, (d2: any) => {
+                                resolve(d2.response.result[0])
                             })
-                        ).response.result[0];
+                        })
+
+                        // viewModel.data = (
+                        //     await ApiPageConfig.getPage({
+                        //         appName: gBundle.appName,
+                        //         tag: glitter.getUrlParameter('page'),
+                        //     })
+                        // ).response.result[0];
                         Storage.select_page_type = viewModel.data.page_type;
                         if (data.result) {
                             data.response.result.map((dd: any) => {
@@ -258,6 +267,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
             async () => {
                 return await new Promise(async (resolve) => {
                     const data = glitter.share.appConfigresponse;
+                    data.result=true
                     if (data.result) {
                         viewModel.appConfig = data.response.data;
                         viewModel.originalConfig = JSON.parse(JSON.stringify(viewModel.appConfig));
@@ -316,11 +326,13 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
         let count = 0;
         let result = await new Promise((resolve, reject) => {
             for (const a of waitGetData) {
+
                 a().then((result) => {
                     if (result) {
                         count++;
                     } else {
                         resolve(false);
+                        console.log(`falseIn`,waitGetData.findIndex((dd)=>{return dd===a}))
                     }
                     if (count === waitGetData.length) {
                         resolve(true);
@@ -444,7 +456,6 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                 callback && callback();
             });
         };
-
         glitter.share.selectEditorItem = () => {
             localStorage.setItem('rightSelect', 'module');
             glitter.share.selectEditorItemTimer && clearInterval(glitter.share.selectEditorItemTimer);
@@ -523,7 +534,7 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
                                                                                 viewModel.waitCopy = undefined;
                                                                                 viewModel.selectItem = undefined;
                                                                                 Storage.page_setting_item = da.index;
-                                                                                gvc.notifyDataChange(editorContainerID);
+                                                                                gvc.notifyDataChange(["MainEditorLeft","left_sm_bar"]);
                                                                             })}"
                                                                     ></i>`;
                                                                 })
@@ -535,6 +546,10 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
                                                                 Storage.select_function === 'user-editor' || Storage.select_function === 'page-editor' ? `` : `d-none`
                                                         } h-120 border-end d-flex flex-column align-items-center`,
                                                     },
+                                                    onCreate:()=>{
+                                                        $('.tooltip').remove();
+                                                        ($('[data-bs-toggle="tooltip"]') as any).tooltip();
+                                                    }
                                                 };
                                             })}
                                             <div
@@ -641,7 +656,6 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
                     setTimeout(() => {
                         scrollToItem(document.querySelector(`.editor_item.active`)!);
                     }, 200);
-
                     if(!viewModel.loading ){
                         switch (Storage.select_function) {
                             case 'backend-manger':{
@@ -658,7 +672,6 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
 
                             }
                         }
-
                     }
 
 
@@ -819,6 +832,7 @@ function initialEditor(gvc: GVC, viewModel: any) {
             );
         }
         setTimeout(() => {
+            Storage.lastSelect=data.id
             glitter.htmlGenerate.selectWidget({
                 widget: data,
                 widgetComponentID: data.id,
@@ -860,6 +874,7 @@ function initialEditor(gvc: GVC, viewModel: any) {
         )[cf.direction === 1 ? 'insertAfter' : 'insertBefore']($(`.editor_it_${cf.index}`).parent());
         //
         setTimeout(() => {
+            Storage.lastSelect=cf.data.id
             glitter.htmlGenerate.selectWidget({
                 widget: cf.data,
                 widgetComponentID: cf.data.id,
@@ -867,7 +882,7 @@ function initialEditor(gvc: GVC, viewModel: any) {
                 scroll_to_hover: true,
                 glitter: glitter,
             });
-        }, 50)
+        }, 100)
         AddComponent.toggle(false);
         viewModel.selectContainer && viewModel.selectContainer.rerenderReplaceElem && viewModel.selectContainer.rerenderReplaceElem();
     };

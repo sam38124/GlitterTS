@@ -851,15 +851,19 @@ export class Main_editor {
                                 glitter: glitter,
                             });
                         }), '上一層'));
-                        view.push(`<div class="mx-2"></div>`);
                     }
+                    view.push(BgWidget.cancel(gvc.event(() => {
+                        const dialog = new ShareDialog(gvc.glitter);
+                        navigator.clipboard.writeText(JSON.stringify(viewModel.selectItem));
+                        dialog.successMessage({ text: '複製成功，滑動至要插入的區塊，並點擊貼上。' });
+                    }), '複製'));
                     view.push(BgWidget.cancel(gvc.event(() => {
                         glitter.closeDrawer();
                         glitter.htmlGenerate.deleteWidget(glitter.share.editorViewModel.selectContainer, viewModel.selectItem, () => {
                         });
-                    }), '刪除元件'));
+                    }), '刪除'));
                 }
-                return view.join('');
+                return view.join('<div class="mx-1"></div>');
             })()}
                     </div>
                 </div>

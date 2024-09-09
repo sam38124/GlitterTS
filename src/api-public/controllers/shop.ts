@@ -133,6 +133,7 @@ router.post('/checkout', async (req: express.Request, resp: express.Response) =>
                 custom_form_format: req.body.custom_form_format,
                 custom_form_data: req.body.custom_form_data,
                 distribution_code: req.body.distribution_code,
+                code_array:req.body.code_array
             })
         );
     } catch (err) {
@@ -175,6 +176,7 @@ router.post('/checkout/preview', async (req: express.Request, resp: express.Resp
                     })(),
                     checkOutType: req.body.checkOutType,
                     distribution_code: req.body.distribution_code,
+                    code_array:req.body.code_array
                 },
                 'preview'
             )
@@ -200,6 +202,7 @@ router.post('/manager/checkout', async (req: express.Request, resp: express.Resp
                         discount: req.body.discount,
                         total: req.body.total,
                         pay_status: req.body.pay_status,
+                        code_array:req.body.code_array
                     },
                     'manual'
                 )
@@ -229,6 +232,7 @@ router.post('/manager/checkout/preview', async (req: express.Request, resp: expr
                                 return 0;
                             }
                         })(),
+                        code_array:req.body.code_array
                     },
                     'manual-preview'
                 )
@@ -955,7 +959,7 @@ router.post('/pos/checkout', async (req: express.Request, resp: express.Response
                     discount: req.body.discount,
                     total: req.body.total,
                     pay_status: req.body.pay_status,
-                    realTotal: req.body.realTotal,
+                    code_array:req.body.code_array
                 },
                 'POS'
             )
@@ -969,3 +973,17 @@ router.post('/pos/checkout', async (req: express.Request, resp: express.Response
         return response.fail(resp, err);
     }
 });
+// POS機相關
+router.post('/pos/linePay', async (req: express.Request, resp: express.Response) => {
+    try {
+        return response.succ(
+            resp,
+            {result: await new Shopping(req.get('g-app') as string, req.body.token).linePay(
+                    req.body
+                )}
+        );
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+

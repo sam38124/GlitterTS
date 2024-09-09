@@ -744,7 +744,7 @@ export class BgRecommend {
                 bind: vm.id,
                 view: () => {
                     if (vm.loading) {
-                        return BgWidget.spinner({ textNone: true });
+                        return BgWidget.spinner({ text: { visible: false } });
                     }
                     return BgWidget.container(
                         [
@@ -1777,7 +1777,7 @@ export class BgRecommend {
                 dataList: [{ obj: vm, key: 'type' }],
                 view: () => {
                     if (vm.loading) {
-                        return BgWidget.spinner({ textNone: true });
+                        return BgWidget.spinner({ text: { visible: false } });
                     }
                     if (vm.type === 'user') {
                         return BgWidget.container(

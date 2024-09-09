@@ -11,7 +11,11 @@ import { ShareDialog } from "../../glitterBundle/dialog/ShareDialog.js";
 import { ApiShop } from "../../glitter-base/route/shopping.js";
 import { EditorElem } from "../../glitterBundle/plugins/editor-elem.js";
 import { PosWidget } from "../pos-widget.js";
-import { LinePay } from "./pay-method/line-pay.js";
+import { BgWidget } from "../../backend-manager/bg-widget.js";
+import { FilterOptions } from "../filter-options.js";
+import { ApiUser } from "../../glitter-base/route/user.js";
+import { FormWidget } from "../../official_view_component/official/form.js";
+import { CheckInput } from "../../modules/checkInput.js";
 const html = String.raw;
 export class PaymentPage {
     static shipment_support(orderDetail) {
@@ -39,59 +43,84 @@ export class PaymentPage {
         }));
     }
     static main(obj) {
+        obj.gvc.addMtScript([{ src: 'https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js' }], () => {
+        }, () => {
+        });
+        if (!obj.ogOrderData.lineItems || obj.ogOrderData.lineItems.length === 0) {
+            return html `
+                <div class="d-flex align-items-center justify-content-center w-100  "
+                     style="height: calc(100vh - 200px);">
+                    <div class="d-flex flex-column align-items-center justify-content-center" style="gap:30px;">
+                        <lottie-player class="rounded-circle bg-white" style="max-width: 100%;width: 300px;"
+                                       src="https://lottie.host/38ba8340-3414-41b8-b068-bba18d240bb3/h7e1Q29IQJ.json"
+                                       speed="1"
+                                       loop="" autoplay="" background="transparent"></lottie-player>
+                        <div class="fw-bold fs-6"> 購物車是空的，請先選擇商品。</div>
+                    </div>
+
+                </div>`;
+        }
         const gvc = obj.gvc;
         const vm = obj.vm;
         const dialog = new ShareDialog(gvc.glitter);
         PaymentPage.storeHistory(obj.ogOrderData);
         return gvc.bindView(() => {
             const id = gvc.glitter.getUUID();
+            function refreshOrderView() {
+                gvc.notifyDataChange(id);
+            }
             return {
                 bind: id,
                 view: () => __awaiter(this, void 0, void 0, function* () {
-                    dialog.dataLoading({ visible: true });
-                    obj.ogOrderData.user_info = obj.ogOrderData.user_info || {};
-                    obj.ogOrderData.user_info.shipment = obj.ogOrderData.user_info.shipment || 'now';
-                    const orderDetail = (yield ApiShop.getCheckout({
-                        line_items: obj.ogOrderData.lineItems,
-                        checkOutType: 'POS',
-                        user_info: obj.ogOrderData.user_info
-                    })).response.data;
-                    dialog.dataLoading({ visible: false });
-                    if (!PaymentPage.shipment_support(orderDetail).find((dd) => {
-                        return dd.value === (obj.ogOrderData).user_info.shipment;
-                    })) {
-                        (obj.ogOrderData).user_info.shipment = 'now';
-                    }
-                    let interval = 0;
-                    return `<div class="left-panel"
-                     style="${(document.body.offsetWidth < 800) ? `width:calc(100%);padding: 32px 20px;height:auto;` : `width:calc(100% - 446px);padding: 32px 36px;`}overflow: auto;">
-                    ${PosWidget.bigTitle('訂單明細')}
-                    <div class="d-flex flex-column ${(document.body.offsetWidth < 800) ? `mx-n4` : ``}"
-                         style="margin-top: ${((document.body.offsetWidth < 800)) ? `20px` : `32px`};padding:24px;${(document.body.offsetWidth < 800) ? `` : `border-radius: 10px;`}background: #FFF;box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.08);">
-                        <div class="d-flex"
-                             style="padding:15px 0;background: #F6F6F6;border-radius: 10px;font-weight: 700;">
-                            <div class="col-6 text-left" style="padding-left: 23px;">
-                                商品名稱
-                            </div>
-                            <div class="col-2 text-center d-none">規格</div>
-                            <div class="col-2 text-start">單價</div>
-                            <div class="col-2 text-center">數量</div>
-                            <div class="col-2 text-center">小計</div>
-                        </div>
-                        <div class="d-flex flex-column">
-                            ${(() => {
-                        let image = 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg';
+                    const orderDetail = yield ((() => __awaiter(this, void 0, void 0, function* () {
+                        dialog.dataLoading({ visible: true });
+                        obj.ogOrderData.user_info = obj.ogOrderData.user_info || {};
+                        obj.ogOrderData.user_info.shipment = obj.ogOrderData.user_info.shipment || 'now';
+                        const orderDetail = (yield ApiShop.getCheckout({
+                            line_items: obj.ogOrderData.lineItems,
+                            checkOutType: 'POS',
+                            user_info: obj.ogOrderData.user_info,
+                            code_array: obj.ogOrderData.code_array || []
+                        })).response.data;
+                        dialog.dataLoading({ visible: false });
+                        if (!PaymentPage.shipment_support(orderDetail).find((dd) => {
+                            return dd.value === (obj.ogOrderData).user_info.shipment;
+                        })) {
+                            (obj.ogOrderData).user_info.shipment = 'now';
+                        }
+                        PaymentPage.storeHistory(obj.ogOrderData);
+                        return orderDetail;
+                    }))());
+                    return html `
+                        <div class="left-panel"
+                             style="${(document.body.offsetWidth < 800) ? `width:calc(100%);padding: 20px 18px;height:auto;background:#FFF;` : `width:calc(100% - 446px);padding: 32px 36px;`}overflow: auto;">
+                            ${PosWidget.bigTitle('訂單明細')}
+                            <div class="d-flex flex-column ${(document.body.offsetWidth < 800) ? `` : ``}"
+                                 style="${(document.body.offsetWidth < 800) ? `margin-top:18px;` : `padding:24px;border-radius: 10px;background: #FFF;box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.08);margin-top:32px;`}">
+                                <div class="d-none d-sm-flex"
+                                     style="padding:15px 0;background: #F6F6F6;border-radius: 10px;font-weight: 700;">
+                                    <div class="col-6 text-left" style="padding-left: 23px;">
+                                        商品名稱
+                                    </div>
+                                    <div class="col-2 text-center d-none">規格</div>
+                                    <div class="col-2 text-start">單價</div>
+                                    <div class="col-2 text-center">數量</div>
+                                    <div class="col-2 text-center">小計</div>
+                                </div>
+                                <div class="d-flex flex-column"
+                                     style="${((document.body.offsetWidth < 800) ? `` : `padding-top: 26px;`)}">
+                                    ${(() => {
                         if (orderDetail.lineItems.length > 0) {
                             return orderDetail.lineItems.map((data) => {
                                 return html `
-                                    <div class="d-flex"
-                                         style="margin-top: 26px;">
-                                        <div class="col-6 d-flex align-items-center">
-                                            <div style="width: 54px;height: 54px;border-radius: 5px;background: 50%/cover url('${data.preview_image}')"></div>
-                                            <div class="d-flex flex-column"
-                                                 style="font-size: 16px;font-style: normal;font-weight: 500;letter-spacing: 0.64px;margin-left: 12px;">
-                                                ${data.title}
-                                                <span style="color: #949494;
+                                                    <div class="d-flex"
+                                                         style="">
+                                                        <div class="col-8 col-sm-6 d-flex align-items-center">
+                                                            <div style="width: 54px;height: 54px;border-radius: 5px;background: 50%/cover url('${data.preview_image}')"></div>
+                                                            <div class="d-flex flex-column"
+                                                                 style="font-size: 16px;font-style: normal;font-weight: 500;letter-spacing: 0.64px;margin-left: 12px;">
+                                                                ${data.title}
+                                                                <span style="color: #949494;
                                                                                 font-size: 16px;
                                                                                 font-style: normal;
                                                                                 font-weight: 500;
@@ -106,62 +135,152 @@ export class PaymentPage {
                                         : html ``;
                                 })()}
                                                                                 </span>
-
-                                            </div>
-                                        </div>
-                                        <div class="col-2 d-flex align-items-center justify-content-start">
-                                                $${parseInt(data.sale_price, 10).toLocaleString()}
-                                        </div>
-                                        <div class="col-2 d-flex align-items-center justify-content-center">
-                                            ${data.count}
-                                        </div>
-                                        <div class="col-2 d-flex align-items-center justify-content-center">
-                                                $${parseInt(data.sale_price * data.count, 10).toLocaleString()}
-                                        </div>
-                                    </div>
-                                `;
-                            }).join('');
+                                                                ${((document.body.clientWidth < 800)) ? `<div style="color: #393939;
+font-size: 16px;
+font-style: normal;
+font-weight: 400;
+line-height: normal;
+letter-spacing: 0.64px;
+text-transform: uppercase;">NT.${parseInt(data.sale_price, 10).toLocaleString()}</div>` : ``}
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-2 d-none d-sm-flex align-items-center justify-content-start">
+                                                                $${parseInt(data.sale_price, 10).toLocaleString()}
+                                                        </div>
+                                                        <div class="col-2 d-flex align-items-center justify-content-center">
+                                                            ${(document.body.clientWidth < 800) ? `x` : ``}${data.count}
+                                                        </div>
+                                                        <div class="col-2 d-flex align-items-center justify-content-center">
+                                                                $${parseInt(data.sale_price * data.count, 10).toLocaleString()}
+                                                        </div>
+                                                    </div>
+                                                `;
+                            }).join((() => {
+                                if (document.body.clientWidth < 800) {
+                                    return `<div style="margin-top: 14px;margin-bottom: 14px;background: #DDD;width: 100%;height: 1px;"></div>`;
+                                }
+                                else {
+                                    return `<div style="height: 26px;"></div>`;
+                                }
+                            })());
                         }
                         return ``;
                     })()}
-                        </div>
-                    </div>
-                     ${PosWidget.bigTitle('會員', 'margin-top:24px;margin-bottom:24px;')}
-                     <div class=" mx-n4 mx-sm-0" style="border-radius: 10px;overflow: hidden;
-background: #EAEAEA;">
-<div class="w-100 d-flex flex-fill">
-<div class="w-100 d-flex align-items-center justify-content-center" style="flex:1; height: 65px; background: white; border-radius: 0px 10px 0px 0px;
-background: #FFF;">${PosWidget.bigTextItem('已有會員')}</div>
-<div class="w-100 d-flex align-items-center justify-content-center" style="flex:1; height: 65px;">${PosWidget.bigTextItem('新建會員')}</div>
-</div>
-<div class="w-100 bg-white p-2 p-sm-3" style="min-height:178px;">
-<div class="d-flex align-items-center" style="gap:14px;">
-${EditorElem.searchInputDynamicV2({
-                        title: '',
-                        gvc: gvc,
-                        def: '',
-                        search: (text, callback) => {
-                            clearInterval(interval);
-                            interval = setTimeout(() => {
-                                ApiShop.getProduct({
-                                    page: 0,
-                                    limit: 50,
-                                    search: '',
-                                }).then((data) => {
-                                    console.log(`pd-==`, data.response.data.map((dd) => {
-                                        return dd.content.title;
-                                    }));
-                                    callback(data.response.data.map((dd) => {
-                                        return dd.content.title;
-                                    }));
-                                });
-                            }, 100);
-                        },
-                        callback: (text) => {
-                        },
-                        placeHolder: '搜尋或掃描 會員信箱/電話/編號/名稱',
-                    })}
-<div class="" style="display: flex;
+                                </div>
+                            </div>
+                            ${PosWidget.bigTitle('會員', 'margin-top:32px;margin-bottom:18px;')}
+                            ${gvc.bindView(() => {
+                        const vm = {
+                            id: gvc.glitter.getUUID(),
+                            type: `old`
+                        };
+                        return {
+                            bind: vm.id,
+                            view: () => {
+                                const view = [
+                                    `<div class="w-100 d-flex flex-fill">
+                                    <div class="w-100 d-flex align-items-center justify-content-center" style="cursor:pointer;flex:1; height: 65px; ${(vm.type === 'old') ? `border-radius: 0px 10px 0px 0px;
+background: #FFF;` : ``}" onclick="${gvc.event(() => {
+                                        vm.type = 'old';
+                                        gvc.notifyDataChange(vm.id);
+                                    })}">${PosWidget.bigTextItem('已有會員')}
+                                    </div>
+                                    <div class="w-100 d-flex align-items-center justify-content-center"
+                                         style="cursor:pointer;flex:1; height: 65px;${(vm.type === 'new') ? `border-radius: 10px 10px 0px 0px;
+background: #FFF;` : ``}" onclick="${gvc.event(() => {
+                                        vm.type = 'new';
+                                        gvc.notifyDataChange(vm.id);
+                                    })}">${PosWidget.bigTextItem('新建會員')}
+                                    </div>
+                                </div>`
+                                ];
+                                if (vm.type === 'old') {
+                                    view.push(gvc.bindView(() => {
+                                        var _a;
+                                        const id = gvc.glitter.getUUID();
+                                        orderDetail.user_info = (_a = orderDetail.user_info) !== null && _a !== void 0 ? _a : {};
+                                        return {
+                                            bind: id,
+                                            view: () => {
+                                                const inView = [html `
+                                                            <div class="d-flex align-items-center" style="gap:14px;">
+                                                                <div style="flex:1;height: 44px; padding: 8px 18px;border-radius: 10px; border: 1px #DDDDDD solid; justify-content: center; align-items: center; gap: 8px; display: inline-flex;cursor:pointer;"
+                                                                     onclick="${gvc.event(() => {
+                                                        BgWidget.selectDropDialog({
+                                                            gvc: gvc,
+                                                            title: '搜尋特定顧客',
+                                                            tag: 'select_users',
+                                                            updownOptions: FilterOptions.userOrderBy,
+                                                            callback: (value) => {
+                                                            },
+                                                            custom_line_items: (data) => {
+                                                                return html `
+                                                                                     <div class="w-100 border-bottom pb-3"
+                                                                                          style="padding-left: 8px; padding-right: 8px; background: white;  justify-content: flex-start; align-items: center; gap: 8px; display: inline-flex;cursor: pointer;"
+                                                                                          onclick="${gvc.event(() => {
+                                                                    obj.ogOrderData.user_info.email = data.user_data.email;
+                                                                    gvc.notifyDataChange([id]);
+                                                                    gvc.glitter.closeDiaLog('select_users');
+                                                                })}">
+                                                                                         <div style="flex: 1 1 0; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 4px; display: inline-flex">
+                                                                                             <div style="align-self: stretch; justify-content: flex-start; align-items: center; gap: 6px; display: inline-flex">
+                                                                                                 <div style="color: #393939; font-size: 20px;  font-weight: 400; word-wrap: break-word">
+                                                                                                     ${data.user_data.name}
+                                                                                                 </div>
+                                                                                             </div>
+                                                                                             <div style="align-self: stretch; flex-direction: column; justify-content: flex-start; align-items: flex-start; display: flex">
+                                                                                                 <div style="align-self: stretch; color: #8D8D8D; font-size: 16px;  font-weight: 400; word-wrap: break-word">
+                                                                                                     ${data.user_data.phone}
+                                                                                                 </div>
+                                                                                                 <div style="align-self: stretch; color: #8D8D8D; font-size: 16px;  font-weight: 400; word-wrap: break-word">
+                                                                                                     ${data.user_data.email}
+                                                                                                 </div>
+                                                                                             </div>
+                                                                                         </div>
+                                                                                         <div style="padding: 4px 10px;background: #393939; border-radius: 7px; justify-content: center; align-items: center; gap: 10px; display: flex">
+                                                                                             <div style="color: white; font-size: 16px;  font-weight: 700; word-wrap: break-word">
+                                                                                                 ${data.tag_name}
+                                                                                             </div>
+                                                                                         </div>
+                                                                                     </div>`;
+                                                            },
+                                                            default: [''],
+                                                            single: true,
+                                                            api: (data) => {
+                                                                return new Promise((resolve) => {
+                                                                    ApiUser.getUserListOrders({
+                                                                        page: 0,
+                                                                        limit: 50,
+                                                                        search: data.query,
+                                                                        orderString: data.orderString,
+                                                                    }).then((dd) => {
+                                                                        if (dd.response.data) {
+                                                                            resolve(dd.response.data.map((item) => {
+                                                                                var _a;
+                                                                                return {
+                                                                                    key: item.userID,
+                                                                                    value: (_a = item.userData.name) !== null && _a !== void 0 ? _a : '（尚無姓名）',
+                                                                                    note: item.userData.email,
+                                                                                    user_data: item.userData,
+                                                                                    tag_name: item.tag_name
+                                                                                };
+                                                                            }));
+                                                                        }
+                                                                    });
+                                                                });
+                                                            },
+                                                            style: 'width: 100%;',
+                                                        });
+                                                    })}">
+                                                                    <div style="flex: 1 1 0; height: 22px; justify-content: center; align-items: center; gap: 8px; display: flex">
+                                                                        <i class="fa-solid fa-magnifying-glass"
+                                                                           style="color: #8D8D8D;"></i>
+                                                                        <div style="flex: 1 1 0; color: #8D8D8D; font-size: 16px;  font-weight: 400; word-wrap: break-word">
+                                                                            搜尋會員信箱/電話/編號/名稱
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="" style="display: flex;
 width: 44px;
 height: 44px;
 padding: 8px 10px;
@@ -170,30 +289,342 @@ border: 1px solid #DDD;
 justify-content: center;
 align-items: center;
 gap: 8px;
-flex-shrink: 0;">
-<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28" fill="none">
-<path d="M3.50016 10.5002C2.80016 10.5002 2.3335 10.0335 2.3335 9.3335V4.66683C2.3335 3.3835 3.3835 2.3335 4.66683 2.3335H9.3335C10.0335 2.3335 10.5002 2.80016 10.5002 3.50016C10.5002 4.20016 10.0335 4.66683 9.3335 4.66683H4.66683V9.3335C4.66683 10.0335 4.20016 10.5002 3.50016 10.5002Z" fill="#393939"/>
-<path d="M9.3335 25.6667H4.66683C3.3835 25.6667 2.3335 24.6167 2.3335 23.3333V18.6667C2.3335 17.9667 2.80016 17.5 3.50016 17.5C4.20016 17.5 4.66683 17.9667 4.66683 18.6667V23.3333H9.3335C10.0335 23.3333 10.5002 23.8 10.5002 24.5C10.5002 25.2 10.0335 25.6667 9.3335 25.6667Z" fill="#393939"/>
-<path d="M23.3333 25.6667H18.6667C17.9667 25.6667 17.5 25.2 17.5 24.5C17.5 23.8 17.9667 23.3333 18.6667 23.3333H23.3333V18.6667C23.3333 17.9667 23.8 17.5 24.5 17.5C25.2 17.5 25.6667 17.9667 25.6667 18.6667V23.3333C25.6667 24.6167 24.6167 25.6667 23.3333 25.6667Z" fill="#393939"/>
-<path d="M24.5 10.5002C23.8 10.5002 23.3333 10.0335 23.3333 9.3335V4.66683H18.6667C17.9667 4.66683 17.5 4.20016 17.5 3.50016C17.5 2.80016 17.9667 2.3335 18.6667 2.3335H23.3333C24.6167 2.3335 25.6667 3.3835 25.6667 4.66683V9.3335C25.6667 10.0335 25.2 10.5002 24.5 10.5002Z" fill="#393939"/>
-<path d="M19.8333 15.1668H8.16667C7.46667 15.1668 7 14.7002 7 14.0002C7 13.3002 7.46667 12.8335 8.16667 12.8335H19.8333C20.5333 12.8335 21 13.3002 21 14.0002C21 14.7002 20.5333 15.1668 19.8333 15.1668Z" fill="#393939"/>
-<path d="M15.7502 10.5003H12.2502C11.5502 10.5003 11.0835 10.0337 11.0835 9.33366C11.0835 8.63366 11.5502 8.16699 12.2502 8.16699H15.7502C16.4502 8.16699 16.9168 8.63366 16.9168 9.33366C16.9168 10.0337 16.4502 10.5003 15.7502 10.5003Z" fill="#393939"/>
-<path d="M15.7502 19.8333H12.2502C11.5502 19.8333 11.0835 19.3667 11.0835 18.6667C11.0835 17.9667 11.5502 17.5 12.2502 17.5H15.7502C16.4502 17.5 16.9168 17.9667 16.9168 18.6667C16.9168 19.3667 16.4502 19.8333 15.7502 19.8333Z" fill="#393939"/>
-</svg>
-
+flex-shrink: 0;" onclick="${gvc.event(() => {
+                                                        PaymentPage.scanUserID(gvc, obj.ogOrderData, () => {
+                                                            gvc.notifyDataChange(id);
+                                                        });
+                                                    })}">
+                                                                    <i class="fa-solid fa-barcode-read fs-5"></i>
+                                                                </div>
+                                                            </div>`];
+                                                if (obj.ogOrderData.user_info.email) {
+                                                    inView.push(gvc.bindView(() => {
+                                                        const vm = {
+                                                            loading: true,
+                                                            id: gvc.glitter.getUUID(),
+                                                            user_data: {},
+                                                            rebate: 0
+                                                        };
+                                                        ApiUser.getUsersDataWithEmail(obj.ogOrderData.user_info.email).then((res) => {
+                                                            vm.user_data = res.response;
+                                                            vm.loading = false;
+                                                            ApiUser.getUserRebate({ email: obj.ogOrderData.user_info.email }).then((res) => {
+                                                                vm.rebate = res.response.data.point;
+                                                                gvc.notifyDataChange(vm.id);
+                                                            });
+                                                        });
+                                                        return {
+                                                            bind: vm.id,
+                                                            view: () => {
+                                                                if (vm.loading) {
+                                                                    return `<div class="w-100 d-flex align-items-center justify-content-center">
+<div class="spinner-border"></div>
+</div>`;
+                                                                }
+                                                                else {
+                                                                    return `<div style="align-self: stretch; justify-content: flex-start; align-items: center; gap: 6px; display: inline-flex">
+                                            <div style="flex: 1 1 0; color: #393939; font-size: 24px;  font-weight: 400; word-wrap: break-word">
+                                                ${vm.user_data.userData.name}
+                                            </div>
+                                            <div style="width: 68px; padding-left: 6px; padding-right: 6px; padding-top: 4px; padding-bottom: 4px; background: #393939; border-radius: 7px; justify-content: center; align-items: center; gap: 10px; display: flex">
+                                                <div style="color: white; font-size: 14px;  font-weight: 700; word-wrap: break-word">
+                                                     ${vm.user_data.member_level.tag_name}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div style="align-self: stretch;  flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 6px; display: flex">
+                                            ${[
+                                                                        {
+                                                                            title: '會員編號',
+                                                                            value: vm.user_data.userID
+                                                                        },
+                                                                        {
+                                                                            title: '會員生日',
+                                                                            value: vm.user_data.userData.birth || '未填寫'
+                                                                        },
+                                                                        {
+                                                                            title: '會員電話',
+                                                                            value: vm.user_data.userData.phone || '未填寫'
+                                                                        },
+                                                                        {
+                                                                            title: '會員信箱',
+                                                                            value: vm.user_data.account
+                                                                        },
+                                                                        {
+                                                                            title: '會員地址',
+                                                                            value: vm.user_data.userData.address || '未填寫'
+                                                                        },
+                                                                        {
+                                                                            title: '持有購物金',
+                                                                            value: `${vm.rebate.toLocaleString()}點`
+                                                                        },
+                                                                        ...(() => {
+                                                                            var _a;
+                                                                            const leadData = JSON.parse(JSON.stringify(vm.user_data.member)).reverse().find((dd) => {
+                                                                                return !dd.trigger;
+                                                                            });
+                                                                            if (leadData) {
+                                                                                return [{
+                                                                                        title: (() => {
+                                                                                            return `
+                                                                                                   <div style=" flex-direction: column; justify-content: flex-start; align-items: flex-start; display: inline-flex">
+  升等條件
+  <div style="color: #8D8D8D; font-size: 16px;  font-weight: 400; word-wrap: break-word">${(() => {
+                                                                                                const condition_val = leadData.og.condition.value.toLocaleString();
+                                                                                                if (leadData.og.condition.type === 'total') {
+                                                                                                    if (leadData.og.duration.type === 'noLimit') {
+                                                                                                        return `*累積消費額達${condition_val}`;
+                                                                                                    }
+                                                                                                    else {
+                                                                                                        return `*${leadData.og.duration.value}天內累積消費額達${condition_val}`;
+                                                                                                    }
+                                                                                                }
+                                                                                                else {
+                                                                                                    return `*單筆消費達${condition_val}`;
+                                                                                                }
+                                                                                            })()}</div>
 </div>
+                                                                                                    `;
+                                                                                        })(),
+                                                                                        value: `還差${((_a = leadData.leak) !== null && _a !== void 0 ? _a : 0).toLocaleString()}`
+                                                                                    }];
+                                                                            }
+                                                                            else {
+                                                                                return [];
+                                                                            }
+                                                                        })(),
+                                                                        ...(() => {
+                                                                            if (vm.user_data.member_level.dead_line) {
+                                                                                return [{
+                                                                                        title: (() => {
+                                                                                            return `
+                                                                                                   <div style=" flex-direction: column; justify-content: flex-start; align-items: flex-start; display: inline-flex">
+  續等條件
+  <div style="color: #8D8D8D; font-size: 16px;  font-weight: 400; word-wrap: break-word">${(() => {
+                                                                                                const leadData = JSON.parse(JSON.stringify(vm.user_data.member_level.re_new_member));
+                                                                                                const condition_val = leadData.og.condition.value.toLocaleString();
+                                                                                                if (leadData.og.condition.type === 'total') {
+                                                                                                    if (leadData.og.duration.type === 'noLimit') {
+                                                                                                        return `*累積消費額達${condition_val}`;
+                                                                                                    }
+                                                                                                    else {
+                                                                                                        return `*${leadData.og.duration.value}天內累積消費額達${condition_val}`;
+                                                                                                    }
+                                                                                                }
+                                                                                                else {
+                                                                                                    return `*單筆消費達${condition_val}`;
+                                                                                                }
+                                                                                            })()}</div>
 </div>
-</div>
-</div>
-                </div>
-                <div class=""
-                     style="${(document.body.offsetWidth < 800) ? `width:100%` : `width: 446px;height: 100%;overflow: auto;`};padding: 36px 24px;background: #FFF;box-shadow: 1px 0 10px 0 rgba(0, 0, 0, 0.10);">
-                    ${PosWidget.bigTitle('訂單款項')}
-                 
-                    <div style="margin-top: 32px;font-size: 18px;font-weight: 700;letter-spacing: 0.72px;">
-                        付款方式
-                    </div>
-                    ${gvc.bindView({
+                                                                                                    `;
+                                                                                        })(),
+                                                                                        value: (() => {
+                                                                                            if (!vm.user_data.member_level.re_new_member.leak) {
+                                                                                                return `已達成`;
+                                                                                            }
+                                                                                            else {
+                                                                                                return `還差${Number(vm.user_data.member_level.re_new_member.leak).toLocaleString()}`;
+                                                                                            }
+                                                                                        })()
+                                                                                    }];
+                                                                            }
+                                                                            else {
+                                                                                return [];
+                                                                            }
+                                                                        })(),
+                                                                        {
+                                                                            title: '會員備註',
+                                                                            value: vm.user_data.userData.note || '無'
+                                                                        },
+                                                                    ].map((dd) => {
+                                                                        return html `
+                                                                                    <div style="align-self: stretch; justify-content: flex-start; align-items: center; gap: 2px; display: flex">
+                                                                                        <div style="color: #393939; font-size: 18px;  font-weight: 400; word-wrap: break-word;min-width: 113px;">
+                                                                                            ${dd.title}
+                                                                                        </div>
+                                                                                        <div class="flex-fill"></div>
+                                                                                        <div style="color: #393939; font-size: 18px;  font-weight: 400; word-break: break-all;white-space: normal;text-align: right;">
+                                                                                            ${dd.value}
+                                                                                        </div>
+                                                                                    </div>`;
+                                                                    }).join('')}
+                                        </div>`;
+                                                                }
+                                                            },
+                                                            divCreate: {
+                                                                class: `w-100 my-3`,
+                                                                style: `padding: 20px; border-radius: 10px; border: 1px #DDDDDD solid; flex-direction: column; justify-content: flex-start; align-items: flex-end; gap: 18px; display: inline-flex;`
+                                                            }
+                                                        };
+                                                    }));
+                                                }
+                                                return inView.join('');
+                                            },
+                                            divCreate: {
+                                                class: ` p-3 bg-white`, style: `gap:14px;`
+                                            }
+                                        };
+                                    }));
+                                    return view.join('');
+                                }
+                                else {
+                                    let userData = {
+                                        name: '',
+                                        email: '',
+                                        phone: '',
+                                        birth: '',
+                                        address: '',
+                                        managerNote: '',
+                                    };
+                                    const saasConfig = window.parent.saasConfig;
+                                    view.push(gvc.bindView(() => {
+                                        const id = gvc.glitter.getUUID();
+                                        return {
+                                            bind: id,
+                                            view: () => {
+                                                return new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
+                                                    var _a;
+                                                    let data = ((_a = (yield saasConfig.api.getPrivateConfig(saasConfig.config.appName, `glitterUserForm`)).response.result[0]) !== null && _a !== void 0 ? _a : {})
+                                                        .value;
+                                                    if (!Array.isArray(data)) {
+                                                        data = [];
+                                                    }
+                                                    function loopForm(data, refer_obj) {
+                                                        let h = '';
+                                                        data.map((item) => {
+                                                            switch (item.page) {
+                                                                case 'input':
+                                                                    h += html `
+                                                                                <div>
+                                                                                    <div class="tx_normal">
+                                                                                        ${item.title}
+                                                                                    </div>
+                                                                                    <div>
+                                                                                        ${BgWidget.editeInput({
+                                                                        gvc: gvc,
+                                                                        title: '',
+                                                                        default: refer_obj[item.key] || '',
+                                                                        placeHolder: `請輸入${item.title}`,
+                                                                        callback: (text) => {
+                                                                            refer_obj[item.key] = text;
+                                                                            gvc.notifyDataChange(id);
+                                                                        },
+                                                                        readonly: false,
+                                                                    })}
+                                                                                    </div>
+                                                                                </div>`;
+                                                                    break;
+                                                                case 'multiple_line_text':
+                                                                    h += html `
+                                                                                <div>
+                                                                                    <div class="tx_normal">
+                                                                                        ${item.title}
+                                                                                    </div>
+                                                                                    ${BgWidget.textArea({
+                                                                        gvc: gvc,
+                                                                        title: '',
+                                                                        default: refer_obj[item.key] || '',
+                                                                        placeHolder: `請輸入${item.title}`,
+                                                                        callback: (text) => {
+                                                                            refer_obj[item.key] = text;
+                                                                            gvc.notifyDataChange(id);
+                                                                        },
+                                                                        readonly: false,
+                                                                    })}
+                                                                                </div>`;
+                                                                    break;
+                                                                default:
+                                                                    h += FormWidget.editorView({
+                                                                        gvc: gvc,
+                                                                        array: [item],
+                                                                        refresh: () => {
+                                                                        },
+                                                                        formData: refer_obj,
+                                                                        readonly: "write",
+                                                                    });
+                                                                    break;
+                                                            }
+                                                        });
+                                                        return h;
+                                                    }
+                                                    const form_array_view = [
+                                                        html `
+                                                                    <div style="display:flex; gap: 12px; flex-direction: column;">
+                                                                        ${loopForm(data, userData)}
+                                                                    </div>`,
+                                                    ];
+                                                    resolve(form_array_view.join(`<div class="my-4 border"></div>`) + `<div class="d-flex align-content-end justify-content-end pt-3">
+${BgWidget.save(gvc.event(() => {
+                                                        const dialog = new ShareDialog(gvc.glitter);
+                                                        if (CheckInput.isEmpty(userData.name)) {
+                                                            dialog.infoMessage({ text: '請輸入顧客姓名' });
+                                                            return;
+                                                        }
+                                                        if (!CheckInput.isEmail(userData.email)) {
+                                                            dialog.infoMessage({ text: '請輸入正確的電子信箱格式' });
+                                                            return;
+                                                        }
+                                                        if (!CheckInput.isEmpty(userData.phone) && !CheckInput.isTaiwanPhone(userData.phone)) {
+                                                            dialog.infoMessage({ text: BgWidget.taiwanPhoneAlert() });
+                                                            return;
+                                                        }
+                                                        if (!CheckInput.isBirthString(userData.birth)) {
+                                                            dialog.infoMessage({
+                                                                text: html `
+                                                                                    <div class="text-center">
+                                                                                        生日日期無效，請確認年月日是否正確<br/>(ex:
+                                                                                        19950107)
+                                                                                    </div> `
+                                                            });
+                                                            return;
+                                                        }
+                                                        dialog.dataLoading({ visible: true });
+                                                        ApiUser.getEmailCount(userData.email).then((r) => {
+                                                            if (r.response.result) {
+                                                                dialog.dataLoading({ visible: false });
+                                                                dialog.errorMessage({ text: '此信箱已被註冊' });
+                                                            }
+                                                            else {
+                                                                dialog.dataLoading({ visible: true });
+                                                                ApiUser.quickRegister({
+                                                                    account: userData.email,
+                                                                    pwd: gvc.glitter.getUUID(),
+                                                                    userData: userData,
+                                                                }).then((r) => {
+                                                                    dialog.dataLoading({ visible: false });
+                                                                    dialog.infoMessage({ text: '成功新增會員' });
+                                                                    obj.ogOrderData.user_info.email = userData.email;
+                                                                    refreshOrderView();
+                                                                });
+                                                            }
+                                                        });
+                                                    }))}
+</div>`);
+                                                }));
+                                            },
+                                            divCreate: {
+                                                class: `p-3 bg-white`
+                                            }
+                                        };
+                                    }));
+                                    return view.join('');
+                                }
+                            },
+                            divCreate: {
+                                class: `mx-sm-0`,
+                                style: `border-radius: 10px;overflow: hidden;
+background: #EAEAEA;box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.15);`
+                            }
+                        };
+                    })}
+                        </div>
+                        <div class=""
+                             style="${(document.body.offsetWidth < 800) ? `width:100%` : `width: 446px;height: 100%;overflow: auto;`};padding: 36px 24px;background: #FFF;box-shadow: 1px 0 10px 0 rgba(0, 0, 0, 0.10);">
+                            ${PosWidget.bigTitle('訂單款項')}
+                            <div style="margin-top: 24px;font-size: 18px;font-weight: 700;letter-spacing: 0.72px;">
+                                付款方式
+                            </div>
+                            ${gvc.bindView({
                         bind: "payment",
                         dataList: [{ obj: vm, key: 'paySelect' }],
                         view: () => {
@@ -201,42 +632,30 @@ flex-shrink: 0;">
                                 switch (type) {
                                     case "cash":
                                         return html `
-                                            <svg xmlns="http://www.w3.org/2000/svg"
-                                                 width="28"
-                                                 height="28" viewBox="0 0 28 28"
-                                                 fill="none">
-                                                <path d="M9.625 4.8125C9.625 4.81797 9.63047 4.84531 9.65781 4.89453C9.69063 4.96016 9.76719 5.06406 9.91484 5.19531C9.93672 5.21172 9.95859 5.23359 9.98047 5.25C8.95781 5.27187 7.9625 5.34297 7.00547 5.47422L7 4.8125C7 3.82812 7.53047 3.04062 8.15391 2.47734C8.77734 1.91406 9.61406 1.46562 10.5328 1.11563C12.3813 0.410156 14.8477 0 17.5 0C20.1523 0 22.6187 0.410156 24.4617 1.11016C25.3805 1.46016 26.2172 1.90859 26.8406 2.47187C27.4641 3.03516 28 3.82812 28 4.8125V10.5V16.1875C28 17.1719 27.4695 17.9594 26.8461 18.5227C26.2227 19.0859 25.3859 19.5344 24.4672 19.8844C23.9422 20.0867 23.368 20.2617 22.7555 20.4094V17.6914C23.0344 17.6094 23.2914 17.5219 23.532 17.4289C24.2758 17.1445 24.7898 16.8383 25.0906 16.5703C25.2383 16.4391 25.3148 16.3352 25.3477 16.2695C25.3805 16.2094 25.3805 16.1875 25.3805 16.1875V13.8031C25.0906 13.9453 24.7844 14.0766 24.4672 14.1969C23.9422 14.3992 23.368 14.5742 22.7555 14.7219V12.0039C23.0344 11.9219 23.2914 11.8344 23.532 11.7414C24.2758 11.457 24.7898 11.1508 25.0906 10.8828C25.2383 10.7516 25.3148 10.6477 25.3477 10.582C25.375 10.5328 25.3805 10.5055 25.3805 10.5V8.11562C25.0906 8.25781 24.7844 8.38906 24.4672 8.50938C23.718 8.79375 22.8594 9.03438 21.9352 9.21484C21.6562 8.80469 21.3336 8.45469 21.0164 8.17031C20.4641 7.67266 19.8242 7.26797 19.157 6.93438C20.8906 6.80859 22.4 6.48594 23.532 6.05391C24.2758 5.76953 24.7898 5.46328 25.0906 5.19531C25.2383 5.06406 25.3148 4.96016 25.3477 4.89453C25.375 4.84531 25.3805 4.81797 25.3805 4.8125C25.3805 4.8125 25.3805 4.78516 25.3477 4.73047C25.3148 4.66484 25.2383 4.56094 25.0906 4.42969C24.7898 4.15625 24.2758 3.85 23.532 3.57109C22.05 3.00234 19.9172 2.625 17.5 2.625C15.0828 2.625 12.95 3.00234 11.4734 3.56562C10.7297 3.85 10.2156 4.15625 9.91484 4.42422C9.76719 4.55547 9.69063 4.65938 9.65781 4.725C9.625 4.78516 9.625 4.80703 9.625 4.80703V4.8125ZM2.625 11.8125C2.625 11.818 2.63047 11.8453 2.65781 11.8945C2.69062 11.9602 2.76719 12.0641 2.91484 12.1953C3.21563 12.4688 3.72969 12.775 4.47344 13.0539C5.95 13.6172 8.08281 13.9945 10.5 13.9945C12.9172 13.9945 15.05 13.6172 16.5266 13.0539C17.2703 12.7695 17.7844 12.4633 18.0852 12.1953C18.2328 12.0641 18.3094 11.9602 18.3422 11.8945C18.3695 11.8453 18.375 11.818 18.375 11.8125C18.375 11.8125 18.375 11.7852 18.3422 11.7305C18.3094 11.6648 18.2328 11.5609 18.0852 11.4297C17.7844 11.1562 17.2703 10.85 16.5266 10.5711C15.05 10.0078 12.9172 9.63047 10.5 9.63047C8.08281 9.63047 5.95 10.0078 4.47344 10.5711C3.72969 10.8555 3.21563 11.1617 2.91484 11.4297C2.76719 11.5609 2.69062 11.6648 2.65781 11.7305C2.625 11.7906 2.625 11.8125 2.625 11.8125ZM0 11.8125C0 10.8281 0.530469 10.0406 1.15391 9.47734C1.77734 8.91406 2.61406 8.46562 3.53281 8.11562C5.38125 7.41016 7.84766 7 10.5 7C13.1523 7 15.6187 7.41016 17.4617 8.11016C18.3805 8.46016 19.2172 8.90859 19.8406 9.47188C20.4641 10.0352 21 10.8281 21 11.8125V17.5V23.1875C21 24.1719 20.4695 24.9594 19.8461 25.5227C19.2227 26.0859 18.3859 26.5344 17.4672 26.8844C15.6187 27.5898 13.1523 28 10.5 28C7.84766 28 5.38125 27.5898 3.53828 26.8898C2.61953 26.5398 1.78828 26.0914 1.15938 25.5281C0.530469 24.9648 0 24.1719 0 23.1875V17.5V11.8125ZM18.375 17.5V15.1156C18.0852 15.2578 17.7789 15.3891 17.4617 15.5094C15.6187 16.2148 13.1523 16.625 10.5 16.625C7.84766 16.625 5.38125 16.2148 3.53828 15.5148C3.22109 15.3945 2.91484 15.2633 2.625 15.1211V17.5C2.625 17.5055 2.63047 17.5328 2.65781 17.582C2.69062 17.6477 2.76719 17.7516 2.91484 17.8828C3.21563 18.1562 3.72969 18.4625 4.47344 18.7414C5.95 19.3047 8.08281 19.682 10.5 19.682C12.9172 19.682 15.05 19.3047 16.5266 18.7414C17.2703 18.457 17.7844 18.1508 18.0852 17.8828C18.2328 17.7516 18.3094 17.6477 18.3422 17.582C18.3695 17.5328 18.375 17.5055 18.375 17.5ZM3.53828 21.2023C3.22109 21.082 2.91484 20.9508 2.625 20.8086V23.1875C2.625 23.1875 2.625 23.2148 2.65781 23.2695C2.69062 23.3352 2.76719 23.4391 2.91484 23.5703C3.21563 23.8438 3.72969 24.15 4.47344 24.4289C5.95 24.9922 8.08281 25.3695 10.5 25.3695C12.9172 25.3695 15.05 24.9922 16.5266 24.4289C17.2703 24.1445 17.7844 23.8383 18.0852 23.5703C18.2328 23.4391 18.3094 23.3352 18.3422 23.2695C18.375 23.2094 18.375 23.1875 18.375 23.1875V20.8031C18.0852 20.9453 17.7789 21.0766 17.4617 21.1969C15.6187 21.9023 13.1523 22.3125 10.5 22.3125C7.84766 22.3125 5.38125 21.9023 3.53828 21.2023Z"
-                                                      fill="${black ? `#393939` : `#8D8D8D`}"/>
-                                            </svg>
-                                        `;
+                                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                                         width="28"
+                                                         height="28" viewBox="0 0 28 28"
+                                                         fill="none">
+                                                        <path d="M9.625 4.8125C9.625 4.81797 9.63047 4.84531 9.65781 4.89453C9.69063 4.96016 9.76719 5.06406 9.91484 5.19531C9.93672 5.21172 9.95859 5.23359 9.98047 5.25C8.95781 5.27187 7.9625 5.34297 7.00547 5.47422L7 4.8125C7 3.82812 7.53047 3.04062 8.15391 2.47734C8.77734 1.91406 9.61406 1.46562 10.5328 1.11563C12.3813 0.410156 14.8477 0 17.5 0C20.1523 0 22.6187 0.410156 24.4617 1.11016C25.3805 1.46016 26.2172 1.90859 26.8406 2.47187C27.4641 3.03516 28 3.82812 28 4.8125V10.5V16.1875C28 17.1719 27.4695 17.9594 26.8461 18.5227C26.2227 19.0859 25.3859 19.5344 24.4672 19.8844C23.9422 20.0867 23.368 20.2617 22.7555 20.4094V17.6914C23.0344 17.6094 23.2914 17.5219 23.532 17.4289C24.2758 17.1445 24.7898 16.8383 25.0906 16.5703C25.2383 16.4391 25.3148 16.3352 25.3477 16.2695C25.3805 16.2094 25.3805 16.1875 25.3805 16.1875V13.8031C25.0906 13.9453 24.7844 14.0766 24.4672 14.1969C23.9422 14.3992 23.368 14.5742 22.7555 14.7219V12.0039C23.0344 11.9219 23.2914 11.8344 23.532 11.7414C24.2758 11.457 24.7898 11.1508 25.0906 10.8828C25.2383 10.7516 25.3148 10.6477 25.3477 10.582C25.375 10.5328 25.3805 10.5055 25.3805 10.5V8.11562C25.0906 8.25781 24.7844 8.38906 24.4672 8.50938C23.718 8.79375 22.8594 9.03438 21.9352 9.21484C21.6562 8.80469 21.3336 8.45469 21.0164 8.17031C20.4641 7.67266 19.8242 7.26797 19.157 6.93438C20.8906 6.80859 22.4 6.48594 23.532 6.05391C24.2758 5.76953 24.7898 5.46328 25.0906 5.19531C25.2383 5.06406 25.3148 4.96016 25.3477 4.89453C25.375 4.84531 25.3805 4.81797 25.3805 4.8125C25.3805 4.8125 25.3805 4.78516 25.3477 4.73047C25.3148 4.66484 25.2383 4.56094 25.0906 4.42969C24.7898 4.15625 24.2758 3.85 23.532 3.57109C22.05 3.00234 19.9172 2.625 17.5 2.625C15.0828 2.625 12.95 3.00234 11.4734 3.56562C10.7297 3.85 10.2156 4.15625 9.91484 4.42422C9.76719 4.55547 9.69063 4.65938 9.65781 4.725C9.625 4.78516 9.625 4.80703 9.625 4.80703V4.8125ZM2.625 11.8125C2.625 11.818 2.63047 11.8453 2.65781 11.8945C2.69062 11.9602 2.76719 12.0641 2.91484 12.1953C3.21563 12.4688 3.72969 12.775 4.47344 13.0539C5.95 13.6172 8.08281 13.9945 10.5 13.9945C12.9172 13.9945 15.05 13.6172 16.5266 13.0539C17.2703 12.7695 17.7844 12.4633 18.0852 12.1953C18.2328 12.0641 18.3094 11.9602 18.3422 11.8945C18.3695 11.8453 18.375 11.818 18.375 11.8125C18.375 11.8125 18.375 11.7852 18.3422 11.7305C18.3094 11.6648 18.2328 11.5609 18.0852 11.4297C17.7844 11.1562 17.2703 10.85 16.5266 10.5711C15.05 10.0078 12.9172 9.63047 10.5 9.63047C8.08281 9.63047 5.95 10.0078 4.47344 10.5711C3.72969 10.8555 3.21563 11.1617 2.91484 11.4297C2.76719 11.5609 2.69062 11.6648 2.65781 11.7305C2.625 11.7906 2.625 11.8125 2.625 11.8125ZM0 11.8125C0 10.8281 0.530469 10.0406 1.15391 9.47734C1.77734 8.91406 2.61406 8.46562 3.53281 8.11562C5.38125 7.41016 7.84766 7 10.5 7C13.1523 7 15.6187 7.41016 17.4617 8.11016C18.3805 8.46016 19.2172 8.90859 19.8406 9.47188C20.4641 10.0352 21 10.8281 21 11.8125V17.5V23.1875C21 24.1719 20.4695 24.9594 19.8461 25.5227C19.2227 26.0859 18.3859 26.5344 17.4672 26.8844C15.6187 27.5898 13.1523 28 10.5 28C7.84766 28 5.38125 27.5898 3.53828 26.8898C2.61953 26.5398 1.78828 26.0914 1.15938 25.5281C0.530469 24.9648 0 24.1719 0 23.1875V17.5V11.8125ZM18.375 17.5V15.1156C18.0852 15.2578 17.7789 15.3891 17.4617 15.5094C15.6187 16.2148 13.1523 16.625 10.5 16.625C7.84766 16.625 5.38125 16.2148 3.53828 15.5148C3.22109 15.3945 2.91484 15.2633 2.625 15.1211V17.5C2.625 17.5055 2.63047 17.5328 2.65781 17.582C2.69062 17.6477 2.76719 17.7516 2.91484 17.8828C3.21563 18.1562 3.72969 18.4625 4.47344 18.7414C5.95 19.3047 8.08281 19.682 10.5 19.682C12.9172 19.682 15.05 19.3047 16.5266 18.7414C17.2703 18.457 17.7844 18.1508 18.0852 17.8828C18.2328 17.7516 18.3094 17.6477 18.3422 17.582C18.3695 17.5328 18.375 17.5055 18.375 17.5ZM3.53828 21.2023C3.22109 21.082 2.91484 20.9508 2.625 20.8086V23.1875C2.625 23.1875 2.625 23.2148 2.65781 23.2695C2.69062 23.3352 2.76719 23.4391 2.91484 23.5703C3.21563 23.8438 3.72969 24.15 4.47344 24.4289C5.95 24.9922 8.08281 25.3695 10.5 25.3695C12.9172 25.3695 15.05 24.9922 16.5266 24.4289C17.2703 24.1445 17.7844 23.8383 18.0852 23.5703C18.2328 23.4391 18.3094 23.3352 18.3422 23.2695C18.375 23.2094 18.375 23.1875 18.375 23.1875V20.8031C18.0852 20.9453 17.7789 21.0766 17.4617 21.1969C15.6187 21.9023 13.1523 22.3125 10.5 22.3125C7.84766 22.3125 5.38125 21.9023 3.53828 21.2023Z"
+                                                              fill="${black ? `#393939` : `#8D8D8D`}"/>
+                                                    </svg>
+                                                `;
                                     case "creditCard":
                                         return html `
-                                            <svg xmlns="http://www.w3.org/2000/svg"
-                                                 width="28"
-                                                 height="28" viewBox="0 0 28 28"
-                                                 fill="none">
-                                                <path d="M24.8889 5.84375C25.3167 5.84375 25.6667 6.19531 25.6667 6.625V8.1875H2.33333V6.625C2.33333 6.19531 2.68333 5.84375 3.11111 5.84375H24.8889ZM25.6667 12.875V22.25C25.6667 22.6797 25.3167 23.0312 24.8889 23.0312H3.11111C2.68333 23.0312 2.33333 22.6797 2.33333 22.25V12.875H25.6667ZM3.11111 3.5C1.39514 3.5 0 4.90137 0 6.625V22.25C0 23.9736 1.39514 25.375 3.11111 25.375H24.8889C26.6049 25.375 28 23.9736 28 22.25V6.625C28 4.90137 26.6049 3.5 24.8889 3.5H3.11111ZM5.83333 18.3437C5.18681 18.3437 4.66667 18.8662 4.66667 19.5156C4.66667 20.165 5.18681 20.6875 5.83333 20.6875H8.16667C8.81319 20.6875 9.33333 20.165 9.33333 19.5156C9.33333 18.8662 8.81319 18.3437 8.16667 18.3437H5.83333ZM12.0556 18.3437C11.409 18.3437 10.8889 18.8662 10.8889 19.5156C10.8889 20.165 11.409 20.6875 12.0556 20.6875H17.5C18.1465 20.6875 18.6667 20.165 18.6667 19.5156C18.6667 18.8662 18.1465 18.3437 17.5 18.3437H12.0556Z"
-                                                      fill="${black ? `#393939` : `#8D8D8D`}"/>
-                                            </svg>
-                                        `;
+                                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                                         width="28"
+                                                         height="28" viewBox="0 0 28 28"
+                                                         fill="none">
+                                                        <path d="M24.8889 5.84375C25.3167 5.84375 25.6667 6.19531 25.6667 6.625V8.1875H2.33333V6.625C2.33333 6.19531 2.68333 5.84375 3.11111 5.84375H24.8889ZM25.6667 12.875V22.25C25.6667 22.6797 25.3167 23.0312 24.8889 23.0312H3.11111C2.68333 23.0312 2.33333 22.6797 2.33333 22.25V12.875H25.6667ZM3.11111 3.5C1.39514 3.5 0 4.90137 0 6.625V22.25C0 23.9736 1.39514 25.375 3.11111 25.375H24.8889C26.6049 25.375 28 23.9736 28 22.25V6.625C28 4.90137 26.6049 3.5 24.8889 3.5H3.11111ZM5.83333 18.3437C5.18681 18.3437 4.66667 18.8662 4.66667 19.5156C4.66667 20.165 5.18681 20.6875 5.83333 20.6875H8.16667C8.81319 20.6875 9.33333 20.165 9.33333 19.5156C9.33333 18.8662 8.81319 18.3437 8.16667 18.3437H5.83333ZM12.0556 18.3437C11.409 18.3437 10.8889 18.8662 10.8889 19.5156C10.8889 20.165 11.409 20.6875 12.0556 20.6875H17.5C18.1465 20.6875 18.6667 20.165 18.6667 19.5156C18.6667 18.8662 18.1465 18.3437 17.5 18.3437H12.0556Z"
+                                                              fill="${black ? `#393939` : `#8D8D8D`}"/>
+                                                    </svg>
+                                                `;
                                     default:
                                         return html `
-                                            <svg xmlns="http://www.w3.org/2000/svg"
-                                                 width="28"
-                                                 height="28" viewBox="0 0 28 28"
-                                                 fill="none">
-                                                <g clip-path="url(#clip0_12384_217611)">
-                                                    <path d="M3.5 0C2.53203 0 1.75 0.782031 1.75 1.75V5.25C1.75 6.21797 2.53203 7 3.5 7H7.875V8.75H4.78516C3.04609 8.75 1.56406 10.0297 1.31797 11.7523L0.0328125 20.7539C0.0109375 20.918 0 21.082 0 21.2461V24.5C0 26.4305 1.56953 28 3.5 28H24.5C26.4305 28 28 26.4305 28 24.5V21.2461C28 21.082 27.9891 20.9125 27.9672 20.7539L26.6766 11.7523C26.4305 10.0297 24.9539 8.75 23.2094 8.75H11.375V7H15.75C16.718 7 17.5 6.21797 17.5 5.25V1.75C17.5 0.782031 16.718 0 15.75 0H3.5ZM5.25 2.625H14C14.4813 2.625 14.875 3.01875 14.875 3.5C14.875 3.98125 14.4813 4.375 14 4.375H5.25C4.76875 4.375 4.375 3.98125 4.375 3.5C4.375 3.01875 4.76875 2.625 5.25 2.625ZM2.625 24.5V23.625H25.375V24.5C25.375 24.9813 24.9813 25.375 24.5 25.375H3.5C3.01875 25.375 2.625 24.9813 2.625 24.5ZM24.0789 12.1242L25.3477 21H2.65234L3.92109 12.1242C3.98125 11.6922 4.35312 11.375 4.78516 11.375H23.2148C23.6523 11.375 24.0187 11.6977 24.0789 12.1242ZM6.125 12.6875C5.7769 12.6875 5.44306 12.8258 5.19692 13.0719C4.95078 13.3181 4.8125 13.6519 4.8125 14C4.8125 14.3481 4.95078 14.6819 5.19692 14.9281C5.44306 15.1742 5.7769 15.3125 6.125 15.3125C6.4731 15.3125 6.80694 15.1742 7.05308 14.9281C7.29922 14.6819 7.4375 14.3481 7.4375 14C7.4375 13.6519 7.29922 13.3181 7.05308 13.0719C6.80694 12.8258 6.4731 12.6875 6.125 12.6875ZM10.0625 14C10.0625 14.3481 10.2008 14.6819 10.4469 14.9281C10.6931 15.1742 11.0269 15.3125 11.375 15.3125C11.7231 15.3125 12.0569 15.1742 12.3031 14.9281C12.5492 14.6819 12.6875 14.3481 12.6875 14C12.6875 13.6519 12.5492 13.3181 12.3031 13.0719C12.0569 12.8258 11.7231 12.6875 11.375 12.6875C11.0269 12.6875 10.6931 12.8258 10.4469 13.0719C10.2008 13.3181 10.0625 13.6519 10.0625 14ZM8.75 17.0625C8.4019 17.0625 8.06806 17.2008 7.82192 17.4469C7.57578 17.6931 7.4375 18.0269 7.4375 18.375C7.4375 18.7231 7.57578 19.0569 7.82192 19.3031C8.06806 19.5492 8.4019 19.6875 8.75 19.6875C9.0981 19.6875 9.43194 19.5492 9.67808 19.3031C9.92422 19.0569 10.0625 18.7231 10.0625 18.375C10.0625 18.0269 9.92422 17.6931 9.67808 17.4469C9.43194 17.2008 9.0981 17.0625 8.75 17.0625ZM15.3125 14C15.3125 14.3481 15.4508 14.6819 15.6969 14.9281C15.9431 15.1742 16.2769 15.3125 16.625 15.3125C16.9731 15.3125 17.3069 15.1742 17.5531 14.9281C17.7992 14.6819 17.9375 14.3481 17.9375 14C17.9375 13.6519 17.7992 13.3181 17.5531 13.0719C17.3069 12.8258 16.9731 12.6875 16.625 12.6875C16.2769 12.6875 15.9431 12.8258 15.6969 13.0719C15.4508 13.3181 15.3125 13.6519 15.3125 14ZM14 17.0625C13.6519 17.0625 13.3181 17.2008 13.0719 17.4469C12.8258 17.6931 12.6875 18.0269 12.6875 18.375C12.6875 18.7231 12.8258 19.0569 13.0719 19.3031C13.3181 19.5492 13.6519 19.6875 14 19.6875C14.3481 19.6875 14.6819 19.5492 14.9281 19.3031C15.1742 19.0569 15.3125 18.7231 15.3125 18.375C15.3125 18.0269 15.1742 17.6931 14.9281 17.4469C14.6819 17.2008 14.3481 17.0625 14 17.0625ZM20.5625 14C20.5625 14.1724 20.5964 14.343 20.6624 14.5023C20.7284 14.6615 20.825 14.8062 20.9469 14.9281C21.0688 15.05 21.2135 15.1466 21.3727 15.2126C21.532 15.2786 21.7026 15.3125 21.875 15.3125C22.0474 15.3125 22.218 15.2786 22.3773 15.2126C22.5365 15.1466 22.6812 15.05 22.8031 14.9281C22.925 14.8062 23.0216 14.6615 23.0876 14.5023C23.1536 14.343 23.1875 14.1724 23.1875 14C23.1875 13.8276 23.1536 13.657 23.0876 13.4977C23.0216 13.3385 22.925 13.1938 22.8031 13.0719C22.6812 12.95 22.5365 12.8534 22.3773 12.7874C22.218 12.7214 22.0474 12.6875 21.875 12.6875C21.7026 12.6875 21.532 12.7214 21.3727 12.7874C21.2135 12.8534 21.0688 12.95 20.9469 13.0719C20.825 13.1938 20.7284 13.3385 20.6624 13.4977C20.5964 13.657 20.5625 13.8276 20.5625 14ZM19.25 17.0625C18.9019 17.0625 18.5681 17.2008 18.3219 17.4469C18.0758 17.6931 17.9375 18.0269 17.9375 18.375C17.9375 18.7231 18.0758 19.0569 18.3219 19.3031C18.5681 19.5492 18.9019 19.6875 19.25 19.6875C19.5981 19.6875 19.9319 19.5492 20.1781 19.3031C20.4242 19.0569 20.5625 18.7231 20.5625 18.375C20.5625 18.0269 20.4242 17.6931 20.1781 17.4469C19.9319 17.2008 19.5981 17.0625 19.25 17.0625Z"
-                                                          fill="${black ? `#393939` : `#8D8D8D`}"/>
-                                                </g>
-                                                <defs>
-                                                    <clipPath id="clip0_12384_217611">
-                                                        <rect width="28" height="28"
-                                                              fill="white"/>
-                                                    </clipPath>
-                                                </defs>
-                                            </svg>
-                                        `;
+                                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                                                        <path fill="${black ? `#393939` : `#8D8D8D`}"
+                                                              d="M311 196.8v81.3c0 2.1-1.6 3.7-3.7 3.7h-13c-1.3 0-2.4-.7-3-1.5l-37.3-50.3v48.2c0 2.1-1.6 3.7-3.7 3.7h-13c-2.1 0-3.7-1.6-3.7-3.7V196.9c0-2.1 1.6-3.7 3.7-3.7h12.9c1.1 0 2.4 .6 3 1.6l37.3 50.3V196.9c0-2.1 1.6-3.7 3.7-3.7h13c2.1-.1 3.8 1.6 3.8 3.5zm-93.7-3.7h-13c-2.1 0-3.7 1.6-3.7 3.7v81.3c0 2.1 1.6 3.7 3.7 3.7h13c2.1 0 3.7-1.6 3.7-3.7V196.8c0-1.9-1.6-3.7-3.7-3.7zm-31.4 68.1H150.3V196.8c0-2.1-1.6-3.7-3.7-3.7h-13c-2.1 0-3.7 1.6-3.7 3.7v81.3c0 1 .3 1.8 1 2.5c.7 .6 1.5 1 2.5 1h52.2c2.1 0 3.7-1.6 3.7-3.7v-13c0-1.9-1.6-3.7-3.5-3.7zm193.7-68.1H327.3c-1.9 0-3.7 1.6-3.7 3.7v81.3c0 1.9 1.6 3.7 3.7 3.7h52.2c2.1 0 3.7-1.6 3.7-3.7V265c0-2.1-1.6-3.7-3.7-3.7H344V247.7h35.5c2.1 0 3.7-1.6 3.7-3.7V230.9c0-2.1-1.6-3.7-3.7-3.7H344V213.5h35.5c2.1 0 3.7-1.6 3.7-3.7v-13c-.1-1.9-1.7-3.7-3.7-3.7zM512 93.4V419.4c-.1 51.2-42.1 92.7-93.4 92.6H92.6C41.4 511.9-.1 469.8 0 418.6V92.6C.1 41.4 42.2-.1 93.4 0H419.4c51.2 .1 92.7 42.1 92.6 93.4zM441.6 233.5c0-83.4-83.7-151.3-186.4-151.3s-186.4 67.9-186.4 151.3c0 74.7 66.3 137.4 155.9 149.3c21.8 4.7 19.3 12.7 14.4 42.1c-.8 4.7-3.8 18.4 16.1 10.1s107.3-63.2 146.5-108.2c27-29.7 39.9-59.8 39.9-93.1z"/>
+                                                    </svg> `;
                                 }
                             }
                             let btnArray = [
@@ -264,19 +683,19 @@ flex-shrink: 0;">
                             ];
                             return btnArray.map((btn) => {
                                 return html `
-                                    <div style="flex:1;display: flex;flex-direction: column;justify-content: center;align-items: center;padding: 20px 20px;border-radius: 10px;background: #F6F6F6;${(vm.paySelect == btn.value) ? `color:#393939;border-radius: 10px;border: 3px solid #393939;box-shadow: 2px 2px 15px 0px rgba(0, 0, 0, 0.20);` : 'color:#8D8D8D;'}"
-                                         onclick="${gvc.event(() => {
+                                            <div style="flex:1;display: flex;flex-direction: column;justify-content: center;align-items: center;padding: 20px 20px;border-radius: 10px;background: #F6F6F6;${(vm.paySelect == btn.value) ? `color:#393939;border-radius: 10px;border: 3px solid #393939;box-shadow: 2px 2px 15px 0px rgba(0, 0, 0, 0.20);` : 'color:#8D8D8D;'}"
+                                                 onclick="${gvc.event(() => {
                                     btn.event();
                                     console.log(vm.paySelect);
                                 })}">
-                                        <div style="width: 28px;height: 28px;">
-                                            ${drawIcon(vm.paySelect == btn.value, btn.value)}
-                                        </div>
-                                        <div style="font-size: 16px;font-weight: 500;letter-spacing: 0.64px;">
-                                            ${btn.title}
-                                        </div>
-                                    </div>
-                                `;
+                                                <div style="width: 28px;height: 28px;">
+                                                    ${drawIcon(vm.paySelect == btn.value, btn.value)}
+                                                </div>
+                                                <div style="font-size: 16px;font-weight: 500;letter-spacing: 0.64px;">
+                                                    ${btn.title}
+                                                </div>
+                                            </div>
+                                        `;
                             }).join('');
                         },
                         divCreate: {
@@ -284,11 +703,12 @@ flex-shrink: 0;">
                             style: `display: flex;justify-content: space-between;margin-top: 24px;gap:15px;`
                         }
                     })}
-                      ${PaymentPage.spaceView()}
-                    <div class="mb-2" style="margin-top: 32px;font-size: 18px;font-weight: 700;letter-spacing: 0.72px;">
-                        配送方式
-                    </div>
-                    ${EditorElem.select({
+                            ${PaymentPage.spaceView()}
+                            <div class="mb-2"
+                                 style="font-size: 18px;font-weight: 700;letter-spacing: 0.72px;">
+                                配送方式
+                            </div>
+                            ${EditorElem.select({
                         title: '',
                         def: (obj.ogOrderData).user_info.shipment,
                         gvc: gvc,
@@ -299,7 +719,7 @@ flex-shrink: 0;">
                             gvc.notifyDataChange(id);
                         }
                     })}
-                    ${(() => {
+                            ${(() => {
                         var _a;
                         if (['FAMIC2C', 'HILIFEC2C', 'OKMARTC2C', 'UNIMARTC2C'].includes(obj.ogOrderData.user_info.shipment)) {
                             return `<div class="mb-2" style="margin-top: 14px;font-size: 18px;font-weight: 700;letter-spacing: 0.72px;">
@@ -327,18 +747,19 @@ ${(decodeURI(gvc.glitter.getUrlParameter('CVSStoreName') || '')) || '請選擇�
                             return ``;
                         }
                     })()}
-                    ${(() => {
+                            ${(() => {
                         if (obj.ogOrderData.user_info.shipment === 'now') {
                             return ``;
                         }
                         else {
                             return html `
-                                ${PaymentPage.spaceView()}
-                                <div class="mb-2" style="margin-top: 14px;font-size: 18px;font-weight: 700;letter-spacing: 0.72px;">
-                                    配送資訊
-                                </div>
-                                <div class="row  m-0 p-0 mb-n2">
-                                  ${[{
+                                        ${PaymentPage.spaceView()}
+                                        <div class="mb-2"
+                                             style="margin-top: 14px;font-size: 18px;font-weight: 700;letter-spacing: 0.72px;">
+                                            配送資訊
+                                        </div>
+                                        <div class="row  m-0 p-0 mb-n2">
+                                            ${[{
                                     title: '收件人姓名',
                                     col: '6',
                                     type: 'name',
@@ -366,72 +787,78 @@ white-space: normal;">${dd.title}
                                 })}"></div>
                                     </div>`;
                             }).join('')}
-                                </div>`;
+                                        </div>`;
                         }
                     })()}
-                  ${PaymentPage.spaceView()}
-                    <div class="d-flex flex-column w-100" style="gap:16px;">
-                        <div class="d-flex">
-                            <div style="font-size: 18px;
+                            ${PaymentPage.spaceView()}
+                            <div class="d-flex flex-column w-100" style="gap:8px;">
+                                ${[
+                        {
+                            title: '小計總額',
+                            hint: ``,
+                            value: (Number((orderDetail.total)) + Number((orderDetail.discount)) - Number((orderDetail.shipment_fee))).toLocaleString()
+                        },
+                        {
+                            title: `運費`, value: (Number((orderDetail.shipment_fee))).toLocaleString()
+                        },
+                        ...(() => {
+                            return orderDetail.voucherList.map((dd, index) => {
+                                return {
+                                    hint: dd.title,
+                                    value: `<div class="d-flex align-items-center" style="gap:5px;">
+${(dd.reBackType === 'rebate') ? `+${dd.discount_total.toLocaleString()}回饋金` : `-${dd.discount_total.toLocaleString()}`}
+<i class="fa-solid fa-xmark ${dd.code ? `` : `d-none`} fs-5" style="color:#949494;" onclick="${gvc.event(() => {
+                                        const dialog = new ShareDialog(gvc.glitter);
+                                        dialog.checkYesOrNot({
+                                            text: '是否確認刪除優惠券?', callback: (response) => {
+                                                if (response) {
+                                                    (obj.ogOrderData).code_array = (obj.ogOrderData).code_array.filter((d1) => {
+                                                        return d1 !== dd.code;
+                                                    });
+                                                    gvc.notifyDataChange(id);
+                                                }
+                                            }
+                                        });
+                                    })}"></i>
+</div>`,
+                                    title: '折扣'
+                                };
+                            });
+                        })(),
+                        {
+                            title: `優惠代碼`, value: `<div style="color: #4D86DB;
+font-size: 18px;
 font-style: normal;
-font-weight: 500;
+font-weight: 400;
 line-height: normal;
 letter-spacing: 0.72px;
-text-transform: uppercase;">
-                                小計總額
+text-transform: uppercase;" onclick="${gvc.event(() => {
+                                PaymentPage.scanVoucher(gvc, obj.ogOrderData, () => {
+                                    gvc.notifyDataChange(id);
+                                });
+                            })}">新增</div>`
+                        }
+                    ].map((dd) => {
+                        return html `
+                                        <div class="w-100"
+                                             style=" justify-content: flex-start; align-items: center; gap: 10px; display: inline-flex;">
+                                            <div style="flex: 1 1 0; flex-direction: column; justify-content: flex-start; align-items: flex-start; display: inline-flex">
+                                                <div style="align-self: stretch; color: #393939; font-size: 18px; font-family: Noto Sans; font-weight: 500; text-transform: uppercase; letter-spacing: 0.72px; word-wrap: break-word">
+                                                    ${dd.title}
+                                                </div>
+                                                <div class="${(dd.hint) ? `` : 'd-none'}"
+                                                     style="align-self: stretch; color: #8D8D8D; font-size: 16px; font-family: Noto Sans; font-weight: 500; text-transform: uppercase; letter-spacing: 0.64px; word-wrap: break-word">
+                                                    ${dd.hint}
+                                                </div>
+                                            </div>
+                                            <div style="color: #393939; font-size: 18px; font-family: Noto Sans; font-weight: 700; text-transform: uppercase; letter-spacing: 0.72px; word-wrap: break-word">
+                                                ${dd.value}
+                                            </div>
+                                        </div>`;
+                    }).join('')}
                             </div>
-                            <div class="ms-auto"
-                                 style="font-size: 16px;font-style: normal;font-weight: 700;letter-spacing: 0.64px;">
-                                ${(Number((orderDetail.total)) + Number((orderDetail.discount)) - Number((orderDetail.shipment_fee))).toLocaleString()}
-                            </div>
-                        </div>
-                          <div class="d-flex ">
-                            <div style="font-size: 18px;
-font-style: normal;
-font-weight: 500;
-line-height: normal;
-letter-spacing: 0.72px;
-text-transform: uppercase;">
-                                運費
-                            </div>
-                            <div class="ms-auto"
-                                 style="font-size: 16px;font-style: normal;font-weight: 700;letter-spacing: 0.64px;">
-                                ${(Number((orderDetail.shipment_fee))).toLocaleString()}
-                            </div>
-                        </div>
-                        <div class="d-flex align-items-center">
-                            <div style="font-size: 18px;
-font-style: normal;
-font-weight: 500;
-line-height: normal;
-letter-spacing: 0.72px;
-text-transform: uppercase;">
-                                活動折扣
-                                  <div class="d-flex align-items-start flex-column">
-                            ${orderDetail.voucherList.map((dd) => {
-                        return `<div class="d-flex align-items-center" style="color: #8D8D8D;
-font-size: 16px;
-font-style: normal;
-font-weight: 500;
-line-height: normal;
-letter-spacing: 0.64px;
-text-transform: uppercase;">${dd.title}</div>`;
-                    }).join(`<div class="my-2"></div>`)}
-                        </div>
-                            </div>
-                            <div class="ms-auto"
-                                 style="font-size: 16px;font-style: normal;font-weight: 700;letter-spacing: 0.64px;">
-                                    -${orderDetail.discount.toLocaleString()}
-                            </div>
-                        </div>
-                    </div>
-                    <div class="w-100" style="margin: 32px 0;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="398" height="2"
-                             viewBox="0 0 398 2" fill="none">
-                            <path d="M0 1H398" stroke="#DDDDDD" stroke-dasharray="8 8"/>
-                        </svg>
-                    </div>
-                    ${gvc.bindView(() => {
+                            ${PaymentPage.spaceView()}
+                            ${gvc.bindView(() => {
                         const vm_id = gvc.glitter.getUUID();
                         let realTotal = orderDetail.total;
                         return {
@@ -468,8 +895,8 @@ text-transform: uppercase;">${dd.title}</div>`;
                         </div>`);
                                 }
                                 view.push(html `
-                                    <div style="margin-top: 32px;display: flex;padding: 12px 24px;justify-content: center;align-items: center;border-radius: 10px;background: #393939;color: #FFF;font-size: 18px;font-style: normal;font-weight: 500;line-height: normal;letter-spacing: 0.72px;"
-                                         onclick="${gvc.event(() => {
+                                            <div style="margin-top: 32px;display: flex;padding: 12px 24px;justify-content: center;align-items: center;border-radius: 10px;background: #393939;color: #FFF;font-size: 18px;font-style: normal;font-weight: 500;line-height: normal;letter-spacing: 0.72px;"
+                                                 onclick="${gvc.event(() => {
                                     if (orderDetail.lineItems.length <= 0) {
                                         dialog.errorMessage({ text: '請先選擇商品!' });
                                         return;
@@ -502,7 +929,7 @@ text-transform: uppercase;">${dd.title}</div>`;
                                         PaymentPage.selectInvoice(gvc, orderDetail, vm, passData);
                                     }
                                 })}">前往結賬
-                                    </div>`);
+                                            </div>`);
                                 return view.join('');
                             },
                             divCreate: {
@@ -510,9 +937,7 @@ text-transform: uppercase;">${dd.title}</div>`;
                             }
                         };
                     })}
-
-
-                </div>`;
+                        </div>`;
                 }),
                 divCreate: {
                     class: `${((document.body.offsetWidth < 800)) ? `w-100` : `d-flex flex-column flex-sm-row w-100`}`,
@@ -520,14 +945,6 @@ text-transform: uppercase;">${dd.title}</div>`;
                 }
             };
         });
-    }
-    static spaceView() {
-        return `  <div class="w-100" style="margin: 16px 0;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="398" height="2"
-                             viewBox="0 0 398 2" fill="none">
-                            <path d="M0 1H398" stroke="#DDDDDD" stroke-dasharray="8 8"/>
-                        </svg>
-                    </div>`;
     }
     static storeHistory(orderDetail) {
         localStorage.setItem('pos_order_detail', JSON.stringify(orderDetail));
@@ -537,6 +954,14 @@ text-transform: uppercase;">${dd.title}</div>`;
         const url = new URL(location.href);
         url.search = `?app-id=${window.glitter.getUrlParameter('app-id')}`;
         window.history.replaceState({}, document.title, url.href);
+    }
+    static spaceView() {
+        return `  <div class="w-100" style="margin: 16px 0;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="398" height="2"
+                             viewBox="0 0 398 2" fill="none">
+                            <path d="M0 1H398" stroke="#DDDDDD" stroke-dasharray="8 8"/>
+                        </svg>
+                    </div>`;
     }
     static cashFinish(gvc, orderDetail, vm, passData) {
         gvc.addStyle(`
@@ -618,48 +1043,6 @@ text-transform: uppercase;">${dd.title}</div>`;
         });
     }
     static creditFinish(gvc, orderDetail, vm, passData) {
-        gvc.addStyle(`
-                .dialog-box {
-                    width: 100vw;
-                    height: 100vh;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    background-color: rgba(0, 0, 0, 0.5);
-                    z-index: 10000;
-                }
-
-                .dialog-absolute {
-                    width: 100%;
-                    border-top: 1px solid #e2e5f1;
-                    position: absolute;
-                    left: 0px;
-                    bottom: 0px;
-                    height: 40px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    cursor: pointer;
-                }
-
-                .hover-cancel {
-                    background-color: #fff;
-                    border-radius: 0 0 0 0.5rem;
-                }
-
-                .hover-cancel:hover {
-                    background-color: #e6e6e6;
-                }
-
-                .hover-save {
-                    background-color: #393939;
-                    border-radius: 0 0 0.5rem;
-                }
-
-                .hover-save:hover {
-                    background-color: #646464;
-                }
-            `);
         const dialog = new ShareDialog(gvc.glitter);
         function next() {
             PaymentPage.selectInvoice(gvc, orderDetail, vm, passData);
@@ -707,58 +1090,46 @@ text-transform: uppercase;">${dd.title}</div>`;
             }
         });
     }
-    static lineFinish(gvc, orderDetail, vm, passData) {
-        gvc.addStyle(`
-                .dialog-box {
-                    width: 100vw;
-                    height: 100vh;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    background-color: rgba(0, 0, 0, 0.5);
-                    z-index: 10000;
-                }
-
-                .dialog-absolute {
-                    width: 100%;
-                    border-top: 1px solid #e2e5f1;
-                    position: absolute;
-                    left: 0px;
-                    bottom: 0px;
-                    height: 40px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    cursor: pointer;
-                }
-
-                .hover-cancel {
-                    background-color: #fff;
-                    border-radius: 0 0 0 0.5rem;
-                }
-
-                .hover-cancel:hover {
-                    background-color: #e6e6e6;
-                }
-
-                .hover-save {
-                    background-color: #393939;
-                    border-radius: 0 0 0.5rem;
-                }
-
-                .hover-save:hover {
-                    background-color: #646464;
-                }
-            `);
-        const dialog = new ShareDialog(gvc.glitter);
-        function next() {
-            PaymentPage.selectInvoice(gvc, orderDetail, vm, passData);
-        }
+    static scanVoucher(gvc, orderDetail, reload) {
+        const c_vm = {
+            value: ''
+        };
         gvc.glitter.innerDialog((gvc) => {
+            function next() {
+                return __awaiter(this, void 0, void 0, function* () {
+                    const dialog = new ShareDialog(gvc.glitter);
+                    orderDetail.code_array = orderDetail.code_array || [];
+                    orderDetail.code_array = orderDetail.code_array.filter((dd) => {
+                        return dd !== c_vm.value;
+                    });
+                    orderDetail.code_array.push(c_vm.value);
+                    dialog.dataLoading({ visible: true });
+                    const od = (yield ApiShop.getCheckout({
+                        line_items: orderDetail.lineItems,
+                        checkOutType: 'POS',
+                        user_info: orderDetail.user_info,
+                        code_array: orderDetail.code_array
+                    })).response.data;
+                    dialog.dataLoading({ visible: false });
+                    if (!od || !od.voucherList.find((dd) => {
+                        return dd.code === c_vm.value;
+                    })) {
+                        orderDetail.code_array = orderDetail.code_array.filter((dd) => {
+                            return dd !== c_vm.value;
+                        });
+                        dialog.errorMessage({ text: '請輸入正確的優惠代碼' });
+                    }
+                    else {
+                        gvc.closeDialog();
+                        dialog.successMessage({ text: '成功新增優惠券' });
+                        reload();
+                    }
+                });
+            }
             gvc.glitter.share.scan_back = (text) => {
-                LinePay.pay(orderDetail.orderID, orderDetail.lineItems.map((data) => {
-                    return `${data.title} * ${data.count}`;
-                }).join(','), orderDetail.total, text);
+                c_vm.value = text;
+                gvc.recreateView();
+                next();
             };
             return html `
                 <div class="dialog-box">
@@ -766,7 +1137,159 @@ text-transform: uppercase;">${dd.title}</div>`;
                          style="width: 370px;max-width: calc(100% - 20px);">
                         <div class="my-3  fw-500 text-center"
                              style="white-space: normal; overflow-wrap: anywhere;font-size: 20px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 2.8px;">
-                            請掃描LINE付款條碼
+                            請掃描或輸入優惠代碼
+                        </div><img class="" style="max-width:70%;"
+                             src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_s5sasfscsbs7s3sf_%E6%88%AA%E5%9C%962024-08-30%E4%B8%8B%E5%8D%882.29.361.png">
+                        <div class="d-flex w-100 align-items-center mt-3" style="border:1px solid grey;height: 50px;">
+                            <input class="form-control h-100" style="border: none;" placeholder="請輸入或掃描優惠代碼"
+                                   oninput="${gvc.event((e, event) => {
+                c_vm.value = e.value;
+            })}" value="${c_vm.value}">
+                            <div class="flex-fill"></div>
+                            <div style="background: grey;width: 50px;"
+                                 class="d-flex align-items-center justify-content-center text-white h-100"
+                                 onclick="${gvc.event(() => {
+                gvc.glitter.runJsInterFace("start_scan", {}, () => {
+                });
+            })}">
+                                <i class="fa-regular fa-barcode-read"></i>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center justify-content-center w-100"
+                             style="margin-top: 24px;font-size: 16px;font-weight: 700;letter-spacing: 0.64px;">
+                            <div class="flex-fill"
+                                 style="border-radius: 10px;border: 1px solid #DDD;background: #FFF;padding: 12px 24px;color: #393939;text-align:center;"
+                                 onclick="${gvc.event(() => {
+                gvc.glitter.closeDiaLog();
+            })}">取消
+                            </div>
+                            <div class="mx-2"></div>
+                            <div class="flex-fill"
+                                 style="border-radius: 10px;background: #393939;padding: 12px 24px;color: #FFF;text-align:center;"
+                                 onclick="${gvc.event(() => __awaiter(this, void 0, void 0, function* () {
+                next();
+            }))}">確定
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }, 'orderFinish', {
+            dismiss: () => {
+                gvc.glitter.share.scan_back = () => {
+                };
+            }
+        });
+    }
+    static scanUserID(gvc, orderDetail, reload) {
+        const c_vm = {
+            value: ''
+        };
+        gvc.glitter.innerDialog((gvc) => {
+            function next() {
+                return __awaiter(this, void 0, void 0, function* () {
+                    const dialog = new ShareDialog(gvc.glitter);
+                    const user = yield ApiUser.getUsersData(c_vm.value);
+                    if (!user.response || !user.response.account) {
+                        dialog.errorMessage({ text: "查無此會員" });
+                    }
+                    else {
+                        orderDetail.user_info.email = user.response.account;
+                        reload();
+                        gvc.closeDialog();
+                    }
+                });
+            }
+            gvc.glitter.share.scan_back = (text) => {
+                c_vm.value = text;
+                gvc.recreateView();
+                next();
+            };
+            return html `
+                <div class="dialog-box">
+                    <div class="dialog-content position-relative "
+                         style="width: 370px;max-width: calc(100% - 20px);">
+                        <div class="my-3  fw-500 text-center"
+                             style="white-space: normal; overflow-wrap: anywhere;font-size: 20px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 2.8px;">
+                            請掃描或輸入會員代碼
+                        </div>
+                        <img class="" style="max-width:70%;"
+                             src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_s5sasfscsbs7s3sf_%E6%88%AA%E5%9C%962024-08-30%E4%B8%8B%E5%8D%882.29.361.png">
+                        <div class="d-flex w-100 align-items-center mt-3" style="border:1px solid grey;height: 50px;">
+                            <input class="form-control h-100" style="border: none;" placeholder="請掃描或輸入會員代碼"
+                                   oninput="${gvc.event((e, event) => {
+                c_vm.value = e.value;
+            })}" value="${c_vm.value}">
+                            <div class="flex-fill"></div>
+                            <div style="background: grey;width: 50px;"
+                                 class="d-flex align-items-center justify-content-center text-white h-100"
+                                 onclick="${gvc.event(() => {
+                gvc.glitter.runJsInterFace("start_scan", {}, () => {
+                });
+            })}">
+                                <i class="fa-regular fa-barcode-read"></i>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center justify-content-center w-100"
+                             style="margin-top: 24px;font-size: 16px;font-weight: 700;letter-spacing: 0.64px;">
+                            <div class="flex-fill"
+                                 style="border-radius: 10px;border: 1px solid #DDD;background: #FFF;padding: 12px 24px;color: #393939;text-align:center;"
+                                 onclick="${gvc.event(() => {
+                gvc.glitter.closeDiaLog();
+            })}">取消
+                            </div>
+                            <div class="mx-2"></div>
+                            <div class="flex-fill"
+                                 style="border-radius: 10px;background: #393939;padding: 12px 24px;color: #FFF;text-align:center;"
+                                 onclick="${gvc.event(() => __awaiter(this, void 0, void 0, function* () {
+                next();
+            }))}">確定
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }, 'orderFinish', {
+            dismiss: () => {
+                gvc.glitter.share.scan_back = () => {
+                };
+            }
+        });
+    }
+    static lineFinish(gvc, orderDetail, vm, passData) {
+        const dialog = new ShareDialog(gvc.glitter);
+        function next() {
+            PaymentPage.selectInvoice(gvc, orderDetail, vm, passData);
+        }
+        gvc.glitter.innerDialog((gvc) => {
+            gvc.glitter.share.scan_back = (text) => {
+                dialog.dataLoading({ visible: true });
+                ApiShop.toPOSLinePay({
+                    "amount": orderDetail.total,
+                    "currency": "TWD",
+                    "orderId": orderDetail.orderID,
+                    "productName": orderDetail.lineItems.map((data) => {
+                        return `${data.title} * ${data.count}`;
+                    }).join(','),
+                    "oneTimeKey": text
+                }).then((res) => {
+                    dialog.dataLoading({ visible: false });
+                    if (!res.result || !res.response.result) {
+                        dialog.errorMessage({ text: '交易失敗' });
+                    }
+                    else {
+                        gvc.closeDialog();
+                        next();
+                    }
+                });
+            };
+            return html `
+                <div class="dialog-box">
+                    <div class="dialog-content position-relative "
+                         style="width: 370px;max-width: calc(100% - 20px);">
+                        <div class="my-3  fw-500 text-center"
+                             style="white-space: normal; overflow-wrap: anywhere;font-size: 20px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 2.8px;">
+                            請掃描LINE Pay付款條碼
                         </div>
                         <img class="mt-3" style="max-width:70%;"
                              src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_s6sfs4scs5s3s0sa_Screenshot2024-09-06at12.28.00 PM.jpg"></img>
@@ -781,7 +1304,8 @@ text-transform: uppercase;">${dd.title}</div>`;
             `;
         }, 'orderFinish', {
             dismiss: () => {
-                gvc.glitter.share.scan_back = () => { };
+                gvc.glitter.share.scan_back = () => {
+                };
             }
         });
     }
@@ -833,7 +1357,7 @@ text-transform: uppercase;">${dd.title}</div>`;
                     visible: true,
                     text: `訂單成立中`
                 });
-                passData.user_info.email = passData.user_info.email || 'no-email';
+                passData.user_info.email = orderDetail.user_info.email || 'no-email';
                 ApiShop.toPOSCheckout(passData).then(res => {
                     if (!res.result) {
                         dialog.dataLoading({ visible: false });
@@ -850,7 +1374,8 @@ text-transform: uppercase;">${dd.title}</div>`;
                     else {
                         PaymentPage.clearHistory();
                         if (res.response.data.invoice && (c_vm.invoice_select !== 'carry')) {
-                            gvc.glitter.runJsInterFace('print_invoice', res.response.data.invoice, () => { });
+                            gvc.glitter.runJsInterFace('print_invoice', res.response.data.invoice, () => {
+                            });
                         }
                         dialog.dataLoading({ visible: false });
                         orderDetail.lineItems = [];
@@ -950,6 +1475,7 @@ text-transform: uppercase;">${dd.title}</div>`;
                                                  style="display: flex;flex-direction: column;justify-content: center;align-items: center;padding:  20px;border-radius: 10px;background: #F6F6F6;${(c_vm.invoice_select == btn.value) ? `color:#393939;border-radius: 10px;border: 3px solid #393939;box-shadow: 2px 2px 15px 0px rgba(0, 0, 0, 0.20);` : 'color:#8D8D8D;'}"
                                                  onclick="${gvc.event(() => {
                                 c_vm.invoice_select = btn.value;
+                                c_vm.value = '';
                                 gvc.recreateView();
                             })}">
                                                 <div style="" class="fs-2">
@@ -965,24 +1491,33 @@ text-transform: uppercase;">${dd.title}</div>`;
                             </div>
                             ${(() => {
                         if (c_vm.invoice_select === 'carry') {
-                            c_vm.value = '';
-                            return `  <div class="d-flex w-100 align-items-center mt-3" style="border:1px solid grey;height: 50px;">
+                            gvc.glitter.share.scan_back = (text) => {
+                                c_vm.value = text;
+                                gvc.recreateView();
+                            };
+                            return `<div class="d-flex w-100 align-items-center mt-3" style="border:1px solid grey;height: 50px;">
                             <input class="form-control h-100" style="border: none;" placeholder="請輸入或掃描載具" oninput="${gvc.event((e, event) => {
                                 c_vm.value = e.value;
-                            })}">
+                            })}" value="${c_vm.value}">
                             <div class="flex-fill"></div>
-                            <div style="background: grey;width: 50px;" class="d-flex align-items-center justify-content-center text-white h-100">
+                            <div style="background: grey;width: 50px;" class="d-flex align-items-center justify-content-center text-white h-100" onclick="${gvc.event(() => {
+                                gvc.glitter.runJsInterFace("start_scan", {}, () => {
+                                });
+                            })}">
                                 <i class="fa-regular fa-barcode-read"></i>
                             </div>
                         </div>`;
                         }
                         else if (c_vm.invoice_select === 'company') {
                             return `<div class="d-flex w-100 align-items-center mt-3" style="border:1px solid grey;height: 50px;">
-                            <input class="form-control h-100" style="border: none;" placeholder="請輸入統一編號" oninput="${gvc.event((e, event) => {
+                            <input class="form-control h-100" style="border: none;" placeholder="請輸入統一編號"  oninput="${gvc.event((e, event) => {
                                 c_vm.value = e.value;
                             })}">
                             <div class="flex-fill"></div>
-                            <div style="background: grey;width: 50px;" class="d-flex align-items-center justify-content-center text-white h-100">
+                            <div style="background: grey;width: 50px;" class="d-flex align-items-center justify-content-center text-white h-100" onclick="${gvc.event(() => {
+                                gvc.glitter.runJsInterFace("start_scan", {}, () => {
+                                });
+                            })}">
                                 <i class="fa-regular fa-barcode-read"></i>
                             </div>
                         </div>`;
@@ -1012,6 +1547,8 @@ text-transform: uppercase;">${dd.title}</div>`;
                 `;
                 }, 'selectInvoice', {
                     dismiss: () => {
+                        gvc.glitter.share.scan_back = () => {
+                        };
                     }
                 });
             }

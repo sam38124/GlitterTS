@@ -13,6 +13,7 @@
     --main-dark: #000000;
     --main-dark-alpha-08: rgba(0, 0, 0, 0.08);
     --main-dark-alpha-15: rgba(0, 0, 0, 0.15);
+    --main-dark-alpha-50: rgba(0, 0, 0, 0.5);
     --main-black: #393939;
     --main-black-hover: #646464;
 
@@ -26,10 +27,10 @@
     --main-orange: #ffb400;
     --main-green: #006621;
 
-    --item-danger: #da1313;
     --item-primary: #4d86db;
-    --item-info: #d8ecda;
     --item-success: #159240;
+    --item-danger: #da1313;
+    --item-info: #d8ecda;
     --item-notify: #ffd5d0;
     --item-warning: #ffe9b2;
 
@@ -328,6 +329,12 @@ ul {
     font-weight: 400;
 }
 
+.tx_normal_14 {
+    font-size: 14px;
+    color: var(--main-black);
+    font-weight: 400;
+}
+
 .tx_700 {
     font-size: 16px;
     color: var(--main-black);
@@ -361,6 +368,18 @@ ul {
 
 .cursor_pointer {
     cursor: pointer;
+}
+
+.p-hover-image {
+    opacity: 0;
+    background: var(--main-dark-alpha-50);
+    color: var(--main-white);
+    font-size: 22px;
+    gap: 20px;
+}
+
+.p-hover-image:hover {
+    opacity: 1 !important;
 }
 
 .c_39_checkbox {
@@ -862,6 +881,56 @@ ul {
 
 .cursor-pointer {
     cursor: pointer;
+}
+
+.red-dot {
+    font-size: 18px;
+    font-weight: 400;
+    color: var(--item-danger);
+    margin: 0 0.25rem;
+}
+
+.insignia {
+    border-radius: 0.5rem;
+    height: 26px;
+    padding: 6px 8px;
+    font-size: 14px;
+    display: inline-block;
+    font-weight: 600;
+    line-height: 1;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+}
+
+.insignia-primary {
+    background: var(--item-primary);
+    color: var(--main-white);
+}
+
+.insignia-success {
+    background: var(--item-success);
+    color: var(--main-white);
+}
+
+.insignia-danger {
+    background: var(--item-danger);
+    color: var(--main-white);
+}
+
+.insignia-info {
+    background: var(--item-info);
+    color: var(--main-black);
+}
+
+.insignia-warning {
+    background: var(--item-warning);
+    color: var(--main-black);
+}
+
+.insignia-notify {
+    background: var(--item-notify);
+    color: var(--main-black);
 }
 
 /* 行動端頁面 */

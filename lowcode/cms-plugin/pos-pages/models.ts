@@ -4,6 +4,7 @@ export class OrderDetail {
     discount: number;
     rebate: number;
     cart_token: string;
+    code_array?:string[]
     voucher?: VoucherData;
     lineItems: {
         id: number;

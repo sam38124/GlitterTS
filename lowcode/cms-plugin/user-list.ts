@@ -833,7 +833,7 @@ export class UserList {
                     const saasConfig: { config: any; api: any } = (window.parent as any).saasConfig;
                     switch (vm.type) {
                         case 'order':
-                            return ShoppingOrderManager.replaceOrder(gvc, vm, vm.id);
+                            return ShoppingOrderManager.replaceOrder(gvc, vm);
                         case 'list':
                         default:
                             vm.data = JSON.parse(JSON.stringify(vm.userData));

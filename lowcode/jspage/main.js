@@ -165,10 +165,14 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                 appName: gBundle.appName,
                                 type: 'template',
                             });
-                            viewModel.data = (yield ApiPageConfig.getPage({
-                                appName: gBundle.appName,
-                                tag: glitter.getUrlParameter('page'),
-                            })).response.result[0];
+                            viewModel.data = yield new Promise((resolve, reject) => {
+                                (window.glitterInitialHelper).getPageData({
+                                    tag: glitter.getUrlParameter('page'),
+                                    appName: gBundle.appName
+                                }, (d2) => {
+                                    resolve(d2.response.result[0]);
+                                });
+                            });
                             Storage.select_page_type = viewModel.data.page_type;
                             if (data.result) {
                                 data.response.result.map((dd) => {
@@ -206,6 +210,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                     return yield new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
                         var _a, _b, _c, _d, _e, _f, _g;
                         const data = glitter.share.appConfigresponse;
+                        data.result = true;
                         if (data.result) {
                             viewModel.appConfig = data.response.data;
                             viewModel.originalConfig = JSON.parse(JSON.stringify(viewModel.appConfig));
@@ -267,6 +272,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                         }
                         else {
                             resolve(false);
+                            console.log(`falseIn`, waitGetData.findIndex((dd) => { return dd === a; }));
                         }
                         if (count === waitGetData.length) {
                             resolve(true);
@@ -463,7 +469,7 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
                                                 viewModel.waitCopy = undefined;
                                                 viewModel.selectItem = undefined;
                                                 Storage.page_setting_item = da.index;
-                                                gvc.notifyDataChange(editorContainerID);
+                                                gvc.notifyDataChange(["MainEditorLeft", "left_sm_bar"]);
                                             })}"
                                                                     ></i>`;
                                         })
@@ -473,6 +479,10 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
                                         style: `width:50px;gap:20px;padding-top: 15px;min-width:50px;`,
                                         class: `${Storage.select_function === 'user-editor' || Storage.select_function === 'page-editor' ? `` : `d-none`} h-120 border-end d-flex flex-column align-items-center`,
                                     },
+                                    onCreate: () => {
+                                        $('.tooltip').remove();
+                                        $('[data-bs-toggle="tooltip"]').tooltip();
+                                    }
                                 };
                             })}
                                             <div
@@ -708,6 +718,7 @@ function initialEditor(gvc, viewModel) {
             }));
         }
         setTimeout(() => {
+            Storage.lastSelect = data.id;
             glitter.htmlGenerate.selectWidget({
                 widget: data,
                 widgetComponentID: data.id,
@@ -746,6 +757,7 @@ function initialEditor(gvc, viewModel) {
             root: arrayData.container.container_config.root,
         }))[cf.direction === 1 ? 'insertAfter' : 'insertBefore']($(`.editor_it_${cf.index}`).parent());
         setTimeout(() => {
+            Storage.lastSelect = cf.data.id;
             glitter.htmlGenerate.selectWidget({
                 widget: cf.data,
                 widgetComponentID: cf.data.id,
@@ -753,7 +765,7 @@ function initialEditor(gvc, viewModel) {
                 scroll_to_hover: true,
                 glitter: glitter,
             });
-        }, 50);
+        }, 100);
         AddComponent.toggle(false);
         viewModel.selectContainer && viewModel.selectContainer.rerenderReplaceElem && viewModel.selectContainer.rerenderReplaceElem();
     };

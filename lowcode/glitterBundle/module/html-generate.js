@@ -1910,22 +1910,35 @@ background: white;
                         }
                         else {
                             function getPlusAndPasteView(dir) {
-                                return `<div style=" height: 20px; padding: 10px; background: linear-gradient(143deg, #FFB400 0%, #FF6C02 100%); border-radius: 72.64px; justify-content: flex-start; align-items: center; gap: 10px; display: inline-flex">
-                                        <div style="height: 16px; justify-content: flex-start; align-items: center; gap: 8px; display: flex">
-                                        ${[
+                                const detID = cf.gvc.glitter.getUUID();
+                                const plusID = cf.gvc.glitter.getUUID();
+                                let block_close = false;
+                                return html `
+                                    <div class="" style="z-index:9999;min-height: 20px;max-height: 20px;width: 100%;"
+                                         onmouseout="${cf.gvc.event(() => {
+                                })}"
+                                    >
+                                        <div id="${detID}" class="d-none"
+                                             style="height: 20px; padding: 10px; background: linear-gradient(143deg, #FFB400 0%, #FF6C02 100%); border-radius: 72.64px; justify-content: flex-start; align-items: center; gap: 10px; display: inline-flex"
+                                             onmouseover="${cf.gvc.event(() => {
+                                    block_close = true;
+                                })}" onmouseout="${cf.gvc.event(() => {
+                                    block_close = false;
+                                    setTimeout(() => {
+                                        if (!block_close) {
+                                            cf.gvc.glitter.$('#' + detID).addClass('d-none');
+                                            cf.gvc.glitter.$('#' + plusID).removeClass('d-none');
+                                        }
+                                    }, 100);
+                                })}">
+                                            <div style="height: 16px; justify-content: flex-start; align-items: center; gap: 8px; display: flex">
+                                                ${[
                                     {
                                         text: '新增', event: (e, event) => {
                                             HtmlGenerate.block_timer = new Date().getTime();
                                             addWidgetEvent(dir);
                                             event.stopPropagation();
                                             event.preventDefault();
-                                        }
-                                    },
-                                    {
-                                        text: '複製', event: (e, event) => {
-                                            const dialog = new ShareDialog(cf.gvc.glitter);
-                                            navigator.clipboard.writeText(JSON.stringify(cf.widget));
-                                            dialog.successMessage({ text: '複製成功，滑動至要插入的區塊，並點擊貼上。' });
                                         }
                                     },
                                     {
@@ -1950,17 +1963,56 @@ background: white;
                                                 });
                                             }
                                             readClipboardContent();
-                                        }
+                                        },
+                                        class: `paste-ev`
                                     },
                                 ].map((dd) => {
                                     return html `
-                                        <div style="text-align: center; color: white; font-size: 12px;  font-weight: 700; letter-spacing: 0.48px; word-wrap: break-word"
-                                             onmousedown="${cf.gvc.event((e, event) => {
+                                                        <div class="${dd.class || ''}" style="text-align: center; color: white; font-size: 12px;  font-weight: 700; letter-spacing: 0.48px; word-wrap: break-word"
+                                                             onmousedown="${cf.gvc.event((e, event) => {
                                         dd.event(e, event);
                                     })}">${dd.text}
-                                        </div>`;
+                                                        </div>`;
                                 }).join(`<div style="width: 0px; height: 12.50px; border: 0.50px white solid"></div>`)}
+                                            </div>
                                         </div>
+                                        <i class="fa-solid fa-circle-plus fs-5" id="${plusID}" style="background: linear-gradient(143deg, #FFB400 0%, #FF6C02 100%);background-clip: text;
+-webkit-background-clip: text;
+transform: translateY(5px);
+-webkit-text-fill-color: transparent;" onmouseover="${cf.gvc.event((e, event) => __awaiter(this, void 0, void 0, function* () {
+                                    let pasteVisible = false;
+                                    try {
+                                        const json = JSON.parse(yield navigator.clipboard.readText());
+                                        pasteVisible = json.id;
+                                    }
+                                    catch (e) {
+                                    }
+                                    block_close = false;
+                                    if (!pasteVisible) {
+                                        return;
+                                    }
+                                    if (!pasteVisible) {
+                                        cf.gvc.glitter.$(`.paste-ev`).addClass('d-none');
+                                    }
+                                    else {
+                                        cf.gvc.glitter.$(`.paste-ev`).removeClass('d-none');
+                                    }
+                                    cf.gvc.glitter.$('#' + detID).removeClass('d-none');
+                                    cf.gvc.glitter.$('#' + plusID).addClass('d-none');
+                                    setTimeout(() => {
+                                        if (!block_close) {
+                                            cf.gvc.glitter.$('#' + detID).addClass('d-none');
+                                            cf.gvc.glitter.$('#' + plusID).removeClass('d-none');
+                                        }
+                                    }, 100);
+                                }))}" onmousedown="${cf.gvc.event((e, event) => {
+                                    setTimeout(() => {
+                                        HtmlGenerate.block_timer = new Date().getTime();
+                                        addWidgetEvent(dir);
+                                    }, 10);
+                                    event.stopPropagation();
+                                    event.preventDefault();
+                                })}"></i>
                                     </div>`;
                             }
                             return html `
@@ -2007,14 +2059,14 @@ background: white;
     pointer-events:all;" onmousedown="${cf.gvc.event(() => {
                                 const dialog = new ShareDialog(cf.gvc.glitter);
                                 navigator.clipboard.writeText(JSON.stringify(cf.widget));
-                                dialog.successMessage({ text: '複製成功' });
+                                dialog.successMessage({ text: '複製成功，滑動至要插入的區塊，並點擊貼上。' });
                             })}">複製元件
                                 </div>
                             `;
                         }
                     },
                     divCreate: {
-                        class: `editorChild editor_it_${cf.id} ${(cf.gvc.glitter.htmlGenerate.hover_items.indexOf(cf.id) !== -1 && !isIdeaMode()) ? `editorItemActive` : ``}`,
+                        class: `editorChild editor_it_${cf.id} ${(cf.gvc.glitter.htmlGenerate.hover_items.indexOf(cf.id) !== -1 && !isIdeaMode()) ? `editorItemActive` : ``} position-absolute w-100 h-100`,
                         style: `z-index: 99999;top:0px;left:0px;`,
                         option: [],
                     },

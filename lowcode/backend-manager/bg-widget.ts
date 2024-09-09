@@ -86,7 +86,7 @@ export class BgWidget {
     }
 
     static grayButton(text: string, event: string, obj?: { icon?: string; textStyle?: string }) {
-        return html` <button class="btn btn-gray" type="button" onclick="${event}">
+        return html` <button class="btn btn-gray" style="" type="button" onclick="${event}">
             <i class="${obj && obj.icon && obj.icon.length > 0 ? obj.icon : 'd-none'}" style="color: #393939"></i>
             ${text.length > 0 ? html`<span class="tx_700" style="${obj?.textStyle ?? ''}">${text}</span>` : ''}
         </button>`;
@@ -206,8 +206,28 @@ export class BgWidget {
     }
 
     // 標籤
-    static greenBadge() {
-        return html`<div class="badge" style="border-radius: 7px;background: #D8ECDA;height: 22px;padding: 4px 6px;font-size: 14px;color:#393939;">已付款</div>`;
+    static primaryInsignia(text: string) {
+        return html`<div class="insignia insignia-primary">${text}</div>`;
+    }
+
+    static successInsignia(text: string) {
+        return html`<div class="insignia insignia-success">${text}</div>`;
+    }
+
+    static dangerInsignia(text: string) {
+        return html`<div class="insignia insignia-danger">${text}</div>`;
+    }
+
+    static infoInsignia(text: string) {
+        return html`<div class="insignia insignia-info">${text}</div>`;
+    }
+
+    static warningInsignia(text: string) {
+        return html`<div class="insignia insignia-warning">${text}</div>`;
+    }
+
+    static notifyInsignia(text: string) {
+        return html`<div class="insignia insignia-notify">${text}</div>`;
     }
 
     // 元素
@@ -434,7 +454,7 @@ ${obj.default ?? ''}</textarea
             bind: vm.id,
             view: () => {
                 if (vm.loading) {
-                    return this.spinner({ textNone: true });
+                    return BgWidget.spinner({ text: { visible: false } });
                 } else {
                     let dataList = JSON.parse(JSON.stringify(dropMenu.recentList)) as MenuItem[];
                     return html`${obj.title ? html` <div class="tx_normal fw-normal">${obj.title}</div>` : ``}
@@ -777,10 +797,43 @@ ${obj.default ?? ''}</textarea
         </div>`;
     }
 
-    static spinner(obj?: { spinnerNone?: boolean; textNone?: boolean }) {
-        return html` <div class="d-flex align-items-center justify-content-center flex-column w-100 my-3 mx-auto">
-            <div class="spinner-border ${obj && obj.spinnerNone ? 'd-none' : ''}" role="status"></div>
-            <span class="mt-3 ${obj && obj.textNone ? 'd-none' : ''}">載入中...</span>
+    static spinner(obj?: {
+        container?: {
+            class?: string;
+            style?: string;
+        };
+        circle?: {
+            visible?: boolean;
+            width?: number;
+            borderSize?: number;
+        };
+        text?: {
+            value?: string;
+            visible?: boolean;
+            fontSize?: number;
+        };
+    }) {
+        const container = {
+            class: `${obj?.container?.class ?? ''}`,
+            style: `margin-top: 2rem ;${obj?.container?.style}`,
+        };
+        const circleAttr = {
+            visible: obj?.circle?.visible === false ? false : true,
+            width: obj?.circle?.width ?? 20,
+            borderSize: obj?.circle?.borderSize ?? 16,
+        };
+        const textAttr = {
+            value: obj?.text?.value ?? '載入中...',
+            visible: obj?.text?.visible === false ? false : true,
+            fontSize: obj?.text?.fontSize ?? 16,
+        };
+        return html` <div class="d-flex align-items-center justify-content-center flex-column w-100 mx-auto ${container.class}" style="${container.style}">
+            <div
+                class="spinner-border ${circleAttr.visible ? '' : 'd-none'}"
+                style="font-size: ${circleAttr.borderSize}px; width: ${circleAttr.width}px; height: ${circleAttr.width}px;"
+                role="status"
+            ></div>
+            <span class="mt-3 ${textAttr.visible ? '' : 'd-none'}" style="font-size: ${textAttr.fontSize}px;">${textAttr.value}</span>
         </div>`;
     }
 
@@ -1496,6 +1549,92 @@ ${obj.default ?? ''}</textarea
             .join(this.horizontalLine());
     }
 
+    static openBoxContainer(obj: { gvc: GVC; tag: string; title: string; insideHTML: string; openHeight?: number; autoClose?: boolean; guideClass?: string }): string {
+        const text = Tool.randomString(5);
+
+        obj.gvc.addStyle(`
+            .box-container-${text} {
+                position: relative;
+                height: 56px;
+                border: 1px solid #ddd;
+                border-radius: 10px;
+                overflow-y: hidden;
+                transition: height 0.3s ease-out;
+            }
+            .box-container-${text}.open-box {
+                max-height: ${obj.openHeight ?? 500}px;
+                height: 500px;
+                overflow-y: auto;
+            }
+            .box-navbar-${text} {
+                position: sticky;
+                top: 0;
+                min-height: 20px;
+                background-color: #fff;
+                z-index: 10;
+                display: flex;
+                padding: 13.6px 20px;
+                align-items: flex-start;
+                justify-content: space-between;
+                cursor: pointer;
+            }
+            .arrow-icon-${text} {
+                color: #393939 !important;
+                box-shadow: none !important;
+                background-color: #fff !important;
+                background-image: url(${BgWidget.arrowDownDataImage('#000')}) !important;
+                background-repeat: no-repeat;
+                cursor: pointer;
+                height: 1rem;
+                border: 0;
+                margin-top: 0.35rem;
+                transition: transform 0.3s;
+            }
+            .arrow-icon-${text}.open-box {
+                margin-top: 0.15rem;
+                transform: rotate(180deg);
+            }
+            .box-inside-${text} {
+                padding: 0 1.5rem 1.5rem;
+                overflow-y: auto;
+            }
+
+            @media (max-width: 768px) {
+                .box-inside-${text} {
+                    padding: 0.5rem 1.25rem 1.25rem;
+                }
+            }
+        `);
+
+        return html`<div class="box-tag-${obj.tag} box-container-${text}">
+            <div
+                class="box-navbar-${text} ${obj.guideClass ?? ''}"
+                onclick="${obj.gvc.event((e) => {
+                    if (!obj.autoClose) {
+                        const boxes = document.querySelectorAll(`.box-tag-${obj.tag}`);
+                        boxes.forEach((box) => {
+                            const isOpening = box.classList.contains('open-box');
+                            const isSelf = box.classList.contains(`box-container-${text}`) || box.classList.contains(`arrow-icon-${text}`);
+                            if (isOpening && !isSelf) {
+                                box.classList.remove('open-box');
+                            }
+                        });
+                    }
+                    setTimeout(() => {
+                        e.parentElement.classList.toggle('open-box');
+                        e.parentElement.querySelector(`.arrow-icon-${text}`).classList.toggle('open-box');
+                    }, 50);
+                })}"
+            >
+                <div class="d-flex tx_700">${obj.title}</div>
+                <div class="d-flex">
+                    <button class="box-tag-${obj.tag} arrow-icon-${text}"></button>
+                </div>
+            </div>
+            <div class="box-inside-${text} ${obj.guideClass ? `box-inside-${obj.guideClass}` : ''}">${obj.insideHTML}</div>
+        </div>`;
+    }
+
     // 視窗
     static selectFilter(obj: { gvc: GVC; callback: (value: any) => void; default: string; options: OptionsItem[]; style?: string }) {
         return html`<select
@@ -1692,12 +1831,14 @@ ${obj.default ?? ''}</textarea
         gvc: GVC;
         title: string;
         tag: string;
+        single?:boolean,
         default: string[];
         updownOptions?: OptionsItem[];
         api: (obj: { query: string; orderString: string }) => Promise<OptionsItem[]>;
         callback: (value: any) => void;
         style?: string;
         readonly?: boolean;
+        custom_line_items?:(data:any)=>string
     }) {
         return obj.gvc.glitter.innerDialog((gvc: GVC) => {
             const vm = {
@@ -1719,7 +1860,7 @@ ${obj.default ?? ''}</textarea
                     bind: vm.id,
                     view: () => {
                         if (vm.loading) {
-                            return this.spinner();
+                            return html`<div class="my-4">${this.spinner()}</div>`;
                         }
                         return html` <div style="width: 100%; overflow-y: auto;" class="bg-white shadow rounded-3">
                             <div class="w-100 d-flex align-items-center p-3 border-bottom">
@@ -1763,6 +1904,9 @@ ${obj.default ?? ''}</textarea
                                               </div>`}
                                         ${obj.gvc.map(
                                             vm.options.map((opt: OptionsItem, index: number) => {
+                                                if(obj.custom_line_items){
+                                                    return  obj.custom_line_items(opt)
+                                                }
                                                 function call() {
                                                     vm.selectKey = {
                                                         name: opt.key,
@@ -1776,8 +1920,14 @@ ${obj.default ?? ''}</textarea
                                                     obj.gvc.notifyDataChange(vm.id);
                                                 }
 
-                                                return html` <div class="d-flex align-items-center" style="gap: 24px">
-                                                    ${obj.readonly
+                                                return html` <div class="d-flex align-items-center" style="gap: 24px" onclick="${gvc.event(()=>{
+                                                    if(obj.single){
+                                                        obj.callback(opt.key)
+                                                        gvc.closeDialog()
+                                                    }
+                                                   
+                                                })}">
+                                                    ${obj.readonly || obj.single
                                                         ? ''
                                                         : html`<input
                                                               class="form-check-input mt-0 ${vm.checkClass}"
@@ -1802,7 +1952,7 @@ ${obj.default ?? ''}</textarea
                                             })
                                         )}
                                     </div>
-                                    ${obj.readonly
+                                    ${obj.readonly || obj.single
                                         ? ''
                                         : html` <div class="c_dialog_bar">
                                               ${BgWidget.cancel(
@@ -1869,6 +2019,7 @@ ${obj.default ?? ''}</textarea
         }, obj.tag);
     }
 
+
     static infoDialog(obj: { gvc: GVC; title: string; innerHTML: string; closeCallback?: () => void }) {
         return obj.gvc.glitter.innerDialog((gvc: GVC) => {
             const vm = {
@@ -1885,7 +2036,7 @@ ${obj.default ?? ''}</textarea
                     bind: vm.id,
                     view: () => {
                         if (vm.loading) {
-                            return BgWidget.spinner();
+                            return html`<div class="my-4">${this.spinner()}</div>`;
                         }
                         return html`<div class="bg-white shadow rounded-3" style="width: 100%; overflow-y: auto;">
                             <div class="w-100 d-flex align-items-center p-3 border-bottom">
@@ -2035,6 +2186,7 @@ ${obj.default ?? ''}</textarea
         };
         obj.gvc.addStyle(`
             .${imageVM.class} {
+                display: flex;
                 min-width: ${obj.width}px;
                 min-height: ${obj.height ?? obj.width}px;
                 max-width: ${obj.width}px;
@@ -2044,7 +2196,16 @@ ${obj.default ?? ''}</textarea
         return obj.gvc.bindView({
             bind: imageVM.id,
             view: () => {
-                return html`<img class="${imageVM.class} ${obj.class ?? ''}" style="${obj.style ?? ''}" src="${imageVM.url}" />`;
+                if (imageVM.loading) {
+                    return html`<div class="${imageVM.class} ${obj.class ?? ''}" style="${obj.style ?? ''}">
+                        ${this.spinner({
+                            container: { class: 'mt-0' },
+                            text: { visible: false },
+                        })}
+                    </div>`;
+                } else {
+                    return html`<img class="${imageVM.class} ${obj.class ?? ''}" style="${obj.style ?? ''}" src="${imageVM.url}" />`;
+                }
             },
             divCreate: {},
             onCreate: () => {
@@ -2147,6 +2308,78 @@ ${obj.default ?? ''}</textarea
                     }
                 },
             };
+        });
+    }
+
+    static imageDialog(obj: { gvc: GVC; image: string; width: number; height?: number; create?: () => void; read?: () => void; update?: () => void; delete?: () => void }) {
+        const imageVM = {
+            id: obj.gvc.glitter.getUUID(),
+            loading: true,
+            url: this.noImageURL,
+        };
+        return obj.gvc.bindView({
+            bind: imageVM.id,
+            view: () => {
+                if (imageVM.loading) {
+                    return this.spinner({
+                        container: { class: 'mt-0' },
+                        text: { visible: false },
+                    });
+                } else {
+                    return html` <div
+                        class="d-flex align-items-center justify-content-center rounded-3 shadow"
+                        style="min-width: ${obj.width}px; width: ${obj.width}px; height: ${obj.height ?? obj.width}px; cursor:pointer; background: 50%/cover url('${imageVM.url}');"
+                    >
+                        <div class="w-100 h-100 d-flex align-items-center justify-content-center rounded-3 p-hover-image">
+                            ${obj.create
+                                ? html`<i
+                                      class="fa-regular fa-plus"
+                                      onclick="${obj.gvc.event(() => {
+                                          obj.create && obj.create();
+                                      })}"
+                                  ></i>`
+                                : ''}
+                            ${obj.read
+                                ? html`<i
+                                      class="fa-regular fa-eye"
+                                      onclick="${obj.gvc.event(() => {
+                                          (window.parent as any).glitter.openDiaLog(new URL('../dialog/image-preview.js', import.meta.url).href, 'preview', imageVM.url);
+                                          obj.read && obj.read();
+                                      })}"
+                                  ></i>`
+                                : ''}
+                            ${obj.update
+                                ? html`<i
+                                      class="fa-regular fa-pencil"
+                                      onclick="${obj.gvc.event(() => {
+                                          obj.update && obj.update();
+                                      })}"
+                                  ></i>`
+                                : ''}
+                            ${obj.delete
+                                ? html`<i
+                                      class="fa-regular fa-trash-can"
+                                      onclick="${obj.gvc.event(() => {
+                                          obj.delete && obj.delete();
+                                      })}"
+                                  ></i>`
+                                : ''}
+                        </div>
+                    </div>`;
+                }
+            },
+            divCreate: {},
+            onCreate: () => {
+                if (imageVM.loading) {
+                    this.isImageUrlValid(obj.image).then((isValid) => {
+                        if (isValid) {
+                            imageVM.url = obj.image;
+                        }
+                        imageVM.loading = false;
+                        obj.gvc.notifyDataChange(imageVM.id);
+                    });
+                }
+            },
         });
     }
 }

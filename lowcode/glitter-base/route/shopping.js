@@ -539,6 +539,18 @@ export class ApiShop {
             data: JSON.stringify(passData),
         });
     }
+    static toPOSLinePay(passData) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/ec/pos/linePay`,
+            type: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: getConfig().config.token,
+            },
+            data: JSON.stringify(passData),
+        });
+    }
     static getOrderPaymentMethod() {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/order/payment-method`,

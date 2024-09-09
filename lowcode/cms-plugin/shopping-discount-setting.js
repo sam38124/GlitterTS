@@ -573,7 +573,7 @@ export class ShoppingDiscountSetting {
                                                                 view: () => {
                                                                     var _a;
                                                                     if (levelVM.loading) {
-                                                                        return BgWidget.spinner({ textNone: true });
+                                                                        return BgWidget.spinner({ text: { visible: false } });
                                                                     }
                                                                     else {
                                                                         return BgWidget.selectDropList({
@@ -621,7 +621,7 @@ export class ShoppingDiscountSetting {
                                                                 view: () => {
                                                                     var _a;
                                                                     if (levelVM.loading) {
-                                                                        return BgWidget.spinner({ textNone: true });
+                                                                        return BgWidget.spinner({ text: { visible: false } });
                                                                     }
                                                                     else {
                                                                         return BgWidget.selectDropList({

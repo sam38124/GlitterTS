@@ -669,30 +669,14 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                                                                                             view: () => {
                                                                                                                 if (vm.type === 'preview') {
                                                                                                                     return html `
-                                                                                                                            <i class="fa-solid fa-chevron-left h-100 d-flex align-items-center justify-content-center "
-                                                                                                                               onclick="${gvc.event(() => {
-                                                                                                                        const select_ = glitter.share.findWidgetIndex(glitter.share.editorViewModel.selectItem.id);
-                                                                                                                        if (select_.container_cf) {
-                                                                                                                            const gvc_ = gvc.glitter.document.querySelector('.iframe_view').contentWindow.glitter.pageConfig[0].gvc;
-                                                                                                                            gvc_.glitter.htmlGenerate.selectWidget({
-                                                                                                                                widget: select_.container_cf,
-                                                                                                                                widgetComponentID: select_.container_cf.id,
-                                                                                                                                gvc: gvc_,
-                                                                                                                                scroll_to_hover: true,
-                                                                                                                                glitter: glitter,
-                                                                                                                            });
-                                                                                                                        }
-                                                                                                                        else {
-                                                                                                                            Storage.lastSelect = '';
-                                                                                                                            gvc.glitter.share.editorViewModel.selectItem = undefined;
-                                                                                                                            gvc.glitter.share.selectEditorItem();
-                                                                                                                        }
-                                                                                                                    })}"></i>
-                                                                                                                            <span style="max-width: calc(100% - 50px);text-overflow: ellipsis;white-space: nowrap;overflow: hidden;">${widget.label}</span>
+                                                                                                                            <i class="fa-solid fa-chevron-left h-100 d-flex align-items-center justify-content-center " style="cursor: pointer;"
+                                                                                                                               ></i>
+                                                                                                                            <span style="max-width: calc(100% - 50px);text-overflow: ellipsis;white-space: nowrap;overflow: hidden;" >${widget.label}</span>
                                                                                                                             <div class="flex-fill"></div>
                                                                                                                             <button class="btn sel_normal"
                                                                                                                                     type="button"
-                                                                                                                                    onclick="${gvc.event(() => {
+                                                                                                                                    onclick="${gvc.event((e, event) => {
+                                                                                                                        event.stopPropagation();
                                                                                                                         vm.type = 'editor';
                                                                                                                         gvc.notifyDataChange(vm.id);
                                                                                                                     })}">
@@ -718,7 +702,8 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                                                                                                     })}
                                                                                                                             <button class="btn sel_normal"
                                                                                                                                     type="button"
-                                                                                                                                    onclick="${gvc.event(() => {
+                                                                                                                                    onclick="${gvc.event((e, event) => {
+                                                                                                                        event.stopPropagation();
                                                                                                                         vm.type = 'preview';
                                                                                                                         widget.label = name;
                                                                                                                         gvc.notifyDataChange(vm.id);
@@ -729,7 +714,32 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                                                                                             },
                                                                                                             divCreate: {
                                                                                                                 class: `px-3   border-bottom pb-3 fw-bold mt-n3 mb-2 pt-3 hoverF2 d-flex align-items-center`,
-                                                                                                                style: `cursor: pointer;color:#393939;border-radius: 0px;gap:10px;`
+                                                                                                                style: `cursor: pointer;color:#393939;border-radius: 0px;gap:10px;`,
+                                                                                                                option: [
+                                                                                                                    {
+                                                                                                                        key: 'onclick', value: gvc.event(() => {
+                                                                                                                            if (vm.type === 'editor') {
+                                                                                                                                return;
+                                                                                                                            }
+                                                                                                                            const select_ = glitter.share.findWidgetIndex(glitter.share.editorViewModel.selectItem.id);
+                                                                                                                            if (select_.container_cf) {
+                                                                                                                                const gvc_ = gvc.glitter.document.querySelector('.iframe_view').contentWindow.glitter.pageConfig[0].gvc;
+                                                                                                                                gvc_.glitter.htmlGenerate.selectWidget({
+                                                                                                                                    widget: select_.container_cf,
+                                                                                                                                    widgetComponentID: select_.container_cf.id,
+                                                                                                                                    gvc: gvc_,
+                                                                                                                                    scroll_to_hover: true,
+                                                                                                                                    glitter: glitter,
+                                                                                                                                });
+                                                                                                                            }
+                                                                                                                            else {
+                                                                                                                                Storage.lastSelect = '';
+                                                                                                                                gvc.glitter.share.editorViewModel.selectItem = undefined;
+                                                                                                                                gvc.glitter.share.selectEditorItem();
+                                                                                                                            }
+                                                                                                                        })
+                                                                                                                    }
+                                                                                                                ]
                                                                                                             }
                                                                                                         };
                                                                                                     })}

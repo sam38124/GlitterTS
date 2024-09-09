@@ -1008,7 +1008,12 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
         });
     }
     static richTextBtn(obj) {
-        return EditorElem.buttonPrimary(obj.title, obj.gvc.event(() => {
+        var _a;
+        return `
+<div class="fw-normal mt-2 fs-6" style="color: black;
+margin-bottom: 5px;
+white-space: normal;" >${obj.title}</div>
+<div class="w-100" style=" padding: 10px 12px;border-radius: 7px; overflow: hidden; border: 1px #DDDDDD solid; justify-content: flex-start; align-items: center; gap: 10px; display: inline-flex;cursor:pointer;" onclick="${obj.gvc.event(() => {
             EditorElem.openEditorDialog(obj.gvc, () => {
                 return html ` <div class="p-3" style="overflow: hidden;">
                             ${EditorElem.richText({
@@ -1021,7 +1026,9 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                 })}
                         </div>`;
             }, () => { }, 800, obj.title);
-        }));
+        })}">
+  ${((_a = obj.def) !== null && _a !== void 0 ? _a : '').replace(/<[^>]*>/g, '') || '尚未輸入內容'}
+</div>`;
     }
     static pageSelect(gvc, title, def, callback, filter) {
         const glitter = gvc.glitter;

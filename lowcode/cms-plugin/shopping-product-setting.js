@@ -1341,17 +1341,30 @@ export class ShoppingProductSetting {
                 });
         }))}
                         ${BgWidget.title(variant.spec.length > 0 ? variant.spec.join(' / ') : '單一規格')}
+                        <div class="flex-fill"></div>
+                        ${BgWidget.grayButton('商品條碼', gvc.event(() => {
+            const dialog = new ShareDialog(gvc.glitter);
+            if (!variant.barcode) {
+                dialog.errorMessage({ text: '請先設定商品條碼' });
+            }
+            window.parent.glitter.addMtScript([{
+                    src: "https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"
+                }], () => {
+                window.parent.QRCode.toDataURL(variant.barcode, { width: 200, margin: 2 }, function (err, url) {
+                    if (err) {
+                        console.error(err);
+                        return;
+                    }
+                    window.parent.glitter.openDiaLog(new URL('../dialog/image-preview.js', import.meta.url).href, 'preview', url);
+                });
+            }, () => { });
+        }), { icon: `fa-regular fa-eye` })}
                     </div>
                     <div class="d-flex flex-column ${obj.single ? `flex-column-reverse` : `flex-sm-row`} w-100 p-0" style="gap: 24px;">
                         <div class="leftBigArea d-flex flex-column flex-fill" style="gap: 24px;">
                             ${!obj.single
             ? BgWidget.mainCard(gvc.bindView(() => {
                 const id = gvc.glitter.getUUID();
-                gvc.addStyle(`
-                                              .p-hover-image:hover {
-                                                  opacity: 1 !important; /* 在父元素悬停时，底层元素可见 */
-                                              }
-                                          `);
                 return {
                     bind: id,
                     view: () => {
@@ -1471,7 +1484,7 @@ export class ShoppingProductSetting {
                         {
                             key: 'volume',
                             name: '依材積計算',
-                            customerClass: 'guide5-6'
+                            customerClass: 'guide5-6',
                         },
                         {
                             key: 'weight',
@@ -1516,23 +1529,23 @@ export class ShoppingProductSetting {
         ]
             .map((dd) => {
             return html ` <div style="display: flex;justify-content: center;align-items: center;gap: 10px;position: relative;" class=" col-12 col-sm-4 mb-2">
-                                                    <div style="white-space: nowrap;">${dd.title}</div>
-                                                    <input
-                                                        class="ps-3"
-                                                        style="border-radius: 10px;border: 1px solid #DDD;height: 40px;width: calc(100% - 50px);"
-                                                        type="number"
-                                                        onchange="${gvc.event((e) => {
+                                                        <div style="white-space: nowrap;">${dd.title}</div>
+                                                        <input
+                                                            class="ps-3"
+                                                            style="border-radius: 10px;border: 1px solid #DDD;height: 40px;width: calc(100% - 50px);"
+                                                            type="number"
+                                                            onchange="${gvc.event((e) => {
                 variant[dd.value] = e.value;
             })}"
-                                                        value="${variant[dd.value]}"
-                                                    />
-                                                    <div style="color: #8D8D8D;position: absolute;right: 25px;top: 7px;">${dd.unit}</div>
-                                                </div>`;
+                                                            value="${variant[dd.value]}"
+                                                        />
+                                                        <div style="color: #8D8D8D;position: absolute;right: 25px;top: 7px;">${dd.unit}</div>
+                                                    </div>`;
         })
             .join('')}
                                         </div>
                                     </div>
-                                    
+
                                     <div style="font-weight: 700;">商品重量</div>
                                     <div class="w-100 row m-0" style="color:#393939;">
                                         <input
@@ -3541,7 +3554,7 @@ ${(_c = postMD.seo.content) !== null && _c !== void 0 ? _c : ''}</textarea
                                         ShoppingProductSetting.postEvent(postMD, obj.gvc, obj.vm);
                                     }
                                 }, 500);
-                            }), "儲存", "guide5-8")}
+                            }), '儲存', 'guide5-8')}
                         </div>`,
                         ].join('');
                     },
