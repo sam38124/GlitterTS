@@ -11,6 +11,7 @@ const config_js_1 = __importDefault(require("../../config.js"));
 const ut_permission_js_1 = require("../utils/ut-permission.js");
 const redis_js_1 = __importDefault(require("../../modules/redis.js"));
 const tool_1 = __importDefault(require("../../modules/tool"));
+const share_permission_1 = require("../services/share-permission");
 const router = express_1.default.Router();
 router.get('/', async (req, resp) => {
     try {
@@ -426,6 +427,66 @@ router.get('/check-admin-auth', async (req, resp) => {
 router.get('/notice/unread/count', async (req, resp) => {
     try {
         return response_1.default.succ(resp, await new user_1.User(req.get('g-app'), req.body.token).getUnreadCount());
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.get('/permission', async (req, resp) => {
+    try {
+        if (!(await ut_permission_js_1.UtPermission.isManager(req))) {
+            return response_1.default.fail(resp, exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null));
+        }
+        return response_1.default.succ(resp, await new share_permission_1.SharePermission(req.get('g-app'), req.body.token).getPermission({
+            email: req.query.email ? `${req.query.email}` : undefined,
+        }));
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.post('/permission', async (req, resp) => {
+    try {
+        if (!(await ut_permission_js_1.UtPermission.isManager(req))) {
+            return response_1.default.fail(resp, exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null));
+        }
+        return response_1.default.succ(resp, await new share_permission_1.SharePermission(req.get('g-app'), req.body.token).setPermission({
+            email: req.body.email,
+            config: req.body.config,
+        }));
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.delete('/permission', async (req, resp) => {
+    try {
+        if (!(await ut_permission_js_1.UtPermission.isManager(req))) {
+            return response_1.default.fail(resp, exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null));
+        }
+        return response_1.default.succ(resp, await new share_permission_1.SharePermission(req.get('g-app'), req.body.token).deletePermission(req.body.email));
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.put('/permission/status', async (req, resp) => {
+    try {
+        if (!(await ut_permission_js_1.UtPermission.isManager(req))) {
+            return response_1.default.fail(resp, exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null));
+        }
+        return response_1.default.succ(resp, await new share_permission_1.SharePermission(req.get('g-app'), req.body.token).toggleStatus(req.body.email));
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
+router.put('/permission/invite', async (req, resp) => {
+    try {
+        if (!(await ut_permission_js_1.UtPermission.isManager(req))) {
+            return response_1.default.fail(resp, exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null));
+        }
+        return response_1.default.succ(resp, await new share_permission_1.SharePermission(req.get('g-app'), req.body.token).triggerInvited(req.body.email));
     }
     catch (err) {
         return response_1.default.fail(resp, err);

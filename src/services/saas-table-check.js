@@ -69,6 +69,22 @@ exports.SaasScheme = {
             },
             {
                 scheme: config_1.saasConfig.SAAS_NAME,
+                table: 'app_auth_config',
+                sql: `(
+  \`id\` int NOT NULL AUTO_INCREMENT,
+  \`user\` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  \`appName\` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  \`config\` json DEFAULT NULL,
+  \`created_time\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  \`updated_time\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  \`status\` int NOT NULL DEFAULT '0',
+  \`invited\` int NOT NULL DEFAULT '0',
+  PRIMARY KEY (\`id\`)
+) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+`,
+            },
+            {
+                scheme: config_1.saasConfig.SAAS_NAME,
                 table: 'private_config',
                 sql: `(
   \`id\` int NOT NULL AUTO_INCREMENT,

@@ -536,9 +536,7 @@ export class ShoppingOrderManager {
                     if (orderData.orderData.proof_purchase) {
                         return BgWidget.warningInsignia('待核款');
                     }
-                    else {
-                        return BgWidget.notifyInsignia('未付款');
-                    }
+                    return BgWidget.notifyInsignia('未付款');
                 }
                 else if (orderData.status === 1) {
                     return BgWidget.infoInsignia('已付款');
@@ -572,9 +570,13 @@ export class ShoppingOrderManager {
                 else if (orderData.orderData.orderStatus === '0') {
                     return BgWidget.warningInsignia('處理中');
                 }
-                else {
-                    return BgWidget.notifyInsignia('已取消');
+                return BgWidget.notifyInsignia('已取消');
+            },
+            archivedBadge: () => {
+                if (orderData.orderData.archived === 'true') {
+                    return BgWidget.secondaryInsignia('已封存');
                 }
+                return '';
             },
         };
         ApiUser.getUsersDataWithEmail(orderData.email).then((res) => {
@@ -605,7 +607,7 @@ export class ShoppingOrderManager {
                         });
                     }
                     function getBadgeList() {
-                        return html `<div style="display:flex; gap:10px; justify-content: flex-end;">${vt.paymentBadge()}${vt.outShipBadge()}${vt.orderStatusBadge()}</div>`;
+                        return html `<div style="display:flex; gap:10px; justify-content:flex-end;">${vt.archivedBadge()} ${vt.paymentBadge()}${vt.outShipBadge()}${vt.orderStatusBadge()}</div>`;
                     }
                     return BgWidget.container(html `
                             <div class="d-flex flex-column">
