@@ -2421,86 +2421,57 @@ export class BgGuide {
                                                             </svg>
                                                         </div>
                                                     </div>
-
-                                                    <div class="flex-fill " style="border-radius: 10px;filter: drop-shadow(2px 2px 10px rgba(0, 0, 0, 0.15));">
-                                                        <div
-                                                            style="display: flex;padding: 12px 24px;gap: 10px;width: 100%;background: #FEAD20;border-radius: 10px 10px 0 0;color:white;font-size: 20px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 0.8px;"
-                                                        >
-                                                            填寫付款資訊
+                                                    <div
+                                                        class="d-flex flex-column w-100 "
+                                                        style="background: #FFF;width:100%;padding: 18px 24px;border-radius: 0 0 10px 10px;font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.64px;"
+                                                    >
+                                                        填寫銀行資訊及付款說明
+                                                        <div class="d-flex align-items-center justify-content-between" style="margin-top: 24px;height:52px;">
                                                             <div
-                                                                class="d-flex ms-auto align-items-center"
-                                                                style="gap:10px;color: #FFF;font-size: 16px;font-style: normal;font-weight: 400;line-height: normal;letter-spacing: 0.64px;"
-                                                            >
-                                                                步驟 5/6
-                                                                <svg
-                                                                    style="cursor: pointer;"
-                                                                    xmlns="http://www.w3.org/2000/svg"
-                                                                    width="14"
-                                                                    height="13"
-                                                                    viewBox="0 0 14 13"
-                                                                    fill="none"
-                                                                    onclick="${child_gvc.event(() => {
-                                                                        close();
-                                                                        this.leaveGuide(vm);
-                                                                    })}"
-                                                                >
-                                                                    <path d="M1 0.5L13 12.5" stroke="white" stroke-linecap="round" />
-                                                                    <path d="M13 0.5L1 12.5" stroke="white" stroke-linecap="round" />
-                                                                </svg>
-                                                            </div>
-                                                        </div>
-                                                        <div
-                                                            class="d-flex flex-column w-100 "
-                                                            style="background: #FFF;width:100%;padding: 18px 24px;border-radius: 0 0 10px 10px;font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.64px;"
-                                                        >
-                                                            填寫銀行資訊及付款說明
-                                                            <div class="d-flex align-items-center justify-content-between" style="margin-top: 24px;height:52px;">
-                                                                <div
-                                                                    style="padding: 6px 18px;border-radius: 10px;border:solid 1px #FEAD20;color: #FEAD20;font-size: 16px;font-style: normal;font-weight: 700;line-height: normal;cursor: pointer;"
-                                                                    onclick="${child_gvc.event(() => {
-                                                                        let iframe = this.findPageIframe();
-                                                                        const openGroup = iframe?.contentWindow.document.querySelectorAll('.openIt');
-                                                                        openGroup.forEach((el: any) => {
-                                                                            el.classList.toggle('openIt');
-                                                                        });
-                                                                        close();
-                                                                        setTimeout(() => {
-                                                                            this.findIframeDom('.guide2-4').scrollIntoView({});
-                                                                            vm.step--;
+                                                                style="padding: 6px 18px;border-radius: 10px;border:solid 1px #FEAD20;color: #FEAD20;font-size: 16px;font-style: normal;font-weight: 700;line-height: normal;cursor: pointer;"
+                                                                onclick="${child_gvc.event(() => {
+                                                                    let iframe = this.findPageIframe();
+                                                                    const openGroup = iframe?.contentWindow.document.querySelectorAll('.openIt');
+                                                                    openGroup.forEach((el: any) => {
+                                                                        el.classList.toggle('openIt');
+                                                                    });
+                                                                    close();
+                                                                    setTimeout(() => {
+                                                                        this.findIframeDom('.guide2-4').scrollIntoView({});
+                                                                        vm.step--;
 
-                                                                            gvc.notifyDataChange('financeInit');
-                                                                        }, 400);
-                                                                    })}"
-                                                                >
-                                                                    上一步
-                                                                </div>
-                                                                ${allCheck
-                                                                    ? html`
-                                                                          <div class="d-flex align-items-center justify-content-center" style="width: 96px;height: 46px;">
-                                                                              <div
-                                                                                  class="breathing-light"
-                                                                                  style="padding: 6px 18px;border-radius: 10px;background: #FEAD20;color: #FFF;font-size: 16px;font-style: normal;font-weight: 700;line-height: normal;cursor: pointer;"
-                                                                                  onclick="${child_gvc.event(() => {
-                                                                                      vm.step++;
-                                                                                      close();
-                                                                                      gvc.notifyDataChange('financeInit');
-                                                                                  })}"
-                                                                              >
-                                                                                  下一步
-                                                                              </div>
-                                                                          </div>
-                                                                      `
-                                                                    : html`
-                                                                          <div class="d-flex align-items-center justify-content-center" style="width: 96px;height: 46px;">
-                                                                              <div
-                                                                                  class="breathing-light"
-                                                                                  style="opacity: 0.8;padding: 6px 18px;border-radius: 10px;background: #FFE9B2;color: #FFF;font-size: 16px;font-style: normal;font-weight: 700;line-height: normal;"
-                                                                              >
-                                                                                  下一步
-                                                                              </div>
-                                                                          </div>
-                                                                      `}
+                                                                        gvc.notifyDataChange('financeInit');
+                                                                    }, 400);
+                                                                })}"
+                                                            >
+                                                                上一步
                                                             </div>
+                                                            ${allCheck
+                                                                ? html`
+                                                                      <div class="d-flex align-items-center justify-content-center" style="width: 96px;height: 46px;">
+                                                                          <div
+                                                                              class="breathing-light"
+                                                                              style="padding: 6px 18px;border-radius: 10px;background: #FEAD20;color: #FFF;font-size: 16px;font-style: normal;font-weight: 700;line-height: normal;cursor: pointer;"
+                                                                              onclick="${child_gvc.event(() => {
+                                                                                  vm.step++;
+                                                                                  close();
+                                                                                  gvc.notifyDataChange('financeInit');
+                                                                              })}"
+                                                                          >
+                                                                              下一步
+                                                                          </div>
+                                                                      </div>
+                                                                  `
+                                                                : html`
+                                                                      <div class="d-flex align-items-center justify-content-center" style="width: 96px;height: 46px;">
+                                                                          <div
+                                                                              class="breathing-light"
+                                                                              style="opacity: 0.8;padding: 6px 18px;border-radius: 10px;background: #FFE9B2;color: #FFF;font-size: 16px;font-style: normal;font-weight: 700;line-height: normal;"
+                                                                          >
+                                                                              下一步
+                                                                          </div>
+                                                                      </div>
+                                                                  `}
                                                         </div>
                                                     </div>
                                                 </div>
