@@ -1138,8 +1138,7 @@ text-transform: uppercase;" onclick="${gvc.event(() => {
                         <div class="my-3  fw-500 text-center"
                              style="white-space: normal; overflow-wrap: anywhere;font-size: 20px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 2.8px;">
                             請掃描或輸入優惠代碼
-                        </div>
-                        <img class="" style="max-width:70%;"
+                        </div><img class="" style="max-width:70%;"
                              src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_s5sasfscsbs7s3sf_%E6%88%AA%E5%9C%962024-08-30%E4%B8%8B%E5%8D%882.29.361.png">
                         <div class="d-flex w-100 align-items-center mt-3" style="border:1px solid grey;height: 50px;">
                             <input class="form-control h-100" style="border: none;" placeholder="請輸入或掃描優惠代碼"

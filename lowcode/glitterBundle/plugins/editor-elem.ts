@@ -1082,29 +1082,32 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
     }
 
     public static richTextBtn(obj: { gvc: GVC; def: string; title: string; callback: (text: string) => void; style?: string }) {
-        return EditorElem.buttonPrimary(
-            obj.title,
-            obj.gvc.event(() => {
-                EditorElem.openEditorDialog(
-                    obj.gvc,
-                    () => {
-                        return html` <div class="p-3" style="overflow: hidden;">
+        return `
+<div class="fw-normal mt-2 fs-6" style="color: black;
+margin-bottom: 5px;
+white-space: normal;" >${obj.title}</div>
+<div class="w-100" style=" padding: 10px 12px;border-radius: 7px; overflow: hidden; border: 1px #DDDDDD solid; justify-content: flex-start; align-items: center; gap: 10px; display: inline-flex;cursor:pointer;" onclick="${obj.gvc.event(()=>{
+            EditorElem.openEditorDialog(
+                obj.gvc,
+                () => {
+                    return html` <div class="p-3" style="overflow: hidden;">
                             ${EditorElem.richText({
-                                gvc: obj.gvc,
-                                def: obj.def,
-                                callback: (text) => {
-                                    obj.def = text;
-                                    obj.callback(text);
-                                },
-                            })}
+                        gvc: obj.gvc,
+                        def: obj.def,
+                        callback: (text) => {
+                            obj.def = text;
+                            obj.callback(text);
+                        },
+                    })}
                         </div>`;
-                    },
-                    () => {},
-                    800,
-                    obj.title
-                );
-            })
-        );
+                },
+                () => {},
+                800,
+                obj.title
+            )
+        })}">
+  ${(obj.def ?? '').replace(/<[^>]*>/g, '') || '尚未輸入內容'}
+</div>`
     }
 
     public static pageSelect(gvc: GVC, title: string, def: any, callback: (tag: string) => void, filter?: (data: any) => boolean) {

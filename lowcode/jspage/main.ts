@@ -534,7 +534,7 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
                                                                                 viewModel.waitCopy = undefined;
                                                                                 viewModel.selectItem = undefined;
                                                                                 Storage.page_setting_item = da.index;
-                                                                                gvc.notifyDataChange(editorContainerID);
+                                                                                gvc.notifyDataChange(["MainEditorLeft","left_sm_bar"]);
                                                                             })}"
                                                                     ></i>`;
                                                                 })
@@ -546,6 +546,10 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
                                                                 Storage.select_function === 'user-editor' || Storage.select_function === 'page-editor' ? `` : `d-none`
                                                         } h-120 border-end d-flex flex-column align-items-center`,
                                                     },
+                                                    onCreate:()=>{
+                                                        $('.tooltip').remove();
+                                                        ($('[data-bs-toggle="tooltip"]') as any).tooltip();
+                                                    }
                                                 };
                                             })}
                                             <div
@@ -654,12 +658,14 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
                     }, 200);
 
                     if(!viewModel.loading && Storage.select_function == "backend-manger"){
-                        let bgGuide = new BgGuide(gvc,0);
-                        ApiShop.getGuideable().then(r => {
-                            if (!r.response.value){
-                                bgGuide.drawGuide();
-                            }
-                        })
+                        if(document.body.clientWidth>800){
+                            let bgGuide = new BgGuide(gvc,0);
+                            ApiShop.getGuideable().then(r => {
+                                if (!r.response.value){
+                                    bgGuide.drawGuide();
+                                }
+                            })
+                        }
                     }
 
                     // }
@@ -819,6 +825,7 @@ function initialEditor(gvc: GVC, viewModel: any) {
             );
         }
         setTimeout(() => {
+            Storage.lastSelect=data.id
             glitter.htmlGenerate.selectWidget({
                 widget: data,
                 widgetComponentID: data.id,
@@ -860,6 +867,7 @@ function initialEditor(gvc: GVC, viewModel: any) {
         )[cf.direction === 1 ? 'insertAfter' : 'insertBefore']($(`.editor_it_${cf.index}`).parent());
         //
         setTimeout(() => {
+            Storage.lastSelect=cf.data.id
             glitter.htmlGenerate.selectWidget({
                 widget: cf.data,
                 widgetComponentID: cf.data.id,
@@ -867,7 +875,7 @@ function initialEditor(gvc: GVC, viewModel: any) {
                 scroll_to_hover: true,
                 glitter: glitter,
             });
-        }, 50)
+        }, 100)
         AddComponent.toggle(false);
         viewModel.selectContainer && viewModel.selectContainer.rerenderReplaceElem && viewModel.selectContainer.rerenderReplaceElem();
     };

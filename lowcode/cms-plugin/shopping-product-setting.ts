@@ -1574,6 +1574,34 @@ export class ShoppingProductSetting {
                             })
                         )}
                         ${BgWidget.title(variant.spec.length > 0 ? variant.spec.join(' / ') : '單一規格')}
+                        <div class="flex-fill"></div>
+                        ${BgWidget.grayButton(
+                               '商品條碼',
+                                gvc.event(() => {
+                                   const dialog=new ShareDialog(gvc.glitter)
+                                    if(! variant.barcode){
+                                        dialog.errorMessage({text:'請先設定商品條碼'})
+                                    }
+                                    (window.parent as any).glitter.addMtScript([{
+                                        src:"https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"
+                                    }],()=>{
+                                        (window.parent as any).QRCode.toDataURL(variant.barcode, { width: 200, margin: 2 }, function (err:any, url:any) {
+                                            if (err) {
+                                                console.error(err);
+                                                return;
+                                            }
+                                            (window.parent as any).glitter.openDiaLog(
+                                                    new URL('../dialog/image-preview.js', import.meta.url).href,
+                                                    'preview',
+                                                    url
+                                            );
+                                        });
+                                      
+                                    },()=>{})
+                                    
+                                }),
+                                { icon: `fa-regular fa-eye` }
+                        )}
                     </div>
                     <div class="d-flex flex-column ${obj.single ? `flex-column-reverse` : `flex-sm-row`} w-100 p-0" style="gap: 24px;">
                         <div class="leftBigArea d-flex flex-column flex-fill" style="gap: 24px;">
