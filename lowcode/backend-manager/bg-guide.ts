@@ -1,6 +1,6 @@
-import {GVC} from '../glitterBundle/GVController.js';
-import {ApiShop} from '../glitter-base/route/shopping.js';
-import {all} from 'underscore/index.js';
+import { GVC } from '../glitterBundle/GVController.js';
+import { ApiShop } from '../glitter-base/route/shopping.js';
+import { all } from 'underscore/index.js';
 
 const html = String.raw;
 
@@ -11,65 +11,74 @@ export class BgGuide {
     public gvc: GVC;
     private uiGuidePage = [
         {
-            value: "init",
-            title: "初始化介面",
+            value: 'init',
+            title: '初始化介面',
             innerHTML: () => {
-                return this.drawUIGuide()
-            }
-        }
-    ]
-    private guidePage = [{
-        value: "init",
-        title: "初始化介面",
-        innerHTML: () => {
-            return this.drawInitGuide()
-        }
-    }, {
-        value: "setFinanceWay",
-        title: "金流設定",
-        innerHTML: () => {
-            return this.drawFinanceWayGuide()
-        }
-    }, {
-        value: "shippment_setting",
-        title: "配送設定",
-        innerHTML: () => {
-            return this.drawShipmentGuide()
-        }
-    }, {
-        value: "logistics_setting",
-        title: "運費設定",
-        innerHTML: () => {
-            return this.drawLogisticsGuide()
-        }
-    }, {
-        value: "product-manager",
-        title: "商品上架",
-        innerHTML: () => {
-            return this.drawProductGuide()
-        }
-    }, {
-        value: "shop_information",
-        title: "商店訊息",
-        innerHTML: () => {
-            return this.drawMessageGuide()
-        }
-    }, {
-        value: "web_theme",
-        title: "佈置官網",
-        innerHTML: () => {
-            return this.drawLayoutGuide()
-        }
-    }, {
-        value: "manage_theme",
-        title: "管理主題庫",
-        innerHTML: () => {
-            return this.drawThemeGuide()
-        }
-    }]
+                return this.drawUIGuide();
+            },
+        },
+    ];
+    private guidePage = [
+        {
+            value: 'init',
+            title: '初始化介面',
+            innerHTML: () => {
+                return this.drawInitGuide();
+            },
+        },
+        {
+            value: 'setFinanceWay',
+            title: '金流設定',
+            innerHTML: () => {
+                return this.drawFinanceWayGuide();
+            },
+        },
+        {
+            value: 'shippment_setting',
+            title: '配送設定',
+            innerHTML: () => {
+                return this.drawShipmentGuide();
+            },
+        },
+        {
+            value: 'logistics_setting',
+            title: '運費設定',
+            innerHTML: () => {
+                return this.drawLogisticsGuide();
+            },
+        },
+        {
+            value: 'product-manager',
+            title: '商品上架',
+            innerHTML: () => {
+                return this.drawProductGuide();
+            },
+        },
+        {
+            value: 'shop_information',
+            title: '商店訊息',
+            innerHTML: () => {
+                return this.drawMessageGuide();
+            },
+        },
+        {
+            value: 'web_theme',
+            title: '佈置官網',
+            innerHTML: () => {
+                return this.drawLayoutGuide();
+            },
+        },
+        {
+            value: 'manage_theme',
+            title: '管理主題庫',
+            innerHTML: () => {
+                return this.drawThemeGuide();
+            },
+        },
+    ];
     private eventSet: any = [];
 
-    constructor(gvc: GVC, guide: number, type: string = "backend-manger") {
+    constructor(gvc: GVC, guide: number, type: string = 'backend-manger') {
         this.guide = guide;
         this.gvc = gvc;
         this.type = type;
@@ -201,42 +210,39 @@ export class BgGuide {
             });
             return html`
                 <div
-                        style="padding-left: 18px;width: 350px;height: 113px;flex-shrink: 0;filter: drop-shadow(2px 2px 10px rgba(0, 0, 0, 0.15));position: absolute;top: ${rect.bottom +
-                        12}px;left: ${rect.right + 12}px;transform: translateY(-100%);z-index:1033;"
+                    style="padding-left: 18px;width: 350px;height: 113px;flex-shrink: 0;filter: drop-shadow(2px 2px 10px rgba(0, 0, 0, 0.15));position: absolute;top: ${rect.bottom +
+                    12}px;left: ${rect.right + 12}px;transform: translateY(-100%);z-index:1033;"
                 >
                     <div style="position: relative;border-radius: 10px;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="22" viewBox="0 0 18 22" fill="none"
-                             style="position: absolute;bottom: 19px;left: -18px;">
-                            <path d="M-5.24537e-07 11L18 0.607696L18 21.3923L-5.24537e-07 11Z" fill="white"/>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="22" viewBox="0 0 18 22" fill="none" style="position: absolute;bottom: 19px;left: -18px;">
+                            <path d="M-5.24537e-07 11L18 0.607696L18 21.3923L-5.24537e-07 11Z" fill="white" />
                         </svg>
                         <div
-                                style="display: flex;padding: 12px 24px;gap: 10px;width: 100%;background: #FEAD20;border-radius: 10px 10px 0 0;color:white;font-size: 20px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 0.8px;"
+                            style="display: flex;padding: 12px 24px;gap: 10px;width: 100%;background: #FEAD20;border-radius: 10px 10px 0 0;color:white;font-size: 20px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 0.8px;"
                         >
                             ${title ? title : '商店設定'}
-                            <div class="d-flex ms-auto align-items-center"
-                                 style="gap:10px;color: #FFF;font-size: 16px;font-style: normal;font-weight: 400;line-height: normal;letter-spacing: 0.64px;">
+                            <div class="d-flex ms-auto align-items-center" style="gap:10px;color: #FFF;font-size: 16px;font-style: normal;font-weight: 400;line-height: normal;letter-spacing: 0.64px;">
                                 步驟 1/${step}
                                 <svg
-                                        style="cursor: pointer;"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="14"
-                                        height="13"
-                                        viewBox="0 0 14 13"
-                                        fill="none"
-                                        onclick="${this.gvc.event(() => {
-                                            this.leaveGuide(vm);
-                                        })}"
+                                    style="cursor: pointer;"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="14"
+                                    height="13"
+                                    viewBox="0 0 14 13"
+                                    fill="none"
+                                    onclick="${this.gvc.event(() => {
+                                        this.leaveGuide(vm);
+                                    })}"
                                 >
-                                    <path d="M1 0.5L13 12.5" stroke="white" stroke-linecap="round"/>
-                                    <path d="M13 0.5L1 12.5" stroke="white" stroke-linecap="round"/>
+                                    <path d="M1 0.5L13 12.5" stroke="white" stroke-linecap="round" />
+                                    <path d="M13 0.5L1 12.5" stroke="white" stroke-linecap="round" />
                                 </svg>
                             </div>
                         </div>
                         <div
-                                style="background: #FFF;width:100%;padding: 18px 24px;display: flex;align-items: center;border-radius: 0 0 10px 10px;font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%; /* 25.6px */letter-spacing: 0.64px;"
+                            style="background: #FFF;width:100%;padding: 18px 24px;display: flex;align-items: center;border-radius: 0 0 10px 10px;font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%; /* 25.6px */letter-spacing: 0.64px;"
                         >
-                            點擊<span
-                                style="font-style: normal;font-weight: 700;line-height: 160%;letter-spacing: 0.64px;">「${title ? title : '商店設定'} 」</span>
+                            點擊<span style="font-style: normal;font-weight: 700;line-height: 160%;letter-spacing: 0.64px;">「${title ? title : '商店設定'} 」</span>
                         </div>
                     </div>
                 </div>
@@ -260,42 +266,39 @@ export class BgGuide {
             });
             return html`
                 <div
-                        style="padding-left: 18px;width: 350px;height: 113px;flex-shrink: 0;filter: drop-shadow(2px 2px 10px rgba(0, 0, 0, 0.15));position: absolute;top: ${rect.bottom +
-                        12}px;left: ${rect.right + 12}px;transform: translateY(-100%);z-index:1033;"
+                    style="padding-left: 18px;width: 350px;height: 113px;flex-shrink: 0;filter: drop-shadow(2px 2px 10px rgba(0, 0, 0, 0.15));position: absolute;top: ${rect.bottom +
+                    12}px;left: ${rect.right + 12}px;transform: translateY(-100%);z-index:1033;"
                 >
                     <div style="position: relative;border-radius: 10px;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="22" viewBox="0 0 18 22" fill="none"
-                             style="position: absolute;bottom: 19px;left: -18px;">
-                            <path d="M-5.24537e-07 11L18 0.607696L18 21.3923L-5.24537e-07 11Z" fill="white"/>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="22" viewBox="0 0 18 22" fill="none" style="position: absolute;bottom: 19px;left: -18px;">
+                            <path d="M-5.24537e-07 11L18 0.607696L18 21.3923L-5.24537e-07 11Z" fill="white" />
                         </svg>
                         <div
-                                style="display: flex;padding: 12px 24px;gap: 10px;width: 100%;background: #FEAD20;border-radius: 10px 10px 0 0;color:white;font-size: 20px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 0.8px;"
+                            style="display: flex;padding: 12px 24px;gap: 10px;width: 100%;background: #FEAD20;border-radius: 10px 10px 0 0;color:white;font-size: 20px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 0.8px;"
                         >
                             ${title}
-                            <div class="d-flex ms-auto align-items-center"
-                                 style="gap:10px;color: #FFF;font-size: 16px;font-style: normal;font-weight: 400;line-height: normal;letter-spacing: 0.64px;">
+                            <div class="d-flex ms-auto align-items-center" style="gap:10px;color: #FFF;font-size: 16px;font-style: normal;font-weight: 400;line-height: normal;letter-spacing: 0.64px;">
                                 步驟 2/${step}
                                 <svg
-                                        style="cursor: pointer;"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="14"
-                                        height="13"
-                                        viewBox="0 0 14 13"
-                                        fill="none"
-                                        onclick="${gvc.event(() => {
-                                            this.leaveGuide(vm);
-                                        })}"
+                                    style="cursor: pointer;"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="14"
+                                    height="13"
+                                    viewBox="0 0 14 13"
+                                    fill="none"
+                                    onclick="${gvc.event(() => {
+                                        this.leaveGuide(vm);
+                                    })}"
                                 >
-                                    <path d="M1 0.5L13 12.5" stroke="white" stroke-linecap="round"/>
-                                    <path d="M13 0.5L1 12.5" stroke="white" stroke-linecap="round"/>
+                                    <path d="M1 0.5L13 12.5" stroke="white" stroke-linecap="round" />
+                                    <path d="M13 0.5L1 12.5" stroke="white" stroke-linecap="round" />
                                 </svg>
                             </div>
                         </div>
                         <div
-                                style="background: #FFF;width:100%;padding: 18px 24px;display: flex;align-items: center;border-radius: 0 0 10px 10px;font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%; /* 25.6px */letter-spacing: 0.64px;"
+                            style="background: #FFF;width:100%;padding: 18px 24px;display: flex;align-items: center;border-radius: 0 0 10px 10px;font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%; /* 25.6px */letter-spacing: 0.64px;"
                         >
-                            點擊<span
-                                style="font-style: normal;font-weight: 700;line-height: 160%;letter-spacing: 0.64px;">「${title} 」</span>
+                            點擊<span style="font-style: normal;font-weight: 700;line-height: 160%;letter-spacing: 0.64px;">「${title} 」</span>
                         </div>
                     </div>
                 </div>
@@ -366,12 +369,8 @@ export class BgGuide {
             let body = document.querySelector('.editorContainer');
             if (body && !document.querySelector('.clickInterface')) {
                 $(body).append(html`
-                    <div class="clickInterface"
-                         style="height: 100vh;width: 100vw;position: fixed;left: 0;top: 0;z-index: 1030;cursor: pointer;"
-                         onclick="${gvc.event(() => {
-
-                         })}"></div>
-                `)
+                    <div class="clickInterface" style="height: 100vh;width: 100vw;position: fixed;left: 0;top: 0;z-index: 1030;cursor: pointer;" onclick="${gvc.event(() => {})}"></div>
+                `);
             }
         }
 
@@ -397,73 +396,73 @@ export class BgGuide {
             }
         };
         return html`
-            <div class="d-flex flex-column"
-                 style="width: ${window.width}px;height: ${window.height}px;flex-shrink: 0;position: absolute;${winPosition()};">
+            <div class="d-flex flex-column" style="width: ${window.width}px;height: ${window.height}px;flex-shrink: 0;position: absolute;${winPosition()};">
                 <div class="w-100" style="padding-left: ${arrowPosition()}px;height:23px;">
                     <svg xmlns="http://www.w3.org/2000/svg" width="22" height="18" viewBox="0 0 22 18" fill="none">
-                        <path d="M11.002 0L21.3943 18L0.609648 18L11.002 0Z" fill="#FEAD20"/>
+                        <path d="M11.002 0L21.3943 18L0.609648 18L11.002 0Z" fill="#FEAD20" />
                     </svg>
                 </div>
                 <div class="w-100" style="border-radius: 10px;">
                     <div
-                            style="display: flex;padding: 12px 24px;gap: 10px;width: 100%;background: #FEAD20;border-radius: 10px 10px 0 0;color:white;font-size: 20px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 0.8px;"
+                        style="display: flex;padding: 12px 24px;gap: 10px;width: 100%;background: #FEAD20;border-radius: 10px 10px 0 0;color:white;font-size: 20px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 0.8px;"
                     >
                         ${window.title}
-                        <div class="d-flex ms-auto align-items-center"
-                             style="gap:10px;color: #FFF;font-size: 16px;font-style: normal;font-weight: 400;line-height: normal;letter-spacing: 0.64px;">
+                        <div class="d-flex ms-auto align-items-center" style="gap:10px;color: #FFF;font-size: 16px;font-style: normal;font-weight: 400;line-height: normal;letter-spacing: 0.64px;">
                             步驟 ${step}/${allStep}
                             <svg
-                                    style="cursor: pointer;"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    width="14"
-                                    height="13"
-                                    viewBox="0 0 14 13"
-                                    fill="none"
-                                    onclick="${gvc.event(() => {
-                                        close();
-                                        this.leaveGuide(vm);
-                                    })}"
+                                style="cursor: pointer;"
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="14"
+                                height="13"
+                                viewBox="0 0 14 13"
+                                fill="none"
+                                onclick="${gvc.event(() => {
+                                    close();
+                                    this.leaveGuide(vm);
+                                })}"
                             >
-                                <path d="M1 0.5L13 12.5" stroke="white" stroke-linecap="round"/>
-                                <path d="M13 0.5L1 12.5" stroke="white" stroke-linecap="round"/>
+                                <path d="M1 0.5L13 12.5" stroke="white" stroke-linecap="round" />
+                                <path d="M13 0.5L1 12.5" stroke="white" stroke-linecap="round" />
                             </svg>
                         </div>
                     </div>
                     <div
-                            class="d-flex flex-column w-100"
-                            style="background: #FFF;width:100%;padding: 18px 24px;border-radius: 0 0 10px 10px;font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.64px;white-space: normal"
+                        class="d-flex flex-column w-100"
+                        style="background: #FFF;width:100%;padding: 18px 24px;border-radius: 0 0 10px 10px;font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.64px;white-space: normal"
                     >
                         ${window.content}
-                        <div class="d-flex align-items-center justify-content-between w-100"
-                             style="margin-top: 24px;height:52px;">
+                        <div class="d-flex align-items-center justify-content-between w-100" style="margin-top: 24px;height:52px;">
                             <div
-                                    class="${window.preview ? 'd-none' : ''}"
-                                    style="padding: 6px 18px;border-radius: 10px;border:solid 1px #FEAD20;color: #FEAD20;font-size: 16px;font-style: normal;font-weight: 700;line-height: normal;cursor: pointer;"
-                                    onclick="${gvc.event(() => {
-                                        vm.step--;
-                                        close();
-                                        if (window.previewEvent) {
-                                            window.previewEvent();
-                                        }
+                                class="${window.preview ? 'd-none' : ''}"
+                                style="padding: 6px 18px;border-radius: 10px;border:solid 1px #FEAD20;color: #FEAD20;font-size: 16px;font-style: normal;font-weight: 700;line-height: normal;cursor: pointer;"
+                                onclick="${gvc.event(() => {
+                                    vm.step--;
+                                    close();
+                                    if (window.previewEvent) {
+                                        window.previewEvent();
+                                    }
 
-                                        gvc.notifyDataChange(viewID);
-                                    })}"
+                                    gvc.notifyDataChange(viewID);
+                                })}"
                             >
                                 上一步
                             </div>
-                            <div class="${window.next ? "d-none" : "d-flex"} align-items-center justify-content-center ms-auto"
-                                 style="width: 96px;height: 46px;">
-                                <div class="${window.disable ? `` : `breathing-light`} "
-                                     style="${window.disable ? `opacity: 0.8;background: #FFE9B2` : `background: #FEAD20;cursor: pointer`};padding: 6px 18px;border-radius: 10px;color: #FFF; ;font-size: 16px;font-style: normal;font-weight: 700;line-height: normal;"
-                                     onclick="${gvc.event(() => {
-                                         if (!window.disable) {
-                                             next();
-                                         }
-                                         if (window.nextEvent) {
-                                             window.nextEvent();
-                                         }
-                                     })}">
-                                    ${window.btnText ?? "下一步"}
+                            <div class="${window.next ? 'd-none' : 'd-flex'} align-items-center justify-content-center ms-auto" style="width: 96px;height: 46px;">
+                                <div
+                                    class="${window.disable ? `` : `breathing-light`} "
+                                    style="${window.disable
+                                        ? `opacity: 0.8;background: #FFE9B2`
+                                        : `background: #FEAD20;cursor: pointer`};padding: 6px 18px;border-radius: 10px;color: #FFF; ;font-size: 16px;font-style: normal;font-weight: 700;line-height: normal;"
+                                    onclick="${gvc.event(() => {
+                                        if (!window.disable) {
+                                            next();
+                                        }
+                                        if (window.nextEvent) {
+                                            window.nextEvent();
+                                        }
+                                    })}"
+                                >
+                                    ${window.btnText ?? '下一步'}
                                 </div>
                             </div>
                         </div>
@@ -474,20 +473,30 @@ export class BgGuide {
     }
 
     // 大部分用於視窗在下方的教學
-    private drawBGwithRightWindow(BG: HTMLElement, vm: any, htmlElement: Element, targetSelector: string, viewID: string, step: number, allStep: number, window: {
-        width: number,
-        height: number,
-        title: string,
-        content: string,
-        next?: boolean,
-        disable?: boolean,
-        alignment?: string,
-        btnText?: string,
-        preview?: boolean,
-        previewEvent?: () => void,
-        nextEvent?: () => void,
-        cover?: boolean
-    }, closeEvent?: () => void) {
+    private drawBGwithRightWindow(
+        BG: HTMLElement,
+        vm: any,
+        htmlElement: Element,
+        targetSelector: string,
+        viewID: string,
+        step: number,
+        allStep: number,
+        window: {
+            width: number;
+            height: number;
+            title: string;
+            content: string;
+            next?: boolean;
+            disable?: boolean;
+            alignment?: string;
+            btnText?: string;
+            preview?: boolean;
+            previewEvent?: () => void;
+            nextEvent?: () => void;
+            cover?: boolean;
+        },
+        closeEvent?: () => void
+    ) {
         let gvc = this.gvc;
 
         function close() {
@@ -504,7 +513,7 @@ export class BgGuide {
 
         function next() {
             vm.step++;
-            close()
+            close();
             gvc.notifyDataChange(viewID);
         }
 
@@ -519,110 +528,112 @@ export class BgGuide {
                             ${targetSelector} {
                                 ${this.holeBG(left, right, top, bottom)}
                             }                       
-                        `)
+                        `);
         if (window.cover) {
             let body = document.querySelector('.editorContainer');
             if (body && !document.querySelector('.clickInterface')) {
                 $(body).append(html`
-                    <div class="clickInterface"
-                         style="height: 100vh;width: 100vw;position: fixed;left: 0;top: 0;z-index: 1030;cursor: pointer;"
-                         onclick="${gvc.event(() => {
-
-                         })}"></div>
-                `)
+                    <div class="clickInterface" style="height: 100vh;width: 100vw;position: fixed;left: 0;top: 0;z-index: 1030;cursor: pointer;" onclick="${gvc.event(() => {})}"></div>
+                `);
             }
         }
 
-        BG.classList.add(`${targetSelector.split('.')[1]}`)
+        BG.classList.add(`${targetSelector.split('.')[1]}`);
         let winPosition = () => {
             switch (window.alignment) {
-                case "left": {
-                    return `left: ${right - window.width}px;top:${rect.bottom + 24}px;`
+                case 'left': {
+                    return `left: ${right - window.width}px;top:${rect.bottom + 24}px;`;
                 }
-                default : {
-                    return `left: ${mid - window.width / 2}px;top:${rect.bottom + 24}px;`
+                default: {
+                    return `left: ${mid - window.width / 2}px;top:${rect.bottom + 24}px;`;
                 }
             }
-        }
+        };
         let arrowPosition = () => {
             switch (window.alignment) {
-                case "left": {
+                case 'left': {
                     return window.width - 42;
                 }
-                default : {
-                    return window.width / 2 - 11
+                default: {
+                    return window.width / 2 - 11;
                 }
             }
-        }
+        };
         return html`
-            <div class="d-flex flex-column"
-                 style="width: ${window.width}px;height: ${window.height}px;flex-shrink: 0;position: absolute;${winPosition()};">
-
+            <div class="d-flex flex-column" style="width: ${window.width}px;height: ${window.height}px;flex-shrink: 0;position: absolute;${winPosition()};">
                 <div class="w-100" style="padding-left: ${arrowPosition()}px;height:23px;">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="18"
-                         viewBox="0 0 22 18" fill="none">
-                        <path d="M11.002 0L21.3943 18L0.609648 18L11.002 0Z"
-                              fill="#FEAD20"/>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="18" viewBox="0 0 22 18" fill="none">
+                        <path d="M11.002 0L21.3943 18L0.609648 18L11.002 0Z" fill="#FEAD20" />
                     </svg>
                 </div>
                 <div class="w-100" style="border-radius: 10px;">
-                    <div style="display: flex;padding: 12px 24px;gap: 10px;width: 100%;background: #FEAD20;border-radius: 10px 10px 0 0;color:white;font-size: 20px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 0.8px;">
+                    <div
+                        style="display: flex;padding: 12px 24px;gap: 10px;width: 100%;background: #FEAD20;border-radius: 10px 10px 0 0;color:white;font-size: 20px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 0.8px;"
+                    >
                         ${window.title}
-                        <div class="d-flex ms-auto align-items-center"
-                             style="gap:10px;color: #FFF;font-size: 16px;font-style: normal;font-weight: 400;line-height: normal;letter-spacing: 0.64px;">
+                        <div class="d-flex ms-auto align-items-center" style="gap:10px;color: #FFF;font-size: 16px;font-style: normal;font-weight: 400;line-height: normal;letter-spacing: 0.64px;">
                             步驟 ${step}/${allStep}
-                            <svg style="cursor: pointer;"
-                                 xmlns="http://www.w3.org/2000/svg"
-                                 width="14" height="13" viewBox="0 0 14 13" fill="none"
-                                 onclick="${gvc.event(() => {
-                                     close();
-                                     this.leaveGuide(vm);
-                                 })}">
-                                <path d="M1 0.5L13 12.5" stroke="white"
-                                      stroke-linecap="round"/>
-                                <path d="M13 0.5L1 12.5" stroke="white"
-                                      stroke-linecap="round"/>
+                            <svg
+                                style="cursor: pointer;"
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="14"
+                                height="13"
+                                viewBox="0 0 14 13"
+                                fill="none"
+                                onclick="${gvc.event(() => {
+                                    close();
+                                    this.leaveGuide(vm);
+                                })}"
+                            >
+                                <path d="M1 0.5L13 12.5" stroke="white" stroke-linecap="round" />
+                                <path d="M13 0.5L1 12.5" stroke="white" stroke-linecap="round" />
                             </svg>
                         </div>
                     </div>
-                    <div class="d-flex flex-column w-100"
-                         style="background: #FFF;width:100%;padding: 18px 24px;border-radius: 0 0 10px 10px;font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.64px;white-space: normal">
+                    <div
+                        class="d-flex flex-column w-100"
+                        style="background: #FFF;width:100%;padding: 18px 24px;border-radius: 0 0 10px 10px;font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.64px;white-space: normal"
+                    >
                         ${window.content}
-                        <div class="d-flex align-items-center justify-content-between w-100"
-                             style="margin-top: 24px;height:52px;">
-                            <div class="${(window.preview) ? 'd-none' : ''}"
-                                 style="padding: 6px 18px;border-radius: 10px;border:solid 1px #FEAD20;color: #FEAD20;font-size: 16px;font-style: normal;font-weight: 700;line-height: normal;cursor: pointer;"
-                                 onclick="${gvc.event(() => {
-                                     vm.step--;
-                                     close()
-                                     if (window.previewEvent) {
-                                         window.previewEvent();
-                                     }
+                        <div class="d-flex align-items-center justify-content-between w-100" style="margin-top: 24px;height:52px;">
+                            <div
+                                class="${window.preview ? 'd-none' : ''}"
+                                style="padding: 6px 18px;border-radius: 10px;border:solid 1px #FEAD20;color: #FEAD20;font-size: 16px;font-style: normal;font-weight: 700;line-height: normal;cursor: pointer;"
+                                onclick="${gvc.event(() => {
+                                    vm.step--;
+                                    close();
+                                    if (window.previewEvent) {
+                                        window.previewEvent();
+                                    }
 
-                                     gvc.notifyDataChange(viewID);
-                                 })}">
+                                    gvc.notifyDataChange(viewID);
+                                })}"
+                            >
                                 上一步
                             </div>
-                            <div class="${window.next ? "d-none" : "d-flex"} align-items-center justify-content-center ms-auto"
-                                 style="width: 96px;height: 46px;">
-                                <div class="${window.disable ? `` : `breathing-light`} "
-                                     style="${window.disable ? `opacity: 0.8;background: #FFE9B2` : `background: #FEAD20;cursor: pointer`};padding: 6px 18px;border-radius: 10px;color: #FFF; ;font-size: 16px;font-style: normal;font-weight: 700;line-height: normal;"
-                                     onclick="${gvc.event(() => {
-                                         if (!window.disable) {
-                                             next();
-                                         }
-                                         if (window.nextEvent) {
-                                             window.nextEvent();
-                                         }
-                                     })}">
-                                    ${window.btnText ?? "下一步"}
+                            <div class="${window.next ? 'd-none' : 'd-flex'} align-items-center justify-content-center ms-auto" style="width: 96px;height: 46px;">
+                                <div
+                                    class="${window.disable ? `` : `breathing-light`} "
+                                    style="${window.disable
+                                        ? `opacity: 0.8;background: #FFE9B2`
+                                        : `background: #FEAD20;cursor: pointer`};padding: 6px 18px;border-radius: 10px;color: #FFF; ;font-size: 16px;font-style: normal;font-weight: 700;line-height: normal;"
+                                    onclick="${gvc.event(() => {
+                                        if (!window.disable) {
+                                            next();
+                                        }
+                                        if (window.nextEvent) {
+                                            window.nextEvent();
+                                        }
+                                    })}"
+                                >
+                                    ${window.btnText ?? '下一步'}
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        `
+        `;
     }
 
     // 用於按下儲存按鈕的教學
@@ -652,58 +663,54 @@ export class BgGuide {
             this.finGuide(key);
         });
         return html`
-            <div class="d-flex flex-column"
-                 style="width: 332px;height: 200px;flex-shrink: 0;position: absolute;right: 18px;bottom:90px;)">
+            <div class="d-flex flex-column" style="width: 332px;height: 200px;flex-shrink: 0;position: absolute;right: 18px;bottom:90px;)">
                 <div class="w-100" style="border-radius: 10px;">
                     <div
-                            style="display: flex;padding: 12px 24px;gap: 10px;width: 100%;background: #FEAD20;border-radius: 10px 10px 0 0;color:white;font-size: 20px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 0.8px;"
+                        style="display: flex;padding: 12px 24px;gap: 10px;width: 100%;background: #FEAD20;border-radius: 10px 10px 0 0;color:white;font-size: 20px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 0.8px;"
                     >
                         儲存
-                        <div class="d-flex ms-auto align-items-center"
-                             style="gap:10px;color: #FFF;font-size: 16px;font-style: normal;font-weight: 400;line-height: normal;letter-spacing: 0.64px;">
+                        <div class="d-flex ms-auto align-items-center" style="gap:10px;color: #FFF;font-size: 16px;font-style: normal;font-weight: 400;line-height: normal;letter-spacing: 0.64px;">
                             步驟 ${step}/${step}
                             <svg
-                                    style="cursor: pointer;"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    width="14"
-                                    height="13"
-                                    viewBox="0 0 14 13"
-                                    fill="none"
-                                    onclick="${gvc.event(() => {
-                                        close();
-                                        this.leaveGuide(vm);
-                                    })}"
+                                style="cursor: pointer;"
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="14"
+                                height="13"
+                                viewBox="0 0 14 13"
+                                fill="none"
+                                onclick="${gvc.event(() => {
+                                    close();
+                                    this.leaveGuide(vm);
+                                })}"
                             >
-                                <path d="M1 0.5L13 12.5" stroke="white" stroke-linecap="round"/>
-                                <path d="M13 0.5L1 12.5" stroke="white" stroke-linecap="round"/>
+                                <path d="M1 0.5L13 12.5" stroke="white" stroke-linecap="round" />
+                                <path d="M13 0.5L1 12.5" stroke="white" stroke-linecap="round" />
                             </svg>
                         </div>
                     </div>
                     <div
-                            class="d-flex flex-column w-100"
-                            style="background: #FFF;width:100%;padding: 18px 24px;border-radius: 0 0 10px 10px;font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.64px;"
+                        class="d-flex flex-column w-100"
+                        style="background: #FFF;width:100%;padding: 18px 24px;border-radius: 0 0 10px 10px;font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.64px;"
                     >
                         <div class="d-flex">點擊<span style="font-weight: 700;">儲存</span>按鈕，完成設定</div>
-                        <div class="d-flex align-items-center justify-content-between"
-                             style="margin-top: 24px;height:52px;">
+                        <div class="d-flex align-items-center justify-content-between" style="margin-top: 24px;height:52px;">
                             <div
-                                    style="padding: 6px 18px;border-radius: 10px;border:solid 1px #FEAD20;color: #FEAD20;font-size: 16px;font-style: normal;font-weight: 700;line-height: normal;cursor: pointer;"
-                                    onclick="${gvc.event(() => {
-                                        vm.step--;
-                                        close();
-                                        gvc.notifyDataChange(viewID);
-                                    })}"
+                                style="padding: 6px 18px;border-radius: 10px;border:solid 1px #FEAD20;color: #FEAD20;font-size: 16px;font-style: normal;font-weight: 700;line-height: normal;cursor: pointer;"
+                                onclick="${gvc.event(() => {
+                                    vm.step--;
+                                    close();
+                                    gvc.notifyDataChange(viewID);
+                                })}"
                             >
                                 上一步
                             </div>
-                            <div class="d-flex align-items-center justify-content-center"
-                                 style="width: 96px;height: 46px;"></div>
+                            <div class="d-flex align-items-center justify-content-center" style="width: 96px;height: 46px;"></div>
                         </div>
                     </div>
                 </div>
                 <div class="w-100 d-flex justify-content-end" style="padding-right: 20px;height:23px;">
                     <svg xmlns="http://www.w3.org/2000/svg" width="22" height="18" viewBox="0 0 22 18" fill="none">
-                        <path d="M11 18L21.3923 -1.90735e-06L0.607696 -1.90735e-06L11 18Z" fill="white"/>
+                        <path d="M11 18L21.3923 -1.90735e-06L0.607696 -1.90735e-06L11 18Z" fill="white" />
                     </svg>
                 </div>
             </div>
@@ -789,8 +796,7 @@ export class BgGuide {
                                 content: '為當前首頁套用的主題資訊',
                                 cover: true,
                             },
-                            () => {
-                            }
+                            () => {}
                         );
                     }
                     case 4: {
@@ -804,24 +810,22 @@ export class BgGuide {
                             }, 400);
                         }
                         let content = html`
-                            <div class="d-flex flex-wrap"
-                                 style="font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.64px;">
+                            <div class="d-flex flex-wrap" style="font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.64px;">
                                 點擊<span style="font-weight: 700;">自訂</span>，即可前往<span style="font-weight: 700;">頁面編輯器頁面</span>，自由將官網編輯成您理想中的模樣
                             </div>
-                        `
-                        return this.drawBGwithBelowWindow(BG, vm, '.guide7-4', viewID, totalStep, totalStep,
-                            {
-                                width: 332,
-                                height: 235,
-                                title: "自訂主題",
-                                content: content,
-                                alignment: "left",
-                                btnText: "完成",
-                                cover: true,
-                                nextEvent: () => {
-                                    this.leaveGuide(vm);
-                                }
-                            })
+                        `;
+                        return this.drawBGwithBelowWindow(BG, vm, '.guide7-4', viewID, totalStep, totalStep, {
+                            width: 332,
+                            height: 235,
+                            title: '自訂主題',
+                            content: content,
+                            alignment: 'left',
+                            btnText: '完成',
+                            cover: true,
+                            nextEvent: () => {
+                                this.leaveGuide(vm);
+                            },
+                        });
                     }
                     default: {
                         function close() {
@@ -870,43 +874,42 @@ export class BgGuide {
                             `);
                             return html`
                                 <div
-                                        style="padding-left: 18px;width: 350px;height: 113px;flex-shrink: 0;filter: drop-shadow(2px 2px 10px rgba(0, 0, 0, 0.15));position: absolute;top: ${(rect.top -
-                                                12 +
-                                                iframeRect.top +
-                                                rect2.bottom) /
-                                        2}px;left: ${(rect.right + iframeRect.left + rect2.left) / 2}px;transform: translate(-50%, -50%);z-index:1033;"
+                                    style="padding-left: 18px;width: 350px;height: 113px;flex-shrink: 0;filter: drop-shadow(2px 2px 10px rgba(0, 0, 0, 0.15));position: absolute;top: ${(rect.top -
+                                        12 +
+                                        iframeRect.top +
+                                        rect2.bottom) /
+                                    2}px;left: ${(rect.right + iframeRect.left + rect2.left) / 2}px;transform: translate(-50%, -50%);z-index:1033;"
                                 >
                                     <div style="position: relative;border-radius: 10px;">
                                         <div
-                                                style="display: flex;padding: 12px 24px;gap: 10px;width: 100%;background: #FEAD20;border-radius: 10px 10px 0 0;color:white;font-size: 20px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 0.8px;"
+                                            style="display: flex;padding: 12px 24px;gap: 10px;width: 100%;background: #FEAD20;border-radius: 10px 10px 0 0;color:white;font-size: 20px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 0.8px;"
                                         >
                                             品牌官網
                                             <div
-                                                    class="d-flex ms-auto align-items-center"
-                                                    style="gap:10px;color: #FFF;font-size: 16px;font-style: normal;font-weight: 400;line-height: normal;letter-spacing: 0.64px;"
+                                                class="d-flex ms-auto align-items-center"
+                                                style="gap:10px;color: #FFF;font-size: 16px;font-style: normal;font-weight: 400;line-height: normal;letter-spacing: 0.64px;"
                                             >
                                                 步驟 1/${totalStep}
                                                 <svg
-                                                        style="cursor: pointer;"
-                                                        xmlns="http://www.w3.org/2000/svg"
-                                                        width="14"
-                                                        height="13"
-                                                        viewBox="0 0 14 13"
-                                                        fill="none"
-                                                        onclick="${this.gvc.event(() => {
-                                                            this.leaveGuide(vm);
-                                                        })}"
+                                                    style="cursor: pointer;"
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    width="14"
+                                                    height="13"
+                                                    viewBox="0 0 14 13"
+                                                    fill="none"
+                                                    onclick="${this.gvc.event(() => {
+                                                        this.leaveGuide(vm);
+                                                    })}"
                                                 >
-                                                    <path d="M1 0.5L13 12.5" stroke="white" stroke-linecap="round"/>
-                                                    <path d="M13 0.5L1 12.5" stroke="white" stroke-linecap="round"/>
+                                                    <path d="M1 0.5L13 12.5" stroke="white" stroke-linecap="round" />
+                                                    <path d="M13 0.5L1 12.5" stroke="white" stroke-linecap="round" />
                                                 </svg>
                                             </div>
                                         </div>
                                         <div
-                                                style="background: #FFF;width:100%;padding: 18px 24px;display: flex;align-items: center;border-radius: 0 0 10px 10px;font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%; /* 25.6px */letter-spacing: 0.64px;"
+                                            style="background: #FFF;width:100%;padding: 18px 24px;display: flex;align-items: center;border-radius: 0 0 10px 10px;font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%; /* 25.6px */letter-spacing: 0.64px;"
                                         >
-                                            點擊<span
-                                                style="font-style: normal;font-weight: 700;line-height: 160%;letter-spacing: 0.64px;">「品牌官網」</span>
+                                            點擊<span style="font-style: normal;font-weight: 700;line-height: 160%;letter-spacing: 0.64px;">「品牌官網」</span>
                                         </div>
                                     </div>
                                 </div>
@@ -995,11 +998,12 @@ export class BgGuide {
                             {
                                 width: 332,
                                 height: 209,
-                                title: "當前主題",
-                                content: "為當前首頁套用的主題資訊",
+                                title: '當前主題',
+                                content: '為當前首頁套用的主題資訊',
                                 cover: true,
-                            }, () => {
-                            })
+                            },
+                            () => {}
+                        );
                     }
                     case 4: {
                         let target = this.findIframeDom(`.guide7-4`);
@@ -1012,20 +1016,18 @@ export class BgGuide {
                             }, 400);
                         }
                         let content = html`
-                            <div class="d-flex flex-wrap"
-                                 style="font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.64px;">
+                            <div class="d-flex flex-wrap" style="font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.64px;">
                                 點擊<span style="font-weight: 700;">自訂</span>，可前往<span style="font-weight: 700;">頁面編輯器頁面</span>，自由將官網編輯成您理想中的模樣
                             </div>
-                        `
-                        return this.drawBGwithBelowWindow(BG, vm, '.guide7-4', viewID, totalStep - 4, totalStep,
-                            {
-                                width: 332,
-                                height: 235,
-                                title: "自訂主題",
-                                content: content,
-                                alignment: "left",
-                                cover: true
-                            })
+                        `;
+                        return this.drawBGwithBelowWindow(BG, vm, '.guide7-4', viewID, totalStep - 4, totalStep, {
+                            width: 332,
+                            height: 235,
+                            title: '自訂主題',
+                            content: content,
+                            alignment: 'left',
+                            cover: true,
+                        });
                     }
                     case 5: {
                         let target = this.findIframeDom(`.guide8-5`);
@@ -1039,13 +1041,11 @@ export class BgGuide {
                         }
 
                         let content = html`
-                            <div class=""
-                                 style="font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.64px;white-space: normal">
+                            <div class="" style="font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.64px;white-space: normal">
                                 在<span style="font-weight: 700;">佈景主題庫</span>儲存並管理多個設計主題，可根據需求靈活切換應用，展現多樣視覺效果，增強品牌吸引力
                             </div>
-                        `
-                        return this.drawBGwithBelowWindow(BG, vm, '.guide8-5', viewID, totalStep - 3, totalStep,
-                            {width: 439, height: 261, title: "自訂主題", content: content, cover: true})
+                        `;
+                        return this.drawBGwithBelowWindow(BG, vm, '.guide8-5', viewID, totalStep - 3, totalStep, { width: 439, height: 261, title: '自訂主題', content: content, cover: true });
                     }
                     case 6: {
                         let target = this.findIframeDom(`.themeGroup`);
@@ -1064,8 +1064,7 @@ export class BgGuide {
                             gvc.notifyDataChange(viewID);
                         });
                         let content = html`
-                            <div class=""
-                                 style="font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.64px;white-space: normal">
+                            <div class="" style="font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.64px;white-space: normal">
                                 滑鼠移入喜歡的主題後點擊<span style="font-weight: 700;">新增</span>
                             </div>
                         `;
@@ -1073,7 +1072,7 @@ export class BgGuide {
                             width: 439,
                             height: 261,
                             title: '選擇主題',
-                            content: content
+                            content: content,
                         });
                     }
                     case 7: {
@@ -1088,8 +1087,7 @@ export class BgGuide {
                         }
                         target.parentElement.scrollIntoView();
                         let content = html`
-                            <div class=""
-                                 style="font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.64px;white-space: normal">
+                            <div class="" style="font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.64px;white-space: normal">
                                 您可以對剛新增的主題進行操作，如自定義樣式、切換、複製及下載等等
                             </div>
                         `;
@@ -1097,7 +1095,7 @@ export class BgGuide {
                             width: 439,
                             height: 261,
                             title: '管理主題庫',
-                            content: content
+                            content: content,
                         });
                     }
                     case 8: {
@@ -1113,66 +1111,59 @@ export class BgGuide {
                         target.parentElement.scrollIntoView();
 
                         let content = html`
-                            <div class=""
-                                 style="font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.64px;white-space: normal">
+                            <div class="" style="font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.64px;white-space: normal">
                                 使用<span style="font-weight: 700;">切換</span>功能，您可以將官網快速切換為主題庫中的其他主題，輕鬆又快速變換官網風格。
                             </div>
-                        `
-                        return this.drawBGwithBelowWindow(BG, vm, '.themeSwitch', viewID, totalStep, totalStep,
-                            {
-                                width: 439,
-                                height: 261,
-                                title: "切換主題",
-                                content: content,
-                                alignment: "left",
-                                btnText: "完成",
-                                nextEvent: () => {
-                                    this.leaveGuide(vm);
-                                }
-                            })
+                        `;
+                        return this.drawBGwithBelowWindow(BG, vm, '.themeSwitch', viewID, totalStep, totalStep, {
+                            width: 439,
+                            height: 261,
+                            title: '切換主題',
+                            content: content,
+                            alignment: 'left',
+                            btnText: '完成',
+                            nextEvent: () => {
+                                this.leaveGuide(vm);
+                            },
+                        });
                     }
                     case 9: {
-                        return html`
-                            <div
-                                    class="d-flex flex-column align-items-center justify-content-center"
-                                    style="width: 492px;height: 307px;flex-shrink: 0;border-radius: 10px;background: #FFF;padding: 36px 64px;"
-                            >
-                                <svg xmlns="http://www.w3.org/2000/svg" width="76" height="75" viewBox="0 0 76 75"
-                                     fill="none">
-                                    <g clip-path="url(#clip0_12208_36243)">
-                                        <path
-                                                d="M38 7.03125C46.0808 7.03125 53.8307 10.2413 59.5447 15.9553C65.2587 21.6693 68.4688 29.4192 68.4688 37.5C68.4688 45.5808 65.2587 53.3307 59.5447 59.0447C53.8307 64.7587 46.0808 67.9688 38 67.9688C29.9192 67.9688 22.1693 64.7587 16.4553 59.0447C10.7413 53.3307 7.53125 45.5808 7.53125 37.5C7.53125 29.4192 10.7413 21.6693 16.4553 15.9553C22.1693 10.2413 29.9192 7.03125 38 7.03125ZM38 75C47.9456 75 57.4839 71.0491 64.5165 64.0165C71.5491 56.9839 75.5 47.4456 75.5 37.5C75.5 27.5544 71.5491 18.0161 64.5165 10.9835C57.4839 3.95088 47.9456 0 38 0C28.0544 0 18.5161 3.95088 11.4835 10.9835C4.45088 18.0161 0.5 27.5544 0.5 37.5C0.5 47.4456 4.45088 56.9839 11.4835 64.0165C18.5161 71.0491 28.0544 75 38 75ZM38 18.75C36.0518 18.75 34.4844 20.3174 34.4844 22.2656V38.6719C34.4844 40.6201 36.0518 42.1875 38 42.1875C39.9482 42.1875 41.5156 40.6201 41.5156 38.6719V22.2656C41.5156 20.3174 39.9482 18.75 38 18.75ZM42.6875 51.5625C42.6875 50.3193 42.1936 49.127 41.3146 48.2479C40.4355 47.3689 39.2432 46.875 38 46.875C36.7568 46.875 35.5645 47.3689 34.6854 48.2479C33.8064 49.127 33.3125 50.3193 33.3125 51.5625C33.3125 52.8057 33.8064 53.998 34.6854 54.8771C35.5645 55.7561 36.7568 56.25 38 56.25C39.2432 56.25 40.4355 55.7561 41.3146 54.8771C42.1936 53.998 42.6875 52.8057 42.6875 51.5625Z"
-                                                fill="#393939"
-                                        />
-                                    </g>
-                                    <defs>
-                                        <clipPath id="clip0_12208_36243">
-                                            <rect width="75" height="75" fill="white" transform="translate(0.5)"/>
-                                        </clipPath>
-                                    </defs>
-                                </svg>
-                                <div style="font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.64px;color:#393939;margin-top: 24px;">
-                                    是否刪除導覽新增的主題？
+                        return html` <div
+                            class="d-flex flex-column align-items-center justify-content-center"
+                            style="width: 492px;height: 307px;flex-shrink: 0;border-radius: 10px;background: #FFF;padding: 36px 64px;"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="76" height="75" viewBox="0 0 76 75" fill="none">
+                                <g clip-path="url(#clip0_12208_36243)">
+                                    <path
+                                        d="M38 7.03125C46.0808 7.03125 53.8307 10.2413 59.5447 15.9553C65.2587 21.6693 68.4688 29.4192 68.4688 37.5C68.4688 45.5808 65.2587 53.3307 59.5447 59.0447C53.8307 64.7587 46.0808 67.9688 38 67.9688C29.9192 67.9688 22.1693 64.7587 16.4553 59.0447C10.7413 53.3307 7.53125 45.5808 7.53125 37.5C7.53125 29.4192 10.7413 21.6693 16.4553 15.9553C22.1693 10.2413 29.9192 7.03125 38 7.03125ZM38 75C47.9456 75 57.4839 71.0491 64.5165 64.0165C71.5491 56.9839 75.5 47.4456 75.5 37.5C75.5 27.5544 71.5491 18.0161 64.5165 10.9835C57.4839 3.95088 47.9456 0 38 0C28.0544 0 18.5161 3.95088 11.4835 10.9835C4.45088 18.0161 0.5 27.5544 0.5 37.5C0.5 47.4456 4.45088 56.9839 11.4835 64.0165C18.5161 71.0491 28.0544 75 38 75ZM38 18.75C36.0518 18.75 34.4844 20.3174 34.4844 22.2656V38.6719C34.4844 40.6201 36.0518 42.1875 38 42.1875C39.9482 42.1875 41.5156 40.6201 41.5156 38.6719V22.2656C41.5156 20.3174 39.9482 18.75 38 18.75ZM42.6875 51.5625C42.6875 50.3193 42.1936 49.127 41.3146 48.2479C40.4355 47.3689 39.2432 46.875 38 46.875C36.7568 46.875 35.5645 47.3689 34.6854 48.2479C33.8064 49.127 33.3125 50.3193 33.3125 51.5625C33.3125 52.8057 33.8064 53.998 34.6854 54.8771C35.5645 55.7561 36.7568 56.25 38 56.25C39.2432 56.25 40.4355 55.7561 41.3146 54.8771C42.1936 53.998 42.6875 52.8057 42.6875 51.5625Z"
+                                        fill="#393939"
+                                    />
+                                </g>
+                                <defs>
+                                    <clipPath id="clip0_12208_36243">
+                                        <rect width="75" height="75" fill="white" transform="translate(0.5)" />
+                                    </clipPath>
+                                </defs>
+                            </svg>
+                            <div style="font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.64px;color:#393939;margin-top: 24px;">是否刪除導覽新增的主題？</div>
+                            <div style="color: #8D8D8D;font-size: 14px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.56px;margin-top: 8px;">
+                                ※您已按照教學導覽新增了一個主題。<br />
+                                若無需使用，建議刪除以保持主題庫整潔。
+                            </div>
+                            <div class="d-flex align-items-center justify-content-center" style="margin-top: 24px;font-size: 16px;font-style: normal;font-weight: 700;line-height: normal;gap:14px;">
+                                <div
+                                    style="color:#393939;display: flex;padding: 6px 18px;justify-content: center;align-items: center;border-radius: 10px;border: 1px solid #DDD;background: #FFF;"
+                                    onclick="${gvc.event(() => {
+                                        this.leaveGuide(vm);
+                                    })}"
+                                >
+                                    取消
                                 </div>
-                                <div style="color: #8D8D8D;font-size: 14px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.56px;margin-top: 8px;">
-                                    ※您已按照教學導覽新增了一個主題。<br/>
-                                    若無需使用，建議刪除以保持主題庫整潔。
+                                <div style="color:#FFF;display: flex;padding: 6px 18px;justify-content: center;align-items: center;border-radius: 10px;border: 1px solid #DDD;background: #DA1313;">
+                                    刪除
                                 </div>
-                                <div class="d-flex align-items-center justify-content-center"
-                                     style="margin-top: 24px;font-size: 16px;font-style: normal;font-weight: 700;line-height: normal;gap:14px;">
-                                    <div
-                                            style="color:#393939;display: flex;padding: 6px 18px;justify-content: center;align-items: center;border-radius: 10px;border: 1px solid #DDD;background: #FFF;"
-                                            onclick="${gvc.event(() => {
-                                                this.leaveGuide(vm);
-                                            })}"
-                                    >
-                                        取消
-                                    </div>
-                                    <div style="color:#FFF;display: flex;padding: 6px 18px;justify-content: center;align-items: center;border-radius: 10px;border: 1px solid #DDD;background: #DA1313;">
-                                        刪除
-                                    </div>
-                                </div>
-                            </div>`;
+                            </div>
+                        </div>`;
                     }
                     default: {
                         function close() {
@@ -1221,43 +1212,42 @@ export class BgGuide {
                             `);
                             return html`
                                 <div
-                                        style="padding-left: 18px;width: 350px;height: 113px;flex-shrink: 0;filter: drop-shadow(2px 2px 10px rgba(0, 0, 0, 0.15));position: absolute;top: ${(rect.top -
-                                                12 +
-                                                iframeRect.top +
-                                                rect2.bottom) /
-                                        2}px;left: ${(rect.right + iframeRect.left + rect2.left) / 2}px;transform: translate(-50%, -50%);z-index:1033;"
+                                    style="padding-left: 18px;width: 350px;height: 113px;flex-shrink: 0;filter: drop-shadow(2px 2px 10px rgba(0, 0, 0, 0.15));position: absolute;top: ${(rect.top -
+                                        12 +
+                                        iframeRect.top +
+                                        rect2.bottom) /
+                                    2}px;left: ${(rect.right + iframeRect.left + rect2.left) / 2}px;transform: translate(-50%, -50%);z-index:1033;"
                                 >
                                     <div style="position: relative;border-radius: 10px;">
                                         <div
-                                                style="display: flex;padding: 12px 24px;gap: 10px;width: 100%;background: #FEAD20;border-radius: 10px 10px 0 0;color:white;font-size: 20px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 0.8px;"
+                                            style="display: flex;padding: 12px 24px;gap: 10px;width: 100%;background: #FEAD20;border-radius: 10px 10px 0 0;color:white;font-size: 20px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 0.8px;"
                                         >
                                             品牌官網
                                             <div
-                                                    class="d-flex ms-auto align-items-center"
-                                                    style="gap:10px;color: #FFF;font-size: 16px;font-style: normal;font-weight: 400;line-height: normal;letter-spacing: 0.64px;"
+                                                class="d-flex ms-auto align-items-center"
+                                                style="gap:10px;color: #FFF;font-size: 16px;font-style: normal;font-weight: 400;line-height: normal;letter-spacing: 0.64px;"
                                             >
                                                 步驟 1/${totalStep}
                                                 <svg
-                                                        style="cursor: pointer;"
-                                                        xmlns="http://www.w3.org/2000/svg"
-                                                        width="14"
-                                                        height="13"
-                                                        viewBox="0 0 14 13"
-                                                        fill="none"
-                                                        onclick="${this.gvc.event(() => {
-                                                            this.leaveGuide(vm);
-                                                        })}"
+                                                    style="cursor: pointer;"
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    width="14"
+                                                    height="13"
+                                                    viewBox="0 0 14 13"
+                                                    fill="none"
+                                                    onclick="${this.gvc.event(() => {
+                                                        this.leaveGuide(vm);
+                                                    })}"
                                                 >
-                                                    <path d="M1 0.5L13 12.5" stroke="white" stroke-linecap="round"/>
-                                                    <path d="M13 0.5L1 12.5" stroke="white" stroke-linecap="round"/>
+                                                    <path d="M1 0.5L13 12.5" stroke="white" stroke-linecap="round" />
+                                                    <path d="M13 0.5L1 12.5" stroke="white" stroke-linecap="round" />
                                                 </svg>
                                             </div>
                                         </div>
                                         <div
-                                                style="background: #FFF;width:100%;padding: 18px 24px;display: flex;align-items: center;border-radius: 0 0 10px 10px;font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%; /* 25.6px */letter-spacing: 0.64px;"
+                                            style="background: #FFF;width:100%;padding: 18px 24px;display: flex;align-items: center;border-radius: 0 0 10px 10px;font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%; /* 25.6px */letter-spacing: 0.64px;"
                                         >
-                                            點擊<span
-                                                style="font-style: normal;font-weight: 700;line-height: 160%;letter-spacing: 0.64px;">「品牌官網」</span>
+                                            點擊<span style="font-style: normal;font-weight: 700;line-height: 160%;letter-spacing: 0.64px;">「品牌官網」</span>
                                         </div>
                                     </div>
                                 </div>
@@ -1347,8 +1337,7 @@ export class BgGuide {
                                 title: '商店基本資訊',
                                 content: '在這裡可以修改商店的基本訊息',
                             },
-                            () => {
-                            }
+                            () => {}
                         );
                     }
                     case 4: {
@@ -1366,7 +1355,7 @@ export class BgGuide {
                             width: 332,
                             height: 209,
                             title: 'SEO設定',
-                            content: '完善SEO系統，提升網站的曝光度。'
+                            content: '完善SEO系統，提升網站的曝光度。',
                         });
                     }
                     case 5: {
@@ -1463,9 +1452,7 @@ export class BgGuide {
                             }, 400);
                         }
                         let content = html`
-                            <div class="d-flex" style="font-weight: 400;line-height: 160%;letter-spacing: 0.64px;">
-                                點擊<span style="font-weight: 700;">新增</span>，填寫商品詳細資訊
-                            </div>
+                            <div class="d-flex" style="font-weight: 400;line-height: 160%;letter-spacing: 0.64px;">點擊<span style="font-weight: 700;">新增</span>，填寫商品詳細資訊</div>
                         `;
                         this.detectClickThrough(target, () => {
                             vm.step++;
@@ -1488,8 +1475,7 @@ export class BgGuide {
                                     alignment: 'left',
                                     next: true,
                                 },
-                                () => {
-                                }
+                                () => {}
                             );
                         } else {
                             return this.drawBGwithBelowWindow(
@@ -1506,8 +1492,7 @@ export class BgGuide {
                                     content: '輸入商品名稱',
                                     disable: true,
                                 },
-                                () => {
-                                }
+                                () => {}
                             );
                         }
                     }
@@ -1527,7 +1512,7 @@ export class BgGuide {
                                 height: 209,
                                 title: '商品名稱',
                                 content: '輸入商品名稱',
-                                preview: true
+                                preview: true,
                             });
                         }
                         this.detectOninputThrough(target.querySelector('input'), () => {
@@ -1732,60 +1717,57 @@ export class BgGuide {
                         }, 500);
                         BG.classList.add(`guide4-3`);
                         return html`
-                            <div class="d-flex flex-column"
-                                 style="width: 440px;height: 218px;flex-shrink: 0;position: absolute;left: ${mid - 220}px;top:${(bottom + top2) / 2 - 109}px;">
+                            <div class="d-flex flex-column" style="width: 440px;height: 218px;flex-shrink: 0;position: absolute;left: ${mid - 220}px;top:${(bottom + top2) / 2 - 109}px;">
                                 <div class="w-100" style="border-radius: 10px;">
                                     <div
-                                            style="display: flex;padding: 12px 24px;gap: 10px;width: 100%;background: #FEAD20;border-radius: 10px 10px 0 0;color:white;font-size: 20px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 0.8px;"
+                                        style="display: flex;padding: 12px 24px;gap: 10px;width: 100%;background: #FEAD20;border-radius: 10px 10px 0 0;color:white;font-size: 20px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 0.8px;"
                                     >
                                         靈活選擇計算方式
                                         <div
-                                                class="d-flex ms-auto align-items-center"
-                                                style="gap:10px;color: #FFF;font-size: 16px;font-style: normal;font-weight: 400;line-height: normal;letter-spacing: 0.64px;"
+                                            class="d-flex ms-auto align-items-center"
+                                            style="gap:10px;color: #FFF;font-size: 16px;font-style: normal;font-weight: 400;line-height: normal;letter-spacing: 0.64px;"
                                         >
                                             步驟 3/8
                                             <svg
-                                                    style="cursor: pointer;"
-                                                    xmlns="http://www.w3.org/2000/svg"
-                                                    width="14"
-                                                    height="13"
-                                                    viewBox="0 0 14 13"
-                                                    fill="none"
-                                                    onclick="${gvc.event(() => {
-                                                        close();
-                                                        this.leaveGuide(vm);
-                                                    })}"
+                                                style="cursor: pointer;"
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                width="14"
+                                                height="13"
+                                                viewBox="0 0 14 13"
+                                                fill="none"
+                                                onclick="${gvc.event(() => {
+                                                    close();
+                                                    this.leaveGuide(vm);
+                                                })}"
                                             >
-                                                <path d="M1 0.5L13 12.5" stroke="white" stroke-linecap="round"/>
-                                                <path d="M13 0.5L1 12.5" stroke="white" stroke-linecap="round"/>
+                                                <path d="M1 0.5L13 12.5" stroke="white" stroke-linecap="round" />
+                                                <path d="M13 0.5L1 12.5" stroke="white" stroke-linecap="round" />
                                             </svg>
                                         </div>
                                     </div>
                                     <div
-                                            class="d-flex flex-column w-100"
-                                            style="background: #FFF;width:100%;padding: 18px 24px;border-radius: 0 0 10px 10px;font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.64px;"
+                                        class="d-flex flex-column w-100"
+                                        style="background: #FFF;width:100%;padding: 18px 24px;border-radius: 0 0 10px 10px;font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.64px;"
                                     >
                                         開啟您要使用的配送方式
-                                        <div class="d-flex align-items-center justify-content-between"
-                                             style="margin-top: 24px;height:52px;">
+                                        <div class="d-flex align-items-center justify-content-between" style="margin-top: 24px;height:52px;">
                                             <div
-                                                    style="padding: 6px 18px;border-radius: 10px;border:solid 1px #FEAD20;color: #FEAD20;font-size: 16px;font-style: normal;font-weight: 700;line-height: normal;cursor: pointer;"
-                                                    onclick="${gvc.event(() => {
-                                                        vm.step--;
-                                                        close();
-                                                        gvc.notifyDataChange('logisticsInit');
-                                                    })}"
+                                                style="padding: 6px 18px;border-radius: 10px;border:solid 1px #FEAD20;color: #FEAD20;font-size: 16px;font-style: normal;font-weight: 700;line-height: normal;cursor: pointer;"
+                                                onclick="${gvc.event(() => {
+                                                    vm.step--;
+                                                    close();
+                                                    gvc.notifyDataChange('logisticsInit');
+                                                })}"
                                             >
                                                 上一步
                                             </div>
-                                            <div class="d-flex align-items-center justify-content-center"
-                                                 style="width: 96px;height: 46px;">
+                                            <div class="d-flex align-items-center justify-content-center" style="width: 96px;height: 46px;">
                                                 <div
-                                                        class="breathing-light"
-                                                        style="padding: 6px 18px;border-radius: 10px;background: #FEAD20;;color: #FFF; ;font-size: 16px;font-style: normal;font-weight: 700;line-height: normal;cursor: pointer;"
-                                                        onclick="${gvc.event(() => {
-                                                            next();
-                                                        })}"
+                                                    class="breathing-light"
+                                                    style="padding: 6px 18px;border-radius: 10px;background: #FEAD20;;color: #FFF; ;font-size: 16px;font-style: normal;font-weight: 700;line-height: normal;cursor: pointer;"
+                                                    onclick="${gvc.event(() => {
+                                                        next();
+                                                    })}"
                                                 >
                                                     下一步
                                                 </div>
@@ -1801,7 +1783,7 @@ export class BgGuide {
                             width: 332,
                             height: 209,
                             title: '填寫材積區間',
-                            content: '填寫材積的運費計算區間'
+                            content: '填寫材積的運費計算區間',
                         });
                     }
                     case 5: {
@@ -1809,7 +1791,7 @@ export class BgGuide {
                             width: 332,
                             height: 209,
                             title: '新增計算區間',
-                            content: '點擊藍字即可新增一個計算區間'
+                            content: '點擊藍字即可新增一個計算區間',
                         });
                     }
                     case 6: {
@@ -1829,10 +1811,9 @@ export class BgGuide {
                         let content = html`
                             <div class="d-flex align-items-center" style="">
                                 點擊
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14"
-                                     style="margin:0 6px;" fill="none">
-                                    <path d="M1 1L13 13" stroke="#8D8D8D" stroke-linecap="round"/>
-                                    <path d="M13 1L1 13" stroke="#8D8D8D" stroke-linecap="round"/>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14" style="margin:0 6px;" fill="none">
+                                    <path d="M1 1L13 13" stroke="#8D8D8D" stroke-linecap="round" />
+                                    <path d="M13 1L1 13" stroke="#8D8D8D" stroke-linecap="round" />
                                 </svg>
                                 可以刪除計算區間
                             </div>
@@ -1841,13 +1822,13 @@ export class BgGuide {
                         if (body && !document.querySelector('.clickInterface')) {
                             $(body).append(html`
                                 <div
-                                        class="clickInterface"
-                                        style="height: 100vh;width: 100vw;position: fixed;left: 0;top: 0;z-index: 1030;cursor: pointer;"
-                                        onclick="${gvc.event(() => {
-                                            if (document.querySelector('.breathing-light')) {
-                                                (document.querySelector('.breathing-light') as HTMLElement).click();
-                                            }
-                                        })}"
+                                    class="clickInterface"
+                                    style="height: 100vh;width: 100vw;position: fixed;left: 0;top: 0;z-index: 1030;cursor: pointer;"
+                                    onclick="${gvc.event(() => {
+                                        if (document.querySelector('.breathing-light')) {
+                                            (document.querySelector('.breathing-light') as HTMLElement).click();
+                                        }
+                                    })}"
                                 ></div>
                             `);
                         }
@@ -1990,71 +1971,67 @@ export class BgGuide {
                         }, 500);
                         BG.classList.add(`guide3-3`);
                         return html`
-                            <div class="d-flex flex-column"
-                                 style="width: 332px;height: 209px;flex-shrink: 0;position: absolute;left: ${mid - 166}px;top:${rect.bottom + iframeRect.top + 24}px;">
+                            <div class="d-flex flex-column" style="width: 332px;height: 209px;flex-shrink: 0;position: absolute;left: ${mid - 166}px;top:${rect.bottom + iframeRect.top + 24}px;">
                                 <div class="w-100" style="padding-left: 155px;height:23px;">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="18" viewBox="0 0 22 18"
-                                         fill="none">
-                                        <path d="M11.002 0L21.3943 18L0.609648 18L11.002 0Z" fill="#FEAD20"/>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="18" viewBox="0 0 22 18" fill="none">
+                                        <path d="M11.002 0L21.3943 18L0.609648 18L11.002 0Z" fill="#FEAD20" />
                                     </svg>
                                 </div>
                                 <div class="w-100" style="border-radius: 10px;">
                                     <div
-                                            style="display: flex;padding: 12px 24px;gap: 10px;width: 100%;background: #FEAD20;border-radius: 10px 10px 0 0;color:white;font-size: 20px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 0.8px;"
+                                        style="display: flex;padding: 12px 24px;gap: 10px;width: 100%;background: #FEAD20;border-radius: 10px 10px 0 0;color:white;font-size: 20px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 0.8px;"
                                     >
                                         選擇配送方式
                                         <div
-                                                class="d-flex ms-auto align-items-center"
-                                                style="gap:10px;color: #FFF;font-size: 16px;font-style: normal;font-weight: 400;line-height: normal;letter-spacing: 0.64px;"
+                                            class="d-flex ms-auto align-items-center"
+                                            style="gap:10px;color: #FFF;font-size: 16px;font-style: normal;font-weight: 400;line-height: normal;letter-spacing: 0.64px;"
                                         >
                                             步驟 3/5
                                             <svg
-                                                    style="cursor: pointer;"
-                                                    xmlns="http://www.w3.org/2000/svg"
-                                                    width="14"
-                                                    height="13"
-                                                    viewBox="0 0 14 13"
-                                                    fill="none"
-                                                    onclick="${gvc.event(() => {
-                                                        close();
-                                                        this.leaveGuide(vm);
-                                                    })}"
+                                                style="cursor: pointer;"
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                width="14"
+                                                height="13"
+                                                viewBox="0 0 14 13"
+                                                fill="none"
+                                                onclick="${gvc.event(() => {
+                                                    close();
+                                                    this.leaveGuide(vm);
+                                                })}"
                                             >
-                                                <path d="M1 0.5L13 12.5" stroke="white" stroke-linecap="round"/>
-                                                <path d="M13 0.5L1 12.5" stroke="white" stroke-linecap="round"/>
+                                                <path d="M1 0.5L13 12.5" stroke="white" stroke-linecap="round" />
+                                                <path d="M13 0.5L1 12.5" stroke="white" stroke-linecap="round" />
                                             </svg>
                                         </div>
                                     </div>
                                     <div
-                                            class="d-flex flex-column w-100"
-                                            style="background: #FFF;width:100%;padding: 18px 24px;border-radius: 0 0 10px 10px;font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.64px;"
+                                        class="d-flex flex-column w-100"
+                                        style="background: #FFF;width:100%;padding: 18px 24px;border-radius: 0 0 10px 10px;font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.64px;"
                                     >
                                         開啟您要使用的配送方式
-                                        <div class="d-flex align-items-center justify-content-between"
-                                             style="margin-top: 24px;height:52px;">
+                                        <div class="d-flex align-items-center justify-content-between" style="margin-top: 24px;height:52px;">
                                             <div
-                                                    style="padding: 6px 18px;border-radius: 10px;border:solid 1px #FEAD20;color: #FEAD20;font-size: 16px;font-style: normal;font-weight: 700;line-height: normal;cursor: pointer;"
-                                                    onclick="${gvc.event(() => {
-                                                        vm.step--;
-                                                        close();
-                                                        gvc.notifyDataChange('shipInit');
-                                                    })}"
+                                                style="padding: 6px 18px;border-radius: 10px;border:solid 1px #FEAD20;color: #FEAD20;font-size: 16px;font-style: normal;font-weight: 700;line-height: normal;cursor: pointer;"
+                                                onclick="${gvc.event(() => {
+                                                    vm.step--;
+                                                    close();
+                                                    gvc.notifyDataChange('shipInit');
+                                                })}"
                                             >
                                                 上一步
                                             </div>
-                                            <div class="d-flex align-items-center justify-content-center"
-                                                 style="width: 96px;height: 46px;">
+                                            <div class="d-flex align-items-center justify-content-center" style="width: 96px;height: 46px;">
                                                 <div
-                                                        class="breathing-light"
-                                                        style="padding: 6px 18px;border-radius: 10px;${checked
-                                                                ? `background: #FEAD20;`
-                                                                : `background: #FFE9B2;opacity: 0.8;`};color: #FFF; ;font-size: 16px;font-style: normal;font-weight: 700;line-height: normal;cursor: pointer;"
-                                                        onclick="${gvc.event(() => {
-                                                            if (!checked) {
-                                                                return;
-                                                            }
-                                                            next();
-                                                        })}"
+                                                    class="breathing-light"
+                                                    style="padding: 6px 18px;border-radius: 10px;${checked
+                                                        ? `background: #FEAD20;`
+                                                        : `background: #FFE9B2;opacity: 0.8;`};color: #FFF; ;font-size: 16px;font-style: normal;font-weight: 700;line-height: normal;cursor: pointer;"
+                                                    onclick="${gvc.event(() => {
+                                                        if (!checked) {
+                                                            return;
+                                                        }
+                                                        next();
+                                                    })}"
                                                 >
                                                     下一步
                                                 </div>
@@ -2100,71 +2077,65 @@ export class BgGuide {
                                 view: () => {
                                     return html`
                                         <div
-                                                class="d-flex flex-column"
-                                                style="width: 332px;height: 209px;flex-shrink: 0;position: absolute;left: 50%;bottom:30px;filter: drop-shadow(2px 2px 10px rgba(0, 0, 0, 0.15));transform: translate(-50%,0%);z-index: 1;"
+                                            class="d-flex flex-column"
+                                            style="width: 332px;height: 209px;flex-shrink: 0;position: absolute;left: 50%;bottom:30px;filter: drop-shadow(2px 2px 10px rgba(0, 0, 0, 0.15));transform: translate(-50%,0%);z-index: 1;"
                                         >
                                             <div class="w-100" style="padding-left: 155px;height:23px;">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="18"
-                                                     viewBox="0 0 22 18" fill="none">
-                                                    <path d="M11.002 0L21.3943 18L0.609648 18L11.002 0Z"
-                                                          fill="#FEAD20"/>
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="18" viewBox="0 0 22 18" fill="none">
+                                                    <path d="M11.002 0L21.3943 18L0.609648 18L11.002 0Z" fill="#FEAD20" />
                                                 </svg>
                                             </div>
                                             <div class="w-100" style="border-radius: 10px;">
                                                 <div
-                                                        style="display: flex;padding: 12px 24px;gap: 10px;width: 100%;background: #FEAD20;border-radius: 10px 10px 0 0;color:white;font-size: 20px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 0.8px;"
+                                                    style="display: flex;padding: 12px 24px;gap: 10px;width: 100%;background: #FEAD20;border-radius: 10px 10px 0 0;color:white;font-size: 20px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 0.8px;"
                                                 >
                                                     填寫配送說明
                                                     <div
-                                                            class="d-flex ms-auto align-items-center"
-                                                            style="gap:10px;color: #FFF;font-size: 16px;font-style: normal;font-weight: 400;line-height: normal;letter-spacing: 0.64px;"
+                                                        class="d-flex ms-auto align-items-center"
+                                                        style="gap:10px;color: #FFF;font-size: 16px;font-style: normal;font-weight: 400;line-height: normal;letter-spacing: 0.64px;"
                                                     >
                                                         步驟 4/5
                                                         <svg
-                                                                style="cursor: pointer;"
-                                                                xmlns="http://www.w3.org/2000/svg"
-                                                                width="14"
-                                                                height="13"
-                                                                viewBox="0 0 14 13"
-                                                                fill="none"
-                                                                onclick="${child_gvc.event(() => {
-                                                                    close();
-                                                                    this.leaveGuide(vm);
-                                                                })}"
+                                                            style="cursor: pointer;"
+                                                            xmlns="http://www.w3.org/2000/svg"
+                                                            width="14"
+                                                            height="13"
+                                                            viewBox="0 0 14 13"
+                                                            fill="none"
+                                                            onclick="${child_gvc.event(() => {
+                                                                close();
+                                                                this.leaveGuide(vm);
+                                                            })}"
                                                         >
-                                                            <path d="M1 0.5L13 12.5" stroke="white"
-                                                                  stroke-linecap="round"/>
-                                                            <path d="M13 0.5L1 12.5" stroke="white"
-                                                                  stroke-linecap="round"/>
+                                                            <path d="M1 0.5L13 12.5" stroke="white" stroke-linecap="round" />
+                                                            <path d="M13 0.5L1 12.5" stroke="white" stroke-linecap="round" />
                                                         </svg>
                                                     </div>
                                                 </div>
                                                 <div
-                                                        class="d-flex flex-column w-100"
-                                                        style="background: #FFF;width:100%;padding: 18px 24px;border-radius: 0 0 10px 10px;font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.64px;"
+                                                    class="d-flex flex-column w-100"
+                                                    style="background: #FFF;width:100%;padding: 18px 24px;border-radius: 0 0 10px 10px;font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.64px;"
                                                 >
                                                     填寫詳細配送說明，將會出現在結帳頁供顧客閱讀
-                                                    <div class="d-flex align-items-center justify-content-between"
-                                                         style="margin-top: 24px;height:52px;">
+                                                    <div class="d-flex align-items-center justify-content-between" style="margin-top: 24px;height:52px;">
                                                         <div
-                                                                style="padding: 6px 18px;border-radius: 10px;border:solid 1px #FEAD20;color: #FEAD20;font-size: 16px;font-style: normal;font-weight: 700;line-height: normal;cursor: pointer;"
-                                                                onclick="${child_gvc.event(() => {
-                                                                    vm.step--;
-                                                                    close();
-                                                                    that.findIframeDom('.guide3-3').parentElement!.scrollIntoView({});
-                                                                    gvc.notifyDataChange('shipInit');
-                                                                })}"
+                                                            style="padding: 6px 18px;border-radius: 10px;border:solid 1px #FEAD20;color: #FEAD20;font-size: 16px;font-style: normal;font-weight: 700;line-height: normal;cursor: pointer;"
+                                                            onclick="${child_gvc.event(() => {
+                                                                vm.step--;
+                                                                close();
+                                                                that.findIframeDom('.guide3-3').parentElement!.scrollIntoView({});
+                                                                gvc.notifyDataChange('shipInit');
+                                                            })}"
                                                         >
                                                             上一步
                                                         </div>
-                                                        <div class="d-flex align-items-center justify-content-center"
-                                                             style="width: 96px;height: 46px;">
+                                                        <div class="d-flex align-items-center justify-content-center" style="width: 96px;height: 46px;">
                                                             <div
-                                                                    class="breathing-light"
-                                                                    style="padding: 6px 18px;border-radius: 10px;background: #FEAD20;color: #FFF; ;font-size: 16px;font-style: normal;font-weight: 700;line-height: normal;cursor: pointer;"
-                                                                    onclick="${child_gvc.event(() => {
-                                                                        next();
-                                                                    })}"
+                                                                class="breathing-light"
+                                                                style="padding: 6px 18px;border-radius: 10px;background: #FEAD20;color: #FFF; ;font-size: 16px;font-style: normal;font-weight: 700;line-height: normal;cursor: pointer;"
+                                                                onclick="${child_gvc.event(() => {
+                                                                    next();
+                                                                })}"
                                                             >
                                                                 下一步
                                                             </div>
@@ -2175,7 +2146,7 @@ export class BgGuide {
                                         </div>
                                     `;
                                 },
-                                divCreate: {class: `innerGuide`},
+                                divCreate: { class: `innerGuide` },
                             })
                         );
                         return ``;
@@ -2260,13 +2231,13 @@ export class BgGuide {
                             if (body && !document.querySelector('.clickInterface')) {
                                 $(body).append(html`
                                     <div
-                                            class="clickInterface"
-                                            style="height: 100vh;width: 100vw;position: fixed;left: 0;top: 0;z-index: 1030;cursor: pointer;"
-                                            onclick="${gvc.event(() => {
-                                                if (document.querySelector('.breathing-light')) {
-                                                    (document.querySelector('.breathing-light') as HTMLElement).click();
-                                                }
-                                            })}"
+                                        class="clickInterface"
+                                        style="height: 100vh;width: 100vw;position: fixed;left: 0;top: 0;z-index: 1030;cursor: pointer;"
+                                        onclick="${gvc.event(() => {
+                                            if (document.querySelector('.breathing-light')) {
+                                                (document.querySelector('.breathing-light') as HTMLElement).click();
+                                            }
+                                        })}"
                                     ></div>
                                 `);
                             }
@@ -2319,10 +2290,8 @@ export class BgGuide {
                         let content = html`
                             <div class="d-flex align-items-center">
                                 點擊
-                                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="8" viewBox="0 0 13 8"
-                                     fill="none" style="margin: 0 6px;">
-                                    <path d="M12 1.5L6.5 6.5L1 1.5" stroke="#393939" stroke-width="2"
-                                          stroke-linecap="round" stroke-linejoin="round"/>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="8" viewBox="0 0 13 8" fill="none" style="margin: 0 6px;">
+                                    <path d="M12 1.5L6.5 6.5L1 1.5" stroke="#393939" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                                 </svg>
                                 展開，填寫付款資訊
                             </div>
@@ -2355,7 +2324,7 @@ export class BgGuide {
                             let left = rect.left + iframeRect.left - 24;
                             let top = iframeRect.top + 4;
                             let right = rect.right + iframeRect.left + 24;
-                            let bottom = iframeRect.bottom - 175;
+                            let bottom = iframeRect.bottom - 230;
                             // this.disableScroll();
                             BG.classList.add('guide2-5');
                             target.classList.add(`position-relative`);
@@ -2379,7 +2348,7 @@ export class BgGuide {
                                 .breathing-light::before {
                                     content: '';
                                     position: absolute;
-                                   top: -5px; /* 控制光效范围 */
+                                    top: -5px; /* 控制光效范围 */
                                     left: -5px;
                                     right: -5px;
                                     bottom: -5px;
@@ -2402,159 +2371,143 @@ export class BgGuide {
                                     }
                                 }
                                 }
-                            `)
-                            $(target).append(child_gvc.bindView({
+                            `);
+                            $(target).append(
+                                child_gvc.bindView({
                                     bind: `guide2-5`,
                                     view: () => {
-                                        let inputGroup = target.querySelectorAll('input')
+                                        let inputGroup = target.querySelectorAll('input');
                                         let allCheck = true;
                                         inputGroup.forEach((el: HTMLInputElement) => {
                                             if (el.value.length == 0) {
                                                 allCheck = false;
                                                 this.detectOninputThrough(el, () => {
                                                     child_gvc.notifyDataChange(`guide2-5`);
-                                                })
+                                                });
                                             }
-
-                                        })
+                                        });
                                         return html`
-                                            <div class="d-flex  "
-                                                 style="width: 457px;height: 191px;flex-shrink: 0;position: absolute;right: 32px;bottom:88px;z-index:1;">
-                                                <div class="h-100 d-flex align-items-center justify-content-center"
-                                                     style="width: 24px;">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="22"
-                                                         viewBox="0 0 18 22" fill="none">
-                                                        <path d="M-5.24537e-07 11L18 0.607696L18 21.3923L-5.24537e-07 11Z"
-                                                              fill="white"/>
+                                            <div class="d-flex  " style="width: 457px;height: 191px;flex-shrink: 0;position: absolute;right: 2px;top:245px;z-index:1;">
+                                                <div class="h-100 d-flex align-items-center justify-content-center" style="width: 24px;">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="22" viewBox="0 0 18 22" fill="none">
+                                                        <path d="M-5.24537e-07 11L18 0.607696L18 21.3923L-5.24537e-07 11Z" fill="white" />
                                                     </svg>
                                                 </div>
 
-                                                <div class="flex-fill "
-                                                     style="border-radius: 10px;filter: drop-shadow(2px 2px 10px rgba(0, 0, 0, 0.15));">
-                                                    <div style="display: flex;padding: 12px 24px;gap: 10px;width: 100%;background: #FEAD20;border-radius: 10px 10px 0 0;color:white;font-size: 20px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 0.8px;">
+                                                <div class="flex-fill " style="border-radius: 10px;filter: drop-shadow(2px 2px 10px rgba(0, 0, 0, 0.15));">
+                                                    <div
+                                                        style="display: flex;padding: 12px 24px;gap: 10px;width: 100%;background: #FEAD20;border-radius: 10px 10px 0 0;color:white;font-size: 20px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 0.8px;"
+                                                    >
                                                         填寫付款資訊
-                                                        <div class="d-flex ms-auto align-items-center"
-                                                             style="gap:10px;color: #FFF;font-size: 16px;font-style: normal;font-weight: 400;line-height: normal;letter-spacing: 0.64px;">
+                                                        <div
+                                                            class="d-flex ms-auto align-items-center"
+                                                            style="gap:10px;color: #FFF;font-size: 16px;font-style: normal;font-weight: 400;line-height: normal;letter-spacing: 0.64px;"
+                                                        >
                                                             步驟 5/6
-                                                            <svg style="cursor: pointer;"
-                                                                 xmlns="http://www.w3.org/2000/svg"
-                                                                 width="14" height="13" viewBox="0 0 14 13" fill="none"
-                                                                 onclick="${child_gvc.event(() => {
-                                                                     close();
-                                                                     this.leaveGuide(vm);
-                                                                 })}">
-                                                                <path d="M1 0.5L13 12.5" stroke="white"
-                                                                      stroke-linecap="round"/>
-                                                                <path d="M13 0.5L1 12.5" stroke="white"
-                                                                      stroke-linecap="round"/>
+                                                            <svg
+                                                                style="cursor: pointer;"
+                                                                xmlns="http://www.w3.org/2000/svg"
+                                                                width="14"
+                                                                height="13"
+                                                                viewBox="0 0 14 13"
+                                                                fill="none"
+                                                                onclick="${child_gvc.event(() => {
+                                                                    close();
+                                                                    this.leaveGuide(vm);
+                                                                })}"
+                                                            >
+                                                                <path d="M1 0.5L13 12.5" stroke="white" stroke-linecap="round" />
+                                                                <path d="M13 0.5L1 12.5" stroke="white" stroke-linecap="round" />
                                                             </svg>
                                                         </div>
                                                     </div>
 
-                                                    <div class="flex-fill "
-                                                         style="border-radius: 10px;filter: drop-shadow(2px 2px 10px rgba(0, 0, 0, 0.15));">
+                                                    <div class="flex-fill " style="border-radius: 10px;filter: drop-shadow(2px 2px 10px rgba(0, 0, 0, 0.15));">
                                                         <div
-                                                                style="display: flex;padding: 12px 24px;gap: 10px;width: 100%;background: #FEAD20;border-radius: 10px 10px 0 0;color:white;font-size: 20px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 0.8px;"
+                                                            style="display: flex;padding: 12px 24px;gap: 10px;width: 100%;background: #FEAD20;border-radius: 10px 10px 0 0;color:white;font-size: 20px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 0.8px;"
                                                         >
                                                             填寫付款資訊
                                                             <div
-                                                                    class="d-flex ms-auto align-items-center"
-                                                                    style="gap:10px;color: #FFF;font-size: 16px;font-style: normal;font-weight: 400;line-height: normal;letter-spacing: 0.64px;"
+                                                                class="d-flex ms-auto align-items-center"
+                                                                style="gap:10px;color: #FFF;font-size: 16px;font-style: normal;font-weight: 400;line-height: normal;letter-spacing: 0.64px;"
                                                             >
                                                                 步驟 5/6
                                                                 <svg
-                                                                        style="cursor: pointer;"
-                                                                        xmlns="http://www.w3.org/2000/svg"
-                                                                        width="14"
-                                                                        height="13"
-                                                                        viewBox="0 0 14 13"
-                                                                        fill="none"
-                                                                        onclick="${child_gvc.event(() => {
-                                                                            close();
-                                                                            this.leaveGuide(vm);
-                                                                        })}"
+                                                                    style="cursor: pointer;"
+                                                                    xmlns="http://www.w3.org/2000/svg"
+                                                                    width="14"
+                                                                    height="13"
+                                                                    viewBox="0 0 14 13"
+                                                                    fill="none"
+                                                                    onclick="${child_gvc.event(() => {
+                                                                        close();
+                                                                        this.leaveGuide(vm);
+                                                                    })}"
                                                                 >
-                                                                    <path d="M1 0.5L13 12.5" stroke="white"
-                                                                          stroke-linecap="round"/>
-                                                                    <path d="M13 0.5L1 12.5" stroke="white"
-                                                                          stroke-linecap="round"/>
+                                                                    <path d="M1 0.5L13 12.5" stroke="white" stroke-linecap="round" />
+                                                                    <path d="M13 0.5L1 12.5" stroke="white" stroke-linecap="round" />
                                                                 </svg>
                                                             </div>
                                                         </div>
                                                         <div
-                                                                class="d-flex flex-column w-100 "
-                                                                style="background: #FFF;width:100%;padding: 18px 24px;border-radius: 0 0 10px 10px;font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.64px;"
+                                                            class="d-flex flex-column w-100 "
+                                                            style="background: #FFF;width:100%;padding: 18px 24px;border-radius: 0 0 10px 10px;font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%;letter-spacing: 0.64px;"
                                                         >
                                                             填寫銀行資訊及付款說明
-                                                            <div class="d-flex align-items-center justify-content-between"
-                                                                 style="margin-top: 24px;height:52px;">
+                                                            <div class="d-flex align-items-center justify-content-between" style="margin-top: 24px;height:52px;">
                                                                 <div
-                                                                        style="padding: 6px 18px;border-radius: 10px;border:solid 1px #FEAD20;color: #FEAD20;font-size: 16px;font-style: normal;font-weight: 700;line-height: normal;cursor: pointer;"
-                                                                        onclick="${child_gvc.event(() => {
-                                                                            let iframe = this.findPageIframe();
-                                                                            const openGroup = iframe?.contentWindow.document.querySelectorAll('.openIt');
-                                                                            openGroup.forEach((el: any) => {
-                                                                                el.classList.toggle('openIt');
-                                                                            });
-                                                                            close();
-                                                                            setTimeout(() => {
-                                                                                this.findIframeDom('.guide2-4').scrollIntoView({});
-                                                                                vm.step--;
+                                                                    style="padding: 6px 18px;border-radius: 10px;border:solid 1px #FEAD20;color: #FEAD20;font-size: 16px;font-style: normal;font-weight: 700;line-height: normal;cursor: pointer;"
+                                                                    onclick="${child_gvc.event(() => {
+                                                                        let iframe = this.findPageIframe();
+                                                                        const openGroup = iframe?.contentWindow.document.querySelectorAll('.openIt');
+                                                                        openGroup.forEach((el: any) => {
+                                                                            el.classList.toggle('openIt');
+                                                                        });
+                                                                        close();
+                                                                        setTimeout(() => {
+                                                                            this.findIframeDom('.guide2-4').scrollIntoView({});
+                                                                            vm.step--;
 
-                                                                                gvc.notifyDataChange('financeInit');
-                                                                            }, 400);
-                                                                        })}"
+                                                                            gvc.notifyDataChange('financeInit');
+                                                                        }, 400);
+                                                                    })}"
                                                                 >
                                                                     上一步
                                                                 </div>
                                                                 ${allCheck
-                                                                        ? html`
-                                                                            <div class="d-flex align-items-center justify-content-center"
-                                                                                 style="width: 96px;height: 46px;">
-                                                                                <div
-                                                                                        class="breathing-light"
-                                                                                        style="padding: 6px 18px;border-radius: 10px;background: #FEAD20;color: #FFF;font-size: 16px;font-style: normal;font-weight: 700;line-height: normal;cursor: pointer;"
-                                                                                        onclick="${child_gvc.event(() => {
-                                                                                            vm.step++;
-                                                                                            close();
-                                                                                            gvc.notifyDataChange('financeInit');
-                                                                                        })}"
-                                                                                >
-                                                                                    下一步
-                                                                                </div>
-                                                                            </div>
-                                                                        `
-                                                                        : html`
-                                                                            <div class="d-flex align-items-center justify-content-center"
-                                                                                 style="width: 96px;height: 46px;">
-                                                                                <div
-                                                                                        class="breathing-light"
-                                                                                        style="opacity: 0.8;padding: 6px 18px;border-radius: 10px;background: #FFE9B2;color: #FFF;font-size: 16px;font-style: normal;font-weight: 700;line-height: normal;"
-                                                                                >
-                                                                                    下一步
-                                                                                </div>
-                                                                            </div>
-                                                                        `}
+                                                                    ? html`
+                                                                          <div class="d-flex align-items-center justify-content-center" style="width: 96px;height: 46px;">
+                                                                              <div
+                                                                                  class="breathing-light"
+                                                                                  style="padding: 6px 18px;border-radius: 10px;background: #FEAD20;color: #FFF;font-size: 16px;font-style: normal;font-weight: 700;line-height: normal;cursor: pointer;"
+                                                                                  onclick="${child_gvc.event(() => {
+                                                                                      vm.step++;
+                                                                                      close();
+                                                                                      gvc.notifyDataChange('financeInit');
+                                                                                  })}"
+                                                                              >
+                                                                                  下一步
+                                                                              </div>
+                                                                          </div>
+                                                                      `
+                                                                    : html`
+                                                                          <div class="d-flex align-items-center justify-content-center" style="width: 96px;height: 46px;">
+                                                                              <div
+                                                                                  class="breathing-light"
+                                                                                  style="opacity: 0.8;padding: 6px 18px;border-radius: 10px;background: #FFE9B2;color: #FFF;font-size: 16px;font-style: normal;font-weight: 700;line-height: normal;"
+                                                                              >
+                                                                                  下一步
+                                                                              </div>
+                                                                          </div>
+                                                                      `}
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </div>
+                                            </div>
                                         `;
                                     },
-                                    divCreate: {class: `innerGuide`},
-                                    onCreate: () => {
-                                        const si = setInterval(() => {
-                                            const ele: any = this.findPageIframe().contentWindow.document.getElementsByClassName('box-inside-guide2-4')[0];
-                                            if (ele) {
-                                                ele.scrollIntoView({behavior: 'smooth', block: 'end', inline: 'end'});
-                                                setTimeout(() => {
-                                                    let ele2 = this.findIframeDom('.guide2-5');
-                                                    ele2.parentElement.parentElement.scrollIntoView();
-                                                }, 800);
-                                                clearInterval(si);
-                                            }
-                                        }, 200);
-                                    },
+                                    divCreate: { class: `innerGuide` },
                                 })
                             );
                         }, 400);
@@ -2582,7 +2535,7 @@ export class BgGuide {
         };
         return gvc.bindView({
             bind: 'init',
-            dataList: [{key: 'step', obj: vm}],
+            dataList: [{ key: 'step', obj: vm }],
             view: () => {
                 if (vm.progress.length == 0) {
                     ApiShop.getGuide().then((r) => {
@@ -2618,8 +2571,7 @@ export class BgGuide {
                                     finished: false,
                                 },
                             ];
-                            ApiShop.setGuide(vm.progress).then((r) => {
-                            });
+                            ApiShop.setGuide(vm.progress).then((r) => {});
                         }
                         gvc.notifyDataChange('init');
                     });
@@ -2686,30 +2638,27 @@ export class BgGuide {
                         BG.classList.add('leave-guide-BG');
                         return html`
                             <div
-                                    class=""
-                                    style="width: 317px;height: 157px;position:absolute;top:${rect.bottom + window.scrollY + 12 + 'px'};left : ${rect.left +
-                                    window.scrollX +
-                                    'px'};gap:20px;padding-top: 22px;"
+                                class=""
+                                style="width: 317px;height: 157px;position:absolute;top:${rect.bottom + window.scrollY + 12 + 'px'};left : ${rect.left +
+                                window.scrollX +
+                                'px'};gap:20px;padding-top: 22px;"
                             >
                                 <div class="" style="position: absolute;top: 0;left: 20px;">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="18" viewBox="0 0 22 18"
-                                         fill="none">
-                                        <path d="M11 0L21.3923 18H0.607696L11 0Z" fill="#FEAD20"/>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="18" viewBox="0 0 22 18" fill="none">
+                                        <path d="M11 0L21.3923 18H0.607696L11 0Z" fill="#FEAD20" />
                                     </svg>
                                 </div>
                                 <div
-                                        style="display: flex;width: 317px;padding: 24px 32px;;flex-direction: column;justify-content: center;align-items: center;gap: 24px;border-radius: 10px;background: #FEAD20;"
+                                    style="display: flex;width: 317px;padding: 24px 32px;;flex-direction: column;justify-content: center;align-items: center;gap: 24px;border-radius: 10px;background: #FEAD20;"
                                 >
-                                    <div style="color: #FFF;font-size: 24px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 0.96px;">
-                                        這裡可以回顧開店導覽
-                                    </div>
+                                    <div style="color: #FFF;font-size: 24px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 0.96px;">這裡可以回顧開店導覽</div>
                                     <div
-                                            class="border border-danger"
-                                            style="display: flex;padding: 6px 18px;justify-content: center;align-items: center;border-radius: 10px;background: #FFF;color: #FEAD20;font-size: 16px;font-style: normal;font-weight: 700;line-height: normal;cursor: pointer;"
-                                            onclick="${gvc.event(() => {
-                                                document.querySelector(`.guide-BG`)!.remove();
-                                                ApiShop.setGuideable({});
-                                            })}"
+                                        class="border border-danger"
+                                        style="display: flex;padding: 6px 18px;justify-content: center;align-items: center;border-radius: 10px;background: #FFF;color: #FEAD20;font-size: 16px;font-style: normal;font-weight: 700;line-height: normal;cursor: pointer;"
+                                        onclick="${gvc.event(() => {
+                                            document.querySelector(`.guide-BG`)!.remove();
+                                            ApiShop.setGuideable({});
+                                        })}"
                                     >
                                         我知道了
                                     </div>
@@ -2722,41 +2671,37 @@ export class BgGuide {
                             <div style="width: 461px;height:210px;display: flex;flex-direction: column;align-items:center;border-radius: 10px;background: #FEAD20;">
                                 <div class="w-100 d-flex align-items-center justify-content-end" style="padding: 16px;">
                                     <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            width="14"
-                                            height="13"
-                                            viewBox="0 0 14 13"
-                                            fill="none"
-                                            style="cursor: pointer;"
-                                            onclick="${gvc.event(() => {
-                                                this.leaveGuide(vm);
-                                            })}"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="14"
+                                        height="13"
+                                        viewBox="0 0 14 13"
+                                        fill="none"
+                                        style="cursor: pointer;"
+                                        onclick="${gvc.event(() => {
+                                            this.leaveGuide(vm);
+                                        })}"
                                     >
-                                        <path d="M1 0.5L13 12.5" stroke="white" stroke-linecap="round"/>
-                                        <path d="M13 0.5L1 12.5" stroke="white" stroke-linecap="round"/>
+                                        <path d="M1 0.5L13 12.5" stroke="white" stroke-linecap="round" />
+                                        <path d="M13 0.5L1 12.5" stroke="white" stroke-linecap="round" />
                                     </svg>
                                 </div>
-                                <div style="color: #FFF;font-size: 24px;font-weight: 700;letter-spacing: 0.96px;margin-top:12px;">
-                                    商店創建成功！
-                                </div>
-                                <div style="color: #FFF;font-size: 16px;font-style: normal;font-weight: 500;line-height: 160%;letter-spacing: 0.64px;margin-top:6px;">
-                                    跟著導覽教學，開張您的商店
-                                </div>
+                                <div style="color: #FFF;font-size: 24px;font-weight: 700;letter-spacing: 0.96px;margin-top:12px;">商店創建成功！</div>
+                                <div style="color: #FFF;font-size: 16px;font-style: normal;font-weight: 500;line-height: 160%;letter-spacing: 0.64px;margin-top:6px;">跟著導覽教學，開張您的商店</div>
                                 <div style="width:100%;margin-top: 24px;display: flex;align-items: center;justify-content: space-between;padding: 0 32px;">
                                     <div
-                                            class="d-flex align-items-end"
-                                            style="cursor:pointer;;height:100%;color: #FFF;font-size: 16px;font-style: normal;font-weight: 400;line-height: normal;text-decoration-line: underline;"
-                                            onclick="${gvc.event(() => {
-                                                this.leaveGuide(vm);
-                                            })}"
+                                        class="d-flex align-items-end"
+                                        style="cursor:pointer;;height:100%;color: #FFF;font-size: 16px;font-style: normal;font-weight: 400;line-height: normal;text-decoration-line: underline;"
+                                        onclick="${gvc.event(() => {
+                                            this.leaveGuide(vm);
+                                        })}"
                                     >
                                         我已經學會了
                                     </div>
                                     <div
-                                            style="display: flex;padding: 6px 18px;justify-content: center;align-items: center;border-radius: 10px;background: #FFF;color: #FEAD20;font-size: 16px;font-weight: 700;line-height: normal;cursor:pointer;"
-                                            onclick="${gvc.event(() => {
-                                                vm.step++;
-                                            })}"
+                                        style="display: flex;padding: 6px 18px;justify-content: center;align-items: center;border-radius: 10px;background: #FFF;color: #FEAD20;font-size: 16px;font-weight: 700;line-height: normal;cursor:pointer;"
+                                        onclick="${gvc.event(() => {
+                                            vm.step++;
+                                        })}"
                                     >
                                         開店導覽
                                     </div>
@@ -2766,36 +2711,34 @@ export class BgGuide {
                     }
                     case 1: {
                         return html`
-                            <div class="d-flex flex-column"
-                                 style="width:588px;border-radius: 10px;background-color: white;">
+                            <div class="d-flex flex-column" style="width:588px;border-radius: 10px;background-color: white;">
                                 <div
-                                        class="d-flex w-100 align-items-center"
-                                        style="height: 51px;padding: 12px 24px;background: #FEAD20;color: #FFF;font-size: 20px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 0.8px;border-radius: 10px 10px 0 0;"
+                                    class="d-flex w-100 align-items-center"
+                                    style="height: 51px;padding: 12px 24px;background: #FEAD20;color: #FFF;font-size: 20px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 0.8px;border-radius: 10px 10px 0 0;"
                                 >
                                     開店導覽
                                     <svg
-                                            class="ms-auto"
-                                            style="cursor: pointer;"
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            width="14"
-                                            height="14"
-                                            viewBox="0 0 14 14"
-                                            fill="none"
-                                            onclick="${gvc.event(() => {
-                                                this.leaveGuide(vm);
-                                            })}"
+                                        class="ms-auto"
+                                        style="cursor: pointer;"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="14"
+                                        height="14"
+                                        viewBox="0 0 14 14"
+                                        fill="none"
+                                        onclick="${gvc.event(() => {
+                                            this.leaveGuide(vm);
+                                        })}"
                                     >
-                                        <path d="M1 1L13 13" stroke="white" stroke-linecap="round"/>
-                                        <path d="M13 1L1 13" stroke="white" stroke-linecap="round"/>
+                                        <path d="M1 1L13 13" stroke="white" stroke-linecap="round" />
+                                        <path d="M13 1L1 13" stroke="white" stroke-linecap="round" />
                                     </svg>
                                 </div>
-                                <div class=" d-flex flex-column align-items-center justify-content-center"
-                                     style="width: 100%;padding:24px;gap:24px;">
+                                <div class=" d-flex flex-column align-items-center justify-content-center" style="width: 100%;padding:24px;gap:24px;">
                                     <div class="g-container position-relative " style="">
                                         <div class="g-progress"></div>
                                         <div class="g-circle"></div>
                                         <div
-                                                style="font-size: 25.92px;font-style: normal;font-weight: 700;line-height: normal;color:#393939;position: absolute;left: 50%;top: 50%;transform: translate(-50%,-50%)"
+                                            style="font-size: 25.92px;font-style: normal;font-weight: 700;line-height: normal;color:#393939;position: absolute;left: 50%;top: 50%;transform: translate(-50%,-50%)"
                                         >
                                             ${vm.progress.filter((data: any) => {
                                                 return data.finished;
@@ -2803,34 +2746,39 @@ export class BgGuide {
                                         </div>
                                     </div>
                                     <div class="d-flex flex-column justify-content-start" style="gap:16px;">
-                                        <div style="font-size: 18px;font-style: normal;font-weight: 700;line-height: normal;">
-                                            完成以下設定，即可開張您的商店
-                                        </div>
+                                        <div style="font-size: 18px;font-style: normal;font-weight: 700;line-height: normal;">完成以下設定，即可開張您的商店</div>
                                         ${gvc.bindView({
                                             bind: 'guideDirect',
                                             view: () => {
-                                                return vm.progress.map((data: any, index: number) => {
-                                                    return html`
-                                                        <div style="padding: 6px 18px;border-radius: 10px;border: 1px solid #DDD;background: #FFF;cursor: pointer; position: relative; ${data.finished ? 'border: 2px solid #393939;color:#393939;' : 'color:#8D8D8D;'}"
-                                                             onclick="${gvc.event(() => {
-                                                                 this.guide = index + 1;
-                                                                 this.drawBG();
-                                                             })}">
-                                                            <svg style="position: absolute;right: -12px;top: -12px;${data.finished ? '' : 'display:none'}"
-                                                                 xmlns="http://www.w3.org/2000/svg" width="25"
-                                                                 height="25" viewBox="0 0 25 25" fill="none">
-                                                                <rect x="1" y="1" width="23" height="23" rx="11.5"
-                                                                      fill="#FEAD20"/>
-                                                                <rect x="1" y="1" width="23" height="23" rx="11.5"
-                                                                      stroke="#393939" stroke-width="2"/>
-                                                                <path d="M9 13.5L11.5 16L16 10" stroke="#393939"
-                                                                      stroke-width="2" stroke-linecap="round"
-                                                                      stroke-linejoin="round"/>
-                                                            </svg>
-                                                            ${data.title}
-                                                        </div>
-                                                    `
-                                                }).join('')
+                                                return vm.progress
+                                                    .map((data: any, index: number) => {
+                                                        return html`
+                                                            <div
+                                                                style="padding: 6px 18px;border-radius: 10px;border: 1px solid #DDD;background: #FFF;cursor: pointer; position: relative; ${data.finished
+                                                                    ? 'border: 2px solid #393939;color:#393939;'
+                                                                    : 'color:#8D8D8D;'}"
+                                                                onclick="${gvc.event(() => {
+                                                                    this.guide = index + 1;
+                                                                    this.drawBG();
+                                                                })}"
+                                                            >
+                                                                <svg
+                                                                    style="position: absolute;right: -12px;top: -12px;${data.finished ? '' : 'display:none'}"
+                                                                    xmlns="http://www.w3.org/2000/svg"
+                                                                    width="25"
+                                                                    height="25"
+                                                                    viewBox="0 0 25 25"
+                                                                    fill="none"
+                                                                >
+                                                                    <rect x="1" y="1" width="23" height="23" rx="11.5" fill="#FEAD20" />
+                                                                    <rect x="1" y="1" width="23" height="23" rx="11.5" stroke="#393939" stroke-width="2" />
+                                                                    <path d="M9 13.5L11.5 16L16 10" stroke="#393939" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                                                </svg>
+                                                                ${data.title}
+                                                            </div>
+                                                        `;
+                                                    })
+                                                    .join('');
                                             },
                                             divCreate: {
                                                 class: `d-flex w-100 align-items-center`,
@@ -2856,41 +2804,35 @@ export class BgGuide {
                                                     },
                                                 ];
                                                 return html`
-                                                    <div style="font-size: 18px;font-style: normal;font-weight: 700;line-height: normal;">
-                                                        其他導覽
-                                                    </div>
+                                                    <div style="font-size: 18px;font-style: normal;font-weight: 700;line-height: normal;">其他導覽</div>
                                                     ${dataList
-                                                            .map((data) => {
-                                                                return html`
-                                                                    <div class="w-100"
-                                                                         style="display: flex;align-items: center;gap: 24px;">
-                                                                        <div
-                                                                                class="d-flex flex-column"
-                                                                                style="gap:2px;font-size: 16px;font-style: normal;font-weight: 400;line-height: normal;color:#393939"
-                                                                        >
-                                                                            ${data.title}
-                                                                            <div class=""
-                                                                                 style="font-size: 14px;font-style: normal;font-weight: 400;line-height: normal;color:#8D8D8D">
-                                                                                ${data.des}
-                                                                            </div>
-                                                                        </div>
-                                                                        <div
-                                                                                class="ms-auto"
-                                                                                style="color: #FEAD20;font-size: 16px;font-style: normal;font-weight: 700;padding: 6px 18px;border-radius: 10px;border: 1px solid #FEAD20;background: #FFF;cursor: pointer;"
-                                                                                onclick="${gvc.event(() => {
-                                                                                    this.guide = data.guide;
-                                                                                    this.drawBG();
-                                                                                })}"
-                                                                        >
-                                                                            前往
-                                                                        </div>
+                                                        .map((data) => {
+                                                            return html`
+                                                                <div class="w-100" style="display: flex;align-items: center;gap: 24px;">
+                                                                    <div
+                                                                        class="d-flex flex-column"
+                                                                        style="gap:2px;font-size: 16px;font-style: normal;font-weight: 400;line-height: normal;color:#393939"
+                                                                    >
+                                                                        ${data.title}
+                                                                        <div class="" style="font-size: 14px;font-style: normal;font-weight: 400;line-height: normal;color:#8D8D8D">${data.des}</div>
                                                                     </div>
-                                                                `;
-                                                            })
-                                                            .join('')}
+                                                                    <div
+                                                                        class="ms-auto"
+                                                                        style="color: #FEAD20;font-size: 16px;font-style: normal;font-weight: 700;padding: 6px 18px;border-radius: 10px;border: 1px solid #FEAD20;background: #FFF;cursor: pointer;"
+                                                                        onclick="${gvc.event(() => {
+                                                                            this.guide = data.guide;
+                                                                            this.drawBG();
+                                                                        })}"
+                                                                    >
+                                                                        前往
+                                                                    </div>
+                                                                </div>
+                                                            `;
+                                                        })
+                                                        .join('')}
                                                 `;
                                             },
-                                            divCreate: {style: `display: flex;flex-direction: column;align-items: flex-start;gap: 16px;align-self: stretch;`},
+                                            divCreate: { style: `display: flex;flex-direction: column;align-items: flex-start;gap: 16px;align-self: stretch;` },
                                         })}
                                         <div style="width: 100%;height: 1px;background-color: #DDD"></div>
                                         <div style="color: #4D86DB;text-align: right;font-size: 16px;font-style: normal;font-weight: 400;line-height: normal;text-decoration-line: underline;">
@@ -2906,35 +2848,31 @@ export class BgGuide {
                     <div style="width: 461px;height:210px;display: flex;flex-direction: column;align-items:center;border-radius: 10px;background: #FEAD20;position: relative">
                         <div class="w-100 d-flex align-items-center justify-content-end" style="padding: 16px;">
                             <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    width="14"
-                                    height="13"
-                                    viewBox="0 0 14 13"
-                                    fill="none"
-                                    style="cursor: pointer;"
-                                    onclick="${gvc.event(() => {
-                                        this.leaveGuide(vm);
-                                    })}"
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="14"
+                                height="13"
+                                viewBox="0 0 14 13"
+                                fill="none"
+                                style="cursor: pointer;"
+                                onclick="${gvc.event(() => {
+                                    this.leaveGuide(vm);
+                                })}"
                             >
-                                <path d="M1 0.5L13 12.5" stroke="white" stroke-linecap="round"/>
-                                <path d="M13 0.5L1 12.5" stroke="white" stroke-linecap="round"/>
+                                <path d="M1 0.5L13 12.5" stroke="white" stroke-linecap="round" />
+                                <path d="M13 0.5L1 12.5" stroke="white" stroke-linecap="round" />
                             </svg>
                         </div>
-                        <div style="color: #FFF;font-size: 24px;font-weight: 700;letter-spacing: 0.96px;">
-                            商店創建成功！
-                        </div>
-                        <div style="color: #FFF;font-size: 16px;font-style: normal;font-weight: 500;line-height: 160%;letter-spacing: 0.64px;margin-top:6px;">
-                            跟著導覽教學，開張您的商店
-                        </div>
+                        <div style="color: #FFF;font-size: 24px;font-weight: 700;letter-spacing: 0.96px;">商店創建成功！</div>
+                        <div style="color: #FFF;font-size: 16px;font-style: normal;font-weight: 500;line-height: 160%;letter-spacing: 0.64px;margin-top:6px;">跟著導覽教學，開張您的商店</div>
                         <div style="width:100%;margin-top: 24px;display: flex;align-items: center;justify-content: space-between;padding: 0 32px;">
                             <div
-                                    class="d-flex align-items-end"
-                                    style="height:100%;color: #FFF;font-size: 16px;font-style: normal;font-weight: 400;line-height: normal;text-decoration-line: underline;cursor: pointer;"
+                                class="d-flex align-items-end"
+                                style="height:100%;color: #FFF;font-size: 16px;font-style: normal;font-weight: 400;line-height: normal;text-decoration-line: underline;cursor: pointer;"
                             >
                                 我已經學會了
                             </div>
                             <div
-                                    style="display: flex;padding: 6px 18px;justify-content: center;align-items: center;border-radius: 10px;background: #FFF;color: #FEAD20;font-size: 16px;font-weight: 700;line-height: normal;cursor: pointer;"
+                                style="display: flex;padding: 6px 18px;justify-content: center;align-items: center;border-radius: 10px;background: #FFF;color: #FEAD20;font-size: 16px;font-weight: 700;line-height: normal;cursor: pointer;"
                             >
                                 開店導覽
                             </div>
@@ -2951,10 +2889,10 @@ export class BgGuide {
         let vm = {
             guide: this.guide,
             step: this.step,
-        }
+        };
         const that = this;
         const totalStep = 12;
-        const viewID = "UIGuide";
+        const viewID = 'UIGuide';
         const BG = document.querySelector(`.guide-BG`) as HTMLElement;
         return gvc.bindView({
             bind: viewID,
@@ -2968,71 +2906,85 @@ export class BgGuide {
                             .leave-guide-BG {
                                 clip-path: polygon(0 0, ${rect.left}px 0, ${rect.left}px ${rect.bottom}px, ${rect.right}px ${rect.bottom}px, ${rect.right}px 0, 100% 0, 100% 100%, 0 100%);
                             }
-                        `)
+                        `);
                         BG.classList.add('leave-guide-BG');
                         return html`
-                            <div class=""
-                                 style="width: 317px;height: 157px;position:absolute;top:${rect.bottom + window.scrollY + 12 + 'px'};left : ${rect.left + window.scrollX + 'px'};gap:20px;padding-top: 22px;">
+                            <div
+                                class=""
+                                style="width: 317px;height: 157px;position:absolute;top:${rect.bottom + window.scrollY + 12 + 'px'};left : ${rect.left +
+                                window.scrollX +
+                                'px'};gap:20px;padding-top: 22px;"
+                            >
                                 <div class="" style="position: absolute;top: 0;left: 20px;">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="18" viewBox="0 0 22 18"
-                                         fill="none">
-                                        <path d="M11 0L21.3923 18H0.607696L11 0Z" fill="#FEAD20"/>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="18" viewBox="0 0 22 18" fill="none">
+                                        <path d="M11 0L21.3923 18H0.607696L11 0Z" fill="#FEAD20" />
                                     </svg>
                                 </div>
-                                <div style="display: flex;width: 317px;padding: 24px 32px;;flex-direction: column;justify-content: center;align-items: center;gap: 24px;border-radius: 10px;background: #FEAD20;">
-                                    <div style="color: #FFF;font-size: 24px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 0.96px;">
-                                        這裡可以回顧新手導覽
-                                    </div>
-                                    <div class="border border-danger"
-                                         style="display: flex;padding: 6px 18px;justify-content: center;align-items: center;border-radius: 10px;background: #FFF;color: #FEAD20;font-size: 16px;font-style: normal;font-weight: 700;line-height: normal;cursor: pointer;"
-                                         onclick="${gvc.event(() => {
-                                             document.querySelector(`.guide-BG`)!.remove()
-                                             ApiShop.setGuideable({})
-                                         })}">
+                                <div
+                                    style="display: flex;width: 317px;padding: 24px 32px;;flex-direction: column;justify-content: center;align-items: center;gap: 24px;border-radius: 10px;background: #FEAD20;"
+                                >
+                                    <div style="color: #FFF;font-size: 24px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 0.96px;">這裡可以回顧新手導覽</div>
+                                    <div
+                                        class="border border-danger"
+                                        style="display: flex;padding: 6px 18px;justify-content: center;align-items: center;border-radius: 10px;background: #FFF;color: #FEAD20;font-size: 16px;font-style: normal;font-weight: 700;line-height: normal;cursor: pointer;"
+                                        onclick="${gvc.event(() => {
+                                            document.querySelector(`.guide-BG`)!.remove();
+                                            ApiShop.setGuideable({});
+                                        })}"
+                                    >
                                         我知道了
                                     </div>
                                 </div>
                             </div>
-                        `
+                        `;
                     }
                     case 0: {
                         return html`
                             <div style="width: 461px;height:210px;display: flex;flex-direction: column;align-items:center;border-radius: 10px;background: #FEAD20;">
                                 <div class="w-100 d-flex align-items-center justify-content-end" style="padding: 16px;">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="13" viewBox="0 0 14 13"
-                                         fill="none" style="cursor: pointer;" onclick="${gvc.event(() => {
-                                        this.leaveGuide(vm);
-                                        gvc.notifyDataChange(viewID)
-                                    })}">
-                                        <path d="M1 0.5L13 12.5" stroke="white" stroke-linecap="round"/>
-                                        <path d="M13 0.5L1 12.5" stroke="white" stroke-linecap="round"/>
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="14"
+                                        height="13"
+                                        viewBox="0 0 14 13"
+                                        fill="none"
+                                        style="cursor: pointer;"
+                                        onclick="${gvc.event(() => {
+                                            this.leaveGuide(vm);
+                                            gvc.notifyDataChange(viewID);
+                                        })}"
+                                    >
+                                        <path d="M1 0.5L13 12.5" stroke="white" stroke-linecap="round" />
+                                        <path d="M13 0.5L1 12.5" stroke="white" stroke-linecap="round" />
                                     </svg>
                                 </div>
-                                <div style="color: #FFF;font-size: 24px;font-weight: 700;letter-spacing: 0.96px;margin-top:12px;">
-                                    歡迎來到SHOPNEX商店佈景編輯器
-                                </div>
+                                <div style="color: #FFF;font-size: 24px;font-weight: 700;letter-spacing: 0.96px;margin-top:12px;">歡迎來到SHOPNEX商店佈景編輯器</div>
                                 <div style="color: #FFF;font-size: 16px;font-style: normal;font-weight: 500;line-height: 160%;letter-spacing: 0.64px;margin-top:6px;">
                                     助您打造獨一無二的官網，建立及提升品牌形象
                                 </div>
                                 <div style="width:100%;margin-top: 24px;display: flex;align-items: center;justify-content: space-between;padding: 0 32px;">
-                                    <div class="d-flex align-items-end"
-                                         style="cursor:pointer;;height:100%;color: #FFF;font-size: 16px;font-style: normal;font-weight: 400;line-height: normal;text-decoration-line: underline;"
-                                         onclick="${gvc.event(() => {
-                                             this.leaveGuide(vm);
-                                             gvc.notifyDataChange(viewID)
-                                         })}">
+                                    <div
+                                        class="d-flex align-items-end"
+                                        style="cursor:pointer;;height:100%;color: #FFF;font-size: 16px;font-style: normal;font-weight: 400;line-height: normal;text-decoration-line: underline;"
+                                        onclick="${gvc.event(() => {
+                                            this.leaveGuide(vm);
+                                            gvc.notifyDataChange(viewID);
+                                        })}"
+                                    >
                                         我已經學會了
                                     </div>
-                                    <div style="display: flex;padding: 6px 18px;justify-content: center;align-items: center;border-radius: 10px;background: #FFF;color: #FEAD20;font-size: 16px;font-weight: 700;line-height: normal;cursor:pointer;"
-                                         onclick="${gvc.event(() => {
-                                             vm.step++
-                                             gvc.notifyDataChange(viewID)
-                                         })}">
+                                    <div
+                                        style="display: flex;padding: 6px 18px;justify-content: center;align-items: center;border-radius: 10px;background: #FFF;color: #FEAD20;font-size: 16px;font-weight: 700;line-height: normal;cursor:pointer;"
+                                        onclick="${gvc.event(() => {
+                                            vm.step++;
+                                            gvc.notifyDataChange(viewID);
+                                        })}"
+                                    >
                                         新手教學
                                     </div>
                                 </div>
                             </div>
-                        `
+                        `;
                     }
                     case 1: {
                         BG.classList.add('guide-user-1');
@@ -3042,14 +2994,14 @@ export class BgGuide {
                                 .guide-user-1{
                                     clip-path: polygon(0 0, ${x1}px ${y1}px , ${x3}px ${y1}px, ${x3}px ${y3}px, ${x2}px ${y3}px, ${x2}px ${y2}px, ${x1}px ${y2}px, 0 100%, 100% 100%, 100% 0);
                                 }
-                            `)
+                            `);
                         }
 
-                        const target = document.querySelector('.guide-user-editor-1')
+                        const target = document.querySelector('.guide-user-editor-1');
                         const rect = target!.getBoundingClientRect();
                         let x1 = 0;
                         let x2 = target!.children[0].getBoundingClientRect().right;
-                        let x3 = rect.right
+                        let x3 = rect.right;
                         let y1 = rect.top;
                         let y2 = target!.children[0].children[0]!.getBoundingClientRect().bottom + 15;
                         let y3 = target!.children[1].children[0].getBoundingClientRect().bottom;
@@ -3086,76 +3038,92 @@ export class BgGuide {
                                     }
                                 }
                                 }
-                            `)
+                            `);
                         const icon = html`
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                                 fill="none">
-                                <path d="M0 4.5C0 2.84531 1.34531 1.5 3 1.5H21C22.6547 1.5 24 2.84531 24 4.5V7.5V9.75V10.5V19.5C24 21.1547 22.6547 22.5 21 22.5H3C1.34531 22.5 0 21.1547 0 19.5V10.5V9.75V7.5V4.5ZM21.75 10.5H2.25V19.5C2.25 19.9125 2.5875 20.25 3 20.25H21C21.4125 20.25 21.75 19.9125 21.75 19.5V10.5ZM4.5 7.5C4.89782 7.5 5.27936 7.34196 5.56066 7.06066C5.84196 6.77936 6 6.39782 6 6C6 5.60218 5.84196 5.22064 5.56066 4.93934C5.27936 4.65804 4.89782 4.5 4.5 4.5C4.10218 4.5 3.72064 4.65804 3.43934 4.93934C3.15804 5.22064 3 5.60218 3 6C3 6.39782 3.15804 6.77936 3.43934 7.06066C3.72064 7.34196 4.10218 7.5 4.5 7.5ZM10.5 6C10.5 5.60218 10.342 5.22064 10.0607 4.93934C9.77936 4.65804 9.39782 4.5 9 4.5C8.60218 4.5 8.22064 4.65804 7.93934 4.93934C7.65804 5.22064 7.5 5.60218 7.5 6C7.5 6.39782 7.65804 6.77936 7.93934 7.06066C8.22064 7.34196 8.60218 7.5 9 7.5C9.39782 7.5 9.77936 7.34196 10.0607 7.06066C10.342 6.77936 10.5 6.39782 10.5 6ZM13.5 7.5C13.8978 7.5 14.2794 7.34196 14.5607 7.06066C14.842 6.77936 15 6.39782 15 6C15 5.60218 14.842 5.22064 14.5607 4.93934C14.2794 4.65804 13.8978 4.5 13.5 4.5C13.1022 4.5 12.7206 4.65804 12.4393 4.93934C12.158 5.22064 12 5.60218 12 6C12 6.39782 12.158 6.77936 12.4393 7.06066C12.7206 7.34196 13.1022 7.5 13.5 7.5Z"
-                                      fill="white"/>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                <path
+                                    d="M0 4.5C0 2.84531 1.34531 1.5 3 1.5H21C22.6547 1.5 24 2.84531 24 4.5V7.5V9.75V10.5V19.5C24 21.1547 22.6547 22.5 21 22.5H3C1.34531 22.5 0 21.1547 0 19.5V10.5V9.75V7.5V4.5ZM21.75 10.5H2.25V19.5C2.25 19.9125 2.5875 20.25 3 20.25H21C21.4125 20.25 21.75 19.9125 21.75 19.5V10.5ZM4.5 7.5C4.89782 7.5 5.27936 7.34196 5.56066 7.06066C5.84196 6.77936 6 6.39782 6 6C6 5.60218 5.84196 5.22064 5.56066 4.93934C5.27936 4.65804 4.89782 4.5 4.5 4.5C4.10218 4.5 3.72064 4.65804 3.43934 4.93934C3.15804 5.22064 3 5.60218 3 6C3 6.39782 3.15804 6.77936 3.43934 7.06066C3.72064 7.34196 4.10218 7.5 4.5 7.5ZM10.5 6C10.5 5.60218 10.342 5.22064 10.0607 4.93934C9.77936 4.65804 9.39782 4.5 9 4.5C8.60218 4.5 8.22064 4.65804 7.93934 4.93934C7.65804 5.22064 7.5 5.60218 7.5 6C7.5 6.39782 7.65804 6.77936 7.93934 7.06066C8.22064 7.34196 8.60218 7.5 9 7.5C9.39782 7.5 9.77936 7.34196 10.0607 7.06066C10.342 6.77936 10.5 6.39782 10.5 6ZM13.5 7.5C13.8978 7.5 14.2794 7.34196 14.5607 7.06066C14.842 6.77936 15 6.39782 15 6C15 5.60218 14.842 5.22064 14.5607 4.93934C14.2794 4.65804 13.8978 4.5 13.5 4.5C13.1022 4.5 12.7206 4.65804 12.4393 4.93934C12.158 5.22064 12 5.60218 12 6C12 6.39782 12.158 6.77936 12.4393 7.06066C12.7206 7.34196 13.1022 7.5 13.5 7.5Z"
+                                    fill="white"
+                                />
                             </svg>
-                        `
+                        `;
                         return html`
-                            <div style="padding-left: 18px;width: 457px;height: 217px;flex-shrink: 0;filter: drop-shadow(2px 2px 10px rgba(0, 0, 0, 0.15));position: absolute;top: ${y1 + 12}px;left: ${x3 + 12}px;z-index:1033;">
+                            <div
+                                style="padding-left: 18px;width: 457px;height: 217px;flex-shrink: 0;filter: drop-shadow(2px 2px 10px rgba(0, 0, 0, 0.15));position: absolute;top: ${y1 +
+                                12}px;left: ${x3 + 12}px;z-index:1033;"
+                            >
                                 <div style="position: relative;border-radius: 10px;">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="22"
-                                         viewBox="0 0 18 22" fill="none"
-                                         style="position: absolute;bottom: 19px;left: -18px;">
-                                        <path d="M-5.24537e-07 11L18 0.607696L18 21.3923L-5.24537e-07 11Z"
-                                              fill="white"/>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="22" viewBox="0 0 18 22" fill="none" style="position: absolute;bottom: 19px;left: -18px;">
+                                        <path d="M-5.24537e-07 11L18 0.607696L18 21.3923L-5.24537e-07 11Z" fill="white" />
                                     </svg>
-                                    <div style="display: flex;padding: 12px 24px;gap: 10px;width: 100%;background: #FEAD20;border-radius: 10px 10px 0 0;color:white;font-size: 20px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 0.8px;">
+                                    <div
+                                        style="display: flex;padding: 12px 24px;gap: 10px;width: 100%;background: #FEAD20;border-radius: 10px 10px 0 0;color:white;font-size: 20px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 0.8px;"
+                                    >
                                         「頁面編輯」
-                                        <div class="d-flex ms-auto align-items-center"
-                                             style="gap:10px;color: #FFF;font-size: 16px;font-style: normal;font-weight: 400;line-height: normal;letter-spacing: 0.64px;">
+                                        <div
+                                            class="d-flex ms-auto align-items-center"
+                                            style="gap:10px;color: #FFF;font-size: 16px;font-style: normal;font-weight: 400;line-height: normal;letter-spacing: 0.64px;"
+                                        >
                                             步驟 1/${totalStep}
-                                            <svg style="cursor: pointer;" xmlns="http://www.w3.org/2000/svg"
-                                                 width="14" height="13" viewBox="0 0 14 13" fill="none"
-                                                 onclick="${gvc.event(() => {
-                                                     this.leaveGuide(vm);
-                                                 })}">
-                                                <path d="M1 0.5L13 12.5" stroke="white" stroke-linecap="round"/>
-                                                <path d="M13 0.5L1 12.5" stroke="white" stroke-linecap="round"/>
+                                            <svg
+                                                style="cursor: pointer;"
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                width="14"
+                                                height="13"
+                                                viewBox="0 0 14 13"
+                                                fill="none"
+                                                onclick="${gvc.event(() => {
+                                                    this.leaveGuide(vm);
+                                                })}"
+                                            >
+                                                <path d="M1 0.5L13 12.5" stroke="white" stroke-linecap="round" />
+                                                <path d="M13 0.5L1 12.5" stroke="white" stroke-linecap="round" />
                                             </svg>
                                         </div>
                                     </div>
-                                    <div style="background: #FFF;width:100%;padding: 18px 24px;border-radius: 0 0 10px 10px;font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%; /* 25.6px */letter-spacing: 0.64px;">
-
-                                        <div class="d-flex">於<span style="font-weight: 700;">「頁面編輯」</span><span
-                                                style="display: flex;width: 24px;height: 24px;padding: 5.143px;justify-content: center;align-items: center;border-radius: 4px;background: linear-gradient(143deg, #FFB400 -22.7%, #FF6C02 114.57%);">
-                                            ${icon}
-                                        </span>
+                                    <div
+                                        style="background: #FFF;width:100%;padding: 18px 24px;border-radius: 0 0 10px 10px;font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%; /* 25.6px */letter-spacing: 0.64px;"
+                                    >
+                                        <div class="d-flex">
+                                            於<span style="font-weight: 700;">「頁面編輯」</span
+                                            ><span
+                                                style="display: flex;width: 24px;height: 24px;padding: 5.143px;justify-content: center;align-items: center;border-radius: 4px;background: linear-gradient(143deg, #FFB400 -22.7%, #FF6C02 114.57%);"
+                                            >
+                                                ${icon}
+                                            </span>
                                             頁面，您可以自由地變更版面的
                                         </div>
                                         設計，靈活修改每個元件，設計出獨一無二的網頁。
-                                        <div class="d-flex align-items-center justify-content-between w-100"
-                                             style="margin-top: 24px;height:52px;">
-                                            <div class=""
-                                                 style="padding: 6px 18px;border-radius: 10px;border:solid 1px #FEAD20;color: #FEAD20;font-size: 16px;font-style: normal;font-weight: 700;line-height: normal;cursor: pointer;"
-                                                 onclick="${gvc.event(() => {
-                                                     vm.step--;
-                                                     close()
+                                        <div class="d-flex align-items-center justify-content-between w-100" style="margin-top: 24px;height:52px;">
+                                            <div
+                                                class=""
+                                                style="padding: 6px 18px;border-radius: 10px;border:solid 1px #FEAD20;color: #FEAD20;font-size: 16px;font-style: normal;font-weight: 700;line-height: normal;cursor: pointer;"
+                                                onclick="${gvc.event(() => {
+                                                    vm.step--;
+                                                    close();
 
-                                                     gvc.notifyDataChange(viewID);
-                                                 })}">
+                                                    gvc.notifyDataChange(viewID);
+                                                })}"
+                                            >
                                                 上一步
                                             </div>
-                                            <div class="d-flex align-items-center justify-content-center ms-auto"
-                                                 style="width: 96px;height: 46px;">
-                                                <div class="breathing-light"
-                                                     style="background: #FEAD20;cursor: pointer;padding: 6px 18px;border-radius: 10px;color: #FFF; ;font-size: 16px;font-style: normal;font-weight: 700;line-height: normal;"
-                                                     onclick="${gvc.event(() => {
-                                                         vm.step++;
-                                                         gvc.notifyDataChange(viewID);
-                                                     })}">
+                                            <div class="d-flex align-items-center justify-content-center ms-auto" style="width: 96px;height: 46px;">
+                                                <div
+                                                    class="breathing-light"
+                                                    style="background: #FEAD20;cursor: pointer;padding: 6px 18px;border-radius: 10px;color: #FFF; ;font-size: 16px;font-style: normal;font-weight: 700;line-height: normal;"
+                                                    onclick="${gvc.event(() => {
+                                                        vm.step++;
+                                                        gvc.notifyDataChange(viewID);
+                                                    })}"
+                                                >
                                                     下一步
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-
                             </div>
-                        `
+                        `;
                     }
                     case 2: {
                         BG.classList.add('guide-user-2');
@@ -3165,25 +3133,24 @@ export class BgGuide {
                                 .guide-user-1{
                                     clip-path: polygon(0 0, ${x1}px ${y1}px , ${x3}px ${y1}px, ${x3}px ${y3}px, ${x2}px ${y3}px, ${x2}px ${y2}px, ${x1}px ${y2}px, 0 100%, 100% 100%, 100% 0);
                                 }
-                            `)
+                            `);
                         }
 
-
-                        const target = document.querySelector('.guide-user-editor-1')
+                        const target = document.querySelector('.guide-user-editor-1');
                         const rect = target!.getBoundingClientRect();
                         let x1 = 0;
                         let x2 = target!.children[0].getBoundingClientRect().right;
-                        let x3 = rect.right
+                        let x3 = rect.right;
                         let y1 = rect.top;
                         let y2 = target!.children[0].children[0]!.getBoundingClientRect().bottom + 15;
                         let y3 = target!.children[1].children[0].getBoundingClientRect().bottom;
 
-                        return this.drawBGwithRightWindow(BG, vm, target!.children[1].children[0], ".guide-user-editor-2", viewID, vm.step, totalStep, {
+                        return this.drawBGwithRightWindow(BG, vm, target!.children[1].children[0], '.guide-user-editor-2', viewID, vm.step, totalStep, {
                             width: 457,
                             height: 467,
-                            title: "元件基本操作",
-                            content: ""
-                        })
+                            title: '元件基本操作',
+                            content: '',
+                        });
                         digBG(x1, x2, x3, y1, y2, y3);
                         gvc.addStyle(`
                                 .breathing-light {
@@ -3217,109 +3184,132 @@ export class BgGuide {
                                     }
                                 }
                                 }
-                            `)
+                            `);
                         const icon = html`
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                                 fill="none">
-                                <path d="M0 4.5C0 2.84531 1.34531 1.5 3 1.5H21C22.6547 1.5 24 2.84531 24 4.5V7.5V9.75V10.5V19.5C24 21.1547 22.6547 22.5 21 22.5H3C1.34531 22.5 0 21.1547 0 19.5V10.5V9.75V7.5V4.5ZM21.75 10.5H2.25V19.5C2.25 19.9125 2.5875 20.25 3 20.25H21C21.4125 20.25 21.75 19.9125 21.75 19.5V10.5ZM4.5 7.5C4.89782 7.5 5.27936 7.34196 5.56066 7.06066C5.84196 6.77936 6 6.39782 6 6C6 5.60218 5.84196 5.22064 5.56066 4.93934C5.27936 4.65804 4.89782 4.5 4.5 4.5C4.10218 4.5 3.72064 4.65804 3.43934 4.93934C3.15804 5.22064 3 5.60218 3 6C3 6.39782 3.15804 6.77936 3.43934 7.06066C3.72064 7.34196 4.10218 7.5 4.5 7.5ZM10.5 6C10.5 5.60218 10.342 5.22064 10.0607 4.93934C9.77936 4.65804 9.39782 4.5 9 4.5C8.60218 4.5 8.22064 4.65804 7.93934 4.93934C7.65804 5.22064 7.5 5.60218 7.5 6C7.5 6.39782 7.65804 6.77936 7.93934 7.06066C8.22064 7.34196 8.60218 7.5 9 7.5C9.39782 7.5 9.77936 7.34196 10.0607 7.06066C10.342 6.77936 10.5 6.39782 10.5 6ZM13.5 7.5C13.8978 7.5 14.2794 7.34196 14.5607 7.06066C14.842 6.77936 15 6.39782 15 6C15 5.60218 14.842 5.22064 14.5607 4.93934C14.2794 4.65804 13.8978 4.5 13.5 4.5C13.1022 4.5 12.7206 4.65804 12.4393 4.93934C12.158 5.22064 12 5.60218 12 6C12 6.39782 12.158 6.77936 12.4393 7.06066C12.7206 7.34196 13.1022 7.5 13.5 7.5Z"
-                                      fill="white"/>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                <path
+                                    d="M0 4.5C0 2.84531 1.34531 1.5 3 1.5H21C22.6547 1.5 24 2.84531 24 4.5V7.5V9.75V10.5V19.5C24 21.1547 22.6547 22.5 21 22.5H3C1.34531 22.5 0 21.1547 0 19.5V10.5V9.75V7.5V4.5ZM21.75 10.5H2.25V19.5C2.25 19.9125 2.5875 20.25 3 20.25H21C21.4125 20.25 21.75 19.9125 21.75 19.5V10.5ZM4.5 7.5C4.89782 7.5 5.27936 7.34196 5.56066 7.06066C5.84196 6.77936 6 6.39782 6 6C6 5.60218 5.84196 5.22064 5.56066 4.93934C5.27936 4.65804 4.89782 4.5 4.5 4.5C4.10218 4.5 3.72064 4.65804 3.43934 4.93934C3.15804 5.22064 3 5.60218 3 6C3 6.39782 3.15804 6.77936 3.43934 7.06066C3.72064 7.34196 4.10218 7.5 4.5 7.5ZM10.5 6C10.5 5.60218 10.342 5.22064 10.0607 4.93934C9.77936 4.65804 9.39782 4.5 9 4.5C8.60218 4.5 8.22064 4.65804 7.93934 4.93934C7.65804 5.22064 7.5 5.60218 7.5 6C7.5 6.39782 7.65804 6.77936 7.93934 7.06066C8.22064 7.34196 8.60218 7.5 9 7.5C9.39782 7.5 9.77936 7.34196 10.0607 7.06066C10.342 6.77936 10.5 6.39782 10.5 6ZM13.5 7.5C13.8978 7.5 14.2794 7.34196 14.5607 7.06066C14.842 6.77936 15 6.39782 15 6C15 5.60218 14.842 5.22064 14.5607 4.93934C14.2794 4.65804 13.8978 4.5 13.5 4.5C13.1022 4.5 12.7206 4.65804 12.4393 4.93934C12.158 5.22064 12 5.60218 12 6C12 6.39782 12.158 6.77936 12.4393 7.06066C12.7206 7.34196 13.1022 7.5 13.5 7.5Z"
+                                    fill="white"
+                                />
                             </svg>
-                        `
+                        `;
                         return html`
-                            <div style="padding-left: 18px;width: 457px;height: 217px;flex-shrink: 0;filter: drop-shadow(2px 2px 10px rgba(0, 0, 0, 0.15));position: absolute;top: ${y1 + 12}px;left: ${x3 + 12}px;z-index:1033;">
+                            <div
+                                style="padding-left: 18px;width: 457px;height: 217px;flex-shrink: 0;filter: drop-shadow(2px 2px 10px rgba(0, 0, 0, 0.15));position: absolute;top: ${y1 +
+                                12}px;left: ${x3 + 12}px;z-index:1033;"
+                            >
                                 <div style="position: relative;border-radius: 10px;">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="22"
-                                         viewBox="0 0 18 22" fill="none"
-                                         style="position: absolute;bottom: 19px;left: -18px;">
-                                        <path d="M-5.24537e-07 11L18 0.607696L18 21.3923L-5.24537e-07 11Z"
-                                              fill="white"/>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="22" viewBox="0 0 18 22" fill="none" style="position: absolute;bottom: 19px;left: -18px;">
+                                        <path d="M-5.24537e-07 11L18 0.607696L18 21.3923L-5.24537e-07 11Z" fill="white" />
                                     </svg>
-                                    <div style="display: flex;padding: 12px 24px;gap: 10px;width: 100%;background: #FEAD20;border-radius: 10px 10px 0 0;color:white;font-size: 20px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 0.8px;">
+                                    <div
+                                        style="display: flex;padding: 12px 24px;gap: 10px;width: 100%;background: #FEAD20;border-radius: 10px 10px 0 0;color:white;font-size: 20px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 0.8px;"
+                                    >
                                         「頁面編輯」
-                                        <div class="d-flex ms-auto align-items-center"
-                                             style="gap:10px;color: #FFF;font-size: 16px;font-style: normal;font-weight: 400;line-height: normal;letter-spacing: 0.64px;">
+                                        <div
+                                            class="d-flex ms-auto align-items-center"
+                                            style="gap:10px;color: #FFF;font-size: 16px;font-style: normal;font-weight: 400;line-height: normal;letter-spacing: 0.64px;"
+                                        >
                                             步驟 1/${totalStep}
-                                            <svg style="cursor: pointer;" xmlns="http://www.w3.org/2000/svg"
-                                                 width="14" height="13" viewBox="0 0 14 13" fill="none"
-                                                 onclick="${gvc.event(() => {
-                                                     this.leaveGuide(vm);
-                                                 })}">
-                                                <path d="M1 0.5L13 12.5" stroke="white" stroke-linecap="round"/>
-                                                <path d="M13 0.5L1 12.5" stroke="white" stroke-linecap="round"/>
+                                            <svg
+                                                style="cursor: pointer;"
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                width="14"
+                                                height="13"
+                                                viewBox="0 0 14 13"
+                                                fill="none"
+                                                onclick="${gvc.event(() => {
+                                                    this.leaveGuide(vm);
+                                                })}"
+                                            >
+                                                <path d="M1 0.5L13 12.5" stroke="white" stroke-linecap="round" />
+                                                <path d="M13 0.5L1 12.5" stroke="white" stroke-linecap="round" />
                                             </svg>
                                         </div>
                                     </div>
-                                    <div style="background: #FFF;width:100%;padding: 18px 24px;border-radius: 0 0 10px 10px;font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%; /* 25.6px */letter-spacing: 0.64px;">
-
-                                        <div class="d-flex">於<span style="font-weight: 700;">「頁面編輯」</span><span
-                                                style="display: flex;width: 24px;height: 24px;padding: 5.143px;justify-content: center;align-items: center;border-radius: 4px;background: linear-gradient(143deg, #FFB400 -22.7%, #FF6C02 114.57%);">
-                                            ${icon}
-                                        </span>
+                                    <div
+                                        style="background: #FFF;width:100%;padding: 18px 24px;border-radius: 0 0 10px 10px;font-size: 16px;font-style: normal;font-weight: 400;line-height: 160%; /* 25.6px */letter-spacing: 0.64px;"
+                                    >
+                                        <div class="d-flex">
+                                            於<span style="font-weight: 700;">「頁面編輯」</span
+                                            ><span
+                                                style="display: flex;width: 24px;height: 24px;padding: 5.143px;justify-content: center;align-items: center;border-radius: 4px;background: linear-gradient(143deg, #FFB400 -22.7%, #FF6C02 114.57%);"
+                                            >
+                                                ${icon}
+                                            </span>
                                             頁面，您可以自由地變更版面的
                                         </div>
                                         設計，靈活修改每個元件，設計出獨一無二的網頁。
-                                        <div class="d-flex align-items-center justify-content-between w-100"
-                                             style="margin-top: 24px;height:52px;">
-                                            <div class=""
-                                                 style="padding: 6px 18px;border-radius: 10px;border:solid 1px #FEAD20;color: #FEAD20;font-size: 16px;font-style: normal;font-weight: 700;line-height: normal;cursor: pointer;"
-                                                 onclick="${gvc.event(() => {
-                                                     vm.step--;
-                                                     close()
+                                        <div class="d-flex align-items-center justify-content-between w-100" style="margin-top: 24px;height:52px;">
+                                            <div
+                                                class=""
+                                                style="padding: 6px 18px;border-radius: 10px;border:solid 1px #FEAD20;color: #FEAD20;font-size: 16px;font-style: normal;font-weight: 700;line-height: normal;cursor: pointer;"
+                                                onclick="${gvc.event(() => {
+                                                    vm.step--;
+                                                    close();
 
-                                                     gvc.notifyDataChange(viewID);
-                                                 })}">
+                                                    gvc.notifyDataChange(viewID);
+                                                })}"
+                                            >
                                                 上一步
                                             </div>
-                                            <div class="d-flex align-items-center justify-content-center ms-auto"
-                                                 style="width: 96px;height: 46px;">
-                                                <div class="breathing-light"
-                                                     style="background: #FEAD20;cursor: pointer;padding: 6px 18px;border-radius: 10px;color: #FFF; ;font-size: 16px;font-style: normal;font-weight: 700;line-height: normal;"
-                                                     onclick="${gvc.event(() => {
-                                                         vm.step++;
-                                                         gvc.notifyDataChange(viewID);
-                                                     })}">
+                                            <div class="d-flex align-items-center justify-content-center ms-auto" style="width: 96px;height: 46px;">
+                                                <div
+                                                    class="breathing-light"
+                                                    style="background: #FEAD20;cursor: pointer;padding: 6px 18px;border-radius: 10px;color: #FFF; ;font-size: 16px;font-style: normal;font-weight: 700;line-height: normal;"
+                                                    onclick="${gvc.event(() => {
+                                                        vm.step++;
+                                                        gvc.notifyDataChange(viewID);
+                                                    })}"
+                                                >
                                                     下一步
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-
                             </div>
-                        `
+                        `;
                     }
                 }
                 return html`
                     <div style="width: 461px;height:210px;display: flex;flex-direction: column;align-items:center;border-radius: 10px;background: #FEAD20;position: relative">
                         <div class="w-100 d-flex align-items-center justify-content-end" style="padding: 16px;">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="13" viewBox="0 0 14 13"
-                                 fill="none" style="cursor: pointer;" onclick="${gvc.event(() => {
-                                this.leaveGuide(vm);
-                            })}">
-                                <path d="M1 0.5L13 12.5" stroke="white" stroke-linecap="round"/>
-                                <path d="M13 0.5L1 12.5" stroke="white" stroke-linecap="round"/>
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="14"
+                                height="13"
+                                viewBox="0 0 14 13"
+                                fill="none"
+                                style="cursor: pointer;"
+                                onclick="${gvc.event(() => {
+                                    this.leaveGuide(vm);
+                                })}"
+                            >
+                                <path d="M1 0.5L13 12.5" stroke="white" stroke-linecap="round" />
+                                <path d="M13 0.5L1 12.5" stroke="white" stroke-linecap="round" />
                             </svg>
                         </div>
-                        <div style="color: #FFF;font-size: 24px;font-weight: 700;letter-spacing: 0.96px;">
-                            商店創建成功！
-                        </div>
-                        <div style="color: #FFF;font-size: 16px;font-style: normal;font-weight: 500;line-height: 160%;letter-spacing: 0.64px;margin-top:6px;">
-                            跟著導覽教學，開張您的商店
-                        </div>
+                        <div style="color: #FFF;font-size: 24px;font-weight: 700;letter-spacing: 0.96px;">商店創建成功！</div>
+                        <div style="color: #FFF;font-size: 16px;font-style: normal;font-weight: 500;line-height: 160%;letter-spacing: 0.64px;margin-top:6px;">跟著導覽教學，開張您的商店</div>
                         <div style="width:100%;margin-top: 24px;display: flex;align-items: center;justify-content: space-between;padding: 0 32px;">
-                            <div class="d-flex align-items-end"
-                                 style="height:100%;color: #FFF;font-size: 16px;font-style: normal;font-weight: 400;line-height: normal;text-decoration-line: underline;cursor: pointer;">
+                            <div
+                                class="d-flex align-items-end"
+                                style="height:100%;color: #FFF;font-size: 16px;font-style: normal;font-weight: 400;line-height: normal;text-decoration-line: underline;cursor: pointer;"
+                            >
                                 我已經學會了
                             </div>
-                            <div style="display: flex;padding: 6px 18px;justify-content: center;align-items: center;border-radius: 10px;background: #FFF;color: #FEAD20;font-size: 16px;font-weight: 700;line-height: normal;cursor: pointer;">
+                            <div
+                                style="display: flex;padding: 6px 18px;justify-content: center;align-items: center;border-radius: 10px;background: #FFF;color: #FEAD20;font-size: 16px;font-weight: 700;line-height: normal;cursor: pointer;"
+                            >
                                 開店導覽
                             </div>
                         </div>
                     </div>
-                `
-            }, divCreate: {}
-        })
-
+                `;
+            },
+            divCreate: {},
+        });
     }
 
     public drawBG() {
@@ -3327,20 +3317,19 @@ export class BgGuide {
         if (body && !document.querySelector('.guide-BG')) {
             let appendHTML = html`
                 <div
-                        class="guide-BG d-flex align-items-center justify-content-center"
-                        style="width:100vw;height: 100vh;background: rgba(0, 0, 0, 0.60);position: absolute;left: 0;top: 0;z-index:1031;"
-                        onclick="${this.gvc.event(() => {
-                        })}"
+                    class="guide-BG d-flex align-items-center justify-content-center"
+                    style="width:100vw;height: 100vh;background: rgba(0, 0, 0, 0.60);position: absolute;left: 0;top: 0;z-index:1031;"
+                    onclick="${this.gvc.event(() => {})}"
                 ></div>
             `;
             $(body).append(appendHTML);
         }
-        if (this.type == "user-editor") {
+        if (this.type == 'user-editor') {
             const innerHTML = this.uiGuidePage[this.guide].innerHTML();
-            document.querySelector('.guide-BG')!.innerHTML = innerHTML ?? ``
+            document.querySelector('.guide-BG')!.innerHTML = innerHTML ?? ``;
         } else {
             const innerHTML = this.guidePage[this.guide].innerHTML();
-            document.querySelector('.guide-BG')!.innerHTML = innerHTML ?? ``
+            document.querySelector('.guide-BG')!.innerHTML = innerHTML ?? ``;
         }
 
         return html``;

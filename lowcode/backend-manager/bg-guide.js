@@ -2131,7 +2131,7 @@ export class BgGuide {
                             let left = rect.left + iframeRect.left - 24;
                             let top = iframeRect.top + 4;
                             let right = rect.right + iframeRect.left + 24;
-                            let bottom = iframeRect.bottom - 175;
+                            let bottom = iframeRect.bottom - 230;
                             BG.classList.add('guide2-5');
                             target.classList.add(`position-relative`);
                             const child_gvc = iframe.contentWindow.glitter.pageConfig[0].gvc;
@@ -2154,7 +2154,7 @@ export class BgGuide {
                                 .breathing-light::before {
                                     content: '';
                                     position: absolute;
-                                   top: -5px; /* 控制光效范围 */
+                                    top: -5px; /* 控制光效范围 */
                                     left: -5px;
                                     right: -5px;
                                     bottom: -5px;
@@ -2192,6 +2192,7 @@ export class BgGuide {
                                         }
                                     });
                                     return html `
+<<<<<<< HEAD
                                             <div class="d-flex  "
                                                  style="width: 457px;height: 191px;flex-shrink: 0;position: absolute;right: 32px;bottom:88px;z-index:1;">
                                                 <div class="h-100 d-flex align-items-center justify-content-center"
@@ -2200,6 +2201,12 @@ export class BgGuide {
                                                          viewBox="0 0 18 22" fill="none">
                                                         <path d="M-5.24537e-07 11L18 0.607696L18 21.3923L-5.24537e-07 11Z"
                                                               fill="white"/>
+=======
+                                            <div class="d-flex  " style="width: 457px;height: 191px;flex-shrink: 0;position: absolute;right: 2px;top:245px;z-index:1;">
+                                                <div class="h-100 d-flex align-items-center justify-content-center" style="width: 24px;">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="22" viewBox="0 0 18 22" fill="none">
+                                                        <path d="M-5.24537e-07 11L18 0.607696L18 21.3923L-5.24537e-07 11Z" fill="white" />
+>>>>>>> ebcfea5a (update: bg guide financeSettting css)
                                                     </svg>
                                                 </div>
 
@@ -2315,19 +2322,6 @@ export class BgGuide {
                                         `;
                                 },
                                 divCreate: { class: `innerGuide` },
-                                onCreate: () => {
-                                    const si = setInterval(() => {
-                                        const ele = this.findPageIframe().contentWindow.document.getElementsByClassName('box-inside-guide2-4')[0];
-                                        if (ele) {
-                                            ele.scrollIntoView({ behavior: 'smooth', block: 'end', inline: 'end' });
-                                            setTimeout(() => {
-                                                let ele2 = this.findIframeDom('.guide2-5');
-                                                ele2.parentElement.parentElement.scrollIntoView();
-                                            }, 800);
-                                            clearInterval(si);
-                                        }
-                                    }, 200);
-                                },
                             }));
                         }, 400);
                         return ``;

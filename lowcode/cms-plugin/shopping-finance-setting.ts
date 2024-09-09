@@ -310,6 +310,12 @@ export class ShoppingFinanceSetting {
                                         loading = false;
                                         gvc.notifyDataChange(vm.id);
                                     });
+                                } else {
+                                    const handleBeforeUnload = (e: any) => {
+                                        e.preventDefault();
+                                        e.returnValue = '您確定要離開金流設定嗎？您將會失去未儲存的更改。';
+                                    };
+                                    (window.parent as any).document.addEventListener('beforeunload', handleBeforeUnload);
                                 }
                             },
                         };
