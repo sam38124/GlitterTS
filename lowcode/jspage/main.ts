@@ -486,7 +486,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                             view.push(
                                 doc.create(
                                     html`
-                                        <div class="d-flex overflow-hidden border-end"
+                                        <div class="d-flex overflow-hidden border-end guide-user-editor-1"
                                              style="height:100vh;background:white;">
                                             ${gvc.bindView(() => {
                                                 return {
@@ -642,17 +642,25 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
                         scrollToItem(document.querySelector(`.editor_item.active`)!);
                     }, 200);
 
-                    if(!viewModel.loading && Storage.select_function == "backend-manger"){
-                        let bgGuide = new BgGuide(gvc,0);
+                    if(!viewModel.loading ){
+                        switch (Storage.select_function) {
+                            case 'backend-manger':{
+                                let bgGuide = new BgGuide(gvc,0);
 
-                        ApiShop.getGuideable().then(r => {
-                            console.log(r)
-                            console.log(r.response)
-                            if (!r.response.value){
-                                bgGuide.drawGuide();
+                                ApiShop.getGuideable().then(r => {
+                                    if (!r.response.value){
+                                        bgGuide.drawGuide();
+                                    }
+                                })
+                                break
                             }
-                        })
+                            case 'user-editor':{
+
+                            }
+                        }
+
                     }
+
 
                     // }
 
