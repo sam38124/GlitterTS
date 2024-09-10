@@ -61,7 +61,6 @@ class User {
     }
     async findAuthUser(email) {
         try {
-            console.log([config_1.saasConfig.SAAS_NAME, this.app, email]);
             const authData = (await database_1.default.query(`SELECT * FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_auth_config 
                     WHERE JSON_EXTRACT(config, '$.verifyEmail') = ?;
                 `, [email]))[0];
@@ -80,11 +79,7 @@ class User {
             userData = userData !== null && userData !== void 0 ? userData : {};
             delete userData.pwd;
             delete userData.repeat_password;
-            console.log('=== account ===');
-            console.log(account);
             const findAuth = await this.findAuthUser(account);
-            console.log('=== findAuth ===');
-            console.log(findAuth);
             const userID = findAuth ? findAuth.user : User.generateUserID();
             if (!pass_verify) {
                 if (userData.verify_code) {
@@ -434,7 +429,7 @@ class User {
             return data;
         }
         catch (e) {
-            console.log(e);
+            console.error(e);
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'GET USER DATA Error:' + e, null);
         }
     }
@@ -898,7 +893,6 @@ class User {
         }
     }
     async getUserGroups(type, tag, hide_level) {
-        console.log(`getUserGroups==>`);
         try {
             const pass = (text) => type === undefined || type.includes(text);
             let dataList = [];
@@ -994,7 +988,6 @@ class User {
         return levelList;
     }
     async getUserLevel(data) {
-        console.log(`getUserLevel-->`, data);
         const dataList = [];
         const idList = data.filter((item) => item.userId !== undefined).map((item) => item.userId);
         const emailList = data.filter((item) => item.email !== undefined).map((item) => `"${item.email}"`);

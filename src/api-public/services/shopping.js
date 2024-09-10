@@ -28,11 +28,14 @@ class Shopping {
     }
     async workerExample(data) {
         try {
-            const jsonData = await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_voucher_history`, []);
+            const jsonData = await database_js_1.default.query(`SELECT *
+                                             FROM \`${this.app}\`.t_voucher_history`, []);
             const t0 = performance.now();
             if (data.type === 0) {
                 for (const record of jsonData) {
-                    await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_voucher_history\` SET ? WHERE id = ?`, [record, record.id]);
+                    await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_voucher_history\`
+                                    SET ?
+                                    WHERE id = ?`, [record, record.id]);
                 }
                 return {
                     type: 'single',
@@ -42,7 +45,9 @@ class Shopping {
             }
             const formatJsonData = jsonData.map((record) => {
                 return {
-                    sql: `UPDATE \`${this.app}\`.\`t_voucher_history\` SET ? WHERE id = ?`,
+                    sql: `UPDATE \`${this.app}\`.\`t_voucher_history\`
+                          SET ?
+                          WHERE id = ?`,
                     data: [record, record.id],
                 };
             });
@@ -78,6 +83,14 @@ class Shopping {
             query.id && querySql.push(`id = ${query.id}`);
             if (!query.is_manger && `${query.show_hidden}` !== 'true') {
                 querySql.push(`(content->>'$.visible' is null || content->>'$.visible' = 'true')`);
+            }
+            if (query.productType) {
+                query.productType.split(',').map((dd) => {
+                    querySql.push(`(content->>'$.productType.${dd}' = "true")`);
+                });
+            }
+            else if (!query.id) {
+                querySql.push(`(content->>'$.productType.product' = "true")`);
             }
             if (query.collection) {
                 const collection_cf = (await database_js_1.default.query(`SELECT *
@@ -247,8 +260,8 @@ class Shopping {
     async querySqlByVariants(querySql, query) {
         let sql = `SELECT v.id,
                           v.product_id,
-                          v.content                                            as variant_content,
-                          p.content                                            as product_content,
+                          v.content as                                            variant_content,
+                          p.content as                                            product_content,
                           CAST(JSON_EXTRACT(v.content, '$.stock') AS UNSIGNED) as stock
                    FROM \`${this.app}\`.t_variants AS v
                             JOIN
@@ -477,6 +490,7 @@ class Shopping {
                 }
                 return parseInt(dataList[dataList.length - 1].value);
             }
+            const add_on_items = [];
             for (const b of data.lineItems) {
                 try {
                     const pdDqlData = (await this.getProduct({
@@ -542,9 +556,14 @@ class Shopping {
                                 ]);
                             }
                         }
+                        if (!pd.productType.product && pd.productType.addProduct) {
+                            b.is_add_on_items = true;
+                            add_on_items.push(b);
+                        }
                     }
                 }
-                catch (e) { }
+                catch (e) {
+                }
             }
             carData.shipment_fee = (() => {
                 let total_volume = 0;
@@ -588,6 +607,27 @@ class Shopping {
                 }
             }
             if (type !== 'manual' && type !== 'manual-preview') {
+                carData.lineItems = carData.lineItems.filter((dd) => {
+                    return !add_on_items.includes(dd);
+                });
+                await this.checkVoucher(carData);
+                console.log(`add_on_items==>`, add_on_items);
+                console.log(`carData.voucherList==>`, carData.voucherList);
+                add_on_items.map((dd) => {
+                    var _a;
+                    try {
+                        if ((_a = carData.voucherList) === null || _a === void 0 ? void 0 : _a.find((d1) => {
+                            var _a;
+                            return d1.reBackType === 'add_on_items' && ((_a = d1.add_on_products) === null || _a === void 0 ? void 0 : _a.find((d2) => {
+                                return `${dd.id}` === `${d2}`;
+                            }));
+                        })) {
+                            carData.lineItems.push(dd);
+                        }
+                    }
+                    catch (e) {
+                    }
+                });
                 await this.checkVoucher(carData);
             }
             const keyData = (await private_config_js_1.Private_config.getConfig({
@@ -2167,7 +2207,9 @@ class Shopping {
                     });
                     config.value[index].array = sortList;
                 }
-                await database_js_1.default.execute(`UPDATE \`${this.app}\`.public_config SET value = ? WHERE \`key\` = 'collection';
+                await database_js_1.default.execute(`UPDATE \`${this.app}\`.public_config
+                     SET value = ?
+                     WHERE \`key\` = 'collection';
                     `, [config.value]);
                 return true;
             }

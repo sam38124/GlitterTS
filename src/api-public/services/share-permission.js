@@ -150,13 +150,19 @@ class SharePermission {
             if (!base) {
                 return { result: false };
             }
-            console.log(data);
             let userData = (await database_1.default.query(`SELECT userID FROM \`${base.brand}\`.t_user WHERE account = ?;
                 `, [data.email]))[0];
             if (userData === undefined) {
-                console.log('gen');
-                userData = { userID: user_1.User.generateUserID() };
-                data.config.verifyEmail = data.email;
+                const findAuth = (await database_1.default.query(`SELECT * FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_auth_config 
+                        WHERE JSON_EXTRACT(config, '$.verifyEmail') = ?;
+                        `, [data.email]))[0];
+                if (findAuth) {
+                    userData = { userID: findAuth.user };
+                }
+                else {
+                    userData = { userID: user_1.User.generateUserID() };
+                    data.config.verifyEmail = data.email;
+                }
             }
             if (userData.userID === this.token.userID) {
                 return { result: false };
@@ -165,7 +171,6 @@ class SharePermission {
                 `, [userData.userID, base.app]))[0];
             let redirect_url = undefined;
             if (authData) {
-                console.log('UPDATE');
                 await database_1.default.query(`UPDATE \`${config_1.saasConfig.SAAS_NAME}\`.app_auth_config
                         SET ?
                         WHERE id = ?`, [
@@ -178,7 +183,6 @@ class SharePermission {
                 ]);
             }
             else {
-                console.log('INSERT');
                 await database_1.default.query(`INSERT INTO \`${config_1.saasConfig.SAAS_NAME}\`.app_auth_config SET ?`, [
                     {
                         user: userData.userID,

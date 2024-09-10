@@ -81,7 +81,9 @@ export class BgProduct {
                         options: FilterOptions.productOrderBy,
                     })}
                                         </div>
-                                        ${obj.gvc.map(vm.options.map((opt, index) => {
+                                        ${obj.gvc.map(vm.options.filter((dd) => {
+                        return (!obj.filter) || (obj.filter(dd));
+                    }).map((opt, index) => {
                         const id = gvc.glitter.getUUID();
                         function call() {
                             if (obj.default.includes(opt.key)) {
@@ -157,6 +159,7 @@ export class BgProduct {
                                         return '';
                                 }
                             })(),
+                            productType: obj.productType
                         }).then((data) => {
                             vm.options = data.response.data.map((product) => {
                                 var _a;

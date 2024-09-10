@@ -690,7 +690,7 @@ function initialEditor(gvc, viewModel) {
         }
     }
     glitter.share.addComponent = (data) => {
-        console.log(`addComponent`);
+        glitter.share.left_block_hover = true;
         AddComponent.toggle(false);
         resetId(data);
         const url = new URL(location.href);
@@ -726,11 +726,15 @@ function initialEditor(gvc, viewModel) {
                 scroll_to_hover: true,
                 glitter: glitter,
             });
+            setTimeout(() => {
+                glitter.share.left_block_hover = false;
+            }, 1000);
         }, 100);
         AddComponent.toggle(false);
         viewModel.selectContainer && viewModel.selectContainer.rerenderReplaceElem && viewModel.selectContainer.rerenderReplaceElem();
     };
     glitter.share.addWithIndex = (cf) => {
+        glitter.share.left_block_hover = true;
         AddComponent.toggle(false);
         resetId(cf.data);
         const arrayData = glitter.share.findWidgetIndex(cf.index);
@@ -765,6 +769,9 @@ function initialEditor(gvc, viewModel) {
                 scroll_to_hover: true,
                 glitter: glitter,
             });
+            setTimeout(() => {
+                glitter.share.left_block_hover = false;
+            }, 1000);
         }, 100);
         AddComponent.toggle(false);
         viewModel.selectContainer && viewModel.selectContainer.rerenderReplaceElem && viewModel.selectContainer.rerenderReplaceElem();

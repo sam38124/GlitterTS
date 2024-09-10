@@ -8,6 +8,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
         fun: (gvc, widget, object, subData) => {
             object.getType = object.getType ?? "manual"
             object.count=object.count ?? {}
+            object.productType=object.productType??{}
             return {
                 editor: () => {
                     const id = gvc.glitter.getUUID()
@@ -93,6 +94,10 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                             hover: false,
                                             title: "商品數量限制",
                                             option: []
+                                        }),TriggerEvent.editer(gvc, widget, object.productType, {
+                                            hover: false,
+                                            title: "查詢類型",
+                                            option: []
                                         })].join(`<div class="my-2"></div>`))
                                     }
                                 })
@@ -120,6 +125,13 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                     clickEvent: object.count,
                                     subData: subData
                                 })
+                                const productType=await TriggerEvent.trigger({
+                                    gvc: gvc,
+                                    widget: widget,
+                                    clickEvent: object.productType,
+                                    subData: subData
+                                })
+
                                 switch (id.select) {
                                     case "collection":
                                         searchJson = {
@@ -142,6 +154,8 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                             searchJson = {page: 0, limit: count || 200, id: id}
                                         }
                                 }
+                                productType && (searchJson.productType=productType);
+
                                 ApiShop.getProduct(searchJson).then((data) => {
                                     if (data.result && data.response.data) {
                                         if(!Array.isArray(data.response.data)){

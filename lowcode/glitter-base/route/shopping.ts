@@ -230,6 +230,7 @@ export class ApiShop {
         orderBy?: string;
         id_list?: string;
         with_hide_index?: string;
+        productType?:string
     }) {
         return BaseApi.create({
             url:
@@ -245,6 +246,7 @@ export class ApiShop {
                     json.status && par.push(`status=${json.status}`);
                     json.orderBy && par.push(`order_by=${json.orderBy}`);
                     json.id_list && par.push(`id_list=${json.id_list}`);
+                    json.productType && par.push(`productType=${json.productType}`);
                     json.with_hide_index && par.push(`with_hide_index=${json.with_hide_index}`);
                     json.searchType && par.push(`searchType=${json.searchType}`);
                     if (location.pathname.includes('/hidden/') || location.pathname.includes('/shop/')) {
@@ -400,7 +402,7 @@ export class ApiShop {
         });
     }
 
-    static getVoucher(json: { limit: number; page: number; search?: string; id?: string; data_from?: 'user' | 'manager' }) {
+    static getVoucher(json: { limit: number; page: number; search?: string; id?: string; data_from?: 'user' | 'manager',voucher_type?:'rebate' | 'discount' | 'shipment_free' | 'add_on_items' | 'giveaway' }) {
         return BaseApi.create({
             url:
                 getBaseUrl() +
@@ -408,6 +410,7 @@ export class ApiShop {
                     let par = [`limit=${json.limit}`, `page=${json.page}`];
                     json.search && par.push(`search=${json.search}`);
                     json.id && par.push(`id=${json.id}`);
+                    json.voucher_type && par.push(`voucher_type=${json.voucher_type}`);
                     return par.join('&');
                 })()}`,
             type: 'GET',

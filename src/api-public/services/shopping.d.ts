@@ -15,7 +15,8 @@ interface VoucherData {
     title: string;
     code?: string;
     method: 'percent' | 'fixed';
-    reBackType: 'rebate' | 'discount' | 'shipment_free';
+    reBackType: 'rebate' | 'discount' | 'shipment_free' | 'add_on_items';
+    add_on_products?: string[];
     trigger: 'auto' | 'code' | 'distribution';
     value: string;
     for: 'collection' | 'product' | 'all';
@@ -135,6 +136,7 @@ export declare class Shopping {
         with_hide_index?: string;
         is_manger?: boolean;
         show_hidden?: string;
+        productType?: string;
     }): Promise<{
         data: any;
         result: boolean;

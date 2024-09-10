@@ -1854,12 +1854,16 @@ ${e.line}
             get: function () {
                 return {
                     scrollWithHover: () => {
-                        gvc.glitter.$(`.editorItemActive`).removeClass('editorItemActive')
-                        gvc.glitter.$(`.editor_it_${cf.widget.id}`).addClass('editorItemActive');
-                        gvc.glitter.$(`.editor_it_${cf.widget.id}`).get(0).scrollIntoView({
-                            behavior: 'smooth', // 使用平滑滾動效果
-                            block: 'center', // 將元素置中
-                        });
+                        clearInterval(gvc.glitter.share.scroll_hover_interval)
+                        gvc.glitter.share.scroll_hover_interval=setTimeout(()=>{
+                            gvc.glitter.$(`.editorItemActive`).removeClass('editorItemActive')
+                            gvc.glitter.$(`.editor_it_${cf.widget.id}`).addClass('editorItemActive');
+                            gvc.glitter.$(`.editor_it_${cf.widget.id}`).get(0).scrollIntoView({
+                                behavior: 'smooth', // 使用平滑滾動效果
+                                block: 'center', // 將元素置中
+                            });
+                        },250)
+
                     },
                     cancelHover: () => {
                         gvc.glitter.$(`.editor_it_${cf.widget.id}`).removeClass('editorItemActive');

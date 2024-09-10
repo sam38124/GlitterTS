@@ -341,7 +341,7 @@ class Excel {
     }
 }
 export class ShoppingProductSetting {
-    static main(gvc) {
+    static main(gvc, type = 'product') {
         const html = String.raw;
         const glitter = gvc.glitter;
         const vm = {
@@ -472,7 +472,16 @@ export class ShoppingProductSetting {
                                         return BgWidget.container(html `
                                                 <div class="d-flex w-100 align-items-center"
                                                      style="margin-bottom: 24px;">
-                                                    ${BgWidget.title('商品列表')}
+                                                    ${BgWidget.title((() => {
+                                            switch (type) {
+                                                case "addProduct":
+                                                    return '加購品';
+                                                case "giveaway":
+                                                    return '贈品';
+                                                case "product":
+                                                    return '商品列表';
+                                            }
+                                        })())}
                                                     <div class="flex-fill"></div>
                                                     <div style="display: flex; gap: 14px;">
                                                         ${[
@@ -799,6 +808,7 @@ export class ShoppingProductSetting {
                                                                         })(),
                                                                         collection: vm.filter.collection,
                                                                         accurate_search_collection: true,
+                                                                        productType: type
                                                                     };
                                                                 case 'check':
                                                                     return {
@@ -807,12 +817,14 @@ export class ShoppingProductSetting {
                                                                         id_list: vm.dataList
                                                                             .filter((item) => item.checked)
                                                                             .map((item) => item.id),
+                                                                        productType: type
                                                                     };
                                                                 case 'all':
                                                                 default:
                                                                     return {
                                                                         page: 0,
                                                                         limit: 1000,
+                                                                        productType: type
                                                                     };
                                                             }
                                                         })();
@@ -1026,6 +1038,7 @@ export class ShoppingProductSetting {
                                                             })(),
                                                             collection: vm.filter.collection,
                                                             accurate_search_collection: true,
+                                                            productType: type
                                                         }).then((data) => {
                                                             vmi.pageSize = Math.ceil(data.response.total / 50);
                                                             vm.dataList = data.response.data;
@@ -1835,6 +1848,7 @@ export class ShoppingProductSetting {
                     content: '',
                     keywords: '',
                 },
+                relative_product: [],
                 template: '',
                 content_array: []
             };
@@ -2075,7 +2089,7 @@ export class ShoppingProductSetting {
                                                                                 </div>`,
                                                     BgWidget.tab([
                                                         ...(() => {
-                                                            if (postMD.content_array.length > 0) {
+                                                            if (text_array.length > 0) {
                                                                 return [{
                                                                         title: '商品介紹',
                                                                         key: 'product-detail'
@@ -3506,6 +3520,86 @@ color: ${selected.length ? `#393939` : `#DDD`};font-size: 18px;
                                             };
                                         })),
                                 BgWidget.mainCard(obj.gvc.bindView(() => {
+                                    const id = gvc.glitter.getUUID();
+                                    return {
+                                        bind: id,
+                                        view: () => {
+                                            var _a;
+                                            postMD.relative_product = (_a = postMD.relative_product) !== null && _a !== void 0 ? _a : [];
+                                            try {
+                                                return html `
+                                                                            <div style="font-weight: 700;"
+                                                                                 class="mb-3 d-flex flex-column">
+                                                                                相關商品
+                                                                                ${BgWidget.grayNote('相關商品將會顯示於商品頁底部')}
+                                                                            </div>
+                                                                            <div
+                                                                                    class="d-flex align-items-center gray-bottom-line-18"
+                                                                                    style="gap: 24px; justify-content: space-between;"
+                                                                            >
+                                                                                <div class="form-check-label c_updown_label">
+                                                                                    <div class="tx_normal">商品列表
+                                                                                    </div>
+                                                                                </div>
+                                                                                ${BgWidget.grayButton('選擇商品', gvc.event(() => {
+                                                    BgProduct.productsDialog({
+                                                        gvc: gvc,
+                                                        default: postMD.relative_product,
+                                                        callback: (value) => __awaiter(this, void 0, void 0, function* () {
+                                                            postMD.relative_product = value;
+                                                            gvc.notifyDataChange(id);
+                                                        }),
+                                                        filter: (dd) => {
+                                                            return dd.key !== postMD.id;
+                                                        }
+                                                    });
+                                                }), { textStyle: 'font-weight: 400;' })}
+                                                                            </div>
+                                                                            ${gvc.bindView(() => {
+                                                    const vm = {
+                                                        id: gvc.glitter.getUUID(),
+                                                        loading: true,
+                                                        data: []
+                                                    };
+                                                    BgProduct.getProductOpts(postMD.relative_product).then((res) => {
+                                                        vm.data = res;
+                                                        vm.loading = false;
+                                                        gvc.notifyDataChange(vm.id);
+                                                    });
+                                                    return {
+                                                        bind: vm.id,
+                                                        view: () => __awaiter(this, void 0, void 0, function* () {
+                                                            if (vm.loading) {
+                                                                return BgWidget.spinner();
+                                                            }
+                                                            return vm.data.map((opt, index) => {
+                                                                return html `<div
+                                                                                                                    class="d-flex align-items-center form-check-label c_updown_label gap-3"
+                                                                                                                >
+                                                                                                                    <span class="tx_normal">${index + 1}.</span>
+                                                                                                                    ${BgWidget.validImageBox({ gvc: gvc, image: opt.image, width: 40 })}
+                                                                                                                    <div class="tx_normal ${opt.note ? 'mb-1' : ''}">${opt.value}</div>
+                                                                                                                    ${opt.note ? html ` <div class="tx_gray_12">${opt.note}</div> ` : ''}
+                                                                                                                </div>`;
+                                                            }).join('');
+                                                        }), divCreate: {
+                                                            class: `d-flex py-2 flex-column`, style: `gap:10px;`
+                                                        }
+                                                    };
+                                                })}
+                                                                        `;
+                                            }
+                                            catch (e) {
+                                                console.error(e);
+                                                return '';
+                                            }
+                                        },
+                                        divCreate: {
+                                            class: `w-100`
+                                        }
+                                    };
+                                })),
+                                BgWidget.mainCard(obj.gvc.bindView(() => {
                                     var _a;
                                     postMD.seo = (_a = postMD.seo) !== null && _a !== void 0 ? _a : {
                                         title: '',
@@ -3662,93 +3756,6 @@ ${(_c = postMD.seo.content) !== null && _c !== void 0 ? _c : ''}</textarea
                                     }), ''),
                                 BgWidget.mainCard(obj.gvc.bindView(() => {
                                     const id = obj.gvc.glitter.getUUID();
-                                    function refresh() {
-                                        obj.gvc.notifyDataChange(id);
-                                    }
-                                    function selectCollection(callback) {
-                                        ApiShop.getCollection().then((res) => {
-                                            EditorElem.openEditorDialog(obj.gvc, (gvc) => {
-                                                function convertF(x, ind) {
-                                                    return x
-                                                        .map((dd) => {
-                                                        const indt = ind ? `${ind} / ${dd.title}` : dd.title;
-                                                        if (dd.array && dd.array.length > 0) {
-                                                            return html `
-                                                                                                                <li class="btn-group d-flex flex-column"
-                                                                                                                    style="margin-top:1px;margin-bottom:1px;">
-                                                                                                                    <div
-                                                                                                                            class="editor_item d-flex pe-2 my-0 hi me-n1"
-                                                                                                                            onclick="${gvc.event(() => {
-                                                                dd.toogle = !dd.toogle;
-                                                                gvc.recreateView();
-                                                            })}"
-                                                                                                                    >
-                                                                                                                        <div class="subBt ps-0 ms-n2">
-                                                                                                                            ${dd.toogle
-                                                                ? html `
-                                                                                                                                        <i class="fa-sharp fa-regular fa-chevron-down"></i>`
-                                                                : html `
-                                                                                                                                        <i class="fa-regular fa-angle-right hoverBtn "></i>`}
-                                                                                                                        </div>
-                                                                                                                        ${dd.title}
-                                                                                                                        <div class="flex-fill"></div>
-                                                                                                                    </div>
-                                                                                                                    <ul class="ps-2 ${dd.toogle ? `` : `d-none`}">
-                                                                                                                        ${convertF(dd.array, indt)}
-                                                                                                                    </ul>
-                                                                                                                </li>`;
-                                                        }
-                                                        else {
-                                                            return html `
-                                                                                                                <li class="btn-group d-flex flex-column"
-                                                                                                                    style="margin-top:1px;margin-bottom:1px;">
-                                                                                                                    <div
-                                                                                                                            class="editor_item d-flex pe-2 my-0 hi"
-                                                                                                                            onclick="${gvc.event(() => {
-                                                                if (postMD.collection.find((dd) => {
-                                                                    return dd === indt;
-                                                                })) {
-                                                                    const dialog = new ShareDialog(obj.gvc.glitter);
-                                                                    dialog.infoMessage({ text: '已有此標籤' });
-                                                                    return;
-                                                                }
-                                                                callback({
-                                                                    select: indt,
-                                                                    gvc: gvc,
-                                                                });
-                                                            })}"
-                                                                                                                    >
-                                                                                                                        ${dd.title}
-                                                                                                                        <div class="flex-fill"></div>
-
-                                                                                                                        <div class="subBt ">
-                                                                                                                            <i
-                                                                                                                                    class="fa-duotone fa-check d-flex align-items-center justify-content-center subBt "
-                                                                                                                                    style="width:15px;height:15px;"
-                                                                                                                            ></i>
-                                                                                                                        </div>
-                                                                                                                    </div>
-                                                                                                                </li>`;
-                                                        }
-                                                    })
-                                                        .join('');
-                                                }
-                                                return gvc.bindView(() => {
-                                                    const id = gvc.glitter.getUUID();
-                                                    return {
-                                                        bind: id,
-                                                        view: () => {
-                                                            return convertF(res.response.value, '');
-                                                        },
-                                                        divCreate: {
-                                                            class: `ms-n3 me-1`,
-                                                        },
-                                                    };
-                                                });
-                                            }, () => {
-                                            }, 400, '設定商品分類');
-                                        });
-                                    }
                                     return {
                                         bind: id,
                                         view: () => {
@@ -3783,7 +3790,7 @@ ${(_c = postMD.seo.content) !== null && _c !== void 0 ? _c : ''}</textarea
                                         },
                                         divCreate: {},
                                     };
-                                })),
+                                }))
                             ]
                                 .filter((str) => str.length > 0)
                                 .join(BgWidget.mbContainer(24))}
