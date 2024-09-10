@@ -1,4 +1,10 @@
 import { IToken } from '../../models/Auth.js';
+type AppPermission = {
+    userId: string;
+    appName: string;
+    iat?: number;
+    exp?: number;
+};
 export declare class SharePermission {
     appName: string;
     token: IToken;
@@ -6,6 +12,7 @@ export declare class SharePermission {
     getBaseData(): Promise<{
         saas: string | undefined;
         brand: any;
+        domain: any;
         app: string;
     } | undefined>;
     getPermission(data: {
@@ -17,10 +24,12 @@ export declare class SharePermission {
     }): Promise<{
         result: boolean;
     } | {
+        redirect_url: URL | undefined;
         email: string;
         config: any;
         saas: string | undefined;
         brand: any;
+        domain: any;
         app: string;
         result: boolean;
     }>;
@@ -30,6 +39,7 @@ export declare class SharePermission {
         email: string;
         saas: string | undefined;
         brand: any;
+        domain: any;
         app: string;
         result: boolean;
     }>;
@@ -40,6 +50,7 @@ export declare class SharePermission {
         status: number;
         saas: string | undefined;
         brand: any;
+        domain: any;
         app: string;
         result: boolean;
     }>;
@@ -50,7 +61,11 @@ export declare class SharePermission {
         invited: number;
         saas: string | undefined;
         brand: any;
+        domain: any;
         app: string;
         result: boolean;
     }>;
+    static generateToken(userObj: AppPermission): Promise<string>;
+    static redirectHTML(token: string): Promise<string>;
 }
+export {};

@@ -2,21 +2,31 @@ import db from '../../modules/database';
 import { IToken } from '../../models/Auth.js';
 import exception from '../../modules/exception.js';
 import { saasConfig } from '../../config';
+import redis from '../../modules/redis.js';
+import jwt from 'jsonwebtoken';
+import config from '../../config.js';
+
+type AppPermission = {
+    userId: string;
+    appName: string;
+    iat?: number;
+    exp?: number;
+};
 
 export class SharePermission {
-    public appName: string;
-    public token: IToken;
+    appName: string;
+    token: IToken;
 
     constructor(appName: string, token: IToken) {
         this.appName = appName;
         this.token = token;
     }
 
-    public async getBaseData() {
+    async getBaseData() {
         try {
             const appData = (
                 await db.query(
-                    `SELECT brand FROM \`${saasConfig.SAAS_NAME}\`.app_config WHERE appName = ? AND user = ?;
+                    `SELECT domain, brand FROM \`${saasConfig.SAAS_NAME}\`.app_config WHERE appName = ? AND user = ?;
                 `,
                     [this.appName, this.token.userID]
                 )
@@ -27,6 +37,7 @@ export class SharePermission {
                 : {
                       saas: saasConfig.SAAS_NAME, // glitter
                       brand: appData.brand, // shopnex
+                      domain: appData.domain, // domain
                       app: this.appName, // app name
                   };
         } catch (e) {
@@ -34,7 +45,7 @@ export class SharePermission {
         }
     }
 
-    public async getPermission(data: { email?: string }) {
+    async getPermission(data: { email?: string }) {
         try {
             const base = await this.getBaseData();
             if (!base) return [];
@@ -67,7 +78,7 @@ export class SharePermission {
         }
     }
 
-    public async setPermission(data: { email: string; config: any }) {
+    async setPermission(data: { email: string; config: any }) {
         try {
             const base = await this.getBaseData();
             if (!base) {
@@ -93,6 +104,7 @@ export class SharePermission {
                 )
             )[0];
 
+            let redirect_url = undefined;
             if (authData) {
                 await db.query(
                     `UPDATE \`${saasConfig.SAAS_NAME}\`.app_auth_config
@@ -114,19 +126,27 @@ export class SharePermission {
                         config: JSON.stringify(data.config),
                     },
                 ]);
+                const keyValue = await SharePermission.generateToken({
+                    userId: userData.userID,
+                    appName: base.app,
+                });
+                redirect_url = new URL(`https://${base.domain}/api-public/v1/user/permission/redirect`);
+                redirect_url.searchParams.set('key', keyValue);
+                redirect_url.searchParams.set('g-app', base.app);
             }
 
             return {
                 result: true,
                 ...base,
                 ...data,
+                redirect_url,
             };
         } catch (e) {
             throw exception.BadRequestError('ERROR', 'setPermission ERROR: ' + e, null);
         }
     }
 
-    public async deletePermission(email: string) {
+    async deletePermission(email: string) {
         try {
             const base = await this.getBaseData();
             if (!base) {
@@ -160,7 +180,7 @@ export class SharePermission {
         }
     }
 
-    public async toggleStatus(email: string) {
+    async toggleStatus(email: string) {
         try {
             const base = await this.getBaseData();
 
@@ -213,7 +233,7 @@ export class SharePermission {
         }
     }
 
-    public async triggerInvited(email: string) {
+    async triggerInvited(email: string) {
         try {
             const base = await this.getBaseData();
             if (!base) {
@@ -263,5 +283,71 @@ export class SharePermission {
         } catch (e) {
             throw exception.BadRequestError('ERROR', 'triggerInvited ERROR: ' + e, null);
         }
+    }
+
+    static async generateToken(userObj: AppPermission): Promise<string> {
+        const iat = Math.floor(Date.now() / 1000);
+        const expTime = 3 * 24 * 60 * 60; // 3 days
+        const payload: AppPermission = {
+            userId: userObj.userId,
+            appName: userObj.appName,
+            iat: iat,
+            exp: iat + expTime,
+        };
+        const signedToken = jwt.sign(payload, config.SECRET_KEY);
+        await redis.setValue(signedToken, String(iat));
+        return signedToken;
+    }
+
+    static async redirectHTML(token: string) {
+        const appPermission = jwt.verify(token, config.SECRET_KEY) as AppPermission;
+
+        const authData = (
+            await db.query(
+                `SELECT * FROM \`${saasConfig.SAAS_NAME}\`.app_auth_config WHERE user = ? AND appName = ?;
+                `,
+                [appPermission.userId, appPermission.appName]
+            )
+        )[0];
+
+        if (authData) {
+            await db.query(
+                `UPDATE \`${saasConfig.SAAS_NAME}\`.app_auth_config
+                    SET ?
+                    WHERE id = ?`,
+                [
+                    {
+                        invited: 1,
+                        updated_time: new Date(),
+                    },
+                    authData.id,
+                ]
+            );
+        }
+
+        const html = String.raw;
+        return html`<!DOCTYPE html>
+            <html lang="en">
+                <head>
+                    <meta charset="UTF-8" />
+                    <title>Title</title>
+                </head>
+                <body>
+                    <script>
+                        try {
+                            window.webkit.messageHandlers.addJsInterFace.postMessage(
+                                JSON.stringify({
+                                    functionName: 'closeWebView',
+                                    callBackId: 0,
+                                    data: {
+                                        redirect: 'https://shopnex.cc/login',
+                                    },
+                                })
+                            );
+                        } catch (e) {}
+                        location.href = 'https://shopnex.cc/login';
+                    </script>
+                </body>
+            </html> `;
     }
 }

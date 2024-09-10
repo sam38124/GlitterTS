@@ -20,6 +20,7 @@ import { FilterOptions } from './filter-options.js';
 import { ShoppingRebate } from './shopping-rebate.js';
 import { Tool } from '../modules/tool.js';
 import { CheckInput } from '../modules/checkInput.js';
+import { BgNotify } from '../backend-manager/bg-notify.js';
 const html = String.raw;
 export class UserList {
     static main(gvc, obj) {
@@ -112,185 +113,206 @@ export class UserList {
             bind: vm.id,
             dataList: [{ obj: vm, key: 'type' }],
             view: () => {
+                var _a, _b;
                 if (vm.type === 'list') {
                     return BgWidget.container(html `
-                            ${obj && obj.hiddenHeader
-                        ? ''
-                        : html ` <div class="d-flex w-100 align-items-center">
-                                      ${(() => {
-                            if (obj && obj.group && obj.backButtonEvent) {
-                                return BgWidget.goBack(obj.backButtonEvent) + BgWidget.title(obj.group.title);
-                            }
-                            return BgWidget.title('顧客列表');
-                        })()}
-                                      <div class="flex-fill"></div>
-                                      ${BgWidget.darkButton('新增', gvc.event(() => {
-                            vm.type = 'create';
-                        }))}
-                                      <button
-                                          class="btn hoverBtn me-2 px-3 d-none"
-                                          style="height:35px !important;font-size: 14px;color:black;border:1px solid black;"
-                                          onclick="${gvc.event(() => {
-                            UserList.setUserForm(gvc, () => {
-                                gvc.notifyDataChange(vm.id);
-                            });
-                        })}"
-                                      >
-                                          <i class="fa-regular fa-gear me-2 "></i>
-                                          自訂資料
-                                      </button>
-                                  </div>`}
-                            ${BgWidget.tab([
-                        {
-                            title: '一般列表',
-                            key: 'normal',
-                        },
-                        {
-                            title: '黑名單',
-                            key: 'block',
-                        },
-                    ], gvc, vm.filter_type, (text) => {
+                            <div class="d-flex w-100 align-items-center">
+                                ${(() => {
+                        if (obj && obj.group && obj.backButtonEvent) {
+                            return BgWidget.goBack(obj.backButtonEvent) + BgWidget.title(obj.group.title);
+                        }
+                        return BgWidget.title('顧客列表');
+                    })()}
+                                <div class="flex-fill"></div>
+                                ${BgWidget.darkButton('新增', (_a = obj === null || obj === void 0 ? void 0 : obj.createUserEvent) !== null && _a !== void 0 ? _a : gvc.event(() => {
+                        vm.type = 'create';
+                    }))}
+                                <button
+                                    class="btn hoverBtn me-2 px-3 d-none"
+                                    style="height:35px !important;font-size: 14px;color:black;border:1px solid black;"
+                                    onclick="${gvc.event(() => {
+                        UserList.setUserForm(gvc, () => {
+                            gvc.notifyDataChange(vm.id);
+                        });
+                    })}"
+                                >
+                                    <i class="fa-regular fa-gear me-2 "></i>
+                                    自訂資料
+                                </button>
+                            </div>
+                            ${BgWidget.tab(((_b = obj === null || obj === void 0 ? void 0 : obj.group) === null || _b === void 0 ? void 0 : _b.type) === 'subscriber'
+                        ? [
+                            {
+                                title: '一般列表',
+                                key: 'normal',
+                            },
+                            {
+                                title: '黑名單',
+                                key: 'block',
+                            },
+                            {
+                                title: '未註冊',
+                                key: 'notRegistered',
+                            },
+                        ]
+                        : [
+                            {
+                                title: '一般列表',
+                                key: 'normal',
+                            },
+                            {
+                                title: '黑名單',
+                                key: 'block',
+                            },
+                        ], gvc, vm.filter_type, (text) => {
                         vm.filter_type = text;
                         gvc.notifyDataChange(vm.id);
                     }, `margin:0;margin-top:24px;`)}
-                            ${BgWidget.container(BgWidget.mainCard([
-                        (() => {
-                            const id = gvc.glitter.getUUID();
-                            return gvc.bindView({
-                                bind: id,
-                                view: () => {
-                                    const filterList = [
-                                        BgWidget.selectFilter({
-                                            gvc,
-                                            callback: (value) => {
-                                                vm.queryType = value;
-                                                gvc.notifyDataChange(vm.tableId);
-                                                gvc.notifyDataChange(id);
-                                            },
-                                            default: vm.queryType || 'name',
-                                            options: FilterOptions.userSelect,
-                                        }),
-                                        BgWidget.searchFilter(gvc.event((e) => {
-                                            vm.query = e.value;
-                                            gvc.notifyDataChange(vm.tableId);
-                                            gvc.notifyDataChange(id);
-                                        }), vm.query || '', '搜尋所有用戶'),
-                                        BgWidget.funnelFilter({
-                                            gvc,
-                                            callback: () => ListComp.showRightMenu(FilterOptions.userFunnel),
-                                        }),
-                                        BgWidget.updownFilter({
-                                            gvc,
-                                            callback: (value) => {
-                                                vm.orderString = value;
-                                                gvc.notifyDataChange(vm.tableId);
-                                                gvc.notifyDataChange(id);
-                                            },
-                                            default: vm.orderString || 'default',
-                                            options: FilterOptions.userOrderBy,
-                                        }),
-                                    ];
-                                    const filterTags = ListComp.getFilterTags(FilterOptions.userFunnel);
-                                    if (document.body.clientWidth < 768) {
-                                        return html ` <div style="display: flex; align-items: center; gap: 10px; width: 100%; justify-content: space-between">
-                                                                <div>${filterList[0]}</div>
-                                                                <div style="display: flex;">
-                                                                    <div class="me-2">${filterList[2]}</div>
-                                                                    ${filterList[3]}
-                                                                </div>
-                                                            </div>
-                                                            <div style="display: flex; margin-top: 8px;">${filterList[1]}</div>
-                                                            <div>${filterTags}</div>`;
-                                    }
-                                    else {
-                                        return html ` <div style="display: flex; align-items: center; gap: 10px;">${filterList.join('')}</div>
-                                                            <div>${filterTags}</div>`;
-                                    }
-                                },
+                            ${BgWidget.container((() => {
+                        if (vm.filter_type === 'notRegistered') {
+                            return BgNotify.email(gvc, 'list', () => {
+                                return obj === null || obj === void 0 ? void 0 : obj.backButtonEvent;
                             });
-                        })(),
-                        gvc.bindView({
-                            bind: vm.tableId,
-                            view: () => {
-                                return BgWidget.tableV2({
-                                    gvc: gvc,
-                                    getData: (vd) => {
-                                        vmi = vd;
-                                        const limit = 20;
-                                        ApiUser.getUserListOrders({
-                                            page: vmi.page - 1,
-                                            limit: limit,
-                                            search: vm.query || undefined,
-                                            searchType: vm.queryType || 'name',
-                                            orderString: vm.orderString || '',
-                                            filter: vm.filter,
-                                            filter_type: vm.filter_type,
-                                            group: obj && obj.group ? obj.group : {},
-                                        }).then((data) => {
-                                            vmi.pageSize = Math.ceil(data.response.total / limit);
-                                            vm.dataList = data.response.data;
-                                            vmi.data = getDatalist();
-                                            vmi.callback();
-                                        });
+                        }
+                        return BgWidget.mainCard([
+                            (() => {
+                                const id = gvc.glitter.getUUID();
+                                return gvc.bindView({
+                                    bind: id,
+                                    view: () => {
+                                        const filterList = [
+                                            BgWidget.selectFilter({
+                                                gvc,
+                                                callback: (value) => {
+                                                    vm.queryType = value;
+                                                    gvc.notifyDataChange(vm.tableId);
+                                                    gvc.notifyDataChange(id);
+                                                },
+                                                default: vm.queryType || 'name',
+                                                options: FilterOptions.userSelect,
+                                            }),
+                                            BgWidget.searchFilter(gvc.event((e) => {
+                                                vm.query = e.value;
+                                                gvc.notifyDataChange(vm.tableId);
+                                                gvc.notifyDataChange(id);
+                                            }), vm.query || '', '搜尋所有用戶'),
+                                            BgWidget.funnelFilter({
+                                                gvc,
+                                                callback: () => ListComp.showRightMenu(FilterOptions.userFunnel),
+                                            }),
+                                            BgWidget.updownFilter({
+                                                gvc,
+                                                callback: (value) => {
+                                                    vm.orderString = value;
+                                                    gvc.notifyDataChange(vm.tableId);
+                                                    gvc.notifyDataChange(id);
+                                                },
+                                                default: vm.orderString || 'default',
+                                                options: FilterOptions.userOrderBy,
+                                            }),
+                                        ];
+                                        const filterTags = ListComp.getFilterTags(FilterOptions.userFunnel);
+                                        if (document.body.clientWidth < 768) {
+                                            return html ` <div style="display: flex; align-items: center; gap: 10px; width: 100%; justify-content: space-between">
+                                                                    <div>${filterList[0]}</div>
+                                                                    <div style="display: flex;">
+                                                                        <div class="me-2">${filterList[2]}</div>
+                                                                        ${filterList[3]}
+                                                                    </div>
+                                                                </div>
+                                                                <div style="display: flex; margin-top: 8px;">${filterList[1]}</div>
+                                                                <div>${filterTags}</div>`;
+                                        }
+                                        else {
+                                            return html ` <div style="display: flex; align-items: center; gap: 10px;">${filterList.join('')}</div>
+                                                                <div>${filterTags}</div>`;
+                                        }
                                     },
-                                    rowClick: (data, index) => {
-                                        vm.data = vm.dataList[index];
-                                        vm.type = 'replace';
-                                    },
-                                    filter: gvc.bindView(() => {
-                                        return {
-                                            bind: vm.filterId,
-                                            view: () => {
-                                                const dialog = new ShareDialog(gvc.glitter);
-                                                const selCount = vm.dataList.filter((dd) => dd.checked).length;
-                                                return BgWidget.selNavbar({
-                                                    count: selCount,
-                                                    buttonList: [
-                                                        BgWidget.selEventButton('批量刪除', gvc.event(() => {
-                                                            dialog.warningMessage({
-                                                                text: '您即將批量刪除所選顧客的所有資料<br />此操作無法復原。確定要刪除嗎？',
-                                                                callback: (response) => {
-                                                                    if (response) {
-                                                                        dialog.dataLoading({ visible: true });
-                                                                        ApiUser.deleteUser({
-                                                                            id: vm.dataList
-                                                                                .filter((dd) => {
-                                                                                return dd.checked;
-                                                                            })
-                                                                                .map((dd) => {
-                                                                                return dd.id;
-                                                                            })
-                                                                                .join(`,`),
-                                                                        }).then((res) => {
-                                                                            dialog.dataLoading({ visible: false });
-                                                                            if (res.result) {
-                                                                                vm.dataList = undefined;
-                                                                                gvc.notifyDataChange(vm.id);
-                                                                            }
-                                                                            else {
-                                                                                dialog.errorMessage({ text: '刪除失敗' });
-                                                                            }
-                                                                        });
-                                                                    }
-                                                                },
-                                                            });
-                                                        })),
-                                                    ],
-                                                });
-                                            },
-                                            divCreate: () => {
-                                                const display = !vm.dataList || !vm.dataList.find((dd) => dd.checked) ? 'd-none' : '';
-                                                return {
-                                                    class: `d-flex align-items-center p-2 ${display}`,
-                                                    style: ``,
-                                                };
-                                            },
-                                        };
-                                    }),
                                 });
-                            },
-                        }),
-                    ].join('')), undefined, obj && obj.hiddenHeader ? 'padding: 0' : undefined)}
+                            })(),
+                            gvc.bindView({
+                                bind: vm.tableId,
+                                view: () => {
+                                    return BgWidget.tableV2({
+                                        gvc: gvc,
+                                        getData: (vd) => {
+                                            vmi = vd;
+                                            const limit = 20;
+                                            ApiUser.getUserListOrders({
+                                                page: vmi.page - 1,
+                                                limit: limit,
+                                                search: vm.query || undefined,
+                                                searchType: vm.queryType || 'name',
+                                                orderString: vm.orderString || '',
+                                                filter: vm.filter,
+                                                filter_type: vm.filter_type,
+                                                group: obj && obj.group ? obj.group : {},
+                                            }).then((data) => {
+                                                vmi.pageSize = Math.ceil(data.response.total / limit);
+                                                vm.dataList = data.response.data;
+                                                vmi.data = getDatalist();
+                                                vmi.callback();
+                                            });
+                                        },
+                                        rowClick: (data, index) => {
+                                            vm.data = vm.dataList[index];
+                                            vm.type = 'replace';
+                                        },
+                                        filter: gvc.bindView(() => {
+                                            return {
+                                                bind: vm.filterId,
+                                                view: () => {
+                                                    const dialog = new ShareDialog(gvc.glitter);
+                                                    const selCount = vm.dataList.filter((dd) => dd.checked).length;
+                                                    return BgWidget.selNavbar({
+                                                        count: selCount,
+                                                        buttonList: [
+                                                            BgWidget.selEventButton('批量刪除', gvc.event(() => {
+                                                                dialog.warningMessage({
+                                                                    text: '您即將批量刪除所選顧客的所有資料<br />此操作無法復原。確定要刪除嗎？',
+                                                                    callback: (response) => {
+                                                                        if (response) {
+                                                                            dialog.dataLoading({ visible: true });
+                                                                            ApiUser.deleteUser({
+                                                                                id: vm.dataList
+                                                                                    .filter((dd) => {
+                                                                                    return dd.checked;
+                                                                                })
+                                                                                    .map((dd) => {
+                                                                                    return dd.id;
+                                                                                })
+                                                                                    .join(`,`),
+                                                                            }).then((res) => {
+                                                                                dialog.dataLoading({ visible: false });
+                                                                                if (res.result) {
+                                                                                    vm.dataList = undefined;
+                                                                                    gvc.notifyDataChange(vm.id);
+                                                                                }
+                                                                                else {
+                                                                                    dialog.errorMessage({ text: '刪除失敗' });
+                                                                                }
+                                                                            });
+                                                                        }
+                                                                    },
+                                                                });
+                                                            })),
+                                                        ],
+                                                    });
+                                                },
+                                                divCreate: () => {
+                                                    const display = !vm.dataList || !vm.dataList.find((dd) => dd.checked) ? 'd-none' : '';
+                                                    return {
+                                                        class: `d-flex align-items-center p-2 ${display}`,
+                                                        style: ``,
+                                                    };
+                                                },
+                                            };
+                                        }),
+                                    });
+                                },
+                            }),
+                        ].join(''));
+                    })(), undefined)}
                         `, BgWidget.getContainerWidth());
                 }
                 else if (vm.type == 'replace') {
@@ -1389,7 +1411,9 @@ export class UserList {
                             ${BgWidget.container([
                     gvc.bindView(() => {
                         const id = gvc.glitter.getUUID();
-                        const vmi = { mode: 'edit' };
+                        const vmi = {
+                            mode: 'edit',
+                        };
                         return {
                             bind: id,
                             view: () => {

@@ -492,5 +492,13 @@ router.put('/permission/invite', async (req, resp) => {
         return response_1.default.fail(resp, err);
     }
 });
+router.get('/permission/redirect', async (req, resp) => {
+    try {
+        return resp.send(await share_permission_1.SharePermission.redirectHTML(`${req.query.key}`));
+    }
+    catch (err) {
+        return response_1.default.fail(resp, err);
+    }
+});
 module.exports = router;
 //# sourceMappingURL=user.js.map

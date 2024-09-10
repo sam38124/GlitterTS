@@ -38,14 +38,7 @@ export type PostData = {
 const inputStyle = 'font-size: 16px; height:40px; width:300px;';
 
 export class BgNotify {
-    public static email(
-        gvc: GVC,
-        type: 'list' | 'select' = 'list',
-        callback: (select: any) => void = () => {},
-        obj?: {
-            hiddenHeader: boolean;
-        }
-    ) {
+    public static email(gvc: GVC, type: 'list' | 'select' = 'list', callback: (select: any) => void = () => {}) {
         const vm: {
             type: 'list' | 'replace';
             data: any;
@@ -146,139 +139,125 @@ export class BgNotify {
                     }
 
                     return BgWidget.container(
-                        html`
-                            ${obj && obj.hiddenHeader
-                                ? ''
-                                : html` <div class="d-flex w-100 align-items-center ${type === 'select' ? `d-none` : ``}">
-                                      ${BgWidget.title('已訂閱信件')}
-                                      <div class="flex-fill"></div>
-                                  </div>`}
-                            ${BgWidget.container(
-                                BgWidget.mainCard(
-                                    BgWidget.tableV2({
-                                        gvc: gvc,
-                                        getData: (vmk) => {
-                                            vmi = vmk;
-                                            ApiUser.getSubScribe({
-                                                page: vmi.page - 1,
-                                                limit: 20,
-                                                search: vm.query || undefined,
-                                                filter: { account: 'no' },
-                                            }).then((data) => {
-                                                vmi.pageSize = Math.ceil(data.response.total / 20);
-                                                vm.dataList = data.response.data;
-                                                vmi.data = getDatalist();
-                                                vmi.loading = false;
-                                                vmi.callback();
-                                                if (type === 'select') {
-                                                    callback(
-                                                        vm.dataList.filter((dd: any) => {
-                                                            return dd.checked;
-                                                        })
-                                                    );
-                                                }
-                                            });
-                                        },
-                                        rowClick: (data, index) => {
-                                            vm.dataList[index].checked = !vm.dataList[index].checked;
-                                            vmi.data = getDatalist();
-                                            vmi.callback();
-                                            gvc.notifyDataChange(filterID);
+                        BgWidget.mainCard(
+                            BgWidget.tableV2({
+                                gvc: gvc,
+                                getData: (vmk) => {
+                                    vmi = vmk;
+                                    ApiUser.getSubScribe({
+                                        page: vmi.page - 1,
+                                        limit: 20,
+                                        search: vm.query || undefined,
+                                        filter: { account: 'no' },
+                                    }).then((data) => {
+                                        vmi.pageSize = Math.ceil(data.response.total / 20);
+                                        vm.dataList = data.response.data;
+                                        vmi.data = getDatalist();
+                                        vmi.loading = false;
+                                        vmi.callback();
+                                        if (type === 'select') {
                                             callback(
                                                 vm.dataList.filter((dd: any) => {
                                                     return dd.checked;
                                                 })
                                             );
-                                        },
-                                        filter: html`
-                                            ${BgWidget.searchPlace(
-                                                gvc.event((e, event) => {
-                                                    vm.query = e.value;
-                                                    gvc.notifyDataChange(id);
-                                                }),
-                                                vm.query || '',
-                                                '搜尋信箱或標籤'
-                                            )}
-                                            ${gvc.bindView(() => {
-                                                return {
-                                                    bind: filterID,
-                                                    view: () => {
-                                                        if (
-                                                            !vm.dataList ||
-                                                            !vm.dataList.find((dd: any) => {
-                                                                return dd.checked;
-                                                            })
-                                                        ) {
-                                                            return ``;
-                                                        } else {
-                                                            const dialog = new ShareDialog(gvc.glitter);
-                                                            const selCount = vm.dataList.filter((dd: any) => dd.checked).length;
-                                                            return BgWidget.selNavbar({
-                                                                count: selCount,
-                                                                buttonList: [
-                                                                    BgWidget.selEventButton(
-                                                                        '批量移除',
-                                                                        gvc.event(() => {
-                                                                            dialog.checkYesOrNot({
-                                                                                text: '是否確認刪除所選項目？',
-                                                                                callback: (response) => {
-                                                                                    if (response) {
-                                                                                        dialog.dataLoading({ visible: true });
-                                                                                        ApiUser.deleteSubscribe({
-                                                                                            email: vm.dataList
-                                                                                                .filter((dd: any) => {
-                                                                                                    return dd.checked;
-                                                                                                })
-                                                                                                .map((dd: any) => {
-                                                                                                    return dd.email;
-                                                                                                })
-                                                                                                .join(`,`),
-                                                                                        }).then((res) => {
-                                                                                            dialog.dataLoading({ visible: false });
-                                                                                            if (res.result) {
-                                                                                                vm.dataList = undefined;
-                                                                                                gvc.notifyDataChange(id);
-                                                                                            } else {
-                                                                                                dialog.errorMessage({ text: '刪除失敗' });
-                                                                                            }
-                                                                                        });
+                                        }
+                                    });
+                                },
+                                rowClick: (data, index) => {
+                                    vm.dataList[index].checked = !vm.dataList[index].checked;
+                                    vmi.data = getDatalist();
+                                    vmi.callback();
+                                    gvc.notifyDataChange(filterID);
+                                    callback(
+                                        vm.dataList.filter((dd: any) => {
+                                            return dd.checked;
+                                        })
+                                    );
+                                },
+                                filter: html`
+                                    ${BgWidget.searchPlace(
+                                        gvc.event((e, event) => {
+                                            vm.query = e.value;
+                                            gvc.notifyDataChange(id);
+                                        }),
+                                        vm.query || '',
+                                        '搜尋信箱或標籤'
+                                    )}
+                                    ${gvc.bindView(() => {
+                                        return {
+                                            bind: filterID,
+                                            view: () => {
+                                                if (
+                                                    !vm.dataList ||
+                                                    !vm.dataList.find((dd: any) => {
+                                                        return dd.checked;
+                                                    })
+                                                ) {
+                                                    return ``;
+                                                } else {
+                                                    const dialog = new ShareDialog(gvc.glitter);
+                                                    const selCount = vm.dataList.filter((dd: any) => dd.checked).length;
+                                                    return BgWidget.selNavbar({
+                                                        count: selCount,
+                                                        buttonList: [
+                                                            BgWidget.selEventButton(
+                                                                '批量移除',
+                                                                gvc.event(() => {
+                                                                    dialog.checkYesOrNot({
+                                                                        text: '是否確認刪除所選項目？',
+                                                                        callback: (response) => {
+                                                                            if (response) {
+                                                                                dialog.dataLoading({ visible: true });
+                                                                                ApiUser.deleteSubscribe({
+                                                                                    email: vm.dataList
+                                                                                        .filter((dd: any) => {
+                                                                                            return dd.checked;
+                                                                                        })
+                                                                                        .map((dd: any) => {
+                                                                                            return dd.email;
+                                                                                        })
+                                                                                        .join(`,`),
+                                                                                }).then((res) => {
+                                                                                    dialog.dataLoading({ visible: false });
+                                                                                    if (res.result) {
+                                                                                        vm.dataList = undefined;
+                                                                                        gvc.notifyDataChange(id);
+                                                                                    } else {
+                                                                                        dialog.errorMessage({ text: '刪除失敗' });
                                                                                     }
-                                                                                },
-                                                                            });
-                                                                        })
-                                                                    ),
-                                                                ],
-                                                            });
-                                                        }
-                                                    },
-                                                    divCreate: () => {
-                                                        return {
-                                                            class: `d-flex align-items-center p-2 py-3 ${
-                                                                !vm.dataList ||
-                                                                !vm.dataList.find((dd: any) => {
-                                                                    return dd.checked;
-                                                                }) ||
-                                                                type === 'select'
-                                                                    ? `d-none`
-                                                                    : ``
-                                                            }`,
-                                                            style: ``,
-                                                        };
-                                                    },
+                                                                                });
+                                                                            }
+                                                                        },
+                                                                    });
+                                                                })
+                                                            ),
+                                                        ],
+                                                    });
+                                                }
+                                            },
+                                            divCreate: () => {
+                                                return {
+                                                    class: `d-flex align-items-center p-2 py-3 ${
+                                                        !vm.dataList ||
+                                                        !vm.dataList.find((dd: any) => {
+                                                            return dd.checked;
+                                                        }) ||
+                                                        type === 'select'
+                                                            ? `d-none`
+                                                            : ``
+                                                    }`,
+                                                    style: ``,
                                                 };
-                                            })}
-                                        `,
-                                    })
-                                ),
-                                type === 'select' ? 850 : BgWidget.getContainerWidth()
-                            )}
-                        `,
-                        BgWidget.getContainerWidth(),
-                        obj && obj.hiddenHeader ? 'padding: 0' : undefined
+                                            },
+                                        };
+                                    })}
+                                `,
+                            })
+                        ),
+                        type === 'select' ? 850 : BgWidget.getContainerWidth(),
+                        'padding: 0;'
                     );
-                },
-                divCreate: {
-                    class: type === 'select' ? `m-n4` : ``,
                 },
             };
         });

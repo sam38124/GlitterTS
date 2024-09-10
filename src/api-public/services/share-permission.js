@@ -7,6 +7,9 @@ exports.SharePermission = void 0;
 const database_1 = __importDefault(require("../../modules/database"));
 const exception_js_1 = __importDefault(require("../../modules/exception.js"));
 const config_1 = require("../../config");
+const redis_js_1 = __importDefault(require("../../modules/redis.js"));
+const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const config_js_1 = __importDefault(require("../../config.js"));
 class SharePermission {
     constructor(appName, token) {
         this.appName = appName;
@@ -14,13 +17,14 @@ class SharePermission {
     }
     async getBaseData() {
         try {
-            const appData = (await database_1.default.query(`SELECT brand FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_config WHERE appName = ? AND user = ?;
+            const appData = (await database_1.default.query(`SELECT domain, brand FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_config WHERE appName = ? AND user = ?;
                 `, [this.appName, this.token.userID]))[0];
             return appData === undefined
                 ? undefined
                 : {
                     saas: config_1.saasConfig.SAAS_NAME,
                     brand: appData.brand,
+                    domain: appData.domain,
                     app: this.appName,
                 };
         }
@@ -66,6 +70,7 @@ class SharePermission {
             }
             const authData = (await database_1.default.query(`SELECT * FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_auth_config WHERE user = ? AND appName = ?;
                 `, [userData.userID, base.app]))[0];
+            let redirect_url = undefined;
             if (authData) {
                 await database_1.default.query(`UPDATE \`${config_1.saasConfig.SAAS_NAME}\`.app_auth_config
                         SET ?
@@ -85,8 +90,15 @@ class SharePermission {
                         config: JSON.stringify(data.config),
                     },
                 ]);
+                const keyValue = await SharePermission.generateToken({
+                    userId: userData.userID,
+                    appName: base.app,
+                });
+                redirect_url = new URL(`https://${base.domain}/api-public/v1/user/permission/redirect`);
+                redirect_url.searchParams.set('key', keyValue);
+                redirect_url.searchParams.set('g-app', base.app);
             }
-            return Object.assign(Object.assign({ result: true }, base), data);
+            return Object.assign(Object.assign(Object.assign({ result: true }, base), data), { redirect_url });
         }
         catch (e) {
             throw exception_js_1.default.BadRequestError('ERROR', 'setPermission ERROR: ' + e, null);
@@ -174,6 +186,59 @@ class SharePermission {
         catch (e) {
             throw exception_js_1.default.BadRequestError('ERROR', 'triggerInvited ERROR: ' + e, null);
         }
+    }
+    static async generateToken(userObj) {
+        const iat = Math.floor(Date.now() / 1000);
+        const expTime = 3 * 24 * 60 * 60;
+        const payload = {
+            userId: userObj.userId,
+            appName: userObj.appName,
+            iat: iat,
+            exp: iat + expTime,
+        };
+        const signedToken = jsonwebtoken_1.default.sign(payload, config_js_1.default.SECRET_KEY);
+        await redis_js_1.default.setValue(signedToken, String(iat));
+        return signedToken;
+    }
+    static async redirectHTML(token) {
+        const appPermission = jsonwebtoken_1.default.verify(token, config_js_1.default.SECRET_KEY);
+        const authData = (await database_1.default.query(`SELECT * FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_auth_config WHERE user = ? AND appName = ?;
+                `, [appPermission.userId, appPermission.appName]))[0];
+        if (authData) {
+            await database_1.default.query(`UPDATE \`${config_1.saasConfig.SAAS_NAME}\`.app_auth_config
+                    SET ?
+                    WHERE id = ?`, [
+                {
+                    invited: 1,
+                    updated_time: new Date(),
+                },
+                authData.id,
+            ]);
+        }
+        const html = String.raw;
+        return html `<!DOCTYPE html>
+            <html lang="en">
+                <head>
+                    <meta charset="UTF-8" />
+                    <title>Title</title>
+                </head>
+                <body>
+                    <script>
+                        try {
+                            window.webkit.messageHandlers.addJsInterFace.postMessage(
+                                JSON.stringify({
+                                    functionName: 'closeWebView',
+                                    callBackId: 0,
+                                    data: {
+                                        redirect: 'https://shopnex.cc/login',
+                                    },
+                                })
+                            );
+                        } catch (e) {}
+                        location.href = 'https://shopnex.cc/login';
+                    </script>
+                </body>
+            </html> `;
     }
 }
 exports.SharePermission = SharePermission;

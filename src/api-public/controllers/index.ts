@@ -75,6 +75,7 @@ const whiteList: {}[] = [
     { url: config.getRoute(config.public_route.user + '/fcm', 'public'), method: 'POST' },
     { url: config.getRoute(config.public_route.user + '/public/config', 'public'), method: 'GET' },
     { url: config.getRoute(config.public_route.user + '/forget', 'public'), method: 'POST' },
+    { url: config.getRoute(config.public_route.user + '/permission/redirect', 'public'), method: 'GET' },
     { url: config.getRoute(config.public_route.sql_api, 'public'), method: 'GET' },
     { url: config.getRoute(config.public_route.sql_api, 'public'), method: 'POST' },
     { url: config.getRoute(config.public_route.lambda, 'public'), method: 'POST' },
@@ -122,22 +123,21 @@ async function doAuthAction(req: express.Request, resp: express.Response, next: 
     const url = req.baseUrl;
     const matches = _.where(whiteList, { url: url, method: req.method });
     const token = req.get('Authorization')?.replace('Bearer ', '') as string;
-    async function checkBlockUser(){
-        if((await db.query(`SELECT count(1) FROM \`${(req.get('g-app') as any) ?? req.query['g-app']}\`.t_user where userID=? and status=0`,[req.body.token.userID]))[0]['count(1)']===1){
+    async function checkBlockUser() {
+        if ((await db.query(`SELECT count(1) FROM \`${(req.get('g-app') as any) ?? req.query['g-app']}\`.t_user where userID=? and status=0`, [req.body.token.userID]))[0]['count(1)'] === 1) {
             await redis.deleteKey(token);
-            return  true
-
+            return true;
         }
         await db.execute(`update \`${(req.get('g-app') as any) ?? req.query['g-app']}\`.t_user set online_time=NOW() where userID=?`, [req.body.token.userID || '-1']);
-        return  false
+        return false;
     }
     if (matches.length > 0) {
         try {
             req.body.token = jwt.verify(token, config.SECRET_KEY) as IToken;
             if (req.body.token) {
-             if (await checkBlockUser()) {
-                 return response.fail(resp, exception.PermissionError('INVALID_TOKEN', 'this user has been block.'));
-             }
+                if (await checkBlockUser()) {
+                    return response.fail(resp, exception.PermissionError('INVALID_TOKEN', 'this user has been block.'));
+                }
             }
         } catch (e) {
             console.log('matchTokenError', e);

@@ -474,3 +474,10 @@ router.put('/permission/invite', async (req: express.Request, resp: express.Resp
         return response.fail(resp, err);
     }
 });
+router.get('/permission/redirect', async (req: express.Request, resp: express.Response) => {
+    try {
+        return resp.send(await SharePermission.redirectHTML(`${req.query.key}`));
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
