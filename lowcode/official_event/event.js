@@ -348,6 +348,10 @@ TriggerEvent.create(import.meta.url, {
         title: '電子商務 / 選擇門市',
         fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/to-c2cMap.js'),
     },
+    getRichText: {
+        title: '電子商務 / 取得富文本',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/get-rich-text.js'),
+    },
     getPaymentMethod: {
         title: '電子商務 / 取得支援付款方式',
         fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/get-payment-method.js'),

@@ -189,7 +189,7 @@ export class MenusSetting {
         });
     }
 
-    public static setMenu(cf: { goBack: () => void; gvc: GVC; widget: any; key: 'menu-setting' | 'footer-setting'; title: string }) {
+    public static setMenu(cf: { goBack: () => void; gvc: GVC; widget: any; key: 'menu-setting' | 'footer-setting' | 'text-manager'; title: string }) {
         const vm: {
             id: string;
             link: MenuItem[];

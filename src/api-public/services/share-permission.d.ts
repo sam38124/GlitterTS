@@ -41,7 +41,7 @@ export declare class SharePermission {
         saas: string | undefined;
         brand: any;
         app: string;
-        result?: undefined;
+        result: boolean;
     }>;
     triggerInvited(email: string): Promise<{
         result: boolean;
@@ -51,6 +51,6 @@ export declare class SharePermission {
         saas: string | undefined;
         brand: any;
         app: string;
-        result?: undefined;
+        result: boolean;
     }>;
 }

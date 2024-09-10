@@ -1156,14 +1156,14 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         return html ` <div class="main-card ${classString !== null && classString !== void 0 ? classString : ''}" style="${styleString !== null && styleString !== void 0 ? styleString : ''}">${htmlString !== null && htmlString !== void 0 ? htmlString : ''}</div>`;
     }
     static tab(data, gvc, select, callback, style) {
-        return html ` <div style="justify-content: flex-start; align-items: flex-start; gap: 22px; display: inline-flex;cursor: pointer;margin-top: 24px;margin-bottom: 24px; ${style !== null && style !== void 0 ? style : ''};">
+        return html ` <div style="justify-content: flex-start; align-items: flex-start; gap: 22px; display: inline-flex;cursor: pointer;margin-top: 24px;margin-bottom: 24px;font-size: 18px; ${style !== null && style !== void 0 ? style : ''};">
             ${data
             .map((dd) => {
             if (select === dd.key) {
                 return html ` <div style="flex-direction: column; justify-content: flex-start; align-items: center; gap: 8px; display: inline-flex">
                             <div
-                                style="align-self: stretch; text-align: center; color: #393939; font-size: 18px; font-family: Noto Sans; font-weight: 700; line-height: 18px; word-wrap: break-word;white-space: nowrap;"
-                                onclick="${gvc.event(() => {
+                                    style="align-self: stretch; text-align: center; color: #393939; font-size: 18px; font-family: Noto Sans; font-weight: 700; line-height: 18px; word-wrap: break-word;white-space: nowrap;"
+                                    onclick="${gvc.event(() => {
                     callback(dd.key);
                 })}"
                             >
@@ -1180,7 +1180,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                 })}"
                         >
                             <div
-                                style="align-self: stretch; text-align: center; color: #393939; font-size: 18px; font-family: Noto Sans; font-weight: 400; line-height: 18px; word-wrap: break-word;white-space: nowrap;"
+                                style="align-self: stretch; text-align: center; color: #393939;  font-family: Noto Sans; font-weight: 400; line-height: 18px; word-wrap: break-word;white-space: nowrap;"
                             >
                                 ${dd.title}
                             </div>
@@ -1775,6 +1775,57 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             })}
             </div>`;
         }, 'productsDialog');
+    }
+    static settingDialog(obj) {
+        const glitter = (() => {
+            let glitter = obj.gvc.glitter;
+            if (glitter.getUrlParameter('cms') === 'true' || glitter.getUrlParameter('type') === 'htmlEditor') {
+                glitter = window.parent.glitter || obj.gvc.glitter;
+            }
+            return glitter;
+        })();
+        return glitter.innerDialog((gvc) => {
+            const vm = {
+                id: obj.gvc.glitter.getUUID(),
+                loading: false,
+            };
+            return html `<div class="bg-white shadow rounded-3" style="overflow-y: auto;${document.body.clientWidth > 768 ? 'min-width: 400px; width: 600px;' : 'min-width: 90vw; max-width: 92.5vw;'}">
+                ${gvc.bindView({
+                bind: vm.id,
+                view: () => {
+                    var _a, _b, _c;
+                    if (vm.loading) {
+                        return html `<div class="my-4">${this.spinner()}</div>`;
+                    }
+                    return html `<div class="bg-white shadow rounded-3" style="width: 100%; overflow-y: auto;">
+                            <div class="w-100 d-flex align-items-center p-3 border-bottom">
+                                <div class="tx_700">${(_a = obj.title) !== null && _a !== void 0 ? _a : '產品列表'}</div>
+                                <div class="flex-fill"></div>
+                                <i
+                                    class="fa-regular fa-circle-xmark fs-5 text-dark cursor_pointer"
+                                    onclick="${gvc.event(() => {
+                        if (obj.closeCallback) {
+                            obj.closeCallback();
+                        }
+                        gvc.closeDialog();
+                    })}"
+                                ></i>
+                            </div>
+                            <div class="c_dialog">
+                                <div class="c_dialog_body">
+                                    <div class="c_dialog_main" style="gap: 24px; max-height: 500px;">${(_b = obj.innerHTML(gvc)) !== null && _b !== void 0 ? _b : ''}</div>
+                                    <div class="c_dialog_bar">
+                                     ${(_c = obj.footer_html(gvc)) !== null && _c !== void 0 ? _c : ''}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>`;
+                },
+                onCreate: () => {
+                },
+            })}
+            </div>`;
+        }, obj.gvc.glitter.getUUID());
     }
     static arrowDownDataImage(color) {
         color = color.replace('#', '%23');

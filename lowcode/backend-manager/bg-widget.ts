@@ -4,6 +4,8 @@ import { PageSplit } from './splitPage.js';
 import { Tool } from '../modules/tool.js';
 import { ApiShop } from '../glitter-base/route/shopping.js';
 import { Article } from '../glitter-base/route/article.js';
+import {ApiUser} from "../glitter-base/route/user.js";
+import {ShareDialog} from "../glitterBundle/dialog/ShareDialog.js";
 
 const html = String.raw;
 
@@ -14,6 +16,7 @@ type MenuItem = {
     items?: MenuItem[];
     ignoreFirst?: boolean;
 };
+
 
 type CollecrtionItem = {
     title: string;
@@ -1418,16 +1421,16 @@ ${obj.default ?? ''}</textarea
         callback: (key: string) => void,
         style?: string
     ) {
-        return html` <div style="justify-content: flex-start; align-items: flex-start; gap: 22px; display: inline-flex;cursor: pointer;margin-top: 24px;margin-bottom: 24px; ${style ?? ''};">
+        return html` <div style="justify-content: flex-start; align-items: flex-start; gap: 22px; display: inline-flex;cursor: pointer;margin-top: 24px;margin-bottom: 24px;font-size: 18px; ${style ?? ''};">
             ${data
                 .map((dd) => {
                     if (select === dd.key) {
                         return html` <div style="flex-direction: column; justify-content: flex-start; align-items: center; gap: 8px; display: inline-flex">
                             <div
-                                style="align-self: stretch; text-align: center; color: #393939; font-size: 18px; font-family: Noto Sans; font-weight: 700; line-height: 18px; word-wrap: break-word;white-space: nowrap;"
-                                onclick="${gvc.event(() => {
-                                    callback(dd.key);
-                                })}"
+                                    style="align-self: stretch; text-align: center; color: #393939; font-size: 18px; font-family: Noto Sans; font-weight: 700; line-height: 18px; word-wrap: break-word;white-space: nowrap;"
+                                    onclick="${gvc.event(() => {
+                                        callback(dd.key);
+                                    })}"
                             >
                                 ${dd.title}
                             </div>
@@ -1441,7 +1444,7 @@ ${obj.default ?? ''}</textarea
                             })}"
                         >
                             <div
-                                style="align-self: stretch; text-align: center; color: #393939; font-size: 18px; font-family: Noto Sans; font-weight: 400; line-height: 18px; word-wrap: break-word;white-space: nowrap;"
+                                style="align-self: stretch; text-align: center; color: #393939;  font-family: Noto Sans; font-weight: 400; line-height: 18px; word-wrap: break-word;white-space: nowrap;"
                             >
                                 ${dd.title}
                             </div>
@@ -2101,6 +2104,58 @@ ${obj.default ?? ''}</textarea
         }, 'productsDialog');
     }
 
+    static settingDialog(obj: { gvc: GVC; title: string; innerHTML: (gvc:GVC)=>string;footer_html: (gvc:GVC)=>string; closeCallback?: () => void }) {
+        const glitter=(()=>{
+            let glitter=obj.gvc.glitter;
+            if (glitter.getUrlParameter('cms') === 'true' || glitter.getUrlParameter('type')==='htmlEditor') {
+                glitter = (window.parent as any).glitter || obj.gvc.glitter;
+            }
+            return glitter
+        })()
+        return (glitter as any).innerDialog((gvc: GVC) => {
+            const vm = {
+                id: obj.gvc.glitter.getUUID(),
+                loading: false,
+            };
+
+            return html`<div class="bg-white shadow rounded-3" style="overflow-y: auto;${document.body.clientWidth > 768 ? 'min-width: 400px; width: 600px;' : 'min-width: 90vw; max-width: 92.5vw;'}">
+                ${gvc.bindView({
+                bind: vm.id,
+                view: () => {
+                    if (vm.loading) {
+                        return html`<div class="my-4">${this.spinner()}</div>`;
+                    }
+                    return html`<div class="bg-white shadow rounded-3" style="width: 100%; overflow-y: auto;">
+                            <div class="w-100 d-flex align-items-center p-3 border-bottom">
+                                <div class="tx_700">${obj.title ?? '產品列表'}</div>
+                                <div class="flex-fill"></div>
+                                <i
+                                    class="fa-regular fa-circle-xmark fs-5 text-dark cursor_pointer"
+                                    onclick="${gvc.event(() => {
+                        if (obj.closeCallback) {
+                            obj.closeCallback();
+                        }
+                        gvc.closeDialog();
+                    })}"
+                                ></i>
+                            </div>
+                            <div class="c_dialog">
+                                <div class="c_dialog_body">
+                                    <div class="c_dialog_main" style="gap: 24px; max-height: 500px;">${obj.innerHTML(gvc) ?? ''}</div>
+                                    <div class="c_dialog_bar">
+                                     ${obj.footer_html(gvc) ?? ''}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>`;
+                },
+                onCreate: () => {
+                },
+            })}
+            </div>`;
+        }, obj.gvc.glitter.getUUID());
+    }
+
     // 圖片
     static noImageURL = 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg';
 
@@ -2391,6 +2446,8 @@ ${obj.default ?? ''}</textarea
             },
         });
     }
+
+
 }
 
 (window as any).glitter.setModule(import.meta.url, BgWidget);

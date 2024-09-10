@@ -53,7 +53,7 @@ export class Entry {
         }
         (window as any).renderClock = (window as any).renderClock ?? clockF();
         console.log(`Entry-time:`, (window as any).renderClock.stop());
-        glitter.share.editerVersion = "V_11.3.8";
+        glitter.share.editerVersion = "V_11.4.0";
         glitter.share.start = (new Date());
         const vm: {
             appConfig: any;
@@ -96,7 +96,10 @@ export class Entry {
                     pointer-events: none;
                     
                 }
- 
+ .editor_item.active {
+                 background:#DDD;
+                   
+                }
                 .editorItemActive {
                     display: block !important;
                     border: 2px solid #ffb400 !important;

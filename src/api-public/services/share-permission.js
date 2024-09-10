@@ -135,7 +135,7 @@ class SharePermission {
                     },
                     authData.id,
                 ]);
-                return Object.assign(Object.assign({}, base), { email: email, status: bool });
+                return Object.assign(Object.assign({ result: true }, base), { email: email, status: bool });
             }
             return { result: false };
         }
@@ -167,7 +167,7 @@ class SharePermission {
                     },
                     authData.id,
                 ]);
-                return Object.assign(Object.assign({}, base), { email: email, invited: bool });
+                return Object.assign(Object.assign({ result: true }, base), { email: email, invited: bool });
             }
             return { result: false };
         }
