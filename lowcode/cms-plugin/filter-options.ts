@@ -374,4 +374,33 @@ export class FilterOptions {
         // { key: 'conversion_rate_desc', value: '轉換率高 > 低' },
         // { key: 'conversion_rate_asc', value: '轉換率低 > 高' },
     ];
+
+    static permissionFilterFrame = {
+        status: [],
+    };
+
+    static permissionSelect = [
+        { key: 'name', value: '員工名稱' },
+        { key: 'email', value: '電子信箱' },
+        { key: 'phone', value: '電話號碼' },
+    ];
+
+    static permissionFunnel = [
+        {
+            key: 'status',
+            type: 'multi_checkbox',
+            name: '存取權',
+            data: [
+                { key: 'yes', name: '開啟' },
+                { key: 'no', name: '關閉' },
+            ],
+        },
+    ];
+
+    static permissionOrderBy = [
+        { key: 'default', value: '預設' },
+        { key: 'name', value: '顧客名稱' },
+        { key: 'online_time_asc', value: '最後登入時間早 > 晚' },
+        { key: 'online_time_desc', value: '最後登入時間晚 > 早' },
+    ];
 }

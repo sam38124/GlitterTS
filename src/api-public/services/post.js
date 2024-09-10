@@ -99,7 +99,7 @@ class Post {
                                      from t_user
                                      where userID = ${(_a = this.token.userID) !== null && _a !== void 0 ? _a : 0}`, []))[0]) !== null && _b !== void 0 ? _b : user;
                 }
-                const sqlType = await ((async () => {
+                const sqlType = await (async () => {
                     const sq = Post.lambda_function[this.app].apiList.find((dd) => {
                         return dd.route === router && dd.type === type;
                     });
@@ -107,11 +107,9 @@ class Post {
                         throw exception_1.default.BadRequestError('BAD_REQUEST', `Router ${router} not exist.`, null);
                     }
                     const html = String.raw;
-                    const myFunction = new Function(html `try {
-                            return ${sq.sql.replace(/new\s*Promise\s*\(\s*async\s*\(\s*resolve\s*,\s*reject\s*\)\s*=>\s*\{([\s\S]*)\}\s*\)/i, 'new Promise(async (resolve, reject) => { try { $1 } catch (error) { console.log(error);reject(error); } })')}
-                            } catch (error) {
-                            return 'error';
-                            }`);
+                    const myFunction = new Function(html `try { return
+                        ${sq.sql.replace(/new\s*Promise\s*\(\s*async\s*\(\s*resolve\s*,\s*reject\s*\)\s*=>\s*\{([\s\S]*)\}\s*\)/i, 'new Promise(async (resolve, reject) => { try { $1 } catch (error) { console.log(error);reject(error); } })')}
+                        } catch (error) { return 'error'; }`);
                     return (() => {
                         try {
                             return myFunction();
@@ -120,7 +118,7 @@ class Post {
                             throw exception_1.default.BadRequestError('BAD_REQUEST', e, null);
                         }
                     })();
-                })());
+                })();
                 if (!sqlType) {
                     throw exception_1.default.BadRequestError('BAD_REQUEST', 'SqlApi Error', null);
                 }
@@ -134,8 +132,7 @@ class Post {
                                 app: this.app,
                                 query: query,
                                 firebase: {
-                                    sendMessage: (message) => {
-                                    },
+                                    sendMessage: (message) => { },
                                 },
                             })
                                 .then((data) => {
@@ -321,8 +318,7 @@ class Post {
                                          from \`${this.app}\`.\`t_user\`
                                          where userID = ${dd.userID}`, []))[0]['userData'];
                         }
-                        catch (e) {
-                        }
+                        catch (e) { }
                     }
                     dd.userData = userData[dd.userID];
                 }
@@ -359,14 +355,4 @@ class Post {
 exports.Post = Post;
 Post.postObserverList = [];
 Post.lambda_function = {};
-function generateUserID() {
-    let userID = '';
-    const characters = '0123456789';
-    const charactersLength = characters.length;
-    for (let i = 0; i < 8; i++) {
-        userID += characters.charAt(Math.floor(Math.random() * charactersLength));
-    }
-    userID = `${'123456789'.charAt(Math.floor(Math.random() * charactersLength))}${userID}`;
-    return userID;
-}
 //# sourceMappingURL=post.js.map

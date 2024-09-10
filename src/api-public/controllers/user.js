@@ -438,7 +438,13 @@ router.get('/permission', async (req, resp) => {
             return response_1.default.fail(resp, exception_1.default.BadRequestError('BAD_REQUEST', 'No permission.', null));
         }
         return response_1.default.succ(resp, await new share_permission_1.SharePermission(req.get('g-app'), req.body.token).getPermission({
+            page: req.query.page ? parseInt(`${req.query.page}`, 10) : 0,
+            limit: req.query.limit ? parseInt(`${req.query.limit}`, 10) : 20,
             email: req.query.email ? `${req.query.email}` : undefined,
+            orderBy: req.query.orderBy ? `${req.query.orderBy}` : undefined,
+            queryType: req.query.queryType ? `${req.query.queryType}` : undefined,
+            query: req.query.query ? `${req.query.query}` : undefined,
+            status: req.query.status ? `${req.query.status}` : undefined,
         }));
     }
     catch (err) {
@@ -453,6 +459,7 @@ router.post('/permission', async (req, resp) => {
         return response_1.default.succ(resp, await new share_permission_1.SharePermission(req.get('g-app'), req.body.token).setPermission({
             email: req.body.email,
             config: req.body.config,
+            status: req.body.status,
         }));
     }
     catch (err) {

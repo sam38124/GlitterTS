@@ -1,4 +1,22 @@
 import { IToken } from '../../models/Auth.js';
+interface PermissionItem {
+    id: number;
+    user: string;
+    appName: string;
+    config: {
+        auth: any;
+        name: string;
+        phone: string;
+        title: string;
+        verifyEmail?: string;
+    };
+    created_time: string;
+    updated_time: string;
+    status: number;
+    invited: number;
+    email: string;
+    online_time: string;
+}
 type AppPermission = {
     userId: string;
     appName: string;
@@ -15,18 +33,29 @@ export declare class SharePermission {
         domain: any;
         app: string;
     } | undefined>;
-    getPermission(data: {
+    getPermission(json: {
+        page: number;
+        limit: number;
         email?: string;
-    }): Promise<any>;
+        orderBy?: string;
+        queryType?: string;
+        query?: string;
+        status?: string;
+    }): Promise<never[] | {
+        data: PermissionItem[];
+        total: number;
+    }>;
     setPermission(data: {
         email: string;
         config: any;
+        status?: number;
     }): Promise<{
         result: boolean;
     } | {
         redirect_url: URL | undefined;
         email: string;
         config: any;
+        status?: number | undefined;
         saas: string | undefined;
         brand: any;
         domain: any;

@@ -5,6 +5,26 @@ import { saasConfig } from '../../config';
 import redis from '../../modules/redis.js';
 import jwt from 'jsonwebtoken';
 import config from '../../config.js';
+import { User } from './user';
+
+interface PermissionItem {
+    id: number;
+    user: string;
+    appName: string;
+    config: {
+        auth: any;
+        name: string;
+        phone: string;
+        title: string;
+        verifyEmail?: string;
+    };
+    created_time: string;
+    updated_time: string;
+    status: number;
+    invited: number;
+    email: string;
+    online_time: string;
+}
 
 type AppPermission = {
     userId: string;
@@ -45,47 +65,145 @@ export class SharePermission {
         }
     }
 
-    async getPermission(data: { email?: string }) {
+    async getPermission(json: { page: number; limit: number; email?: string; orderBy?: string; queryType?: string; query?: string; status?: string }) {
         try {
             const base = await this.getBaseData();
             if (!base) return [];
 
+            const page = json.page ?? 0;
+            const limit = json.limit ?? 20;
+            const start = page * limit;
+            const end = page * limit + limit;
             const querySQL = ['1=1'];
 
-            if (data.email) {
-                const userData = await db.query(
-                    `SELECT userID FROM \`${base.brand}\`.t_user WHERE account in (${data.email
+            if (json.email) {
+                const selectEmails = await db.query(
+                    `SELECT userID FROM \`${base.brand}\`.t_user WHERE account in (${json.email
                         .split(',')
                         .map((email) => `"${email}"`)
                         .join(',')});
                     `,
                     []
                 );
-                if (userData.length === 0) return [];
+                if (selectEmails.length === 0) return [];
 
-                querySQL.push(`user in (${userData.map((user: { userID: number }) => user.userID).join(',')})`);
+                querySQL.push(`user in (${selectEmails.map((user: { userID: number }) => user.userID).join(',')})`);
             }
 
-            const authData = await db.query(
+            const auths = await db.query(
                 `SELECT * FROM \`${saasConfig.SAAS_NAME}\`.app_auth_config
                     WHERE appName = ? AND ${querySQL.join(' AND ')};
                 `,
                 [base.app]
             );
-            return authData;
+
+            if (auths.length === 0) {
+                return {
+                    data: [],
+                    total: 0,
+                };
+            }
+
+            const users = await db.query(
+                `SELECT * FROM \`${base.brand}\`.t_user WHERE userID in (${auths
+                    .map((item: { user: string }) => {
+                        return item.user;
+                    })
+                    .join(',')});
+                `,
+                []
+            );
+
+            let authDataList: PermissionItem[] = auths.map((item: any) => {
+                const data = users.find((u: any) => u.userID == item.user);
+                if (data) {
+                    item.email = data.account;
+                    item.online_time = data.online_time;
+                }
+                return item;
+            });
+
+            function statusFilter(data: PermissionItem[], query: 'yes' | 'no'): PermissionItem[] {
+                return data.filter((item) => {
+                    if (query === 'yes') {
+                        return item.status === 1;
+                    }
+                    if (query === 'no') {
+                        return item.status === 0;
+                    }
+                    return true;
+                });
+            }
+
+            if (json.status === 'yes' || json.status === 'no') {
+                authDataList = statusFilter(authDataList, json.status);
+            }
+
+            function searchFilter(data: PermissionItem[], field: string, query: string): PermissionItem[] {
+                return data.filter((item) => {
+                    if (field === 'name') {
+                        return item.config.name.toLowerCase().includes(query.toLowerCase());
+                    }
+                    if (field === 'email') {
+                        return item.email.toLowerCase().includes(query.toLowerCase());
+                    }
+                    if (field === 'phone') {
+                        return item.config.phone.includes(query);
+                    }
+                    return true;
+                });
+            }
+
+            if (json.queryType && json.query) {
+                authDataList = searchFilter(authDataList, json.queryType, json.query);
+            }
+
+            function sortByName(data: PermissionItem[]): void {
+                data.sort((a: any, b: any) => a.config.name.localeCompare(b.config.name));
+            }
+
+            function sortByOnlineTime(data: PermissionItem[], order: 'asc' | 'desc'): void {
+                data.sort((a, b) => {
+                    if (order === 'asc') {
+                        return new Date(a.online_time).getTime() - new Date(b.online_time).getTime();
+                    } else if (order === 'desc') {
+                        return new Date(b.online_time).getTime() - new Date(a.online_time).getTime();
+                    }
+                    return 0;
+                });
+            }
+
+            switch (json.orderBy) {
+                case 'name':
+                    sortByName(authDataList);
+                    break;
+                case 'online_time_asc':
+                    sortByOnlineTime(authDataList, 'asc');
+                    break;
+                case 'online_time_desc':
+                    sortByOnlineTime(authDataList, 'desc');
+                    break;
+                default:
+                    break;
+            }
+
+            return {
+                data: authDataList.slice(start, end),
+                total: authDataList.length,
+            };
         } catch (e) {
             throw exception.BadRequestError('ERROR', 'getPermission ERROR: ' + e, null);
         }
     }
 
-    async setPermission(data: { email: string; config: any }) {
+    async setPermission(data: { email: string; config: any; status?: number }) {
         try {
             const base = await this.getBaseData();
             if (!base) {
                 return { result: false };
             }
 
-            const userData = (
+            let userData = (
                 await db.query(
                     `SELECT userID FROM \`${base.brand}\`.t_user WHERE account = ?;
                 `,
@@ -93,6 +211,22 @@ export class SharePermission {
                 )
             )[0];
             if (userData === undefined) {
+                const findAuth = (
+                    await db.query(
+                        `SELECT * FROM \`${saasConfig.SAAS_NAME}\`.app_auth_config 
+                        WHERE JSON_EXTRACT(config, '$.verifyEmail') = ?;
+                        `,
+                        [data.email]
+                    )
+                )[0];
+                if (findAuth) {
+                    userData = { userID: findAuth.user };
+                } else {
+                    userData = { userID: User.generateUserID() };
+                    data.config.verifyEmail = data.email;
+                }
+            }
+            if (userData.userID === this.token.userID) {
                 return { result: false };
             }
 
@@ -114,6 +248,7 @@ export class SharePermission {
                         {
                             config: JSON.stringify(data.config),
                             updated_time: new Date(),
+                            status: data.status === 1 ? 1 : 0,
                         },
                         authData.id,
                     ]

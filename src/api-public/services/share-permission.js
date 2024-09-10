@@ -10,6 +10,7 @@ const config_1 = require("../../config");
 const redis_js_1 = __importDefault(require("../../modules/redis.js"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const config_js_1 = __importDefault(require("../../config.js"));
+const user_1 = require("./user");
 class SharePermission {
     constructor(appName, token) {
         this.appName = appName;
@@ -32,26 +33,112 @@ class SharePermission {
             throw exception_js_1.default.BadRequestError('ERROR', 'getBaseData ERROR: ' + e, null);
         }
     }
-    async getPermission(data) {
+    async getPermission(json) {
+        var _a, _b;
         try {
             const base = await this.getBaseData();
             if (!base)
                 return [];
+            const page = (_a = json.page) !== null && _a !== void 0 ? _a : 0;
+            const limit = (_b = json.limit) !== null && _b !== void 0 ? _b : 20;
+            const start = page * limit;
+            const end = page * limit + limit;
             const querySQL = ['1=1'];
-            if (data.email) {
-                const userData = await database_1.default.query(`SELECT userID FROM \`${base.brand}\`.t_user WHERE account in (${data.email
+            if (json.email) {
+                const selectEmails = await database_1.default.query(`SELECT userID FROM \`${base.brand}\`.t_user WHERE account in (${json.email
                     .split(',')
                     .map((email) => `"${email}"`)
                     .join(',')});
                     `, []);
-                if (userData.length === 0)
+                if (selectEmails.length === 0)
                     return [];
-                querySQL.push(`user in (${userData.map((user) => user.userID).join(',')})`);
+                querySQL.push(`user in (${selectEmails.map((user) => user.userID).join(',')})`);
             }
-            const authData = await database_1.default.query(`SELECT * FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_auth_config
+            const auths = await database_1.default.query(`SELECT * FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_auth_config
                     WHERE appName = ? AND ${querySQL.join(' AND ')};
                 `, [base.app]);
-            return authData;
+            if (auths.length === 0) {
+                return {
+                    data: [],
+                    total: 0,
+                };
+            }
+            const users = await database_1.default.query(`SELECT * FROM \`${base.brand}\`.t_user WHERE userID in (${auths
+                .map((item) => {
+                return item.user;
+            })
+                .join(',')});
+                `, []);
+            let authDataList = auths.map((item) => {
+                const data = users.find((u) => u.userID == item.user);
+                if (data) {
+                    item.email = data.account;
+                    item.online_time = data.online_time;
+                }
+                return item;
+            });
+            function statusFilter(data, query) {
+                return data.filter((item) => {
+                    if (query === 'yes') {
+                        return item.status === 1;
+                    }
+                    if (query === 'no') {
+                        return item.status === 0;
+                    }
+                    return true;
+                });
+            }
+            if (json.status === 'yes' || json.status === 'no') {
+                authDataList = statusFilter(authDataList, json.status);
+            }
+            function searchFilter(data, field, query) {
+                return data.filter((item) => {
+                    if (field === 'name') {
+                        return item.config.name.toLowerCase().includes(query.toLowerCase());
+                    }
+                    if (field === 'email') {
+                        return item.email.toLowerCase().includes(query.toLowerCase());
+                    }
+                    if (field === 'phone') {
+                        return item.config.phone.includes(query);
+                    }
+                    return true;
+                });
+            }
+            if (json.queryType && json.query) {
+                authDataList = searchFilter(authDataList, json.queryType, json.query);
+            }
+            function sortByName(data) {
+                data.sort((a, b) => a.config.name.localeCompare(b.config.name));
+            }
+            function sortByOnlineTime(data, order) {
+                data.sort((a, b) => {
+                    if (order === 'asc') {
+                        return new Date(a.online_time).getTime() - new Date(b.online_time).getTime();
+                    }
+                    else if (order === 'desc') {
+                        return new Date(b.online_time).getTime() - new Date(a.online_time).getTime();
+                    }
+                    return 0;
+                });
+            }
+            switch (json.orderBy) {
+                case 'name':
+                    sortByName(authDataList);
+                    break;
+                case 'online_time_asc':
+                    sortByOnlineTime(authDataList, 'asc');
+                    break;
+                case 'online_time_desc':
+                    sortByOnlineTime(authDataList, 'desc');
+                    break;
+                default:
+                    break;
+            }
+            return {
+                data: authDataList.slice(start, end),
+                total: authDataList.length,
+            };
         }
         catch (e) {
             throw exception_js_1.default.BadRequestError('ERROR', 'getPermission ERROR: ' + e, null);
@@ -63,26 +150,35 @@ class SharePermission {
             if (!base) {
                 return { result: false };
             }
-            const userData = (await database_1.default.query(`SELECT userID FROM \`${base.brand}\`.t_user WHERE account = ?;
+            console.log(data);
+            let userData = (await database_1.default.query(`SELECT userID FROM \`${base.brand}\`.t_user WHERE account = ?;
                 `, [data.email]))[0];
             if (userData === undefined) {
+                console.log('gen');
+                userData = { userID: user_1.User.generateUserID() };
+                data.config.verifyEmail = data.email;
+            }
+            if (userData.userID === this.token.userID) {
                 return { result: false };
             }
             const authData = (await database_1.default.query(`SELECT * FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_auth_config WHERE user = ? AND appName = ?;
                 `, [userData.userID, base.app]))[0];
             let redirect_url = undefined;
             if (authData) {
+                console.log('UPDATE');
                 await database_1.default.query(`UPDATE \`${config_1.saasConfig.SAAS_NAME}\`.app_auth_config
                         SET ?
                         WHERE id = ?`, [
                     {
                         config: JSON.stringify(data.config),
                         updated_time: new Date(),
+                        status: data.status === 1 ? 1 : 0,
                     },
                     authData.id,
                 ]);
             }
             else {
+                console.log('INSERT');
                 await database_1.default.query(`INSERT INTO \`${config_1.saasConfig.SAAS_NAME}\`.app_auth_config SET ?`, [
                     {
                         user: userData.userID,

@@ -1,19 +1,19 @@
-import db, {limit, queryLambada} from '../../modules/database';
+import db, { limit, queryLambada } from '../../modules/database';
 import exception from '../../modules/exception';
 import tool from '../../services/tool';
 import UserUtil from '../../utils/UserUtil';
-import {IToken} from '../models/Auth.js';
-import {App} from '../../services/app.js';
-import {sendMessage} from '../../firebase/message.js';
-import {Shopping} from './shopping.js';
-import {UtDatabase} from '../utils/ut-database.js';
-import {ManagerNotify} from './notify.js';
+import { IToken } from '../models/Auth.js';
+import { App } from '../../services/app.js';
+import { sendMessage } from '../../firebase/message.js';
+import { Shopping } from './shopping.js';
+import { UtDatabase } from '../utils/ut-database.js';
+import { ManagerNotify } from './notify.js';
 
 export class Post {
     public app: string;
     public token: IToken;
     public static postObserverList: ((data: any, app: string) => void)[] = [];
-    public static lambda_function: any = {}
+    public static lambda_function: any = {};
 
     public static addPostObserver(callback: (data: any, app: string) => void) {
         Post.postObserverList.push(callback);
@@ -67,22 +67,21 @@ export class Post {
             console.log(`sqlApi:`, sql);
             await db.query(sql, []);
         } catch (e) {
-            console.error(e)
+            console.error(e);
             throw exception.BadRequestError('BAD_REQUEST', 'SqlApi Error:' + e, null);
         }
     }
 
     public async lambda(query: any, router: string, datasource: any, type: string) {
         try {
-
             return await db.queryLambada(
                 {
                     database: this.app,
                 },
                 async (sql) => {
                     let user: any = undefined;
-                    if (!Post.lambda_function[this.app]){
-                        Post.lambda_function[this.app]=await App.getAdConfig(this.app, 'sql_api_config_post');
+                    if (!Post.lambda_function[this.app]) {
+                        Post.lambda_function[this.app] = await App.getAdConfig(this.app, 'sql_api_config_post');
                     }
                     if (this.token) {
                         user =
@@ -95,7 +94,7 @@ export class Post {
                                 )
                             )[0] ?? user;
                     }
-                    const sqlType = await ((async () => {
+                    const sqlType = await (async () => {
                         const sq = Post.lambda_function[this.app].apiList.find((dd: any) => {
                             return dd.route === router && dd.type === type;
                         });
@@ -103,14 +102,12 @@ export class Post {
                             throw exception.BadRequestError('BAD_REQUEST', `Router ${router} not exist.`, null);
                         }
                         const html = String.raw;
-                        const myFunction = new Function(html`try {
-                            return ${sq.sql.replace(
+                        const myFunction = new Function(html`try { return
+                        ${sq.sql.replace(
                             /new\s*Promise\s*\(\s*async\s*\(\s*resolve\s*,\s*reject\s*\)\s*=>\s*\{([\s\S]*)\}\s*\)/i,
                             'new Promise(async (resolve, reject) => { try { $1 } catch (error) { console.log(error);reject(error); } })'
                         )}
-                            } catch (error) {
-                            return 'error';
-                            }`);
+                        } catch (error) { return 'error'; }`);
 
                         return (() => {
                             try {
@@ -119,7 +116,7 @@ export class Post {
                                 throw exception.BadRequestError('BAD_REQUEST', e as any, null);
                             }
                         })();
-                    })())
+                    })();
                     if (!sqlType) {
                         throw exception.BadRequestError('BAD_REQUEST', 'SqlApi Error', null);
                     } else {
@@ -139,15 +136,14 @@ export class Post {
                                                 };
                                                 type: 'topic' | 'token';
                                                 for: string;
-                                            }) => {
-                                            },
+                                            }) => {},
                                         },
                                     })
                                     .then((data: any) => {
-                                        resolve({result: true, data: data});
+                                        resolve({ result: true, data: data });
                                     })
                                     .catch((e: any) => {
-                                        resolve({result: false, message: e});
+                                        resolve({ result: false, message: e });
                                     });
                             } catch (e) {
                                 console.log(e);
@@ -158,7 +154,7 @@ export class Post {
                 }
             );
         } catch (e) {
-            console.error(e)
+            console.error(e);
             throw exception.BadRequestError('BAD_REQUEST', 'SqlApi Error:' + e, null);
         }
     }
@@ -192,18 +188,18 @@ export class Post {
             let querySql: any = [];
             query.id && querySql.push(`id=${query.id}`);
             query.search &&
-            query.search.split(',').map((dd: any) => {
-                if (dd.includes('->')) {
-                    const qu = dd.split('->');
-                    querySql.push(`(content->>'$.${qu[0]}'='${qu[1]}')`);
-                } else if (dd.includes('-|>')) {
-                    const qu = dd.split('-|>');
-                    querySql.push(`(content->>'$.${qu[0]}' like '%${qu[1]}%')`);
-                } else if (dd.includes('-[]>')) {
-                    const qu = dd.split('-[]>');
-                    querySql.push(`(JSON_CONTAINS(content, '"${qu[1]}"', '$.${qu[0]}'))`);
-                }
-            });
+                query.search.split(',').map((dd: any) => {
+                    if (dd.includes('->')) {
+                        const qu = dd.split('->');
+                        querySql.push(`(content->>'$.${qu[0]}'='${qu[1]}')`);
+                    } else if (dd.includes('-|>')) {
+                        const qu = dd.split('-|>');
+                        querySql.push(`(content->>'$.${qu[0]}' like '%${qu[1]}%')`);
+                    } else if (dd.includes('-[]>')) {
+                        const qu = dd.split('-[]>');
+                        querySql.push(`(JSON_CONTAINS(content, '"${qu[1]}"', '$.${qu[0]}'))`);
+                    }
+                });
             return await new UtDatabase(this.app, manager ? `t_manager_post` : `t_post`).querySql(querySql, query);
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'GetContentV2 Error:' + e, null);
@@ -330,8 +326,7 @@ export class Post {
                                         []
                                     )
                                 )[0]['userData'];
-                            } catch (e) {
-                            }
+                            } catch (e) {}
                         }
                         dd.userData = userData[dd.userID];
                     }
@@ -365,15 +360,4 @@ export class Post {
         this.app = app;
         this.token = token;
     }
-}
-
-function generateUserID() {
-    let userID = '';
-    const characters = '0123456789';
-    const charactersLength = characters.length;
-    for (let i = 0; i < 8; i++) {
-        userID += characters.charAt(Math.floor(Math.random() * charactersLength));
-    }
-    userID = `${'123456789'.charAt(Math.floor(Math.random() * charactersLength))}${userID}`;
-    return userID;
 }
