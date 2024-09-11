@@ -112,7 +112,7 @@ export declare class Shopping {
         type: string;
         divisor: number;
         executionTime: string;
-        queryStatus: "success" | "error";
+        queryStatus: "error" | "success";
         queryData: any;
     } | {
         type: string;
@@ -128,6 +128,7 @@ export declare class Shopping {
         searchType?: string;
         collection?: string;
         accurate_search_collection?: boolean;
+        accurate_search_text?: boolean;
         min_price?: string;
         max_price?: string;
         status?: string;

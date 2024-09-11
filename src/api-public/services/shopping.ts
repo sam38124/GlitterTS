@@ -192,6 +192,7 @@ export class Shopping {
         searchType?: string;
         collection?: string;
         accurate_search_collection?: boolean;
+        accurate_search_text?:boolean,
         min_price?: string;
         max_price?: string;
         status?: string;
@@ -208,10 +209,18 @@ export class Shopping {
             if (query.search) {
                 switch (query.searchType) {
                     case 'sku':
-                        querySql.push(`JSON_EXTRACT(content, '$.variants[*].sku') LIKE '%${query.search}%'`);
+                        if(query.accurate_search_text){
+                            querySql.push(`JSON_EXTRACT(content, '$.variants[*].sku') = '${query.search}'`);
+                        }else{
+                            querySql.push(`JSON_EXTRACT(content, '$.variants[*].sku') LIKE '%${query.search}%'`);
+                        }
                         break;
                     case 'barcode':
-                        querySql.push(`JSON_EXTRACT(content, '$.variants[*].barcode') LIKE '%${query.search}%'`);
+                        if(query.accurate_search_text){
+                            querySql.push(`JSON_EXTRACT(content, '$.variants[*].barcode') = '${query.search}'`);
+                        }else{
+                            querySql.push(`JSON_EXTRACT(content, '$.variants[*].barcode') LIKE '%${query.search}%'`);
+                        }
                         break;
                     case 'title':
                     default:

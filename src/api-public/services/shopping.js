@@ -69,10 +69,20 @@ class Shopping {
             if (query.search) {
                 switch (query.searchType) {
                     case 'sku':
-                        querySql.push(`JSON_EXTRACT(content, '$.variants[*].sku') LIKE '%${query.search}%'`);
+                        if (query.accurate_search_text) {
+                            querySql.push(`JSON_EXTRACT(content, '$.variants[*].sku') = '${query.search}'`);
+                        }
+                        else {
+                            querySql.push(`JSON_EXTRACT(content, '$.variants[*].sku') LIKE '%${query.search}%'`);
+                        }
                         break;
                     case 'barcode':
-                        querySql.push(`JSON_EXTRACT(content, '$.variants[*].barcode') LIKE '%${query.search}%'`);
+                        if (query.accurate_search_text) {
+                            querySql.push(`JSON_EXTRACT(content, '$.variants[*].barcode') = '${query.search}'`);
+                        }
+                        else {
+                            querySql.push(`JSON_EXTRACT(content, '$.variants[*].barcode') LIKE '%${query.search}%'`);
+                        }
                         break;
                     case 'title':
                     default:

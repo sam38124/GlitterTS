@@ -1,9 +1,11 @@
 import { ApiShop } from "../../glitter-base/route/shopping.js";
 import { ShareDialog } from "../../glitterBundle/dialog/ShareDialog.js";
 import { POSSetting } from "../POS-setting.js";
+import { Swal } from "../../modules/sweetAlert.js";
 const html = String.raw;
 export class ProductsPage {
     static main(obj) {
+        const swal = new Swal(obj.gvc);
         const gvc = obj.gvc;
         const vm = obj.vm;
         const orderDetail = obj.orderDetail;
@@ -486,7 +488,49 @@ export class ProductsPage {
 
                             </div>
                         `;
-                }, divCreate: { class: `display: flex;flex-direction: column;gap: 24px;` }
+                }, divCreate: { class: `display: flex;flex-direction: column;gap: 24px;` },
+                onCreate: () => {
+                    const dialog = new ShareDialog(gvc.glitter);
+                    obj.gvc.glitter.share.scan_back = (text) => {
+                        dialog.dataLoading({ visible: true });
+                        ApiShop.getProduct({
+                            page: 0,
+                            limit: 50000,
+                            accurate_search_text: true,
+                            search: text,
+                            orderBy: 'created_time_desc'
+                        }).then(res => {
+                            dialog.dataLoading({ visible: false });
+                            if (res.response.data[0]) {
+                                const data = res.response.data[0];
+                                const selectVariant = res.response.data[0].content.variants.find((d1) => {
+                                    return d1.barcode === text;
+                                });
+                                if (!orderDetail.lineItems.find((dd) => {
+                                    return (dd.id + dd.spec.join('-')) === (data.id + selectVariant.spec.join('-'));
+                                })) {
+                                    orderDetail.lineItems.push({
+                                        id: data.id,
+                                        title: data.content.title,
+                                        preview_image: (selectVariant.preview_image.length > 1) ? selectVariant.preview_image : data.content.preview_image[0],
+                                        spec: selectVariant.spec,
+                                        count: 0,
+                                        sale_price: selectVariant.sale_price,
+                                        sku: selectVariant.sku
+                                    });
+                                }
+                                orderDetail.lineItems.find((dd) => {
+                                    return (dd.id + dd.spec.join('-')) === (data.id + selectVariant.spec.join('-'));
+                                }).count++;
+                                gvc.notifyDataChange('order');
+                            }
+                            else {
+                                swal.toast({ icon: 'error', title: '無此商品' });
+                            }
+                            gvc.notifyDataChange(`order`);
+                        });
+                    };
+                }
             })}
 
                 <div style="margin-top: 32px;display: flex;padding: 12px 24px;justify-content: center;align-items: center;border-radius: 10px;background: #393939;font-size: 20px;font-style: normal;font-weight: 500;color: #FFF;"

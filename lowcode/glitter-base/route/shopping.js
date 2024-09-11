@@ -211,6 +211,7 @@ export class ApiShop {
                     let par = [`limit=${json.limit}`, `page=${json.page}`];
                     json.collection && par.push(`collection=${encodeURI(json.collection)}`);
                     json.accurate_search_collection && par.push(`accurate_search_collection=true`);
+                    json.accurate_search_text && par.push(`accurate_search_text=true`);
                     json.search && par.push(`search=${json.search}`);
                     json.id && par.push(`id=${json.id}`);
                     json.maxPrice && par.push(`max_price=${json.maxPrice}`);

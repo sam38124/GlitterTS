@@ -802,6 +802,7 @@ router.get('/product', async (req: express.Request, resp: express.Response) => {
             sku: req.query.sku as string,
             id: req.query.id as string,
             collection: req.query.collection as string,
+            accurate_search_text:req.query.accurate_search_text === 'true',
             accurate_search_collection: req.query.accurate_search_collection === 'true',
             min_price: req.query.min_price as string,
             max_price: req.query.max_price as string,

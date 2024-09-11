@@ -81,7 +81,9 @@ export class PaymentPage {
                             });
                         });
                         PaymentPage.storeHistory(obj.ogOrderData);
-                        vm.type = 'menu';
+                        if (obj.ogOrderData.lineItems.length === 0) {
+                            vm.type = 'menu';
+                        }
                         return orderDetail;
                     }))());
                     return html `

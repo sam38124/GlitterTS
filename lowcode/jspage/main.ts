@@ -660,7 +660,6 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
                         switch (Storage.select_function) {
                             case 'backend-manger':{
                                 let bgGuide = new BgGuide(gvc,0);
-
                                 ApiShop.getGuideable().then(r => {
                                     if (!r.response.value){
                                         bgGuide.drawGuide();

@@ -721,6 +721,7 @@ router.get('/product', async (req, resp) => {
             sku: req.query.sku,
             id: req.query.id,
             collection: req.query.collection,
+            accurate_search_text: req.query.accurate_search_text === 'true',
             accurate_search_collection: req.query.accurate_search_collection === 'true',
             min_price: req.query.min_price,
             max_price: req.query.max_price,

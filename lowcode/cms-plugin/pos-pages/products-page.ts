@@ -3,11 +3,13 @@ import {GVC} from "../../glitterBundle/GVController.js";
 import {ApiShop} from "../../glitter-base/route/shopping.js";
 import {ShareDialog} from "../../glitterBundle/dialog/ShareDialog.js";
 import {POSSetting} from "../POS-setting.js";
+import {Swal} from "../../modules/sweetAlert.js";
 
 const html = String.raw
 
 export class ProductsPage {
     public static main(obj: { gvc: GVC,vm: ViewModel,orderDetail:OrderDetail }) {
+        const swal = new Swal(obj.gvc);
         const gvc = obj.gvc
         const vm = obj.vm
         const orderDetail=obj.orderDetail
@@ -120,7 +122,7 @@ export class ProductsPage {
                                 data.content.specs.forEach((spec: any) => {
                                     spec.option[0].select = true;
                                 })
-
+                              
                                 return html`
                                     <div class="d-flex flex-column mb-4 mb-sm-0"
                                          style="max-width:${maxwidth}px;flex-basis: 188px;flex-grow: 1;border-radius: 10px;box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.08);"
@@ -502,7 +504,49 @@ if(document.querySelector('.js-cart-count')){
 
                             </div>
                         `
-                    }, divCreate: {class: `display: flex;flex-direction: column;gap: 24px;`}
+                    }, divCreate: {class: `display: flex;flex-direction: column;gap: 24px;`},
+                    onCreate:()=>{
+                        const dialog=new ShareDialog(gvc.glitter)
+                        obj.gvc.glitter.share.scan_back = (text: string) => {
+                            dialog.dataLoading({visible:true})
+                            ApiShop.getProduct({
+                                page: 0,
+                                limit: 50000,
+                                accurate_search_text:true,
+                                search:text,
+                                orderBy: 'created_time_desc'
+                            }).then(res => {
+                                dialog.dataLoading({visible:false})
+                                if(res.response.data[0]){
+                                    const data=res.response.data[0]
+                                    const selectVariant=res.response.data[0].content.variants.find((d1:any)=>{
+                                        return d1.barcode===text
+                                    })
+                                    if(!orderDetail.lineItems.find((dd)=>{
+                                        return (dd.id+dd.spec.join('-'))===(data.id + selectVariant.spec.join('-'))
+                                    })){
+                                        orderDetail.lineItems.push({
+                                            id: data.id,
+                                            title: data.content.title,
+                                            preview_image: (selectVariant.preview_image.length > 1) ? selectVariant.preview_image : data.content.preview_image[0],
+                                            spec: selectVariant.spec,
+                                            count: 0,
+                                            sale_price: selectVariant.sale_price,
+                                            sku: selectVariant.sku
+                                        }) 
+                                    }
+                                    orderDetail.lineItems.find((dd)=>{
+                                        return (dd.id+dd.spec.join('-'))===(data.id + selectVariant.spec.join('-'))
+                                    })!.count++
+                                    gvc.notifyDataChange('order')
+                                }else{
+                                    swal.toast({icon:'error',title:'無此商品'})
+                                }
+                                
+                                gvc.notifyDataChange(`order`)
+                            })
+                        }
+                    }
                 })}
 
                 <div style="margin-top: 32px;display: flex;padding: 12px 24px;justify-content: center;align-items: center;border-radius: 10px;background: #393939;font-size: 20px;font-style: normal;font-weight: 500;color: #FFF;"
