@@ -11,6 +11,7 @@ const redis_js_1 = __importDefault(require("../../modules/redis.js"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const config_js_1 = __importDefault(require("../../config.js"));
 const user_1 = require("./user");
+const ses_js_1 = require("../../services/ses.js");
 class SharePermission {
     constructor(appName, token) {
         this.appName = appName;
@@ -183,6 +184,11 @@ class SharePermission {
                 ]);
             }
             else {
+                const storeData = (await database_1.default.query(`SELECT * FROM \`${base.app}\`.t_user_public_config WHERE \`key\` = 'store-information' AND user_id = 'manager';
+                        `, []))[0];
+                if (!storeData || !storeData.value.shop_name) {
+                    return { result: false, message: '請先至「商店訊息」<br />新增你的商店名稱' };
+                }
                 await database_1.default.query(`INSERT INTO \`${config_1.saasConfig.SAAS_NAME}\`.app_auth_config SET ?`, [
                     {
                         user: userData.userID,
@@ -197,6 +203,7 @@ class SharePermission {
                 redirect_url = new URL(`https://${base.domain}/api-public/v1/user/permission/redirect`);
                 redirect_url.searchParams.set('key', keyValue);
                 redirect_url.searchParams.set('g-app', base.app);
+                await (0, ses_js_1.sendmail)('service@ncdesign.info', data.email, '商店權限分享邀請信', `「${storeData.value.shop_name}」邀請你加入他的商店，點擊此連結即可開啟權限：${redirect_url}`);
             }
             return Object.assign(Object.assign(Object.assign({ result: true }, base), data), { redirect_url });
         }

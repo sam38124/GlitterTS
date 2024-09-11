@@ -6,6 +6,7 @@ import redis from '../../modules/redis.js';
 import jwt from 'jsonwebtoken';
 import config from '../../config.js';
 import { User } from './user';
+import { sendmail } from '../../services/ses.js';
 
 interface PermissionItem {
     id: number;
@@ -238,7 +239,7 @@ export class SharePermission {
                 )
             )[0];
 
-            let redirect_url = undefined;
+            let redirect_url: any = undefined;
             if (authData) {
                 await db.query(
                     `UPDATE \`${saasConfig.SAAS_NAME}\`.app_auth_config
@@ -254,6 +255,17 @@ export class SharePermission {
                     ]
                 );
             } else {
+                const storeData = (
+                    await db.query(
+                        `SELECT * FROM \`${base.app}\`.t_user_public_config WHERE \`key\` = 'store-information' AND user_id = 'manager';
+                        `,
+                        []
+                    )
+                )[0];
+                if (!storeData || !storeData.value.shop_name) {
+                    return { result: false, message: '請先至「商店訊息」<br />新增你的商店名稱' };
+                }
+
                 await db.query(`INSERT INTO \`${saasConfig.SAAS_NAME}\`.app_auth_config SET ?`, [
                     {
                         user: userData.userID,
@@ -268,6 +280,8 @@ export class SharePermission {
                 redirect_url = new URL(`https://${base.domain}/api-public/v1/user/permission/redirect`);
                 redirect_url.searchParams.set('key', keyValue);
                 redirect_url.searchParams.set('g-app', base.app);
+
+                await sendmail('service@ncdesign.info', data.email, '商店權限分享邀請信', `「${storeData.value.shop_name}」邀請你加入他的商店，點擊此連結即可開啟權限：${redirect_url}`);
             }
 
             return {

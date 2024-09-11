@@ -51,16 +51,21 @@ export declare class SharePermission {
         status?: number;
     }): Promise<{
         result: boolean;
+        message?: undefined;
     } | {
-        redirect_url: URL | undefined;
+        result: boolean;
+        message: string;
+    } | {
+        redirect_url: any;
         email: string;
         config: any;
-        status?: number;
+        status?: number | undefined;
         saas: string | undefined;
         brand: any;
         domain: any;
         app: string;
         result: boolean;
+        message?: undefined;
     }>;
     deletePermission(email: string): Promise<{
         result: boolean;

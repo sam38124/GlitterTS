@@ -1215,7 +1215,7 @@ export class User {
             status: 'auto' | 'manual';
         }[]
     > {
-        const dataList = [];
+        const dataList: any = [];
         const idList = data.filter((item) => item.userId !== undefined).map((item) => item.userId);
         const emailList = data.filter((item) => item.email !== undefined).map((item) => `"${item.email}"`);
         const idSQL = idList.length > 0 ? idList.join(',') : -1111;
