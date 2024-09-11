@@ -1,29 +1,47 @@
-import express from "express";
-import db from "../../modules/database.js";
-import {saasConfig} from "../../config.js";
+import express from 'express';
+import db from '../../modules/database.js';
+import { saasConfig } from '../../config.js';
 
-export class UtPermission{
-    public static isManager(req: express.Request){
-        return new Promise(async (resolve, reject)=>{
+export class UtPermission {
+    public static isManager(req: express.Request) {
+        return new Promise(async (resolve, reject) => {
             try {
-                resolve((await db.query(`SELECT count(1)
-                             FROM ${saasConfig.SAAS_NAME}.app_config
-                             where user = ? and appName = ?`, [req.body.token.userID, (req.get('g-app') as string) || req.query.appName || req.body.appName]))[0]['count(1)'] == 1)
-            }catch (e){
-                resolve(false)
+                const appName = (req.get('g-app') as string) || req.query.appName || req.body.appName;
+                const result = await db.query(
+                    `SELECT count(1) 
+                    FROM ${saasConfig.SAAS_NAME}.app_config
+                    WHERE 
+                        (user = ? and appName = ?)
+                        OR appName in (
+                            (SELECT appName FROM \`${saasConfig.SAAS_NAME}\`.app_auth_config
+                            WHERE user = ? AND status = 1 AND invited = 1 AND appName = ?)
+                        );
+                    `,
+                    [req.body.token.userID, appName, req.body.token.userID, appName]
+                );
+                resolve(result[0]['count(1)'] == 1);
+            } catch (e) {
+                resolve(false);
             }
-        })
+        });
     }
 
-    public static isAppUser(req: express.Request){
-        return new Promise(async (resolve, reject)=>{
+    public static isAppUser(req: express.Request) {
+        return new Promise(async (resolve, reject) => {
             try {
-                resolve((await db.query(`SELECT count(1)
+                resolve(
+                    (
+                        await db.query(
+                            `SELECT count(1)
                              FROM \`${req.get('g-app')}\`.t_user
-                             where userID = ?`, [req.body.token.userID]))[0]['count(1)'] == 1)
-            }catch (e) {
-                resolve(false)
+                             where userID = ?`,
+                            [req.body.token.userID]
+                        )
+                    )[0]['count(1)'] == 1
+                );
+            } catch (e) {
+                resolve(false);
             }
-        })
+        });
     }
 }

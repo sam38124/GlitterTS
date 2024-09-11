@@ -6,15 +6,33 @@ import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
 import { FilterOptions } from './filter-options.js';
 import { BgListComponent } from '../backend-manager/bg-list-component.js';
 import { CheckInput } from '../modules/checkInput.js';
+import { Setting_editor } from '../jspage/function-page/setting_editor.js';
+import { Tool } from '../modules/tool.js';
 
 const html = String.raw;
+
+type CRUD = {
+    create?: boolean;
+    read?: boolean;
+    update?: boolean;
+    delete?: boolean;
+};
+
+type authItem = {
+    key?: string;
+    name?: string;
+    children?: authItem[];
+};
 
 interface PermissionItem {
     id: number;
     user: string;
     appName: string;
     config: {
-        auth: any;
+        auth: {
+            key: string;
+            value: CRUD;
+        }[];
         name: string;
         phone: string;
         title: string;
@@ -43,7 +61,7 @@ type ViewModel = {
 };
 
 export class PermissionSetting {
-    public static main(gvc: GVC) {
+    static main(gvc: GVC) {
         const glitter = gvc.glitter;
         const dialog = new ShareDialog(glitter);
         const vm: ViewModel = {
@@ -60,7 +78,7 @@ export class PermissionSetting {
                 user: '',
                 appName: '',
                 config: {
-                    auth: {},
+                    auth: [],
                     name: '',
                     phone: '',
                     title: '',
@@ -146,7 +164,7 @@ export class PermissionSetting {
                                             () => {
                                                 ApiUser.togglePermissionStatus(dd.email).then((data) => {
                                                     if (data.result) {
-                                                        dd.status = !dd.status;
+                                                        dd.status = data.response.status;
                                                         dialog.successMessage({ text: `${dd.status ? '啟用' : '關閉'}成功` });
                                                     } else {
                                                         dialog.errorMessage({ text: `${dd.status ? '啟用' : '關閉'}失敗` });
@@ -195,7 +213,7 @@ export class PermissionSetting {
                                             user: '',
                                             appName: '',
                                             config: {
-                                                auth: {},
+                                                auth: [],
                                                 name: '',
                                                 phone: '',
                                                 title: '',
@@ -403,7 +421,7 @@ export class PermissionSetting {
         });
     }
 
-    public static editorDetail(obj: { vm: ViewModel; gvc: any; type: string }) {
+    static editorDetail(obj: { vm: ViewModel; gvc: any; type: string }) {
         const html = String.raw;
         const gvc = obj.gvc;
         const vm = obj.vm;
@@ -493,7 +511,8 @@ export class PermissionSetting {
                                         </div>
                                     `
                                 ),
-                                BgWidget.mainCard(html` <div class="tx_700">權限指派</div>`),
+                                BgWidget.mainCard(html` <div class="tx_700">權限指派</div>
+                                    ${BgWidget.mbContainer(18)} ${this.permissionOptions(gvc, vm.data.config.auth)}`),
                             ].join(BgWidget.mbContainer(24)),
                             // 空白容器
                             BgWidget.mbContainer(240),
@@ -582,6 +601,122 @@ export class PermissionSetting {
                     );
                 },
             };
+        });
+    }
+
+    static permissionOptions(gvc: GVC, authData: { key: string; value: CRUD }[]) {
+        const tempMenu: authItem[] = [];
+        Setting_editor.menuItems().map((menu) => {
+            const index = tempMenu.findIndex((item) => {
+                return item.key === menu.group;
+            });
+            if (index === -1) {
+                tempMenu.push({
+                    key: menu.group,
+                    name: menu.group,
+                    children: [
+                        {
+                            key: menu.page,
+                            name: menu.title,
+                        },
+                    ],
+                });
+            } else {
+                (tempMenu[index].children as authItem[]).push({
+                    key: menu.page,
+                    name: menu.title,
+                });
+            }
+        });
+
+        return html` <div class="row">${this.checkboxContainer(gvc, tempMenu, authData)}</div>`;
+    }
+
+    static checkboxContainer(
+        gvc: GVC,
+        items: authItem[],
+        authData: {
+            key: string;
+            value: CRUD;
+        }[],
+        callback?: () => void
+    ) {
+        const id = gvc.glitter.getUUID();
+        const inputColor = undefined;
+        const randomString = BgWidget.getCheckedClass(gvc, inputColor);
+        const viewId = Tool.randomString(5);
+
+        function renderCheck(key: string | undefined, status: boolean) {
+            if (key) {
+                const i = authData.findIndex((auth) => auth.key === key);
+                if (i === -1) {
+                    authData.push({
+                        key: key,
+                        value: {
+                            read: status,
+                        },
+                    });
+                } else {
+                    authData[i].value = {
+                        read: status,
+                    };
+                }
+            }
+        }
+
+        return gvc.bindView({
+            bind: viewId,
+            view: () => {
+                let checkboxHTML = '';
+                items.map((item) => {
+                    const i = authData.findIndex((auth) => auth.key === item.key);
+                    let checked = i === -1 ? false : Boolean(authData[i].value.read);
+
+                    if (item.children && item.children.length > 0) {
+                        const allStatus = item.children.every((child) => {
+                            const k = authData.findIndex((auth) => auth.key === child.key);
+                            return k > -1 ? authData[k].value.read : false;
+                        });
+                        checked = allStatus;
+                    }
+
+                    checkboxHTML += html`
+                        <div class="col-12 ${item.children ? 'col-md-4 mb-3' : 'col-md-12'}">
+                            <div
+                                class="form-check"
+                                onclick="${gvc.event(() => {
+                                    renderCheck(item.key, !checked);
+                                    if (item.children && item.children.length > 0) {
+                                        item.children.map((child) => {
+                                            renderCheck(child.key, !checked);
+                                        });
+                                    }
+                                    if (callback) {
+                                        callback();
+                                    } else {
+                                        gvc.notifyDataChange(viewId);
+                                    }
+                                })}"
+                            >
+                                <input class="form-check-input ${randomString} cursor_pointer" style="margin-top: 0.35rem;" type="checkbox" id="${id}_${item.key}" ${checked ? 'checked' : ''} />
+                                <label class="form-check-label cursor_pointer" for="${id}_${item.key}" style="font-size: 16px; color: #393939;">${item.name}</label>
+                            </div>
+                            ${item.children
+                                ? html` <div class="d-flex position-relative my-2">
+                                      ${BgWidget.leftLineBar()}
+                                      <div class="ms-4 w-100 flex-fill">
+                                          ${this.checkboxContainer(gvc, item.children, authData, () => {
+                                              gvc.notifyDataChange(viewId);
+                                          })}
+                                      </div>
+                                  </div>`
+                                : ``}
+                        </div>
+                    `;
+                });
+
+                return html` <div class="row" style="">${checkboxHTML}</div> `;
+            },
         });
     }
 }

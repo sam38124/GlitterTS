@@ -200,7 +200,7 @@ class SharePermission {
                     userId: userData.userID,
                     appName: base.app,
                 });
-                redirect_url = new URL(`https://${base.domain}/api-public/v1/user/permission/redirect`);
+                redirect_url = new URL(`https://${process.env.DOMAIN}/api-public/v1/user/permission/redirect`);
                 redirect_url.searchParams.set('key', keyValue);
                 redirect_url.searchParams.set('g-app', base.app);
                 await (0, ses_js_1.sendmail)('service@ncdesign.info', data.email, '商店權限分享邀請信', `「${storeData.value.shop_name}」邀請你加入他的商店，點擊此連結即可開啟權限：${redirect_url}`);

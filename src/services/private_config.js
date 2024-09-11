@@ -12,7 +12,7 @@ const post_1 = require("../api-public/services/post");
 class Private_config {
     async setConfig(config) {
         if (!(await this.verifyPermission(config.appName))) {
-            throw exception_js_1.default.BadRequestError("Forbidden", "No Permission.", null);
+            throw exception_js_1.default.BadRequestError('Forbidden', 'No Permission.', null);
         }
         try {
             if (config.key === 'sql_api_config_post') {
@@ -21,21 +21,16 @@ class Private_config {
             await database_js_1.default.execute(`replace
             into \`${config_js_1.saasConfig.SAAS_NAME}\`.private_config (app_name,\`key\`,\`value\`,updated_at)
             values (?,?,?,?)
-            `, [
-                config.appName,
-                config.key,
-                config.value,
-                (0, moment_js_1.default)(new Date()).format('YYYY-MM-DD HH:mm:ss')
-            ]);
+            `, [config.appName, config.key, config.value, (0, moment_js_1.default)(new Date()).format('YYYY-MM-DD HH:mm:ss')]);
         }
         catch (e) {
             console.log(e);
-            throw exception_js_1.default.BadRequestError("ERROR", "ERROR." + e, null);
+            throw exception_js_1.default.BadRequestError('ERROR', 'ERROR.' + e, null);
         }
     }
     async getConfig(config) {
         if (!(await this.verifyPermission(config.appName))) {
-            throw exception_js_1.default.BadRequestError("Forbidden", "No Permission.", null);
+            throw exception_js_1.default.BadRequestError('Forbidden', 'No Permission.', null);
         }
         try {
             return await database_js_1.default.execute(`select * from \`${config_js_1.saasConfig.SAAS_NAME}\`.private_config where app_name=${database_js_1.default.escape(config.appName)} and 
@@ -44,7 +39,7 @@ class Private_config {
         }
         catch (e) {
             console.log(e);
-            throw exception_js_1.default.BadRequestError("ERROR", "ERROR." + e, null);
+            throw exception_js_1.default.BadRequestError('ERROR', 'ERROR.' + e, null);
         }
     }
     static async getConfig(config) {
@@ -55,16 +50,20 @@ class Private_config {
         }
         catch (e) {
             console.log(e);
-            throw exception_js_1.default.BadRequestError("ERROR", "ERROR." + e, null);
+            throw exception_js_1.default.BadRequestError('ERROR', 'ERROR.' + e, null);
         }
     }
     async verifyPermission(appName) {
-        const count = await database_js_1.default.execute(`
-            select count(1)
-            from \`${config_js_1.saasConfig.SAAS_NAME}\`.app_config
-            where (user = ${this.token.userID} and appName = ${database_js_1.default.escape(appName)})
-        `, []);
-        return count[0]["count(1)"] === 1;
+        const result = await database_js_1.default.query(`SELECT count(1) 
+            FROM ${config_js_1.saasConfig.SAAS_NAME}.app_config
+            WHERE 
+                (user = ? and appName = ?)
+                OR appName in (
+                    (SELECT appName FROM \`${config_js_1.saasConfig.SAAS_NAME}\`.app_auth_config
+                    WHERE user = ? AND status = 1 AND invited = 1 AND appName = ?)
+                );
+            `, [this.token.userID, appName, this.token.userID, appName]);
+        return result[0]['count(1)'] === 1;
     }
     constructor(token) {
         this.token = token;

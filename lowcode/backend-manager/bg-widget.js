@@ -1156,14 +1156,16 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         return html ` <div class="main-card ${classString !== null && classString !== void 0 ? classString : ''}" style="${styleString !== null && styleString !== void 0 ? styleString : ''}">${htmlString !== null && htmlString !== void 0 ? htmlString : ''}</div>`;
     }
     static tab(data, gvc, select, callback, style) {
-        return html ` <div style="justify-content: flex-start; align-items: flex-start; gap: 22px; display: inline-flex;cursor: pointer;margin-top: 24px;margin-bottom: 24px;font-size: 18px; ${style !== null && style !== void 0 ? style : ''};">
+        return html ` <div
+            style="justify-content: flex-start; align-items: flex-start; gap: 22px; display: inline-flex;cursor: pointer;margin-top: 24px;margin-bottom: 24px;font-size: 18px; ${style !== null && style !== void 0 ? style : ''};"
+        >
             ${data
             .map((dd) => {
             if (select === dd.key) {
                 return html ` <div style="flex-direction: column; justify-content: flex-start; align-items: center; gap: 8px; display: inline-flex">
                             <div
-                                    style="align-self: stretch; text-align: center; color: #393939; font-size: 18px; font-family: Noto Sans; font-weight: 700; line-height: 18px; word-wrap: break-word;white-space: nowrap;"
-                                    onclick="${gvc.event(() => {
+                                style="align-self: stretch; text-align: center; color: #393939; font-size: 18px; font-family: Noto Sans; font-weight: 700; line-height: 18px; word-wrap: break-word;white-space: nowrap;"
+                                onclick="${gvc.event(() => {
                     callback(dd.key);
                 })}"
                             >
@@ -1814,15 +1816,12 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                             <div class="c_dialog">
                                 <div class="c_dialog_body">
                                     <div class="c_dialog_main" style="gap: 24px; max-height: 500px;">${(_b = obj.innerHTML(gvc)) !== null && _b !== void 0 ? _b : ''}</div>
-                                    <div class="c_dialog_bar">
-                                     ${(_c = obj.footer_html(gvc)) !== null && _c !== void 0 ? _c : ''}
-                                    </div>
+                                    <div class="c_dialog_bar">${(_c = obj.footer_html(gvc)) !== null && _c !== void 0 ? _c : ''}</div>
                                 </div>
                             </div>
                         </div>`;
                 },
-                onCreate: () => {
-                },
+                onCreate: () => { },
             })}
             </div>`;
         }, obj.gvc.glitter.getUUID());

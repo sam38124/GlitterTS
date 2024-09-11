@@ -15,681 +15,226 @@ export class Setting_editor {
                 bind: id,
                 view: () => {
                     Storage.select_bg_btn = 'custom';
-                    return [
-                        (() => {
-                            return html ` <div class="d-flex p-3 bg-white border-bottom align-items-end d-sm-none">
-                                    <img src="https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1718986163099-logo.svg" />
-                                    <span class="ms-1 " style="font-size: 11px;color: orange;">${glitter.share.editerVersion}</span>
-                                </div>
-                                <div class="w-100 bg-white" style="overflow-y:auto; ${document.body.offsetWidth < 800 ? '' : `padding-top: ${EditorConfig.getPaddingTop(gvc)}px;`}">
-                                    ${(() => {
-                                return gvc.bindView(() => {
-                                    const id = gvc.glitter.getUUID();
-                                    let items = [];
-                                    let mustItem = [
-                                        {
-                                            icon: '',
-                                            page: 'home_page',
-                                            group: '首頁',
-                                            title: '首頁',
-                                            appName: 'cms_system',
-                                            groupIcon: ' https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716559696051-Component 56.svg',
-                                            moduleName: '首頁',
-                                        },
-                                        {
-                                            icon: '',
-                                            page: 'shop_information',
-                                            group: '商店設定',
-                                            title: '商店訊息',
-                                            appName: 'cms_system',
-                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716566571091-Property 1=gear-regular.svg',
-                                            moduleName: '商店設計',
-                                            guideClass: 'guide6-2',
-                                        },
-                                        {
-                                            icon: '',
-                                            page: 'setFinanceWay',
-                                            group: '商店設定',
-                                            title: '金流設定',
-                                            appName: 'cms_system',
-                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716566571091-Property 1=gear-regular.svg',
-                                            moduleName: '金流 / 物流 / 發票',
-                                            guideClass: 'guide2-2',
-                                        },
-                                        {
-                                            icon: '',
-                                            page: 'shippment_setting',
-                                            group: '商店設定',
-                                            title: '配送設定',
-                                            appName: 'cms_system',
-                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716566571091-Property 1=gear-regular.svg',
-                                            moduleName: '金流 / 物流 / 發票',
-                                            guideClass: 'guide3-2',
-                                        },
-                                        {
-                                            icon: '',
-                                            page: 'logistics_setting',
-                                            group: '商店設定',
-                                            title: '運費設定',
-                                            appName: 'cms_system',
-                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716566571091-Property 1=gear-regular.svg',
-                                            moduleName: '運費設定',
-                                            guideClass: 'guide4-2',
-                                        },
-                                        {
-                                            icon: '',
-                                            page: 'rebate_setting',
-                                            group: '商店設定',
-                                            title: '購物金設定',
-                                            appName: 'cms_system',
-                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716566571091-Property 1=gear-regular.svg',
-                                            moduleName: '購物金設定',
-                                        },
-                                        {
-                                            icon: '',
-                                            page: 'invoice_setting',
-                                            group: '商店設定',
-                                            title: '電子發票',
-                                            appName: 'cms_system',
-                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716566571091-Property 1=gear-regular.svg',
-                                            moduleName: '金流 / 物流 / 發票',
-                                        },
-                                        {
-                                            icon: '',
-                                            page: 'permission_setting',
-                                            group: '商店設定',
-                                            title: '員工設定',
-                                            appName: 'cms_system',
-                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716566571091-Property 1=gear-regular.svg',
-                                            moduleName: '員工設定',
-                                        },
-                                        {
-                                            icon: '',
-                                            page: 'product-manager',
-                                            group: '商品管理',
-                                            title: '商品列表',
-                                            appName: 'cms_system',
-                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716652645450-boxes-stacked-regular (1).svg',
-                                            moduleName: '商品管理',
-                                            guideClass: 'guide5-2',
-                                        },
-                                        {
-                                            icon: '',
-                                            page: 'collection_v2',
-                                            group: '商品管理',
-                                            title: '商品分類',
-                                            appName: 'cms_system',
-                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716652645450-boxes-stacked-regular (1).svg',
-                                        },
-                                        {
-                                            icon: '',
-                                            page: 'stock',
-                                            group: '商品管理',
-                                            title: '庫存列表',
-                                            appName: 'cms_system',
-                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716652645450-boxes-stacked-regular (1).svg',
-                                        },
-                                        {
-                                            icon: '',
-                                            page: 'add-on-items',
-                                            group: '商品管理',
-                                            title: '加購商品',
-                                            appName: 'cms_system',
-                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716652645450-boxes-stacked-regular (1).svg',
-                                            moduleName: '商品管理',
-                                            guideClass: 'guide5-2',
-                                        }, {
-                                            icon: '',
-                                            page: 'give-away-items',
-                                            group: '商品管理',
-                                            title: '贈品',
-                                            appName: 'cms_system',
-                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716652645450-boxes-stacked-regular (1).svg',
-                                            moduleName: '商品管理',
-                                            guideClass: 'guide5-2',
-                                        },
-                                        {
-                                            icon: '',
-                                            page: 'order_list',
-                                            group: '訂單管理',
-                                            title: '訂單',
-                                            appName: 'cms_system',
-                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716652949790-Component 56 (3).svg',
-                                            moduleName: '訂單列表',
-                                        },
-                                        {
-                                            icon: '',
-                                            page: 'order_list_archive',
-                                            group: '訂單管理',
-                                            title: '已封存訂單',
-                                            appName: 'cms_system',
-                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716652949790-Component 56 (3).svg',
-                                            moduleName: '訂單列表',
-                                        },
-                                        {
-                                            icon: '',
-                                            page: 'out-delivery',
-                                            group: '訂單管理',
-                                            title: '退貨單',
-                                            appName: 'cms_system',
-                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716652949790-Component 56 (3).svg',
-                                        },
-                                        {
-                                            icon: '',
-                                            page: 'member_manager',
-                                            group: '顧客管理',
-                                            title: '顧客設定',
-                                            appName: 'cms_system',
-                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716566571091-Property 1=gear-regular.svg',
-                                            moduleName: '會員設定',
-                                        },
-                                        {
-                                            icon: '',
-                                            page: 'user_list',
-                                            group: '顧客管理',
-                                            title: '顧客列表',
-                                            appName: 'cms_system',
-                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713360844009-Component 56 (1).svg',
-                                            moduleName: '用戶列表',
-                                        },
-                                        {
-                                            icon: '',
-                                            page: 'member_group',
-                                            group: '顧客管理',
-                                            title: '顧客分群',
-                                            appName: 'cms_system',
-                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713360844009-Component 56 (1).svg',
-                                            moduleName: '用戶列表',
-                                        },
-                                        {
-                                            icon: '',
-                                            page: 'member_level',
-                                            group: '顧客管理',
-                                            title: '會員等級',
-                                            appName: 'cms_system',
-                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713360844009-Component 56 (1).svg',
-                                            moduleName: '用戶列表',
-                                        },
-                                        {
-                                            icon: '',
-                                            page: 'discount_setting',
-                                            group: '優惠促銷',
-                                            title: '折扣活動',
-                                            appName: 'cms_system',
-                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713370923228-Component 56 (3).svg',
-                                            moduleName: '優惠券管理',
-                                        },
-                                        {
-                                            icon: '',
-                                            page: 'rebate_activity',
-                                            group: '優惠促銷',
-                                            title: '購物金活動',
-                                            appName: 'cms_system',
-                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713370923228-Component 56 (3).svg',
-                                            moduleName: '優惠券管理',
-                                        },
-                                        {
-                                            icon: '',
-                                            page: 'add_on_activity',
-                                            group: '優惠促銷',
-                                            title: '加購活動',
-                                            appName: 'cms_system',
-                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713370923228-Component 56 (3).svg',
-                                            moduleName: '優惠券管理',
-                                        },
-                                        {
-                                            icon: '',
-                                            page: 'no_fee_activity',
-                                            group: '優惠促銷',
-                                            title: '免運費活動',
-                                            appName: 'cms_system',
-                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713370923228-Component 56 (3).svg',
-                                            moduleName: '優惠券管理',
-                                        },
-                                        {
-                                            icon: '',
-                                            page: 'rebate',
-                                            group: '優惠促銷',
-                                            title: '購物金紀錄',
-                                            appName: 'cms_system',
-                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713370923228-Component 56 (3).svg',
-                                            moduleName: '購物金紀錄',
-                                        },
-                                        {
-                                            icon: '',
-                                            page: 'hidden-shop',
-                                            group: '行銷推廣',
-                                            title: '隱形賣場',
-                                            appName: 'cms_system',
-                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722230748790-Component 56.svg',
-                                            moduleName: 'dashboard_ec',
-                                        },
-                                        {
-                                            icon: '',
-                                            page: 'single-shop',
-                                            group: '行銷推廣',
-                                            title: '一頁商店',
-                                            appName: 'cms_system',
-                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722230748790-Component 56.svg',
-                                            moduleName: 'dashboard_ec',
-                                        },
-                                        {
-                                            icon: '',
-                                            page: 'distribution_list',
-                                            group: '行銷推廣',
-                                            title: '分銷連結',
-                                            appName: 'cms_system',
-                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722230748790-Component 56.svg',
-                                            moduleName: 'dashboard_ec',
-                                        },
-                                        {
-                                            icon: '',
-                                            page: 'distribution_users',
-                                            group: '行銷推廣',
-                                            title: '推薦人列表',
-                                            appName: 'cms_system',
-                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722230748790-Component 56.svg',
-                                            moduleName: 'dashboard_ec',
-                                        },
-                                        {
-                                            icon: '',
-                                            page: 'dashboard_ec',
-                                            group: '數據分析',
-                                            title: '數據總覽',
-                                            appName: 'cms_system',
-                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716653099307-Component 56 (4).svg',
-                                            moduleName: 'dashboard_ec',
-                                        },
-                                        {
-                                            icon: '',
-                                            page: 'auto_send',
-                                            group: '信件群發',
-                                            title: '自動寄件',
-                                            appName: 'cms_system',
-                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713375442916-Component 56 (4).svg',
-                                            moduleName: '已訂閱郵件',
-                                        },
-                                        {
-                                            icon: '',
-                                            page: 'manual_send',
-                                            group: '信件群發',
-                                            title: '手動寄件',
-                                            appName: 'cms_system',
-                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713375442916-Component 56 (4).svg',
-                                            moduleName: '群發設定',
-                                        },
-                                        {
-                                            icon: '',
-                                            page: 'send_mail',
-                                            group: '信件群發',
-                                            title: '信件樣式',
-                                            appName: 'cms_system',
-                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713375442916-Component 56 (4).svg',
-                                            moduleName: '群發設定',
-                                        },
-                                        {
-                                            icon: '',
-                                            page: 'send_mail_history',
-                                            group: '信件群發',
-                                            title: '歷史寄件紀錄',
-                                            appName: 'cms_system',
-                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713375442916-Component 56 (4).svg',
-                                            moduleName: '群發設定',
-                                        },
-                                        {
-                                            icon: '',
-                                            page: 'customer_message',
-                                            group: '顧客管理',
-                                            title: '客服系統',
-                                            appName: 'cms_system',
-                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713514549253-calendar-lines-pen-regular.svg',
-                                            moduleName: '表單管理',
-                                        },
-                                        {
-                                            icon: '',
-                                            page: 'form_receive',
-                                            group: '顧客管理',
-                                            title: '表單收集',
-                                            appName: 'cms_system',
-                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713514549253-calendar-lines-pen-regular.svg',
-                                            moduleName: '表單管理',
-                                        },
-                                        {
-                                            icon: '',
-                                            page: 'web_theme',
-                                            group: '品牌官網',
-                                            title: '佈景主題',
-                                            appName: 'cms_system',
-                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716654741305-Component 56 (5).svg',
-                                            moduleName: '商店設計',
-                                            guideClass: 'guide7-2',
-                                        },
-                                        {
-                                            icon: '',
-                                            page: 'blog_manager',
-                                            group: '品牌官網',
-                                            title: '網誌文章',
-                                            appName: 'cms_system',
-                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716654741305-Component 56 (5).svg',
-                                            moduleName: '網誌管理',
-                                        },
-                                        {
-                                            icon: '',
-                                            page: 'page_manager',
-                                            group: '品牌官網',
-                                            title: '分頁列表',
-                                            appName: 'cms_system',
-                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716654741305-Component 56 (5).svg',
-                                            moduleName: '網誌管理',
-                                        },
-                                        {
-                                            icon: '',
-                                            page: 'menus-setting',
-                                            group: '品牌官網',
-                                            title: '選單管理',
-                                            appName: 'cms_system',
-                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716654741305-Component 56 (5).svg',
-                                            moduleName: '網誌管理',
-                                        },
-                                        {
-                                            icon: '',
-                                            page: 'ios_upload',
-                                            group: 'APP',
-                                            title: 'APP上架',
-                                            appName: 'cms_system',
-                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716655243577-Component 56 (6).svg',
-                                            moduleName: 'IOS應用上架',
-                                        },
-                                        {
-                                            icon: '',
-                                            page: 'cloud_subscrible',
-                                            group: 'APP',
-                                            title: '推播訂閱裝置',
-                                            appName: 'cms_system',
-                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713414599944-Component 56 (5).svg',
-                                            moduleName: '訂閱裝置管理',
-                                        },
-                                        {
-                                            icon: '',
-                                            page: 'notify_message_list',
-                                            group: 'APP',
-                                            title: '推播訊息管理',
-                                            appName: 'cms_system',
-                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713414599944-Component 56 (5).svg',
-                                            moduleName: '推播訊息管理',
-                                        },
-                                        {
-                                            icon: '',
-                                            page: 'member_plan',
-                                            group: '方案管理',
-                                            title: '方案管理',
-                                            appName: 'cms_system',
-                                            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1719982993525-credit-card-regular.svg',
-                                            moduleName: '方案管理',
-                                        },
-                                    ];
-                                    if (window.memberType === 'noLimit') {
-                                        mustItem = mustItem.concat([
-                                            {
-                                                icon: '',
-                                                page: 'code_info',
-                                                group: '擴充套件',
-                                                title: 'Graph Api',
-                                                appName: 'cms_system',
-                                                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713419947572-code-solid.svg',
-                                                moduleName: '結帳事件',
-                                            },
-                                            {
-                                                icon: '',
-                                                page: 'web_hook_checkout',
-                                                group: '擴充套件',
-                                                title: '結帳事件',
-                                                appName: 'cms_system',
-                                                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713419947572-code-solid.svg',
-                                                moduleName: '結帳事件',
-                                            },
-                                            {
-                                                icon: '',
-                                                page: 'seo_custom',
-                                                group: '擴充套件',
-                                                title: 'SEO自訂',
-                                                appName: 'cms_system',
-                                                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713419947572-code-solid.svg',
-                                                moduleName: '結帳事件',
-                                            },
-                                            {
-                                                icon: '',
-                                                page: 'site_map',
-                                                group: '擴充套件',
-                                                title: 'SiteMap自訂',
-                                                appName: 'cms_system',
-                                                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713419947572-code-solid.svg',
-                                                moduleName: '後端代碼事件',
-                                            },
-                                            {
-                                                icon: '',
-                                                page: 'template_upload',
-                                                group: '擴充套件',
-                                                title: '模板發佈',
-                                                appName: 'cms_system',
-                                                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713418629944-Component 56 (7).svg',
-                                                moduleName: '模板發佈',
-                                            },
-                                        ]);
-                                    }
-                                    mustItem.map((dd, index) => {
-                                        if (dd.page === glitter.getUrlParameter('tab')) {
+                    return html `
+                        <div class="d-flex p-3 bg-white border-bottom align-items-end d-sm-none">
+                            <img src="https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1718986163099-logo.svg" />
+                            <span class="ms-1" style="font-size: 12px;color: orange;">${glitter.share.editerVersion}</span>
+                        </div>
+                        <div class="w-100 bg-white" style="overflow-y:auto; ${document.body.offsetWidth > 768 ? `padding-top: ${EditorConfig.getPaddingTop(gvc)}px;` : ''}">
+                            ${gvc.bindView(() => {
+                        const id = gvc.glitter.getUUID();
+                        let items = [];
+                        let menuItems = this.menuItems();
+                        if (window.memberType === 'noLimit') {
+                            menuItems = menuItems.concat(this.noLimitMenuItems());
+                        }
+                        menuItems.map((dd, index) => {
+                            if (dd.page === glitter.getUrlParameter('tab')) {
+                                Storage.select_item = index;
+                            }
+                        });
+                        ApiPageConfig.getPrivateConfigV2('backend_list').then((res) => {
+                            if (res.response.result[0]) {
+                                items = res.response.result[0].value;
+                            }
+                            items = items.filter((dd) => dd);
+                            items.map((d1) => {
+                                if (!menuItems.find((dd) => {
+                                    return `${dd.appName}-${dd.page}` === `${d1.appName}-${d1.page}`;
+                                })) {
+                                    menuItems.push(d1);
+                                }
+                            });
+                            items = menuItems;
+                            if (parseInt(Storage.select_item, 10) >= items.length) {
+                                Storage.select_item = '0';
+                            }
+                            gvc.notifyDataChange(id);
+                        });
+                        return {
+                            bind: id,
+                            view: () => {
+                                function renderItems(items) {
+                                    let list = [];
+                                    function click_item(index) {
+                                        if (['page_layout', 'dev_mode'].indexOf(items[parseInt(index)].page) !== -1) {
+                                            const url = new URL(location.href);
+                                            if (items[parseInt(index)].page === 'page_layout') {
+                                                url.searchParams.set('function', 'user-editor');
+                                            }
+                                            else {
+                                                Storage.view_type = 'col3';
+                                                url.searchParams.set('function', 'page-editor');
+                                            }
+                                            location.href = url.href;
+                                        }
+                                        else {
                                             Storage.select_item = index;
+                                            window.editerData = undefined;
+                                            glitter.setUrlParameter('tab', items[parseInt(index)].page);
+                                            const url = new URL('./' + items[parseInt(index)].page, glitter.root_path);
+                                            url.searchParams.set('appName', items[parseInt(index)].appName);
+                                            url.searchParams.set('cms', 'true');
+                                            url.searchParams.set('page', items[parseInt(index)].page);
+                                            $('#editerCenter').html(html `<iframe src="${url.href}" style="border: none;height: calc(100%);"></iframe>`);
+                                            glitter.closeDrawer();
                                         }
-                                    });
-                                    ApiPageConfig.getPrivateConfigV2('backend_list').then((res) => {
-                                        res.response.result[0] && (items = res.response.result[0].value);
-                                        items = items.filter((dd) => {
-                                            return dd;
-                                        });
-                                        items.map((d1) => {
-                                            if (!mustItem.find((dd) => {
-                                                return `${dd.appName}-${dd.page}` === `${d1.appName}-${d1.page}`;
-                                            })) {
-                                                mustItem.push(d1);
-                                            }
-                                        });
-                                        items = mustItem;
-                                        if (parseInt(Storage.select_item, 10) >= items.length) {
-                                            Storage.select_item = '0';
+                                        return true;
+                                    }
+                                    items
+                                        .filter((dd) => {
+                                        if (window.memberType === 'noLimit') {
+                                            return true;
                                         }
-                                        gvc.notifyDataChange(id);
-                                    });
-                                    return {
-                                        bind: id,
-                                        view: () => {
-                                            function renderItems(items) {
-                                                let list = [];
-                                                function click_item(index) {
-                                                    if (['page_layout', 'dev_mode'].indexOf(items[parseInt(index)].page) !== -1) {
-                                                        const url = new URL(location.href);
-                                                        if (items[parseInt(index)].page === 'page_layout') {
-                                                            url.searchParams.set('function', 'user-editor');
-                                                        }
-                                                        else {
-                                                            Storage.view_type = 'col3';
-                                                            url.searchParams.set('function', 'page-editor');
-                                                        }
-                                                        location.href = url.href;
-                                                    }
-                                                    else {
-                                                        Storage.select_item = index;
-                                                        window.editerData = undefined;
-                                                        glitter.setUrlParameter('tab', items[parseInt(index)].page);
-                                                        const url = new URL('./' + items[parseInt(index)].page, glitter.root_path);
-                                                        url.searchParams.set('appName', items[parseInt(index)].appName);
-                                                        url.searchParams.set('cms', 'true');
-                                                        url.searchParams.set('page', items[parseInt(index)].page);
-                                                        $('#editerCenter').html(`<iframe src="${url.href}" style="border: none;height: calc(100%);"></iframe>`);
-                                                        glitter.closeDrawer();
-                                                    }
-                                                    return true;
-                                                }
-                                                items
-                                                    .filter((dd) => {
-                                                    if (window.memberType === 'noLimit') {
-                                                        return true;
-                                                    }
-                                                    else {
-                                                        return ['code_info', 'web_hook_checkout', 'template_upload'].indexOf(dd.page) === -1;
-                                                    }
-                                                })
-                                                    .map((dd, index) => {
-                                                    let container = list;
-                                                    const group = dd.group.split('/');
-                                                    if (dd.group) {
-                                                        group.map((d3) => {
-                                                            if (!container.find((dd) => {
-                                                                return dd.title === d3;
-                                                            })) {
-                                                                container.push({
-                                                                    type: 'container',
-                                                                    title: d3,
-                                                                    child: [],
-                                                                    toggle: false,
-                                                                    icon: dd.groupIcon,
-                                                                });
-                                                            }
-                                                            if (Storage.select_item === `${index}`) {
-                                                                container.find((dd) => {
-                                                                    return dd.title === d3 && dd.type === 'container';
-                                                                }).toggle = true;
-                                                            }
-                                                            container = container.find((dd) => {
-                                                                return dd.title === d3 && dd.type === 'container';
-                                                            }).child;
-                                                        });
-                                                        if (dd.groupIcon) {
-                                                            items
-                                                                .filter((d2) => {
-                                                                return d2.group === dd.group;
-                                                            })
-                                                                .map((d1) => {
-                                                                d1.groupIcon = dd.groupIcon;
-                                                            });
-                                                        }
-                                                    }
-                                                    if (Storage.select_item === `${index}`) {
-                                                        if (['page_layout', 'dev_mode'].indexOf(items[index].page) !== -1) {
-                                                            Storage.select_item = `5`;
-                                                            click_item(Storage.select_item);
-                                                        }
-                                                        else {
-                                                            click_item(index);
-                                                        }
-                                                    }
+                                        else {
+                                            return ['code_info', 'web_hook_checkout', 'template_upload'].indexOf(dd.page) === -1;
+                                        }
+                                    })
+                                        .map((dd, index) => {
+                                        let container = list;
+                                        const group = dd.group.split('/');
+                                        if (dd.group) {
+                                            group.map((d3) => {
+                                                if (!container.find((dd) => dd.title === d3)) {
                                                     container.push({
-                                                        title: dd.title,
-                                                        index: index,
-                                                        info: dd,
-                                                        toggle: Storage.select_item === `${index}`,
-                                                    });
-                                                });
-                                                function refreshContainer() {
-                                                    gvc.notifyDataChange(id);
-                                                }
-                                                list.map((dd, index) => {
-                                                    if (dd.type === 'container' && dd.child.length == 1) {
-                                                        dd.child[0].icon = dd.icon;
-                                                        list[index] = dd.child[0];
-                                                    }
-                                                });
-                                                function renderItems(list) {
-                                                    return gvc.bindView(() => {
-                                                        const id = gvc.glitter.getUUID();
-                                                        return {
-                                                            bind: id,
-                                                            view: () => {
-                                                                return list
-                                                                    .map((dd, index) => {
-                                                                    var _a, _b;
-                                                                    return html `
-                                                                                    ${dd.title === '品牌官網' ? `<div class="my-4 border-top"></div>` : ``}
-                                                                                    <li>
-                                                                                        <div
-                                                                                            class="w-100 fw-500 d-flex align-items-center  fs-6 hoverBtn h_item  rounded px-2 tx_700 ${(_b = (_a = dd === null || dd === void 0 ? void 0 : dd.info) === null || _a === void 0 ? void 0 : _a.guideClass) !== null && _b !== void 0 ? _b : ''} ${dd.type === 'container' ? ` mainRow${index}` : ''}"
-                                                                                            style="gap:7px;color:#393939;${dd.toggle ? `border-radius: 5px;background: #F2F2F2;` : ``}"
-                                                                                            onclick="${gvc.event(() => {
-                                                                        if (dd.type === 'container') {
-                                                                            list.map((d1) => {
-                                                                                d1.toggle = false;
-                                                                            });
-                                                                            dd.toggle = !dd.toggle;
-                                                                            gvc.notifyDataChange(id);
-                                                                        }
-                                                                        else {
-                                                                            if (click_item(dd.index) &&
-                                                                                ['page_layout', 'dev_mode'].indexOf(items[parseInt(dd.index)].page) === -1) {
-                                                                                dd.toggle = true;
-                                                                                refreshContainer();
-                                                                            }
-                                                                        }
-                                                                    })}"
-                                                                                        >
-                                                                                            ${dd.icon ? `<img src="${dd.icon}" style="width:18px;height:18px;">` : ``}
-                                                                                            <span>${dd.title}</span>
-                                                                                            <div class="flex-fill"></div>
-                                                                                            ${dd.type === 'container'
-                                                                        ? !dd.toggle
-                                                                            ? html ` <i class="fa-regular fa-angle-right hoverBtn me-1" aria-hidden="true"></i> `
-                                                                            : html ` <i class="fa-regular fa-angle-down hoverBtn me-1" aria-hidden="true"></i>`
-                                                                        : html `
-                                                                                                      ${dd.info && dd.info.icon ? `<img src="${dd.info.icon}" style="width:18px;height:18px;">` : ``}
-                                                                                                  `}
-                                                                                        </div>
-                                                                                        ${dd.type === 'container'
-                                                                        ? html ` <div class="ps-4 pt-2 pb-2 ${dd.toggle ? `` : `d-none`}">${renderItems(dd.child)}</div>`
-                                                                        : ``}
-                                                                                    </li>
-                                                                                `;
-                                                                })
-                                                                    .join('<div class="my-1"></div>');
-                                                            },
-                                                            divCreate: {
-                                                                elem: 'ul',
-                                                                class: `m-0 `,
-                                                                option: [
-                                                                    {
-                                                                        key: 'id',
-                                                                        value: id,
-                                                                    },
-                                                                ],
-                                                            },
-                                                            onCreate: () => { },
-                                                        };
+                                                        type: 'container',
+                                                        title: d3,
+                                                        child: [],
+                                                        toggle: false,
+                                                        icon: dd.groupIcon,
                                                     });
                                                 }
-                                                return html ` <div class="p-2">${renderItems(list)}</div>`;
+                                                if (Storage.select_item === `${index}`) {
+                                                    container.find((dd) => {
+                                                        return dd.title === d3 && dd.type === 'container';
+                                                    }).toggle = true;
+                                                }
+                                                container = container.find((dd) => {
+                                                    return dd.title === d3 && dd.type === 'container';
+                                                }).child;
+                                            });
+                                            if (dd.groupIcon) {
+                                                items
+                                                    .filter((d2) => {
+                                                    return d2.group === dd.group;
+                                                })
+                                                    .map((d1) => {
+                                                    d1.groupIcon = dd.groupIcon;
+                                                });
                                             }
-                                            return renderItems(items);
-                                        },
-                                    };
-                                });
-                            })()}
-                                </div>`;
-                        })(),
-                        html ` <div
-                            class="bg-white w-100 align-items-center  d-flex editor_item_title  start-0  z-index-9 ps-2  border-bottom border-top position-absolute bottom-0 border-end d-none"
+                                        }
+                                        if (Storage.select_item === `${index}`) {
+                                            if (['page_layout', 'dev_mode'].indexOf(items[index].page) !== -1) {
+                                                Storage.select_item = `5`;
+                                                click_item(Storage.select_item);
+                                            }
+                                            else {
+                                                click_item(index);
+                                            }
+                                        }
+                                        container.push({
+                                            title: dd.title,
+                                            index: index,
+                                            info: dd,
+                                            toggle: Storage.select_item === `${index}`,
+                                        });
+                                    });
+                                    function refreshContainer() {
+                                        gvc.notifyDataChange(id);
+                                    }
+                                    list.map((dd, index) => {
+                                        if (dd.type === 'container' && dd.child.length == 1) {
+                                            dd.child[0].icon = dd.icon;
+                                            list[index] = dd.child[0];
+                                        }
+                                    });
+                                    function renderItems(list) {
+                                        return gvc.bindView(() => {
+                                            const id = gvc.glitter.getUUID();
+                                            return {
+                                                bind: id,
+                                                view: () => {
+                                                    return list
+                                                        .map((dd, index) => {
+                                                        var _a, _b;
+                                                        return html `
+                                                                        ${dd.title === '品牌官網' ? `<div class="my-4 border-top"></div>` : ``}
+                                                                        <li>
+                                                                            <div
+                                                                                class="w-100 fw-500 d-flex align-items-center fs-6 hoverBtn h_item rounded px-2 tx_700 
+                                                                                ${(_b = (_a = dd === null || dd === void 0 ? void 0 : dd.info) === null || _a === void 0 ? void 0 : _a.guideClass) !== null && _b !== void 0 ? _b : ''} ${dd.type === 'container' ? ` mainRow${index}` : ''}"
+                                                                                style="gap:7px;color:#393939;${dd.toggle ? `border-radius: 5px;background: #F2F2F2;` : ``}"
+                                                                                onclick="${gvc.event(() => {
+                                                            if (dd.type === 'container') {
+                                                                list.map((d1) => {
+                                                                    d1.toggle = false;
+                                                                });
+                                                                dd.toggle = !dd.toggle;
+                                                                gvc.notifyDataChange(id);
+                                                            }
+                                                            else {
+                                                                if (click_item(dd.index) && ['page_layout', 'dev_mode'].indexOf(items[parseInt(dd.index)].page) === -1) {
+                                                                    dd.toggle = true;
+                                                                    refreshContainer();
+                                                                }
+                                                            }
+                                                        })}"
+                                                                            >
+                                                                                ${dd.icon ? html `<img src="${dd.icon}" style="width:18px;height:18px;" />` : ``}
+                                                                                <span>${dd.title}</span>
+                                                                                <div class="flex-fill"></div>
+                                                                                ${dd.type === 'container'
+                                                            ? !dd.toggle
+                                                                ? html ` <i class="fa-regular fa-angle-right hoverBtn me-1" aria-hidden="true"></i> `
+                                                                : html ` <i class="fa-regular fa-angle-down hoverBtn me-1" aria-hidden="true"></i>`
+                                                            : html ` ${dd.info && dd.info.icon ? `<img src="${dd.info.icon}" style="width:18px;height:18px;">` : ``} `}
+                                                                            </div>
+                                                                            ${dd.type === 'container'
+                                                            ? html ` <div class="ps-4 pt-2 pb-2 ${dd.toggle ? `` : `d-none`}">${renderItems(dd.child)}</div>`
+                                                            : ``}
+                                                                        </li>
+                                                                    `;
+                                                    })
+                                                        .join('<div class="my-1"></div>');
+                                                },
+                                                divCreate: {
+                                                    elem: 'ul',
+                                                    class: `m-0 `,
+                                                    option: [
+                                                        {
+                                                            key: 'id',
+                                                            value: id,
+                                                        },
+                                                    ],
+                                                },
+                                                onCreate: () => { },
+                                            };
+                                        });
+                                    }
+                                    return html ` <div class="p-2">${renderItems(list)}</div>`;
+                                }
+                                return renderItems(items);
+                            },
+                        };
+                    })}
+                        </div>
+                        <div
+                            class="bg-white w-100 align-items-center d-flex editor_item_title start-0 z-index-9 ps-2 border-bottom border-top position-absolute bottom-0 border-end d-none"
                             style="z-index: 999;border:none;"
                         >
                             <div
                                 class="hoverBtn d-flex align-items-center justify-content-center   border  me-2"
                                 style="height:30px;width:30px;border-radius:5px;cursor:pointer;color:#151515;"
                                 onclick="${gvc.event(() => {
-                            Setting_editor.addPlugin(gvc, () => {
-                                gvc.notifyDataChange(id);
-                            });
-                        })}"
+                        Setting_editor.addPlugin(gvc, () => {
+                            gvc.notifyDataChange(id);
+                        });
+                    })}"
                             >
                                 <i class="fa-solid fa-puzzle-piece-simple" aria-hidden="true"></i>
                             </div>
-                        </div>`,
-                    ].join('');
+                        </div>
+                    `;
                 },
                 divCreate: { style: `` },
             };
@@ -829,9 +374,7 @@ export class Setting_editor {
                     let select = '';
                     ApiPageConfig.getPrivateConfigV2('backend_list').then((res) => {
                         res.response.result[0] && (items = res.response.result[0].value);
-                        items = items.filter((dd) => {
-                            return dd;
-                        });
+                        items = items.filter((dd) => dd);
                         gvc.notifyDataChange(id);
                     });
                     return {
@@ -843,9 +386,7 @@ export class Setting_editor {
                                 const group = dd.group.split('/');
                                 if (dd.group) {
                                     group.map((d3) => {
-                                        if (!container.find((dd) => {
-                                            return dd.title === d3;
-                                        })) {
+                                        if (!container.find((dd) => dd.title === d3)) {
                                             container.push({
                                                 type: 'container',
                                                 title: d3,
@@ -894,8 +435,6 @@ export class Setting_editor {
                                                     if (dd.type === 'container') {
                                                         dd.toggle = !dd.toggle;
                                                         gvc.notifyDataChange(id);
-                                                    }
-                                                    else {
                                                     }
                                                 })}"
                                                             >
@@ -947,7 +486,7 @@ export class Setting_editor {
                                                                       `}
                                                                 <i class="fa-solid fa-grip-dots-vertical"></i>
                                                             </div>
-                                                            ${dd.type === 'container' ? `<div class="ps-2 ${dd.toggle ? `` : `d-none`}">${renderItems(dd.child)}</div>` : ``}
+                                                            ${dd.type === 'container' ? html `<div class="ps-2 ${dd.toggle ? `` : `d-none`}">${renderItems(dd.child)}</div>` : ``}
                                                         </li>
                                                     `;
                                             })
@@ -1006,11 +545,11 @@ export class Setting_editor {
                                 });
                             }
                             return html `
-                                <div class=" position-relative bgf6 d-flex align-items-center   p-2 border-bottom shadow">
+                                <div class=" position-relative bgf6 d-flex align-items-center p-2 border-bottom shadow">
                                     <span class="fs-6 fw-bold " style="color:black;">插件設定</span>
                                     <div class="flex-fill"></div>
                                     <button
-                                        class="btn btn-primary-c "
+                                        class="btn btn-primary-c"
                                         style="height: 28px;width:40px;font-size:14px;"
                                         onclick="${gvc.event(() => {
                                 dialog.dataLoading({ visible: true });
@@ -1057,3 +596,457 @@ export class Setting_editor {
     }
 }
 Setting_editor.pluginUrl = '';
+Setting_editor.menuItems = () => {
+    return [
+        {
+            icon: '',
+            page: 'home_page',
+            group: '首頁',
+            title: '首頁',
+            appName: 'cms_system',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716559696051-Component 56.svg',
+            moduleName: '首頁',
+        },
+        {
+            icon: '',
+            page: 'shop_information',
+            group: '商店設定',
+            title: '商店訊息',
+            appName: 'cms_system',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716566571091-Property 1=gear-regular.svg',
+            moduleName: '商店設計',
+            guideClass: 'guide6-2',
+        },
+        {
+            icon: '',
+            page: 'setFinanceWay',
+            group: '商店設定',
+            title: '金流設定',
+            appName: 'cms_system',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716566571091-Property 1=gear-regular.svg',
+            moduleName: '金流 / 物流 / 發票',
+            guideClass: 'guide2-2',
+        },
+        {
+            icon: '',
+            page: 'shippment_setting',
+            group: '商店設定',
+            title: '配送設定',
+            appName: 'cms_system',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716566571091-Property 1=gear-regular.svg',
+            moduleName: '金流 / 物流 / 發票',
+            guideClass: 'guide3-2',
+        },
+        {
+            icon: '',
+            page: 'logistics_setting',
+            group: '商店設定',
+            title: '運費設定',
+            appName: 'cms_system',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716566571091-Property 1=gear-regular.svg',
+            moduleName: '運費設定',
+            guideClass: 'guide4-2',
+        },
+        {
+            icon: '',
+            page: 'rebate_setting',
+            group: '商店設定',
+            title: '購物金設定',
+            appName: 'cms_system',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716566571091-Property 1=gear-regular.svg',
+            moduleName: '購物金設定',
+        },
+        {
+            icon: '',
+            page: 'invoice_setting',
+            group: '商店設定',
+            title: '電子發票',
+            appName: 'cms_system',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716566571091-Property 1=gear-regular.svg',
+            moduleName: '金流 / 物流 / 發票',
+        },
+        {
+            icon: '',
+            page: 'permission_setting',
+            group: '商店設定',
+            title: '員工設定',
+            appName: 'cms_system',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716566571091-Property 1=gear-regular.svg',
+            moduleName: '員工設定',
+        },
+        {
+            icon: '',
+            page: 'product-manager',
+            group: '商品管理',
+            title: '商品列表',
+            appName: 'cms_system',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716652645450-boxes-stacked-regular (1).svg',
+            moduleName: '商品管理',
+            guideClass: 'guide5-2',
+        },
+        {
+            icon: '',
+            page: 'collection_v2',
+            group: '商品管理',
+            title: '商品分類',
+            appName: 'cms_system',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716652645450-boxes-stacked-regular (1).svg',
+        },
+        {
+            icon: '',
+            page: 'stock',
+            group: '商品管理',
+            title: '庫存列表',
+            appName: 'cms_system',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716652645450-boxes-stacked-regular (1).svg',
+        },
+        {
+            icon: '',
+            page: 'add-on-items',
+            group: '商品管理',
+            title: '加購商品',
+            appName: 'cms_system',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716652645450-boxes-stacked-regular (1).svg',
+            moduleName: '商品管理',
+            guideClass: 'guide5-2',
+        },
+        {
+            icon: '',
+            page: 'give-away-items',
+            group: '商品管理',
+            title: '贈品',
+            appName: 'cms_system',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716652645450-boxes-stacked-regular (1).svg',
+            moduleName: '商品管理',
+            guideClass: 'guide5-2',
+        },
+        {
+            icon: '',
+            page: 'order_list',
+            group: '訂單管理',
+            title: '訂單',
+            appName: 'cms_system',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716652949790-Component 56 (3).svg',
+            moduleName: '訂單列表',
+        },
+        {
+            icon: '',
+            page: 'order_list_archive',
+            group: '訂單管理',
+            title: '已封存訂單',
+            appName: 'cms_system',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716652949790-Component 56 (3).svg',
+            moduleName: '訂單列表',
+        },
+        {
+            icon: '',
+            page: 'out-delivery',
+            group: '訂單管理',
+            title: '退貨單',
+            appName: 'cms_system',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716652949790-Component 56 (3).svg',
+        },
+        {
+            icon: '',
+            page: 'member_manager',
+            group: '顧客管理',
+            title: '顧客設定',
+            appName: 'cms_system',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716566571091-Property 1=gear-regular.svg',
+            moduleName: '會員設定',
+        },
+        {
+            icon: '',
+            page: 'user_list',
+            group: '顧客管理',
+            title: '顧客列表',
+            appName: 'cms_system',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713360844009-Component 56 (1).svg',
+            moduleName: '用戶列表',
+        },
+        {
+            icon: '',
+            page: 'member_group',
+            group: '顧客管理',
+            title: '顧客分群',
+            appName: 'cms_system',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713360844009-Component 56 (1).svg',
+            moduleName: '用戶列表',
+        },
+        {
+            icon: '',
+            page: 'member_level',
+            group: '顧客管理',
+            title: '會員等級',
+            appName: 'cms_system',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713360844009-Component 56 (1).svg',
+            moduleName: '用戶列表',
+        },
+        {
+            icon: '',
+            page: 'discount_setting',
+            group: '優惠促銷',
+            title: '折扣活動',
+            appName: 'cms_system',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713370923228-Component 56 (3).svg',
+            moduleName: '優惠券管理',
+        },
+        {
+            icon: '',
+            page: 'rebate_activity',
+            group: '優惠促銷',
+            title: '購物金活動',
+            appName: 'cms_system',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713370923228-Component 56 (3).svg',
+            moduleName: '優惠券管理',
+        },
+        {
+            icon: '',
+            page: 'add_on_activity',
+            group: '優惠促銷',
+            title: '加購活動',
+            appName: 'cms_system',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713370923228-Component 56 (3).svg',
+            moduleName: '優惠券管理',
+        },
+        {
+            icon: '',
+            page: 'no_fee_activity',
+            group: '優惠促銷',
+            title: '免運費活動',
+            appName: 'cms_system',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713370923228-Component 56 (3).svg',
+            moduleName: '優惠券管理',
+        },
+        {
+            icon: '',
+            page: 'rebate',
+            group: '優惠促銷',
+            title: '購物金紀錄',
+            appName: 'cms_system',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713370923228-Component 56 (3).svg',
+            moduleName: '購物金紀錄',
+        },
+        {
+            icon: '',
+            page: 'hidden-shop',
+            group: '行銷推廣',
+            title: '隱形賣場',
+            appName: 'cms_system',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722230748790-Component 56.svg',
+            moduleName: 'dashboard_ec',
+        },
+        {
+            icon: '',
+            page: 'single-shop',
+            group: '行銷推廣',
+            title: '一頁商店',
+            appName: 'cms_system',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722230748790-Component 56.svg',
+            moduleName: 'dashboard_ec',
+        },
+        {
+            icon: '',
+            page: 'distribution_list',
+            group: '行銷推廣',
+            title: '分銷連結',
+            appName: 'cms_system',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722230748790-Component 56.svg',
+            moduleName: 'dashboard_ec',
+        },
+        {
+            icon: '',
+            page: 'distribution_users',
+            group: '行銷推廣',
+            title: '推薦人列表',
+            appName: 'cms_system',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722230748790-Component 56.svg',
+            moduleName: 'dashboard_ec',
+        },
+        {
+            icon: '',
+            page: 'dashboard_ec',
+            group: '數據分析',
+            title: '數據總覽',
+            appName: 'cms_system',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716653099307-Component 56 (4).svg',
+            moduleName: 'dashboard_ec',
+        },
+        {
+            icon: '',
+            page: 'auto_send',
+            group: '信件群發',
+            title: '自動寄件',
+            appName: 'cms_system',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713375442916-Component 56 (4).svg',
+            moduleName: '已訂閱郵件',
+        },
+        {
+            icon: '',
+            page: 'manual_send',
+            group: '信件群發',
+            title: '手動寄件',
+            appName: 'cms_system',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713375442916-Component 56 (4).svg',
+            moduleName: '群發設定',
+        },
+        {
+            icon: '',
+            page: 'send_mail',
+            group: '信件群發',
+            title: '信件樣式',
+            appName: 'cms_system',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713375442916-Component 56 (4).svg',
+            moduleName: '群發設定',
+        },
+        {
+            icon: '',
+            page: 'send_mail_history',
+            group: '信件群發',
+            title: '歷史寄件紀錄',
+            appName: 'cms_system',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713375442916-Component 56 (4).svg',
+            moduleName: '群發設定',
+        },
+        {
+            icon: '',
+            page: 'customer_message',
+            group: '顧客管理',
+            title: '客服系統',
+            appName: 'cms_system',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713514549253-calendar-lines-pen-regular.svg',
+            moduleName: '表單管理',
+        },
+        {
+            icon: '',
+            page: 'form_receive',
+            group: '顧客管理',
+            title: '表單收集',
+            appName: 'cms_system',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713514549253-calendar-lines-pen-regular.svg',
+            moduleName: '表單管理',
+        },
+        {
+            icon: '',
+            page: 'web_theme',
+            group: '品牌官網',
+            title: '佈景主題',
+            appName: 'cms_system',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716654741305-Component 56 (5).svg',
+            moduleName: '商店設計',
+            guideClass: 'guide7-2',
+        },
+        {
+            icon: '',
+            page: 'blog_manager',
+            group: '品牌官網',
+            title: '網誌文章',
+            appName: 'cms_system',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716654741305-Component 56 (5).svg',
+            moduleName: '網誌管理',
+        },
+        {
+            icon: '',
+            page: 'page_manager',
+            group: '品牌官網',
+            title: '分頁列表',
+            appName: 'cms_system',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716654741305-Component 56 (5).svg',
+            moduleName: '網誌管理',
+        },
+        {
+            icon: '',
+            page: 'menus-setting',
+            group: '品牌官網',
+            title: '選單管理',
+            appName: 'cms_system',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716654741305-Component 56 (5).svg',
+            moduleName: '網誌管理',
+        },
+        {
+            icon: '',
+            page: 'ios_upload',
+            group: 'APP',
+            title: 'APP上架',
+            appName: 'cms_system',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1716655243577-Component 56 (6).svg',
+            moduleName: 'IOS應用上架',
+        },
+        {
+            icon: '',
+            page: 'cloud_subscrible',
+            group: 'APP',
+            title: '推播訂閱裝置',
+            appName: 'cms_system',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713414599944-Component 56 (5).svg',
+            moduleName: '訂閱裝置管理',
+        },
+        {
+            icon: '',
+            page: 'notify_message_list',
+            group: 'APP',
+            title: '推播訊息管理',
+            appName: 'cms_system',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713414599944-Component 56 (5).svg',
+            moduleName: '推播訊息管理',
+        },
+        {
+            icon: '',
+            page: 'member_plan',
+            group: '方案管理',
+            title: '方案管理',
+            appName: 'cms_system',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1719982993525-credit-card-regular.svg',
+            moduleName: '方案管理',
+        },
+    ];
+};
+Setting_editor.noLimitMenuItems = () => {
+    return [
+        {
+            icon: '',
+            page: 'code_info',
+            group: '擴充套件',
+            title: 'Graph Api',
+            appName: 'cms_system',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713419947572-code-solid.svg',
+            moduleName: '結帳事件',
+        },
+        {
+            icon: '',
+            page: 'web_hook_checkout',
+            group: '擴充套件',
+            title: '結帳事件',
+            appName: 'cms_system',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713419947572-code-solid.svg',
+            moduleName: '結帳事件',
+        },
+        {
+            icon: '',
+            page: 'seo_custom',
+            group: '擴充套件',
+            title: 'SEO自訂',
+            appName: 'cms_system',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713419947572-code-solid.svg',
+            moduleName: '結帳事件',
+        },
+        {
+            icon: '',
+            page: 'site_map',
+            group: '擴充套件',
+            title: 'SiteMap自訂',
+            appName: 'cms_system',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713419947572-code-solid.svg',
+            moduleName: '後端代碼事件',
+        },
+        {
+            icon: '',
+            page: 'template_upload',
+            group: '擴充套件',
+            title: '模板發佈',
+            appName: 'cms_system',
+            groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713418629944-Component 56 (7).svg',
+            moduleName: '模板發佈',
+        },
+    ];
+};
