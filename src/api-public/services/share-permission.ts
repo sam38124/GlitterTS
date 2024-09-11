@@ -277,7 +277,7 @@ export class SharePermission {
                     userId: userData.userID,
                     appName: base.app,
                 });
-                redirect_url = new URL(`https://${base.domain}/api-public/v1/user/permission/redirect`);
+                redirect_url = new URL(`https://${process.env.DOMAIN}/api-public/v1/user/permission/redirect`);
                 redirect_url.searchParams.set('key', keyValue);
                 redirect_url.searchParams.set('g-app', base.app);
 
