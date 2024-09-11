@@ -2,6 +2,7 @@ import {OrderDetail, ViewModel} from "./models.js";
 import {GVC} from "../../glitterBundle/GVController.js";
 import {ApiShop} from "../../glitter-base/route/shopping.js";
 import {ShareDialog} from "../../glitterBundle/dialog/ShareDialog.js";
+import {POSSetting} from "../POS-setting.js";
 
 const html = String.raw
 
@@ -102,7 +103,7 @@ export class ProductsPage {
                                 page: 0,
                                 collection: (category.key == 'all' ? '' : category.key),
                                 limit: 50000,
-                                search: '',
+                                search: vm.query,
                                 orderBy: 'created_time_desc'
                             }).then(res => {
                                 vm.searchable = false;
@@ -112,6 +113,7 @@ export class ProductsPage {
                             })
                         }
                         if (vm.productSearch.length > 0) {
+                            
                             return vm.productSearch.map((data) => {
                                 let selectVariant = data.content.variants[0];
                                 let count = 1;
@@ -337,6 +339,8 @@ if(document.querySelector('.js-cart-count')){
                                     </div>
                                 `
                             }).join('')
+                        }else{
+                            return POSSetting.emptyView('查無相關商品')
                         }
                         return html``
                     },
@@ -369,7 +373,7 @@ if(document.querySelector('.js-cart-count')){
                         orderDetail.lineItems.forEach((item) => {
                             orderDetail.subtotal += item.sale_price * item.count;
                         })
-
+                        
                         return html`
                             <div style="display: flex;flex-direction: column;gap: 18px;">
                                 ${orderDetail.lineItems.map((item, index) => {
@@ -415,7 +419,6 @@ if(document.querySelector('.js-cart-count')){
                                                              width="10" height="10"
                                                              viewBox="0 0 10 10" fill="none"
                                                              onclick="${gvc.event(() => {
-                                console.log("test")
                             })}">
                                                             <path d="M5.76923 0.769231C5.76923 0.34375 5.42548 0 5 0C4.57452 0 4.23077 0.34375 4.23077 0.769231V4.23077H0.769231C0.34375 4.23077 0 4.57452 0 5C0 5.42548 0.34375 5.76923 0.769231 5.76923H4.23077V9.23077C4.23077 9.65625 4.57452 10 5 10C5.42548 10 5.76923 9.65625 5.76923 9.23077V5.76923H9.23077C9.65625 5.76923 10 5.42548 10 5C10 4.57452 9.65625 4.23077 9.23077 4.23077H5.76923V0.769231Z"
                                                                   fill="white"/>
@@ -424,18 +427,27 @@ if(document.querySelector('.js-cart-count')){
                                                 </div>
 
                                             </div>
-                                            <div class="h-100 d-flex flex-column align-items-end justify-content-between">
-                                                <svg xmlns="http://www.w3.org/2000/svg"
-                                                     width="14" height="14"
-                                                     viewBox="0 0 14 14"
-                                                     fill="none">
-                                                    <path d="M1 1L13 13" stroke="#949494"
-                                                          stroke-width="2"
-                                                          stroke-linecap="round"/>
-                                                    <path d="M13 1L1 13" stroke="#949494"
-                                                          stroke-width="2"
-                                                          stroke-linecap="round"/>
-                                                </svg>
+                                            <div class="h-100 d-flex flex-column align-items-end justify-content-between" >
+                                                <div class="" onclick="${gvc.event(()=>{
+                                                    orderDetail.lineItems.splice(index,1)
+                                                    if(document.querySelector('.js-cart-count')){
+                                                        (document.querySelector('.js-cart-count') as any).recreateView()
+                                                    }
+                                                    gvc.notifyDataChange('order')
+                                                })}">
+                                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                                         width="14" height="14"
+                                                         viewBox="0 0 14 14"
+                                                         fill="none">
+                                                        <path d="M1 1L13 13" stroke="#949494"
+                                                              stroke-width="2"
+                                                              stroke-linecap="round"/>
+                                                        <path d="M13 1L1 13" stroke="#949494"
+                                                              stroke-width="2"
+                                                              stroke-linecap="round"/>
+                                                    </svg>
+                                                </div>
+                                              
                                                 <div style="color:#393939;font-size: 18px;font-style: normal;font-weight: 500;letter-spacing: 0.72px;">
                                                         $${(item.sale_price * item.count).toLocaleString()}
                                                 </div>

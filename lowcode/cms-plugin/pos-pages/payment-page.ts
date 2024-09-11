@@ -11,6 +11,7 @@ import {FilterOptions} from "../filter-options.js";
 import {ApiUser} from "../../glitter-base/route/user.js";
 import {FormWidget} from "../../official_view_component/official/form.js";
 import {CheckInput} from "../../modules/checkInput.js";
+import {POSSetting} from "../POS-setting.js";
 
 const html = String.raw
 
@@ -42,23 +43,10 @@ export class PaymentPage {
     }
 
     public static main(obj: { gvc: GVC, vm: ViewModel, ogOrderData: OrderDetail }) {
-        obj.gvc.addMtScript([{src: 'https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js'}], () => {
-        }, () => {
-        })
+
         //沒有商品時返回空頁面
         if (!obj.ogOrderData.lineItems || obj.ogOrderData.lineItems.length === 0) {
-            return html`
-                <div class="d-flex align-items-center justify-content-center w-100  "
-                     style="height: calc(100vh - 200px);">
-                    <div class="d-flex flex-column align-items-center justify-content-center" style="gap:30px;">
-                        <lottie-player class="rounded-circle bg-white" style="max-width: 100%;width: 300px;"
-                                       src="https://lottie.host/38ba8340-3414-41b8-b068-bba18d240bb3/h7e1Q29IQJ.json"
-                                       speed="1"
-                                       loop="" autoplay="" background="transparent"></lottie-player>
-                        <div class="fw-bold fs-6"> 購物車是空的，請先選擇商品。</div>
-                    </div>
-
-                </div>`
+            return POSSetting.emptyView('購物車是空的，請先選擇商品')
         }
         const gvc = obj.gvc
         const vm = obj.vm
@@ -91,7 +79,13 @@ export class PaymentPage {
                             ((obj.ogOrderData).user_info.shipment as any) = 'now';
                         }
                         //儲存資料至本地暫存
+                        obj.ogOrderData.lineItems=obj.ogOrderData.lineItems.filter((dd)=>{
+                            return   orderDetail.lineItems.find((d1:any)=>{
+                                return ((dd.id+dd.spec.join('-')))=== ((d1.id+d1.spec.join('-')))
+                            })
+                        })
                         PaymentPage.storeHistory(obj.ogOrderData)
+                        vm.type = 'menu'
                         return orderDetail
                     })())
 

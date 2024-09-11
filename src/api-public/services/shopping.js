@@ -76,7 +76,11 @@ class Shopping {
                         break;
                     case 'title':
                     default:
-                        querySql.push(`(UPPER(JSON_UNQUOTE(JSON_EXTRACT(content, '$.title'))) LIKE UPPER('%${query.search}%'))`);
+                        querySql.push(`(${[
+                            `(UPPER(JSON_UNQUOTE(JSON_EXTRACT(content, '$.title'))) LIKE UPPER('%${query.search}%'))`,
+                            `JSON_EXTRACT(content, '$.variants[*].sku') LIKE '%${query.search}%'`,
+                            `JSON_EXTRACT(content, '$.variants[*].barcode') LIKE '%${query.search}%'`
+                        ].join(' or ')})`);
                         break;
                 }
             }

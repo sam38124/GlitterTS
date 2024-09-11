@@ -208,8 +208,10 @@ export class POSSetting {
             orderDetail.user_info.shipment = 'now';
         };
         if (localStorage.getItem('pos_order_detail')) {
-            vm.type = 'payment';
             orderDetail = JSON.parse(localStorage.getItem('pos_order_detail'));
+            if (orderDetail.lineItems && orderDetail.lineItems.length > 0) {
+                vm.type = 'payment';
+            }
         }
         else {
             orderDetail.user_info.shipment = 'now';
@@ -267,7 +269,11 @@ export class POSSetting {
                         ? `width:100%;`
                         : `width: 357px;max-width:calc(100%);`}height: 56px;padding: 17px 24px;justify-content: center;gap: 10px;border-radius: 10px;font-size: 18px;background: #F7F7F7;"
                                             onchange="${gvc.event((e) => {
-                        vm.query = e.value;
+                        glitter.share.search_interval = setTimeout(() => {
+                            vm.query = e.value;
+                            vm.searchable = true;
+                            gvc.notifyDataChange('mainView');
+                        }, 500);
                     })}"
                                         />
                                         <svg
@@ -339,7 +345,6 @@ cursor: pointer;
                             let view = yield (() => __awaiter(this, void 0, void 0, function* () {
                                 try {
                                     orderDetail.user_info.shipment = orderDetail.user_info.shipment || 'now';
-                                    console.log(`orderDetail.user_info=>`, orderDetail.user_info);
                                     if (vm.type == 'payment') {
                                         return PaymentPage.main({
                                             ogOrderData: orderDetail,
@@ -569,6 +574,22 @@ cursor: pointer;
                 }
             }
         `);
+    }
+    static emptyView(text) {
+        window.glitter.addMtScript([{ src: 'https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js' }], () => {
+        }, () => {
+        });
+        return ` <div class="d-flex align-items-center justify-content-center w-100  "
+                     style="height: calc(100vh - 200px);">
+                    <div class="d-flex flex-column align-items-center justify-content-center" style="gap:30px;">
+                        <lottie-player class="rounded-circle bg-white" style="max-width: 100%;width: 300px;"
+                                       src="https://lottie.host/38ba8340-3414-41b8-b068-bba18d240bb3/h7e1Q29IQJ.json"
+                                       speed="1"
+                                       loop="" autoplay="" background="transparent"></lottie-player>
+                        <div class="fw-bold fs-6"> ${text}</div>
+                    </div>
+
+                </div>`;
     }
 }
 window.glitter.setModule(import.meta.url, POSSetting);

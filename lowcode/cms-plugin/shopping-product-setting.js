@@ -1392,27 +1392,6 @@ export class ShoppingProductSetting {
         }))}
                                 ${BgWidget.title(variant.spec.length > 0 ? variant.spec.join(' / ') : '單一規格')}
                                 <div class="flex-fill"></div>
-                                ${BgWidget.grayButton('商品條碼', gvc.event(() => {
-            const dialog = new ShareDialog(gvc.glitter);
-            if (!variant.barcode) {
-                dialog.errorMessage({ text: '請先設定商品條碼' });
-            }
-            window.parent.glitter.addMtScript([{
-                    src: "https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"
-                }], () => {
-                window.parent.QRCode.toDataURL(variant.barcode, {
-                    width: 200,
-                    margin: 2
-                }, function (err, url) {
-                    if (err) {
-                        console.error(err);
-                        return;
-                    }
-                    window.parent.glitter.openDiaLog(new URL('../dialog/image-preview.js', import.meta.url).href, 'preview', url);
-                });
-            }, () => {
-            });
-        }), { icon: `fa-regular fa-eye` })}
                             </div>
                             <div class="d-flex flex-column ${obj.single ? `flex-column-reverse` : `flex-sm-row`} w-100 p-0"
                                  style="gap: 24px;">
@@ -1717,7 +1696,30 @@ export class ShoppingProductSetting {
                                     `)}
                                     ${BgWidget.mainCard(html `
                                         <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 18px;">
-                                            <div style="font-size: 16px;font-weight: 700;">商品管理</div>
+                                            <div class="d-flex w-100 align-items-center" style="font-size: 16px;font-weight: 700;">商品管理
+                                                <div class="flex-fill"></div>
+                                                ${BgWidget.grayButton('商品條碼', gvc.event(() => {
+            const dialog = new ShareDialog(gvc.glitter);
+            if (!variant.barcode) {
+                dialog.errorMessage({ text: '請先設定商品條碼' });
+            }
+            window.parent.glitter.addMtScript([{
+                    src: "https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"
+                }], () => {
+                window.parent.QRCode.toDataURL(variant.barcode, {
+                    width: 200,
+                    margin: 2
+                }, function (err, url) {
+                    if (err) {
+                        console.error(err);
+                        return;
+                    }
+                    window.parent.glitter.openDiaLog(new URL('../dialog/image-preview.js', import.meta.url).href, 'preview', url);
+                });
+            }, () => {
+            });
+        }), { icon: `fa-regular fa-eye` })}
+                                            </div>
                                             <div style="display: flex;width: 100%;height: 70px;flex-direction: column;justify-content: center;align-items: flex-start;gap: 8px;">
                                                 <div style="font-weight: 400;font-size: 16px;">存貨單位 (SKU)</div>
                                                 <input
@@ -3573,17 +3575,29 @@ color: ${selected.length ? `#393939` : `#DDD`};font-size: 18px;
                                                                 return BgWidget.spinner();
                                                             }
                                                             return vm.data.map((opt, index) => {
-                                                                return html `<div
-                                                                                                                    class="d-flex align-items-center form-check-label c_updown_label gap-3"
-                                                                                                                >
-                                                                                                                    <span class="tx_normal">${index + 1}.</span>
-                                                                                                                    ${BgWidget.validImageBox({ gvc: gvc, image: opt.image, width: 40 })}
-                                                                                                                    <div class="tx_normal ${opt.note ? 'mb-1' : ''}">${opt.value}</div>
-                                                                                                                    ${opt.note ? html ` <div class="tx_gray_12">${opt.note}</div> ` : ''}
-                                                                                                                </div>`;
+                                                                return html `
+                                                                                                <div
+                                                                                                        class="d-flex align-items-center form-check-label c_updown_label gap-3"
+                                                                                                >
+                                                                                                    <span class="tx_normal">${index + 1}
+                                                                                                        .</span>
+                                                                                                    ${BgWidget.validImageBox({
+                                                                    gvc: gvc,
+                                                                    image: opt.image,
+                                                                    width: 40
+                                                                })}
+                                                                                                    <div class="tx_normal ${opt.note ? 'mb-1' : ''}">
+                                                                                                        ${opt.value}
+                                                                                                    </div>
+                                                                                                    ${opt.note ? html `
+                                                                                                        <div class="tx_gray_12">
+                                                                                                            ${opt.note}
+                                                                                                        </div> ` : ''}
+                                                                                                </div>`;
                                                             }).join('');
                                                         }), divCreate: {
-                                                            class: `d-flex py-2 flex-column`, style: `gap:10px;`
+                                                            class: `d-flex py-2 flex-column`,
+                                                            style: `gap:10px;`
                                                         }
                                                     };
                                                 })}

@@ -419,7 +419,7 @@ class Excel {
 }
 
 export class ShoppingProductSetting {
-    public static main(gvc: GVC,type:'product'|'addProduct'|'giveaway'='product') {
+    public static main(gvc: GVC, type: 'product' | 'addProduct' | 'giveaway' = 'product') {
         const html = String.raw;
         const glitter = gvc.glitter;
 
@@ -602,7 +602,7 @@ export class ShoppingProductSetting {
                                             html`
                                                 <div class="d-flex w-100 align-items-center"
                                                      style="margin-bottom: 24px;">
-                                                    ${BgWidget.title((()=>{
+                                                    ${BgWidget.title((() => {
                                                         switch (type) {
                                                             case "addProduct":
                                                                 return '加購品'
@@ -961,7 +961,7 @@ export class ShoppingProductSetting {
                                                                                                                     })(),
                                                                                                                     collection: vm.filter.collection,
                                                                                                                     accurate_search_collection: true,
-                                                                                                                    productType:type
+                                                                                                                    productType: type
                                                                                                                 };
                                                                                                             case 'check':
                                                                                                                 return {
@@ -972,14 +972,14 @@ export class ShoppingProductSetting {
                                                                                                                             .map((item: {
                                                                                                                                 id: number
                                                                                                                             }) => item.id),
-                                                                                                                    productType:type
+                                                                                                                    productType: type
                                                                                                                 };
                                                                                                             case 'all':
                                                                                                             default:
                                                                                                                 return {
                                                                                                                     page: 0,
                                                                                                                     limit: 1000,
-                                                                                                                    productType:type
+                                                                                                                    productType: type
                                                                                                                 };
                                                                                                         }
                                                                                                     })();
@@ -1242,7 +1242,7 @@ export class ShoppingProductSetting {
                                                                                     })(),
                                                                                     collection: vm.filter.collection,
                                                                                     accurate_search_collection: true,
-                                                                                    productType:type
+                                                                                    productType: type
                                                                                 }).then((data) => {
                                                                                     vmi.pageSize = Math.ceil(data.response.total / 50);
                                                                                     vm.dataList = data.response.data;
@@ -1631,37 +1631,6 @@ export class ShoppingProductSetting {
                                 )}
                                 ${BgWidget.title(variant.spec.length > 0 ? variant.spec.join(' / ') : '單一規格')}
                                 <div class="flex-fill"></div>
-                                ${BgWidget.grayButton(
-                                        '商品條碼',
-                                        gvc.event(() => {
-                                            const dialog = new ShareDialog(gvc.glitter)
-                                            if (!variant.barcode) {
-                                                dialog.errorMessage({text: '請先設定商品條碼'})
-                                            }
-                                            (window.parent as any).glitter.addMtScript([{
-                                                src: "https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"
-                                            }], () => {
-                                                (window.parent as any).QRCode.toDataURL(variant.barcode, {
-                                                    width: 200,
-                                                    margin: 2
-                                                }, function (err: any, url: any) {
-                                                    if (err) {
-                                                        console.error(err);
-                                                        return;
-                                                    }
-                                                    (window.parent as any).glitter.openDiaLog(
-                                                            new URL('../dialog/image-preview.js', import.meta.url).href,
-                                                            'preview',
-                                                            url
-                                                    );
-                                                });
-
-                                            }, () => {
-                                            })
-
-                                        }),
-                                        {icon: `fa-regular fa-eye`}
-                                )}
                             </div>
                             <div class="d-flex flex-column ${obj.single ? `flex-column-reverse` : `flex-sm-row`} w-100 p-0"
                                  style="gap: 24px;">
@@ -1979,7 +1948,39 @@ export class ShoppingProductSetting {
                                     `)}
                                     ${BgWidget.mainCard(html`
                                         <div style="display: flex;flex-direction: column;align-items: flex-start;gap: 18px;">
-                                            <div style="font-size: 16px;font-weight: 700;">商品管理</div>
+                                            <div class="d-flex w-100 align-items-center" style="font-size: 16px;font-weight: 700;">商品管理
+                                                <div class="flex-fill"></div>
+                                                ${BgWidget.grayButton(
+                                                        '商品條碼',
+                                                        gvc.event(() => {
+                                                            const dialog = new ShareDialog(gvc.glitter)
+                                                            if (!variant.barcode) {
+                                                                dialog.errorMessage({text: '請先設定商品條碼'})
+                                                            }
+                                                            (window.parent as any).glitter.addMtScript([{
+                                                                src: "https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"
+                                                            }], () => {
+                                                                (window.parent as any).QRCode.toDataURL(variant.barcode, {
+                                                                    width: 200,
+                                                                    margin: 2
+                                                                }, function (err: any, url: any) {
+                                                                    if (err) {
+                                                                        console.error(err);
+                                                                        return;
+                                                                    }
+                                                                    (window.parent as any).glitter.openDiaLog(
+                                                                            new URL('../dialog/image-preview.js', import.meta.url).href,
+                                                                            'preview',
+                                                                            url
+                                                                    );
+                                                                });
+                                                            }, () => {
+                                                            })
+
+                                                        }),
+                                                        {icon: `fa-regular fa-eye`}
+                                                )}
+                                            </div>
                                             <div style="display: flex;width: 100%;height: 70px;flex-direction: column;justify-content: center;align-items: flex-start;gap: 8px;">
                                                 <div style="font-weight: 400;font-size: 16px;">存貨單位 (SKU)</div>
                                                 <input
@@ -3959,48 +3960,60 @@ color: ${selected.length ? `#393939` : `#DDD`};font-size: 18px;
                                                                                                     postMD.relative_product = value;
                                                                                                     gvc.notifyDataChange(id)
                                                                                                 },
-                                                                                                filter:(dd)=>{
+                                                                                                filter: (dd) => {
                                                                                                     return dd.key !== postMD.id;
-                                                                                                    
+
                                                                                                 }
                                                                                             });
                                                                                         }),
                                                                                         {textStyle: 'font-weight: 400;'}
                                                                                 )}
                                                                             </div>
-                                                                            ${gvc.bindView(()=>{
-                                                                                const vm:{
-                                                                                    id:string,
-                                                                                    loading:boolean,
-                                                                                    data:OptionsItem[]
-                                                                                }={
-                                                                                    id:gvc.glitter.getUUID(),
-                                                                                    loading:true,
-                                                                                        data:[]
+                                                                            ${gvc.bindView(() => {
+                                                                                const vm: {
+                                                                                    id: string,
+                                                                                    loading: boolean,
+                                                                                    data: OptionsItem[]
+                                                                                } = {
+                                                                                    id: gvc.glitter.getUUID(),
+                                                                                    loading: true,
+                                                                                    data: []
                                                                                 }
-                                                                             BgProduct.getProductOpts(postMD.relative_product).then((res)=>{
-                                                                                 vm.data=res
-                                                                                 vm.loading=false
-                                                                                 gvc.notifyDataChange(vm.id)
-                                                                             })
+                                                                                BgProduct.getProductOpts(postMD.relative_product).then((res) => {
+                                                                                    vm.data = res
+                                                                                    vm.loading = false
+                                                                                    gvc.notifyDataChange(vm.id)
+                                                                                })
                                                                                 return {
-                                                                                    bind:vm.id,
-                                                                                    view:async ()=>{
-                                                                                      if(vm.loading){
-                                                                                          return  BgWidget.spinner()
-                                                                                      }
+                                                                                    bind: vm.id,
+                                                                                    view: async () => {
+                                                                                        if (vm.loading) {
+                                                                                            return BgWidget.spinner()
+                                                                                        }
                                                                                         return vm.data.map((opt: OptionsItem, index) => {
-                                                                                            return html`<div
-                                                                                                                    class="d-flex align-items-center form-check-label c_updown_label gap-3"
-                                                                                                                >
-                                                                                                                    <span class="tx_normal">${index + 1}.</span>
-                                                                                                                    ${BgWidget.validImageBox({ gvc: gvc, image: opt.image, width: 40 })}
-                                                                                                                    <div class="tx_normal ${opt.note ? 'mb-1' : ''}">${opt.value}</div>
-                                                                                                                    ${opt.note ? html` <div class="tx_gray_12">${opt.note}</div> ` : ''}
-                                                                                                                </div>`;
+                                                                                            return html`
+                                                                                                <div
+                                                                                                        class="d-flex align-items-center form-check-label c_updown_label gap-3"
+                                                                                                >
+                                                                                                    <span class="tx_normal">${index + 1}
+                                                                                                        .</span>
+                                                                                                    ${BgWidget.validImageBox({
+                                                                                                        gvc: gvc,
+                                                                                                        image: opt.image,
+                                                                                                        width: 40
+                                                                                                    })}
+                                                                                                    <div class="tx_normal ${opt.note ? 'mb-1' : ''}">
+                                                                                                        ${opt.value}
+                                                                                                    </div>
+                                                                                                    ${opt.note ? html`
+                                                                                                        <div class="tx_gray_12">
+                                                                                                            ${opt.note}
+                                                                                                        </div> ` : ''}
+                                                                                                </div>`;
                                                                                         }).join('')
-                                                                                    },divCreate:{
-                                                                                        class:`d-flex py-2 flex-column`,style:`gap:10px;`
+                                                                                    }, divCreate: {
+                                                                                        class: `d-flex py-2 flex-column`,
+                                                                                        style: `gap:10px;`
                                                                                     }
                                                                                 }
                                                                             })}
@@ -4010,8 +4023,8 @@ color: ${selected.length ? `#393939` : `#DDD`};font-size: 18px;
                                                                         return '';
                                                                     }
                                                                 },
-                                                                divCreate:{
-                                                                    class:`w-100`
+                                                                divCreate: {
+                                                                    class: `w-100`
                                                                 }
                                                             };
                                                         })
