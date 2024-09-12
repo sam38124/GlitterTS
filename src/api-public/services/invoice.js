@@ -151,7 +151,7 @@ class Invoice {
                     "CustomerName": "無名氏",
                     "CustomerAddr": "無地址",
                     "CustomerPhone": "",
-                    "CustomerEmail": "pos@ncdesign.info",
+                    "CustomerEmail": (order.user_info.email && order.user_info.email !== 'no-email') ? order.user_info.email : "pos@ncdesign.info",
                     "ClearanceMark": "1",
                     "Print": "1",
                     "Donation": "0",
@@ -161,6 +161,7 @@ class Invoice {
                     "TaxType": "1",
                     "InvType": "07"
                 };
+                console.log(`cover.CustomerEmail==>`, cover.CustomerEmail);
                 if (order.user_info.invoice_type === 'company') {
                     cover.CustomerName = await EcInvoice_js_1.EcInvoice.getCompanyName({
                         company_id: order.user_info.gui_number,

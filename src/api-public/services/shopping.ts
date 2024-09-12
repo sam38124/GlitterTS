@@ -1083,7 +1083,7 @@ export class Shopping {
                 //開立電子發票
                 (carData as any).invoice = await new Invoice(this.app).postCheckoutInvoice(carData, carData.user_info.send_type !== 'carrier');
                 if (!(carData as any).invoice) {
-                    throw exception.BadRequestError('BAD_REQUEST', '發票開立失敗:' + e, null);
+                    throw exception.BadRequestError('BAD_REQUEST', '發票開立失敗:' , null);
                 }
                 await trans.commit();
                 await trans.release();

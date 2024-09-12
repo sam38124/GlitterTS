@@ -11,17 +11,37 @@ export class PosSetting {
                 view: () => {
                     return BgWidget.mainCard([
                         {
-                            title: '員工列表'
+                            title: '員工列表',
+                            event: () => { }
+                        },
+                        {
+                            title: '付款方式',
+                            event: () => { }
+                        },
+                        {
+                            title: '列印商品條碼',
+                            event: () => { }
+                        },
+                        {
+                            title: '庫存管理',
+                            event: () => { }
+                        },
+                        {
+                            title: '折扣管理',
+                            event: () => { }
                         }
-                    ].map(() => {
-                        return `<div style="width:100% height: 39px; padding: 6px 12px; border-radius: 10px; justify-content: flex-start; align-items: center; gap: 24px; display: inline-flex">
-  <div style="flex: 1 1 0; color: #393939; font-size: 20px;  font-weight: 700; text-transform: uppercase; letter-spacing: 2px; word-wrap: break-word">員工列表</div>
-  <div style="width: 5px; height: 11px; transform: rotate(180deg); transform-origin: 0 0; border: 2px #393939 solid"></div>
+                    ].map((value, index, array) => {
+                        return `<div class="d-flex justify-content-between hoverBtn" style="width:100% height: 39px; padding: 6px 12px; border-radius: 10px; justify-content: flex-start; align-items: center; gap: 24px; display: inline-flex;
+cursor: pointer;" onclick="${gvc.event(() => {
+                            value.event();
+                        })}">
+  <div style="flex: 1 1 0; color: #393939; font-size: 20px;  font-weight: 700; text-transform: uppercase; letter-spacing: 2px; word-wrap: break-word">${value.title}</div>
+  <i class="fa-solid fa-angle-right"></i>
 </div>`;
                     }).join(''));
                 },
                 divCreate: {
-                    class: `mx-auto`
+                    class: `mx-auto`, style: `margin-top:42px;width:1000px;max-width:calc(100% - 20px);`
                 }
             };
         });

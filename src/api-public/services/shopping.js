@@ -739,7 +739,7 @@ class Shopping {
                      values (?, ?, ?, ?)`, [carData.orderID, data.pay_status, carData.email, JSON.stringify(carData)]);
                 carData.invoice = await new invoice_js_1.Invoice(this.app).postCheckoutInvoice(carData, carData.user_info.send_type !== 'carrier');
                 if (!carData.invoice) {
-                    throw exception_js_1.default.BadRequestError('BAD_REQUEST', '發票開立失敗:' + express_1.default, null);
+                    throw exception_js_1.default.BadRequestError('BAD_REQUEST', '發票開立失敗:', null);
                 }
                 await trans.commit();
                 await trans.release();
