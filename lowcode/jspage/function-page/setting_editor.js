@@ -161,6 +161,7 @@ export class Setting_editor {
                                         const data = authConfig.find((item) => item.key === page);
                                         return data ? data.value : { read: false };
                                     }
+                                    console.log(`authConfig=>`, authConfig);
                                     function renderItem(list) {
                                         return gvc.bindView(() => {
                                             const id = gvc.glitter.getUUID();
@@ -247,9 +248,12 @@ export class Setting_editor {
                                             page: 0,
                                             limit: 1,
                                         }).then((data) => {
-                                            if (data.result && data.response.data[0]) {
+                                            var _a;
+                                            if (data.result) {
                                                 permissionTitle = data.response.store_permission_title;
-                                                permissionData = data.response.data[0];
+                                                permissionData = (_a = data.response.data[0]) !== null && _a !== void 0 ? _a : {
+                                                    config: { auth: [] }
+                                                };
                                                 resolve();
                                             }
                                             else {
