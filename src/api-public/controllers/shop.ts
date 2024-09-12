@@ -1,4 +1,4 @@
-import express, {query} from 'express';
+import express from 'express';
 import response from '../../modules/response';
 import multer from 'multer';
 import exception from '../../modules/exception';
@@ -133,7 +133,7 @@ router.post('/checkout', async (req: express.Request, resp: express.Response) =>
                 custom_form_format: req.body.custom_form_format,
                 custom_form_data: req.body.custom_form_data,
                 distribution_code: req.body.distribution_code,
-                code_array:req.body.code_array
+                code_array: req.body.code_array,
             })
         );
     } catch (err) {
@@ -176,7 +176,7 @@ router.post('/checkout/preview', async (req: express.Request, resp: express.Resp
                     })(),
                     checkOutType: req.body.checkOutType,
                     distribution_code: req.body.distribution_code,
-                    code_array:req.body.code_array
+                    code_array: req.body.code_array,
                 },
                 'preview'
             )
@@ -202,7 +202,7 @@ router.post('/manager/checkout', async (req: express.Request, resp: express.Resp
                         discount: req.body.discount,
                         total: req.body.total,
                         pay_status: req.body.pay_status,
-                        code_array:req.body.code_array
+                        code_array: req.body.code_array,
                     },
                     'manual'
                 )
@@ -232,7 +232,7 @@ router.post('/manager/checkout/preview', async (req: express.Request, resp: expr
                                 return 0;
                             }
                         })(),
-                        code_array:req.body.code_array
+                        code_array: req.body.code_array,
                     },
                     'manual-preview'
                 )
@@ -374,7 +374,7 @@ router.put('/order', async (req: express.Request, resp: express.Response) => {
                 await new Shopping(req.get('g-app') as string, req.body.token).putOrder({
                     id: req.body.id,
                     orderData: req.body.order_data,
-                    status: req.body.status ,
+                    status: req.body.status,
                 })
             );
         } else {
@@ -481,7 +481,7 @@ router.get('/voucher', async (req: express.Request, resp: express.Response) => {
     try {
         let query = [`(content->>'$.type'='voucher')`];
         req.query.search && query.push(`(UPPER(JSON_UNQUOTE(JSON_EXTRACT(content, '$.title'))) LIKE UPPER('%${req.query.search}%'))`);
-        if(req.query.voucher_type){
+        if (req.query.voucher_type) {
             query.push(`(content->>'$.reBackType'='${req.query.voucher_type}')`);
         }
         return response.succ(
@@ -588,7 +588,7 @@ router.post('/notify', upload.single('file'), async (req: express.Request, resp:
                     return `${dd.toLowerCase()}=${(params as any)[dd]}`;
                 });
             let raw: any = od.join('&');
-            raw = EcPay.urlEncode_dot_net(`HashKey=${keyData.HASH_KEY}&${raw.toLowerCase()}&HashIV=${keyData.HASH_IV}`);
+            raw = EcPay.urlEncodeDotNet(`HashKey=${keyData.HASH_KEY}&${raw.toLowerCase()}&HashIV=${keyData.HASH_IV}`);
             const chkSum = crypto.createHash('sha256').update(raw.toLowerCase()).digest('hex');
             decodeData = {
                 Status: url.searchParams.get('RtnCode') === '1' && url.searchParams.get('CheckMacValue')!.toLowerCase() === chkSum ? `SUCCESS` : `ERROR`,
@@ -802,7 +802,7 @@ router.get('/product', async (req: express.Request, resp: express.Response) => {
             sku: req.query.sku as string,
             id: req.query.id as string,
             collection: req.query.collection as string,
-            accurate_search_text:req.query.accurate_search_text === 'true',
+            accurate_search_text: req.query.accurate_search_text === 'true',
             accurate_search_collection: req.query.accurate_search_collection === 'true',
             min_price: req.query.min_price as string,
             max_price: req.query.max_price as string,
@@ -836,7 +836,7 @@ router.get('/product', async (req: express.Request, resp: express.Response) => {
             with_hide_index: req.query.with_hide_index as string,
             is_manger: (await UtPermission.isManager(req)) as any,
             show_hidden: `${req.query.show_hidden as any}`,
-            productType:req.query.productType as any
+            productType: req.query.productType as any,
         });
         return response.succ(resp, shopping);
     } catch (err) {
@@ -964,7 +964,7 @@ router.post('/pos/checkout', async (req: express.Request, resp: express.Response
                     discount: req.body.discount,
                     total: req.body.total,
                     pay_status: req.body.pay_status,
-                    code_array:req.body.code_array
+                    code_array: req.body.code_array,
                 },
                 'POS'
             )
@@ -981,14 +981,8 @@ router.post('/pos/checkout', async (req: express.Request, resp: express.Response
 // POS機相關
 router.post('/pos/linePay', async (req: express.Request, resp: express.Response) => {
     try {
-        return response.succ(
-            resp,
-            {result: await new Shopping(req.get('g-app') as string, req.body.token).linePay(
-                    req.body
-                )}
-        );
+        return response.succ(resp, { result: await new Shopping(req.get('g-app') as string, req.body.token).linePay(req.body) });
     } catch (err) {
         return response.fail(resp, err);
     }
 });
-

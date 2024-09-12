@@ -233,7 +233,7 @@ router.post('/notify', upload.single('file'), async (req: express.Request, resp:
                     return `${dd.toLowerCase()}=${(params as any)[dd]}`;
                 });
             let raw: any = od.join('&');
-            raw = EcPay.urlEncode_dot_net(`HashKey=${keyData.HASH_KEY}&${raw.toLowerCase()}&HashIV=${keyData.HASH_IV}`);
+            raw = EcPay.urlEncodeDotNet(`HashKey=${keyData.HASH_KEY}&${raw.toLowerCase()}&HashIV=${keyData.HASH_IV}`);
             const chkSum = crypto.createHash('sha256').update(raw.toLowerCase()).digest('hex');
             decodeData = {
                 Status: url.searchParams.get('RtnCode') === '1' && url.searchParams.get('CheckMacValue')!.toLowerCase() === chkSum ? `SUCCESS` : `ERROR`,
