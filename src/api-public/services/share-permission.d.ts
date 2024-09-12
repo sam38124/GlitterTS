@@ -33,6 +33,7 @@ export declare class SharePermission {
         domain: any;
         app: string;
     } | undefined>;
+    getStoreAuth(): Promise<any>;
     getPermission(json: {
         page: number;
         limit: number;
@@ -42,8 +43,15 @@ export declare class SharePermission {
         query?: string;
         status?: string;
     }): Promise<never[] | {
+        result: boolean;
+        store_permission_title: string;
+        data: any[];
+        total?: undefined;
+    } | {
         data: PermissionItem[];
         total: number;
+        store_permission_title: string;
+        result?: undefined;
     }>;
     setPermission(data: {
         email: string;
@@ -59,7 +67,7 @@ export declare class SharePermission {
         redirect_url: any;
         email: string;
         config: any;
-        status?: number;
+        status?: number | undefined;
         saas: string | undefined;
         brand: any;
         domain: any;

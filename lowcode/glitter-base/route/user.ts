@@ -660,7 +660,7 @@ export class ApiUser {
         return list;
     }
 
-    public static getPermission(json: { page: number; limit: number; queryType?: string; query?: string; orderBy?: string; filter?: any }) {
+    public static getPermission(json: { page: number; limit: number; self?: boolean; queryType?: string; query?: string; orderBy?: string; filter?: any }) {
         return BaseApi.create({
             url:
                 getBaseUrl() +
@@ -669,6 +669,7 @@ export class ApiUser {
                     json.queryType && par.push(`queryType=${json.queryType}`);
                     json.query && par.push(`query=${json.query}`);
                     json.orderBy && par.push(`orderBy=${json.orderBy}`);
+                    json.self && par.push(`self=${json.self}`);
                     if (json.filter) {
                         par = par.concat(this.permissionFilterString(json.filter));
                     }

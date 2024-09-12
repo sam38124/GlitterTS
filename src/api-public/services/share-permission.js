@@ -34,12 +34,31 @@ class SharePermission {
             throw exception_js_1.default.BadRequestError('ERROR', 'getBaseData ERROR: ' + e, null);
         }
     }
+    async getStoreAuth() {
+        try {
+            const appData = (await database_1.default.query(`SELECT * FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_auth_config WHERE appName = ? AND user = ?;
+                `, [this.appName, this.token.userID]))[0];
+            return appData;
+        }
+        catch (e) {
+            throw exception_js_1.default.BadRequestError('ERROR', 'getBaseData ERROR: ' + e, null);
+        }
+    }
     async getPermission(json) {
         var _a, _b;
         try {
             const base = await this.getBaseData();
-            if (!base)
+            if (!base) {
+                const authConfig = await this.getStoreAuth();
+                if (authConfig) {
+                    return {
+                        result: true,
+                        store_permission_title: 'employee',
+                        data: [authConfig],
+                    };
+                }
                 return [];
+            }
             const page = (_a = json.page) !== null && _a !== void 0 ? _a : 0;
             const limit = (_b = json.limit) !== null && _b !== void 0 ? _b : 20;
             const start = page * limit;
@@ -62,6 +81,7 @@ class SharePermission {
                 return {
                     data: [],
                     total: 0,
+                    store_permission_title: 'owner',
                 };
             }
             const users = await database_1.default.query(`SELECT * FROM \`${base.brand}\`.t_user WHERE userID in (${auths
@@ -139,6 +159,7 @@ class SharePermission {
             return {
                 data: authDataList.slice(start, end),
                 total: authDataList.length,
+                store_permission_title: 'owner',
             };
         }
         catch (e) {

@@ -5,6 +5,8 @@ import { ApiPageConfig } from '../../api/pageConfig.js';
 import { NormalPageEditor } from '../../editor/normal-page-editor.js';
 import { AddComponent } from '../../editor/add-component.js';
 import { EditorConfig } from '../../editor-config.js';
+import { ApiUser } from '../../glitter-base/route/user.js';
+import { BgWidget } from '../../backend-manager/bg-widget.js';
 export class Setting_editor {
     static left(gvc, viewModel, createID, gBundle) {
         const html = String.raw;
@@ -23,6 +25,9 @@ export class Setting_editor {
                         <div class="w-100 bg-white" style="overflow-y:auto; ${document.body.offsetWidth > 768 ? `padding-top: ${EditorConfig.getPaddingTop(gvc)}px;` : ''}">
                             ${gvc.bindView(() => {
                         const id = gvc.glitter.getUUID();
+                        let loading = true;
+                        let permissionTitle = '';
+                        let permissionData = {};
                         let items = [];
                         let menuItems = this.menuItems();
                         if (window.memberType === 'noLimit') {
@@ -54,7 +59,11 @@ export class Setting_editor {
                         return {
                             bind: id,
                             view: () => {
-                                function renderItems(items) {
+                                if (loading) {
+                                    return BgWidget.spinner({ text: { visible: false } });
+                                }
+                                function renderHTML(items) {
+                                    const authConfig = permissionData.config.auth;
                                     let list = [];
                                     function click_item(index) {
                                         if (['page_layout', 'dev_mode'].indexOf(items[parseInt(index)].page) !== -1) {
@@ -148,7 +157,11 @@ export class Setting_editor {
                                             list[index] = dd.child[0];
                                         }
                                     });
-                                    function renderItems(list) {
+                                    function getCRUD(page) {
+                                        const data = authConfig.find((item) => item.key === page);
+                                        return data ? data.value : { read: false };
+                                    }
+                                    function renderItem(list) {
                                         return gvc.bindView(() => {
                                             const id = gvc.glitter.getUUID();
                                             return {
@@ -157,6 +170,18 @@ export class Setting_editor {
                                                     return list
                                                         .map((dd, index) => {
                                                         var _a, _b;
+                                                        if (permissionTitle === 'employee') {
+                                                            if (dd.child) {
+                                                                if (!dd.child.some((item) => getCRUD(item.info.page).read)) {
+                                                                    return '';
+                                                                }
+                                                            }
+                                                            else {
+                                                                if (!getCRUD(dd.info.page).read) {
+                                                                    return '';
+                                                                }
+                                                            }
+                                                        }
                                                         return html `
                                                                         ${dd.title === '品牌官網' ? `<div class="my-4 border-top"></div>` : ``}
                                                                         <li>
@@ -190,7 +215,7 @@ export class Setting_editor {
                                                             : html ` ${dd.info && dd.info.icon ? `<img src="${dd.info.icon}" style="width:18px;height:18px;">` : ``} `}
                                                                             </div>
                                                                             ${dd.type === 'container'
-                                                            ? html ` <div class="ps-4 pt-2 pb-2 ${dd.toggle ? `` : `d-none`}">${renderItems(dd.child)}</div>`
+                                                            ? html ` <div class="ps-4 pt-2 pb-2 ${dd.toggle ? `` : `d-none`}">${renderItem(dd.child)}</div>`
                                                             : ``}
                                                                         </li>
                                                                     `;
@@ -211,9 +236,31 @@ export class Setting_editor {
                                             };
                                         });
                                     }
-                                    return html ` <div class="p-2">${renderItems(list)}</div>`;
+                                    return html ` <div class="p-2">${renderItem(list)}</div>`;
                                 }
-                                return renderItems(items);
+                                return renderHTML(items);
+                            },
+                            onCreate: () => {
+                                if (loading) {
+                                    new Promise((resolve, reject) => {
+                                        ApiUser.getPermission({
+                                            page: 0,
+                                            limit: 1,
+                                        }).then((data) => {
+                                            if (data.result && data.response.data[0]) {
+                                                permissionTitle = data.response.store_permission_title;
+                                                permissionData = data.response.data[0];
+                                                resolve();
+                                            }
+                                            else {
+                                                reject();
+                                            }
+                                        });
+                                    }).then((res) => {
+                                        loading = false;
+                                        gvc.notifyDataChange(id);
+                                    });
+                                }
                             },
                         };
                     })}

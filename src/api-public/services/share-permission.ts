@@ -66,10 +66,36 @@ export class SharePermission {
         }
     }
 
+    async getStoreAuth() {
+        try {
+            const appData = (
+                await db.query(
+                    `SELECT * FROM \`${saasConfig.SAAS_NAME}\`.app_auth_config WHERE appName = ? AND user = ?;
+                `,
+                    [this.appName, this.token.userID]
+                )
+            )[0];
+
+            return appData;
+        } catch (e) {
+            throw exception.BadRequestError('ERROR', 'getBaseData ERROR: ' + e, null);
+        }
+    }
+
     async getPermission(json: { page: number; limit: number; email?: string; orderBy?: string; queryType?: string; query?: string; status?: string }) {
         try {
             const base = await this.getBaseData();
-            if (!base) return [];
+            if (!base) {
+                const authConfig = await this.getStoreAuth();
+                if (authConfig) {
+                    return {
+                        result: true,
+                        store_permission_title: 'employee',
+                        data: [authConfig],
+                    };
+                }
+                return [];
+            }
 
             const page = json.page ?? 0;
             const limit = json.limit ?? 20;
@@ -102,6 +128,7 @@ export class SharePermission {
                 return {
                     data: [],
                     total: 0,
+                    store_permission_title: 'owner',
                 };
             }
 
@@ -191,6 +218,7 @@ export class SharePermission {
             return {
                 data: authDataList.slice(start, end),
                 total: authDataList.length,
+                store_permission_title: 'owner',
             };
         } catch (e) {
             throw exception.BadRequestError('ERROR', 'getPermission ERROR: ' + e, null);
