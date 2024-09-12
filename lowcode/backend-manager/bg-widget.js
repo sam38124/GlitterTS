@@ -662,9 +662,23 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
     }
     static maintenance() {
         return html ` <div class="d-flex flex-column align-items-center justify-content-center vh-100 vw-100">
-            <iframe src="https://embed.lottiefiles.com/animation/99312" style="width:40vw;height:40vw;"></iframe>
-            <h3 style="margin-top: 36px;">此頁面功能維護中</h3>
+            <iframe src="https://embed.lottiefiles.com/animation/99312" style="width:35vw;height:30vw;"></iframe>
+            <h3 style="margin-top: 30px;">此頁面功能維護中</h3>
         </div>`;
+    }
+    static noPermission() {
+        return html ` <script src="${this.dotlottieJS}" type="module"></script>
+            <div class="d-flex flex-column align-items-center justify-content-center vh-100 vw-100">
+                <dotlottie-player
+                    src="https://lottie.host/63d50162-9e49-47af-bb57-192f739db662/PhqkOljE9S.json"
+                    background="transparent"
+                    speed="1"
+                    style="width:30vw;height:25vw;"
+                    loop
+                    autoplay
+                ></dotlottie-player>
+                <h3>您無權限瀏覽此頁面</h3>
+            </div>`;
     }
     static spinner(obj) {
         var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o;
@@ -2110,6 +2124,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
         });
     }
 }
+BgWidget.dotlottieJS = 'https://unpkg.com/@dotlottie/player-component@latest/dist/dotlottie-player.mjs';
 BgWidget.getContainerWidth = (obj) => {
     const width = document.body.clientWidth;
     const rateForWeb = obj && obj.rate && obj.rate.web ? obj.rate.web : 0.79;

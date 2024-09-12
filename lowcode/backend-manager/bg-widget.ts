@@ -794,11 +794,28 @@ ${obj.default ?? ''}</textarea
     }
 
     // 頁面
+    static dotlottieJS = 'https://unpkg.com/@dotlottie/player-component@latest/dist/dotlottie-player.mjs';
+
     static maintenance() {
         return html` <div class="d-flex flex-column align-items-center justify-content-center vh-100 vw-100">
-            <iframe src="https://embed.lottiefiles.com/animation/99312" style="width:40vw;height:40vw;"></iframe>
-            <h3 style="margin-top: 36px;">此頁面功能維護中</h3>
+            <iframe src="https://embed.lottiefiles.com/animation/99312" style="width:35vw;height:30vw;"></iframe>
+            <h3 style="margin-top: 30px;">此頁面功能維護中</h3>
         </div>`;
+    }
+
+    static noPermission() {
+        return html` <script src="${this.dotlottieJS}" type="module"></script>
+            <div class="d-flex flex-column align-items-center justify-content-center vh-100 vw-100">
+                <dotlottie-player
+                    src="https://lottie.host/63d50162-9e49-47af-bb57-192f739db662/PhqkOljE9S.json"
+                    background="transparent"
+                    speed="1"
+                    style="width:30vw;height:25vw;"
+                    loop
+                    autoplay
+                ></dotlottie-player>
+                <h3>您無權限瀏覽此頁面</h3>
+            </div>`;
     }
 
     static spinner(obj?: {

@@ -25,16 +25,6 @@ export class Setting_editor {
             },
             {
                 icon: '',
-                page: 'shop_information',
-                group: '商店設定',
-                title: '商店訊息',
-                appName: 'cms_system',
-                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1716566571091-Property 1=gear-regular.svg',
-                moduleName: '商店設計',
-                guideClass: 'guide6-2',
-            },
-            {
-                icon: '',
                 page: 'setFinanceWay',
                 group: '商店設定',
                 title: '金流設定',
@@ -535,9 +525,11 @@ export class Setting_editor {
                                             let list: any = [];
 
                                             function click_item(index: any) {
-                                                if (['page_layout', 'dev_mode'].indexOf(items[parseInt(index)].page) !== -1) {
+                                                const itemPage = items[parseInt(index)].page;
+                                                const page = permissionTitle === 'employee' && !getCRUD(itemPage).read ? 'noPermission' : itemPage;
+                                                if (['page_layout', 'dev_mode'].indexOf(page) !== -1) {
                                                     const url = new URL(location.href);
-                                                    if (items[parseInt(index)].page === 'page_layout') {
+                                                    if (page === 'page_layout') {
                                                         url.searchParams.set('function', 'user-editor');
                                                     } else {
                                                         Storage.view_type = 'col3';
@@ -545,16 +537,13 @@ export class Setting_editor {
                                                     }
                                                     location.href = url.href;
                                                 } else {
-                                                    if (!getCRUD(items[parseInt(index)].page).read) {
-                                                        return false;
-                                                    }
                                                     Storage.select_item = index;
                                                     (window as any).editerData = undefined;
-                                                    glitter.setUrlParameter('tab', items[parseInt(index)].page);
-                                                    const url = new URL('./' + items[parseInt(index)].page, glitter.root_path);
+                                                    glitter.setUrlParameter('tab', page);
+                                                    const url = new URL('./' + page, glitter.root_path);
                                                     url.searchParams.set('appName', items[parseInt(index)].appName);
                                                     url.searchParams.set('cms', 'true');
-                                                    url.searchParams.set('page', items[parseInt(index)].page);
+                                                    url.searchParams.set('page', page);
                                                     $('#editerCenter').html(html`<iframe src="${url.href}" style="border: none;height: calc(100%);"></iframe>`);
                                                     glitter.closeDrawer();
                                                 }
@@ -633,7 +622,7 @@ export class Setting_editor {
                                                 const data = authConfig.find((item: any) => item.key === page);
                                                 return data ? data.value : { read: false };
                                             }
-                                            console.log(`authConfig=>`,authConfig)
+
                                             function renderItem(list: any) {
                                                 return gvc.bindView(() => {
                                                     const id = gvc.glitter.getUUID();
@@ -723,15 +712,13 @@ export class Setting_editor {
                                                 }).then((data) => {
                                                     if (data.result) {
                                                         permissionTitle = data.response.store_permission_title;
-                                                        permissionData = data.response.data[0] ?? {
-                                                            config:{auth:[]}
-                                                        };
+                                                        permissionData = data.response.data[0] ?? { config: { auth: [] } };
                                                         resolve();
                                                     } else {
                                                         reject();
                                                     }
                                                 });
-                                            }).then((res: any) => {
+                                            }).then(() => {
                                                 loading = false;
                                                 gvc.notifyDataChange(id);
                                             });
