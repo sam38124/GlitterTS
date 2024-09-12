@@ -78,6 +78,9 @@ export class Setting_editor {
                                             location.href = url.href;
                                         }
                                         else {
+                                            if (!getCRUD(items[parseInt(index)].page).read) {
+                                                return false;
+                                            }
                                             Storage.select_item = index;
                                             window.editerData = undefined;
                                             glitter.setUrlParameter('tab', items[parseInt(index)].page);
