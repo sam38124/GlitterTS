@@ -104,7 +104,6 @@ export class SaasViewModel {
                                                                                 return vm.data
                                                                                     .map((dd: any) => {
                                                                                         dd.theme_config = dd.theme_config ?? {};
-                                                                                        console.log(dd);
                                                                                         const storeList = [
                                                                                             BgWidget.validImageBox({
                                                                                                 gvc,

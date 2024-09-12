@@ -522,8 +522,8 @@ export class PermissionSetting {
                                     ? BgWidget.redButton(
                                           '移除此員工',
                                           gvc.event(() => {
-                                              dialog.checkYesOrNot({
-                                                  text: '確定要刪除此員工嗎？',
+                                              dialog.warningMessage({
+                                                  text: '此動作無法復原，確定要刪除此員工嗎？',
                                                   callback: (bool) => {
                                                       if (bool) {
                                                           dialog.dataLoading({ visible: true });
