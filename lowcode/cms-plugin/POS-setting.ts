@@ -190,12 +190,12 @@ export class POSSetting {
             return {
                 bind: id,
                 view: async () => {
-                    await POSSetting.initial(gvc)
                     const res = await ApiUser.checkAdminAuth({
                         app: gvc.glitter.getUrlParameter('app-id'),
                         token: GlobalUser.saas_token,
                     });
                     if (res.response.result) {
+                        await POSSetting.initial(gvc)
                         return POSSetting.posView(gvc);
                     } else {
                         return POSSetting.login(gvc);

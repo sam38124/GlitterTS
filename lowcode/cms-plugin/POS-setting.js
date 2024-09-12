@@ -187,12 +187,12 @@ export class POSSetting {
             return {
                 bind: id,
                 view: () => __awaiter(this, void 0, void 0, function* () {
-                    yield POSSetting.initial(gvc);
                     const res = yield ApiUser.checkAdminAuth({
                         app: gvc.glitter.getUrlParameter('app-id'),
                         token: GlobalUser.saas_token,
                     });
                     if (res.response.result) {
+                        yield POSSetting.initial(gvc);
                         return POSSetting.posView(gvc);
                     }
                     else {
