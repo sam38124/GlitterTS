@@ -141,6 +141,7 @@ export class ShoppingCollections {
             const topLevelCollections = data.collections.map((col) => col.title);
             return flattenCollections(data.collections, [], topLevelCollections);
         };
+
         return gvc.bindView(() => {
             return {
                 bind: vm.id,

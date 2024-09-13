@@ -265,27 +265,33 @@ class App {
     async getAPP(query) {
         var _a;
         try {
-            const sql = `
-                SELECT *
-                FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_config
-                where ${(() => {
-                const sql = [`user = '${this.token.userID}'`];
+            const empStores = await database_1.default.query(`SELECT * FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_auth_config 
+                WHERE user = '${this.token.userID}' AND status = 1 AND invited = 1;`, []);
+            const allStores = await database_1.default.query(`SELECT * FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_config
+                    WHERE ${(() => {
+                const sql = [
+                    `(user = '${this.token.userID}' OR appName = 
+                            (SELECT appName FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_auth_config
+                            WHERE user = '${this.token.userID}' AND status = 1 AND invited = 1)
+                        )`,
+                ];
                 if (query.app_name) {
                     sql.push(` appName='${query.app_name}' `);
                 }
+                else if (query.theme) {
+                    sql.push(` refer_app='${query.theme}' `);
+                }
                 else {
-                    if (query.theme) {
-                        sql.push(` refer_app='${query.theme}' `);
-                    }
-                    else {
-                        sql.push(` refer_app is null `);
-                    }
+                    sql.push(` refer_app is null `);
                 }
                 return sql.join(' and ');
-            })()}
-                ;
-            `;
-            return await database_1.default.execute(sql, []);
+            })()};
+                `, []);
+            return allStores.map((store) => {
+                const type = empStores.find((st) => st.appName === store.appName);
+                store.store_permission_title = type ? 'employee' : 'owner';
+                return store;
+            });
         }
         catch (e) {
             throw exception_1.default.BadRequestError((_a = e.code) !== null && _a !== void 0 ? _a : 'BAD_REQUEST', e, null);
@@ -360,7 +366,7 @@ class App {
             memberType: userData.userData.menber_type,
             brand: base.brand,
             userData: userData.userData,
-            domain: base.domain
+            domain: base.domain,
         };
     }
     static async preloadPageData(appName, refer_page) {
@@ -430,15 +436,15 @@ class App {
         let eval_code_hash = {};
         const match1 = JSON.stringify(preloadData.component).match(/\{"src":"\.\/official_event\/[^"]+\.js","route":"[^"]+"}/g);
         const code = JSON.stringify(preloadData.component).match(/\{"code":"[^"]+","/g);
-        (code || []).map(((dd) => {
+        (code || []).map((dd) => {
             try {
-                const code = JSON.parse(dd.substring(0, dd.length - 2) + "}");
+                const code = JSON.parse(dd.substring(0, dd.length - 2) + '}');
                 eval_code_hash[tool_1.default.checksum(code.code)] = code.code;
             }
             catch (e) {
                 console.log(`error->`, dd);
             }
-        }));
+        });
         if (match1) {
             match1.map((d1) => {
                 if (!preloadData.event.find((dd) => {
@@ -698,8 +704,7 @@ server {
             try {
                 await new backend_service_js_1.BackendService(config.appName).stopServer();
             }
-            catch (e) {
-            }
+            catch (e) { }
             await database_1.default.execute(`delete
                  from \`${config_1.saasConfig.SAAS_NAME}\`.app_config
                  where appName = ${database_1.default.escape(config.appName)}

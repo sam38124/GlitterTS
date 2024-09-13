@@ -28,11 +28,14 @@ class Shopping {
     }
     async workerExample(data) {
         try {
-            const jsonData = await database_js_1.default.query(`SELECT * FROM \`${this.app}\`.t_voucher_history`, []);
+            const jsonData = await database_js_1.default.query(`SELECT *
+                                             FROM \`${this.app}\`.t_voucher_history`, []);
             const t0 = performance.now();
             if (data.type === 0) {
                 for (const record of jsonData) {
-                    await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_voucher_history\` SET ? WHERE id = ?`, [record, record.id]);
+                    await database_js_1.default.query(`UPDATE \`${this.app}\`.\`t_voucher_history\`
+                                    SET ?
+                                    WHERE id = ?`, [record, record.id]);
                 }
                 return {
                     type: 'single',
@@ -42,7 +45,9 @@ class Shopping {
             }
             const formatJsonData = jsonData.map((record) => {
                 return {
-                    sql: `UPDATE \`${this.app}\`.\`t_voucher_history\` SET ? WHERE id = ?`,
+                    sql: `UPDATE \`${this.app}\`.\`t_voucher_history\`
+                          SET ?
+                          WHERE id = ?`,
                     data: [record, record.id],
                 };
             });
@@ -64,20 +69,42 @@ class Shopping {
             if (query.search) {
                 switch (query.searchType) {
                     case 'sku':
-                        querySql.push(`JSON_EXTRACT(content, '$.variants[*].sku') LIKE '%${query.search}%'`);
+                        if (query.accurate_search_text) {
+                            querySql.push(`JSON_EXTRACT(content, '$.variants[*].sku') = '${query.search}'`);
+                        }
+                        else {
+                            querySql.push(`JSON_EXTRACT(content, '$.variants[*].sku') LIKE '%${query.search}%'`);
+                        }
                         break;
                     case 'barcode':
-                        querySql.push(`JSON_EXTRACT(content, '$.variants[*].barcode') LIKE '%${query.search}%'`);
+                        if (query.accurate_search_text) {
+                            querySql.push(`JSON_EXTRACT(content, '$.variants[*].barcode') = '${query.search}'`);
+                        }
+                        else {
+                            querySql.push(`JSON_EXTRACT(content, '$.variants[*].barcode') LIKE '%${query.search}%'`);
+                        }
                         break;
                     case 'title':
                     default:
-                        querySql.push(`(UPPER(JSON_UNQUOTE(JSON_EXTRACT(content, '$.title'))) LIKE UPPER('%${query.search}%'))`);
+                        querySql.push(`(${[
+                            `(UPPER(JSON_UNQUOTE(JSON_EXTRACT(content, '$.title'))) LIKE UPPER('%${query.search}%'))`,
+                            `JSON_EXTRACT(content, '$.variants[*].sku') LIKE '%${query.search}%'`,
+                            `JSON_EXTRACT(content, '$.variants[*].barcode') LIKE '%${query.search}%'`
+                        ].join(' or ')})`);
                         break;
                 }
             }
             query.id && querySql.push(`id = ${query.id}`);
             if (!query.is_manger && `${query.show_hidden}` !== 'true') {
                 querySql.push(`(content->>'$.visible' is null || content->>'$.visible' = 'true')`);
+            }
+            if (query.productType) {
+                query.productType.split(',').map((dd) => {
+                    querySql.push(`(content->>'$.productType.${dd}' = "true")`);
+                });
+            }
+            else if (!query.id) {
+                querySql.push(`(content->>'$.productType.product' = "true")`);
             }
             if (query.collection) {
                 const collection_cf = (await database_js_1.default.query(`SELECT *
@@ -200,11 +227,14 @@ class Shopping {
                 return product;
             });
             if (query.id_list && query.order_by === 'order by id desc') {
-                products.data = query.id_list.split(',').map((id) => {
+                products.data = query.id_list
+                    .split(',')
+                    .map((id) => {
                     return products.data.find((product) => {
                         return `${product.id}` === `${id}`;
                     });
-                }).filter((dd) => {
+                })
+                    .filter((dd) => {
                     return dd;
                 });
             }
@@ -244,8 +274,8 @@ class Shopping {
     async querySqlByVariants(querySql, query) {
         let sql = `SELECT v.id,
                           v.product_id,
-                          v.content                                            as variant_content,
-                          p.content                                            as product_content,
+                          v.content as                                            variant_content,
+                          p.content as                                            product_content,
                           CAST(JSON_EXTRACT(v.content, '$.stock') AS UNSIGNED) as stock
                    FROM \`${this.app}\`.t_variants AS v
                             JOIN
@@ -308,11 +338,12 @@ class Shopping {
                 headers: {
                     'X-LINE-ChannelId': '2006263059',
                     'X-LINE-ChannelSecret': '9bcca1d8f66b9ec60cd1a3498be253e2',
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
                 },
-                data: JSON.stringify(data)
+                data: JSON.stringify(data),
             };
-            axios_1.default.request(config)
+            axios_1.default
+                .request(config)
                 .then((response) => {
                 resolve(response.data.returnCode === '0000');
             })
@@ -450,8 +481,8 @@ class Shopping {
                 useRebateInfo: { point: 0 },
                 custom_form_format: data.custom_form_format,
                 custom_form_data: data.custom_form_data,
-                orderSource: (data.checkOutType === 'POS') ? `POS` : ``,
-                code_array: data.code_array
+                orderSource: data.checkOutType === 'POS' ? `POS` : ``,
+                code_array: data.code_array,
             };
             function calculateShipment(dataList, value) {
                 if (value === 0) {
@@ -473,6 +504,7 @@ class Shopping {
                 }
                 return parseInt(dataList[dataList.length - 1].value);
             }
+            const add_on_items = [];
             for (const b of data.lineItems) {
                 try {
                     const pdDqlData = (await this.getProduct({
@@ -538,9 +570,14 @@ class Shopping {
                                 ]);
                             }
                         }
+                        if (!pd.productType.product && pd.productType.addProduct) {
+                            b.is_add_on_items = true;
+                            add_on_items.push(b);
+                        }
                     }
                 }
-                catch (e) { }
+                catch (e) {
+                }
             }
             carData.shipment_fee = (() => {
                 let total_volume = 0;
@@ -584,6 +621,27 @@ class Shopping {
                 }
             }
             if (type !== 'manual' && type !== 'manual-preview') {
+                carData.lineItems = carData.lineItems.filter((dd) => {
+                    return !add_on_items.includes(dd);
+                });
+                await this.checkVoucher(carData);
+                console.log(`add_on_items==>`, add_on_items);
+                console.log(`carData.voucherList==>`, carData.voucherList);
+                add_on_items.map((dd) => {
+                    var _a;
+                    try {
+                        if ((_a = carData.voucherList) === null || _a === void 0 ? void 0 : _a.find((d1) => {
+                            var _a;
+                            return d1.reBackType === 'add_on_items' && ((_a = d1.add_on_products) === null || _a === void 0 ? void 0 : _a.find((d2) => {
+                                return `${dd.id}` === `${d2}`;
+                            }));
+                        })) {
+                            carData.lineItems.push(dd);
+                        }
+                    }
+                    catch (e) {
+                    }
+                });
                 await this.checkVoucher(carData);
             }
             const keyData = (await private_config_js_1.Private_config.getConfig({
@@ -613,6 +671,7 @@ class Shopping {
             if (type === 'preview' || type === 'manual-preview')
                 return { data: carData };
             if (type === 'manual') {
+                carData.orderSource = 'manual';
                 let tempVoucher = {
                     discount_total: data.voucher.discount_total,
                     end_ISO_Date: '',
@@ -680,7 +739,7 @@ class Shopping {
                      values (?, ?, ?, ?)`, [carData.orderID, data.pay_status, carData.email, JSON.stringify(carData)]);
                 carData.invoice = await new invoice_js_1.Invoice(this.app).postCheckoutInvoice(carData, carData.user_info.send_type !== 'carrier');
                 if (!carData.invoice) {
-                    throw exception_js_1.default.BadRequestError('BAD_REQUEST', '發票開立失敗:' + express_1.default, null);
+                    throw exception_js_1.default.BadRequestError('BAD_REQUEST', '發票開立失敗:', null);
                 }
                 await trans.commit();
                 await trans.release();
@@ -1003,6 +1062,7 @@ class Shopping {
             }
             switch (cart.orderSource) {
                 case '':
+                case 'manual':
                 case 'normal':
                     return dd.device.includes('normal');
                 case 'POS':
@@ -1040,7 +1100,7 @@ class Shopping {
                     dd.bind = switchValidProduct(dd.for, dd.forKey);
                     break;
                 case 'code':
-                    if (dd.code === `${cart.code}` || ((cart.code_array || []).includes(`${dd.code}`))) {
+                    if (dd.code === `${cart.code}` || (cart.code_array || []).includes(`${dd.code}`)) {
                         dd.bind = switchValidProduct(dd.for, dd.forKey);
                     }
                     break;
@@ -1348,6 +1408,9 @@ class Shopping {
             }
             if (query.is_pos === 'true') {
                 querySql.push(`orderData->>'$.orderSource'='POS'`);
+            }
+            else if (query.is_pos === 'false') {
+                querySql.push(`orderData->>'$.orderSource'<>'POS'`);
             }
             if (query.shipment) {
                 let shipment = query.shipment.split(',');
@@ -2158,7 +2221,9 @@ class Shopping {
                     });
                     config.value[index].array = sortList;
                 }
-                await database_js_1.default.execute(`UPDATE \`${this.app}\`.public_config SET value = ? WHERE \`key\` = 'collection';
+                await database_js_1.default.execute(`UPDATE \`${this.app}\`.public_config
+                     SET value = ?
+                     WHERE \`key\` = 'collection';
                     `, [config.value]);
                 return true;
             }

@@ -1,24 +1,25 @@
 import db from '../../modules/database';
 import exception from '../../modules/exception';
-import tool, {getUUID} from '../../services/tool';
+import tool, { getUUID } from '../../services/tool';
 import UserUtil from '../../utils/UserUtil';
 import config from '../../config.js';
-import {sendmail} from '../../services/ses.js';
+import { sendmail } from '../../services/ses.js';
 import App from '../../app.js';
 import redis from '../../modules/redis.js';
 import Tool from '../../modules/tool.js';
 import process from 'process';
-import {UtDatabase} from '../utils/ut-database.js';
-import {CustomCode} from './custom-code.js';
-import {IToken} from '../models/Auth.js';
+import { UtDatabase } from '../utils/ut-database.js';
+import { CustomCode } from './custom-code.js';
+import { IToken } from '../models/Auth.js';
 import axios from 'axios';
-import {AutoSendEmail} from './auto-send-email.js';
+import { AutoSendEmail } from './auto-send-email.js';
 import qs from 'qs';
 import jwt from 'jsonwebtoken';
-import {OAuth2Client} from 'google-auth-library';
-import {Rebate} from './rebate.js';
+import { OAuth2Client } from 'google-auth-library';
+import { Rebate } from './rebate.js';
 import moment from 'moment';
-import {ManagerNotify} from './notify.js';
+import { ManagerNotify } from './notify.js';
+import { saasConfig } from '../../config';
 
 interface UserQuery {
     page?: number;
@@ -59,14 +60,14 @@ type MemberLevel = {
     dead_line: { type: string };
     create_date: string;
 };
-type MemberConfig={
-    start_with:string,
+type MemberConfig = {
+    start_with: string;
     id: string;
     tag_name: string;
-    renew_condition:{
+    renew_condition: {
         type: 'total' | 'single';
         value: string;
-    },
+    };
     condition: {
         type: 'total' | 'single';
         value: string;
@@ -79,12 +80,39 @@ type MemberConfig={
         type: 'noLimit' | 'date';
         value: number;
     };
-}
+};
 
 export class User {
     static posEmail = '';
     public app: string;
     public token?: IToken;
+
+    public static generateUserID() {
+        let userID = '';
+        const characters = '0123456789';
+        const charactersLength = characters.length;
+        for (let i = 0; i < 8; i++) {
+            userID += characters.charAt(Math.floor(Math.random() * charactersLength));
+        }
+        userID = `${'123456789'.charAt(Math.floor(Math.random() * charactersLength))}${userID}`;
+        return userID;
+    }
+
+    public async findAuthUser(email: string) {
+        try {
+            const authData = (
+                await db.query(
+                    `SELECT * FROM \`${saasConfig.SAAS_NAME}\`.app_auth_config 
+                    WHERE JSON_EXTRACT(config, '$.verifyEmail') = ?;
+                `,
+                    [email]
+                )
+            )[0];
+            return authData;
+        } catch (e) {
+            throw exception.BadRequestError('BAD_REQUEST', 'checkAuthUser Error:' + e, null);
+        }
+    }
 
     public async createUser(account: string, pwd: string, userData: any, req: any, pass_verify?: boolean) {
         try {
@@ -95,7 +123,9 @@ export class User {
             userData = userData ?? {};
             delete userData.pwd;
             delete userData.repeat_password;
-            const userID = generateUserID();
+
+            const findAuth = await this.findAuthUser(account);
+            const userID = findAuth ? findAuth.user : User.generateUserID();
 
             if (!pass_verify) {
                 if (userData.verify_code) {
@@ -168,7 +198,7 @@ export class User {
         }
 
         //發送購物金
-        const getRS = await this.getConfig({key: 'rebate_setting', user_id: 'manager'});
+        const getRS = await this.getConfig({ key: 'rebate_setting', user_id: 'manager' });
         const rgs = getRS[0] && getRS[0].value.register ? getRS[0].value.register : {};
         if (rgs && rgs.switch && rgs.value) {
             await new Rebate(this.app).insertRebate(userID, rgs.value, '新加入會員', {
@@ -179,7 +209,7 @@ export class User {
 
         //發送用戶註冊通知
         const manager = new ManagerNotify(this.app);
-        manager.userRegister({user_id: userID});
+        manager.userRegister({ user_id: userID });
     }
 
     public async updateAccount(account: string, userID: string): Promise<any> {
@@ -264,14 +294,14 @@ export class User {
                 )
             )[0]['count(1)'] == 0
         ) {
-            const userID = generateUserID();
+            const userID = User.generateUserID();
             await db.execute(
                 `INSERT INTO \`${this.app}\`.\`t_user\` (\`userID\`, \`account\`, \`pwd\`, \`userData\`, \`status\`)
                  VALUES (?, ?, ?, ?, ?);`,
                 [
                     userID,
                     fbResponse.email,
-                    await tool.hashPwd(generateUserID()),
+                    await tool.hashPwd(User.generateUserID()),
                     {
                         name: fbResponse.name,
                         fb_id: fbResponse.id,
@@ -370,14 +400,14 @@ export class User {
                     )
                 )[0]['count(1)'] == 0
             ) {
-                const userID = generateUserID();
+                const userID = User.generateUserID();
                 await db.execute(
                     `INSERT INTO \`${this.app}\`.\`t_user\` (\`userID\`, \`account\`, \`pwd\`, \`userData\`, \`status\`)
                      VALUES (?, ?, ?, ?, ?);`,
                     [
                         userID,
                         line_profile.email,
-                        await tool.hashPwd(generateUserID()),
+                        await tool.hashPwd(User.generateUserID()),
                         {
                             name: (userData as any).name || '未命名',
                             lineID: (userData as any).sub,
@@ -409,7 +439,6 @@ export class User {
         }
     }
 
-
     public async loginWithGoogle(code: string, redirect: string) {
         try {
             const config = await this.getConfigV2({
@@ -418,7 +447,7 @@ export class User {
             });
             const oauth2Client = new OAuth2Client(config.id, config.secret, redirect);
             // 使用授权码交换令牌
-            const {tokens} = await oauth2Client.getToken(code);
+            const { tokens } = await oauth2Client.getToken(code);
             oauth2Client.setCredentials(tokens);
 
             // 验证 ID 令牌
@@ -438,14 +467,14 @@ export class User {
                     )
                 )[0]['count(1)'] == 0
             ) {
-                const userID = generateUserID();
+                const userID = User.generateUserID();
                 await db.execute(
                     `INSERT INTO \`${this.app}\`.\`t_user\` (\`userID\`, \`account\`, \`pwd\`, \`userData\`, \`status\`)
                      VALUES (?, ?, ?, ?, ?);`,
                     [
                         userID,
                         payload?.email,
-                        await tool.hashPwd(generateUserID()),
+                        await tool.hashPwd(User.generateUserID()),
                         {
                             name: payload?.given_name,
                             email: payload?.email,
@@ -497,14 +526,14 @@ export class User {
             await new CustomCode(this.app).loginHook(cf);
             if (data) {
                 data.pwd = undefined;
-                data.member = (await this.checkMember(data,true));
-                const userLevel = (await this.getUserLevel([{userId: data.userID}]))[0];
+                data.member = await this.checkMember(data, true);
+                const userLevel = (await this.getUserLevel([{ userId: data.userID }]))[0];
                 data.member_level = userLevel.data;
                 data.member_level_status = userLevel.status;
                 const n = data.member.findIndex((item: { id: string; trigger: boolean }) => {
                     return data.member_level.id === item.id;
-                }) ;
-                if(n!==-1){
+                });
+                if (n !== -1) {
                     data.member.map((item: { id: string; trigger: boolean }, index: number) => {
                         item.trigger = index >= n;
                     });
@@ -519,22 +548,21 @@ export class User {
             }
             return data;
         } catch (e) {
-            console.log(e)
+            console.error(e);
             throw exception.BadRequestError('BAD_REQUEST', 'GET USER DATA Error:' + e, null);
         }
     }
 
-    public async checkMember(userData: any,trigger:boolean): Promise<{ id: string; tag_name: string; trigger: boolean }[]> {
-
+    public async checkMember(userData: any, trigger: boolean): Promise<{ id: string; tag_name: string; trigger: boolean }[]> {
         const member_update = await this.getConfigV2({
             key: 'member_update',
             user_id: userData.userID,
         });
-        member_update.value=member_update.value || []
+        member_update.value = member_update.value || [];
         //當沒有會籍資料或者trigger為true時執行
         if (!member_update.time || trigger) {
             //分級配置檔案
-            const member_list:MemberConfig[] =
+            const member_list: MemberConfig[] =
                 (
                     await this.getConfigV2({
                         key: 'member_level_config',
@@ -552,17 +580,17 @@ export class User {
                     []
                 )
             ).map((dd: any) => {
-                return {total_amount: parseInt(`${dd.total}`, 10), date: dd.created_time};
+                return { total_amount: parseInt(`${dd.total}`, 10), date: dd.created_time };
             });
 
             // 判斷是否符合上個等級
             let pass_level = true;
-            const member = member_list.map(
-                (dd: MemberConfig,index:number) => {
-                    (dd as any).index=index;
+            const member = member_list
+                .map((dd: MemberConfig, index: number) => {
+                    (dd as any).index = index;
                     if (dd.condition.type === 'single') {
                         const time = order_list.find((d1: any) => {
-                            return (d1.total_amount >= parseInt(dd.condition.value, 10)) ;
+                            return d1.total_amount >= parseInt(dd.condition.value, 10);
                         });
                         if (time) {
                             let dead_line = new Date(time.created_time);
@@ -580,7 +608,7 @@ export class User {
                                 dead_line.setDate(dead_line.getDate() + dd.dead_line.value);
                                 return {
                                     id: dd.id,
-                                    trigger: pass_level && dead_line.getTime()>new Date().getTime(),
+                                    trigger: pass_level && dead_line.getTime() > new Date().getTime(),
                                     tag_name: dd.tag_name,
                                     dead_line: dead_line,
                                     og: dd,
@@ -601,23 +629,23 @@ export class User {
                             };
                         }
                     } else {
-                        let sum=0
+                        let sum = 0;
                         //計算訂單起始時間
                         let start_with = new Date();
-                        if(dd.duration.type==='noLimit'){
-                            start_with.setTime(start_with.getTime()-365 * 1000 * 60 * 60 * 24)
-                        }else{
-                            start_with.setTime(start_with.getTime()- Number(dd.duration.value) * 1000 * 60 * 60 * 24)
+                        if (dd.duration.type === 'noLimit') {
+                            start_with.setTime(start_with.getTime() - 365 * 1000 * 60 * 60 * 24);
+                        } else {
+                            start_with.setTime(start_with.getTime() - Number(dd.duration.value) * 1000 * 60 * 60 * 24);
                         }
                         //取得起始時間後的所有訂單
-                        const order_match=order_list.filter((d1:any)=>{
-                            return (new Date(d1.date).getTime())>start_with.getTime()
-                        })
+                        const order_match = order_list.filter((d1: any) => {
+                            return new Date(d1.date).getTime() > start_with.getTime();
+                        });
                         //計算累積金額
-                        order_match.map((dd:any)=>{
-                            sum+=dd.total_amount;
-                        })
-                        if (sum>=Number(dd.condition.value)) {
+                        order_match.map((dd: any) => {
+                            sum += dd.total_amount;
+                        });
+                        if (sum >= Number(dd.condition.value)) {
                             let dead_line = new Date();
                             if (dd.dead_line.type === 'noLimit') {
                                 dead_line.setTime(dead_line.getTime() + 365 * 1000 * 60 * 60 * 24);
@@ -629,7 +657,7 @@ export class User {
                                     og: dd,
                                 };
                             } else {
-                                dead_line.setTime(dead_line.getTime()  +(Number(dd.dead_line.value) * 1000 * 60 * 60 * 24));
+                                dead_line.setTime(dead_line.getTime() + Number(dd.dead_line.value) * 1000 * 60 * 60 * 24);
                                 return {
                                     id: dd.id,
                                     trigger: pass_level,
@@ -650,73 +678,53 @@ export class User {
                             };
                         }
                     }
+                })
+                .reverse();
+            member.map((dd) => {
+                if (dd.trigger) {
+                    (dd as any).start_with = new Date();
                 }
-            ).reverse();
-            member.map((dd)=>{
-                if(dd.trigger){
-                    (dd as any).start_with=new Date()
-                }
-            })
+            });
             //原本會員級數
-            const original_member = member_update.value.find((dd:any)=>{return dd.trigger})
-            if(original_member){
+            const original_member = member_update.value.find((dd: any) => {
+                return dd.trigger;
+            });
+            if (original_member) {
                 //現在計算出來的會員級數
-                const calc_member_now=member.find((d1:any)=>{return d1.id===original_member.id})
-                if(calc_member_now){
-                    const dd:MemberConfig=member_list.find(((dd)=>{
-                        return dd.id === original_member.id
-                    }))!;
+                const calc_member_now = member.find((d1: any) => {
+                    return d1.id === original_member.id;
+                });
+                if (calc_member_now) {
+                    const dd: MemberConfig = member_list.find((dd) => {
+                        return dd.id === original_member.id;
+                    })!;
                     //是否符合續費條件
-                    const renew_check_data=(()=>{
+                    const renew_check_data = (() => {
                         //取得續費計算起始時間
                         let start_with = new Date(original_member.start_with);
                         //取得起始時間後的所有訂單
-                        const order_match=order_list.filter((d1:any)=>{
-                            return (new Date(d1.date).getTime())>start_with.getTime()
-                        })
+                        const order_match = order_list.filter((d1: any) => {
+                            return new Date(d1.date).getTime() > start_with.getTime();
+                        });
                         //過期時間
-                        const dead_line=new Date(original_member.dead_line)
+                        const dead_line = new Date(original_member.dead_line);
                         //當判斷有效期為無限期的話，則直接返回無條件續會。
-                        if((dd.dead_line.type === 'noLimit')){
-                            dead_line.setDate(dead_line.getDate()+365*10)
-                            return  {
+                        if (dd.dead_line.type === 'noLimit') {
+                            dead_line.setDate(dead_line.getDate() + 365 * 10);
+                            return {
                                 id: dd.id,
                                 trigger: true,
                                 tag_name: dd.tag_name,
                                 dead_line: dead_line,
                                 og: dd,
-                            }
-                        }else if (dd.renew_condition.type === 'single') {
+                            };
+                        } else if (dd.renew_condition.type === 'single') {
                             //單筆消費規則
                             const time = order_match.find((d1: any) => {
-                                return (d1.total_amount >= parseInt(dd.renew_condition.value, 10)) ;
+                                return d1.total_amount >= parseInt(dd.renew_condition.value, 10);
                             });
-                            if(time){
-                                dead_line.setDate(dead_line.getDate()+parseInt(dd.dead_line.value as any,10))
-                                return  {
-                                    id: dd.id,
-                                    trigger: true,
-                                    tag_name: dd.tag_name,
-                                    dead_line: dead_line,
-                                    og: dd,
-                                }
-                            }else{
-                                return  {
-                                    id: dd.id,
-                                    trigger: false,
-                                    tag_name: dd.tag_name,
-                                    dead_line:'',
-                                    leak: parseInt(dd.renew_condition.value, 10),
-                                    og: dd,
-                                }
-                            }
-                        } else {
-                            let sum=0
-                            order_match.map((dd:any)=>{
-                                sum+=dd.total_amount;
-                            })
-                            if (sum>=parseInt(dd.renew_condition.value, 10)) {
-                                dead_line.setDate(dead_line.getDate()+parseInt(dd.dead_line.value as any,10))
+                            if (time) {
+                                dead_line.setDate(dead_line.getDate() + parseInt(dd.dead_line.value as any, 10));
                                 return {
                                     id: dd.id,
                                     trigger: true,
@@ -730,33 +738,56 @@ export class User {
                                     trigger: false,
                                     tag_name: dd.tag_name,
                                     dead_line: '',
-                                    leak: parseInt(dd.renew_condition.value, 10)-sum,
+                                    leak: parseInt(dd.renew_condition.value, 10),
+                                    og: dd,
+                                };
+                            }
+                        } else {
+                            let sum = 0;
+                            order_match.map((dd: any) => {
+                                sum += dd.total_amount;
+                            });
+                            if (sum >= parseInt(dd.renew_condition.value, 10)) {
+                                dead_line.setDate(dead_line.getDate() + parseInt(dd.dead_line.value as any, 10));
+                                return {
+                                    id: dd.id,
+                                    trigger: true,
+                                    tag_name: dd.tag_name,
+                                    dead_line: dead_line,
+                                    og: dd,
+                                };
+                            } else {
+                                return {
+                                    id: dd.id,
+                                    trigger: false,
+                                    tag_name: dd.tag_name,
+                                    dead_line: '',
+                                    leak: parseInt(dd.renew_condition.value, 10) - sum,
                                     og: dd,
                                 };
                             }
                         }
-                    })()
+                    })();
                     //判斷會員還沒過期
-                    if(new Date(original_member.dead_line).getTime() > new Date().getTime()){
-                        calc_member_now.dead_line=original_member.dead_line;
-                        calc_member_now.trigger=true;
+                    if (new Date(original_member.dead_line).getTime() > new Date().getTime()) {
+                        calc_member_now.dead_line = original_member.dead_line;
+                        calc_member_now.trigger = true;
                         //調整會員級數起始時間為原先時間
-                        (calc_member_now as any).start_with = original_member.start_with ||  (calc_member_now as any).start_with;
-                        (calc_member_now as any).re_new_member=renew_check_data
+                        (calc_member_now as any).start_with = original_member.start_with || (calc_member_now as any).start_with;
+                        (calc_member_now as any).re_new_member = renew_check_data;
                     }
                     //判斷會員過期，如沒續會成功則自動降級
-                    else{
-                        if(dd.renew_condition){
-                            if(renew_check_data.trigger){
-                                calc_member_now!.trigger=true
-                                calc_member_now!.dead_line=renew_check_data.dead_line;
-                                (calc_member_now as any).start_with=new Date();
-                                (calc_member_now as any).re_new_member=renew_check_data;
+                    else {
+                        if (dd.renew_condition) {
+                            if (renew_check_data.trigger) {
+                                calc_member_now!.trigger = true;
+                                calc_member_now!.dead_line = renew_check_data.dead_line;
+                                (calc_member_now as any).start_with = new Date();
+                                (calc_member_now as any).re_new_member = renew_check_data;
                             }
                         }
                     }
                 }
-
             }
             member_update.value = member;
             member_update.time = new Date();
@@ -872,7 +903,7 @@ export class User {
                                 userID: -(index + 1),
                                 email: user.email,
                                 account: user.email,
-                                userData: {email: user.email},
+                                userData: { email: user.email },
                                 status: 1,
                             });
                         }
@@ -880,13 +911,13 @@ export class User {
 
                     const ids = query.id
                         ? query.id.split(',').filter((id) => {
-                            return users.find((item) => {
-                                return item.userID === parseInt(`${id}`, 10);
-                            });
-                        })
+                              return users.find((item) => {
+                                  return item.userID === parseInt(`${id}`, 10);
+                              });
+                          })
                         : users.map((item: { userID: number }) => item.userID);
                     // @ts-ignore
-                    query.id = ids.filter((id:any) => id).join(',');
+                    query.id = ids.filter((id: any) => id).join(',');
                 } else {
                     query.id = '0,0';
                 }
@@ -905,10 +936,10 @@ export class User {
                 if (rebateData && rebateData.total > 0) {
                     const ids = query.id
                         ? query.id.split(',').filter((id) => {
-                            return rebateData.data.find((item) => {
-                                return item.user_id === parseInt(`${id}`, 10);
-                            });
-                        })
+                              return rebateData.data.find((item) => {
+                                  return item.user_id === parseInt(`${id}`, 10);
+                              });
+                          })
                         : rebateData.data.map((item) => item.user_id);
                     query.id = ids.join(',');
                 } else {
@@ -929,10 +960,10 @@ export class User {
                     if (levelIds.length > 0) {
                         const ids = query.id
                             ? query.id.split(',').filter((id) => {
-                                return levelIds.find((item) => {
-                                    return item === parseInt(`${id}`, 10);
-                                });
-                            })
+                                  return levelIds.find((item) => {
+                                      return item === parseInt(`${id}`, 10);
+                                  });
+                              })
                             : levelIds;
                         query.id = ids.join(',');
                     } else {
@@ -1031,15 +1062,14 @@ export class User {
     public async getUserGroups(
         type?: string[],
         tag?: string,
-        hide_level?:boolean
+        hide_level?: boolean
     ): Promise<
         | { result: false }
         | {
-        result: true;
-        data: GroupsItem[];
-    }
+              result: true;
+              data: GroupsItem[];
+          }
     > {
-        console.log(`getUserGroups==>`)
         try {
             const pass = (text: string) => type === undefined || type.includes(text);
             let dataList: GroupsItem[] = [];
@@ -1053,7 +1083,7 @@ export class User {
                           \`${this.app}\`.t_user AS u ON s.email = JSON_EXTRACT(u.userData, '$.email');`,
                     []
                 );
-                dataList.push({type: 'subscriber', title: '電子郵件訂閱者', users: subscriberList});
+                dataList.push({ type: 'subscriber', title: '電子郵件訂閱者', users: subscriberList });
             }
 
             // 購買者清單
@@ -1070,7 +1100,7 @@ export class User {
                 buyingData.map((item1: { userID: number; email: string }) => {
                     const index = buyingList.findIndex((item2) => item2.userID === item1.userID);
                     if (index === -1) {
-                        buyingList.push({userID: item1.userID, email: item1.email, count: 1});
+                        buyingList.push({ userID: item1.userID, email: item1.email, count: 1 });
                     } else {
                         buyingList[index].count++;
                     }
@@ -1084,15 +1114,15 @@ export class User {
                     `SELECT userID, JSON_UNQUOTE(JSON_EXTRACT(userData, '$.email')) AS email
                      FROM \`${this.app}\`.t_user
                      WHERE userID not in (${buyingList
-                             .map((item) => item.userID)
-                             .concat([-1312])
-                             .join(',')})`,
+                         .map((item) => item.userID)
+                         .concat([-1312])
+                         .join(',')})`,
                     []
                 );
 
                 dataList = dataList.concat([
-                    {type: 'neverBuying', title: '尚未購買過的顧客', users: neverBuyingData},
-                    {type: 'usuallyBuying', title: '已購買多次的顧客', users: usuallyBuyingList},
+                    { type: 'neverBuying', title: '尚未購買過的顧客', users: neverBuyingData },
+                    { type: 'usuallyBuying', title: '已購買多次的顧客', users: usuallyBuyingList },
                 ]);
             }
 
@@ -1101,7 +1131,7 @@ export class User {
                 const levelData = await this.getLevelConfig();
                 const levels = levelData
                     .map((item: any) => {
-                        return {id: item.id, name: item.tag_name};
+                        return { id: item.id, name: item.tag_name };
                     })
                     .filter((item: any) => {
                         return tag ? item.id === tag : true;
@@ -1116,12 +1146,15 @@ export class User {
                     });
                 }
 
-                const users = await db.query(`SELECT userID
-                                              FROM \`${this.app}\`.t_user;`, []);
+                const users = await db.query(
+                    `SELECT userID
+                                              FROM \`${this.app}\`.t_user;`,
+                    []
+                );
 
                 const levelItems = await this.getUserLevel(
                     users.map((item: { userID: number }) => {
-                        return {userId: item.userID};
+                        return { userId: item.userID };
                     })
                 );
                 for (const levelItem of levelItems) {
@@ -1155,15 +1188,15 @@ export class User {
 
     public normalMember = {
         id: '',
-        duration: {type: 'noLimit', value: 0},
+        duration: { type: 'noLimit', value: 0 },
         tag_name: '一般會員',
-        condition: {type: 'total', value: 0},
-        dead_line: {type: 'noLimit'},
+        condition: { type: 'total', value: 0 },
+        dead_line: { type: 'noLimit' },
         create_date: '2024-01-01T00:00:00.000Z',
     };
 
     public async getLevelConfig() {
-        const levelData = await this.getConfigV2({key: 'member_level_config', user_id: 'manager'});
+        const levelData = await this.getConfigV2({ key: 'member_level_config', user_id: 'manager' });
         const levelList = levelData.levels || [];
         levelList.push(this.normalMember);
         return levelList;
@@ -1182,8 +1215,7 @@ export class User {
             status: 'auto' | 'manual';
         }[]
     > {
-        console.log(`getUserLevel-->`,data)
-        const dataList = [];
+        const dataList: any = [];
         const idList = data.filter((item) => item.userId !== undefined).map((item) => item.userId);
         const emailList = data.filter((item) => item.email !== undefined).map((item) => `"${item.email}"`);
         const idSQL = idList.length > 0 ? idList.join(',') : -1111;
@@ -1230,7 +1262,7 @@ export class User {
                 }
 
                 if (memberUpdates.length > 0) {
-                    const memberUpdate = await this.checkMember(user,false);
+                    const memberUpdate = await this.checkMember(user, false);
                     if (memberUpdate.length > 0) {
                         const member_level = memberUpdate.find((v: { trigger: boolean }) => v.trigger);
                         if (member_level) {
@@ -1368,7 +1400,7 @@ export class User {
             query.limit = query.limit ?? 50;
             const querySql: any = [];
             query.search &&
-            querySql.push([`(userID in (select userID from \`${this.app}\`.t_user where (UPPER(JSON_UNQUOTE(JSON_EXTRACT(userData, '$.name')) LIKE UPPER('%${query.search}%')))))`].join(` || `));
+                querySql.push([`(userID in (select userID from \`${this.app}\`.t_user where (UPPER(JSON_UNQUOTE(JSON_EXTRACT(userData, '$.name')) LIKE UPPER('%${query.search}%')))))`].join(` || `));
             const data = await new UtDatabase(this.app, `t_fcm`).querySql(querySql, query as any);
             for (const b of data.data) {
                 let userData = (
@@ -1773,19 +1805,17 @@ export class User {
 
     public async checkAdminPermission() {
         try {
-            const result = await db.query(`select count(1)
+            const result = await db.query(
+                `select count(1)
                                            from ${process.env.GLITTER_DB}.app_config
                                            where appName = ?
-                                             and user = ?`, [
-                this.app,
-                this.token?.userID
-            ])
+                                             and user = ?`,
+                [this.app, this.token?.userID]
+            );
             return {
-                result: result[0]['count(1)'] === 1
-            }
-        } catch (e) {
-
-        }
+                result: result[0]['count(1)'] === 1,
+            };
+        } catch (e) {}
     }
 
     public async getNotice(cf: { query: any }) {
@@ -1803,7 +1833,7 @@ export class User {
                 await db.query(
                     `insert into \`${this.app}\`.t_user_public_config (user_id, \`key\`, value, updated_at)
                      values (?, ?, ?, ?)`,
-                    [this.token?.userID, 'notice_last_read', JSON.stringify({time: new Date()}), new Date()]
+                    [this.token?.userID, 'notice_last_read', JSON.stringify({ time: new Date() }), new Date()]
                 );
             } else {
                 last_time_read = new Date(last_read_time[0].value.time).getTime();
@@ -1812,7 +1842,7 @@ export class User {
                      set \`value\`=?
                      where user_id = ?
                        and \`key\` = ?`,
-                    [JSON.stringify({time: new Date()}), `${this.token?.userID}`, 'notice_last_read']
+                    [JSON.stringify({ time: new Date() }), `${this.token?.userID}`, 'notice_last_read']
                 );
             }
             const response: any = await new UtDatabase(this.app, `t_notice`).querySql(query, cf.query);
@@ -1836,15 +1866,4 @@ export class User {
         this.app = app;
         this.token = token;
     }
-}
-
-function generateUserID() {
-    let userID = '';
-    const characters = '0123456789';
-    const charactersLength = characters.length;
-    for (let i = 0; i < 8; i++) {
-        userID += characters.charAt(Math.floor(Math.random() * charactersLength));
-    }
-    userID = `${'123456789'.charAt(Math.floor(Math.random() * charactersLength))}${userID}`;
-    return userID;
 }

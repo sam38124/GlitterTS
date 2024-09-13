@@ -1,20 +1,20 @@
 import db from '../modules/database';
 import exception from '../modules/exception';
-import {saasConfig} from '../config';
+import { saasConfig } from '../config';
 import tool from './tool';
 import UserUtil from '../utils/UserUtil';
-import {createAPP} from '../index.js';
+import { createAPP } from '../index.js';
 import AWS from 'aws-sdk';
-import {IToken} from '../models/Auth.js';
+import { IToken } from '../models/Auth.js';
 import config from '../config.js';
 import fs from 'fs';
-import {exec} from 'child_process';
-import {Ssh} from '../modules/ssh.js';
-import {NginxConfFile} from 'nginx-conf';
+import { exec } from 'child_process';
+import { Ssh } from '../modules/ssh.js';
+import { NginxConfFile } from 'nginx-conf';
 import * as process from 'process';
-import {ApiPublic} from '../api-public/services/public-table-check.js';
-import {BackendService} from './backend-service.js';
-import {Template} from './template.js';
+import { ApiPublic } from '../api-public/services/public-table-check.js';
+import { BackendService } from './backend-service.js';
+import { Template } from './template.js';
 import Tool from './tool';
 import path from 'path';
 
@@ -94,9 +94,7 @@ export class App {
                  values (?, ?, ?, ${db.escape(JSON.stringify((copyAppData && copyAppData.config) || {}))},
                          ${db.escape(cf.brand ?? saasConfig.SAAS_NAME)},
                          ${db.escape(
-                                 JSON.stringify(
-                                         (copyAppData && copyAppData.theme_config) ?? {name: (copyAppData && copyAppData.template_config && copyAppData.template_config.name) || cf.name}
-                                 )
+                             JSON.stringify((copyAppData && copyAppData.theme_config) ?? { name: (copyAppData && copyAppData.template_config && copyAppData.template_config.name) || cf.name })
                          )},
                          ${cf.theme ? db.escape(cf.theme) : 'null'},
                          ${db.escape(JSON.stringify((copyAppData && copyAppData.template_config) || {}))})`,
@@ -221,13 +219,18 @@ export class App {
                 );
             }
             await trans.commit();
-            const store_information=(await db.query(`select * from \`${cf.appName}\`.t_user_public_config
-                            where \`key\` = ? `,[`store-information`]))[0]
-            if(store_information){
-                await db.query(`delete from \`${cf.appName}\`.t_user_public_config where \`key\` = ? and id>0`,['store-information'])
-                store_information.value.shop_name=cf.name;
-                store_information.value=JSON.stringify(store_information.value)
-                await db.query(`insert into  \`${cf.appName}\`.t_user_public_config set ?`,[store_information])
+            const store_information = (
+                await db.query(
+                    `select * from \`${cf.appName}\`.t_user_public_config
+                            where \`key\` = ? `,
+                    [`store-information`]
+                )
+            )[0];
+            if (store_information) {
+                await db.query(`delete from \`${cf.appName}\`.t_user_public_config where \`key\` = ? and id>0`, ['store-information']);
+                store_information.value.shop_name = cf.name;
+                store_information.value = JSON.stringify(store_information.value);
+                await db.query(`insert into  \`${cf.appName}\`.t_user_public_config set ?`, [store_information]);
             }
             await createAPP(cf);
             return true;
@@ -347,33 +350,44 @@ export class App {
             await tran.release();
             return true;
         } catch (e: any) {
-            console.log(`error-->`, e)
+            console.log(`error-->`, e);
             throw exception.BadRequestError(e.code ?? 'BAD_REQUEST', e, null);
         }
     }
 
     public async getAPP(query: { app_name?: string; theme?: string }) {
         try {
-            const sql = `
-                SELECT *
-                FROM \`${saasConfig.SAAS_NAME}\`.app_config
-                where ${(() => {
-                    const sql = [`user = '${this.token!.userID}'`];
-                    if (query.app_name) {
-                        sql.push(` appName='${query.app_name}' `);
-                    } else {
-                        if (query.theme) {
+            const empStores = await db.query(
+                `SELECT * FROM \`${saasConfig.SAAS_NAME}\`.app_auth_config 
+                WHERE user = '${this.token!.userID}' AND status = 1 AND invited = 1;`,
+                []
+            );
+            const allStores = await db.query(
+                `SELECT * FROM \`${saasConfig.SAAS_NAME}\`.app_config
+                    WHERE ${(() => {
+                        const sql = [
+                            `(user = '${this.token!.userID}' OR appName = 
+                            (SELECT appName FROM \`${saasConfig.SAAS_NAME}\`.app_auth_config
+                            WHERE user = '${this.token!.userID}' AND status = 1 AND invited = 1)
+                        )`,
+                        ];
+                        if (query.app_name) {
+                            sql.push(` appName='${query.app_name}' `);
+                        } else if (query.theme) {
                             sql.push(` refer_app='${query.theme}' `);
                         } else {
                             sql.push(` refer_app is null `);
                         }
-                    }
-
-                    return sql.join(' and ');
-                })()}
-                ;
-            `;
-            return await db.execute(sql, []);
+                        return sql.join(' and ');
+                    })()};
+                `,
+                []
+            );
+            return allStores.map((store: any) => {
+                const type = empStores.find((st: any) => st.appName === store.appName);
+                store.store_permission_title = type ? 'employee' : 'owner';
+                return store;
+            });
         } catch (e: any) {
             throw exception.BadRequestError(e.code ?? 'BAD_REQUEST', e, null);
         }
@@ -391,10 +405,10 @@ export class App {
                         query.template_from === 'me' && sql.push(`template_type in (3,2)`);
                         query.template_from === 'all' && sql.push(`template_type = 2`);
                         return sql
-                                .map((dd) => {
-                                    return `(${dd})`;
-                                })
-                                .join(' and ');
+                            .map((dd) => {
+                                return `(${dd})`;
+                            })
+                            .join(' and ');
                     })()};
                 `,
                 []
@@ -472,12 +486,12 @@ export class App {
             memberType: userData.userData.menber_type,
             brand: base.brand,
             userData: userData.userData,
-            domain: base.domain
+            domain: base.domain,
         };
     }
 
     public static async preloadPageData(appName: string, refer_page: string) {
-        const page = await Template.getRealPage(refer_page, appName)
+        const page = await Template.getRealPage(refer_page, appName);
         const app = new App();
         const preloadData: {
             component: any;
@@ -567,39 +581,40 @@ export class App {
         let mapPush: any = {};
         mapPush['getPlugin'] = {
             callback: [],
-            data: {response: {data: preloadData.appConfig, result: true}},
+            data: { response: { data: preloadData.appConfig, result: true } },
             isRunning: true,
         };
         preloadData.component.map((dd: any) => {
             mapPush[`getPageData-${dd.appName}-${dd.tag}`] = {
                 callback: [],
                 isRunning: true,
-                data: {response: {result: [dd]}},
+                data: { response: { result: [dd] } },
             };
         });
 
-        let eval_code_hash: any = {}
+        let eval_code_hash: any = {};
         // 查找匹配的字串
         const match1 = JSON.stringify(preloadData.component).match(/\{"src":"\.\/official_event\/[^"]+\.js","route":"[^"]+"}/g);
         const code: any = JSON.stringify(preloadData.component).match(/\{"code":"[^"]+","/g);
-        (code || []).map(((dd: any) => {
+        (code || []).map((dd: any) => {
             try {
-                const code = JSON.parse(dd.substring(0, dd.length - 2) + "}")
-                eval_code_hash[Tool.checksum(code.code) as any] = code.code
-
+                const code = JSON.parse(dd.substring(0, dd.length - 2) + '}');
+                eval_code_hash[Tool.checksum(code.code) as any] = code.code;
             } catch (e) {
-                console.log(`error->`, dd)
+                console.log(`error->`, dd);
             }
-        }))
+        });
         // 輸出結果
         if (match1) {
             match1.map((d1) => {
-                if (!preloadData.event.find((dd: any) => {
-                    return event_[JSON.parse(d1)['route']] === dd
-                })) {
-                    preloadData.event.push(event_[JSON.parse(d1)['route']])
+                if (
+                    !preloadData.event.find((dd: any) => {
+                        return event_[JSON.parse(d1)['route']] === dd;
+                    })
+                ) {
+                    preloadData.event.push(event_[JSON.parse(d1)['route']]);
                 }
-            })
+            });
         } else {
             console.log('未找到匹配的字串');
         }
@@ -607,7 +622,6 @@ export class App {
         mapPush.event = preloadData.event;
         return mapPush;
     }
-
 
     public async setAppConfig(config: { appName: string; data: any }) {
         try {
@@ -908,8 +922,7 @@ server {
         try {
             try {
                 await new BackendService(config.appName).stopServer();
-            } catch (e) {
-            }
+            } catch (e) {}
             await db.execute(
                 `delete
                  from \`${saasConfig.SAAS_NAME}\`.app_config

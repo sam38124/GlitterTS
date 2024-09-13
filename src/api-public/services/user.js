@@ -47,7 +47,29 @@ const google_auth_library_1 = require("google-auth-library");
 const rebate_js_1 = require("./rebate.js");
 const moment_1 = __importDefault(require("moment"));
 const notify_js_1 = require("./notify.js");
+const config_1 = require("../../config");
 class User {
+    static generateUserID() {
+        let userID = '';
+        const characters = '0123456789';
+        const charactersLength = characters.length;
+        for (let i = 0; i < 8; i++) {
+            userID += characters.charAt(Math.floor(Math.random() * charactersLength));
+        }
+        userID = `${'123456789'.charAt(Math.floor(Math.random() * charactersLength))}${userID}`;
+        return userID;
+    }
+    async findAuthUser(email) {
+        try {
+            const authData = (await database_1.default.query(`SELECT * FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_auth_config 
+                    WHERE JSON_EXTRACT(config, '$.verifyEmail') = ?;
+                `, [email]))[0];
+            return authData;
+        }
+        catch (e) {
+            throw exception_1.default.BadRequestError('BAD_REQUEST', 'checkAuthUser Error:' + e, null);
+        }
+    }
     async createUser(account, pwd, userData, req, pass_verify) {
         try {
             const login_config = await this.getConfigV2({
@@ -57,7 +79,8 @@ class User {
             userData = userData !== null && userData !== void 0 ? userData : {};
             delete userData.pwd;
             delete userData.repeat_password;
-            const userID = generateUserID();
+            const findAuth = await this.findAuthUser(account);
+            const userID = findAuth ? findAuth.user : User.generateUserID();
             if (!pass_verify) {
                 if (userData.verify_code) {
                     if (userData.verify_code !== (await redis_js_1.default.getValue(`verify-${account}`))) {
@@ -193,12 +216,12 @@ class User {
         if ((await database_1.default.query(`select count(1)
                      from \`${this.app}\`.t_user
                      where account = ?`, [fbResponse.email]))[0]['count(1)'] == 0) {
-            const userID = generateUserID();
+            const userID = User.generateUserID();
             await database_1.default.execute(`INSERT INTO \`${this.app}\`.\`t_user\` (\`userID\`, \`account\`, \`pwd\`, \`userData\`, \`status\`)
                  VALUES (?, ?, ?, ?, ?);`, [
                 userID,
                 fbResponse.email,
-                await tool_1.default.hashPwd(generateUserID()),
+                await tool_1.default.hashPwd(User.generateUserID()),
                 {
                     name: fbResponse.name,
                     fb_id: fbResponse.id,
@@ -283,12 +306,12 @@ class User {
             if ((await database_1.default.query(`select count(1)
                          from \`${this.app}\`.t_user
                          where account = ?`, [line_profile.email]))[0]['count(1)'] == 0) {
-                const userID = generateUserID();
+                const userID = User.generateUserID();
                 await database_1.default.execute(`INSERT INTO \`${this.app}\`.\`t_user\` (\`userID\`, \`account\`, \`pwd\`, \`userData\`, \`status\`)
                      VALUES (?, ?, ?, ?, ?);`, [
                     userID,
                     line_profile.email,
-                    await tool_1.default.hashPwd(generateUserID()),
+                    await tool_1.default.hashPwd(User.generateUserID()),
                     {
                         name: userData.name || '未命名',
                         lineID: userData.sub,
@@ -331,12 +354,12 @@ class User {
             if ((await database_1.default.query(`select count(1)
                          from \`${this.app}\`.t_user
                          where account = ?`, [payload === null || payload === void 0 ? void 0 : payload.email]))[0]['count(1)'] == 0) {
-                const userID = generateUserID();
+                const userID = User.generateUserID();
                 await database_1.default.execute(`INSERT INTO \`${this.app}\`.\`t_user\` (\`userID\`, \`account\`, \`pwd\`, \`userData\`, \`status\`)
                      VALUES (?, ?, ?, ?, ?);`, [
                     userID,
                     payload === null || payload === void 0 ? void 0 : payload.email,
-                    await tool_1.default.hashPwd(generateUserID()),
+                    await tool_1.default.hashPwd(User.generateUserID()),
                     {
                         name: payload === null || payload === void 0 ? void 0 : payload.given_name,
                         email: payload === null || payload === void 0 ? void 0 : payload.email,
@@ -383,7 +406,7 @@ class User {
             await new custom_code_js_1.CustomCode(this.app).loginHook(cf);
             if (data) {
                 data.pwd = undefined;
-                data.member = (await this.checkMember(data, true));
+                data.member = await this.checkMember(data, true);
                 const userLevel = (await this.getUserLevel([{ userId: data.userID }]))[0];
                 data.member_level = userLevel.data;
                 data.member_level_status = userLevel.status;
@@ -406,7 +429,7 @@ class User {
             return data;
         }
         catch (e) {
-            console.log(e);
+            console.error(e);
             throw exception_1.default.BadRequestError('BAD_REQUEST', 'GET USER DATA Error:' + e, null);
         }
     }
@@ -429,11 +452,12 @@ class User {
                 return { total_amount: parseInt(`${dd.total}`, 10), date: dd.created_time };
             });
             let pass_level = true;
-            const member = member_list.map((dd, index) => {
+            const member = member_list
+                .map((dd, index) => {
                 dd.index = index;
                 if (dd.condition.type === 'single') {
                     const time = order_list.find((d1) => {
-                        return (d1.total_amount >= parseInt(dd.condition.value, 10));
+                        return d1.total_amount >= parseInt(dd.condition.value, 10);
                     });
                     if (time) {
                         let dead_line = new Date(time.created_time);
@@ -483,7 +507,7 @@ class User {
                         start_with.setTime(start_with.getTime() - Number(dd.duration.value) * 1000 * 60 * 60 * 24);
                     }
                     const order_match = order_list.filter((d1) => {
-                        return (new Date(d1.date).getTime()) > start_with.getTime();
+                        return new Date(d1.date).getTime() > start_with.getTime();
                     });
                     order_match.map((dd) => {
                         sum += dd.total_amount;
@@ -501,7 +525,7 @@ class User {
                             };
                         }
                         else {
-                            dead_line.setTime(dead_line.getTime() + (Number(dd.dead_line.value) * 1000 * 60 * 60 * 24));
+                            dead_line.setTime(dead_line.getTime() + Number(dd.dead_line.value) * 1000 * 60 * 60 * 24);
                             return {
                                 id: dd.id,
                                 trigger: pass_level,
@@ -523,26 +547,31 @@ class User {
                         };
                     }
                 }
-            }).reverse();
+            })
+                .reverse();
             member.map((dd) => {
                 if (dd.trigger) {
                     dd.start_with = new Date();
                 }
             });
-            const original_member = member_update.value.find((dd) => { return dd.trigger; });
+            const original_member = member_update.value.find((dd) => {
+                return dd.trigger;
+            });
             if (original_member) {
-                const calc_member_now = member.find((d1) => { return d1.id === original_member.id; });
+                const calc_member_now = member.find((d1) => {
+                    return d1.id === original_member.id;
+                });
                 if (calc_member_now) {
-                    const dd = member_list.find(((dd) => {
+                    const dd = member_list.find((dd) => {
                         return dd.id === original_member.id;
-                    }));
+                    });
                     const renew_check_data = (() => {
                         let start_with = new Date(original_member.start_with);
                         const order_match = order_list.filter((d1) => {
-                            return (new Date(d1.date).getTime()) > start_with.getTime();
+                            return new Date(d1.date).getTime() > start_with.getTime();
                         });
                         const dead_line = new Date(original_member.dead_line);
-                        if ((dd.dead_line.type === 'noLimit')) {
+                        if (dd.dead_line.type === 'noLimit') {
                             dead_line.setDate(dead_line.getDate() + 365 * 10);
                             return {
                                 id: dd.id,
@@ -554,7 +583,7 @@ class User {
                         }
                         else if (dd.renew_condition.type === 'single') {
                             const time = order_match.find((d1) => {
-                                return (d1.total_amount >= parseInt(dd.renew_condition.value, 10));
+                                return d1.total_amount >= parseInt(dd.renew_condition.value, 10);
                             });
                             if (time) {
                                 dead_line.setDate(dead_line.getDate() + parseInt(dd.dead_line.value, 10));
@@ -864,7 +893,6 @@ class User {
         }
     }
     async getUserGroups(type, tag, hide_level) {
-        console.log(`getUserGroups==>`);
         try {
             const pass = (text) => type === undefined || type.includes(text);
             let dataList = [];
@@ -960,7 +988,6 @@ class User {
         return levelList;
     }
     async getUserLevel(data) {
-        console.log(`getUserLevel-->`, data);
         const dataList = [];
         const idList = data.filter((item) => item.userId !== undefined).map((item) => item.userId);
         const emailList = data.filter((item) => item.email !== undefined).map((item) => `"${item.email}"`);
@@ -1424,16 +1451,12 @@ class User {
             const result = await database_1.default.query(`select count(1)
                                            from ${process_1.default.env.GLITTER_DB}.app_config
                                            where appName = ?
-                                             and user = ?`, [
-                this.app,
-                (_a = this.token) === null || _a === void 0 ? void 0 : _a.userID
-            ]);
+                                             and user = ?`, [this.app, (_a = this.token) === null || _a === void 0 ? void 0 : _a.userID]);
             return {
-                result: result[0]['count(1)'] === 1
+                result: result[0]['count(1)'] === 1,
             };
         }
-        catch (e) {
-        }
+        catch (e) { }
     }
     async getNotice(cf) {
         var _a, _b, _c, _d;
@@ -1486,14 +1509,4 @@ class User {
 }
 exports.User = User;
 User.posEmail = '';
-function generateUserID() {
-    let userID = '';
-    const characters = '0123456789';
-    const charactersLength = characters.length;
-    for (let i = 0; i < 8; i++) {
-        userID += characters.charAt(Math.floor(Math.random() * charactersLength));
-    }
-    userID = `${'123456789'.charAt(Math.floor(Math.random() * charactersLength))}${userID}`;
-    return userID;
-}
 //# sourceMappingURL=user.js.map

@@ -427,6 +427,9 @@ router.get('/voucher', async (req, resp) => {
     try {
         let query = [`(content->>'$.type'='voucher')`];
         req.query.search && query.push(`(UPPER(JSON_UNQUOTE(JSON_EXTRACT(content, '$.title'))) LIKE UPPER('%${req.query.search}%'))`);
+        if (req.query.voucher_type) {
+            query.push(`(content->>'$.reBackType'='${req.query.voucher_type}')`);
+        }
         return response_1.default.succ(resp, await new shopping_1.Shopping(req.get('g-app'), req.body.token).querySql(query, {
             page: ((_a = req.query.page) !== null && _a !== void 0 ? _a : 0),
             limit: ((_b = req.query.limit) !== null && _b !== void 0 ? _b : 50),
@@ -718,6 +721,7 @@ router.get('/product', async (req, resp) => {
             sku: req.query.sku,
             id: req.query.id,
             collection: req.query.collection,
+            accurate_search_text: req.query.accurate_search_text === 'true',
             accurate_search_collection: req.query.accurate_search_collection === 'true',
             min_price: req.query.min_price,
             max_price: req.query.max_price,
@@ -751,6 +755,7 @@ router.get('/product', async (req, resp) => {
             with_hide_index: req.query.with_hide_index,
             is_manger: (await ut_permission_1.UtPermission.isManager(req)),
             show_hidden: `${req.query.show_hidden}`,
+            productType: req.query.productType
         });
         return response_1.default.succ(resp, shopping);
     }

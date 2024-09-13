@@ -1,41 +1,42 @@
 {
-  "compilerOptions": {
-    "incremental": true,
-    "target": "ES2017",
-    "module": "commonjs",
-    "declaration": true,
-    "sourceMap": true,
-    "outDir": "./src",
-    "rootDir": "./src",
-    "removeComments": true,
-    "strict": true,
-    "baseUrl": ".",
-    "plugins": [
-      {
-        "transform": "typescript-transform-paths"
-      },
-      {
-        "transform": "typescript-transform-paths",
-        "afterDeclarations": true
-      }
+    "compilerOptions": {
+      "incremental": true,
+      "target": "ES2017",
+      "module": "commonjs",
+      "declaration": true,
+      "sourceMap": true,
+      "outDir": "./src",
+      "rootDir": "./src",
+      "removeComments": true,
+      "skipLibCheck": true,
+      "strict": true,
+      "baseUrl": ".",
+      "plugins": [
+        {
+          "transform": "typescript-transform-paths"
+        },
+        {
+          "transform": "typescript-transform-paths",
+          "afterDeclarations": true
+        }
+      ],
+      "paths": {},
+      "esModuleInterop": true,
+      "experimentalDecorators": true,
+      "emitDecoratorMetadata": true
+    },
+    "include": [
+      "src"
     ],
-    "paths": {},
-    "esModuleInterop": true,
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true
-  },
-  "include": [
-    "src"
-  ],
-  "exclude": [
-    "node_modules",
-    "node_modules/openai",
-    "dist",
-    "lib",
-    "frontEnd",
-    "*.d.ts"
-  ],
-  "ts-node": {
-    "files": true
+    "exclude": [
+      "node_modules",
+      "node_modules/openai",
+      "dist",
+      "lib",
+      "frontEnd",
+      "*.d.ts"
+    ],
+    "ts-node": {
+      "files": true
+    }
   }
-}

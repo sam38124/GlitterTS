@@ -13,9 +13,10 @@ import { EditorElem } from "../../glitterBundle/plugins/editor-elem.js";
 TriggerEvent.createSingleEvent(import.meta.url, () => {
     return {
         fun: (gvc, widget, object, subData) => {
-            var _a, _b;
+            var _a, _b, _c;
             object.getType = (_a = object.getType) !== null && _a !== void 0 ? _a : "manual";
             object.count = (_b = object.count) !== null && _b !== void 0 ? _b : {};
+            object.productType = (_c = object.productType) !== null && _c !== void 0 ? _c : {};
             return {
                 editor: () => {
                     var _a;
@@ -103,6 +104,10 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                                 hover: false,
                                                 title: "商品數量限制",
                                                 option: []
+                                            }), TriggerEvent.editer(gvc, widget, object.productType, {
+                                                hover: false,
+                                                title: "查詢類型",
+                                                option: []
                                             })].join(`<div class="my-2"></div>`));
                                     }
                                 }));
@@ -130,6 +135,12 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                     clickEvent: object.count,
                                     subData: subData
                                 });
+                                const productType = yield TriggerEvent.trigger({
+                                    gvc: gvc,
+                                    widget: widget,
+                                    clickEvent: object.productType,
+                                    subData: subData
+                                });
                                 switch (id.select) {
                                     case "collection":
                                         searchJson = {
@@ -153,6 +164,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                             searchJson = { page: 0, limit: count || 200, id: id };
                                         }
                                 }
+                                productType && (searchJson.productType = productType);
                                 ApiShop.getProduct(searchJson).then((data) => {
                                     if (data.result && data.response.data) {
                                         if (!Array.isArray(data.response.data)) {

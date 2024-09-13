@@ -95,7 +95,13 @@ export class ShoppingOrderManager {
         ];
     }
 
-    public static main(gvc: GVC, pos_page: boolean) {
+    public static main(
+        gvc: GVC,
+        query: {
+            isPOS?: boolean;
+            isArchived?: boolean;
+        }
+    ) {
         const glitter = gvc.glitter;
         const dialog = new ShareDialog(gvc.glitter);
 
@@ -109,7 +115,7 @@ export class ShoppingOrderManager {
             orderString: '',
             filter: {},
             filterId: glitter.getUUID(),
-            filter_type: pos_page ? 'pos' : 'normal',
+            filter_type: query.isPOS ? 'pos' : 'normal',
         };
         const ListComp = new BgListComponent(gvc, vm, FilterOptions.orderFilterFrame);
         vm.filter = ListComp.getFilterObject();
@@ -216,7 +222,7 @@ export class ShoppingOrderManager {
                                                 searchType: 'name',
                                                 orderString: '',
                                                 filter: '',
-                                                archived: vm.filter_type === 'normal' ? `false` : `true`,
+                                                archived: `${query.isArchived}`,
                                             }).then((response) => {
                                                 dialog.dataLoading({ visible: false });
                                                 let firstRow = ['訂單編號', '訂購人', '訂購人email', '訂單金額', '付款狀態', '出貨狀態', '訂單狀態'];
@@ -284,43 +290,25 @@ export class ShoppingOrderManager {
                                             });
                                         })
                                     )}
-                                    ${BgWidget.darkButton(
-                                        '新增',
-                                        gvc.event(() => {
-                                            vm.type = 'add';
-                                        })
-                                    )}
+                                    ${query.isArchived
+                                        ? ''
+                                        : BgWidget.darkButton(
+                                              '新增',
+                                              gvc.event(() => {
+                                                  vm.type = 'add';
+                                              })
+                                          )}
                                 </div>
                             </div>
                             ${BgWidget.tab(
-                                pos_page
+                                query.isPOS
                                     ? [
-                                          {
-                                              title: 'POS訂單',
-                                              key: 'pos',
-                                          },
-                                          {
-                                              title: '所有訂單',
-                                              key: 'normal',
-                                          },
-                                          {
-                                              title: '已封存訂單',
-                                              key: 'block',
-                                          },
+                                          { title: 'POS訂單', key: 'pos' },
+                                          { title: '線上訂單', key: 'normal' },
                                       ]
                                     : [
-                                          {
-                                              title: '所有訂單',
-                                              key: 'normal',
-                                          },
-                                          {
-                                              title: 'POS訂單',
-                                              key: 'pos',
-                                          },
-                                          {
-                                              title: '已封存訂單',
-                                              key: 'block',
-                                          },
+                                          { title: '線上訂單', key: 'normal' },
+                                          { title: 'POS訂單', key: 'pos' },
                                       ],
                                 gvc,
                                 vm.filter_type,
@@ -402,7 +390,7 @@ export class ShoppingOrderManager {
                                                 searchType: vm.queryType || 'name',
                                                 orderString: vm.orderString,
                                                 filter: vm.filter,
-                                                archived: vm.filter_type === 'normal' || vm.filter_type === 'pos' ? `false` : `true`,
+                                                archived: `${query.isArchived}`,
                                                 is_pos: vm.filter_type === 'pos',
                                             }).then((data) => {
                                                 vmi.pageSize = Math.ceil(data.response.total / 20);
@@ -442,14 +430,18 @@ export class ShoppingOrderManager {
                                                             },
                                                             {
                                                                 key: '訂單編號',
-                                                                value: (() => {
-                                                                    if (dd.orderData.orderSource === 'POS') {
-                                                                        return html`<div class="insignia insignia-notify me-2">POS</div>
-                                                                            ${dd.cart_token}`;
-                                                                    } else {
-                                                                        return dd.cart_token;
-                                                                    }
-                                                                })(),
+                                                                value: html`<div class="d-flex align-items-center gap-2">
+                                                                    ${dd.cart_token}${(() => {
+                                                                        switch (dd.orderData.orderSource) {
+                                                                            case 'POS':
+                                                                                return BgWidget.notifyInsignia('POS');
+                                                                            case 'manual':
+                                                                                return BgWidget.primaryInsignia('手動');
+                                                                            default:
+                                                                                return '';
+                                                                        }
+                                                                    })()}
+                                                                </div>`,
                                                             },
                                                             {
                                                                 key: '訂單日期',
@@ -539,10 +531,10 @@ export class ShoppingOrderManager {
                                                             count: selCount,
                                                             buttonList: [
                                                                 BgWidget.selEventButton(
-                                                                    vm.filter_type === 'normal' ? '批量封存' : '解除封存',
+                                                                    query.isArchived ? '解除封存' : '批量封存',
                                                                     gvc.event(() => {
                                                                         dialog.checkYesOrNot({
-                                                                            text: `是否確認${vm.filter_type === 'normal' ? '封存' : '解除封存'}所選項目?`,
+                                                                            text: `是否確認${query.isArchived ? '解除封存' : '封存'}所選項目?`,
                                                                             callback: (response: boolean) => {
                                                                                 if (response) {
                                                                                     dialog.dataLoading({ visible: true });
@@ -552,7 +544,7 @@ export class ShoppingOrderManager {
                                                                                             return dd.checked;
                                                                                         });
                                                                                         for (const b of check) {
-                                                                                            b.orderData.archived = vm.filter_type === 'normal' ? 'true' : 'false';
+                                                                                            b.orderData.archived = `${!query.isArchived}`;
                                                                                             ApiShop.putOrder({
                                                                                                 id: `${b.id}`,
                                                                                                 order_data: b.orderData,
@@ -617,6 +609,7 @@ export class ShoppingOrderManager {
             status: number;
             email: string;
             orderData: {
+                archived: 'true' | 'false';
                 customer_info: any;
                 editRecord: any;
                 method: string;
@@ -739,9 +732,8 @@ export class ShoppingOrderManager {
                 if (orderData.status === 0) {
                     if (orderData.orderData.proof_purchase) {
                         return BgWidget.warningInsignia('待核款');
-                    } else {
-                        return BgWidget.notifyInsignia('未付款');
                     }
+                    return BgWidget.notifyInsignia('未付款');
                 } else if (orderData.status === 1) {
                     return BgWidget.infoInsignia('已付款');
                 } else if (orderData.status === -2) {
@@ -769,9 +761,14 @@ export class ShoppingOrderManager {
                     return BgWidget.infoInsignia('已完成');
                 } else if (orderData.orderData.orderStatus === '0') {
                     return BgWidget.warningInsignia('處理中');
-                } else {
-                    return BgWidget.notifyInsignia('已取消');
                 }
+                return BgWidget.notifyInsignia('已取消');
+            },
+            archivedBadge: () => {
+                if (orderData.orderData.archived === 'true') {
+                    return BgWidget.secondaryInsignia('已封存');
+                }
+                return '';
             },
         };
         ApiUser.getUsersDataWithEmail(orderData.email).then((res) => {
@@ -804,7 +801,7 @@ export class ShoppingOrderManager {
                         });
                     }
                     function getBadgeList() {
-                        return html`<div style="display:flex; gap:10px; justify-content: flex-end;">${vt.paymentBadge()}${vt.outShipBadge()}${vt.orderStatusBadge()}</div>`;
+                        return html`<div style="display:flex; gap:10px; justify-content:flex-end;">${vt.archivedBadge()} ${vt.paymentBadge()}${vt.outShipBadge()}${vt.orderStatusBadge()}</div>`;
                     }
                     return BgWidget.container(
                         html`
@@ -857,13 +854,16 @@ export class ShoppingOrderManager {
                                                             return gvc.bindView({
                                                                 bind: glitter.getUUID(),
                                                                 view: () => {
-                                                                    return html` ${BgWidget.validImageBox({
+                                                                    return html` <div class="d-flex flex-column align-items-center justify-content-center" style="gap:5px;margin-right:12px;">
+                                                                        ${BgWidget.validImageBox({
                                                                             gvc,
                                                                             image: dd.preview_image,
                                                                             width: 60,
                                                                             class: 'border rounded',
-                                                                            style: 'margin-right:12px;',
+                                                                            style: '',
                                                                         })}
+                                                                        ${((dd.is_add_on_items) ? `<div class="">${BgWidget.warningInsignia('加購品')}</div>`:``)}
+                                                                    </div>
                                                                         <div class="d-flex flex-column" style="gap:2px;">
                                                                             <div class="tx_700">${dd.title}</div>
                                                                             ${dd.spec.length > 0 ? BgWidget.grayNote(dd.spec.join(', ')) : ''}

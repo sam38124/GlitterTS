@@ -230,6 +230,10 @@ export class BgWidget {
         return html`<div class="insignia insignia-notify">${text}</div>`;
     }
 
+    static secondaryInsignia(text: string) {
+        return html`<div class="insignia insignia-secondary">${text}</div>`;
+    }
+
     // 元素
     static leftLineBar() {
         return html` <div class="ms-2 border-end position-absolute h-100 left-0"></div>`;
@@ -790,11 +794,28 @@ ${obj.default ?? ''}</textarea
     }
 
     // 頁面
+    static dotlottieJS = 'https://unpkg.com/@dotlottie/player-component@latest/dist/dotlottie-player.mjs';
+
     static maintenance() {
         return html` <div class="d-flex flex-column align-items-center justify-content-center vh-100 vw-100">
-            <iframe src="https://embed.lottiefiles.com/animation/99312" style="width:40vw;height:40vw;"></iframe>
-            <h3 style="margin-top: 36px;">此頁面功能維護中</h3>
+            <iframe src="https://embed.lottiefiles.com/animation/99312" style="width:35vw;height:30vw;min-width:300px;min-height:300px;"></iframe>
+            <h3 style="margin-top: 30px;">此頁面功能維護中</h3>
         </div>`;
+    }
+
+    static noPermission() {
+        return html` <script src="${this.dotlottieJS}" type="module"></script>
+            <div class="d-flex flex-column align-items-center justify-content-center vh-100 vw-100">
+                <dotlottie-player
+                    src="https://lottie.host/63d50162-9e49-47af-bb57-192f739db662/PhqkOljE9S.json"
+                    background="transparent"
+                    speed="1"
+                    style="width:300px;height:300px;"
+                    loop
+                    autoplay
+                ></dotlottie-player>
+                <h3>您無權限瀏覽此頁面</h3>
+            </div>`;
     }
 
     static spinner(obj?: {
@@ -1036,7 +1057,7 @@ ${obj.default ?? ''}</textarea
                                                       .map(
                                                           (dd: any, index: number) =>
                                                               html` <th
-                                                                  class="${dd.position ?? 'text-start'} tx_700"
+                                                                  class="${dd.position ?? 'text-start'} tx_700 px-1"
                                                                   style="white-space:nowrap;border:none; color:#393939 !important; ${obj.style && obj.style![index] ? obj.style![index] : ``}"
                                                               >
                                                                   ${dd.key}
@@ -1067,7 +1088,7 @@ ${obj.default ?? ''}</textarea
                                                               .map(
                                                                   (d3: any, index: number) =>
                                                                       html` <td
-                                                                          class="${d3.position ?? 'text-start'} tx_normal"
+                                                                          class="${d3.position ?? 'text-start'} tx_normal px-1"
                                                                           ${d3.key === '●' || d3.stopDialog ? '' : html` onclick="${gvc.event(() => {})}"`}
                                                                           style="color:#393939 !important;border:none;vertical-align: middle;${obj.style && obj.style![index] ? obj.style![index] : ``}"
                                                                       >
@@ -1414,13 +1435,18 @@ ${obj.default ?? ''}</textarea
         callback: (key: string) => void,
         style?: string
     ) {
-        return html` <div style="justify-content: flex-start; align-items: flex-start; gap: 22px; display: inline-flex;cursor: pointer;margin-top: 24px;margin-bottom: 24px; ${style ?? ''};">
+        return html` <div
+            style="justify-content: flex-start; align-items: flex-start; gap: 22px; display: inline-flex;cursor: pointer;margin-top: 24px;margin-bottom: 24px;font-size: 18px; ${style ?? ''};"
+        >
             ${data
                 .map((dd) => {
                     if (select === dd.key) {
                         return html` <div style="flex-direction: column; justify-content: flex-start; align-items: center; gap: 8px; display: inline-flex">
                             <div
                                 style="align-self: stretch; text-align: center; color: #393939; font-size: 18px; font-family: Noto Sans; font-weight: 700; line-height: 18px; word-wrap: break-word;white-space: nowrap;"
+                                onclick="${gvc.event(() => {
+                                    callback(dd.key);
+                                })}"
                             >
                                 ${dd.title}
                             </div>
@@ -1434,7 +1460,7 @@ ${obj.default ?? ''}</textarea
                             })}"
                         >
                             <div
-                                style="align-self: stretch; text-align: center; color: #393939; font-size: 18px; font-family: Noto Sans; font-weight: 400; line-height: 18px; word-wrap: break-word;white-space: nowrap;"
+                                style="align-self: stretch; text-align: center; color: #393939;  font-family: Noto Sans; font-weight: 400; line-height: 18px; word-wrap: break-word;white-space: nowrap;"
                             >
                                 ${dd.title}
                             </div>
@@ -1831,14 +1857,14 @@ ${obj.default ?? ''}</textarea
         gvc: GVC;
         title: string;
         tag: string;
-        single?:boolean,
+        single?: boolean;
         default: string[];
         updownOptions?: OptionsItem[];
         api: (obj: { query: string; orderString: string }) => Promise<OptionsItem[]>;
         callback: (value: any) => void;
         style?: string;
         readonly?: boolean;
-        custom_line_items?:(data:any)=>string
+        custom_line_items?: (data: any) => string;
     }) {
         return obj.gvc.glitter.innerDialog((gvc: GVC) => {
             const vm = {
@@ -1904,8 +1930,8 @@ ${obj.default ?? ''}</textarea
                                               </div>`}
                                         ${obj.gvc.map(
                                             vm.options.map((opt: OptionsItem, index: number) => {
-                                                if(obj.custom_line_items){
-                                                    return  obj.custom_line_items(opt)
+                                                if (obj.custom_line_items) {
+                                                    return obj.custom_line_items(opt);
                                                 }
                                                 function call() {
                                                     vm.selectKey = {
@@ -1920,13 +1946,16 @@ ${obj.default ?? ''}</textarea
                                                     obj.gvc.notifyDataChange(vm.id);
                                                 }
 
-                                                return html` <div class="d-flex align-items-center" style="gap: 24px" onclick="${gvc.event(()=>{
-                                                    if(obj.single){
-                                                        obj.callback(opt.key)
-                                                        gvc.closeDialog()
-                                                    }
-                                                   
-                                                })}">
+                                                return html` <div
+                                                    class="d-flex align-items-center"
+                                                    style="gap: 24px"
+                                                    onclick="${gvc.event(() => {
+                                                        if (obj.single) {
+                                                            obj.callback(opt.key);
+                                                            gvc.closeDialog();
+                                                        }
+                                                    })}"
+                                                >
                                                     ${obj.readonly || obj.single
                                                         ? ''
                                                         : html`<input
@@ -2019,7 +2048,6 @@ ${obj.default ?? ''}</textarea
         }, obj.tag);
     }
 
-
     static infoDialog(obj: { gvc: GVC; title: string; innerHTML: string; closeCallback?: () => void }) {
         return obj.gvc.glitter.innerDialog((gvc: GVC) => {
             const vm = {
@@ -2090,6 +2118,55 @@ ${obj.default ?? ''}</textarea
                 })}
             </div>`;
         }, 'productsDialog');
+    }
+
+    static settingDialog(obj: { gvc: GVC; title: string; innerHTML: (gvc: GVC) => string; footer_html: (gvc: GVC) => string; closeCallback?: () => void }) {
+        const glitter = (() => {
+            let glitter = obj.gvc.glitter;
+            if (glitter.getUrlParameter('cms') === 'true' || glitter.getUrlParameter('type') === 'htmlEditor') {
+                glitter = (window.parent as any).glitter || obj.gvc.glitter;
+            }
+            return glitter;
+        })();
+        return (glitter as any).innerDialog((gvc: GVC) => {
+            const vm = {
+                id: obj.gvc.glitter.getUUID(),
+                loading: false,
+            };
+
+            return html`<div class="bg-white shadow rounded-3" style="overflow-y: auto;${document.body.clientWidth > 768 ? 'min-width: 400px; width: 600px;' : 'min-width: 90vw; max-width: 92.5vw;'}">
+                ${gvc.bindView({
+                    bind: vm.id,
+                    view: () => {
+                        if (vm.loading) {
+                            return html`<div class="my-4">${this.spinner()}</div>`;
+                        }
+                        return html`<div class="bg-white shadow rounded-3" style="width: 100%; overflow-y: auto;">
+                            <div class="w-100 d-flex align-items-center p-3 border-bottom">
+                                <div class="tx_700">${obj.title ?? '產品列表'}</div>
+                                <div class="flex-fill"></div>
+                                <i
+                                    class="fa-regular fa-circle-xmark fs-5 text-dark cursor_pointer"
+                                    onclick="${gvc.event(() => {
+                                        if (obj.closeCallback) {
+                                            obj.closeCallback();
+                                        }
+                                        gvc.closeDialog();
+                                    })}"
+                                ></i>
+                            </div>
+                            <div class="c_dialog">
+                                <div class="c_dialog_body">
+                                    <div class="c_dialog_main" style="gap: 24px; max-height: 500px;">${obj.innerHTML(gvc) ?? ''}</div>
+                                    <div class="c_dialog_bar">${obj.footer_html(gvc) ?? ''}</div>
+                                </div>
+                            </div>
+                        </div>`;
+                    },
+                    onCreate: () => {},
+                })}
+            </div>`;
+        }, obj.gvc.glitter.getUUID());
     }
 
     // 圖片

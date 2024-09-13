@@ -19,4 +19,5 @@ export class PayConfig{
             }
         }
     }
+    public static deviceType:'pos'|'app'|'web'='web'
 }

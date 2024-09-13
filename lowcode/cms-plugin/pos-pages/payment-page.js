@@ -16,6 +16,8 @@ import { FilterOptions } from "../filter-options.js";
 import { ApiUser } from "../../glitter-base/route/user.js";
 import { FormWidget } from "../../official_view_component/official/form.js";
 import { CheckInput } from "../../modules/checkInput.js";
+import { POSSetting } from "../POS-setting.js";
+import { PayConfig } from "./pay-config.js";
 const html = String.raw;
 export class PaymentPage {
     static shipment_support(orderDetail) {
@@ -43,22 +45,8 @@ export class PaymentPage {
         }));
     }
     static main(obj) {
-        obj.gvc.addMtScript([{ src: 'https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js' }], () => {
-        }, () => {
-        });
         if (!obj.ogOrderData.lineItems || obj.ogOrderData.lineItems.length === 0) {
-            return html `
-                <div class="d-flex align-items-center justify-content-center w-100  "
-                     style="height: calc(100vh - 200px);">
-                    <div class="d-flex flex-column align-items-center justify-content-center" style="gap:30px;">
-                        <lottie-player class="rounded-circle bg-white" style="max-width: 100%;width: 300px;"
-                                       src="https://lottie.host/38ba8340-3414-41b8-b068-bba18d240bb3/h7e1Q29IQJ.json"
-                                       speed="1"
-                                       loop="" autoplay="" background="transparent"></lottie-player>
-                        <div class="fw-bold fs-6"> 購物車是空的，請先選擇商品。</div>
-                    </div>
-
-                </div>`;
+            return POSSetting.emptyView('購物車是空的，請先選擇商品');
         }
         const gvc = obj.gvc;
         const vm = obj.vm;
@@ -88,7 +76,15 @@ export class PaymentPage {
                         })) {
                             (obj.ogOrderData).user_info.shipment = 'now';
                         }
+                        obj.ogOrderData.lineItems = obj.ogOrderData.lineItems.filter((dd) => {
+                            return orderDetail.lineItems.find((d1) => {
+                                return ((dd.id + dd.spec.join('-'))) === ((d1.id + d1.spec.join('-')));
+                            });
+                        });
                         PaymentPage.storeHistory(obj.ogOrderData);
+                        if (obj.ogOrderData.lineItems.length === 0) {
+                            vm.type = 'menu';
+                        }
                         return orderDetail;
                     }))());
                     return html `
@@ -174,6 +170,9 @@ text-transform: uppercase;">NT.${parseInt(data.sale_price, 10).toLocaleString()}
                             id: gvc.glitter.getUUID(),
                             type: `old`
                         };
+                        function refreshMemberPage() {
+                            gvc.notifyDataChange(vm.id);
+                        }
                         return {
                             bind: vm.id,
                             view: () => {
@@ -323,8 +322,18 @@ flex-shrink: 0;" onclick="${gvc.event(() => {
                                                                 }
                                                                 else {
                                                                     return `<div style="align-self: stretch; justify-content: flex-start; align-items: center; gap: 6px; display: inline-flex">
-                                            <div style="flex: 1 1 0; color: #393939; font-size: 24px;  font-weight: 400; word-wrap: break-word">
+                                            <div class="d-flex align-items-center" style="flex: 1 1 0; color: #393939; font-size: 24px;  font-weight: 400; word-wrap: break-word;gap:10px;">
                                                 ${vm.user_data.userData.name}
+<div style="color: #4D86DB;
+font-size: 16px;
+font-style: normal;
+font-weight: 400;
+line-height: normal;
+letter-spacing: 0.72px;
+text-transform: uppercase;cursor:pointer;" onclick="${gvc.event(() => {
+                                                                        obj.ogOrderData.user_info.email = '';
+                                                                        refreshMemberPage();
+                                                                    })}">移除選擇</div>
                                             </div>
                                             <div style="width: 68px; padding-left: 6px; padding-right: 6px; padding-top: 4px; padding-bottom: 4px; background: #393939; border-radius: 7px; justify-content: center; align-items: center; gap: 10px; display: flex">
                                                 <div style="color: white; font-size: 14px;  font-weight: 700; word-wrap: break-word">
@@ -726,6 +735,7 @@ background: #EAEAEA;box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.15);`
                         門市選擇
                     </div>
 <div class="btn  w-100 text-white" style="background: ${(decodeURI(gvc.glitter.getUrlParameter('CVSStoreName') || '')) ? `#393939` : `#d6293e`};" onclick="${gvc.event(() => {
+                                PaymentPage.storeHistory(obj.ogOrderData);
                                 ApiShop.selectC2cMap({
                                     returnURL: location.href,
                                     logistics: (obj.ogOrderData).user_info.shipment
@@ -1138,7 +1148,8 @@ text-transform: uppercase;" onclick="${gvc.event(() => {
                         <div class="my-3  fw-500 text-center"
                              style="white-space: normal; overflow-wrap: anywhere;font-size: 20px;font-style: normal;font-weight: 700;line-height: normal;letter-spacing: 2.8px;">
                             請掃描或輸入優惠代碼
-                        </div><img class="" style="max-width:70%;"
+                        </div>
+                        <img class="" style="max-width:70%;"
                              src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_s5sasfscsbs7s3sf_%E6%88%AA%E5%9C%962024-08-30%E4%B8%8B%E5%8D%882.29.361.png">
                         <div class="d-flex w-100 align-items-center mt-3" style="border:1px solid grey;height: 50px;">
                             <input class="form-control h-100" style="border: none;" placeholder="請輸入或掃描優惠代碼"
@@ -1319,7 +1330,7 @@ text-transform: uppercase;" onclick="${gvc.event(() => {
             function next() {
                 if (c_vm.invoice_select === 'carry') {
                     if (!c_vm.value) {
-                        dialog.infoMessage({ text: '請輸入載具!' });
+                        dialog.infoMessage({ text: '請輸入載具' });
                         return;
                     }
                     else {
@@ -1332,7 +1343,7 @@ text-transform: uppercase;" onclick="${gvc.event(() => {
                 }
                 else if (c_vm.invoice_select === 'company') {
                     if (!c_vm.value) {
-                        dialog.infoMessage({ text: '請輸入統一編號!' });
+                        dialog.infoMessage({ text: '請輸入統一編號' });
                         return;
                     }
                     else {
@@ -1342,6 +1353,10 @@ text-transform: uppercase;" onclick="${gvc.event(() => {
                             invoice_type: 'company'
                         };
                     }
+                }
+                else if (c_vm.invoice_select === 'print' && !(orderDetail.user_info.email) && PayConfig.deviceType === 'web') {
+                    dialog.infoMessage({ text: '請先選擇會員' });
+                    return;
                 }
                 passData.user_info.shipment = orderDetail.user_info.shipment;
                 if (orderDetail.user_info.shipment === 'normal') {
@@ -1454,7 +1469,7 @@ text-transform: uppercase;" onclick="${gvc.event(() => {
                                 ${(() => {
                         let btnArray = [
                             {
-                                title: `列印`,
+                                title: (PayConfig.deviceType === 'pos') ? `列印` : `寄送`,
                                 value: 'print',
                                 icon: `<i class="fa-regular fa-print"></i>`
                             },

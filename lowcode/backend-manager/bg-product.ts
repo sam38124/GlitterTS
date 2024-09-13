@@ -51,7 +51,7 @@ export class BgProduct {
         }, 'variantsSelector');
     }
 
-    static productsDialog(obj: { gvc: GVC; title?: string; default: (number | string)[]; callback: (value: any) => void }) {
+    static productsDialog(obj: { gvc: GVC; title?: string; default: (number | string)[]; callback: (value: any) => void ,filter?:(data:any)=>boolean,productType?:string}) {
         return obj.gvc.glitter.innerDialog((gvc: GVC) => {
             const vm = {
                 id: obj.gvc.glitter.getUUID(),
@@ -107,7 +107,9 @@ export class BgProduct {
                                             })}
                                         </div>
                                         ${obj.gvc.map(
-                                            vm.options.map((opt, index) => {
+                                            vm.options.filter((dd)=>{
+                                                return (!obj.filter) || (obj.filter(dd))
+                                            }).map((opt, index) => {
                                                 const id = gvc.glitter.getUUID();
 
                                                 function call() {
@@ -195,6 +197,7 @@ export class BgProduct {
                                             return '';
                                     }
                                 })(),
+                                productType:obj.productType
                             }).then((data) => {
                                 vm.options = data.response.data.map((product: { content: { id: number; title: string; preview_image: string[] } }) => {
                                     return {

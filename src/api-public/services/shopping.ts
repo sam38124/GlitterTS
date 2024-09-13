@@ -1,21 +1,21 @@
-import { IToken } from '../models/Auth.js';
+import {IToken} from '../models/Auth.js';
 import exception from '../../modules/exception.js';
 import db from '../../modules/database.js';
 import FinancialService from './financial-service.js';
-import { Private_config } from '../../services/private_config.js';
+import {Private_config} from '../../services/private_config.js';
 import redis from '../../modules/redis.js';
-import { User } from './user.js';
+import {User} from './user.js';
 import Tool from '../../modules/tool.js';
-import { Invoice } from './invoice.js';
+import {Invoice} from './invoice.js';
 import e from 'express';
-import { Rebate } from './rebate.js';
-import { CustomCode } from '../services/custom-code.js';
+import {Rebate} from './rebate.js';
+import {CustomCode} from '../services/custom-code.js';
 import moment from 'moment';
-import { ManagerNotify } from './notify.js';
-import { AutoSendEmail } from './auto-send-email.js';
-import { Recommend } from './recommend.js';
-import { Workers } from './workers.js';
-import axios from "axios";
+import {ManagerNotify} from './notify.js';
+import {AutoSendEmail} from './auto-send-email.js';
+import {Recommend} from './recommend.js';
+import {Workers} from './workers.js';
+import axios from 'axios';
 
 type BindItem = {
     id: string;
@@ -34,7 +34,8 @@ interface VoucherData {
     title: string;
     code?: string;
     method: 'percent' | 'fixed';
-    reBackType: 'rebate' | 'discount' | 'shipment_free';
+    reBackType: 'rebate' | 'discount' | 'shipment_free' | 'add_on_items';
+    add_on_products?:string[]
     trigger: 'auto' | 'code' | 'distribution';
     value: string;
     for: 'collection' | 'product' | 'all';
@@ -128,8 +129,8 @@ type Cart = {
     custom_form_data?: any;
     distribution_id?: number;
     distribution_info?: any;
-    orderSource: '' | 'normal' | 'POS';
-    code_array:string[]
+    orderSource: '' | 'manual' | 'normal' | 'POS';
+    code_array: string[];
 };
 
 export class Shopping {
@@ -145,13 +146,16 @@ export class Shopping {
     public async workerExample(data: { type: 0 | 1; divisor: number }) {
         try {
             // 以 t_voucher_history 更新資料舉例
-            const jsonData = await db.query(`SELECT * FROM \`${this.app}\`.t_voucher_history`, []);
+            const jsonData = await db.query(`SELECT *
+                                             FROM \`${this.app}\`.t_voucher_history`, []);
             const t0 = performance.now();
 
             // 單線程插入資料
             if (data.type === 0) {
                 for (const record of jsonData) {
-                    await db.query(`UPDATE \`${this.app}\`.\`t_voucher_history\` SET ? WHERE id = ?`, [record, record.id]);
+                    await db.query(`UPDATE \`${this.app}\`.\`t_voucher_history\`
+                                    SET ?
+                                    WHERE id = ?`, [record, record.id]);
                 }
                 return {
                     type: 'single',
@@ -163,7 +167,9 @@ export class Shopping {
             // 多線程插入資料
             const formatJsonData = jsonData.map((record: any) => {
                 return {
-                    sql: `UPDATE \`${this.app}\`.\`t_voucher_history\` SET ? WHERE id = ?`,
+                    sql: `UPDATE \`${this.app}\`.\`t_voucher_history\`
+                          SET ?
+                          WHERE id = ?`,
                     data: [record, record.id],
                 };
             });
@@ -186,6 +192,7 @@ export class Shopping {
         searchType?: string;
         collection?: string;
         accurate_search_collection?: boolean;
+        accurate_search_text?:boolean,
         min_price?: string;
         max_price?: string;
         status?: string;
@@ -194,6 +201,7 @@ export class Shopping {
         with_hide_index?: string;
         is_manger?: boolean;
         show_hidden?: string;
+        productType?: string
     }) {
         try {
             query.show_hidden = query.show_hidden ?? 'true';
@@ -201,14 +209,28 @@ export class Shopping {
             if (query.search) {
                 switch (query.searchType) {
                     case 'sku':
-                        querySql.push(`JSON_EXTRACT(content, '$.variants[*].sku') LIKE '%${query.search}%'`);
+                        if(query.accurate_search_text){
+                            querySql.push(`JSON_EXTRACT(content, '$.variants[*].sku') = '${query.search}'`);
+                        }else{
+                            querySql.push(`JSON_EXTRACT(content, '$.variants[*].sku') LIKE '%${query.search}%'`);
+                        }
                         break;
                     case 'barcode':
-                        querySql.push(`JSON_EXTRACT(content, '$.variants[*].barcode') LIKE '%${query.search}%'`);
+                        if(query.accurate_search_text){
+                            querySql.push(`JSON_EXTRACT(content, '$.variants[*].barcode') = '${query.search}'`);
+                        }else{
+                            querySql.push(`JSON_EXTRACT(content, '$.variants[*].barcode') LIKE '%${query.search}%'`);
+                        }
                         break;
                     case 'title':
                     default:
-                        querySql.push(`(UPPER(JSON_UNQUOTE(JSON_EXTRACT(content, '$.title'))) LIKE UPPER('%${query.search}%'))`);
+                        querySql.push(`(${
+                            [
+                                `(UPPER(JSON_UNQUOTE(JSON_EXTRACT(content, '$.title'))) LIKE UPPER('%${query.search}%'))`,
+                                `JSON_EXTRACT(content, '$.variants[*].sku') LIKE '%${query.search}%'`,
+                                `JSON_EXTRACT(content, '$.variants[*].barcode') LIKE '%${query.search}%'`
+                            ].join(' or ')
+                        })`);
                         break;
                 }
             }
@@ -216,6 +238,14 @@ export class Shopping {
             //當非管理員時，檢查是否顯示隱形商品
             if (!query.is_manger && `${query.show_hidden}` !== 'true') {
                 querySql.push(`(content->>'$.visible' is null || content->>'$.visible' = 'true')`);
+            }
+            //判斷有帶入商品類型時，顯示商品類型，反之預設折是一班商品
+            if (query.productType) {
+                query.productType.split(',').map((dd) => {
+                    querySql.push(`(content->>'$.productType.${dd}' = "true")`)
+                })
+            } else if (!query.id) {
+                querySql.push(`(content->>'$.productType.product' = "true")`)
             }
             //如是連結帶入則轉換成Title
             if (query.collection) {
@@ -257,14 +287,14 @@ export class Shopping {
                     .join(',');
             }
             query.collection &&
-                querySql.push(
-                    `(${query.collection
-                        .split(',')
-                        .map((dd) => {
-                            return query.accurate_search_collection ? `(JSON_CONTAINS(content->'$.collection', '"${dd}"'))` : `(JSON_EXTRACT(content, '$.collection') LIKE '%${dd}%')`;
-                        })
-                        .join(' or ')})`
-                );
+            querySql.push(
+                `(${query.collection
+                    .split(',')
+                    .map((dd) => {
+                        return query.accurate_search_collection ? `(JSON_CONTAINS(content->'$.collection', '"${dd}"'))` : `(JSON_EXTRACT(content, '$.collection') LIKE '%${dd}%')`;
+                    })
+                    .join(' or ')})`
+            );
             query.sku && querySql.push(`(id in ( select product_id from \`${this.app}\`.t_variants where content->>'$.sku'=${db.escape(query.sku)}))`);
             if (!query.id && query.status === 'active' && query.with_hide_index !== 'true') {
                 querySql.push(`((content->>'$.hideIndex' is NULL) || (content->>'$.hideIndex'='false'))`);
@@ -310,7 +340,7 @@ export class Shopping {
                     for (const item1 of checkout.lineItems) {
                         const index = itemRecord.findIndex((item2) => item1.id === item2.id);
                         if (index === -1) {
-                            itemRecord.push({ id: parseInt(`${item1.id}`, 10), count: item1.count });
+                            itemRecord.push({id: parseInt(`${item1.id}`, 10), count: item1.count});
                         } else {
                             itemRecord[index].count += item1.count;
                         }
@@ -325,10 +355,10 @@ export class Shopping {
                      FROM \`${this.app}\`.t_stock_recover,
                           \`${this.app}\`.t_checkout
                      WHERE product_id in (${productList
-                         .map((dd) => {
-                             return dd.id;
-                         })
-                         .join(',')})
+                             .map((dd) => {
+                                 return dd.id;
+                             })
+                             .join(',')})
                        and order_id = cart_token
                        and dead_line < ?;`,
                     [new Date()]
@@ -350,7 +380,7 @@ export class Shopping {
                                  SET ?
                                  WHERE 1 = 1
                                    and id = ${stock.product_id}`,
-                                [{ content: JSON.stringify(product.content) }]
+                                [{content: JSON.stringify(product.content)}]
                             );
                         }
                         // 移除紀錄
@@ -372,13 +402,16 @@ export class Shopping {
             });
 
             if (query.id_list && query.order_by === 'order by id desc') {
-                products.data = query.id_list.split(',').map((id) => {
-                    return products.data.find((product: { id: number }) => {
-                        return `${product.id}` === `${id}`;
+                products.data = query.id_list
+                    .split(',')
+                    .map((id) => {
+                        return products.data.find((product: { id: number }) => {
+                            return `${product.id}` === `${id}`;
+                        });
+                    })
+                    .filter((dd) => {
+                        return dd;
                     });
-                }).filter((dd)=>{
-                    return dd
-                });
             }
 
             return products;
@@ -403,7 +436,7 @@ export class Shopping {
                     []
                 )
             )[0];
-            return { data: data, result: !!data };
+            return {data: data, result: !!data};
         } else {
             return {
                 data: (
@@ -440,8 +473,8 @@ export class Shopping {
     ) {
         let sql = `SELECT v.id,
                           v.product_id,
-                          v.content                                            as variant_content,
-                          p.content                                            as product_content,
+                          v.content as                                            variant_content,
+                          p.content as                                            product_content,
                           CAST(JSON_EXTRACT(v.content, '$.stock') AS UNSIGNED) as stock
                    FROM \`${this.app}\`.t_variants AS v
                             JOIN
@@ -458,7 +491,7 @@ export class Shopping {
                     []
                 )
             )[0];
-            return { data: data, result: !!data };
+            return {data: data, result: !!data};
         } else {
             return {
                 data: await db.query(
@@ -515,8 +548,8 @@ export class Shopping {
         return `${new Date().getTime()}`;
     }
 
-    public async linePay(data:any){
-        return new Promise(async (resolve, reject)=>{
+    public async linePay(data: any) {
+        return new Promise(async (resolve, reject) => {
             let config = {
                 method: 'post',
                 maxBodyLength: Infinity,
@@ -524,19 +557,21 @@ export class Shopping {
                 headers: {
                     'X-LINE-ChannelId': '2006263059',
                     'X-LINE-ChannelSecret': '9bcca1d8f66b9ec60cd1a3498be253e2',
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
                 },
-                data : JSON.stringify(data)
+                data: JSON.stringify(data),
             };
-            axios.request(config)
+            axios
+                .request(config)
                 .then((response) => {
-                    resolve(response.data.returnCode==='0000')
+                    resolve(response.data.returnCode === '0000');
                 })
                 .catch((error) => {
-                    resolve(false)
+                    resolve(false);
                 });
-        })
+        });
     }
+
     public async toCheckout(
         data: {
             lineItems: {
@@ -568,7 +603,7 @@ export class Shopping {
             custom_form_format?: any; //自定義表單格式
             custom_form_data?: any; //自定義表單資料
             distribution_code?: string; //分銷連結代碼
-            code_array:string[] // 優惠券代碼列表
+            code_array: string[]; // 優惠券代碼列表
         },
         type: 'add' | 'preview' | 'manual' | 'manual-preview' | 'POS' = 'add',
         replace_order_id?: string
@@ -641,7 +676,7 @@ export class Shopping {
             // 判斷購物金是否可用
             if (data.use_rebate && data.use_rebate > 0) {
                 if (userData) {
-                    const userRebate = await rebateClass.getOneRebate({ user_id: userData.userID });
+                    const userRebate = await rebateClass.getOneRebate({user_id: userData.userID});
                     const sum = userRebate ? userRebate.point : 0;
                     if (sum < data.use_rebate) {
                         data.use_rebate = 0;
@@ -727,11 +762,11 @@ export class Shopping {
                 use_wallet: 0,
                 method: data.user_info && data.user_info.method,
                 user_email: (userData && userData.account) || (data.email ?? ((data.user_info && data.user_info.email) || '')),
-                useRebateInfo: { point: 0 },
+                useRebateInfo: {point: 0},
                 custom_form_format: data.custom_form_format,
                 custom_form_data: data.custom_form_data,
-                orderSource: (data.checkOutType === 'POS') ? `POS`:``,
-                code_array:data.code_array
+                orderSource: data.checkOutType === 'POS' ? `POS` : ``,
+                code_array: data.code_array,
             };
 
             function calculateShipment(dataList: { key: string; value: string }[], value: number | string) {
@@ -757,6 +792,7 @@ export class Shopping {
                 return parseInt(dataList[dataList.length - 1].value);
             }
 
+            const add_on_items: any[] = []
             for (const b of data.lineItems) {
                 try {
                     const pdDqlData = (
@@ -815,7 +851,7 @@ export class Shopping {
                                      SET ?
                                      WHERE 1 = 1
                                        and id = ${pdDqlData.id}`,
-                                    [{ content: JSON.stringify(pd) }]
+                                    [{content: JSON.stringify(pd)}]
                                 );
                                 // 獲取當前時間
                                 let deadTime = new Date();
@@ -837,8 +873,13 @@ export class Shopping {
                                 );
                             }
                         }
+                        if (!pd.productType.product && pd.productType.addProduct) {
+                            (b as any).is_add_on_items = true
+                            add_on_items.push(b)
+                        }
                     }
-                } catch (e) {}
+                } catch (e) {
+                }
             }
             carData.shipment_fee = (() => {
                 let total_volume = 0;
@@ -861,7 +902,12 @@ export class Shopping {
             carData.code = data.code;
             carData.voucherList = [];
 
-            function checkDuring(jsonData: { startDate: string; startTime: string; endDate: string | undefined; endTime: string | undefined }) {
+            function checkDuring(jsonData: {
+                startDate: string;
+                startTime: string;
+                endDate: string | undefined;
+                endTime: string | undefined
+            }) {
                 // 獲取當前時間
                 const now = new Date();
                 const currentDateTime = now.getTime();
@@ -892,6 +938,30 @@ export class Shopping {
 
             // 手動新增訂單的優惠卷設定
             if (type !== 'manual' && type !== 'manual-preview') {
+                //過濾加購品
+                carData.lineItems = carData.lineItems.filter((dd) => {
+                    return !add_on_items.includes(dd)
+                })
+                //濾出可用的加購商品
+                await this.checkVoucher(carData);
+                console.log(`add_on_items==>`,add_on_items)
+                console.log(`carData.voucherList==>`,carData.voucherList)
+
+                add_on_items.map((dd)=>{
+                    try {
+                        if(carData.voucherList?.find((d1)=>{
+                            return d1.reBackType==='add_on_items' && d1.add_on_products?.find((d2)=>{
+                                return `${dd.id}`===`${d2}`
+                            })
+                        })){
+                            //把加購品加回去
+                            carData.lineItems.push(dd)
+                        }
+                    }catch (e) {
+
+                    }
+                })
+                //再次更新優惠內容
                 await this.checkVoucher(carData);
             }
 
@@ -919,17 +989,18 @@ export class Shopping {
                 carData.total = subtotal + carData.shipment_fee;
             }
 
-            carData.code_array=(carData.code_array || []).filter((code)=>{
-return (carData.voucherList || []).find((dd)=>{
-    return dd.code===code
-})
-            })
+            carData.code_array = (carData.code_array || []).filter((code) => {
+                return (carData.voucherList || []).find((dd) => {
+                    return dd.code === code;
+                });
+            });
             // ================================ Preview UP ================================
-            if (type === 'preview' || type === 'manual-preview') return { data: carData };
+            if (type === 'preview' || type === 'manual-preview') return {data: carData};
             // ================================ Add DOWN ================================
 
             // 手動結帳地方判定
             if (type === 'manual') {
+                carData.orderSource = 'manual';
                 let tempVoucher: VoucherData = {
                     discount_total: data.voucher.discount_total,
                     end_ISO_Date: '',
@@ -1012,11 +1083,11 @@ return (carData.voucherList || []).find((dd)=>{
                 //開立電子發票
                 (carData as any).invoice = await new Invoice(this.app).postCheckoutInvoice(carData, carData.user_info.send_type !== 'carrier');
                 if (!(carData as any).invoice) {
-                    throw exception.BadRequestError('BAD_REQUEST', '發票開立失敗:' + e, null);
+                    throw exception.BadRequestError('BAD_REQUEST', '發票開立失敗:' , null);
                 }
                 await trans.commit();
                 await trans.release();
-                return { result: 'SUCCESS', message: 'POS訂單新增成功', data: carData };
+                return {result: 'SUCCESS', message: 'POS訂單新增成功', data: carData};
             } else {
                 if (userData && userData.userID) {
                     await rebateClass.insertRebate(userData.userID, carData.use_rebate * -1, '使用折抵', {
@@ -1270,7 +1341,7 @@ return (carData.voucherList || []).find((dd)=>{
                      SET ?
                      WHERE id = ?
                     `,
-                    [{ status: data.status, orderData: JSON.stringify(data.orderData) }, data.id]
+                    [{status: data.status, orderData: JSON.stringify(data.orderData)}, data.id]
                 );
                 return {
                     result: 'success',
@@ -1295,7 +1366,7 @@ return (carData.voucherList || []).find((dd)=>{
         condition?: number;
     }> {
         try {
-            const getRS = await new User(this.app).getConfig({ key: 'rebate_setting', user_id: 'manager' });
+            const getRS = await new User(this.app).getConfig({key: 'rebate_setting', user_id: 'manager'});
             if (getRS[0] && getRS[0].value) {
                 const configData = getRS[0].value.config;
                 if (configData.condition.type === 'total_price' && configData.condition.value > total) {
@@ -1375,10 +1446,10 @@ return (carData.voucherList || []).find((dd)=>{
         }
 
         // 確認用戶資訊
-        const userData = (await userClass.getUserData(cart.email, 'account')) ?? { userID: -1 };
+        const userData = (await userClass.getUserData(cart.email, 'account')) ?? {userID: -1};
 
         // 取得顧客會員等級
-        const userLevels = await userClass.getUserLevel([{ email: cart.email }]);
+        const userLevels = await userClass.getUserLevel([{email: cart.email}]);
 
         // 所有優惠券
         const allVoucher: VoucherData[] = (
@@ -1423,6 +1494,7 @@ return (carData.voucherList || []).find((dd)=>{
                 }
                 switch (cart.orderSource) {
                     case '':
+                    case 'manual':
                     case 'normal':
                         return dd.device.includes('normal');
                     case 'POS':
@@ -1462,7 +1534,7 @@ return (carData.voucherList || []).find((dd)=>{
                         dd.bind = switchValidProduct(dd.for, dd.forKey);
                         break;
                     case 'code': // 輸入代碼
-                        if (dd.code === `${cart.code}` || ((cart.code_array || []).includes(`${dd.code}`))) {
+                        if (dd.code === `${cart.code}` || (cart.code_array || []).includes(`${dd.code}`)) {
                             dd.bind = switchValidProduct(dd.for, dd.forKey);
                         }
                         break;
@@ -1759,7 +1831,7 @@ return (carData.voucherList || []).find((dd)=>{
             orderData.proof_purchase = text;
 
             // 訂單待核款信件通知
-            new ManagerNotify(this.app).uploadProof({ orderData: orderData });
+            new ManagerNotify(this.app).uploadProof({orderData: orderData});
             await AutoSendEmail.customerOrder(this.app, 'proof-purchase', order_id, orderData.email);
 
             await db.query(
@@ -1797,6 +1869,7 @@ return (carData.voucherList || []).find((dd)=>{
         try {
             let querySql = ['1=1'];
             let orderString = 'order by id desc';
+
             if (query.search && query.searchType) {
                 switch (query.searchType) {
                     case 'cart_token':
@@ -1814,6 +1887,7 @@ return (carData.voucherList || []).find((dd)=>{
                     }
                 }
             }
+
             if (query.orderStatus) {
                 let orderArray = query.orderStatus.split(',');
                 let temp = '';
@@ -1823,6 +1897,7 @@ return (carData.voucherList || []).find((dd)=>{
                 temp += `JSON_UNQUOTE(JSON_EXTRACT(orderData, '$.orderStatus')) IN (${query.orderStatus})`;
                 querySql.push(`(${temp})`);
             }
+
             if (query.progress) {
                 let newArray = query.progress.split(',');
                 let temp = '';
@@ -1835,7 +1910,10 @@ return (carData.voucherList || []).find((dd)=>{
 
             if (query.is_pos === 'true') {
                 querySql.push(`orderData->>'$.orderSource'='POS'`);
+            } else if (query.is_pos === 'false') {
+                querySql.push(`orderData->>'$.orderSource'<>'POS'`);
             }
+
             if (query.shipment) {
                 let shipment = query.shipment.split(',');
                 let temp = '';
@@ -1872,6 +1950,7 @@ return (carData.voucherList || []).find((dd)=>{
                         break;
                 }
             }
+
             query.status && querySql.push(`status IN (${query.status})`);
             query.email && querySql.push(`email=${db.escape(query.email)}`);
             query.id && querySql.push(`(content->>'$.id'=${query.id})`);
@@ -1918,6 +1997,7 @@ return (carData.voucherList || []).find((dd)=>{
                 }
                 return data[0];
             }
+
             if (query.id) {
                 const data = (
                     await db.query(
@@ -2045,7 +2125,7 @@ return (carData.voucherList || []).find((dd)=>{
                 }
 
                 try {
-                    await new CustomCode(this.app).checkOutHook({ userData, cartData });
+                    await new CustomCode(this.app).checkOutHook({userData, cartData});
                 } catch (e) {
                     console.error(e);
                 }
@@ -2152,13 +2232,13 @@ return (carData.voucherList || []).find((dd)=>{
         content.min_price = undefined;
         content.max_price = undefined;
         content.id &&
-            (await db.query(
-                `DELETE
+        (await db.query(
+            `DELETE
              from \`${this.app}\`.t_variants
              WHERE (product_id = ${content.id})
                and id > 0`,
-                []
-            ));
+            []
+        ));
         for (const a of content.variants) {
             content.min_price = content.min_price ?? a.sale_price;
             content.max_price = content.max_price ?? a.sale_price;
@@ -2229,7 +2309,7 @@ return (carData.voucherList || []).find((dd)=>{
                 }
                 return result;
             }
-            return { result: false };
+            return {result: false};
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'getDataAnalyze Error:' + e, null);
         }
@@ -2295,7 +2375,7 @@ return (carData.voucherList || []).find((dd)=>{
                 WHERE MONTH (online_time) = MONTH (NOW()) AND YEAR (online_time) = YEAR (NOW());
             `;
             const month_users = await db.query(monthSQL, []);
-            return { recent: recent_users.length, months: month_users.length };
+            return {recent: recent_users.length, months: month_users.length};
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
         }
@@ -2335,7 +2415,7 @@ return (carData.voucherList || []).find((dd)=>{
                 gap = Math.floor(((recent_month_total - previous_month_total) / previous_month_total) * 10000) / 10000;
             }
 
-            return { recent_month_total, previous_month_total, gap };
+            return {recent_month_total, previous_month_total, gap};
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
         }
@@ -2359,7 +2439,7 @@ return (carData.voucherList || []).find((dd)=>{
                     for (const item1 of checkout.lineItems) {
                         const index = product_list.findIndex((item2) => item1.title === item2.title);
                         if (index === -1) {
-                            product_list.push({ title: item1.title, count: item1.count });
+                            product_list.push({title: item1.title, count: item1.count});
                         } else {
                             product_list[index].count += item1.count;
                         }
@@ -2376,7 +2456,7 @@ return (carData.voucherList || []).find((dd)=>{
                 }
             }
 
-            return { series, categories };
+            return {series, categories};
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
         }
@@ -2410,7 +2490,7 @@ return (carData.voucherList || []).find((dd)=>{
                 gap = Math.floor(((recent_month_total - previous_month_total) / previous_month_total) * 10000) / 10000;
             }
 
-            return { recent_month_total, previous_month_total, gap };
+            return {recent_month_total, previous_month_total, gap};
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
         }
@@ -2435,7 +2515,7 @@ return (carData.voucherList || []).find((dd)=>{
                 countArray.unshift(orders[0].c);
             }
 
-            return { countArray };
+            return {countArray};
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
         }
@@ -2464,7 +2544,7 @@ return (carData.voucherList || []).find((dd)=>{
                 countArray.unshift(total);
             }
 
-            return { countArray };
+            return {countArray};
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
         }
@@ -2499,7 +2579,7 @@ return (carData.voucherList || []).find((dd)=>{
                 }
             }
 
-            return { countArray };
+            return {countArray};
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
         }
@@ -2630,7 +2710,7 @@ return (carData.voucherList || []).find((dd)=>{
                         const sub = config.value[parentIndex].array.find((item: { title: string }) => {
                             return item.title === col;
                         });
-                        return { array: [], title: col, code: sub ? sub.code : '' };
+                        return {array: [], title: col, code: sub ? sub.code : ''};
                     }),
                 };
             } else {
@@ -2743,7 +2823,7 @@ return (carData.voucherList || []).find((dd)=>{
                                     WHERE \`key\` = 'collection';`;
             await db.execute(update_col_sql, [config.value]);
 
-            return { result: true };
+            return {result: true};
         } catch (e) {
             console.error(e);
             throw exception.BadRequestError('BAD_REQUEST', 'putCollection Error:' + e, null);
@@ -2774,16 +2854,20 @@ return (carData.voucherList || []).find((dd)=>{
 
                     const sortList = data.map((item) => {
                         if (index > -1) {
-                            return config.value[index].array.find((conf: { title: string }) => conf.title === item.title);
+                            return config.value[index].array.find((conf: {
+                                title: string
+                            }) => conf.title === item.title);
                         }
-                        return { title: '', array: [], code: '' };
+                        return {title: '', array: [], code: ''};
                     });
 
                     config.value[index].array = sortList;
                 }
 
                 await db.execute(
-                    `UPDATE \`${this.app}\`.public_config SET value = ? WHERE \`key\` = 'collection';
+                    `UPDATE \`${this.app}\`.public_config
+                     SET value = ?
+                     WHERE \`key\` = 'collection';
                     `,
                     [config.value]
                 );
@@ -2881,7 +2965,7 @@ return (carData.voucherList || []).find((dd)=>{
             const title = levels[0];
             let node = nodes.find((n) => n.title === title);
             if (!node) {
-                node = { title, array: [] };
+                node = {title, array: []};
                 nodes.push(node);
             }
             if (levels.length > 1) {
@@ -2991,17 +3075,19 @@ return (carData.voucherList || []).find((dd)=>{
                 if (parentTitles.length > 0) {
                     // data 為子層
                     const parentIndex = config.value.findIndex((col: { title: string }) => col.title === parentTitles);
-                    const childrenIndex = config.value[parentIndex].array.findIndex((col: { title: string }) => col.title === data.title);
+                    const childrenIndex = config.value[parentIndex].array.findIndex((col: {
+                        title: string
+                    }) => col.title === data.title);
                     const n = deleteList.findIndex((obj) => obj.parent === parentIndex);
                     if (n === -1) {
-                        deleteList.push({ parent: parentIndex, child: [childrenIndex] });
+                        deleteList.push({parent: parentIndex, child: [childrenIndex]});
                     } else {
                         deleteList[n].child.push(childrenIndex);
                     }
                 } else {
                     // data 為父層
                     const parentIndex = config.value.findIndex((col: { title: string }) => col.title === data.title);
-                    deleteList.push({ parent: parentIndex, child: [-1] });
+                    deleteList.push({parent: parentIndex, child: [-1]});
                 }
             });
 
@@ -3035,7 +3121,7 @@ return (carData.voucherList || []).find((dd)=>{
                                     WHERE \`key\` = 'collection';`;
             await db.execute(update_col_sql, [config.value]);
 
-            return { result: true };
+            return {result: true};
         } catch (e) {
             throw exception.BadRequestError('BAD_REQUEST', 'getCollectionProducts Error:' + e, null);
         }
@@ -3061,7 +3147,7 @@ return (carData.voucherList || []).find((dd)=>{
                     await this.updateProductCollection(product.content, product.id);
                 }
             }
-            return { result: true };
+            return {result: true};
         } catch (error) {
             throw exception.BadRequestError('BAD_REQUEST', 'deleteCollectionProduct Error:' + e, null);
         }
@@ -3115,14 +3201,14 @@ return (carData.voucherList || []).find((dd)=>{
             query.id && querySql.push(`(v.id = ${query.id})`);
             query.id_list && querySql.push(`(v.id in (${query.id_list}))`);
             query.collection &&
-                querySql.push(
-                    `(${query.collection
-                        .split(',')
-                        .map((dd) => {
-                            return query.accurate_search_collection ? `(JSON_CONTAINS(p.content->'$.collection', '"${dd}"'))` : `(JSON_EXTRACT(p.content, '$.collection') LIKE '%${dd}%')`;
-                        })
-                        .join(' or ')})`
-                );
+            querySql.push(
+                `(${query.collection
+                    .split(',')
+                    .map((dd) => {
+                        return query.accurate_search_collection ? `(JSON_CONTAINS(p.content->'$.collection', '"${dd}"'))` : `(JSON_EXTRACT(p.content, '$.collection') LIKE '%${dd}%')`;
+                    })
+                    .join(' or ')})`
+            );
             query.status && querySql.push(`(JSON_EXTRACT(p.content, '$.status') = '${query.status}')`);
             query.min_price && querySql.push(`(v.content->>'$.sale_price' >= ${query.min_price})`);
             query.max_price && querySql.push(`(v.content->>'$.sale_price' <= ${query.min_price})`);
@@ -3185,13 +3271,13 @@ return (carData.voucherList || []).find((dd)=>{
                     `UPDATE \`${this.app}\`.t_variants
                      SET ?
                      WHERE id = ?`,
-                    [{ content: JSON.stringify(data.variant_content) }, data.id]
+                    [{content: JSON.stringify(data.variant_content)}, data.id]
                 );
                 await db.query(
                     `UPDATE \`${this.app}\`.t_manager_post
                      SET ?
                      WHERE id = ?`,
-                    [{ content: JSON.stringify(data.product_content) }, data.product_id]
+                    [{content: JSON.stringify(data.product_content)}, data.product_id]
                 );
             }
             return {

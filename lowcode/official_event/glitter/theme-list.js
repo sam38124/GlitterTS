@@ -7,8 +7,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { TriggerEvent } from "../../glitterBundle/plugins/trigger-event.js";
-import { ApiPageConfig } from "../../api/pageConfig.js";
+import { TriggerEvent } from '../../glitterBundle/plugins/trigger-event.js';
+import { ApiPageConfig } from '../../api/pageConfig.js';
 TriggerEvent.createSingleEvent(import.meta.url, () => {
     return {
         fun: (gvc, widget, object, subData) => {
@@ -20,8 +20,8 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                         TriggerEvent.editer(gvc, widget, object.appName, {
                             hover: false,
                             option: [],
-                            title: '參照APP來源'
-                        })
+                            title: '參照APP來源',
+                        }),
                     ].join(`<div class="my-2"></div>`);
                 },
                 event: () => {
@@ -35,8 +35,8 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                         const appList = yield ApiPageConfig.getAppList(appName);
                         resolve(appList.response.result);
                     }));
-                }
+                },
             };
-        }
+        },
     };
 });

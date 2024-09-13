@@ -538,8 +538,8 @@ export class ApiUser {
             headers: {
                 'Content-Type': 'application/json',
                 'g-app': cg.app,
-                Authorization: cg.token
-            }
+                Authorization: cg.token,
+            },
         });
     }
     static setPublicConfig(cf) {
@@ -594,6 +594,75 @@ export class ApiUser {
                 'Content-Type': 'application/json',
                 Authorization: getConfig().config.token,
             },
+        });
+    }
+    static permissionFilterString(obj) {
+        if (!obj)
+            return [];
+        let list = [];
+        if (obj) {
+            if (obj.status.length > 0) {
+                list.push(`status=${obj.status.join(',')}`);
+            }
+        }
+        return list;
+    }
+    static getPermission(json) {
+        return BaseApi.create({
+            url: getBaseUrl() +
+                `/api-public/v1/user/permission?page=${json.page}&limit=${json.limit}&${(() => {
+                    let par = [];
+                    json.queryType && par.push(`queryType=${json.queryType}`);
+                    json.query && par.push(`query=${json.query}`);
+                    json.orderBy && par.push(`orderBy=${json.orderBy}`);
+                    json.self && par.push(`self=${json.self}`);
+                    if (json.filter) {
+                        par = par.concat(this.permissionFilterString(json.filter));
+                    }
+                    return par.join('&');
+                })()}`,
+            type: 'GET',
+            headers: {
+                'g-app': getConfig().config.appName,
+                'Content-Type': 'application/json',
+                Authorization: getConfig().config.token,
+            },
+        });
+    }
+    static setPermission(json) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/user/permission`,
+            type: 'POST',
+            headers: {
+                'g-app': getConfig().config.appName,
+                'Content-Type': 'application/json',
+                Authorization: getConfig().config.token,
+            },
+            data: JSON.stringify(json),
+        });
+    }
+    static deletePermission(email) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/user/permission`,
+            type: 'DELETE',
+            headers: {
+                'g-app': getConfig().config.appName,
+                'Content-Type': 'application/json',
+                Authorization: getConfig().config.token,
+            },
+            data: JSON.stringify({ email: email }),
+        });
+    }
+    static togglePermissionStatus(email) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/user/permission/status`,
+            type: 'PUT',
+            headers: {
+                'g-app': getConfig().config.appName,
+                'Content-Type': 'application/json',
+                Authorization: getConfig().config.token,
+            },
+            data: JSON.stringify({ email: email }),
         });
     }
 }

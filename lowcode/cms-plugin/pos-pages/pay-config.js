@@ -17,3 +17,4 @@ export class PayConfig {
     }
 }
 PayConfig.mode = "beta";
+PayConfig.deviceType = 'web';

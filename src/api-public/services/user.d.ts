@@ -47,6 +47,8 @@ export declare class User {
     static posEmail: string;
     app: string;
     token?: IToken;
+    static generateUserID(): string;
+    findAuthUser(email: string): Promise<any>;
     createUser(account: string, pwd: string, userData: any, req: any, pass_verify?: boolean): Promise<any>;
     createUserHook(userID: string): Promise<void>;
     updateAccount(account: string, userID: string): Promise<any>;

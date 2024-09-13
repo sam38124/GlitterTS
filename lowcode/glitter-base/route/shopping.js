@@ -24,7 +24,7 @@ export class ApiShop {
             data: JSON.stringify({
                 key: 'guideable',
                 value: {
-                    view: true
+                    view: true,
                 },
             }),
         });
@@ -237,6 +237,7 @@ export class ApiShop {
                     let par = [`limit=${json.limit}`, `page=${json.page}`];
                     json.collection && par.push(`collection=${encodeURI(json.collection)}`);
                     json.accurate_search_collection && par.push(`accurate_search_collection=true`);
+                    json.accurate_search_text && par.push(`accurate_search_text=true`);
                     json.search && par.push(`search=${json.search}`);
                     json.id && par.push(`id=${json.id}`);
                     json.maxPrice && par.push(`max_price=${json.maxPrice}`);
@@ -244,6 +245,7 @@ export class ApiShop {
                     json.status && par.push(`status=${json.status}`);
                     json.orderBy && par.push(`order_by=${json.orderBy}`);
                     json.id_list && par.push(`id_list=${json.id_list}`);
+                    json.productType && par.push(`productType=${json.productType}`);
                     json.with_hide_index && par.push(`with_hide_index=${json.with_hide_index}`);
                     json.searchType && par.push(`searchType=${json.searchType}`);
                     if (location.pathname.includes('/hidden/') || location.pathname.includes('/shop/')) {
@@ -314,7 +316,9 @@ export class ApiShop {
                     json.orderString && par.push(`orderString=${json.orderString}`);
                     json.archived && par.push(`archived=${json.archived}`);
                     json.returnSearch && par.push(`returnSearch=${(_a = json.returnSearch) !== null && _a !== void 0 ? _a : 'false'}`);
-                    json.is_pos && par.push(`is_pos=${json.is_pos}`);
+                    if (json.is_pos === true || json.is_pos === false) {
+                        par.push(`is_pos=${json.is_pos}`);
+                    }
                     filterString.length > 0 && par.push(filterString.join('&'));
                     return par.join('&');
                 })()}`,
@@ -368,6 +372,7 @@ export class ApiShop {
                     let par = [`limit=${json.limit}`, `page=${json.page}`];
                     json.search && par.push(`search=${json.search}`);
                     json.id && par.push(`id=${json.id}`);
+                    json.voucher_type && par.push(`voucher_type=${json.voucher_type}`);
                     return par.join('&');
                 })()}`,
             type: 'GET',

@@ -660,7 +660,6 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
                         switch (Storage.select_function) {
                             case 'backend-manger':{
                                 let bgGuide = new BgGuide(gvc,0);
-
                                 ApiShop.getGuideable().then(r => {
                                     if (!r.response.value){
                                         bgGuide.drawGuide();
@@ -803,7 +802,7 @@ function initialEditor(gvc: GVC, viewModel: any) {
 
     //添加Component至當前頁面
     glitter.share.addComponent = (data: any) => {
-        console.log(`addComponent`)
+        glitter.share.left_block_hover=true
         AddComponent.toggle(false);
         resetId(data);
         const url = new URL(location.href);
@@ -840,12 +839,16 @@ function initialEditor(gvc: GVC, viewModel: any) {
                 scroll_to_hover: true,
                 glitter: glitter,
             });
+            setTimeout(()=>{
+                glitter.share.left_block_hover=false
+            },1000)
         }, 100)
         AddComponent.toggle(false);
         viewModel.selectContainer && viewModel.selectContainer.rerenderReplaceElem && viewModel.selectContainer.rerenderReplaceElem()
     };
     //添加Component至指定索引
     glitter.share.addWithIndex = (cf: { data: any; index: string; direction: number }) => {
+        glitter.share.left_block_hover=true
         AddComponent.toggle(false);
         resetId(cf.data);
         const arrayData = glitter.share.findWidgetIndex(cf.index);
@@ -882,6 +885,9 @@ function initialEditor(gvc: GVC, viewModel: any) {
                 scroll_to_hover: true,
                 glitter: glitter,
             });
+            setTimeout(()=>{
+                glitter.share.left_block_hover=false
+            },1000)
         }, 100)
         AddComponent.toggle(false);
         viewModel.selectContainer && viewModel.selectContainer.rerenderReplaceElem && viewModel.selectContainer.rerenderReplaceElem();

@@ -1,6 +1,6 @@
 {
   "name": "ts-glitter",
-  "version": "11.3.8",
+  "version": "11.5.5",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -11,7 +11,7 @@
     "exportTest": "NODE_ENV=staging && npm run build && node ./src/test/exportApp.js ",
     "create": "node create.js",
     "start:tscAuto": "tsc index.ts",
-    "build": "tsc --project tsconfig.json && tscpaths -p tsconfig.json -s ./src -o ./dist",
+    "build": "tsc --project tsconfig.json ",
     "release": "node release.js  path=test"
   },
   "author": "",

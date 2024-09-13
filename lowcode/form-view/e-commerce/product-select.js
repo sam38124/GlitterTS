@@ -182,7 +182,7 @@ export class ProductSelect {
                                                 </div>`;
                                 case 'product':
                                     return html ` <div class="d-flex align-items-center form-check-label c_updown_label px-1" style="justify-content: space-between" data-index="${opt.key}">
-                                                    <div class="d-flex align-items-center gap-3 cursor-move">
+                                                    <div class="d-flex align-items-center gap-3 cursor_move">
                                                         <i class="fa-solid fa-grip-dots-vertical"></i>
                                                         ${BgWidget.validImageBox({
                                         gvc,
@@ -192,7 +192,7 @@ export class ProductSelect {
                                                         <div class="tx_normal ${opt.note ? 'mb-1' : ''}">${opt.value}</div>
                                                     </div>
                                                     <i
-                                                        class="fa-regular fa-trash cursor-pointer"
+                                                        class="fa-regular fa-trash cursor_pointer"
                                                         onclick="${gvc.event(() => {
                                         bundle.formData[bundle.key].value = bundle.formData[bundle.key].value.filter((id) => {
                                             return id !== opt.key;

@@ -76,6 +76,7 @@ const whiteList = [
     { url: config_1.config.getRoute(config_1.config.public_route.user + '/fcm', 'public'), method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.public_route.user + '/public/config', 'public'), method: 'GET' },
     { url: config_1.config.getRoute(config_1.config.public_route.user + '/forget', 'public'), method: 'POST' },
+    { url: config_1.config.getRoute(config_1.config.public_route.user + '/permission/redirect', 'public'), method: 'GET' },
     { url: config_1.config.getRoute(config_1.config.public_route.sql_api, 'public'), method: 'GET' },
     { url: config_1.config.getRoute(config_1.config.public_route.sql_api, 'public'), method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.public_route.lambda, 'public'), method: 'POST' },

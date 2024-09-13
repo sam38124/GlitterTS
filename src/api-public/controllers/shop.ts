@@ -1,4 +1,4 @@
-import express from 'express';
+import express, {query} from 'express';
 import response from '../../modules/response';
 import multer from 'multer';
 import exception from '../../modules/exception';
@@ -481,6 +481,9 @@ router.get('/voucher', async (req: express.Request, resp: express.Response) => {
     try {
         let query = [`(content->>'$.type'='voucher')`];
         req.query.search && query.push(`(UPPER(JSON_UNQUOTE(JSON_EXTRACT(content, '$.title'))) LIKE UPPER('%${req.query.search}%'))`);
+        if(req.query.voucher_type){
+            query.push(`(content->>'$.reBackType'='${req.query.voucher_type}')`);
+        }
         return response.succ(
             resp,
             await new Shopping(req.get('g-app') as string, req.body.token).querySql(query, {
@@ -799,6 +802,7 @@ router.get('/product', async (req: express.Request, resp: express.Response) => {
             sku: req.query.sku as string,
             id: req.query.id as string,
             collection: req.query.collection as string,
+            accurate_search_text:req.query.accurate_search_text === 'true',
             accurate_search_collection: req.query.accurate_search_collection === 'true',
             min_price: req.query.min_price as string,
             max_price: req.query.max_price as string,
@@ -832,6 +836,7 @@ router.get('/product', async (req: express.Request, resp: express.Response) => {
             with_hide_index: req.query.with_hide_index as string,
             is_manger: (await UtPermission.isManager(req)) as any,
             show_hidden: `${req.query.show_hidden as any}`,
+            productType:req.query.productType as any
         });
         return response.succ(resp, shopping);
     } catch (err) {

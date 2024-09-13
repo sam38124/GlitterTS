@@ -23,7 +23,7 @@ import { Tool } from '../modules/tool.js';
 const html = String.raw;
 const inputStyle = 'font-size: 16px; height:40px; width:300px;';
 export class BgNotify {
-    static email(gvc, type = 'list', callback = () => { }, obj) {
+    static email(gvc, type = 'list', callback = () => { }) {
         const vm = {
             type: 'list',
             data: {
@@ -111,14 +111,7 @@ export class BgNotify {
                             ];
                         });
                     }
-                    return BgWidget.container(html `
-                            ${obj && obj.hiddenHeader
-                        ? ''
-                        : html ` <div class="d-flex w-100 align-items-center ${type === 'select' ? `d-none` : ``}">
-                                      ${BgWidget.title('已訂閱信件')}
-                                      <div class="flex-fill"></div>
-                                  </div>`}
-                            ${BgWidget.container(BgWidget.mainCard(BgWidget.tableV2({
+                    return BgWidget.container(BgWidget.mainCard(BgWidget.tableV2({
                         gvc: gvc,
                         getData: (vmk) => {
                             vmi = vmk;
@@ -150,11 +143,11 @@ export class BgNotify {
                             }));
                         },
                         filter: html `
-                                            ${BgWidget.searchPlace(gvc.event((e, event) => {
+                                    ${BgWidget.searchPlace(gvc.event((e, event) => {
                             vm.query = e.value;
                             gvc.notifyDataChange(id);
                         }), vm.query || '', '搜尋信箱或標籤')}
-                                            ${gvc.bindView(() => {
+                                    ${gvc.bindView(() => {
                             return {
                                 bind: filterID,
                                 view: () => {
@@ -217,12 +210,8 @@ export class BgNotify {
                                 },
                             };
                         })}
-                                        `,
-                    })), type === 'select' ? 850 : BgWidget.getContainerWidth())}
-                        `, BgWidget.getContainerWidth(), obj && obj.hiddenHeader ? 'padding: 0' : undefined);
-                },
-                divCreate: {
-                    class: type === 'select' ? `m-n4` : ``,
+                                `,
+                    })), type === 'select' ? 850 : BgWidget.getContainerWidth(), 'padding: 0;');
                 },
             };
         });

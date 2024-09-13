@@ -330,3 +330,28 @@ FilterOptions.recommendUserOrderBy = [
     { key: 'created_time_desc', value: '註冊時間新 > 舊' },
     { key: 'created_time_asc', value: '註冊時間舊 > 新' },
 ];
+FilterOptions.permissionFilterFrame = {
+    status: [],
+};
+FilterOptions.permissionSelect = [
+    { key: 'name', value: '員工名稱' },
+    { key: 'email', value: '電子信箱' },
+    { key: 'phone', value: '電話號碼' },
+];
+FilterOptions.permissionFunnel = [
+    {
+        key: 'status',
+        type: 'multi_checkbox',
+        name: '存取權',
+        data: [
+            { key: 'yes', name: '開啟' },
+            { key: 'no', name: '關閉' },
+        ],
+    },
+];
+FilterOptions.permissionOrderBy = [
+    { key: 'default', value: '預設' },
+    { key: 'name', value: '顧客名稱' },
+    { key: 'online_time_asc', value: '最後登入時間早 > 晚' },
+    { key: 'online_time_desc', value: '最後登入時間晚 > 早' },
+];

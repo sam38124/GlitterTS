@@ -1405,12 +1405,15 @@ ${obj.gvc.bindView({
             get: function () {
                 return {
                     scrollWithHover: () => {
-                        gvc.glitter.$(`.editorItemActive`).removeClass('editorItemActive');
-                        gvc.glitter.$(`.editor_it_${cf.widget.id}`).addClass('editorItemActive');
-                        gvc.glitter.$(`.editor_it_${cf.widget.id}`).get(0).scrollIntoView({
-                            behavior: 'smooth',
-                            block: 'center',
-                        });
+                        clearInterval(gvc.glitter.share.scroll_hover_interval);
+                        gvc.glitter.share.scroll_hover_interval = setTimeout(() => {
+                            gvc.glitter.$(`.editorItemActive`).removeClass('editorItemActive');
+                            gvc.glitter.$(`.editor_it_${cf.widget.id}`).addClass('editorItemActive');
+                            gvc.glitter.$(`.editor_it_${cf.widget.id}`).get(0).scrollIntoView({
+                                behavior: 'smooth',
+                                block: 'center',
+                            });
+                        }, 250);
                     },
                     cancelHover: () => {
                         gvc.glitter.$(`.editor_it_${cf.widget.id}`).removeClass('editorItemActive');

@@ -917,7 +917,7 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                 },
                 onCreate: () => {
                     const interval = setInterval(() => {
-                        if ((window as any).FroalaEditor) {
+                        if ((glitter.window as any).FroalaEditor) {
                             setTimeout(() => {
                                 gvc.addStyle(`
                             #insertImage-1 {
@@ -934,7 +934,7 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                     display: none !important;
                                 }
                             `);
-                                const editor = new (window as any).FroalaEditor('#' + richID, {
+                                const editor = new (glitter.window as any).FroalaEditor('#' + richID, {
                                     language: 'zh_tw',
                                     heightMin: 350,
                                     content: obj.def,
@@ -1014,11 +1014,11 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                     },
                                     key: 'hWA2C-7I2B2C4B3E4E2G3wd1DBKSPF1WKTUCQOa1OURPJ1KDe2F-11D2C2D2D2C3B3C1D6B1C2==',
                                 });
-                                if (document.querySelector(`.${richID}-loading`) as any) {
-                                    (document.querySelector(`.${richID}-loading`) as any).remove();
+                                if (glitter.document.querySelector(`.${richID}-loading`) as any) {
+                                    (glitter.document.querySelector(`.${richID}-loading`) as any).remove();
                                 }
                                 setTimeout(() => {
-                                    const target: any = document.querySelector(`[data-cmd="insertImage"]`);
+                                    const target: any = glitter.document.querySelector(`[data-cmd="insertImage"]`);
                                     target.outerHTML = html` <button
                                         id="insertImage-replace"
                                         type="button"
@@ -1072,10 +1072,10 @@ ${obj.structEnd ? obj.structEnd : '})()'}`,
                                         editor.toolbar.disable();
                                     }
                                 }, 200);
-                            }, 1000);
+                            }, 100);
                             clearInterval(interval);
                         }
-                    }, 200);
+                    }, 100);
                 },
             };
         });
@@ -2709,6 +2709,387 @@ ${obj.gvc.bindView(() => {
                                 </div>
                             `
                           : ``}
+                  </div>`
+                : ``) +
+            gvc.bindView(() => {
+                return {
+                    bind: viewId,
+                    view: () => {
+                        return render(
+                            obj.array().map((dd: any, index: number) => {
+                                dd.index = index;
+                                return dd;
+                            }),
+                            false,
+                            obj.originalArray
+                        );
+                    },
+                };
+            })
+        );
+    }
+
+
+    public static fileFolder(obj: {
+        gvc: GVC;
+        title: string;
+        position?: string;
+        array: () => {
+            title: string;
+            innerHtml?: string | ((gvc: GVC) => string);
+            editTitle?: string;
+            saveEvent?: () => void;
+            width?: string;
+            saveAble?: boolean;
+            isSelect?: boolean;
+        }[];
+        originalArray: any;
+        expand: any;
+        height?: number;
+        plus?: {
+            title: string;
+            event: string;
+        };
+        hr?: boolean;
+        refreshComponent: (oldIndex?: number, newIndex?: number) => void;
+        minus?: boolean;
+        draggable?: boolean;
+        copyable?: boolean;
+        customEditor?: boolean;
+        hoverGray?: boolean;
+        minusEvent?: (data: any, index: number) => void;
+    }) {
+        const gvc = obj.gvc;
+        const glitter = gvc.glitter;
+        const viewId = glitter.getUUID();
+
+        function render(array: any, child: boolean, original: any) {
+            const parId = obj.gvc.glitter.getUUID();
+            return (
+                gvc.bindView(() => {
+                    obj.gvc.addMtScript(
+                        [
+                            {
+                                src: `https://raw.githack.com/SortableJS/Sortable/master/Sortable.js`,
+                            },
+                        ],
+                        () => {},
+                        () => {}
+                    );
+                    if (obj.hoverGray) {
+                        gvc.addStyle(`
+                            #${parId} :hover :not(.btn-black, .tx_700_white){
+                                background-color: #F7F7F7;
+                            }
+                            #${parId} :hover .option{
+                                background-color:#DDD;
+                            }
+                            #${parId} :hover .pen{
+                                display:block;
+                            }
+                        `);
+                    }
+                    return {
+                        bind: parId,
+                        view: () => {
+                            return array
+                                .map((dd: any, index: number) => {
+                                    let toggle = gvc.event((e: any, event: any) => {
+                                        dd.toggle = !dd.toggle;
+                                        gvc.notifyDataChange(parId);
+                                        event.preventDefault();
+                                        event.stopPropagation();
+                                    });
+                                    return html`
+                                        <li class="btn-group" style="margin-top:1px;margin-bottom:1px;${obj.hr ? `border-bottom: 1px solid #f6f6f6; ` : ``};">
+                                            <div
+                                                class="h-auto align-items-center px-2 my-0 hi me-n1 ${dd.isSelect ? `bgf6 border` : ``}"
+                                                style="cursor: pointer;min-height:36px;width: calc(100% - 10px);display: flex;font-size: 14px;line-height: 20px;font-weight: 500;text-rendering: optimizelegibility;user-select: none;margin: 5px 10px;"
+                                                onclick="${gvc.event(() => {
+                                        if (!dd.innerHtml) {
+                                            return;
+                                        }
+                                        if (obj.customEditor) {
+                                            dd.innerHtml(gvc);
+                                        } else if (original[index]) {
+                                            const originalData = JSON.parse(JSON.stringify(original[index]));
+                                            gvc.glitter.innerDialog((gvc: GVC) => {
+                                                return html` <div
+                                                                class="dropdown-menu mx-0 position-fixed pb-0 border p-0 show"
+                                                                style="z-index:999999;${dd.width ? `width:${dd.width + ';'}` : ``}"
+                                                                onclick="${gvc.event((e: any, event: any) => {
+                                                    event.preventDefault();
+                                                    event.stopPropagation();
+                                                })}"
+                                                            >
+                                                                <div class="d-flex align-items-center px-2 border-bottom" style="height:50px;min-width:400px;">
+                                                                    <h3 style="font-size:15px;font-weight:500;" class="m-0">${dd.editTitle ? dd.editTitle : `編輯項目「${dd.title}」`}</h3>
+                                                                    <div class="flex-fill"></div>
+                                                                    <div
+                                                                        class="hoverBtn p-2"
+                                                                        data-bs-toggle="dropdown"
+                                                                        aria-haspopup="true"
+                                                                        aria-expanded="false"
+                                                                        style="color:black;font-size:20px;"
+                                                                        onclick="${gvc.event((e: any, event: any) => {
+                                                    original[index] = originalData;
+                                                    gvc.closeDialog();
+                                                    obj.refreshComponent();
+                                                })}"
+                                                                    >
+                                                                        <i class="fa-sharp fa-regular fa-circle-xmark"></i>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="px-2" style="max-height:calc(100vh - 150px);overflow-y:auto;">${dd.innerHtml(gvc)}</div>
+                                                                <div class="d-flex w-100 p-2 border-top ${dd.saveAble === false ? `d-none` : ``}">
+                                                                    <div class="flex-fill"></div>
+                                                                    <div
+                                                                        class="btn btn-secondary"
+                                                                        style="height:40px;width:80px;"
+                                                                        onclick="${gvc.event(() => {
+                                                    original[index] = originalData;
+                                                    gvc.closeDialog();
+                                                    obj.refreshComponent();
+                                                })}"
+                                                                    >
+                                                                        取消
+                                                                    </div>
+                                                                    <div
+                                                                        class="btn btn-primary-c ms-2"
+                                                                        style="height:40px;width:80px;"
+                                                                        onclick="${gvc.event(() => {
+                                                    gvc.closeDialog();
+                                                    (dd.saveEvent && dd.saveEvent()) || obj.refreshComponent();
+                                                })}"
+                                                                    >
+                                                                        <i class="fa-solid fa-floppy-disk me-2"></i>儲存
+                                                                    </div>
+                                                                </div>
+                                                            </div>`;
+                                            }, glitter.getUUID());
+                                        }
+                                    })}"
+                                            >
+                                                <div
+                                                    class="subBt ms-n2 ${obj.minus === false ? `d-none` : ``}"
+                                                    onclick="${gvc.event((e: any, event: any) => {
+                                        if (obj.minusEvent) {
+                                            obj.minusEvent(obj.originalArray, index);
+                                        } else {
+                                            obj.originalArray.splice(index, 1);
+                                            obj.refreshComponent();
+                                        }
+                                        gvc.notifyDataChange(viewId);
+                                        event.stopPropagation();
+                                    })}"
+                                                >
+                                                    <i class="fa-regular fa-circle-minus d-flex align-items-center justify-content-center subBt " style="width:15px;height:15px;color:red;"></i>
+                                                </div>
+                                                <div class="subBt ${obj.draggable === false || dd.draggable === false ? `d-none` : ``} ${obj.position ? `` : `d-none`}">
+                                                    <i
+                                                        class="dragItem fa-solid fa-grip-dots-vertical d-flex align-items-center justify-content-center  "
+                                                        style="width:15px;height:15px;padding-right: 14px;"
+                                                    ></i>
+                                                </div>
+                                                ${dd.title}
+                                                <div class="flex-fill"></div>
+                                                ${(() => {
+                                        let interval: any = undefined;
+                                        if (obj.copyable === false) {
+                                            return ``;
+                                        }
+
+                                        function addIt(ind: number, event: any) {
+                                            const copy = JSON.parse(JSON.stringify(original[index]));
+                                            obj.originalArray.splice(index + ind, 0, copy);
+                                            event.stopPropagation();
+                                            gvc.notifyDataChange(viewId);
+                                            obj.refreshComponent();
+                                        }
+
+                                        let toggle = false;
+                                        return html` <div
+                                                        class="btn-group dropend subBt"
+                                                        style="position: relative;"
+                                                        onclick="${gvc.event((e, event) => {
+                                            toggle = !toggle;
+                                            if (toggle) {
+                                                ($(e).children('.bt') as any).dropdown('show');
+                                                $(e).children('.dropdown-menu').css('top', `${0}px`);
+                                            } else {
+                                                ($(e).children('.bt') as any).dropdown('hide');
+                                            }
+                                            event.stopPropagation();
+                                        })}"
+                                                    >
+                                                        <div type="button" class="bt" style="background:none;" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                            <i class="fa-sharp fa-regular fa-scissors"></i>
+                                                        </div>
+                                                        <div
+                                                            class="dropdown-menu mx-1 "
+                                                            style="height: 135px;"
+                                                            onclick="${gvc.event((e, event) => {
+                                            toggle = false;
+                                            event.stopPropagation();
+                                        })}"
+                                                        >
+                                                            <a
+                                                                class="dropdown-item"
+                                                                onclick="${gvc.event((e, event) => {
+                                            addIt(0, event);
+                                        })}"
+                                                                >向上複製</a
+                                                            >
+                                                            <hr class="dropdown-divider" />
+                                                            <a
+                                                                class="dropdown-item"
+                                                                onclick="${gvc.event((e, event) => {
+                                            ($(e).parent().parent().children('.bt') as any).dropdown('hide');
+                                            navigator.clipboard.writeText(JSON.stringify(original[index]));
+                                        })}"
+                                                                >複製到剪貼簿</a
+                                                            >
+                                                            <hr class="dropdown-divider" />
+                                                            <a
+                                                                class="dropdown-item"
+                                                                onclick="${gvc.event((e, event) => {
+                                            ($(e).parent().parent().children('.bt') as any).dropdown('hide');
+                                            addIt(1, event);
+                                        })}"
+                                                                >向下複製</a
+                                                            >
+                                                        </div>
+                                                    </div>`;
+                                    })()}
+                                                <div class="dragItem subBt ${obj.draggable === false || dd.draggable === false ? `d-none` : ``} ${obj.position ? `d-none` : ``}">
+                                                    <i class="fa-solid fa-grip-dots-vertical d-flex align-items-center justify-content-center  " style="width:15px;height:15px;"></i>
+                                                </div>
+                                            </div>
+                                        </li>
+                                    `;
+                                })
+                                .join('');
+                        },
+                        divCreate: {
+                            class: `d-flex flex-column ${child ? `` : ``} m-0 p-0 position-relative`,
+                            elem: 'ul',
+                            option: [{ key: 'id', value: parId }],
+                        },
+                        onCreate: () => {
+                            if (obj.draggable !== false) {
+                                const interval = setInterval(() => {
+                                    if ((window as any).Sortable) {
+                                        try {
+                                            obj.gvc.addStyle(`
+                                                ul {
+                                                    list-style: none;
+                                                    padding: 0;
+                                                }
+                                            `);
+
+                                            function swapArr(arr: any, index1: number, index2: number) {
+                                                const data = arr[index1];
+                                                arr.splice(index1, 1);
+                                                arr.splice(index2, 0, data);
+                                            }
+
+                                            let startIndex = 0;
+                                            //@ts-ignore
+                                            Sortable.create(document.getElementById(parId), {
+                                                group: obj.gvc.glitter.getUUID(),
+                                                animation: 100,
+                                                handle: '.dragItem',
+                                                // Called when dragging element changes position
+                                                onChange: function (evt: any) {},
+                                                onStart: function (evt: any) {
+                                                    startIndex = evt.oldIndex;
+                                                },
+                                                onEnd: (evt: any) => {
+                                                    swapArr(obj.originalArray, startIndex, evt.newIndex);
+                                                    obj.refreshComponent(evt.oldIndex, evt.newIndex);
+                                                },
+                                            });
+                                        } catch (e) {}
+                                        clearInterval(interval);
+                                    }
+                                }, 100);
+                            }
+                        },
+                    };
+                }) +
+                (obj.plus
+                    ? html` <div class="btn-group mt-2 ps-1 pe-2 w-100 border-bottom pb-2 align-items-center">
+                          <div class="btn-outline-secondary-c btn ms-2 " style="height:30px;flex:1;" onclick="${obj.plus!.event}"><i class="fa-regular fa-circle-plus me-2"></i>${obj.plus!.title}</div>
+                          ${(() => {
+                        if (obj.copyable === false) {
+                            return ``;
+                        }
+                        let interval: any = undefined;
+                        return html` <div
+                                  type="button"
+                                  class="bt ms-1"
+                                  style="background:none;"
+                                  data-bs-toggle="dropdown"
+                                  aria-haspopup="true"
+                                  data-placement="right"
+                                  aria-expanded="false"
+                                  onclick="${gvc.event(() => {
+                            async function readClipboardContent() {
+                                try {
+                                    // 使用 navigator.clipboard.readText() 方法取得剪貼簿的文字內容
+                                    const clipboardText: any = await navigator.clipboard.readText();
+                                    try {
+                                        const data = JSON.parse(clipboardText);
+                                        if (Array.isArray(data)) {
+                                            data.map((dd) => {
+                                                obj.originalArray.push(dd);
+                                            });
+                                        } else {
+                                            obj.originalArray.push(data);
+                                        }
+
+                                        gvc.notifyDataChange(viewId);
+                                        obj.refreshComponent();
+                                    } catch (e) {
+                                        alert('請貼上JSON格式');
+                                    }
+                                } catch (error) {
+                                    // 處理錯誤，例如未授權或不支援
+                                    console.error('無法取得剪貼簿內容:', error);
+                                }
+                            }
+
+                            readClipboardContent();
+                        })}"
+                              >
+                                  <i class="fa-regular fa-paste"></i>
+                              </div>`;
+                    })()}
+                      </div>`
+                    : ``)
+            );
+        }
+
+        return (
+            (obj.title
+                ? html` <div class="d-flex  px-2 hi fw-bold d-flex align-items-center border-bottom  py-2 border-top bgf6" style="color:#151515;font-size:16px;gap:0px;height:48px;">
+                      ${obj.title}
+                      <div class="flex-fill"></div>
+                      ${obj.copyable !== false
+                    ? html`
+                                <div
+                                    class="d-flex align-items-center justify-content-center hoverBtn me-2 border"
+                                    style="height:30px;width:30px;border-radius:6px;cursor:pointer;color:#151515;"
+                                    onclick="${gvc.event(() => {
+                        navigator.clipboard.writeText(JSON.stringify(obj.originalArray));
+                        const dialog = new ShareDialog(gvc.glitter);
+                        dialog.successMessage({ text: '已複製至剪貼簿!' });
+                    })}"
+                                >
+                                    <i class="fa-sharp fa-regular fa-scissors" aria-hidden="true"></i>
+                                </div>
+                            `
+                    : ``}
                   </div>`
                 : ``) +
             gvc.bindView(() => {

@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.archive = void 0;
+exports.archive = archive;
 const fs_1 = __importDefault(require("fs"));
 function archive(bundleName, appName) {
     try {
@@ -117,5 +117,4 @@ function archive(bundleName, appName) {
         console.log(e);
     }
 }
-exports.archive = archive;
 //# sourceMappingURL=app_creater.js.map
