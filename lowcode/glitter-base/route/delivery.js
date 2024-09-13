@@ -24,7 +24,7 @@ export class ApiDelivery {
     }
     static getOrderInfo(json) {
         return BaseApi.create({
-            url: getBaseUrl() + `/api-public/v1/delivery/orderInfo`,
+            url: getBaseUrl() + `/api-public/v1/delivery/printOrderInfo`,
             type: 'POST',
             headers: {
                 'Content-Type': 'application/json',

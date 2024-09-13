@@ -4,6 +4,6 @@ export declare class Delivery {
     constructor(appName: string);
     getC2CMap(returnURL: string, logistics: string): Promise<string>;
     postStoreOrder(): Promise<string>;
-    getUniMartC2COrderInfo(brand: StoreBrand): Promise<string>;
+    printOrderInfo(brand: StoreBrand): Promise<string>;
 }
 export {};

@@ -8,6 +8,7 @@ import { FilterOptions } from './filter-options.js';
 import { ApiUser } from '../glitter-base/route/user.js';
 import { UserList } from './user-list.js';
 import { CheckInput } from '../modules/checkInput.js';
+import { ApiDelivery } from '../glitter-base/route/delivery.js';
 
 interface VoucherData {
     id: number;
@@ -855,15 +856,15 @@ export class ShoppingOrderManager {
                                                                 bind: glitter.getUUID(),
                                                                 view: () => {
                                                                     return html` <div class="d-flex flex-column align-items-center justify-content-center" style="gap:5px;margin-right:12px;">
-                                                                        ${BgWidget.validImageBox({
-                                                                            gvc,
-                                                                            image: dd.preview_image,
-                                                                            width: 60,
-                                                                            class: 'border rounded',
-                                                                            style: '',
-                                                                        })}
-                                                                        ${((dd.is_add_on_items) ? `<div class="">${BgWidget.warningInsignia('加購品')}</div>`:``)}
-                                                                    </div>
+                                                                            ${BgWidget.validImageBox({
+                                                                                gvc,
+                                                                                image: dd.preview_image,
+                                                                                width: 60,
+                                                                                class: 'border rounded',
+                                                                                style: '',
+                                                                            })}
+                                                                            ${dd.is_add_on_items ? `<div class="">${BgWidget.warningInsignia('加購品')}</div>` : ``}
+                                                                        </div>
                                                                         <div class="d-flex flex-column" style="gap:2px;">
                                                                             <div class="tx_700">${dd.title}</div>
                                                                             ${dd.spec.length > 0 ? BgWidget.grayNote(dd.spec.join(', ')) : ''}

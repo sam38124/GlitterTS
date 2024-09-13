@@ -95,7 +95,7 @@ class Delivery {
             checkMacValue,
         });
     }
-    async getUniMartC2COrderInfo(brand) {
+    async printOrderInfo(brand) {
         const keyData = (await private_config_js_1.Private_config.getConfig({
             appName: this.appName,
             key: 'glitter_finance',

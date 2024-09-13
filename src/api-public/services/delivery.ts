@@ -116,7 +116,7 @@ export class Delivery {
         });
     }
 
-    public async getUniMartC2COrderInfo(brand: StoreBrand) {
+    public async printOrderInfo(brand: StoreBrand) {
         const keyData = (
             await Private_config.getConfig({
                 appName: this.appName,

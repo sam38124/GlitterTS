@@ -68,9 +68,9 @@ router.post('/createStoreOrder', async (req: express.Request, resp: express.Resp
     }
 });
 
-router.post('/orderInfo', async (req: express.Request, resp: express.Response) => {
+router.post('/printOrderInfo', async (req: express.Request, resp: express.Response) => {
     try {
-        const formString = await new Delivery(req.get('g-app') as string).getUniMartC2COrderInfo(req.body.brand);
+        const formString = await new Delivery(req.get('g-app') as string).printOrderInfo(req.body.brand);
         return response.succ(resp, { form: formString });
     } catch (err) {
         return response.fail(resp, err);

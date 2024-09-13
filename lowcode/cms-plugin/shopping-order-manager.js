@@ -657,15 +657,15 @@ export class ShoppingOrderManager {
                             bind: glitter.getUUID(),
                             view: () => {
                                 return html ` <div class="d-flex flex-column align-items-center justify-content-center" style="gap:5px;margin-right:12px;">
-                                                                        ${BgWidget.validImageBox({
+                                                                            ${BgWidget.validImageBox({
                                     gvc,
                                     image: dd.preview_image,
                                     width: 60,
                                     class: 'border rounded',
                                     style: '',
                                 })}
-                                                                        ${((dd.is_add_on_items) ? `<div class="">${BgWidget.warningInsignia('加購品')}</div>` : ``)}
-                                                                    </div>
+                                                                            ${dd.is_add_on_items ? `<div class="">${BgWidget.warningInsignia('加購品')}</div>` : ``}
+                                                                        </div>
                                                                         <div class="d-flex flex-column" style="gap:2px;">
                                                                             <div class="tx_700">${dd.title}</div>
                                                                             ${dd.spec.length > 0 ? BgWidget.grayNote(dd.spec.join(', ')) : ''}
