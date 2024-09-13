@@ -130,7 +130,7 @@ router.post('/checkout', async (req, resp) => {
             custom_form_format: req.body.custom_form_format,
             custom_form_data: req.body.custom_form_data,
             distribution_code: req.body.distribution_code,
-            code_array: req.body.code_array
+            code_array: req.body.code_array,
         }));
     }
     catch (err) {
@@ -165,7 +165,7 @@ router.post('/checkout/preview', async (req, resp) => {
             })(),
             checkOutType: req.body.checkOutType,
             distribution_code: req.body.distribution_code,
-            code_array: req.body.code_array
+            code_array: req.body.code_array,
         }, 'preview'));
     }
     catch (err) {
@@ -186,7 +186,7 @@ router.post('/manager/checkout', async (req, resp) => {
                 discount: req.body.discount,
                 total: req.body.total,
                 pay_status: req.body.pay_status,
-                code_array: req.body.code_array
+                code_array: req.body.code_array,
             }, 'manual'));
         }
         else {
@@ -213,7 +213,7 @@ router.post('/manager/checkout/preview', async (req, resp) => {
                         return 0;
                     }
                 })(),
-                code_array: req.body.code_array
+                code_array: req.body.code_array,
             }, 'manual-preview'));
         }
         else {
@@ -530,7 +530,7 @@ router.post('/notify', upload.single('file'), async (req, resp) => {
                 return `${dd.toLowerCase()}=${params[dd]}`;
             });
             let raw = od.join('&');
-            raw = financial_service_js_1.EcPay.urlEncode_dot_net(`HashKey=${keyData.HASH_KEY}&${raw.toLowerCase()}&HashIV=${keyData.HASH_IV}`);
+            raw = financial_service_js_1.EcPay.urlEncodeDotNet(`HashKey=${keyData.HASH_KEY}&${raw.toLowerCase()}&HashIV=${keyData.HASH_IV}`);
             const chkSum = crypto_1.default.createHash('sha256').update(raw.toLowerCase()).digest('hex');
             decodeData = {
                 Status: url.searchParams.get('RtnCode') === '1' && url.searchParams.get('CheckMacValue').toLowerCase() === chkSum ? `SUCCESS` : `ERROR`,
@@ -755,7 +755,7 @@ router.get('/product', async (req, resp) => {
             with_hide_index: req.query.with_hide_index,
             is_manger: (await ut_permission_1.UtPermission.isManager(req)),
             show_hidden: `${req.query.show_hidden}`,
-            productType: req.query.productType
+            productType: req.query.productType,
         });
         return response_1.default.succ(resp, shopping);
     }
@@ -889,7 +889,7 @@ router.post('/pos/checkout', async (req, resp) => {
             discount: req.body.discount,
             total: req.body.total,
             pay_status: req.body.pay_status,
-            code_array: req.body.code_array
+            code_array: req.body.code_array,
         }, 'POS'));
     }
     try {

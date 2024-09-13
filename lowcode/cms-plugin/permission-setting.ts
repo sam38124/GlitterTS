@@ -8,6 +8,8 @@ import { BgListComponent } from '../backend-manager/bg-list-component.js';
 import { CheckInput } from '../modules/checkInput.js';
 import { Setting_editor } from '../jspage/function-page/setting_editor.js';
 import { Tool } from '../modules/tool.js';
+import { ApiShop } from '../glitter-base/route/shopping.js';
+import { ApiDelivery } from '../glitter-base/route/delivery.js';
 
 const html = String.raw;
 

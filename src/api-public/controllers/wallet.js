@@ -212,7 +212,7 @@ router.post('/notify', upload.single('file'), async (req, resp) => {
                 return `${dd.toLowerCase()}=${params[dd]}`;
             });
             let raw = od.join('&');
-            raw = financial_service_js_1.EcPay.urlEncode_dot_net(`HashKey=${keyData.HASH_KEY}&${raw.toLowerCase()}&HashIV=${keyData.HASH_IV}`);
+            raw = financial_service_js_1.EcPay.urlEncodeDotNet(`HashKey=${keyData.HASH_KEY}&${raw.toLowerCase()}&HashIV=${keyData.HASH_IV}`);
             const chkSum = crypto_1.default.createHash('sha256').update(raw.toLowerCase()).digest('hex');
             decodeData = {
                 Status: url.searchParams.get('RtnCode') === '1' && url.searchParams.get('CheckMacValue').toLowerCase() === chkSum ? `SUCCESS` : `ERROR`,

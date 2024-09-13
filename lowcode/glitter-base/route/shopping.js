@@ -499,17 +499,6 @@ export class ApiShop {
             },
         });
     }
-    static selectC2cMap(json) {
-        return BaseApi.create({
-            url: getBaseUrl() + `/api-public/v1/delivery/c2cMap`,
-            type: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'g-app': getConfig().config.appName,
-            },
-            data: JSON.stringify(json),
-        });
-    }
     static toCheckout(json) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/checkout`,

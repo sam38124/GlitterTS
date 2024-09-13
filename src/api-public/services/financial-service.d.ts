@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import { Encoding } from 'crypto';
 interface KeyData {
     MERCHANT_ID: string;
@@ -12,12 +13,16 @@ export default class FinancialService {
     keyData: KeyData;
     appName: string;
     constructor(appName: string, keyData: KeyData);
+    static aesEncrypt(data: string, key: string, iv: string, input?: Encoding, output?: Encoding, method?: string): string;
+    static JsonToQueryString(data: {
+        [key: string]: string | string[] | number;
+    }): string;
     createOrderPage(orderData: {
         lineItems: {
-            "id": string;
-            "spec": string[];
-            "count": number;
-            "sale_price": number;
+            id: string;
+            spec: string[];
+            count: number;
+            sale_price: number;
             title: string;
         }[];
         total: number;
@@ -34,24 +39,19 @@ export default class FinancialService {
         note: any;
         method: string;
     }): Promise<string>;
-    generateUniqueOrderNumber(): string;
-    static JsonToQueryString(data: {
-        [key: string]: string | string[] | number;
-    }): string;
-    static aesEncrypt(data: string, key: string, iv: string, input?: Encoding, output?: Encoding, method?: string): string;
 }
 export declare class EzPay {
     keyData: KeyData;
     appName: string;
     constructor(appName: string, keyData: KeyData);
-    decode(data: string): Promise<string>;
     static aesDecrypt: (data: string, key: string, iv: string, input?: Encoding, output?: Encoding, method?: string) => string;
+    decode(data: string): Promise<string>;
     createOrderPage(orderData: {
         lineItems: {
-            "id": string;
-            "spec": string[];
-            "count": number;
-            "sale_price": number;
+            id: string;
+            spec: string[];
+            count: number;
+            sale_price: number;
         }[];
         total: number;
         email: string;
@@ -73,10 +73,10 @@ export declare class EcPay {
     constructor(appName: string, keyData: KeyData);
     createOrderPage(orderData: {
         lineItems: {
-            "id": string;
-            "spec": string[];
-            "count": number;
-            "sale_price": number;
+            id: string;
+            spec: string[];
+            count: number;
+            sale_price: number;
             title: string;
         }[];
         total: number;
@@ -93,6 +93,6 @@ export declare class EcPay {
         note: string;
         method: string;
     }): Promise<string>;
-    static urlEncode_dot_net(raw_data: string, case_tr?: string): string;
+    static urlEncodeDotNet(raw_data: string, case_tr?: string): string;
 }
 export {};

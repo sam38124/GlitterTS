@@ -7,15 +7,6 @@ const router: express.Router = express.Router();
 
 export = router;
 
-router.post('/c2cMap', async (req: express.Request, resp: express.Response) => {
-    try {
-        const formString = await new Delivery(req.get('g-app') as string).getC2CMap(req.body.returnURL, req.body.logistics);
-        return response.succ(resp, { form: formString });
-    } catch (err) {
-        return response.fail(resp, err);
-    }
-});
-
 router.post('/c2cRedirect', async (req: express.Request, resp: express.Response) => {
     try {
         const html = String.raw;
@@ -46,6 +37,41 @@ router.post('/c2cRedirect', async (req: express.Request, resp: express.Response)
                     </script>
                 </body>
             </html> `);
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+
+router.post('/c2cNotify', async (req: express.Request, resp: express.Response) => {
+    try {
+        return response.succ(resp, { result: 'c2cNotify' });
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+
+router.post('/storeMaps', async (req: express.Request, resp: express.Response) => {
+    try {
+        const formString = await new Delivery(req.get('g-app') as string).getC2CMap(req.body.returnURL, req.body.logistics);
+        return response.succ(resp, { form: formString });
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+
+router.post('/createStoreOrder', async (req: express.Request, resp: express.Response) => {
+    try {
+        const formString = await new Delivery(req.get('g-app') as string).postStoreOrder();
+        return response.succ(resp, { form: formString });
+    } catch (err) {
+        return response.fail(resp, err);
+    }
+});
+
+router.post('/orderInfo', async (req: express.Request, resp: express.Response) => {
+    try {
+        const formString = await new Delivery(req.get('g-app') as string).getUniMartC2COrderInfo(req.body.brand);
+        return response.succ(resp, { form: formString });
     } catch (err) {
         return response.fail(resp, err);
     }

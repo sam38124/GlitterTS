@@ -250,14 +250,14 @@ export class ApiShop {
         id?: string;
         collection?: string;
         accurate_search_collection?: boolean;
-        accurate_search_text?:boolean;
+        accurate_search_text?: boolean;
         maxPrice?: string;
         minPrice?: string;
         status?: string;
         orderBy?: string;
         id_list?: string;
         with_hide_index?: string;
-        productType?:string
+        productType?: string;
     }) {
         return BaseApi.create({
             url:
@@ -430,7 +430,14 @@ export class ApiShop {
         });
     }
 
-    static getVoucher(json: { limit: number; page: number; search?: string; id?: string; data_from?: 'user' | 'manager',voucher_type?:'rebate' | 'discount' | 'shipment_free' | 'add_on_items' | 'giveaway' }) {
+    static getVoucher(json: {
+        limit: number;
+        page: number;
+        search?: string;
+        id?: string;
+        data_from?: 'user' | 'manager';
+        voucher_type?: 'rebate' | 'discount' | 'shipment_free' | 'add_on_items' | 'giveaway';
+    }) {
         return BaseApi.create({
             url:
                 getBaseUrl() +
@@ -573,18 +580,6 @@ export class ApiShop {
                 'Content-Type': 'application/json',
                 'g-app': getConfig().config.appName,
             },
-        });
-    }
-
-    static selectC2cMap(json: { returnURL: string; logistics: string }) {
-        return BaseApi.create({
-            url: getBaseUrl() + `/api-public/v1/delivery/c2cMap`,
-            type: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'g-app': getConfig().config.appName,
-            },
-            data: JSON.stringify(json),
         });
     }
 
