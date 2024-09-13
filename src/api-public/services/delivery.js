@@ -85,6 +85,9 @@ class Delivery {
             ServerReplyURL: keyData.NotifyURL,
             ReceiverStoreID: '131386',
         };
+        const fakeData = {
+            UNIMARTC2C: '131386',
+        };
         const checkMacValue = EcPay.generateCheckMacValue(params, keyData.HASH_KEY, keyData.HASH_IV);
         return EcPay.generateForm({
             actionURL: 'https://logistics-stage.ecpay.com.tw/Express/Create',
