@@ -829,7 +829,7 @@ export class PageSettingView {
                                 },
                                 array: [
                                     {
-                                        title: '導入全局樣式',
+                                        title: '導入全站樣式',
                                         value: 'global',
                                     },
                                     {

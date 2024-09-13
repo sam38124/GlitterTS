@@ -793,7 +793,7 @@ background: #F7F7F7;"
                                 hide_title: true,
                                 hide_delete: true,
                             }),
-                            title: '變更全局容器樣式',
+                            title: '變更全站容器樣式',
                         });
                     })}"><i class="fa-solid fa-pencil"></i></div>
 </div>
@@ -840,7 +840,7 @@ background: #F7F7F7;"
         </button>
 </div>`,
                             ].join(''),
-                            title: '新增全局容器',
+                            title: '新增全站容器',
                         });
                     })}">新增容器</a>
                 </div>
@@ -888,7 +888,7 @@ background: #F7F7F7;"
                                 hide_delete: true,
                                 margin_style: true,
                             }),
-                            title: '變更全局間距樣式',
+                            title: '變更全站間距樣式',
                         });
                     })}"><i class="fa-solid fa-pencil"></i></div>
 </div>

@@ -24,7 +24,7 @@ export class ColorThemeSelector {
                         const select = cf.widget.bundle.form_data[cf.widget.bundle.form_key];
                         return html`
                             <div class="tx_normal my-2">${cf.widget.bundle.form_title}</div>
-                            <div class="w-100">
+                            <div class="w-100 colorSettingGuide">
                                 ${[
                                     {
                                         title: html`全站統一配色`,
@@ -46,6 +46,7 @@ export class ColorThemeSelector {
                                                     class="d-flex  cursor_pointer"
                                                     style="gap:8px;"
                                                     onclick="${cf.gvc.event(() => {
+                                                        
                                                         const key = `${select.id}`.split('-')[0] === 'custom' ? `custom` : `global`;
                                                         if (key === dd.value) {
                                                             return;
@@ -62,7 +63,7 @@ export class ColorThemeSelector {
                                                         ? `<i class="fa-sharp fa-solid fa-circle-dot color39" style="margin-top: 5px;"></i>`
                                                         : ` <div class="c_39_checkbox " style="margin-top: 5px;"></div>`}
                                                     <div
-                                                        class="tx_normal fw-normal d-flex flex-column"
+                                                        class="tx_normal fw-normal d-flex flex-column "
                                                         style="max-width: calc(100% - 40px);white-space: normal;word-break: break-all;overflow: hidden;line-height: 25px;"
                                                     >
                                                         ${dd.title} ${(`${select.id}`.split('-')[0] === 'custom' ? `custom` : `global`) === dd.value ? dd.hint : ``}
@@ -91,7 +92,7 @@ export class ColorThemeSelector {
                                                 if (`${select.id}`.split('-')[0] === 'custom') {
                                                     return `自定義`;
                                                 } else if (globalValue.color_theme[parseInt(select.id, 10)]) {
-                                                    return `調色盤${parseInt(select.id, 10) + 1}`;
+                                                    return `配色${parseInt(select.id, 10) + 1}`;
                                                 } else {
                                                     return `尚未設定`;
                                                 }
@@ -99,7 +100,7 @@ export class ColorThemeSelector {
                                         </div>
                                     </div>
 
-                                    <div style="cursor: pointer;" onclick="${cf.gvc.event(() => {
+                                    <div class="guide-user-editor-10" style="cursor: pointer;" onclick="${cf.gvc.event(() => {
                                         const custom = `${select.id}`.split('-')[0] === 'custom';
                                         NormalPageEditor.toggle({
                                             visible: true,
@@ -117,7 +118,7 @@ export class ColorThemeSelector {
 
                                                     return inf.includes(`.${key}`) || inf.includes(`("${key}`) || inf.includes(`('${key}`) || inf.includes(`['${key}']`) || inf.includes(`["${key}"]`);
                                                 },
-                                                name: custom ? `自定義配色` : `調色盤${parseInt(select.id, 10) + 1}`,
+                                                name: custom ? `自定義配色` : `配色${parseInt(select.id, 10) + 1}`,
                                                 data: custom ? select : globalValue.color_theme[parseInt(select.id, 10)],
                                                 index: parseInt(select.id, 10),
                                             }),
@@ -145,7 +146,7 @@ export class ColorThemeSelector {
                                              const vm: any = {};
                                              vm.data = { id: cf.gvc.glitter.getUUID() };
                                              globalValue.color_theme.push(vm.data);
-                                             vm.name = '調色盤' + globalValue.color_theme.length;
+                                             vm.name = '配色' + globalValue.color_theme.length;
                                              vm.type = 'detail';
                                              vm.index = globalValue.color_theme.length - 1;
                                              EditorConfig.color_setting_config.map((dd) => {
@@ -270,7 +271,7 @@ padding-left:12px;padding-right: 12px;${`${index}` === select.id ? `background:#
              >
                  <div style="width:100px;">${Main_editor.colorCard(custom ? cf.widget.bundle.form_data[cf.widget.bundle.form_key] : globalValue.color_theme[index])}</div>
                  <div style="width: 100px; flex-direction: column; justify-content: center; align-items: flex-start; gap: 4px; display: inline-flex">
-                     <div style="align-self: stretch; color: #393939; font-size: 16px;  font-weight: 400; word-wrap: break-word">${custom ? `自定義配色` : `調色盤${index + 1}`}</div>
+                     <div style="align-self: stretch; color: #393939; font-size: 16px;  font-weight: 400; word-wrap: break-word">${custom ? `自定義配色` : `配色${index + 1}`}</div>
                  </div>
                  <div class="flex-fill"></div>
                  ${value.select ? `<i class="fa-solid fa-circle-check " style="color: #393939;font-size:24px;"></i>` : ``}

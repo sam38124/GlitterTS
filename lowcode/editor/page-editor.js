@@ -476,7 +476,7 @@ export class PageEditor {
                     return [
                         html `
                             <div class="d-flex   px-2   hi fw-bold d-flex align-items-center border-bottom"
-                                 style="font-size:14px;color:#da552f;">全局-STYLE
+                                 style="font-size:14px;color:#da552f;">全站-STYLE
                                 <div class="flex-fill"></div>
                                 <li class="btn-group dropleft" onclick="${gvc.event(() => {
                             viewModel.selectContainer = viewModel.globalStyle;
@@ -527,7 +527,7 @@ export class PageEditor {
                                     </div>
                                 </div>
                             </div>`,
-                        (viewModel.globalStyle.length === 0) ? ` <div class="alert-info alert p-2 m-2" style="">尚未設定全局樣式</div>` :
+                        (viewModel.globalStyle.length === 0) ? ` <div class="alert-info alert p-2 m-2" style="">尚未設定全站樣式</div>` :
                             EditorElem.arrayItem({
                                 gvc: gvc,
                                 title: '',

@@ -654,12 +654,14 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                                                             view: () => {
                                                                                 const html = String.raw;
                                                                                 try {
-                                                                                    return [
+                                                                                    return html `
+                                                                                        <div class=" d-flex flex-column">
+                                                                                            ${[
                                                                                         `<div class="mx-n2">${(() => {
                                                                                             switch (vm.page) {
                                                                                                 case "editor":
                                                                                                     return html `
-                                                                                                        ${gvc.bindView(() => {
+                                                                                                                ${gvc.bindView(() => {
                                                                                                         const vm = {
                                                                                                             id: gvc.glitter.getUUID(),
                                                                                                             type: 'preview'
@@ -669,29 +671,30 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                                                                                             view: () => {
                                                                                                                 if (vm.type === 'preview') {
                                                                                                                     return html `
-                                                                                                                            <i class="fa-solid fa-chevron-left h-100 d-flex align-items-center justify-content-center " style="cursor: pointer;"
-                                                                                                                               ></i>
-                                                                                                                            <span style="max-width: calc(100% - 50px);text-overflow: ellipsis;white-space: nowrap;overflow: hidden;" >${widget.label}</span>
-                                                                                                                            <div class="flex-fill"></div>
-                                                                                                                            <button class="btn sel_normal"
-                                                                                                                                    type="button"
-                                                                                                                                    onclick="${gvc.event((e, event) => {
+                                                                                                                                    <i class="fa-solid fa-chevron-left h-100 d-flex align-items-center justify-content-center "
+                                                                                                                                       style="cursor: pointer;"
+                                                                                                                                    ></i>
+                                                                                                                                    <span style="max-width: calc(100% - 50px);text-overflow: ellipsis;white-space: nowrap;overflow: hidden;">${widget.label}</span>
+                                                                                                                                    <div class="flex-fill"></div>
+                                                                                                                                    <button class="btn sel_normal"
+                                                                                                                                            type="button"
+                                                                                                                                            onclick="${gvc.event((e, event) => {
                                                                                                                         event.stopPropagation();
                                                                                                                         vm.type = 'editor';
                                                                                                                         gvc.notifyDataChange(vm.id);
                                                                                                                     })}">
-                                                                                                                                <span style="font-size: 14px; color: #393939; font-weight: 400;">更改命名</span>
-                                                                                                                            </button>`;
+                                                                                                                                        <span style="font-size: 14px; color: #393939; font-weight: 400;">更改命名</span>
+                                                                                                                                    </button>`;
                                                                                                                 }
                                                                                                                 else {
                                                                                                                     let name = widget.label;
                                                                                                                     return html `
-                                                                                                                            <i class="fa-solid fa-xmark h-100 d-flex align-items-center justify-content-center "
-                                                                                                                               onclick="${gvc.event(() => {
+                                                                                                                                    <i class="fa-solid fa-xmark h-100 d-flex align-items-center justify-content-center "
+                                                                                                                                       onclick="${gvc.event(() => {
                                                                                                                         vm.type = 'preview';
                                                                                                                         gvc.notifyDataChange(vm.id);
                                                                                                                     })}"></i>
-                                                                                                                            ${EditorElem.editeInput({
+                                                                                                                                    ${EditorElem.editeInput({
                                                                                                                         gvc: gvc,
                                                                                                                         title: '',
                                                                                                                         default: name,
@@ -700,16 +703,16 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                                                                                                             name = text;
                                                                                                                         },
                                                                                                                     })}
-                                                                                                                            <button class="btn sel_normal"
-                                                                                                                                    type="button"
-                                                                                                                                    onclick="${gvc.event((e, event) => {
+                                                                                                                                    <button class="btn sel_normal"
+                                                                                                                                            type="button"
+                                                                                                                                            onclick="${gvc.event((e, event) => {
                                                                                                                         event.stopPropagation();
                                                                                                                         vm.type = 'preview';
                                                                                                                         widget.label = name;
                                                                                                                         gvc.notifyDataChange(vm.id);
                                                                                                                     })}">
-                                                                                                                                <span style="font-size: 14px; color: #393939; font-weight: 400;">確認</span>
-                                                                                                                            </button>`;
+                                                                                                                                        <span style="font-size: 14px; color: #393939; font-weight: 400;">確認</span>
+                                                                                                                                    </button>`;
                                                                                                                 }
                                                                                                             },
                                                                                                             divCreate: {
@@ -717,7 +720,8 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                                                                                                 style: `cursor: pointer;color:#393939;border-radius: 0px;gap:10px;`,
                                                                                                                 option: [
                                                                                                                     {
-                                                                                                                        key: 'onclick', value: gvc.event(() => {
+                                                                                                                        key: 'onclick',
+                                                                                                                        value: gvc.event(() => {
                                                                                                                             if (vm.type === 'editor') {
                                                                                                                                 return;
                                                                                                                             }
@@ -743,26 +747,26 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                                                                                             }
                                                                                                         };
                                                                                                     })}
-                                                                                                        <div class="ps-2">
-                                                                                                            ${GlobalWidget.showCaseBar(gvc, widget, () => {
+                                                                                                                <div class="ps-2">
+                                                                                                                    ${GlobalWidget.showCaseBar(gvc, widget, () => {
                                                                                                         vm.page = 'editor';
                                                                                                         gvc.notifyDataChange(id);
                                                                                                     })}
-                                                                                                        </div>`;
+                                                                                                                </div>`;
                                                                                                 case "setting":
                                                                                                     return html `
-                                                                                                        <div
-                                                                                                                class="px-3   border-bottom pb-3 fw-bold mt-n3  pt-3 hoverF2 d-flex align-items-center"
-                                                                                                                style="cursor: pointer;color:#393939;border-radius: 0px;gap:10px;"
-                                                                                                                onclick="${gvc.event(() => {
+                                                                                                                <div
+                                                                                                                        class="px-3 border-bottom pb-3 fw-bold mt-n3  pt-3 hoverF2 d-flex align-items-center guideBackSetting"
+                                                                                                                        style="cursor: pointer;color:#393939;border-radius: 0px;gap:10px;"
+                                                                                                                        onclick="${gvc.event(() => {
                                                                                                         vm.page = 'editor';
                                                                                                         gvc.notifyDataChange(id);
                                                                                                     })}"
-                                                                                                        >
-                                                                                                            <i class="fa-solid fa-chevron-left"></i>
-                                                                                                            <span style="max-width: calc(100% - 50px);text-overflow: ellipsis;white-space: nowrap;overflow: hidden;">設定</span>
-                                                                                                            <div class="flex-fill"></div>
-                                                                                                        </div>`;
+                                                                                                                >
+                                                                                                                    <i class="fa-solid fa-chevron-left"></i>
+                                                                                                                    <span style="max-width: calc(100% - 50px);text-overflow: ellipsis;white-space: nowrap;overflow: hidden;">設定</span>
+                                                                                                                    <div class="flex-fill"></div>
+                                                                                                                </div>`;
                                                                                             }
                                                                                         })()}</div>`,
                                                                                         GlobalWidget.showCaseEditor({
@@ -939,16 +943,14 @@ export const component = Plugin.createComponent(import.meta.url, (glitter, editM
                                                                                                                     if (vm.page === 'editor') {
                                                                                                                         return [
                                                                                                                             type === 'def' ? `` : html `
-                                                                                                                                <div class="my-2 mx-3 "
-                                                                                                                                     style=" height: 40px; padding: 6px 18px;background: #393939; border-radius: 10px; overflow: hidden;
-width: calc(100% - 30px);
-justify-content: center; align-items: center; gap: 8px; display: inline-flex;cursor: pointer;"
-                                                                                                                                     onclick="${gvc.event(() => {
+                                                                                                                                        <div class="my-2 mx-3 guide-user-editor-6 "
+                                                                                                                                             style=" height: 40px; padding: 6px 18px;background: #393939; border-radius: 10px; overflow: hidden;width: calc(100% - 30px);justify-content: center; align-items: center; gap: 8px; display: inline-flex;cursor: pointer;"
+                                                                                                                                             onclick="${gvc.event(() => {
                                                                                                                                 const cGvc = gvc;
                                                                                                                                 EditorElem.openEditorDialog(gvc, (gvc) => {
                                                                                                                                     return html `
-                                                                                                                                                 <div class="p-3">
-                                                                                                                                                     ${[
+                                                                                                                                                         <div class="p-3">
+                                                                                                                                                             ${[
                                                                                                                                         BgWidget.multiCheckboxContainer(gvc, page_config.formFormat.map((dd) => {
                                                                                                                                             return {
                                                                                                                                                 key: dd.key,
@@ -968,27 +970,27 @@ justify-content: center; align-items: center; gap: 8px; display: inline-flex;cur
                                                                                                                                             oWidget[`${type}_editable`] = select;
                                                                                                                                         }, {}),
                                                                                                                                         html `
-                                                                                                                                                             <div class="d-flex justify-content-end"
-                                                                                                                                                                  style="gap:10px;">
-                                                                                                                                                                 ${BgWidget.cancel(gvc.event(() => {
+                                                                                                                                                                     <div class="d-flex justify-content-end"
+                                                                                                                                                                          style="gap:10px;">
+                                                                                                                                                                         ${BgWidget.cancel(gvc.event(() => {
                                                                                                                                             gvc.closeDialog();
                                                                                                                                         }))}
-                                                                                                                                                                 ${BgWidget.save(gvc.event(() => {
+                                                                                                                                                                         ${BgWidget.save(gvc.event(() => {
                                                                                                                                             gvc.closeDialog();
                                                                                                                                             getReferForm(widget, type);
                                                                                                                                             refreshLeftBar();
                                                                                                                                             refresh(widget, type);
                                                                                                                                         }), '完成')}
-                                                                                                                                                             </div>`
+                                                                                                                                                                     </div>`
                                                                                                                                     ].join('')}
-                                                                                                                                                 </div>`;
+                                                                                                                                                         </div>`;
                                                                                                                                 }, () => {
                                                                                                                                 }, 569, '設置自定義選項');
                                                                                                                             })}">
-                                                                                                                                    <div style="color: white; font-size: 16px; font-family: Noto Sans; font-weight: 700; word-wrap: break-word">
-                                                                                                                                        設置自定義選項
-                                                                                                                                    </div>
-                                                                                                                                </div>`,
+                                                                                                                                            <div style="color: white; font-size: 16px; font-family: Noto Sans; font-weight: 700; word-wrap: break-word">
+                                                                                                                                                設置自定義選項
+                                                                                                                                            </div>
+                                                                                                                                        </div>`,
                                                                                                                             FormWidget.editorView({
                                                                                                                                 gvc: gvc,
                                                                                                                                 array: yield filterFormat((dd) => {
@@ -1008,8 +1010,8 @@ justify-content: center; align-items: center; gap: 8px; display: inline-flex;cur
                                                                                                                                 widget: pageData.config
                                                                                                                             }),
                                                                                                                             html `
-                                                                                                                                <div class="p-3 mt-3 d-flex align-items-center ${setting_option.length > 0 ? `` : `d-none`}"
-                                                                                                                                     style="font-size: 16px;
+                                                                                                                                        <div class="p-3 mt-3 d-flex align-items-center guide-user-editor-7 ${setting_option.length > 0 ? `` : `d-none`}"
+                                                                                                                                             style="font-size: 16px;
 cursor: pointer;
 border-top: 1px solid #DDD;
 font-style: normal;
@@ -1018,9 +1020,9 @@ font-weight: 700;" onclick="${gvc.event(() => {
                                                                                                                                 vm.page = 'setting';
                                                                                                                                 gvc.notifyDataChange(id);
                                                                                                                             })}">
-                                                                                                                                    設定
-                                                                                                                                    <i class="fa-solid fa-angle-right"></i>
-                                                                                                                                </div>`
+                                                                                                                                            設定
+                                                                                                                                            <i class="fa-solid fa-angle-right"></i>
+                                                                                                                                        </div>`
                                                                                                                         ].join('');
                                                                                                                     }
                                                                                                                     else if (vm.page === 'setting') {
@@ -1035,8 +1037,8 @@ font-weight: 700;" onclick="${gvc.event(() => {
                                                                                                                                         bind: vm_c.id,
                                                                                                                                         view: () => {
                                                                                                                                             const array_string = [html `
-                                                                                                                                            <div class="hoverF2 d-flex align-items-center p-3"
-                                                                                                                                                 onclick="${gvc.event(() => {
+                                                                                                                                                    <div class="hoverF2 d-flex align-items-center p-3 guide-user-editor-8"
+                                                                                                                                                         onclick="${gvc.event(() => {
                                                                                                                                                     setting_option.map((dd) => {
                                                                                                                                                         if (dd.vm_c.toggle) {
                                                                                                                                                             dd.vm_c.toggle = false;
@@ -1048,10 +1050,10 @@ font-weight: 700;" onclick="${gvc.event(() => {
                                                                                                                                                 })}">
 <span class="fw-500"
       style="max-width: calc(100% - 50px);text-overflow: ellipsis;white-space: nowrap;overflow: hidden;">${dd.title}</span>
-                                                                                                                                                <div class="flex-fill"></div>
-                                                                                                                                                ${vm_c.toggle ? ` <i class="fa-solid fa-chevron-down"></i>` : ` <i class="fa-solid fa-chevron-right"></i>`}
+                                                                                                                                                        <div class="flex-fill"></div>
+                                                                                                                                                        ${vm_c.toggle ? ` <i class="fa-solid fa-chevron-down"></i>` : ` <i class="fa-solid fa-chevron-right"></i>`}
 
-                                                                                                                                            </div>`];
+                                                                                                                                                    </div>`];
                                                                                                                                             if (vm_c.toggle) {
                                                                                                                                                 switch (dd.key) {
                                                                                                                                                     case 'style':
@@ -1130,7 +1132,7 @@ font-weight: 700;" onclick="${gvc.event(() => {
                                                                                                                                             return array_string.join('');
                                                                                                                                         },
                                                                                                                                         divCreate: {
-                                                                                                                                            class: `border-bottom`,
+                                                                                                                                            class: `border-bottom `,
                                                                                                                                             style: `cursor: pointer;color:#393939;border-radius: 0px;gap:10px;`
                                                                                                                                         }
                                                                                                                                     };
@@ -1148,7 +1150,7 @@ font-weight: 700;" onclick="${gvc.event(() => {
                                                                                                             })
                                                                                                         };
                                                                                                     }));
-                                                                                                    return `<div class="mx-n2">${array_html.join('')}</div>`;
+                                                                                                    return `<div class="mx-n2 ">${array_html.join('')}</div>`;
                                                                                                 }
                                                                                                 catch (e) {
                                                                                                     console.log(`error--->`, e);
@@ -1165,7 +1167,9 @@ font-weight: 700;" onclick="${gvc.event(() => {
                                                                                                 }
                                                                                             }
                                                                                         })
-                                                                                    ].join('');
+                                                                                    ].join('')}
+
+                                                                                        </div>`;
                                                                                 }
                                                                                 catch (e) {
                                                                                     return ``;

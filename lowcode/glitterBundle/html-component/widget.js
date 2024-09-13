@@ -772,7 +772,7 @@ export const widgetComponent = {
                                             const html = String.raw;
                                             let array = [];
                                             const setting_btn = html `
-                                                <div class="py-3 mx-n3 px-3   d-flex align-items-center"
+                                                <div class="py-3 mx-n3 px-3   d-flex align-items-center "
                                                      style="font-size: 16px;
 cursor: pointer;
 border-top: 1px solid #DDD;
@@ -810,7 +810,7 @@ font-weight: 700;" onclick="${gvc.event(() => {
                                                                                 glitter: glitter,
                                                                             });
                                                                         })}">
-                                                                    <div class="w-100 fw-500 d-flex align-items-center  fs-6 hoverBtn h_item  rounded px-2 hoverF2 mb-1" style="gap:5px;color:#393939;" >
+                                                                    <div class="w-100 fw-500 d-flex align-items-center  fs-6 hoverBtn h_item  rounded px-2 hoverF2 mb-1 subComponentGuide" style="gap:5px;color:#393939;" >
                                                                         <div class=" p-1 dragItem " >
                                                                             <i class="fa-solid fa-grip-dots-vertical d-flex align-items-center justify-content-center  " style="width:15px;height:15px;" aria-hidden="true"></i>
                                                                         </div>

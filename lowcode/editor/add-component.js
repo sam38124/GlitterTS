@@ -46,7 +46,7 @@ export class AddComponent {
                     }
                     return html `
                         <div class="w-100 d-flex align-items-center p-3 border-bottom">
-                            <h5 class="offcanvas-title" style="">新增區塊</h5>
+                            <h5 class="offcanvas-title" style=""> 新增區塊</h5>
                             <div class="flex-fill"></div>
                             <div
                                 class="fs-5 text-black"

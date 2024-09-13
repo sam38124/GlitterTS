@@ -81,7 +81,8 @@ image: `https://liondesign-prd.s3.amazonaws.com/Screenshot+2024-09-03+at+12.17.4
                                         <div class="alert bg-secondary w-100 fs-6 mb-3 p-3" style="color: dimgray;white-space: normal;">統合了所有電商網站常使用到的基本元件，透過基礎設計元件，即可達成基本設計需求。</div>
                                         內容</div>
                                     ${BasicComponent.componentList.map((dd)=>{
-                                        return `<div class="col-6  mb-3 ">
+                                        
+                                        return `<div class="col-6  mb-3 ${dd.title == "文字組合"?'simpleAddGuide':''}">
                                         <div class="d-flex flex-column  justify-content-center w-100"
                                              style="gap:5px;cursor:pointer;">
                                             <div class="card w-100 position-relative rounded hoverHidden  rounded-3"

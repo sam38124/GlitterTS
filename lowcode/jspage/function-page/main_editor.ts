@@ -274,7 +274,7 @@ export class Main_editor {
                                                                 .join('') +
                                                             html`
                                                                 <div
-                                                                        class="w-100 fw-500 d-flex align-items-center  fs-6 hoverBtn h_item  rounded px-2 hoverF2 mb-1"
+                                                                        class="w-100 fw-500 d-flex align-items-center  fs-6 hoverBtn h_item  rounded px-2 hoverF2 mb-1 addNewComponent"
                                                                         style="color:#36B;gap:10px;"
                                                                         onclick="${gvc.event(() => {
                                                                 function setSelectContainer() {
@@ -491,7 +491,7 @@ export class Main_editor {
                         `;
                     }
                 },
-                divCreate: {class: `swiper-slide h-100 position-relative`},
+                divCreate: {class: `swiper-slide h-100 position-relative design-guide-1`},
                 onCreate: () => {
                     // const htmlGenerate = new gvc.glitter.htmlGenerate((viewModel.data! as any).config, [Storage.lastSelect], undefined, true);
                     // (window as any).editerData = htmlGenerate;
@@ -523,7 +523,7 @@ export class Main_editor {
                 bind: id,
                 view: () => {
                     return html`
-                        <div class="" style="">
+                        <div class="guide-user-editor-11" style="">
                             ${(() => {
                         if (vm.type === 'list') {
 
@@ -538,7 +538,7 @@ export class Main_editor {
                                     vm.type = 'list'
                                     gvc.notifyDataChange(id)
                                 },
-                                name: `調色盤${vm.index + 1}`,
+                                name: `配色${vm.index + 1}`,
                                 data: vm.data,
                                 index: vm.index
                             })
@@ -583,8 +583,8 @@ export class Main_editor {
                         vm_c.toggle = !vm_c.toggle
                         gvc.notifyDataChange(vm_c.id)
                     })}">
-<span class="fw-500"
-      style="max-width: calc(100% - 50px);text-overflow: ellipsis;white-space: nowrap;overflow: hidden;">調色盤樣式</span>
+<span class="fw-500 "
+      style="max-width: calc(100% - 50px);text-overflow: ellipsis;white-space: nowrap;overflow: hidden;">配色樣式</span>
                 <div class="flex-fill"></div>
                 ${vm_c.toggle ? ` <i class="fa-solid fa-chevron-down"></i>` : ` <i class="fa-solid fa-chevron-right"></i>`}
             </div>`]
@@ -592,14 +592,14 @@ export class Main_editor {
                         array.push(`<div class="row ${(globalValue.color_theme.length === 0) ? `d-none` : ``}"
                                              style="margin:18px;">
                                             ${globalValue.color_theme.map((dd: any, index: number) => {
-                            return `<div class="col-6 mb-3" style="cursor: pointer;" onclick="${gvc.event(() => {
+                            return `<div class="col-6 mb-3 ${(index==0)?`globalGuide-4`:``}" style="cursor: pointer;" onclick="${gvc.event(() => {
                                 vm.type = 'color_detail'
                                 vm.data = globalValue.color_theme[index]
                                 vm.index = index
                                 gvc.notifyDataChange(id)
                             })}">
                                                 ${Main_editor.colorCard(globalValue.color_theme[index])}
-                                                <div class="w-100 t_39_16 mt-2" style="text-align: center;">調色盤${index + 1}</div>
+                                                <div class="w-100 t_39_16 mt-2" style="text-align: center;">配色${index + 1}</div>
                                             </div>`
                         }).join('')}
                                         </div>`)
@@ -608,7 +608,7 @@ export class Main_editor {
                                                  onclick="${gvc.event(() => {
                             vm.data = {id: gvc.glitter.getUUID()};
                             globalValue.color_theme.push(vm.data);
-                            vm.name = ('調色盤' + globalValue.color_theme.length);
+                            vm.name = ('配色' + globalValue.color_theme.length);
                             vm.type = 'color_detail'
                             vm.index = globalValue.color_theme.length - 1
                             gvc.notifyDataChange(id)
@@ -620,7 +620,7 @@ export class Main_editor {
                     return array.join('')
                 },
                 divCreate: {
-                    class: `  border-bottom    w-100`
+                    class: `  border-bottom    w-100 globalGuideColorSetting`
                 }
             }
         })
@@ -717,7 +717,7 @@ export class Main_editor {
   </div>
 </div>
                                     `,
-                        `<div style="padding: 18px 24px 24px;">${EditorConfig.color_setting_config.filter((dd) => {
+                        `<div class="globalGuide-5" style="padding: 18px 24px 24px;">${EditorConfig.color_setting_config.filter((dd) => {
                             return (!vm.filter) || vm.filter(dd.key)
                         }).map((dd) => {
                             vm.data[dd.key] = vm.data[dd.key] || '#FFFFFF'

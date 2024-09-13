@@ -551,21 +551,21 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                     <select class="form-control form-select"
                                                             style="border-top-right-radius: 0;border-bottom-right-radius: 0;"
                                                             onchange="${gvc.event((e, event) => {
-                                                selectTag = e.value;
-                                                gvc.notifyDataChange(id)
-                                            })}">${
-                                                valueArray.map((dd) => {
-                                                    return `<option value="${dd.tag}" ${(dd.tag === selectTag) ? `selected` : ''} >${dd.title}</option>`
-                                                })
-                                            }</select>
+                                                                selectTag = e.value;
+                                                                gvc.notifyDataChange(id)
+                                                            })}">${
+                                                            valueArray.map((dd) => {
+                                                                return `<option value="${dd.tag}" ${(dd.tag === selectTag) ? `selected` : ''} >${dd.title}</option>`
+                                                            })
+                                                    }</select>
                                                     <div class="hoverBtn ms-auto d-flex align-items-center justify-content-center   border "
                                                          style="height:44px;width:44px;cursor:pointer;color:#151515;border-left: none;border-radius: 0px 10px 10px 0px;"
                                                          data-bs-toggle="tooltip" data-bs-placement="top"
                                                          data-bs-custom-class="custom-tooltip"
                                                          data-bs-title="跳轉至模塊" onclick="${gvc.event(() => {
-                                                glitter.setUrlParameter('page', selectTag)
-                                                glitter.share.reloadEditor()
-                                            })}">
+                                                        glitter.setUrlParameter('page', selectTag)
+                                                        glitter.share.reloadEditor()
+                                                    })}">
                                                         <i class="fa-regular fa-eye"></i>
                                                     </div>
                                                 </div>
@@ -667,528 +667,534 @@ export const component = Plugin.createComponent(import.meta.url, (glitter: Glitt
                                                                                 const html = String.raw
 
                                                                                 try {
-                                                                                    return [
-                                                                                        `<div class="mx-n2">${(() => {
-                                                                                            switch (vm.page) {
-                                                                                                case "editor":
-                                                                                                    return html`
-                                                                                                        ${gvc.bindView(() => {
-                                                                                                        const vm: {
-                                                                                                            id: string,
-                                                                                                            type: 'editor' | 'preview'
-                                                                                                        } = {
-                                                                                                            id: gvc.glitter.getUUID(),
-                                                                                                            type: 'preview'
-                                                                                                        }
-                                                                                                        return {
-                                                                                                            bind: vm.id,
-                                                                                                            view: () => {
-                                                                                                                if (vm.type === 'preview') {
-                                                                                                                    return html`
-                                                                                                                            <i class="fa-solid fa-chevron-left h-100 d-flex align-items-center justify-content-center " style="cursor: pointer;"
-                                                                                                                               ></i>
-                                                                                                                            <span style="max-width: calc(100% - 50px);text-overflow: ellipsis;white-space: nowrap;overflow: hidden;" >${widget.label}</span>
-                                                                                                                            <div class="flex-fill"></div>
-                                                                                                                            <button class="btn sel_normal"
-                                                                                                                                    type="button"
-                                                                                                                                    onclick="${gvc.event((e,event) => {
-                                                                                                                                        event.stopPropagation();
-                                                                                                                        vm.type = 'editor'
-                                                                                                                        gvc.notifyDataChange(vm.id)
-                                                                                                                    })}">
-                                                                                                                                <span style="font-size: 14px; color: #393939; font-weight: 400;">更改命名</span>
-                                                                                                                            </button>`
-                                                                                                                } else {
-                                                                                                                    let name = widget.label
-                                                                                                                    return html`
-                                                                                                                            <i class="fa-solid fa-xmark h-100 d-flex align-items-center justify-content-center "
-                                                                                                                               onclick="${gvc.event(() => {
-                                                                                                                        vm.type = 'preview';
-                                                                                                                        gvc.notifyDataChange(vm.id)
-                                                                                                                    })}"></i>
-                                                                                                                            ${
-                                                                                                                        EditorElem.editeInput({
-                                                                                                                            gvc: gvc,
-                                                                                                                            title: '',
-                                                                                                                            default: name,
-                                                                                                                            placeHolder: '請輸入自定義名稱',
-                                                                                                                            callback: (text: any) => {
-                                                                                                                                name = text;
-                                                                                                                            },
-                                                                                                                        })
+                                                                                    return html`
+                                                                                        <div class=" d-flex flex-column">
+                                                                                            ${[
+                                                                                                `<div class="mx-n2">${(() => {
+                                                                                                    switch (vm.page) {
+                                                                                                        case "editor":
+                                                                                                            return html`
+                                                                                                                ${gvc.bindView(() => {
+                                                                                                                    const vm: {
+                                                                                                                        id: string,
+                                                                                                                        type: 'editor' | 'preview'
+                                                                                                                    } = {
+                                                                                                                        id: gvc.glitter.getUUID(),
+                                                                                                                        type: 'preview'
                                                                                                                     }
-                                                                                                                            <button class="btn sel_normal"
-                                                                                                                                    type="button"
-                                                                                                                                    onclick="${gvc.event((e,event) => {
-                                                                                                                        event.stopPropagation();
-                                                                                                                        vm.type = 'preview';
-                                                                                                                        widget.label = name;
-                                                                                                                        gvc.notifyDataChange(vm.id)
-                                                                                                                    })}">
-                                                                                                                                <span style="font-size: 14px; color: #393939; font-weight: 400;">確認</span>
-                                                                                                                            </button>`
-                                                                                                                }
-
-                                                                                                            },
-                                                                                                            divCreate: {
-                                                                                                                class: `px-3   border-bottom pb-3 fw-bold mt-n3 mb-2 pt-3 hoverF2 d-flex align-items-center`,
-                                                                                                                style: `cursor: pointer;color:#393939;border-radius: 0px;gap:10px;`,
-                                                                                                                option:[
-                                                                                                                    {
-                                                                                                                        key:'onclick',value:gvc.event(() => {
-                                                                                                                            if(vm.type === 'editor'){return}
-                                                                                                                            const select_=glitter.share.findWidgetIndex(glitter.share.editorViewModel.selectItem.id)
-                                                                                                                            if(select_.container_cf){
-                                                                                                                                const gvc_=gvc.glitter.document.querySelector('.iframe_view').contentWindow.glitter.pageConfig[0].gvc
-                                                                                                                                gvc_.glitter.htmlGenerate.selectWidget({
-                                                                                                                                    widget: select_.container_cf,
-                                                                                                                                    widgetComponentID: select_.container_cf.id,
-                                                                                                                                    gvc: gvc_,
-                                                                                                                                    scroll_to_hover: true,
-                                                                                                                                    glitter: glitter,
-                                                                                                                                });
-                                                                                                                            }else{
-                                                                                                                                Storage.lastSelect = '';
-                                                                                                                                gvc.glitter.share.editorViewModel.selectItem = undefined;
-                                                                                                                                gvc.glitter.share.selectEditorItem();
+                                                                                                                    return {
+                                                                                                                        bind: vm.id,
+                                                                                                                        view: () => {
+                                                                                                                            if (vm.type === 'preview') {
+                                                                                                                                return html`
+                                                                                                                                    <i class="fa-solid fa-chevron-left h-100 d-flex align-items-center justify-content-center "
+                                                                                                                                       style="cursor: pointer;"
+                                                                                                                                    ></i>
+                                                                                                                                    <span style="max-width: calc(100% - 50px);text-overflow: ellipsis;white-space: nowrap;overflow: hidden;">${widget.label}</span>
+                                                                                                                                    <div class="flex-fill"></div>
+                                                                                                                                    <button class="btn sel_normal"
+                                                                                                                                            type="button"
+                                                                                                                                            onclick="${gvc.event((e, event) => {
+                                                                                                                                                event.stopPropagation();
+                                                                                                                                                vm.type = 'editor'
+                                                                                                                                                gvc.notifyDataChange(vm.id)
+                                                                                                                                            })}">
+                                                                                                                                        <span style="font-size: 14px; color: #393939; font-weight: 400;">更改命名</span>
+                                                                                                                                    </button>`
+                                                                                                                            } else {
+                                                                                                                                let name = widget.label
+                                                                                                                                return html`
+                                                                                                                                    <i class="fa-solid fa-xmark h-100 d-flex align-items-center justify-content-center "
+                                                                                                                                       onclick="${gvc.event(() => {
+                                                                                                                                           vm.type = 'preview';
+                                                                                                                                           gvc.notifyDataChange(vm.id)
+                                                                                                                                       })}"></i>
+                                                                                                                                    ${
+                                                                                                                                            EditorElem.editeInput({
+                                                                                                                                                gvc: gvc,
+                                                                                                                                                title: '',
+                                                                                                                                                default: name,
+                                                                                                                                                placeHolder: '請輸入自定義名稱',
+                                                                                                                                                callback: (text: any) => {
+                                                                                                                                                    name = text;
+                                                                                                                                                },
+                                                                                                                                            })
+                                                                                                                                    }
+                                                                                                                                    <button class="btn sel_normal"
+                                                                                                                                            type="button"
+                                                                                                                                            onclick="${gvc.event((e, event) => {
+                                                                                                                                                event.stopPropagation();
+                                                                                                                                                vm.type = 'preview';
+                                                                                                                                                widget.label = name;
+                                                                                                                                                gvc.notifyDataChange(vm.id)
+                                                                                                                                            })}">
+                                                                                                                                        <span style="font-size: 14px; color: #393939; font-weight: 400;">確認</span>
+                                                                                                                                    </button>`
                                                                                                                             }
-                                                                                                                        })
+
+                                                                                                                        },
+                                                                                                                        divCreate: {
+                                                                                                                            class: `px-3   border-bottom pb-3 fw-bold mt-n3 mb-2 pt-3 hoverF2 d-flex align-items-center`,
+                                                                                                                            style: `cursor: pointer;color:#393939;border-radius: 0px;gap:10px;`,
+                                                                                                                            option: [
+                                                                                                                                {
+                                                                                                                                    key: 'onclick',
+                                                                                                                                    value: gvc.event(() => {
+                                                                                                                                        if (vm.type === 'editor') {
+                                                                                                                                            return
+                                                                                                                                        }
+                                                                                                                                        const select_ = glitter.share.findWidgetIndex(glitter.share.editorViewModel.selectItem.id)
+                                                                                                                                        if (select_.container_cf) {
+                                                                                                                                            const gvc_ = gvc.glitter.document.querySelector('.iframe_view').contentWindow.glitter.pageConfig[0].gvc
+                                                                                                                                            gvc_.glitter.htmlGenerate.selectWidget({
+                                                                                                                                                widget: select_.container_cf,
+                                                                                                                                                widgetComponentID: select_.container_cf.id,
+                                                                                                                                                gvc: gvc_,
+                                                                                                                                                scroll_to_hover: true,
+                                                                                                                                                glitter: glitter,
+                                                                                                                                            });
+                                                                                                                                        } else {
+                                                                                                                                            Storage.lastSelect = '';
+                                                                                                                                            gvc.glitter.share.editorViewModel.selectItem = undefined;
+                                                                                                                                            gvc.glitter.share.selectEditorItem();
+                                                                                                                                        }
+                                                                                                                                    })
+                                                                                                                                }
+                                                                                                                            ]
+                                                                                                                        }
                                                                                                                     }
-                                                                                                                ]
-                                                                                                            }
-                                                                                                        }
-                                                                                                    })}
-                                                                                                        <div class="ps-2">
-                                                                                                            ${GlobalWidget.showCaseBar(gvc, widget, () => {
-                                                                                                        vm.page = 'editor'
-                                                                                                        gvc.notifyDataChange(id)
-                                                                                                    })}
-                                                                                                        </div>`
-                                                                                                case "setting":
-                                                                                                    return html`
-                                                                                                        <div
-                                                                                                                class="px-3   border-bottom pb-3 fw-bold mt-n3  pt-3 hoverF2 d-flex align-items-center"
-                                                                                                                style="cursor: pointer;color:#393939;border-radius: 0px;gap:10px;"
-                                                                                                                onclick="${gvc.event(() => {
-                                                                                                        vm.page = 'editor'
-                                                                                                        gvc.notifyDataChange(id)
-                                                                                                    })}"
-                                                                                                        >
-                                                                                                            <i class="fa-solid fa-chevron-left"></i>
-                                                                                                            <span style="max-width: calc(100% - 50px);text-overflow: ellipsis;white-space: nowrap;overflow: hidden;">設定</span>
-                                                                                                            <div class="flex-fill"></div>
-                                                                                                        </div>`
-                                                                                            }
-                                                                                        })()}</div>`,
-                                                                                        GlobalWidget.showCaseEditor({
-                                                                                            gvc: gvc,
-                                                                                            widget: oWidget,
-                                                                                            view: (widget, type) => {
-                                                                                                try {
-                                                                                                    const array_html = []
-                                                                                                    array_html.push(gvc.bindView(() => {
-                                                                                                        const html = String.raw
+                                                                                                                })}
+                                                                                                                <div class="ps-2">
+                                                                                                                    ${GlobalWidget.showCaseBar(gvc, widget, () => {
+                                                                                                                        vm.page = 'editor'
+                                                                                                                        gvc.notifyDataChange(id)
+                                                                                                                    })}
+                                                                                                                </div>`
+                                                                                                        case "setting":
+                                                                                                            return html`
+                                                                                                                <div
+                                                                                                                        class="px-3 border-bottom pb-3 fw-bold mt-n3  pt-3 hoverF2 d-flex align-items-center guideBackSetting"
+                                                                                                                        style="cursor: pointer;color:#393939;border-radius: 0px;gap:10px;"
+                                                                                                                        onclick="${gvc.event(() => {
+                                                                                                                            vm.page = 'editor'
+                                                                                                                            gvc.notifyDataChange(id)
+                                                                                                                        })}"
+                                                                                                                >
+                                                                                                                    <i class="fa-solid fa-chevron-left"></i>
+                                                                                                                    <span style="max-width: calc(100% - 50px);text-overflow: ellipsis;white-space: nowrap;overflow: hidden;">設定</span>
+                                                                                                                    <div class="flex-fill"></div>
+                                                                                                                </div>`
+                                                                                                    }
+                                                                                                })()}</div>`,
+                                                                                                GlobalWidget.showCaseEditor({
+                                                                                                    gvc: gvc,
+                                                                                                    widget: oWidget,
+                                                                                                    view: (widget, type) => {
+                                                                                                        try {
+                                                                                                            const array_html = []
+                                                                                                            array_html.push(gvc.bindView(() => {
+                                                                                                                const html = String.raw
 
-                                                                                                        async function filterFormat(filter: (dd: any) => boolean) {
-                                                                                                            function loop(ogArray: any, data: any) {
-                                                                                                                if (Array.isArray(data)) {
-                                                                                                                    data.map((dd) => {
-                                                                                                                        loop(data, dd)
-                                                                                                                    })
-                                                                                                                } else if (typeof data === 'object') {
-                                                                                                                    if (filter(data)) {
-                                                                                                                        Object.keys(data).map((d1) => {
-                                                                                                                            loop(data, data[d1])
-                                                                                                                        })
-                                                                                                                    } else {
-                                                                                                                        setTimeout(() => {
-                                                                                                                            try {
-                                                                                                                                ogArray.splice(ogArray.findIndex((dd: any) => {
-                                                                                                                                    return dd === data
-                                                                                                                                }), 1)
-                                                                                                                            }catch (e) {
-
-                                                                                                                            }
-                                                                                                                        })
-                                                                                                                    }
-                                                                                                                }
-                                                                                                            }
-
-                                                                                                            const formFormat = JSON.parse(JSON.stringify(page_config.formFormat))
-                                                                                                            loop(formFormat, formFormat)
-
-                                                                                                            return new Promise((resolve) => {
-                                                                                                                setTimeout(() => {
-                                                                                                                    resolve(formFormat)
-                                                                                                                }, 20)
-                                                                                                            })
-                                                                                                        }
-
-                                                                                                        return {
-                                                                                                            bind: vm.id,
-                                                                                                            view: async () => {
-                                                                                                                let refer_form: any = getReferForm(widget, type);
-
-                                                                                                                function refresh(widget: any, device: 'mobile' | 'desktop' | 'def') {
-                                                                                                                    if (widget.data.refer_app) {
-                                                                                                                        widget.data.refer_form_data = refer_form;
-                                                                                                                        if (pageData.id !== p_id) {
-                                                                                                                            glitter.share.editorViewModel.saveArray[pageData.id] = (() => {
-                                                                                                                                return new Promise(async (resolve, reject) => {
-                                                                                                                                    await ApiPageConfig.setPage({
-                                                                                                                                        id: p_id as any,
-                                                                                                                                        appName: (window as any).appName,
-                                                                                                                                        tag: (parent_array).tag,
-                                                                                                                                        config: parent_array
-                                                                                                                                    });
-                                                                                                                                    resolve(true)
+                                                                                                                async function filterFormat(filter: (dd: any) => boolean) {
+                                                                                                                    function loop(ogArray: any, data: any) {
+                                                                                                                        if (Array.isArray(data)) {
+                                                                                                                            data.map((dd) => {
+                                                                                                                                loop(data, dd)
+                                                                                                                            })
+                                                                                                                        } else if (typeof data === 'object') {
+                                                                                                                            if (filter(data)) {
+                                                                                                                                Object.keys(data).map((d1) => {
+                                                                                                                                    loop(data, data[d1])
                                                                                                                                 })
-                                                                                                                            });
-                                                                                                                            try {
-                                                                                                                                console.log(`getPageData-${parent_array.tag}`, parent_array);
-                                                                                                                                (window as any).glitterInitialHelper.share[`getPageData-${(window as any).appName}-${parent_array.tag}`].data.response.result[0].config = parent_array;
-                                                                                                                            } catch (error) {
-                                                                                                                                console.log(`error->`, error)
+                                                                                                                            } else {
+                                                                                                                                setTimeout(() => {
+                                                                                                                                    try {
+                                                                                                                                        ogArray.splice(ogArray.findIndex((dd: any) => {
+                                                                                                                                            return dd === data
+                                                                                                                                        }), 1)
+                                                                                                                                    } catch (e) {
+
+                                                                                                                                    }
+                                                                                                                                })
                                                                                                                             }
                                                                                                                         }
-                                                                                                                        if (!widget.storage) {
-                                                                                                                            try {
-                                                                                                                                const doc: any = (((document.querySelector('#editerCenter iframe') as any)!.contentWindow as any).document).querySelectorAll(`.${oWidget.data.refer_app}_${oWidget.data.tag}`)!;
-                                                                                                                                if (doc) {
-                                                                                                                                    for (const b of doc) {
-                                                                                                                                        b.updatePageConfig(refer_form, device, oWidget)
+                                                                                                                    }
+
+                                                                                                                    const formFormat = JSON.parse(JSON.stringify(page_config.formFormat))
+                                                                                                                    loop(formFormat, formFormat)
+
+                                                                                                                    return new Promise((resolve) => {
+                                                                                                                        setTimeout(() => {
+                                                                                                                            resolve(formFormat)
+                                                                                                                        }, 20)
+                                                                                                                    })
+                                                                                                                }
+
+                                                                                                                return {
+                                                                                                                    bind: vm.id,
+                                                                                                                    view: async () => {
+                                                                                                                        let refer_form: any = getReferForm(widget, type);
+
+                                                                                                                        function refresh(widget: any, device: 'mobile' | 'desktop' | 'def') {
+                                                                                                                            if (widget.data.refer_app) {
+                                                                                                                                widget.data.refer_form_data = refer_form;
+                                                                                                                                if (pageData.id !== p_id) {
+                                                                                                                                    glitter.share.editorViewModel.saveArray[pageData.id] = (() => {
+                                                                                                                                        return new Promise(async (resolve, reject) => {
+                                                                                                                                            await ApiPageConfig.setPage({
+                                                                                                                                                id: p_id as any,
+                                                                                                                                                appName: (window as any).appName,
+                                                                                                                                                tag: (parent_array).tag,
+                                                                                                                                                config: parent_array
+                                                                                                                                            });
+                                                                                                                                            resolve(true)
+                                                                                                                                        })
+                                                                                                                                    });
+                                                                                                                                    try {
+                                                                                                                                        console.log(`getPageData-${parent_array.tag}`, parent_array);
+                                                                                                                                        (window as any).glitterInitialHelper.share[`getPageData-${(window as any).appName}-${parent_array.tag}`].data.response.result[0].config = parent_array;
+                                                                                                                                    } catch (error) {
+                                                                                                                                        console.log(`error->`, error)
                                                                                                                                     }
                                                                                                                                 }
-                                                                                                                            } catch (e) {
+                                                                                                                                if (!widget.storage) {
+                                                                                                                                    try {
+                                                                                                                                        const doc: any = (((document.querySelector('#editerCenter iframe') as any)!.contentWindow as any).document).querySelectorAll(`.${oWidget.data.refer_app}_${oWidget.data.tag}`)!;
+                                                                                                                                        if (doc) {
+                                                                                                                                            for (const b of doc) {
+                                                                                                                                                b.updatePageConfig(refer_form, device, oWidget)
+                                                                                                                                            }
+                                                                                                                                        }
+                                                                                                                                    } catch (e) {
 
-                                                                                                                            }
-                                                                                                                        }
-                                                                                                                    } else {
-                                                                                                                        glitter.share.editorViewModel.saveArray[pageData.id] = (() => {
-                                                                                                                            return ApiPageConfig.setPage({
-                                                                                                                                id: pageData.id,
-                                                                                                                                appName: pageData.appName,
-                                                                                                                                tag: pageData.tag,
-                                                                                                                                page_config: pageData.page_config,
-                                                                                                                            })
-                                                                                                                        });
-                                                                                                                        try {
-                                                                                                                            (window as any).glitterInitialHelper.share[`getPageData-${pageData.tag}`].data.response.result[0].page_config = pageData.page_config;
-                                                                                                                        } catch {
-
-                                                                                                                        }
-                                                                                                                    }
-                                                                                                                    widget.storage && widget.storage.updatePageConfig && widget.storage.updatePageConfig(refer_form, device, oWidget);
-                                                                                                                }
-
-                                                                                                                const setting_option = [
-                                                                                                                    {
-                                                                                                                        title: "樣式設定",
-                                                                                                                        key: 'style',
-                                                                                                                        array: await filterFormat((dd) => {
-                                                                                                                            if (type === 'def' || oWidget[`${type}_editable`].find((d1: any) => {
-                                                                                                                                return d1 === dd.key
-                                                                                                                            })) {
-                                                                                                                                return dd.page !== 'color_theme' && dd.category === 'style'
+                                                                                                                                    }
+                                                                                                                                }
                                                                                                                             } else {
-                                                                                                                                return false
-                                                                                                                            }
-                                                                                                                        })
-                                                                                                                    },
-                                                                                                                    {
-                                                                                                                        title: "顏色設定",
-                                                                                                                        key: 'color',
-                                                                                                                        array: await filterFormat((dd) => {
-                                                                                                                            if (type === 'def' || oWidget[`${type}_editable`].find((d1: any) => {
-                                                                                                                                return d1 === dd.key
-                                                                                                                            })) {
-                                                                                                                                return dd.page === 'color_theme'
-                                                                                                                            } else {
-                                                                                                                                return false
-                                                                                                                            }
-                                                                                                                        })
-                                                                                                                    },
-                                                                                                                    {
-                                                                                                                        title: "字型設定",
-                                                                                                                        key: 'fonts',
-                                                                                                                        array: []
-                                                                                                                    },
-                                                                                                                    {
-                                                                                                                        title: "間距設定",
-                                                                                                                        key: 'margin',
-                                                                                                                        array: []
-                                                                                                                    },
-                                                                                                                    {
-                                                                                                                        title: "容器背景設定",
-                                                                                                                        key: 'background',
-                                                                                                                        array: []
-                                                                                                                    },
-                                                                                                                    {
-                                                                                                                        title: "開發者設定",
-                                                                                                                        key: 'develop',
-                                                                                                                        array: []
-                                                                                                                    }
-                                                                                                                ].filter((dd: any) => {
-                                                                                                                    switch (dd.key) {
-                                                                                                                        case 'style':
-                                                                                                                        case 'color':
-                                                                                                                            return (dd.array && dd.array.length > 0)
-                                                                                                                        case 'background':
-                                                                                                                            return (type === 'def' || oWidget[`${type}_editable`].filter((d1: any) => {
-                                                                                                                                return d1 === '_container_background'
-                                                                                                                            }).length)
-                                                                                                                        case 'fonts':
-                                                                                                                            return (type === 'def' || oWidget[`${type}_editable`].filter((d1: any) => {
-                                                                                                                                return d1 === '_container_fonts'
-                                                                                                                            }).length)
-                                                                                                                        case 'margin':
-                                                                                                                        case 'develop':
-                                                                                                                            return (type === 'def' || oWidget[`${type}_editable`].filter((d1: any) => {
-                                                                                                                                return d1 === '_container_margin'
-                                                                                                                            }).length)
-                                                                                                                    }
-                                                                                                                })
-                                                                                                                try {
-                                                                                                                    if (vm.page === 'editor') {
-                                                                                                                        return [
-                                                                                                                            type === 'def' ? `` : html`
-                                                                                                                                <div class="my-2 mx-3 "
-                                                                                                                                     style=" height: 40px; padding: 6px 18px;background: #393939; border-radius: 10px; overflow: hidden;
-width: calc(100% - 30px);
-justify-content: center; align-items: center; gap: 8px; display: inline-flex;cursor: pointer;"
-                                                                                                                                     onclick="${gvc.event(() => {
-                                                                                                                                const cGvc = gvc
-                                                                                                                                EditorElem.openEditorDialog(gvc, (gvc: GVC) => {
+                                                                                                                                glitter.share.editorViewModel.saveArray[pageData.id] = (() => {
+                                                                                                                                    return ApiPageConfig.setPage({
+                                                                                                                                        id: pageData.id,
+                                                                                                                                        appName: pageData.appName,
+                                                                                                                                        tag: pageData.tag,
+                                                                                                                                        page_config: pageData.page_config,
+                                                                                                                                    })
+                                                                                                                                });
+                                                                                                                                try {
+                                                                                                                                    (window as any).glitterInitialHelper.share[`getPageData-${pageData.tag}`].data.response.result[0].page_config = pageData.page_config;
+                                                                                                                                } catch {
 
-                                                                                                                                    return html`
-                                                                                                                                                 <div class="p-3">
-                                                                                                                                                     ${[
-                                                                                                                                        BgWidget.multiCheckboxContainer(
-                                                                                                                                            gvc,
-                                                                                                                                            page_config.formFormat.map((dd: any) => {
-                                                                                                                                                return {
-                                                                                                                                                    key: dd.key,
-                                                                                                                                                    name: dd.title
-                                                                                                                                                }
-                                                                                                                                            }).concat([{
-                                                                                                                                                key: '_container_margin',
-                                                                                                                                                name: '容器間距'
-                                                                                                                                            }, {
-                                                                                                                                                key: '_container_fonts',
-                                                                                                                                                name: '字型設定'
-                                                                                                                                            }, {
-                                                                                                                                                key: '_container_background',
-                                                                                                                                                name: '背景設定'
-                                                                                                                                            },
-                                                                                                                                            ]),
-                                                                                                                                            oWidget[`${type}_editable`] || [],
-                                                                                                                                            (select: any) => {
-                                                                                                                                                oWidget[`${type}_editable`] = select
-                                                                                                                                            }, {}
-                                                                                                                                        ),
-                                                                                                                                        html`
-                                                                                                                                                             <div class="d-flex justify-content-end"
-                                                                                                                                                                  style="gap:10px;">
-                                                                                                                                                                 ${BgWidget.cancel(gvc.event(() => {
-                                                                                                                                            gvc.closeDialog()
-                                                                                                                                        }))}
-                                                                                                                                                                 ${BgWidget.save(gvc.event(() => {
-                                                                                                                                            gvc.closeDialog()
-                                                                                                                                            getReferForm(widget, type)
-                                                                                                                                            refreshLeftBar()
-                                                                                                                                            refresh(widget, type)
+                                                                                                                                }
+                                                                                                                            }
+                                                                                                                            widget.storage && widget.storage.updatePageConfig && widget.storage.updatePageConfig(refer_form, device, oWidget);
+                                                                                                                        }
 
-                                                                                                                                        }), '完成')}
-                                                                                                                                                             </div>`
-                                                                                                                                    ].join('')}
-                                                                                                                                                 </div>`
-                                                                                                                                }, () => {
-                                                                                                                                }, 569, '設置自定義選項')
-                                                                                                                            })}">
-                                                                                                                                    <div style="color: white; font-size: 16px; font-family: Noto Sans; font-weight: 700; word-wrap: break-word">
-                                                                                                                                        設置自定義選項
-                                                                                                                                    </div>
-                                                                                                                                </div>`,
-                                                                                                                            FormWidget.editorView({
-                                                                                                                                gvc: gvc,
+                                                                                                                        const setting_option = [
+                                                                                                                            {
+                                                                                                                                title: "樣式設定",
+                                                                                                                                key: 'style',
                                                                                                                                 array: await filterFormat((dd) => {
                                                                                                                                     if (type === 'def' || oWidget[`${type}_editable`].find((d1: any) => {
                                                                                                                                         return d1 === dd.key
                                                                                                                                     })) {
-                                                                                                                                        return dd.page !== 'color_theme' && dd.category !== 'style'
+                                                                                                                                        return dd.page !== 'color_theme' && dd.category === 'style'
                                                                                                                                     } else {
                                                                                                                                         return false
                                                                                                                                     }
-                                                                                                                                }),
-                                                                                                                                refresh: () => {
-                                                                                                                                    refresh(widget, type)
-                                                                                                                                },
-                                                                                                                                formData: refer_form,
-                                                                                                                                widget: pageData.config
-                                                                                                                            }),
-                                                                                                                            html`
-                                                                                                                                <div class="p-3 mt-3 d-flex align-items-center ${setting_option.length > 0 ? `` : `d-none`}"
-                                                                                                                                     style="font-size: 16px;
+                                                                                                                                })
+                                                                                                                            },
+                                                                                                                            {
+                                                                                                                                title: "顏色設定",
+                                                                                                                                key: 'color',
+                                                                                                                                array: await filterFormat((dd) => {
+                                                                                                                                    if (type === 'def' || oWidget[`${type}_editable`].find((d1: any) => {
+                                                                                                                                        return d1 === dd.key
+                                                                                                                                    })) {
+                                                                                                                                        return dd.page === 'color_theme'
+                                                                                                                                    } else {
+                                                                                                                                        return false
+                                                                                                                                    }
+                                                                                                                                })
+                                                                                                                            },
+                                                                                                                            {
+                                                                                                                                title: "字型設定",
+                                                                                                                                key: 'fonts',
+                                                                                                                                array: []
+                                                                                                                            },
+                                                                                                                            {
+                                                                                                                                title: "間距設定",
+                                                                                                                                key: 'margin',
+                                                                                                                                array: []
+                                                                                                                            },
+                                                                                                                            {
+                                                                                                                                title: "容器背景設定",
+                                                                                                                                key: 'background',
+                                                                                                                                array: []
+                                                                                                                            },
+                                                                                                                            {
+                                                                                                                                title: "開發者設定",
+                                                                                                                                key: 'develop',
+                                                                                                                                array: []
+                                                                                                                            }
+                                                                                                                        ].filter((dd: any) => {
+                                                                                                                            switch (dd.key) {
+                                                                                                                                case 'style':
+                                                                                                                                case 'color':
+                                                                                                                                    return (dd.array && dd.array.length > 0)
+                                                                                                                                case 'background':
+                                                                                                                                    return (type === 'def' || oWidget[`${type}_editable`].filter((d1: any) => {
+                                                                                                                                        return d1 === '_container_background'
+                                                                                                                                    }).length)
+                                                                                                                                case 'fonts':
+                                                                                                                                    return (type === 'def' || oWidget[`${type}_editable`].filter((d1: any) => {
+                                                                                                                                        return d1 === '_container_fonts'
+                                                                                                                                    }).length)
+                                                                                                                                case 'margin':
+                                                                                                                                case 'develop':
+                                                                                                                                    return (type === 'def' || oWidget[`${type}_editable`].filter((d1: any) => {
+                                                                                                                                        return d1 === '_container_margin'
+                                                                                                                                    }).length)
+                                                                                                                            }
+                                                                                                                        })
+                                                                                                                        try {
+                                                                                                                            if (vm.page === 'editor') {
+                                                                                                                                return [
+                                                                                                                                    type === 'def' ? `` : html`
+                                                                                                                                        <div class="my-2 mx-3 guide-user-editor-6 "
+                                                                                                                                             style=" height: 40px; padding: 6px 18px;background: #393939; border-radius: 10px; overflow: hidden;width: calc(100% - 30px);justify-content: center; align-items: center; gap: 8px; display: inline-flex;cursor: pointer;"
+                                                                                                                                             onclick="${gvc.event(() => {
+                                                                                                                                                 const cGvc = gvc
+                                                                                                                                                 EditorElem.openEditorDialog(gvc, (gvc: GVC) => {
+
+                                                                                                                                                     return html`
+                                                                                                                                                         <div class="p-3">
+                                                                                                                                                             ${[
+                                                                                                                                                                 BgWidget.multiCheckboxContainer(
+                                                                                                                                                                         gvc,
+                                                                                                                                                                         page_config.formFormat.map((dd: any) => {
+                                                                                                                                                                             return {
+                                                                                                                                                                                 key: dd.key,
+                                                                                                                                                                                 name: dd.title
+                                                                                                                                                                             }
+                                                                                                                                                                         }).concat([{
+                                                                                                                                                                             key: '_container_margin',
+                                                                                                                                                                             name: '容器間距'
+                                                                                                                                                                         }, {
+                                                                                                                                                                             key: '_container_fonts',
+                                                                                                                                                                             name: '字型設定'
+                                                                                                                                                                         }, {
+                                                                                                                                                                             key: '_container_background',
+                                                                                                                                                                             name: '背景設定'
+                                                                                                                                                                         },
+                                                                                                                                                                         ]),
+                                                                                                                                                                         oWidget[`${type}_editable`] || [],
+                                                                                                                                                                         (select: any) => {
+                                                                                                                                                                             oWidget[`${type}_editable`] = select
+                                                                                                                                                                         }, {}
+                                                                                                                                                                 ),
+                                                                                                                                                                 html`
+                                                                                                                                                                     <div class="d-flex justify-content-end"
+                                                                                                                                                                          style="gap:10px;">
+                                                                                                                                                                         ${BgWidget.cancel(gvc.event(() => {
+                                                                                                                                                                             gvc.closeDialog()
+                                                                                                                                                                         }))}
+                                                                                                                                                                         ${BgWidget.save(gvc.event(() => {
+                                                                                                                                                                             gvc.closeDialog()
+                                                                                                                                                                             getReferForm(widget, type)
+                                                                                                                                                                             refreshLeftBar()
+                                                                                                                                                                             refresh(widget, type)
+
+                                                                                                                                                                         }), '完成')}
+                                                                                                                                                                     </div>`
+                                                                                                                                                             ].join('')}
+                                                                                                                                                         </div>`
+                                                                                                                                                 }, () => {
+                                                                                                                                                 }, 569, '設置自定義選項')
+                                                                                                                                             })}">
+                                                                                                                                            <div style="color: white; font-size: 16px; font-family: Noto Sans; font-weight: 700; word-wrap: break-word">
+                                                                                                                                                設置自定義選項
+                                                                                                                                            </div>
+                                                                                                                                        </div>`,
+                                                                                                                                    FormWidget.editorView({
+                                                                                                                                        gvc: gvc,
+                                                                                                                                        array: await filterFormat((dd) => {
+                                                                                                                                            if (type === 'def' || oWidget[`${type}_editable`].find((d1: any) => {
+                                                                                                                                                return d1 === dd.key
+                                                                                                                                            })) {
+                                                                                                                                                return dd.page !== 'color_theme' && dd.category !== 'style'
+                                                                                                                                            } else {
+                                                                                                                                                return false
+                                                                                                                                            }
+                                                                                                                                        }),
+                                                                                                                                        refresh: () => {
+                                                                                                                                            refresh(widget, type)
+                                                                                                                                        },
+                                                                                                                                        formData: refer_form,
+                                                                                                                                        widget: pageData.config
+                                                                                                                                    }),
+                                                                                                                                    html`
+                                                                                                                                        <div class="p-3 mt-3 d-flex align-items-center guide-user-editor-7 ${setting_option.length > 0 ? `` : `d-none`}"
+                                                                                                                                             style="font-size: 16px;
 cursor: pointer;
 border-top: 1px solid #DDD;
 font-style: normal;
 gap:10px;
 font-weight: 700;" onclick="${gvc.event(() => {
-                                                                                                                                vm.page = 'setting'
-                                                                                                                                gvc.notifyDataChange(id)
-                                                                                                                            })}">
-                                                                                                                                    設定
-                                                                                                                                    <i class="fa-solid fa-angle-right"></i>
-                                                                                                                                </div>`
-                                                                                                                        ].join('')
-                                                                                                                    } else if (vm.page === 'setting') {
-                                                                                                                        return [setting_option.map((dd: any,index:any) => {
-                                                                                                                            return gvc.bindView(() => {
-                                                                                                                                const vm_c: {
-                                                                                                                                    id: string,
-                                                                                                                                    toggle: boolean
-                                                                                                                                } = {
-                                                                                                                                    id: gvc.glitter.getUUID(),
-                                                                                                                                    toggle: false
-                                                                                                                                };
-                                                                                                                                (setting_option[index] as any).vm_c=vm_c;
-                                                                                                                                return {
-                                                                                                                                    bind: vm_c.id,
-                                                                                                                                    view: () => {
-                                                                                                                                        const array_string = [html`
-                                                                                                                                            <div class="hoverF2 d-flex align-items-center p-3"
-                                                                                                                                                 onclick="${gvc.event(() => {
-                                                                                                                                            (setting_option as any).map((dd:any)=>{
-                                                                                                                                                if(dd.vm_c.toggle){
-                                                                                                                                                    dd.vm_c.toggle=false
-                                                                                                                                                    gvc.notifyDataChange(dd.vm_c.id)
-                                                                                                                                                }
-                                                                                                                                            });
-                                                                                                                                            vm_c.toggle = !vm_c.toggle
-                                                                                                                                            gvc.notifyDataChange(vm_c.id)
+                                                                                                                                            vm.page = 'setting'
+                                                                                                                                            gvc.notifyDataChange(id)
                                                                                                                                         })}">
+                                                                                                                                            設定
+                                                                                                                                            <i class="fa-solid fa-angle-right"></i>
+                                                                                                                                        </div>`
+                                                                                                                                ].join('')
+                                                                                                                            } else if (vm.page === 'setting') {
+                                                                                                                                return [setting_option.map((dd: any, index: any) => {
+                                                                                                                                    return gvc.bindView(() => {
+                                                                                                                                        const vm_c: {
+                                                                                                                                            id: string,
+                                                                                                                                            toggle: boolean
+                                                                                                                                        } = {
+                                                                                                                                            id: gvc.glitter.getUUID(),
+                                                                                                                                            toggle: false
+                                                                                                                                        };
+                                                                                                                                        (setting_option[index] as any).vm_c = vm_c;
+                                                                                                                                        return {
+                                                                                                                                            bind: vm_c.id,
+                                                                                                                                            view: () => {
+                                                                                                                                                const array_string = [html`
+                                                                                                                                                    <div class="hoverF2 d-flex align-items-center p-3 guide-user-editor-8"
+                                                                                                                                                         onclick="${gvc.event(() => {
+                                                                                                                                                             (setting_option as any).map((dd: any) => {
+                                                                                                                                                                 if (dd.vm_c.toggle) {
+                                                                                                                                                                     dd.vm_c.toggle = false
+                                                                                                                                                                     gvc.notifyDataChange(dd.vm_c.id)
+                                                                                                                                                                 }
+                                                                                                                                                             });
+                                                                                                                                                             vm_c.toggle = !vm_c.toggle
+                                                                                                                                                             gvc.notifyDataChange(vm_c.id)
+                                                                                                                                                         })}">
 <span class="fw-500"
       style="max-width: calc(100% - 50px);text-overflow: ellipsis;white-space: nowrap;overflow: hidden;">${dd.title}</span>
-                                                                                                                                                <div class="flex-fill"></div>
-                                                                                                                                                ${vm_c.toggle ? ` <i class="fa-solid fa-chevron-down"></i>` : ` <i class="fa-solid fa-chevron-right"></i>`}
+                                                                                                                                                        <div class="flex-fill"></div>
+                                                                                                                                                        ${vm_c.toggle ? ` <i class="fa-solid fa-chevron-down"></i>` : ` <i class="fa-solid fa-chevron-right"></i>`}
 
-                                                                                                                                            </div>`]
-                                                                                                                                        if (vm_c.toggle) {
-                                                                                                                                            switch (dd.key) {
-                                                                                                                                                case 'style':
-                                                                                                                                                case 'color':
-                                                                                                                                                    (dd.array && dd.array.length > 0) && array_string.push(`<div class="px-1 pb-3 mt-n2">${FormWidget.editorView({
-                                                                                                                                                        gvc: gvc,
-                                                                                                                                                        array: dd.array.map((dd: any) => {
-                                                                                                                                                            if (dd.page === 'color_theme') {
-                                                                                                                                                                dd.title = ''
+                                                                                                                                                    </div>`]
+                                                                                                                                                if (vm_c.toggle) {
+                                                                                                                                                    switch (dd.key) {
+                                                                                                                                                        case 'style':
+                                                                                                                                                        case 'color':
+                                                                                                                                                            (dd.array && dd.array.length > 0) && array_string.push(`<div class="px-1 pb-3 mt-n2">${FormWidget.editorView({
+                                                                                                                                                                gvc: gvc,
+                                                                                                                                                                array: dd.array.map((dd: any) => {
+                                                                                                                                                                    if (dd.page === 'color_theme') {
+                                                                                                                                                                        dd.title = ''
+                                                                                                                                                                    }
+                                                                                                                                                                    return dd
+                                                                                                                                                                }),
+                                                                                                                                                                refresh: () => {
+                                                                                                                                                                    refresh(widget, type)
+                                                                                                                                                                },
+                                                                                                                                                                formData: refer_form,
+                                                                                                                                                                widget: pageData.config
+                                                                                                                                                            })}</div>`)
+                                                                                                                                                            break
+                                                                                                                                                        case 'fonts':
+                                                                                                                                                            array_string.push(`<div class="px-3 pb-2 ">${
+                                                                                                                                                                    EditorElem.select({
+                                                                                                                                                                        title: '',
+                                                                                                                                                                        gvc: gvc,
+                                                                                                                                                                        def: (() => {
+                                                                                                                                                                            if (!glitter.share.editorViewModel.appConfig.font_theme[parseInt(widget.container_fonts, 10)]) {
+                                                                                                                                                                                widget.container_fonts = `0`
+                                                                                                                                                                            }
+                                                                                                                                                                            return widget.container_fonts
+                                                                                                                                                                        })(),
+                                                                                                                                                                        callback: (text: any) => {
+                                                                                                                                                                            widget.container_fonts = text
+                                                                                                                                                                            refresh(widget, type)
+                                                                                                                                                                        },
+                                                                                                                                                                        array: glitter.share.editorViewModel.appConfig.font_theme.map((dd: any, index: number) => {
+                                                                                                                                                                            return {
+                                                                                                                                                                                title: dd.title,
+                                                                                                                                                                                value: `${index}`
+                                                                                                                                                                            }
+                                                                                                                                                                        }),
+                                                                                                                                                                    })
                                                                                                                                                             }
-                                                                                                                                                            return dd
-                                                                                                                                                        }),
-                                                                                                                                                        refresh: () => {
-                                                                                                                                                            refresh(widget, type)
-                                                                                                                                                        },
-                                                                                                                                                        formData: refer_form,
-                                                                                                                                                        widget: pageData.config
-                                                                                                                                                    })}</div>`)
-                                                                                                                                                    break
-                                                                                                                                                case 'fonts':
-                                                                                                                                                    array_string.push(`<div class="px-3 pb-2 ">${
-                                                                                                                                                        EditorElem.select({
-                                                                                                                                                            title: '',
-                                                                                                                                                            gvc: gvc,
-                                                                                                                                                            def: (() => {
-                                                                                                                                                                if (!glitter.share.editorViewModel.appConfig.font_theme[parseInt(widget.container_fonts, 10)]) {
-                                                                                                                                                                    widget.container_fonts = `0`
-                                                                                                                                                                }
-                                                                                                                                                                return widget.container_fonts
-                                                                                                                                                            })(),
-                                                                                                                                                            callback: (text: any) => {
-                                                                                                                                                                widget.container_fonts = text
-                                                                                                                                                                refresh(widget, type)
-                                                                                                                                                            },
-                                                                                                                                                            array: glitter.share.editorViewModel.appConfig.font_theme.map((dd: any, index: number) => {
-                                                                                                                                                                return {
-                                                                                                                                                                    title: dd.title,
-                                                                                                                                                                    value: `${index}`
-                                                                                                                                                                }
-                                                                                                                                                            }),
-                                                                                                                                                        })
-                                                                                                                                                    }
   <div class="bt_border_editor mt-2"
                                                  onclick="${gvc.event((e, event) => {
-                                                                                                                                                        gvc.glitter.getModule(`${gvc.glitter.root_path}/setting/fonts-config.js`, (FontsConfig) => {
-                                                                                                                                                            NormalPageEditor.closeEvent = () => {
-                                                                                                                                                                gvc.notifyDataChange(vm_c.id)
-                                                                                                                                                                refresh(widget, type)
-                                                                                                                                                            }
-                                                                                                                                                            NormalPageEditor.toggle({
-                                                                                                                                                                visible: true,
-                                                                                                                                                                view: FontsConfig.fontsSettingView(gvc, glitter.share.editorViewModel.appConfig, true),
-                                                                                                                                                                title: '管理全站字型'
-                                                                                                                                                            })
-                                                                                                                                                        })
+                                                                                                                                                                gvc.glitter.getModule(`${gvc.glitter.root_path}/setting/fonts-config.js`, (FontsConfig) => {
+                                                                                                                                                                    NormalPageEditor.closeEvent = () => {
+                                                                                                                                                                        gvc.notifyDataChange(vm_c.id)
+                                                                                                                                                                        refresh(widget, type)
+                                                                                                                                                                    }
+                                                                                                                                                                    NormalPageEditor.toggle({
+                                                                                                                                                                        visible: true,
+                                                                                                                                                                        view: FontsConfig.fontsSettingView(gvc, glitter.share.editorViewModel.appConfig, true),
+                                                                                                                                                                        title: '管理全站字型'
+                                                                                                                                                                    })
+                                                                                                                                                                })
 
-                                                                                                                                                    })}">
+                                                                                                                                                            })}">
                                                 管理全站字型
                                             </div>
 </div>`)
-                                                                                                                                                    break
-                                                                                                                                                case 'margin':
-                                                                                                                                                    array_string.push(`<div class="px-3 pb-2">${CustomStyle.editorMargin(gvc, widget, () => {
-                                                                                                                                                        refresh(widget, type)
-                                                                                                                                                    })}</div>`)
-                                                                                                                                                    break
-                                                                                                                                                case 'background':
-                                                                                                                                                    array_string.push(`<div class="px-3 pb-2">${CustomStyle.editorBackground(gvc, widget, () => {
-                                                                                                                                                        refresh(widget, type)
-                                                                                                                                                    })}</div>`)
-                                                                                                                                                    break
-                                                                                                                                                case 'develop':
-                                                                                                                                                    array_string.push(`<div class="px-3">${CustomStyle.editor(gvc, widget, () => {
-                                                                                                                                                        refresh(widget, type)
-                                                                                                                                                    })}</div>`)
-                                                                                                                                                    break
+                                                                                                                                                            break
+                                                                                                                                                        case 'margin':
+                                                                                                                                                            array_string.push(`<div class="px-3 pb-2">${CustomStyle.editorMargin(gvc, widget, () => {
+                                                                                                                                                                refresh(widget, type)
+                                                                                                                                                            })}</div>`)
+                                                                                                                                                            break
+                                                                                                                                                        case 'background':
+                                                                                                                                                            array_string.push(`<div class="px-3 pb-2">${CustomStyle.editorBackground(gvc, widget, () => {
+                                                                                                                                                                refresh(widget, type)
+                                                                                                                                                            })}</div>`)
+                                                                                                                                                            break
+                                                                                                                                                        case 'develop':
+                                                                                                                                                            array_string.push(`<div class="px-3">${CustomStyle.editor(gvc, widget, () => {
+                                                                                                                                                                refresh(widget, type)
+                                                                                                                                                            })}</div>`)
+                                                                                                                                                            break
+                                                                                                                                                    }
+                                                                                                                                                }
+
+                                                                                                                                                return array_string.join('')
+                                                                                                                                            },
+                                                                                                                                            divCreate: {
+                                                                                                                                                class: `border-bottom `,
+                                                                                                                                                style: `cursor: pointer;color:#393939;border-radius: 0px;gap:10px;`
                                                                                                                                             }
                                                                                                                                         }
+                                                                                                                                    })
+                                                                                                                                }).join('')].join('')
+                                                                                                                            } else {
+                                                                                                                                return ``
+                                                                                                                            }
+                                                                                                                        } catch (e) {
+                                                                                                                            console.log(`render-error`, e)
+                                                                                                                            return ``
+                                                                                                                        }
 
-                                                                                                                                        return array_string.join('')
-                                                                                                                                    },
-                                                                                                                                    divCreate: {
-                                                                                                                                        class: `border-bottom`,
-                                                                                                                                        style: `cursor: pointer;color:#393939;border-radius: 0px;gap:10px;`
-                                                                                                                                    }
-                                                                                                                                }
-                                                                                                                            })
-                                                                                                                        }).join('')].join('')
-                                                                                                                    } else {
-                                                                                                                        return ``
                                                                                                                     }
-                                                                                                                } catch (e) {
-                                                                                                                    console.log(`render-error`, e)
-                                                                                                                    return ``
                                                                                                                 }
-
-                                                                                                            }
+                                                                                                            }))
+                                                                                                            return `<div class="mx-n2 ">${array_html.join('')}</div>`
+                                                                                                        } catch (e) {
+                                                                                                            console.log(`error--->`, e)
+                                                                                                            return ``
                                                                                                         }
-                                                                                                    }))
-                                                                                                    return `<div class="mx-n2">${array_html.join('')}</div>`
-                                                                                                } catch (e) {
-                                                                                                    console.log(`error--->`, e)
-                                                                                                    return ``
-                                                                                                }
 
-                                                                                            },
-                                                                                            custom_edit: true,
-                                                                                            toggle_visible: (bool) => {
-                                                                                                if (bool) {
-                                                                                                    $((gvc.glitter.document.querySelector('#editerCenter  iframe') as any).contentWindow.document.querySelector('.' + view_container_id)).show()
-                                                                                                } else {
-                                                                                                    $((gvc.glitter.document.querySelector('#editerCenter  iframe') as any).contentWindow.document.querySelector('.' + view_container_id)).hide()
-                                                                                                }
-                                                                                            }
-                                                                                        })
-                                                                                    ].join('')
+                                                                                                    },
+                                                                                                    custom_edit: true,
+                                                                                                    toggle_visible: (bool) => {
+                                                                                                        if (bool) {
+                                                                                                            $((gvc.glitter.document.querySelector('#editerCenter  iframe') as any).contentWindow.document.querySelector('.' + view_container_id)).show()
+                                                                                                        } else {
+                                                                                                            $((gvc.glitter.document.querySelector('#editerCenter  iframe') as any).contentWindow.document.querySelector('.' + view_container_id)).hide()
+                                                                                                        }
+                                                                                                    }
+                                                                                                })
+                                                                                            ].join('')}
+
+                                                                                        </div>`
                                                                                 } catch (e) {
                                                                                     return ``
                                                                                 }
@@ -1275,9 +1281,9 @@ font-weight: 700;" onclick="${gvc.event(() => {
                                         <div class="${Storage.select_function === 'user-editor' ? `d-none` : ``} mx-0 d-flex  px-3 hi fw-bold d-flex align-items-center shadow border-bottom  py-2 bgf6 "
                                              style="color:black;cursor: pointer;font-size:15px;"
                                              onclick="${gvc.event(() => {
-                                        toggle = !toggle
-                                        gvc.notifyDataChange(id)
-                                    })}">
+                                                 toggle = !toggle
+                                                 gvc.notifyDataChange(id)
+                                             })}">
                                             內容編輯
                                             <div class="flex-fill"></div>
                                             ${toggle ? ` <i class="fa-solid fa-chevron-up d-flex align-items-center justify-content-center me-2"
@@ -1305,9 +1311,9 @@ font-weight: 700;" onclick="${gvc.event(() => {
                                         <div class="${Storage.select_function === 'user-editor' ? `d-none` : ``} mx-0 d-flex   border-top px-3 hi fw-bold d-flex align-items-center shadow border-bottom  py-2 bgf6"
                                              style="color:black;cursor: pointer;font-size:15px;"
                                              onclick="${gvc.event(() => {
-                                        toggle = !toggle
-                                        gvc.notifyDataChange(id)
-                                    })}">
+                                                 toggle = !toggle
+                                                 gvc.notifyDataChange(id)
+                                             })}">
                                             模塊進階設定
                                             <div class="flex-fill"></div>
                                             ${toggle ? ` <i class="fa-solid fa-chevron-up d-flex align-items-center justify-content-center me-2"

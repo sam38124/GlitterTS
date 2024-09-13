@@ -22,14 +22,14 @@ export class GlobalWidget {
                     var _a;
                     GlobalWidget.glitter_view_type = (_a = GlobalWidget.glitter_view_type) !== null && _a !== void 0 ? _a : 'def';
                     return html `
-                        <h3 class="my-auto tx_title me-2 ms-2" style="white-space: nowrap;font-size: 16px;">
+                        <h3 class="my-auto tx_title me-2 ms-2 " style="white-space: nowrap;font-size: 16px;">
                             元件顯示樣式</h3>
                         <div style="background:#f1f1f1;border-radius:10px;"
                              class="d-flex align-items-center justify-content-center p-1 ">
                             ${[
-                        { icon: 'fa-regular fa-border-all', type: 'def', title: '預設樣式' },
+                        { icon: 'fa-regular fa-border-all guide-user-editor-5-back', type: 'def', title: '預設樣式' },
                         { icon: 'fa-regular fa-desktop', type: "desktop", title: '電腦版' },
-                        { icon: 'fa-regular fa-mobile', type: "mobile", title: '手機版' },
+                        { icon: 'fa-regular fa-mobile guide-user-editor-5', type: "mobile", title: '手機版' },
                     ].map((dd) => {
                         if (dd.type === GlobalWidget.glitter_view_type) {
                             return html `
@@ -70,7 +70,7 @@ export class GlobalWidget {
                         </div>`;
                 },
                 divCreate: {
-                    class: `d-flex align-items-center border-bottom mx-n2 mt-n2 p-2 `, style: ``
+                    class: `d-flex align-items-center border-bottom mx-n2 mt-n2 p-2 guide-user-editor-4`, style: ``
                 },
                 onCreate: () => {
                     $('.tooltip').remove();

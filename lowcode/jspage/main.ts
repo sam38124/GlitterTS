@@ -505,17 +505,17 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                                     view: () => {
                                                         return `      ${[
                                                             {
-                                                                src: `fa-duotone fa-window`,
+                                                                src: `fa-duotone fa-window guide-user-editor-1-icon`,
                                                                 index: 'layout',
                                                                 hint: '頁面編輯',
                                                             },
                                                             {
-                                                                src: `fa-sharp fa-regular fa-globe`,
+                                                                src: `fa-sharp fa-regular fa-globe guide-user-editor-11-icon`,
                                                                 index: 'color',
-                                                                hint: '全局樣式'
+                                                                hint: '全站樣式'
                                                             },
                                                             {
-                                                                src: `fa-regular fa-grid-2`,
+                                                                src: `fa-regular fa-grid-2 design-guide-1-icon`,
                                                                 index: 'widget',
                                                                 hint: '設計元件'
                                                             }

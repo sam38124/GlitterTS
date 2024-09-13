@@ -56,6 +56,32 @@ export class ApiShop {
             }),
         });
     }
+    static getEditorGuide() {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/manager/config?key=editorGuide`,
+            type: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: GlobalUser.token,
+            },
+        });
+    }
+    static setEditorGuide(json: any) {
+        return BaseApi.create({
+            url: getBaseUrl() + `/api-public/v1/manager/config`,
+            type: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'g-app': getConfig().config.appName,
+                Authorization: getConfig().config.token,
+            },
+            data: JSON.stringify({
+                key: 'editorGuide',
+                value: json,
+            }),
+        });
+    }
     static postProduct(cf: { data: any; token?: string }) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/product`,
