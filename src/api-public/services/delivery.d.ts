@@ -39,11 +39,12 @@ export declare class Delivery {
         data: DeliveryData;
         message?: undefined;
     }>;
-    printOrderInfo(obj: {
+    printOrderInfo(json: {
         LogisticsSubType: StoreBrand;
         AllPayLogisticsID: string;
         CVSPaymentNo: string;
         CVSValidationNo: string;
     }): Promise<string>;
+    notify(json: any): Promise<void>;
 }
 export {};

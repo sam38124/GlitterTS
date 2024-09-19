@@ -44,7 +44,7 @@ router.post('/c2cRedirect', async (req: express.Request, resp: express.Response)
 
 router.post('/c2cNotify', async (req: express.Request, resp: express.Response) => {
     try {
-        return response.succ(resp, { result: 'c2cNotify' });
+        return response.succ(resp, await new Delivery(req.get('g-app') as string).notify(req.body));
     } catch (err) {
         return response.fail(resp, err);
     }

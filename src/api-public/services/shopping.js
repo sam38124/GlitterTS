@@ -765,26 +765,32 @@ class Shopping {
             return_url.searchParams.set('cart_token', carData.orderID);
             await redis_js_1.default.setValue(id, return_url.href);
             if (['FAMIC2C', 'UNIMARTC2C', 'HILIFEC2C', 'OKMARTC2C'].includes(carData.user_info.LogisticsSubType)) {
-                console.log('超商物流單 開始建立');
+                const keyData = (await private_config_js_1.Private_config.getConfig({
+                    appName: this.app,
+                    key: 'glitter_delivery',
+                }))[0].value;
+                console.log(`超商物流單 開始建立（使用${keyData.Action === 'main' ? '正式' : '測試'}環境）`);
                 const delivery = await new delivery_js_1.Delivery(this.app).postStoreOrder({
                     LogisticsSubType: carData.user_info.LogisticsSubType,
                     GoodsAmount: carData.total,
                     GoodsName: `訂單編號 ${carData.orderID}`,
                     ReceiverName: carData.user_info.name,
                     ReceiverCellPhone: carData.user_info.phone,
-                    ReceiverStoreID: (() => {
-                        if (carData.user_info.LogisticsSubType === 'OKMARTC2C') {
-                            return '1328';
-                        }
-                        if (carData.user_info.LogisticsSubType === 'FAMIC2C') {
-                            return '006598';
-                        }
-                        return '131386';
-                    })(),
+                    ReceiverStoreID: keyData.Action === 'main'
+                        ? carData.user_info.CVSStoreID
+                        : (() => {
+                            if (carData.user_info.LogisticsSubType === 'OKMARTC2C') {
+                                return '1328';
+                            }
+                            if (carData.user_info.LogisticsSubType === 'FAMIC2C') {
+                                return '006598';
+                            }
+                            return '131386';
+                        })(),
                 });
                 if (delivery.result) {
-                    console.log('綠界物流訂單 建立成功');
                     carData.deliveryData = delivery.data;
+                    console.log('綠界物流訂單 建立成功');
                 }
                 else {
                     console.log(`綠界物流訂單 建立錯誤: ${delivery.message}`);

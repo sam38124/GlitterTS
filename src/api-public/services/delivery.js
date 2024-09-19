@@ -7,6 +7,7 @@ exports.Delivery = void 0;
 const tool_js_1 = __importDefault(require("../../modules/tool.js"));
 const redis_js_1 = __importDefault(require("../../modules/redis.js"));
 const exception_js_1 = __importDefault(require("../../modules/exception.js"));
+const database_js_1 = __importDefault(require("../../modules/database.js"));
 const private_config_js_1 = require("../../services/private_config.js");
 const crypto_1 = __importDefault(require("crypto"));
 const axios_1 = __importDefault(require("axios"));
@@ -102,10 +103,11 @@ class Delivery {
             appName: this.appName,
             key: 'glitter_delivery',
         }))[0].value;
+        const actionURL = keyData.Action === 'main' ? 'https://logistics.ecpay.com.tw/Express/Create' : 'https://logistics-stage.ecpay.com.tw/Express/Create';
         const params = Object.assign({ MerchantID: keyData.MERCHANT_ID, MerchantTradeDate: (0, moment_timezone_1.default)().tz('Asia/Taipei').format('YYYY/MM/DD HH:mm:ss'), LogisticsType: 'CVS', ServerReplyURL: `${process.env.DOMAIN}/api-public/v1/delivery/c2cNotify?g-app=${this.appName}`, SenderName: keyData.SenderName, SenderCellPhone: keyData.SenderCellPhone }, json);
         const checkMacValue = EcPay.generateCheckMacValue(params, keyData.HASH_KEY, keyData.HASH_IV);
         const response = await EcPay.axiosRequest({
-            actionURL: 'https://logistics-stage.ecpay.com.tw/Express/Create',
+            actionURL,
             params,
             checkMacValue,
         });
@@ -131,16 +133,16 @@ class Delivery {
             data: getJSON,
         };
     }
-    async printOrderInfo(obj) {
+    async printOrderInfo(json) {
         const keyData = (await private_config_js_1.Private_config.getConfig({
             appName: this.appName,
             key: 'glitter_delivery',
         }))[0].value;
         const params = {
             MerchantID: keyData.MERCHANT_ID,
-            AllPayLogisticsID: obj.AllPayLogisticsID,
-            CVSPaymentNo: obj.CVSPaymentNo,
-            CVSValidationNo: obj.CVSValidationNo,
+            AllPayLogisticsID: json.AllPayLogisticsID,
+            CVSPaymentNo: json.CVSPaymentNo,
+            CVSValidationNo: json.CVSValidationNo,
         };
         const storePath = {
             FAMIC2C: 'PrintFAMIC2COrderInfo',
@@ -148,13 +150,65 @@ class Delivery {
             HILIFEC2C: 'PrintHILIFEC2COrderInfo',
             OKMARTC2C: 'PrintOKMARTC2COrderInfo',
         };
-        console.log(keyData);
+        const actionURL = keyData.Action === 'main'
+            ? `https://logistics.ecpay.com.tw/Express/${storePath[json.LogisticsSubType]}`
+            : `https://logistics-stage.ecpay.com.tw/Express/${storePath[json.LogisticsSubType]}`;
         const checkMacValue = EcPay.generateCheckMacValue(params, keyData.HASH_KEY, keyData.HASH_IV);
         return EcPay.generateForm({
-            actionURL: `https://logistics-stage.ecpay.com.tw/Express/${storePath[obj.LogisticsSubType]}`,
+            actionURL,
             params,
             checkMacValue,
         });
+    }
+    async notify(json) {
+        try {
+            json.token && delete json.token;
+            const getNotification = await database_js_1.default.query(`SELECT * FROM \`${this.appName}\`.public_config WHERE \`key\` = "ecpay_delivery_notify";
+                `, []);
+            const notification = getNotification[0];
+            if (notification) {
+                notification.value.push(json);
+                await database_js_1.default.query(`UPDATE \`${this.appName}\`.public_config SET ? WHERE \`key\` = "ecpay_delivery_notify";
+                    `, [
+                    {
+                        value: JSON.stringify(notification.value),
+                        updated_at: new Date(),
+                    },
+                ]);
+            }
+            else {
+                await database_js_1.default.query(`INSERT INTO \`${this.appName}\`.public_config SET ?;
+                    `, [
+                    {
+                        key: 'ecpay_delivery_notify',
+                        value: JSON.stringify([json]),
+                        updated_at: new Date(),
+                    },
+                ]);
+            }
+            const checkouts = await database_js_1.default.query(`SELECT * FROM \`${this.appName}\`.t_checkout 
+                WHERE JSON_EXTRACT(orderData, '$.deliveryData.AllPayLogisticsID') = ?
+                  AND JSON_EXTRACT(orderData, '$.deliveryData.MerchantTradeNo') = ?;`, [json.AllPayLogisticsID, json.MerchantTradeNo]);
+            if (checkouts[0]) {
+                const checkout = checkouts[0];
+                if (checkout.orderData.deliveryNotifyList && checkout.orderData.deliveryNotifyList.length > 0) {
+                    checkout.orderData.deliveryNotifyList.push(json);
+                }
+                else {
+                    checkout.orderData.deliveryNotifyList = [json];
+                }
+                await database_js_1.default.query(`UPDATE \`${this.appName}\`.t_checkout SET ? WHERE id = ?
+                    `, [
+                    {
+                        orderData: JSON.stringify(checkout.orderData),
+                    },
+                    checkout.id,
+                ]);
+            }
+        }
+        catch (error) {
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'delivery notify error:' + error, null);
+        }
     }
 }
 exports.Delivery = Delivery;

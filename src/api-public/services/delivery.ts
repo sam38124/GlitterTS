@@ -1,6 +1,7 @@
 import Tool from '../../modules/tool.js';
 import redis from '../../modules/redis.js';
 import exception from '../../modules/exception.js';
+import db from '../../modules/database.js';
 import { Private_config } from '../../services/private_config.js';
 import crypto from 'crypto';
 import axios from 'axios';
@@ -112,13 +113,13 @@ class EcPay {
 }
 
 export class Delivery {
-    public appName: string;
+    appName: string;
 
-    public constructor(appName: string) {
+    constructor(appName: string) {
         this.appName = appName;
     }
 
-    public async getC2CMap(returnURL: string, logistics: string) {
+    async getC2CMap(returnURL: string, logistics: string) {
         const id = 'redirect_' + Tool.randomString(10);
         await redis.setValue(id, returnURL);
 
@@ -137,7 +138,7 @@ export class Delivery {
         });
     }
 
-    public async postStoreOrder(json?: { LogisticsSubType: StoreBrand; GoodsAmount: number; GoodsName: string; ReceiverName: string; ReceiverCellPhone: string; ReceiverStoreID: string }) {
+    async postStoreOrder(json?: { LogisticsSubType: StoreBrand; GoodsAmount: number; GoodsName: string; ReceiverName: string; ReceiverCellPhone: string; ReceiverStoreID: string }) {
         const keyData = (
             await Private_config.getConfig({
                 appName: this.appName,
@@ -192,7 +193,7 @@ export class Delivery {
         };
     }
 
-    public async printOrderInfo(obj: { LogisticsSubType: StoreBrand; AllPayLogisticsID: string; CVSPaymentNo: string; CVSValidationNo: string }) {
+    async printOrderInfo(json: { LogisticsSubType: StoreBrand; AllPayLogisticsID: string; CVSPaymentNo: string; CVSValidationNo: string }) {
         const keyData = (
             await Private_config.getConfig({
                 appName: this.appName,
@@ -202,9 +203,9 @@ export class Delivery {
 
         const params = {
             MerchantID: keyData.MERCHANT_ID,
-            AllPayLogisticsID: obj.AllPayLogisticsID,
-            CVSPaymentNo: obj.CVSPaymentNo,
-            CVSValidationNo: obj.CVSValidationNo,
+            AllPayLogisticsID: json.AllPayLogisticsID,
+            CVSPaymentNo: json.CVSPaymentNo,
+            CVSValidationNo: json.CVSValidationNo,
         };
 
         const storePath: Record<StoreBrand, string> = {
@@ -215,7 +216,9 @@ export class Delivery {
         };
 
         const actionURL =
-            keyData.Action === 'main' ? `https://logistics.ecpay.com.tw/Express/${storePath[obj.LogisticsSubType]}` : `https://logistics-stage.ecpay.com.tw/Express/${storePath[obj.LogisticsSubType]}`;
+            keyData.Action === 'main'
+                ? `https://logistics.ecpay.com.tw/Express/${storePath[json.LogisticsSubType]}`
+                : `https://logistics-stage.ecpay.com.tw/Express/${storePath[json.LogisticsSubType]}`;
 
         const checkMacValue = EcPay.generateCheckMacValue(params, keyData.HASH_KEY, keyData.HASH_IV);
 
@@ -224,5 +227,73 @@ export class Delivery {
             params,
             checkMacValue,
         });
+    }
+
+    async notify(json: any) {
+        try {
+            // 存入通知紀錄
+            const getNotification = await db.query(
+                `SELECT * FROM \`${this.appName}\`.public_config WHERE \`key\` = "ecpay_delivery_notify";
+                `,
+                []
+            );
+
+            json.token && delete json.token;
+            const notification = getNotification[0];
+            if (notification) {
+                notification.value.push(json);
+                await db.query(
+                    `UPDATE \`${this.appName}\`.public_config SET ? WHERE \`key\` = "ecpay_delivery_notify";
+                    `,
+                    [
+                        {
+                            value: JSON.stringify(notification.value),
+                            updated_at: new Date(),
+                        },
+                    ]
+                );
+            } else {
+                await db.query(
+                    `INSERT INTO \`${this.appName}\`.public_config SET ?;
+                    `,
+                    [
+                        {
+                            key: 'ecpay_delivery_notify',
+                            value: JSON.stringify([json]),
+                            updated_at: new Date(),
+                        },
+                    ]
+                );
+            }
+
+            // 存入該訂單
+            const checkouts = await db.query(
+                `SELECT * FROM \`${this.appName}\`.t_checkout 
+                WHERE JSON_EXTRACT(orderData, '$.deliveryData.AllPayLogisticsID') = ?
+                  AND JSON_EXTRACT(orderData, '$.deliveryData.MerchantTradeNo') = ?;`,
+                [json.AllPayLogisticsID, json.MerchantTradeNo]
+            );
+            if (checkouts[0]) {
+                const checkout = checkouts[0];
+                if (checkout.orderData.deliveryNotifyList && checkout.orderData.deliveryNotifyList.length > 0) {
+                    checkout.orderData.deliveryNotifyList.push(json);
+                } else {
+                    checkout.orderData.deliveryNotifyList = [json];
+                }
+
+                await db.query(
+                    `UPDATE \`${this.appName}\`.t_checkout SET ? WHERE id = ?
+                    `,
+                    [
+                        {
+                            orderData: JSON.stringify(checkout.orderData),
+                        },
+                        checkout.id,
+                    ]
+                );
+            }
+        } catch (error) {
+            throw exception.BadRequestError('BAD_REQUEST', 'delivery notify error:' + error, null);
+        }
     }
 }
