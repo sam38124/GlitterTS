@@ -73,6 +73,7 @@ exports.app.use((0, cors_1.default)());
 exports.app.use((0, compression_1.default)());
 exports.app.use(express_1.default.raw({ limit: '100MB' }));
 exports.app.use(express_1.default.json({ limit: '100MB' }));
+exports.app.use(body_parser_1.default.urlencoded({ extended: true }));
 exports.app.use(body_parser_1.default.json({ limit: '100MB' }));
 exports.app.use(createContext);
 exports.app.use(body_parser_1.default.raw({ type: '*/*' }));
@@ -112,8 +113,8 @@ function createContext(req, res, next) {
     next();
 }
 async function createAppRoute() {
-    const apps = await database_2.default.execute(`SELECT appName
-                                   FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_config;`, []);
+    const apps = await database_2.default.execute(`SELECT appName FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_config;
+        `, []);
     for (const dd of apps) {
         await createAPP(dd);
     }
@@ -129,7 +130,7 @@ async function createAPP(dd) {
             path: file_path,
             app_name: dd.appName,
             root_path: '/' + encodeURI(dd.appName) + '/',
-            seoManager: async (req, resp) => {
+            seoManager: async (req) => {
                 var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l;
                 try {
                     if (req.query.state === 'google_login') {
@@ -206,14 +207,14 @@ async function createAPP(dd) {
                         let distribution_code = '';
                         if (req.query.page.split('/')[0] === 'distribution' && req.query.page.split('/')[1]) {
                             const redURL = new URL(`https://127.0.0.1${req.url}`);
-                            const page = (await database_2.default.query(`SELECT *
-                                   from \`${appName}\`.t_recommend_links where content->>'$.link'=?`, [req.query.page.split('/')[1]]))[0].content;
+                            const page = (await database_2.default.query(`SELECT * FROM \`${appName}\`.t_recommend_links WHERE content->>'$.link' = ?;
+                                    `, [req.query.page.split('/')[1]]))[0].content;
                             distribution_code = `
-                            localStorage.setItem('distributionCode','${page.code}');
-                            location.href='${page.redirect}${redURL.search}';
+                                localStorage.setItem('distributionCode','${page.code}');
+                                location.href='${page.redirect}${redURL.search}';
                             `;
                         }
-                        return `${(() => {
+                        return html `${(() => {
                             var _a;
                             const d = data.page_config.seo;
                             return html `
@@ -265,9 +266,13 @@ async function createAPP(dd) {
                                         .map((dd) => {
                                         try {
                                             if (dd.data.elem === 'link') {
-                                                return `<link type="text/css" rel="stylesheet" href="${dd.data.attr.find((dd) => {
+                                                return html `<link
+                                                                type="text/css"
+                                                                rel="stylesheet"
+                                                                href="${dd.data.attr.find((dd) => {
                                                     return dd.attr === 'href';
-                                                }).value}">`;
+                                                }).value}"
+                                                            />`;
                                             }
                                         }
                                         catch (e) {
@@ -301,7 +306,7 @@ ${[
                             { src: 'api/pageConfig.js', type: 'module' },
                         ]
                             .map((dd) => {
-                            return `<script src="/${link_prefix && `${link_prefix}/`}${dd.src}" type="${dd.type}"></script>`;
+                            return html `<script src="/${link_prefix && `${link_prefix}/`}${dd.src}" type="${dd.type}"></script>`;
                         })
                             .join('')}
 ${((_l = preload.event) !== null && _l !== void 0 ? _l : [])
@@ -310,7 +315,7 @@ ${((_l = preload.event) !== null && _l !== void 0 ? _l : [])
                             return link.substring(0, link.length - 2);
                         })
                             .map((dd) => {
-                            return `<script src="/${link_prefix && `${link_prefix}/`}${dd}" type="module"></script>`;
+                            return html `<script src="/${link_prefix && `${link_prefix}/`}${dd}" type="module"></script>`;
                         })
                             .join('')}
               </head>
@@ -319,31 +324,42 @@ ${((_l = preload.event) !== null && _l !== void 0 ? _l : [])
                                 return ``;
                             }
                             else {
-                                return ` ${(customCode.ga4 || [])
+                                return html `
+                          ${(customCode.ga4 || [])
                                     .map((dd) => {
-                                    return `<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=${dd.code}"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
+                                    return html `<!-- Google tag (gtag.js) -->
+                                      <script async src="https://www.googletagmanager.com/gtag/js?id=${dd.code}"></script>
+                                      <script>
+                                          window.dataLayer = window.dataLayer || [];
+                                          function gtag() {
+                                              dataLayer.push(arguments);
+                                          }
+                                          gtag('js', new Date());
 
-  gtag('config', '${dd.code}');
-</script>`;
+                                          gtag('config', '${dd.code}');
+                                      </script>`;
                                 })
-                                    .join('')}    
-                ${(customCode.g_tag || [])
+                                    .join('')}
+                          ${(customCode.g_tag || [])
                                     .map((dd) => {
-                                    return `<!-- Google tag (gtag.js) -->
-<!-- Google Tag Manager -->
-<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-})(window,document,'script','dataLayer','${dd.code}');</script>
-<!-- End Google Tag Manager -->`;
+                                    return html `<!-- Google tag (gtag.js) -->
+                                      <!-- Google Tag Manager -->
+                                      <script>
+                                          (function (w, d, s, l, i) {
+                                              w[l] = w[l] || [];
+                                              w[l].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
+                                              var f = d.getElementsByTagName(s)[0],
+                                                  j = d.createElement(s),
+                                                  dl = l != 'dataLayer' ? '&l=' + l : '';
+                                              j.async = true;
+                                              j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
+                                              f.parentNode.insertBefore(j, f);
+                                          })(window, document, 'script', 'dataLayer', '${dd.code}');
+                                      </script>
+                                      <!-- End Google Tag Manager -->`;
                                 })
-                                    .join('')}  `;
+                                    .join('')}
+                      `;
                             }
                         })()}     
                         `;
@@ -372,7 +388,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                          from \`${config_1.saasConfig.SAAS_NAME}\`.app_config
                          where appName = ?`, [appName]))[0]['domain'];
                 const site_map = await getSeoSiteMap(appName, req);
-                const sitemap = html `<?xml version="1.0" encoding="UTF-8"?>
+                const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
                     <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
                         ${(await database_2.default.query(`select page_config, tag, updated_time
                                      from \`${config_1.saasConfig.SAAS_NAME}\`.page_config
@@ -381,10 +397,9 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                                     `, [appName]))
                     .map((d2) => {
                     return `<url>
-<loc>${`https://${domain}/${d2.tag}`.replace(/ /g, '+')}</loc>
-<lastmod>${(0, moment_js_1.default)(new Date(d2.updated_time)).format('YYYY-MM-DD')}</lastmod>
-</url>
-`;
+                                    <loc>${`https://${domain}/${d2.tag}`.replace(/ /g, '+')}</loc>
+                                    <lastmod>${(0, moment_js_1.default)(new Date(d2.updated_time)).format('YYYY-MM-DD')}</lastmod>
+                                </url> `;
                 })
                     .join('')}
                         ${article.data
@@ -393,19 +408,17 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                         return ``;
                     }
                     return `<url>
-<loc>${`https://${domain}/${d2.content.for_index === 'false' ? `pages` : `blogs`}/${d2.content.tag}`.replace(/ /g, '+')}</loc>
-<lastmod>${(0, moment_js_1.default)(new Date(d2.updated_time)).format('YYYY-MM-DD')}</lastmod>
-</url>
-`;
+                                    <loc>${`https://${domain}/${d2.content.for_index === 'false' ? `pages` : `blogs`}/${d2.content.tag}`.replace(/ /g, '+')}</loc>
+                                    <lastmod>${(0, moment_js_1.default)(new Date(d2.updated_time)).format('YYYY-MM-DD')}</lastmod>
+                                </url> `;
                 })
                     .join('')}
                         ${(site_map || []).map((d2) => {
                     return `<url>
-<loc>${`https://${domain}/${d2.url}`.replace(/ /g, '+')}</loc>
-<lastmod>${d2.updated_time ? (0, moment_js_1.default)(new Date(d2.updated_time)).format('YYYY-MM-DD') : (0, moment_js_1.default)(new Date()).format('YYYY-MM-DDTHH:mm:SS+00:00')}</lastmod>
-<changefreq>weekly</changefreq>
-</url>
-`;
+                                <loc>${`https://${domain}/${d2.url}`.replace(/ /g, '+')}</loc>
+                                <lastmod>${d2.updated_time ? (0, moment_js_1.default)(new Date(d2.updated_time)).format('YYYY-MM-DD') : (0, moment_js_1.default)(new Date()).format('YYYY-MM-DDTHH:mm:SS+00:00')}</lastmod>
+                                <changefreq>weekly</changefreq>
+                            </url> `;
                 })}
                     </urlset> `;
                 return (0, xml_formatter_1.default)(sitemap, {
@@ -422,7 +435,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                 const domain = (await database_2.default.query(`select \`domain\`
                          from \`${config_1.saasConfig.SAAS_NAME}\`.app_config
                          where appName = ?`, [appName]))[0]['domain'];
-                return html `<?xml version="1.0" encoding="UTF-8"?>
+                return `<?xml version="1.0" encoding="UTF-8"?>
                     <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
                         <!-- This is the parent sitemap linking to additional sitemaps for products, collections and pages as shown below. The sitemap can not be edited manually, but is kept up to date in real time. -->
                         <sitemap>
@@ -449,13 +462,18 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                          from \`${config_1.saasConfig.SAAS_NAME}\`.app_config
                          where appName = ?`, [appName]))[0]['domain'];
                 return `<?xml version="1.0" encoding="UTF-8"?>
-<urlset  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd http://www.google.com/schemas/sitemap-image/1.1 http://www.google.com/schemas/sitemap-image/1.1/sitemap-image.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-    <url>
-        <loc>https://${domain}/index</loc>
-        <lastmod>2024-06-16T02:53:00+00:00</lastmod>
-        <changefreq>weekly</changefreq>
-    </url>
-</urlset>`;
+                    <urlset
+                        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
+                        xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd http://www.google.com/schemas/sitemap-image/1.1 http://www.google.com/schemas/sitemap-image/1.1/sitemap-image.xsd"
+                        xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+                    >
+                        <url>
+                            <loc>https://${domain}/index</loc>
+                            <lastmod>2024-06-16T02:53:00+00:00</lastmod>
+                            <changefreq>weekly</changefreq>
+                        </url>
+                    </urlset>`;
             },
         },
     ]);
@@ -488,7 +506,7 @@ async function getSeoDetail(appName, req) {
                 },
             },
         ];
-        const evalString = html `
+        const evalString = `
                 return {
                 execute:(${functionValue
             .map((d2) => {
@@ -530,7 +548,7 @@ async function getSeoSiteMap(appName, req) {
                 },
             },
         ];
-        const evalString = html `
+        const evalString = `
                 return {
                 execute:(${functionValue
             .map((d2) => {

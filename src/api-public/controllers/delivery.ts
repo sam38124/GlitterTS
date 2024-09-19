@@ -10,18 +10,17 @@ export = router;
 router.post('/c2cRedirect', async (req: express.Request, resp: express.Response) => {
     try {
         const html = String.raw;
-        const query = req.body.toString();
         const return_url = new URL((await redis.getValue(req.query.return as string)) as string);
-        query.split('&').map((dd: any) => {
-            return_url.searchParams.set(dd.split('=')[0], dd.split('=')[1]);
+        Object.keys(req.body).map((key) => {
+            return_url.searchParams.set(encodeURIComponent(key), encodeURIComponent(req.body[key]));
         });
+
         return resp.send(html`<!DOCTYPE html>
             <html lang="en">
                 <head>
                     <meta charset="UTF-8" />
                     <title>Title</title>
                 </head>
-
                 <body>
                     <script>
                         try {

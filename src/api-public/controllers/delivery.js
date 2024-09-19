@@ -10,10 +10,9 @@ const router = express_1.default.Router();
 router.post('/c2cRedirect', async (req, resp) => {
     try {
         const html = String.raw;
-        const query = req.body.toString();
         const return_url = new URL((await redis_js_1.default.getValue(req.query.return)));
-        query.split('&').map((dd) => {
-            return_url.searchParams.set(dd.split('=')[0], dd.split('=')[1]);
+        Object.keys(req.body).map((key) => {
+            return_url.searchParams.set(encodeURIComponent(key), encodeURIComponent(req.body[key]));
         });
         return resp.send(html `<!DOCTYPE html>
             <html lang="en">
@@ -21,7 +20,6 @@ router.post('/c2cRedirect', async (req, resp) => {
                     <meta charset="UTF-8" />
                     <title>Title</title>
                 </head>
-
                 <body>
                     <script>
                         try {

@@ -12,7 +12,6 @@ import database from './modules/database';
 import { SaasScheme } from './services/saas-table-check';
 import db from './modules/database';
 import { createBucket, listBuckets } from './modules/AWSLib';
-import AWS from 'aws-sdk';
 import { Live_source } from './live_source';
 import * as process from 'process';
 import bodyParser from 'body-parser';
@@ -26,15 +25,11 @@ import { Seo } from './services/seo.js';
 import { Shopping } from './api-public/services/shopping.js';
 import { WebSocket } from './services/web-socket.js';
 import { UtDatabase } from './api-public/utils/ut-database.js';
-import { UpdateScript } from './update-script.js';
 import compression from 'compression';
-import jwt from 'jsonwebtoken';
 import { User } from './api-public/services/user.js';
 import { Schedule } from './api-public/services/schedule.js';
-import response from './modules/response.js';
 import { Private_config } from './services/private_config.js';
 import moment from 'moment/moment.js';
-import admin from 'firebase-admin';
 import xmlFormatter from 'xml-formatter';
 import { SystemSchedule } from './services/system-schedule';
 
@@ -42,17 +37,17 @@ export const app = express();
 const logger = new Logger();
 
 app.options('/*', (req, res) => {
-    // 处理 OPTIONS 请求，返回允许的方法和头信息
     res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH');
     res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization,g-app');
     res.status(200).send();
 });
-// 添加路由和其他中间件
+
 app.use(cors());
 app.use(compression());
 app.use(express.raw({ limit: '100MB' }));
 app.use(express.json({ limit: '100MB' }));
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json({ limit: '100MB' }));
 app.use(createContext);
 app.use(bodyParser.raw({ type: '*/*' }));
@@ -96,8 +91,8 @@ function createContext(req: express.Request, res: express.Response, next: expres
 
 async function createAppRoute() {
     const apps = await db.execute(
-        `SELECT appName
-                                   FROM \`${saasConfig.SAAS_NAME}\`.app_config;`,
+        `SELECT appName FROM \`${saasConfig.SAAS_NAME}\`.app_config;
+        `,
         []
     );
     for (const dd of apps) {
@@ -108,7 +103,6 @@ async function createAppRoute() {
 export async function createAPP(dd: any) {
     const html = String.raw;
     Live_source.liveAPP.push(dd.appName);
-    //正式區在跑排程
     Schedule.app.push(dd.appName);
     const file_path = path.resolve(__dirname, '../lowcode');
     return await GlitterUtil.set_frontend_v2(app, [
@@ -117,7 +111,7 @@ export async function createAPP(dd: any) {
             path: file_path,
             app_name: dd.appName,
             root_path: '/' + encodeURI(dd.appName) + '/',
-            seoManager: async (req, resp) => {
+            seoManager: async (req) => {
                 try {
                     if (req.query.state === 'google_login') {
                         req.query.page = 'login';
@@ -126,7 +120,6 @@ export async function createAPP(dd: any) {
                     if (req.query.appName) {
                         appName = req.query.appName;
                     }
-                    //SAAS品牌和用戶類型
                     const brandAndMemberType = await App.checkBrandAndMemberType(appName);
 
                     let data = await Seo.getPageInfo(appName, req.query.page as string);
@@ -171,7 +164,7 @@ export async function createAPP(dd: any) {
                         } else if (d.type !== 'custom') {
                             data = await Seo.getPageInfo(appName, data.config.homePage);
                         }
-                        const preload =  req.query.isIframe === 'true' ? {} : await App.preloadPageData(appName, req.query.page as any);
+                        const preload = req.query.isIframe === 'true' ? {} : await App.preloadPageData(appName, req.query.page as any);
                         data.page_config = data.page_config ?? {};
                         data.page_config.seo = data.page_config.seo ?? {};
                         const seo_detail = await getSeoDetail(appName, req);
@@ -188,20 +181,23 @@ export async function createAPP(dd: any) {
                         } else {
                             link_prefix = '';
                         }
-                        let distribution_code=''
+                        let distribution_code = '';
                         if ((req.query.page as string).split('/')[0] === 'distribution' && (req.query.page as string).split('/')[1]) {
-                            const redURL=new URL(`https://127.0.0.1${req.url}`)
-                            const page=(await db.query(`SELECT *
-                                   from \`${appName}\`.t_recommend_links where content->>'$.link'=?`, [(req.query.page as string).split('/')[1]]))[0].content;
-                            distribution_code=`
-                            localStorage.setItem('distributionCode','${page.code}');
-                            location.href='${page.redirect}${redURL.search}';
-                            `
-
+                            const redURL = new URL(`https://127.0.0.1${req.url}`);
+                            const page = (
+                                await db.query(
+                                    `SELECT * FROM \`${appName}\`.t_recommend_links WHERE content->>'$.link' = ?;
+                                    `,
+                                    [(req.query.page as string).split('/')[1]]
+                                )
+                            )[0].content;
+                            distribution_code = `
+                                localStorage.setItem('distributionCode','${page.code}');
+                                location.href='${page.redirect}${redURL.search}';
+                            `;
                         }
 
-
-                        return `${(() => {
+                        return html`${(() => {
                             const d = data.page_config.seo;
                             return html`
                                 <head>
@@ -248,11 +244,13 @@ export async function createAPP(dd: any) {
                                                 .map((dd: any) => {
                                                     try {
                                                         if (dd.data.elem === 'link') {
-                                                            return `<link type="text/css" rel="stylesheet" href="${
-                                                                dd.data.attr.find((dd: any) => {
+                                                            return html`<link
+                                                                type="text/css"
+                                                                rel="stylesheet"
+                                                                href="${dd.data.attr.find((dd: any) => {
                                                                     return dd.attr === 'href';
-                                                                }).value
-                                                            }">`;
+                                                                }).value}"
+                                                            />`;
                                                         }
                                                     } catch (e) {
                                                         return ``;
@@ -283,10 +281,9 @@ ${[
     { src: 'glitterBundle/html-component/widget.js', type: 'module' },
     { src: 'glitterBundle/plugins/trigger-event.js', type: 'module' },
     { src: 'api/pageConfig.js', type: 'module' },
-    // 'glitterBundle/Glitter.css'
 ]
     .map((dd) => {
-        return `<script src="/${link_prefix && `${link_prefix}/`}${dd.src}" type="${dd.type}"></script>`;
+        return html`<script src="/${link_prefix && `${link_prefix}/`}${dd.src}" type="${dd.type}"></script>`;
     })
     .join('')}
 ${(preload.event ?? [])
@@ -295,7 +292,7 @@ ${(preload.event ?? [])
         return link.substring(0, link.length - 2);
     })
     .map((dd: any) => {
-        return `<script src="/${link_prefix && `${link_prefix}/`}${dd}" type="module"></script>`;
+        return html`<script src="/${link_prefix && `${link_prefix}/`}${dd}" type="module"></script>`;
     })
     .join('')}
               </head>
@@ -303,31 +300,42 @@ ${(preload.event ?? [])
                   if (req.query.type === 'editor') {
                       return ``;
                   } else {
-                      return ` ${(customCode.ga4 || [])
-                          .map((dd: any) => {
-                              return `<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=${dd.code}"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
+                      return html`
+                          ${(customCode.ga4 || [])
+                              .map((dd: any) => {
+                                  return html`<!-- Google tag (gtag.js) -->
+                                      <script async src="https://www.googletagmanager.com/gtag/js?id=${dd.code}"></script>
+                                      <script>
+                                          window.dataLayer = window.dataLayer || [];
+                                          function gtag() {
+                                              dataLayer.push(arguments);
+                                          }
+                                          gtag('js', new Date());
 
-  gtag('config', '${dd.code}');
-</script>`;
-                          })
-                          .join('')}    
-                ${(customCode.g_tag || [])
-                    .map((dd: any) => {
-                        return `<!-- Google tag (gtag.js) -->
-<!-- Google Tag Manager -->
-<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-})(window,document,'script','dataLayer','${dd.code}');</script>
-<!-- End Google Tag Manager -->`;
-                    })
-                    .join('')}  `;
+                                          gtag('config', '${dd.code}');
+                                      </script>`;
+                              })
+                              .join('')}
+                          ${(customCode.g_tag || [])
+                              .map((dd: any) => {
+                                  return html`<!-- Google tag (gtag.js) -->
+                                      <!-- Google Tag Manager -->
+                                      <script>
+                                          (function (w, d, s, l, i) {
+                                              w[l] = w[l] || [];
+                                              w[l].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
+                                              var f = d.getElementsByTagName(s)[0],
+                                                  j = d.createElement(s),
+                                                  dl = l != 'dataLayer' ? '&l=' + l : '';
+                                              j.async = true;
+                                              j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
+                                              f.parentNode.insertBefore(j, f);
+                                          })(window, document, 'script', 'dataLayer', '${dd.code}');
+                                      </script>
+                                      <!-- End Google Tag Manager -->`;
+                              })
+                              .join('')}
+                      `;
                   }
               })()}     
                         `;
@@ -360,7 +368,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                 )[0]['domain'];
 
                 const site_map = await getSeoSiteMap(appName, req);
-                const sitemap = html`<?xml version="1.0" encoding="UTF-8"?>
+                const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
                     <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
                         ${(
                             await db.query(
@@ -374,10 +382,9 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                         )
                             .map((d2: any) => {
                                 return `<url>
-<loc>${`https://${domain}/${d2.tag}`.replace(/ /g, '+')}</loc>
-<lastmod>${moment(new Date(d2.updated_time)).format('YYYY-MM-DD')}</lastmod>
-</url>
-`;
+                                    <loc>${`https://${domain}/${d2.tag}`.replace(/ /g, '+')}</loc>
+                                    <lastmod>${moment(new Date(d2.updated_time)).format('YYYY-MM-DD')}</lastmod>
+                                </url> `;
                             })
                             .join('')}
                         ${article.data
@@ -386,19 +393,17 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                                     return ``;
                                 }
                                 return `<url>
-<loc>${`https://${domain}/${d2.content.for_index === 'false' ? `pages` : `blogs`}/${d2.content.tag}`.replace(/ /g, '+')}</loc>
-<lastmod>${moment(new Date(d2.updated_time)).format('YYYY-MM-DD')}</lastmod>
-</url>
-`;
+                                    <loc>${`https://${domain}/${d2.content.for_index === 'false' ? `pages` : `blogs`}/${d2.content.tag}`.replace(/ /g, '+')}</loc>
+                                    <lastmod>${moment(new Date(d2.updated_time)).format('YYYY-MM-DD')}</lastmod>
+                                </url> `;
                             })
                             .join('')}
                         ${(site_map || []).map((d2: any) => {
                             return `<url>
-<loc>${`https://${domain}/${d2.url}`.replace(/ /g, '+')}</loc>
-<lastmod>${d2.updated_time ? moment(new Date(d2.updated_time)).format('YYYY-MM-DD') : moment(new Date()).format('YYYY-MM-DDTHH:mm:SS+00:00')}</lastmod>
-<changefreq>weekly</changefreq>
-</url>
-`;
+                                <loc>${`https://${domain}/${d2.url}`.replace(/ /g, '+')}</loc>
+                                <lastmod>${d2.updated_time ? moment(new Date(d2.updated_time)).format('YYYY-MM-DD') : moment(new Date()).format('YYYY-MM-DDTHH:mm:SS+00:00')}</lastmod>
+                                <changefreq>weekly</changefreq>
+                            </url> `;
                         })}
                     </urlset> `;
                 return xmlFormatter(sitemap, {
@@ -420,7 +425,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                         [appName]
                     )
                 )[0]['domain'];
-                return html`<?xml version="1.0" encoding="UTF-8"?>
+                return `<?xml version="1.0" encoding="UTF-8"?>
                     <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
                         <!-- This is the parent sitemap linking to additional sitemaps for products, collections and pages as shown below. The sitemap can not be edited manually, but is kept up to date in real time. -->
                         <sitemap>
@@ -457,13 +462,18 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                     )
                 )[0]['domain'];
                 return `<?xml version="1.0" encoding="UTF-8"?>
-<urlset  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd http://www.google.com/schemas/sitemap-image/1.1 http://www.google.com/schemas/sitemap-image/1.1/sitemap-image.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-    <url>
-        <loc>https://${domain}/index</loc>
-        <lastmod>2024-06-16T02:53:00+00:00</lastmod>
-        <changefreq>weekly</changefreq>
-    </url>
-</urlset>`;
+                    <urlset
+                        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
+                        xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd http://www.google.com/schemas/sitemap-image/1.1 http://www.google.com/schemas/sitemap-image/1.1/sitemap-image.xsd"
+                        xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+                    >
+                        <url>
+                            <loc>https://${domain}/index</loc>
+                            <lastmod>2024-06-16T02:53:00+00:00</lastmod>
+                            <changefreq>weekly</changefreq>
+                        </url>
+                    </urlset>`;
             },
         },
     ]);
@@ -498,7 +508,7 @@ async function getSeoDetail(appName: string, req: any) {
                     },
                 },
             ];
-            const evalString = html`
+            const evalString = `
                 return {
                 execute:(${functionValue
                     .map((d2) => {
@@ -547,7 +557,7 @@ async function getSeoSiteMap(appName: string, req: any) {
                     },
                 },
             ];
-            const evalString = html`
+            const evalString = `
                 return {
                 execute:(${functionValue
                     .map((d2) => {

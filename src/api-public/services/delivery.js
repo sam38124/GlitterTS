@@ -103,7 +103,9 @@ class EcPay {
             }
             return '1|OK';
         }
-        catch (error) { }
+        catch (error) {
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'EcPay notifyOrder error:' + error, null);
+        }
     }
 }
 class Delivery {
@@ -218,7 +220,7 @@ class Delivery {
             return ecpayResult;
         }
         catch (error) {
-            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'delivery notify error:' + error, null);
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'Delivery notify error:' + error, null);
         }
     }
 }
