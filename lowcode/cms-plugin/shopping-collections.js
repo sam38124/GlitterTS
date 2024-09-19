@@ -126,12 +126,12 @@ export class ShoppingCollections {
                                                                             flex: 1;
                                                                             margin-right: 20px;
                                                                         }
-            
+
                                                                         .parent-container:last-child,
                                                                         .child-container:last-child {
                                                                             margin-right: 0;
                                                                         }
-            
+
                                                                         .ul-style {
                                                                             list-style-type: none;
                                                                             padding: 0;
@@ -139,7 +139,7 @@ export class ShoppingCollections {
                                                                             min-height: 200px;
                                                                             border: 1px solid #ccc;
                                                                         }
-            
+
                                                                         .li-style {
                                                                             padding: 6px 10px;
                                                                             margin-bottom: 5px;
@@ -149,18 +149,18 @@ export class ShoppingCollections {
                                                                             display: flex;
                                                                             align-items: center;
                                                                         }
-            
+
                                                                         .drag-icon {
                                                                             margin-right: 10px;
                                                                             cursor: move;
                                                                         }
-            
+
                                                                         .drag-icon::before {
                                                                             content: '↕';
                                                                             font-size: 18px;
                                                                             margin-right: 10px;
                                                                         }
-            
+
                                                                         .selectCol {
                                                                             background-color: #dcdcdc;
                                                                         }

@@ -21,6 +21,7 @@ const auto_send_email_js_1 = require("./auto-send-email.js");
 const recommend_js_1 = require("./recommend.js");
 const workers_js_1 = require("./workers.js");
 const axios_1 = __importDefault(require("axios"));
+const delivery_js_1 = require("./delivery.js");
 class Shopping {
     constructor(app, token) {
         this.app = app;
@@ -89,7 +90,7 @@ class Shopping {
                         querySql.push(`(${[
                             `(UPPER(JSON_UNQUOTE(JSON_EXTRACT(content, '$.title'))) LIKE UPPER('%${query.search}%'))`,
                             `JSON_EXTRACT(content, '$.variants[*].sku') LIKE '%${query.search}%'`,
-                            `JSON_EXTRACT(content, '$.variants[*].barcode') LIKE '%${query.search}%'`
+                            `JSON_EXTRACT(content, '$.variants[*].barcode') LIKE '%${query.search}%'`,
                         ].join(' or ')})`);
                         break;
                 }
@@ -576,8 +577,7 @@ class Shopping {
                         }
                     }
                 }
-                catch (e) {
-                }
+                catch (e) { }
             }
             carData.shipment_fee = (() => {
                 let total_volume = 0;
@@ -625,22 +625,20 @@ class Shopping {
                     return !add_on_items.includes(dd);
                 });
                 await this.checkVoucher(carData);
-                console.log(`add_on_items==>`, add_on_items);
-                console.log(`carData.voucherList==>`, carData.voucherList);
                 add_on_items.map((dd) => {
                     var _a;
                     try {
                         if ((_a = carData.voucherList) === null || _a === void 0 ? void 0 : _a.find((d1) => {
                             var _a;
-                            return d1.reBackType === 'add_on_items' && ((_a = d1.add_on_products) === null || _a === void 0 ? void 0 : _a.find((d2) => {
-                                return `${dd.id}` === `${d2}`;
-                            }));
+                            return (d1.reBackType === 'add_on_items' &&
+                                ((_a = d1.add_on_products) === null || _a === void 0 ? void 0 : _a.find((d2) => {
+                                    return `${dd.id}` === `${d2}`;
+                                })));
                         })) {
                             carData.lineItems.push(dd);
                         }
                     }
-                    catch (e) {
-                    }
+                    catch (e) { }
                 });
                 await this.checkVoucher(carData);
             }
@@ -766,6 +764,32 @@ class Shopping {
             const return_url = new URL(data.return_url);
             return_url.searchParams.set('cart_token', carData.orderID);
             await redis_js_1.default.setValue(id, return_url.href);
+            if (['FAMIC2C', 'UNIMARTC2C', 'HILIFEC2C', 'OKMARTC2C'].includes(carData.user_info.LogisticsSubType)) {
+                console.log('超商物流單 開始建立');
+                const delivery = await new delivery_js_1.Delivery(this.app).postStoreOrder({
+                    LogisticsSubType: carData.user_info.LogisticsSubType,
+                    GoodsAmount: carData.total,
+                    GoodsName: `訂單編號 ${carData.orderID}`,
+                    ReceiverName: carData.user_info.name,
+                    ReceiverCellPhone: carData.user_info.phone,
+                    ReceiverStoreID: (() => {
+                        if (carData.user_info.LogisticsSubType === 'OKMARTC2C') {
+                            return '1328';
+                        }
+                        if (carData.user_info.LogisticsSubType === 'FAMIC2C') {
+                            return '006598';
+                        }
+                        return '131386';
+                    })(),
+                });
+                if (delivery.result) {
+                    console.log('綠界物流訂單 建立成功');
+                    carData.deliveryData = delivery.data;
+                }
+                else {
+                    console.log(`綠界物流訂單 建立錯誤: ${delivery.message}`);
+                }
+            }
             if (carData.use_wallet === carData.total) {
                 await database_js_1.default.query(`INSERT INTO \`${this.app}\`.t_wallet (orderID, userID, money, status, note)
                      values (?, ?, ?, ?, ?);`, [

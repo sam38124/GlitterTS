@@ -61,8 +61,8 @@ router.post('/storeMaps', async (req, resp) => {
 });
 router.post('/createStoreOrder', async (req, resp) => {
     try {
-        const formString = await new delivery_js_1.Delivery(req.get('g-app')).postStoreOrder();
-        return response_1.default.succ(resp, { form: formString });
+        const result = await new delivery_js_1.Delivery(req.get('g-app')).postStoreOrder();
+        return response_1.default.succ(resp, result);
     }
     catch (err) {
         return response_1.default.fail(resp, err);
@@ -70,7 +70,12 @@ router.post('/createStoreOrder', async (req, resp) => {
 });
 router.post('/printOrderInfo', async (req, resp) => {
     try {
-        const formString = await new delivery_js_1.Delivery(req.get('g-app')).printOrderInfo(req.body.brand);
+        const formString = await new delivery_js_1.Delivery(req.get('g-app')).printOrderInfo({
+            LogisticsSubType: req.body.brand,
+            AllPayLogisticsID: req.body.logisticsId,
+            CVSPaymentNo: req.body.paymentNo,
+            CVSValidationNo: req.body.validationNo,
+        });
         return response_1.default.succ(resp, { form: formString });
     }
     catch (err) {

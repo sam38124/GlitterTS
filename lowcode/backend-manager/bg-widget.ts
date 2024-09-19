@@ -63,6 +63,62 @@ export class BgWidget {
     }
 
     // 按鈕
+    static customButton(setValue: {
+        button: {
+            color: 'black' | 'gray' | 'snow';
+            size: 'sm' | 'md' | 'lg';
+            class?: string;
+            style?: string;
+        };
+        text: {
+            name: string;
+            class?: string;
+            style?: string;
+        };
+        event: string;
+        icon?: {
+            name: string;
+        };
+    }) {
+        const button = setValue.button;
+        const event = setValue.event;
+        const text = setValue.text;
+        const icon = setValue.icon;
+        const textColor = (() => {
+            switch (button.color) {
+                case 'black':
+                    return 'tx_700_white';
+                case 'gray':
+                case 'snow':
+                    return 'tx_700';
+            }
+        })();
+        const buttonSize = (() => {
+            switch (button.size) {
+                case 'sm':
+                    return 'btn-size-sm';
+                case 'md':
+                    return '';
+                case 'lg':
+                    return 'btn-size-lg';
+            }
+        })();
+        const textSize = (() => {
+            switch (button.size) {
+                case 'sm':
+                    return 'font-size: 12px;';
+                case 'md':
+                    return '';
+                case 'lg':
+                    return 'font-size: 20px;';
+            }
+        })();
+        return html` <button type="button" class="btn btn-${button.color} ${buttonSize} ${button.class ?? ''}" style="${button.style ?? ''}" onclick="${event}">
+            <i class="${icon ? icon.name : 'd-none'}"></i>
+            <span class="${textColor} ${text.class ?? ''}" style="${textSize} ${text.style ?? ''}">${text.name}</span>
+        </button>`;
+    }
+
     static save(event: string, text: string = '儲存', customClass?: string) {
         return html` <button class="btn btn-black ${customClass ?? ``}" type="button" onclick="${event}">
             <span class="tx_700_white">${text}</span>
@@ -92,25 +148,10 @@ export class BgWidget {
         </button>`;
     }
 
-    static darkButton(
-        text: string,
-        event: string,
-        obj?: {
-            icon?: string;
-            textStyle?: string;
-            size?: 'sm' | 'lg';
-            style?: string;
-            class?: string;
-        }
-    ) {
-        const size = { btn: '', font: '' };
-        if (obj && obj.size) {
-            size.btn = `btn-black-${obj.size}`;
-            size.font = `tx_white_${obj.size}`;
-        }
-        return html` <button class="btn btn-black ${size.btn} ${obj?.class ?? ''}" type="button" style="${obj?.style ?? ''}" onclick="${event}">
+    static darkButton(text: string, event: string, obj?: { icon?: string; textStyle?: string; class?: string; style?: string }) {
+        return html` <button type="button" class="btn btn-black ${obj?.class ?? ''}" style="${obj?.style ?? ''}" onclick="${event}">
             <i class="${obj && obj.icon && obj.icon.length > 0 ? obj.icon : 'd-none'}"></i>
-            <span class="tx_700_white ${size.font}" style="${obj?.textStyle ?? ''}">${text}</span>
+            <span class="tx_700_white" style="${obj?.textStyle ?? ''}">${text}</span>
         </button>`;
     }
 
@@ -1516,10 +1557,7 @@ ${obj.default ?? ''}</textarea
     static selEventDropmenu(obj: { gvc: GVC; options: SelEventItem[]; text: string }) {
         const vm = {
             id: obj.gvc.glitter.getUUID(),
-            checkClass: Tool.randomString(5),
             show: false,
-            top: 0,
-            right: 0,
         };
 
         return html` <div>
@@ -1527,14 +1565,6 @@ ${obj.default ?? ''}</textarea
                 class="sel_normal"
                 onclick="${obj.gvc.event(() => {
                     vm.show = !vm.show;
-
-                    const element = document.querySelector('.sel_normal');
-                    const rect = element?.getBoundingClientRect();
-                    if (rect) {
-                        vm.top = rect.top + 30;
-                        vm.right = document.body.clientWidth > 768 ? rect.right : 300;
-                    }
-
                     obj.gvc.notifyDataChange(vm.id);
                 })}"
             >
@@ -1544,7 +1574,7 @@ ${obj.default ?? ''}</textarea
                 bind: vm.id,
                 view: () => {
                     if (vm.show) {
-                        return html` <div class="c_fixed" style="top: ${vm.top}px; right: calc(100vw - ${vm.right}px)">
+                        return html` <div class="c_absolute" style="top: 0; right: 0;">
                             <div class="form-check d-flex flex-column ps-0" style="gap: 16px">
                                 ${obj.gvc.map(
                                     obj.options.map((opt) => {
@@ -1557,7 +1587,7 @@ ${obj.default ?? ''}</textarea
                     return '';
                 },
                 divCreate: {
-                    style: vm.show ? '' : 'd-none',
+                    style: 'position: relative;',
                 },
             })}
         </div>`;
@@ -1589,7 +1619,7 @@ ${obj.default ?? ''}</textarea
             }
             .box-container-${text}.open-box {
                 max-height: ${obj.openHeight ?? 500}px;
-                height: 500px;
+                height: ${obj.openHeight && obj.openHeight < 500 ? obj.openHeight : 500}px;
                 overflow-y: auto;
             }
             .box-navbar-${text} {
@@ -1599,7 +1629,7 @@ ${obj.default ?? ''}</textarea
                 background-color: #fff;
                 z-index: 10;
                 display: flex;
-                padding: 13.6px 20px;
+                padding: 15px 20px;
                 align-items: flex-start;
                 justify-content: space-between;
                 cursor: pointer;
@@ -1697,20 +1727,12 @@ ${obj.default ?? ''}</textarea
             id: obj.gvc.glitter.getUUID(),
             checkClass: this.getDarkDotClass(obj.gvc),
             show: false,
-            top: 0,
-            right: 0,
         };
 
         return html` <div
                 class="c_updown"
                 onclick="${obj.gvc.event(() => {
                     vm.show = !vm.show;
-                    const element = document.querySelector('.c_updown');
-                    const rect = element?.getBoundingClientRect();
-                    if (rect) {
-                        vm.top = rect.top + 40;
-                        vm.right = rect.right;
-                    }
                     obj.gvc.notifyDataChange(vm.id);
                 })}"
             >
@@ -1720,7 +1742,7 @@ ${obj.default ?? ''}</textarea
                 bind: vm.id,
                 view: () => {
                     if (vm.show) {
-                        return html` <div class="c_fixed" style="top: ${vm.top}px; right: calc(100vw - ${vm.right}px)">
+                        return html` <div class="c_absolute" style="top: 20px; right: 20px;">
                             <div class="form-check d-flex flex-column" style="gap: 16px">
                                 ${obj.gvc.map(
                                     obj.options.map((opt) => {
@@ -1747,7 +1769,7 @@ ${obj.default ?? ''}</textarea
                     return '';
                 },
                 divCreate: {
-                    style: vm.show ? '' : 'd-none',
+                    style: 'position: relative;',
                 },
             })}`;
     }
@@ -2167,6 +2189,83 @@ ${obj.default ?? ''}</textarea
                 })}
             </div>`;
         }, obj.gvc.glitter.getUUID());
+    }
+
+    static dialog(obj: {
+        gvc: GVC;
+        title: string;
+        innerHTML: string;
+        width?: number;
+        height?: number;
+        save?: {
+            text?: string;
+            event: () => Promise<boolean>;
+        };
+        cancel?: {
+            text?: string;
+            event?: () => Promise<boolean>;
+        };
+    }) {
+        return obj.gvc.glitter.innerDialog((gvc: GVC) => {
+            return html`<div
+                class="bg-white shadow rounded-3"
+                style="overflow-y: auto; ${document.body.clientWidth > 768 ? `min-width: 400px; width: ${obj.width ?? 600}px;` : 'min-width: 90vw; max-width: 92.5vw;'}"
+            >
+                <div class="bg-white shadow rounded-3" style="width: 100%; overflow-y: auto;">
+                    <div class="w-100 d-flex align-items-center p-3 border-bottom">
+                        <div class="tx_700">${obj.title}</div>
+                        <div class="flex-fill"></div>
+                        <i
+                            class="fa-regular fa-circle-xmark fs-5 text-dark cursor_pointer"
+                            onclick="${gvc.event(() => {
+                                if (obj.cancel?.event) {
+                                    obj.cancel?.event().then((response) => {
+                                        response && gvc.closeDialog();
+                                    });
+                                } else {
+                                    gvc.closeDialog();
+                                }
+                            })}"
+                        ></i>
+                    </div>
+                    <div class="c_dialog">
+                        <div class="c_dialog_body">
+                            <div class="c_dialog_main" style="gap: 24px; height: ${obj.height ? `${obj.height}px` : 'auto'}; max-height: 500px;">${obj.innerHTML ?? ''}</div>
+                        </div>
+                    </div>
+                    ${obj.save || obj.cancel
+                        ? html`
+                              <div class="c_dialog_bar">
+                                  ${obj.cancel
+                                      ? BgWidget.cancel(
+                                            gvc.event(() => {
+                                                if (obj.cancel?.event) {
+                                                    obj.cancel?.event().then((response) => {
+                                                        response && gvc.closeDialog();
+                                                    });
+                                                } else {
+                                                    gvc.closeDialog();
+                                                }
+                                            }),
+                                            obj.cancel.text ?? '取消'
+                                        )
+                                      : ''}
+                                  ${obj.save
+                                      ? BgWidget.save(
+                                            gvc.event(() => {
+                                                obj.save?.event().then((response) => {
+                                                    response && gvc.closeDialog();
+                                                });
+                                            }),
+                                            obj.save.text ?? '確認'
+                                        )
+                                      : ''}
+                              </div>
+                          `
+                        : ''}
+                </div>
+            </div>`;
+        }, Tool.randomString(7));
     }
 
     // 圖片

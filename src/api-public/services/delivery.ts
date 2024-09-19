@@ -1,11 +1,35 @@
 import Tool from '../../modules/tool.js';
 import redis from '../../modules/redis.js';
-import crypto, { Encoding } from 'crypto';
+import exception from '../../modules/exception.js';
 import { Private_config } from '../../services/private_config.js';
+import crypto from 'crypto';
+import axios from 'axios';
 import moment from 'moment-timezone';
+
 const html = String.raw;
 
 type StoreBrand = 'FAMIC2C' | 'UNIMARTC2C' | 'HILIFEC2C' | 'OKMARTC2C';
+
+export type DeliveryData = {
+    AllPayLogisticsID: string;
+    BookingNote: string;
+    CheckMacValue: string;
+    CVSPaymentNo: string;
+    CVSValidationNo: string;
+    GoodsAmount: string;
+    LogisticsSubType: string;
+    LogisticsType: string;
+    MerchantID: string;
+    MerchantTradeNo: string;
+    ReceiverAddress: string;
+    ReceiverCellPhone: string;
+    ReceiverEmail: string;
+    ReceiverName: string;
+    ReceiverPhone: string;
+    RtnCode: string;
+    RtnMsg: string;
+    UpdateStatusDate: string;
+};
 
 class EcPay {
     static generateCheckMacValue(params: Record<string, any>, HashKey: string, HashIV: string): string {
@@ -48,6 +72,43 @@ class EcPay {
             </form>
         `;
     }
+
+    static async axiosRequest(json: { actionURL: string; params: Record<string, any>; checkMacValue?: string }) {
+        try {
+            return new Promise<{ result: boolean; data: string }>((resolve) => {
+                axios
+                    .request({
+                        method: 'post',
+                        url: json.actionURL,
+                        data: {
+                            ...json.params,
+                            checkMacValue: json.checkMacValue,
+                        },
+                        headers: {
+                            Accept: 'text/html',
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                    })
+                    .then((response) => {
+                        resolve(response.data);
+                    });
+            })
+                .then((response) => {
+                    return {
+                        result: true,
+                        data: response,
+                    };
+                })
+                .catch((error) => {
+                    return {
+                        result: false,
+                        data: error.message,
+                    };
+                });
+        } catch (error) {
+            throw exception.BadRequestError('BAD_REQUEST', 'EcPay axiosRequest error', null);
+        }
+    }
 }
 
 export class Delivery {
@@ -60,6 +121,7 @@ export class Delivery {
     public async getC2CMap(returnURL: string, logistics: string) {
         const id = 'redirect_' + Tool.randomString(10);
         await redis.setValue(id, returnURL);
+
         const params = {
             MerchantID: process.env.EC_SHIPMENT_ID,
             MerchantTradeNo: new Date().getTime(),
@@ -68,73 +130,81 @@ export class Delivery {
             IsCollection: 'N',
             ServerReplyURL: `${process.env.DOMAIN}/api-public/v1/delivery/c2cRedirect?g-app=${this.appName}&return=${encodeURIComponent(id)}`,
         };
+
         return EcPay.generateForm({
             actionURL: 'https://logistics.ecpay.com.tw/Express/map',
             params,
         });
     }
 
-    public async postStoreOrder() {
+    public async postStoreOrder(json?: { LogisticsSubType: StoreBrand; GoodsAmount: number; GoodsName: string; ReceiverName: string; ReceiverCellPhone: string; ReceiverStoreID: string }) {
         const keyData = (
             await Private_config.getConfig({
                 appName: this.appName,
-                key: 'glitter_finance',
+                key: 'glitter_delivery',
             })
         )[0].value;
 
-        keyData.MERCHANT_ID = '2000933';
-        keyData.HASH_KEY = 'XBERn1YOvpM9nfZc';
-        keyData.HASH_IV = 'h1ONHk4P4yqbl5LK';
-        keyData.NotifyURL = `${process.env.DOMAIN}/api-public/v1/delivery/c2cNotify?g-app=${this.appName}`;
-        keyData.ReturnURL = `${process.env.DOMAIN}/api-public/v1/delivery/c2cRedirect?g-app=${this.appName}`;
+        const actionURL = keyData.Action === 'main' ? 'https://logistics.ecpay.com.tw/Express/Create' : 'https://logistics-stage.ecpay.com.tw/Express/Create';
 
         const params = {
             MerchantID: keyData.MERCHANT_ID,
             MerchantTradeDate: moment().tz('Asia/Taipei').format('YYYY/MM/DD HH:mm:ss'),
             LogisticsType: 'CVS',
-            LogisticsSubType: 'UNIMARTC2C',
-            GoodsAmount: 1,
-            GoodsName: '測試商品',
-            SenderName: '我是寄件人',
-            SenderCellPhone: '0911888990',
-            ReceiverName: '我是收件人',
-            ReceiverCellPhone: '0911888991',
-            ServerReplyURL: keyData.NotifyURL,
-            ReceiverStoreID: '131386',
-        };
-
-        const fakeData = {
-            UNIMARTC2C: '131386',
+            ServerReplyURL: `${process.env.DOMAIN}/api-public/v1/delivery/c2cNotify?g-app=${this.appName}`,
+            SenderName: keyData.SenderName,
+            SenderCellPhone: keyData.SenderCellPhone,
+            ...json,
         };
 
         const checkMacValue = EcPay.generateCheckMacValue(params, keyData.HASH_KEY, keyData.HASH_IV);
 
-        return EcPay.generateForm({
-            actionURL: 'https://logistics-stage.ecpay.com.tw/Express/Create',
+        const response = await EcPay.axiosRequest({
+            actionURL,
             params,
             checkMacValue,
         });
+
+        if (!response.result) {
+            return {
+                result: false,
+                message: response.data,
+            };
+        }
+
+        if (response.data.substring(0, 1) === '0' || response.data.substring(0, 3) === '105') {
+            return {
+                result: false,
+                message: response.data,
+            };
+        }
+
+        const cleanedString = response.data.slice(2);
+        const getJSON = Object.fromEntries(
+            cleanedString.split('&').map((pair: string) => {
+                const [key, value] = pair.split('=');
+                return [key, decodeURIComponent(value)];
+            })
+        );
+        return {
+            result: true,
+            data: getJSON as DeliveryData,
+        };
     }
 
-    public async printOrderInfo(brand: StoreBrand) {
+    public async printOrderInfo(obj: { LogisticsSubType: StoreBrand; AllPayLogisticsID: string; CVSPaymentNo: string; CVSValidationNo: string }) {
         const keyData = (
             await Private_config.getConfig({
                 appName: this.appName,
-                key: 'glitter_finance',
+                key: 'glitter_delivery',
             })
         )[0].value;
 
-        keyData.MERCHANT_ID = '2000933';
-        keyData.HASH_KEY = 'XBERn1YOvpM9nfZc';
-        keyData.HASH_IV = 'h1ONHk4P4yqbl5LK';
-        keyData.NotifyURL = `${process.env.DOMAIN}/api-public/v1/delivery/c2cNotify?g-app=${this.appName}`;
-        keyData.ReturnURL = `${process.env.DOMAIN}/api-public/v1/delivery/c2cRedirect?g-app=${this.appName}`;
-
         const params = {
             MerchantID: keyData.MERCHANT_ID,
-            AllPayLogisticsID: '2977484',
-            CVSPaymentNo: 'D8689432',
-            CVSValidationNo: '8432',
+            AllPayLogisticsID: obj.AllPayLogisticsID,
+            CVSPaymentNo: obj.CVSPaymentNo,
+            CVSValidationNo: obj.CVSValidationNo,
         };
 
         const storePath: Record<StoreBrand, string> = {
@@ -144,10 +214,13 @@ export class Delivery {
             OKMARTC2C: 'PrintOKMARTC2COrderInfo',
         };
 
+        const actionURL =
+            keyData.Action === 'main' ? `https://logistics.ecpay.com.tw/Express/${storePath[obj.LogisticsSubType]}` : `https://logistics-stage.ecpay.com.tw/Express/${storePath[obj.LogisticsSubType]}`;
+
         const checkMacValue = EcPay.generateCheckMacValue(params, keyData.HASH_KEY, keyData.HASH_IV);
 
         return EcPay.generateForm({
-            actionURL: `https://logistics-stage.ecpay.com.tw/Express/${storePath[brand]}`,
+            actionURL,
             params,
             checkMacValue,
         });

@@ -570,6 +570,21 @@ ul {
     background: var(--main-white-hover);
 }
 
+.btn-size-sm {
+    padding: 4px 12px;
+    gap: 4px;
+    height: 28px;
+    max-height: 28px;
+}
+
+.btn-size-lg {
+    padding: 8px 24px;
+    gap: 12px;
+    height: 52px;
+    max-height: 52px;
+    border-radius: 12px;
+}
+
 .bgw-input {
     display: flex;
     flex-grow: 1;
@@ -757,8 +772,8 @@ ul {
     border: 1px solid var(--background-4);
 }
 
-.c_fixed {
-    position: fixed;
+.c_absolute {
+    position: absolute;
     width: 250px;
     height: 300px;
     overflow-y: auto;

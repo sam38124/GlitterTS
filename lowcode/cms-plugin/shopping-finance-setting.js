@@ -10,6 +10,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import { BgWidget } from '../backend-manager/bg-widget.js';
 import { EditorElem } from '../glitterBundle/plugins/editor-elem.js';
 import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
+import { ApiPageConfig } from '../api/pageConfig.js';
+import { CheckInput } from '../modules/checkInput.js';
 const html = String.raw;
 export class ShoppingFinanceSetting {
     static main(gvc) {
@@ -426,6 +428,7 @@ export class ShoppingFinanceSetting {
             id: gvc.glitter.getUUID(),
             loading: true,
             data: {},
+            delivery: {},
         };
         saasConfig.api.getPrivateConfig(saasConfig.config.appName, 'logistics_setting').then((r) => {
             if (r.response.result[0]) {
@@ -453,6 +456,155 @@ export class ShoppingFinanceSetting {
                             <div class="d-flex w-100 align-items-center">
                                 ${BgWidget.title('配送設定')}
                                 <div class="flex-fill"></div>
+                                ${BgWidget.grayButton('物流追蹤設定', gvc.event(() => {
+                        BgWidget.dialog({
+                            gvc: gvc,
+                            title: '物流追蹤設定',
+                            innerHTML: gvc.bindView((() => {
+                                const id = gvc.glitter.getUUID();
+                                let loading = true;
+                                return {
+                                    bind: id,
+                                    view: () => {
+                                        if (loading) {
+                                            return BgWidget.spinner();
+                                        }
+                                        else {
+                                            return [
+                                                BgWidget.openBoxContainer({
+                                                    gvc,
+                                                    tag: 'delivery_alert_info',
+                                                    title: '注意事項',
+                                                    insideHTML: html `<div class="mt-2">
+                                                                            ${BgWidget.alertInfo('', [
+                                                        '1. 目前僅提供<b>「綠界C2C物流」</b>建立與追蹤',
+                                                        '2. 可追蹤四大超商（7-ELEVEN、全家、萊爾富、OK超商）',
+                                                        '3. 若無填寫物流追蹤設定，此功能將在結帳時忽略執行',
+                                                        '4. 寄件人名稱請設定最多10字元（中文5個字, 英文10個字, 不得含指定特殊符號）',
+                                                        '5. 寄件人手機應為09開頭的格式',
+                                                    ])}
+                                                                        </div>`,
+                                                    openHeight: 288,
+                                                }),
+                                                BgWidget.inlineCheckBox({
+                                                    title: '金流站點',
+                                                    gvc: gvc,
+                                                    def: vm.delivery.Action,
+                                                    array: [
+                                                        { title: '正式站', value: 'main' },
+                                                        { title: '測試站', value: 'test' },
+                                                    ],
+                                                    callback: (text) => {
+                                                        vm.delivery.Action = text;
+                                                    },
+                                                }),
+                                                BgWidget.editeInput({
+                                                    gvc: gvc,
+                                                    title: '寄件人名稱',
+                                                    default: vm.delivery.SenderName,
+                                                    callback: (text) => {
+                                                        vm.delivery.SenderName = text;
+                                                    },
+                                                    placeHolder: '請輸入寄件人名稱 / 您的商家名稱',
+                                                }),
+                                                BgWidget.editeInput({
+                                                    gvc: gvc,
+                                                    title: '寄件人手機',
+                                                    default: vm.delivery.SenderCellPhone,
+                                                    callback: (text) => {
+                                                        vm.delivery.SenderCellPhone = text;
+                                                    },
+                                                    placeHolder: '請輸入寄件人手機 / 您的手機',
+                                                }),
+                                                BgWidget.editeInput({
+                                                    gvc: gvc,
+                                                    title: '特店編號',
+                                                    default: vm.delivery.MERCHANT_ID,
+                                                    callback: (text) => {
+                                                        vm.delivery.MERCHANT_ID = text;
+                                                    },
+                                                    placeHolder: '請輸入特店編號',
+                                                }),
+                                                BgWidget.editeInput({
+                                                    gvc: gvc,
+                                                    title: 'HASH KEY',
+                                                    default: vm.delivery.HASH_KEY,
+                                                    callback: (text) => {
+                                                        vm.delivery.HASH_KEY = text;
+                                                    },
+                                                    placeHolder: '請輸入 HASH KEY',
+                                                }),
+                                                BgWidget.editeInput({
+                                                    gvc: gvc,
+                                                    title: 'HASH IV',
+                                                    default: vm.delivery.HASH_IV,
+                                                    callback: (text) => {
+                                                        vm.delivery.HASH_IV = text;
+                                                    },
+                                                    placeHolder: '請輸入 HASH IV',
+                                                }),
+                                            ].join(BgWidget.mbContainer(12));
+                                        }
+                                    },
+                                    divCreate: {},
+                                    onCreate: () => {
+                                        if (loading) {
+                                            ApiPageConfig.getPrivateConfig(window.parent.appName, 'glitter_delivery').then((res) => {
+                                                if (res.result) {
+                                                    vm.delivery = res.response.result[0].value;
+                                                }
+                                                loading = false;
+                                                gvc.notifyDataChange(id);
+                                            });
+                                        }
+                                    },
+                                };
+                            })()),
+                            save: {
+                                text: '儲存',
+                                event: () => {
+                                    return new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
+                                        const dialog = new ShareDialog(gvc.glitter);
+                                        function checkSenderPattern(input) {
+                                            const senderPattern = /^[\u4e00-\u9fa5]{2,5}|[a-zA-Z]{4,10}$/;
+                                            return senderPattern.test(input);
+                                        }
+                                        function checkPhonePattern(input) {
+                                            const phonePattern = /^09\d{8}$/;
+                                            return phonePattern.test(input);
+                                        }
+                                        if (CheckInput.isEmpty(vm.delivery.SenderName) || !checkSenderPattern(vm.delivery.SenderName)) {
+                                            dialog.infoMessage({
+                                                text: html `<div class="text-center">寄件人名稱請設定最多10字元<br />（中文5個字, 英文10個字,<br />不得含指定特殊符號）</div>`,
+                                            });
+                                            resolve(false);
+                                            return;
+                                        }
+                                        if (CheckInput.isEmpty(vm.delivery.SenderCellPhone) || !checkPhonePattern(vm.delivery.SenderCellPhone)) {
+                                            dialog.infoMessage({ text: '寄件人手機應為09開頭的手機格式' });
+                                            resolve(false);
+                                            return;
+                                        }
+                                        ApiPageConfig.setPrivateConfigV2({
+                                            key: 'glitter_delivery',
+                                            value: JSON.stringify(vm.delivery),
+                                            appName: saasConfig.config.appName,
+                                        }).then((r) => {
+                                            dialog.dataLoading({ visible: false });
+                                            if (r.response) {
+                                                dialog.successMessage({ text: '設定成功' });
+                                            }
+                                            else {
+                                                dialog.errorMessage({ text: '設定失敗' });
+                                            }
+                                            resolve(true);
+                                        });
+                                    }));
+                                },
+                            },
+                            cancel: {},
+                        });
+                    }))}
                             </div>
                             ${gvc.bindView(() => {
                         const id = gvc.glitter.getUUID();
@@ -762,7 +914,7 @@ export class ShoppingFinanceSetting {
                                                                             }
                                                                         },
                                                                     }),
-                                                                ].join(html ` <div class="" style="height: 12px;"></div>`);
+                                                                ].join(BgWidget.mbContainer(12));
                                                             }
                                                         })()}
                                                                                                 </div>

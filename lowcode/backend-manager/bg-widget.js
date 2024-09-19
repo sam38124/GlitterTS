@@ -27,6 +27,46 @@ export class BgWidget {
             </div>
         `;
     }
+    static customButton(setValue) {
+        var _a, _b, _c, _d;
+        const button = setValue.button;
+        const event = setValue.event;
+        const text = setValue.text;
+        const icon = setValue.icon;
+        const textColor = (() => {
+            switch (button.color) {
+                case 'black':
+                    return 'tx_700_white';
+                case 'gray':
+                case 'snow':
+                    return 'tx_700';
+            }
+        })();
+        const buttonSize = (() => {
+            switch (button.size) {
+                case 'sm':
+                    return 'btn-size-sm';
+                case 'md':
+                    return '';
+                case 'lg':
+                    return 'btn-size-lg';
+            }
+        })();
+        const textSize = (() => {
+            switch (button.size) {
+                case 'sm':
+                    return 'font-size: 12px;';
+                case 'md':
+                    return '';
+                case 'lg':
+                    return 'font-size: 20px;';
+            }
+        })();
+        return html ` <button type="button" class="btn btn-${button.color} ${buttonSize} ${(_a = button.class) !== null && _a !== void 0 ? _a : ''}" style="${(_b = button.style) !== null && _b !== void 0 ? _b : ''}" onclick="${event}">
+            <i class="${icon ? icon.name : 'd-none'}"></i>
+            <span class="${textColor} ${(_c = text.class) !== null && _c !== void 0 ? _c : ''}" style="${textSize} ${(_d = text.style) !== null && _d !== void 0 ? _d : ''}">${text.name}</span>
+        </button>`;
+    }
     static save(event, text = '儲存', customClass) {
         return html ` <button class="btn btn-black ${customClass !== null && customClass !== void 0 ? customClass : ``}" type="button" onclick="${event}">
             <span class="tx_700_white">${text}</span>
@@ -55,14 +95,9 @@ export class BgWidget {
     }
     static darkButton(text, event, obj) {
         var _a, _b, _c;
-        const size = { btn: '', font: '' };
-        if (obj && obj.size) {
-            size.btn = `btn-black-${obj.size}`;
-            size.font = `tx_white_${obj.size}`;
-        }
-        return html ` <button class="btn btn-black ${size.btn} ${(_a = obj === null || obj === void 0 ? void 0 : obj.class) !== null && _a !== void 0 ? _a : ''}" type="button" style="${(_b = obj === null || obj === void 0 ? void 0 : obj.style) !== null && _b !== void 0 ? _b : ''}" onclick="${event}">
+        return html ` <button type="button" class="btn btn-black ${(_a = obj === null || obj === void 0 ? void 0 : obj.class) !== null && _a !== void 0 ? _a : ''}" style="${(_b = obj === null || obj === void 0 ? void 0 : obj.style) !== null && _b !== void 0 ? _b : ''}" onclick="${event}">
             <i class="${obj && obj.icon && obj.icon.length > 0 ? obj.icon : 'd-none'}"></i>
-            <span class="tx_700_white ${size.font}" style="${(_c = obj === null || obj === void 0 ? void 0 : obj.textStyle) !== null && _c !== void 0 ? _c : ''}">${text}</span>
+            <span class="tx_700_white" style="${(_c = obj === null || obj === void 0 ? void 0 : obj.textStyle) !== null && _c !== void 0 ? _c : ''}">${text}</span>
         </button>`;
     }
     static redButton(text, event, obj) {
@@ -1244,22 +1279,13 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
     static selEventDropmenu(obj) {
         const vm = {
             id: obj.gvc.glitter.getUUID(),
-            checkClass: Tool.randomString(5),
             show: false,
-            top: 0,
-            right: 0,
         };
         return html ` <div>
             <div
                 class="sel_normal"
                 onclick="${obj.gvc.event(() => {
             vm.show = !vm.show;
-            const element = document.querySelector('.sel_normal');
-            const rect = element === null || element === void 0 ? void 0 : element.getBoundingClientRect();
-            if (rect) {
-                vm.top = rect.top + 30;
-                vm.right = document.body.clientWidth > 768 ? rect.right : 300;
-            }
             obj.gvc.notifyDataChange(vm.id);
         })}"
             >
@@ -1269,7 +1295,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             bind: vm.id,
             view: () => {
                 if (vm.show) {
-                    return html ` <div class="c_fixed" style="top: ${vm.top}px; right: calc(100vw - ${vm.right}px)">
+                    return html ` <div class="c_absolute" style="top: 0; right: 0;">
                             <div class="form-check d-flex flex-column ps-0" style="gap: 16px">
                                 ${obj.gvc.map(obj.options.map((opt) => {
                         return html ` <div class="cursor_pointer" onclick="${opt.event}">${opt.name}</div>`;
@@ -1280,7 +1306,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                 return '';
             },
             divCreate: {
-                style: vm.show ? '' : 'd-none',
+                style: 'position: relative;',
             },
         })}
         </div>`;
@@ -1310,7 +1336,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             }
             .box-container-${text}.open-box {
                 max-height: ${(_a = obj.openHeight) !== null && _a !== void 0 ? _a : 500}px;
-                height: 500px;
+                height: ${obj.openHeight && obj.openHeight < 500 ? obj.openHeight : 500}px;
                 overflow-y: auto;
             }
             .box-navbar-${text} {
@@ -1320,7 +1346,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                 background-color: #fff;
                 z-index: 10;
                 display: flex;
-                padding: 13.6px 20px;
+                padding: 15px 20px;
                 align-items: flex-start;
                 justify-content: space-between;
                 cursor: pointer;
@@ -1413,19 +1439,11 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             id: obj.gvc.glitter.getUUID(),
             checkClass: this.getDarkDotClass(obj.gvc),
             show: false,
-            top: 0,
-            right: 0,
         };
         return html ` <div
                 class="c_updown"
                 onclick="${obj.gvc.event(() => {
             vm.show = !vm.show;
-            const element = document.querySelector('.c_updown');
-            const rect = element === null || element === void 0 ? void 0 : element.getBoundingClientRect();
-            if (rect) {
-                vm.top = rect.top + 40;
-                vm.right = rect.right;
-            }
             obj.gvc.notifyDataChange(vm.id);
         })}"
             >
@@ -1435,7 +1453,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             bind: vm.id,
             view: () => {
                 if (vm.show) {
-                    return html ` <div class="c_fixed" style="top: ${vm.top}px; right: calc(100vw - ${vm.right}px)">
+                    return html ` <div class="c_absolute" style="top: 20px; right: 20px;">
                             <div class="form-check d-flex flex-column" style="gap: 16px">
                                 ${obj.gvc.map(obj.options.map((opt) => {
                         return html ` <div>
@@ -1460,7 +1478,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                 return '';
             },
             divCreate: {
-                style: vm.show ? '' : 'd-none',
+                style: 'position: relative;',
             },
         })}`;
     }
@@ -1839,6 +1857,68 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             })}
             </div>`;
         }, obj.gvc.glitter.getUUID());
+    }
+    static dialog(obj) {
+        return obj.gvc.glitter.innerDialog((gvc) => {
+            var _a, _b, _c, _d;
+            return html `<div
+                class="bg-white shadow rounded-3"
+                style="overflow-y: auto; ${document.body.clientWidth > 768 ? `min-width: 400px; width: ${(_a = obj.width) !== null && _a !== void 0 ? _a : 600}px;` : 'min-width: 90vw; max-width: 92.5vw;'}"
+            >
+                <div class="bg-white shadow rounded-3" style="width: 100%; overflow-y: auto;">
+                    <div class="w-100 d-flex align-items-center p-3 border-bottom">
+                        <div class="tx_700">${obj.title}</div>
+                        <div class="flex-fill"></div>
+                        <i
+                            class="fa-regular fa-circle-xmark fs-5 text-dark cursor_pointer"
+                            onclick="${gvc.event(() => {
+                var _a, _b;
+                if ((_a = obj.cancel) === null || _a === void 0 ? void 0 : _a.event) {
+                    (_b = obj.cancel) === null || _b === void 0 ? void 0 : _b.event().then((response) => {
+                        response && gvc.closeDialog();
+                    });
+                }
+                else {
+                    gvc.closeDialog();
+                }
+            })}"
+                        ></i>
+                    </div>
+                    <div class="c_dialog">
+                        <div class="c_dialog_body">
+                            <div class="c_dialog_main" style="gap: 24px; height: ${obj.height ? `${obj.height}px` : 'auto'}; max-height: 500px;">${(_b = obj.innerHTML) !== null && _b !== void 0 ? _b : ''}</div>
+                        </div>
+                    </div>
+                    ${obj.save || obj.cancel
+                ? html `
+                              <div class="c_dialog_bar">
+                                  ${obj.cancel
+                    ? BgWidget.cancel(gvc.event(() => {
+                        var _a, _b;
+                        if ((_a = obj.cancel) === null || _a === void 0 ? void 0 : _a.event) {
+                            (_b = obj.cancel) === null || _b === void 0 ? void 0 : _b.event().then((response) => {
+                                response && gvc.closeDialog();
+                            });
+                        }
+                        else {
+                            gvc.closeDialog();
+                        }
+                    }), (_c = obj.cancel.text) !== null && _c !== void 0 ? _c : '取消')
+                    : ''}
+                                  ${obj.save
+                    ? BgWidget.save(gvc.event(() => {
+                        var _a;
+                        (_a = obj.save) === null || _a === void 0 ? void 0 : _a.event().then((response) => {
+                            response && gvc.closeDialog();
+                        });
+                    }), (_d = obj.save.text) !== null && _d !== void 0 ? _d : '確認')
+                    : ''}
+                              </div>
+                          `
+                : ''}
+                </div>
+            </div>`;
+        }, Tool.randomString(7));
     }
     static arrowDownDataImage(color) {
         color = color.replace('#', '%23');

@@ -26,7 +26,7 @@ export class ApiDelivery {
         });
     }
 
-    static getOrderInfo(json: { brand: string }) {
+    static getOrderInfo(json: { brand: string; logisticsId: string; paymentNo: string; validationNo: string }) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/delivery/printOrderInfo`,
             type: 'POST',

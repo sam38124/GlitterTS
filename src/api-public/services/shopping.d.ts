@@ -1,4 +1,5 @@
 import { IToken } from '../models/Auth.js';
+import { DeliveryData } from './delivery.js';
 type BindItem = {
     id: string;
     spec: string[];
@@ -100,6 +101,7 @@ type Cart = {
     distribution_info?: any;
     orderSource: '' | 'manual' | 'normal' | 'POS';
     code_array: string[];
+    deliveryData?: DeliveryData;
 };
 export declare class Shopping {
     app: string;
@@ -112,7 +114,7 @@ export declare class Shopping {
         type: string;
         divisor: number;
         executionTime: string;
-        queryStatus: "error" | "success";
+        queryStatus: "success" | "error";
         queryData: any;
     } | {
         type: string;
