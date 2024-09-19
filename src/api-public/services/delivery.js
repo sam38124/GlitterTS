@@ -14,6 +14,9 @@ const axios_1 = __importDefault(require("axios"));
 const moment_timezone_1 = __importDefault(require("moment-timezone"));
 const html = String.raw;
 class EcPay {
+    constructor(appName) {
+        this.appName = appName;
+    }
     static generateCheckMacValue(params, HashKey, HashIV) {
         const sortedKeys = Object.keys(params).sort();
         const sortedParams = sortedKeys.map((key) => `${key}=${params[key]}`).join('&');
@@ -76,6 +79,31 @@ class EcPay {
         catch (error) {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'EcPay axiosRequest error', null);
         }
+    }
+    async notifyOrder(json) {
+        try {
+            const checkouts = await database_js_1.default.query(`SELECT * FROM \`${this.appName}\`.t_checkout 
+                WHERE JSON_EXTRACT(orderData, '$.deliveryData.AllPayLogisticsID') = ?
+                  AND JSON_EXTRACT(orderData, '$.deliveryData.MerchantTradeNo') = ?;`, [json.AllPayLogisticsID, json.MerchantTradeNo]);
+            if (checkouts[0]) {
+                const checkout = checkouts[0];
+                if (checkout.orderData.deliveryNotifyList && checkout.orderData.deliveryNotifyList.length > 0) {
+                    checkout.orderData.deliveryNotifyList.push(json);
+                }
+                else {
+                    checkout.orderData.deliveryNotifyList = [json];
+                }
+                await database_js_1.default.query(`UPDATE \`${this.appName}\`.t_checkout SET ? WHERE id = ?
+                    `, [
+                    {
+                        orderData: JSON.stringify(checkout.orderData),
+                    },
+                    checkout.id,
+                ]);
+            }
+            return '1|OK';
+        }
+        catch (error) { }
     }
 }
 class Delivery {
@@ -162,9 +190,9 @@ class Delivery {
     }
     async notify(json) {
         try {
-            json.token && delete json.token;
             const getNotification = await database_js_1.default.query(`SELECT * FROM \`${this.appName}\`.public_config WHERE \`key\` = "ecpay_delivery_notify";
                 `, []);
+            json.token && delete json.token;
             const notification = getNotification[0];
             if (notification) {
                 notification.value.push(json);
@@ -186,25 +214,8 @@ class Delivery {
                     },
                 ]);
             }
-            const checkouts = await database_js_1.default.query(`SELECT * FROM \`${this.appName}\`.t_checkout 
-                WHERE JSON_EXTRACT(orderData, '$.deliveryData.AllPayLogisticsID') = ?
-                  AND JSON_EXTRACT(orderData, '$.deliveryData.MerchantTradeNo') = ?;`, [json.AllPayLogisticsID, json.MerchantTradeNo]);
-            if (checkouts[0]) {
-                const checkout = checkouts[0];
-                if (checkout.orderData.deliveryNotifyList && checkout.orderData.deliveryNotifyList.length > 0) {
-                    checkout.orderData.deliveryNotifyList.push(json);
-                }
-                else {
-                    checkout.orderData.deliveryNotifyList = [json];
-                }
-                await database_js_1.default.query(`UPDATE \`${this.appName}\`.t_checkout SET ? WHERE id = ?
-                    `, [
-                    {
-                        orderData: JSON.stringify(checkout.orderData),
-                    },
-                    checkout.id,
-                ]);
-            }
+            const ecpayResult = new EcPay(this.appName).notifyOrder(json);
+            return ecpayResult;
         }
         catch (error) {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'delivery notify error:' + error, null);

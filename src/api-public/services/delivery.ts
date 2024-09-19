@@ -33,6 +33,11 @@ export type DeliveryData = {
 };
 
 class EcPay {
+    appName: string;
+    constructor(appName: string) {
+        this.appName = appName;
+    }
+
     static generateCheckMacValue(params: Record<string, any>, HashKey: string, HashIV: string): string {
         // 將傳遞參數依字母順序排序
         const sortedKeys = Object.keys(params).sort();
@@ -108,6 +113,39 @@ class EcPay {
                 });
         } catch (error) {
             throw exception.BadRequestError('BAD_REQUEST', 'EcPay axiosRequest error', null);
+        }
+    }
+
+    async notifyOrder(json: any) {
+        try {
+            const checkouts = await db.query(
+                `SELECT * FROM \`${this.appName}\`.t_checkout 
+                WHERE JSON_EXTRACT(orderData, '$.deliveryData.AllPayLogisticsID') = ?
+                  AND JSON_EXTRACT(orderData, '$.deliveryData.MerchantTradeNo') = ?;`,
+                [json.AllPayLogisticsID, json.MerchantTradeNo]
+            );
+            if (checkouts[0]) {
+                const checkout = checkouts[0];
+                if (checkout.orderData.deliveryNotifyList && checkout.orderData.deliveryNotifyList.length > 0) {
+                    checkout.orderData.deliveryNotifyList.push(json);
+                } else {
+                    checkout.orderData.deliveryNotifyList = [json];
+                }
+
+                await db.query(
+                    `UPDATE \`${this.appName}\`.t_checkout SET ? WHERE id = ?
+                    `,
+                    [
+                        {
+                            orderData: JSON.stringify(checkout.orderData),
+                        },
+                        checkout.id,
+                    ]
+                );
+            }
+            return '1|OK';
+        } catch (error) {
+            throw exception.BadRequestError('BAD_REQUEST', 'EcPay notifyOrder error:' + error, null);
         }
     }
 }
@@ -266,34 +304,10 @@ export class Delivery {
                 );
             }
 
-            // 存入該訂單
-            const checkouts = await db.query(
-                `SELECT * FROM \`${this.appName}\`.t_checkout 
-                WHERE JSON_EXTRACT(orderData, '$.deliveryData.AllPayLogisticsID') = ?
-                  AND JSON_EXTRACT(orderData, '$.deliveryData.MerchantTradeNo') = ?;`,
-                [json.AllPayLogisticsID, json.MerchantTradeNo]
-            );
-            if (checkouts[0]) {
-                const checkout = checkouts[0];
-                if (checkout.orderData.deliveryNotifyList && checkout.orderData.deliveryNotifyList.length > 0) {
-                    checkout.orderData.deliveryNotifyList.push(json);
-                } else {
-                    checkout.orderData.deliveryNotifyList = [json];
-                }
-
-                await db.query(
-                    `UPDATE \`${this.appName}\`.t_checkout SET ? WHERE id = ?
-                    `,
-                    [
-                        {
-                            orderData: JSON.stringify(checkout.orderData),
-                        },
-                        checkout.id,
-                    ]
-                );
-            }
+            const ecpayResult = new EcPay(this.appName).notifyOrder(json);
+            return ecpayResult;
         } catch (error) {
-            throw exception.BadRequestError('BAD_REQUEST', 'delivery notify error:' + error, null);
+            throw exception.BadRequestError('BAD_REQUEST', 'Delivery notify error:' + error, null);
         }
     }
 }

@@ -45,6 +45,6 @@ export declare class Delivery {
         CVSPaymentNo: string;
         CVSValidationNo: string;
     }): Promise<string>;
-    notify(json: any): Promise<void>;
+    notify(json: any): Promise<"1|OK" | undefined>;
 }
 export {};
