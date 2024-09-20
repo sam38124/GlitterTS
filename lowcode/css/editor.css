@@ -872,6 +872,14 @@ ul {
     top: 24px;
 }
 
+.sel_navbar {
+    display: flex;
+    width: 100%;
+    border-radius: 10px;
+    padding: 0 18px;
+    background: linear-gradient(0deg, #f7f7f7 0%, #f7f7f7 100%), #fff;
+}
+
 .sel_normal {
     cursor: pointer;
     border-radius: 7px;
@@ -954,6 +962,12 @@ ul {
 @media (max-width: 768px) {
     .c_select_w_100 {
         min-height: 42px;
+    }
+
+    .c_absolute {
+        width: 180px;
+        height: 250px;
+        padding: 18px;
     }
 
     .btn-gray,

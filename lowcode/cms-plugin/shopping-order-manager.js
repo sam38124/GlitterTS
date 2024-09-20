@@ -146,63 +146,110 @@ export class ShoppingOrderManager {
                             orderString: '',
                             filter: '',
                             archived: `${query.isArchived}`,
-                        }).then((response) => {
+                        }).then((res) => {
                             dialog.dataLoading({ visible: false });
-                            let firstRow = ['訂單編號', '訂購人', '訂購人email', '訂單金額', '付款狀態', '出貨狀態', '訂單狀態'];
-                            let exportData = [];
-                            response.response.data.map((orderData) => {
-                                var _a, _b;
-                                let rowData = {
-                                    orderID: orderData.cart_token,
-                                    order_name: (_b = (_a = orderData === null || orderData === void 0 ? void 0 : orderData.customer_info) === null || _a === void 0 ? void 0 : _a.name) !== null && _b !== void 0 ? _b : orderData.orderData.user_info.name,
-                                    order_email: orderData.orderData.user_email,
-                                    total: orderData.orderData.total,
-                                    pay_status: (() => {
-                                        switch (orderData.status) {
-                                            case 0:
-                                                return `未付款`;
-                                            case 1:
-                                                return `已付款`;
-                                            case -1:
-                                                return `付款失敗`;
-                                            case -2:
-                                                return `已退款`;
-                                            default:
-                                                return '';
-                                        }
-                                    })(),
-                                    progress: (() => {
-                                        var _a;
-                                        switch ((_a = orderData.orderData.progress) !== null && _a !== void 0 ? _a : 'wait') {
-                                            case 'wait':
-                                                return `未出貨`;
-                                            case 'shipping':
-                                                return `已出貨`;
-                                            case 'finish':
-                                                return `已取貨`;
-                                            case 'arrived':
-                                                return `已送達`;
-                                            case 'returns':
-                                                return `已退貨`;
-                                            default:
-                                                return '';
-                                        }
-                                    })(),
-                                    order_status: (() => {
-                                        var _a;
-                                        switch ((_a = orderData.orderData.orderStatus) !== null && _a !== void 0 ? _a : '0') {
-                                            case '-1':
-                                                return `已取消`;
-                                            case '0':
-                                                return `處理中`;
-                                            case '1':
-                                                return `已完成`;
-                                            default:
-                                                return '';
-                                        }
-                                    })(),
-                                };
-                                exportData.push(rowData);
+                            if (!res.result) {
+                                dialog.errorMessage({ text: '訂單資料讀取錯誤' });
+                            }
+                            const exportData = [];
+                            const firstRow = [
+                                '訂單編號',
+                                '訂單建立時間',
+                                '會員信箱',
+                                '訂單處理狀態',
+                                '付款狀態',
+                                '出貨狀態',
+                                '訂單小計',
+                                '訂單運費',
+                                '訂單使用優惠券',
+                                '訂單折扣',
+                                '訂單使用購物金',
+                                '訂單總計',
+                                '商品名稱',
+                                '商品規格',
+                                '商品SKU',
+                                '商品購買數量',
+                                '商品價格',
+                                '商品折扣',
+                                '顧客姓名',
+                                '顧客手機',
+                                '顧客信箱',
+                                '收件人姓名',
+                                '收件人手機',
+                                '收件人信箱',
+                                '備註',
+                            ];
+                            res.response.data.map((order) => {
+                                const orderData = order.orderData;
+                                orderData.lineItems.map((item) => {
+                                    var _a, _b, _c, _d, _e, _f;
+                                    exportData.push({
+                                        訂單編號: order.cart_token,
+                                        訂單建立時間: glitter.ut.dateFormat(new Date(order.created_time), 'yyyy-MM-dd hh:mm:ss'),
+                                        會員信箱: (_a = order.email) !== null && _a !== void 0 ? _a : '訪客',
+                                        訂單處理狀態: (() => {
+                                            var _a;
+                                            switch ((_a = orderData.orderStatus) !== null && _a !== void 0 ? _a : '0') {
+                                                case '-1':
+                                                    return '已取消';
+                                                case '1':
+                                                    return '已完成';
+                                                case '0':
+                                                default:
+                                                    return '處理中';
+                                            }
+                                        })(),
+                                        付款狀態: (() => {
+                                            var _a;
+                                            switch ((_a = order.status) !== null && _a !== void 0 ? _a : 0) {
+                                                case 1:
+                                                    return '已付款';
+                                                case -1:
+                                                    return '付款失敗';
+                                                case -2:
+                                                    return '已退款';
+                                                case 0:
+                                                default:
+                                                    return '未付款';
+                                            }
+                                        })(),
+                                        出貨狀態: (() => {
+                                            var _a;
+                                            switch ((_a = orderData.progress) !== null && _a !== void 0 ? _a : 'wait') {
+                                                case 'shipping':
+                                                    return '已出貨';
+                                                case 'finish':
+                                                    return '已取貨';
+                                                case 'arrived':
+                                                    return '已送達';
+                                                case 'returns':
+                                                    return '已退貨';
+                                                case 'wait':
+                                                default:
+                                                    return '未出貨';
+                                            }
+                                        })(),
+                                        訂單小計: 0,
+                                        訂單運費: (_b = orderData.shipment_fee) !== null && _b !== void 0 ? _b : 0,
+                                        訂單使用優惠券: orderData.voucherList.map((voucher) => voucher.title).join(', '),
+                                        訂單折扣: (_c = orderData.discount) !== null && _c !== void 0 ? _c : 0,
+                                        訂單使用購物金: (_d = orderData.use_rebate) !== null && _d !== void 0 ? _d : 0,
+                                        訂單總計: orderData.total,
+                                        商品名稱: item.title,
+                                        商品規格: item.spec.join(' / '),
+                                        商品SKU: (_e = item.sku) !== null && _e !== void 0 ? _e : '',
+                                        商品購買數量: item.count,
+                                        商品價格: item.sale_price,
+                                        商品折扣: item.discount_price,
+                                        顧客姓名: orderData.user_info.name,
+                                        顧客手機: orderData.user_info.phone,
+                                        顧客信箱: orderData.user_info.email,
+                                        收件人姓名: orderData.customer_info.name,
+                                        收件人手機: orderData.customer_info.phone,
+                                        收件人信箱: orderData.customer_info.email,
+                                        備註: (_f = orderData.customer_info.note) !== null && _f !== void 0 ? _f : '',
+                                    });
+                                });
                             });
                             exportDataTo(firstRow, exportData);
                         });
@@ -523,7 +570,7 @@ export class ShoppingOrderManager {
                                                 })
                                                 ? `d-none`
                                                 : ``}`,
-                                            style: `height: 40px; gap: 10px; margin-top: 10px;`,
+                                            style: document.body.clientWidth > 768 ? 'height: 40px; margin-top: 10px;' : '',
                                         };
                                     },
                                 };

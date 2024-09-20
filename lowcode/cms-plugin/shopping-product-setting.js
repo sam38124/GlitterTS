@@ -1276,7 +1276,7 @@ export class ShoppingProductSetting {
                                                                         })
                                                                         ? `d-none`
                                                                         : ``}`,
-                                                                    style: `height:40px; gap:10px;`,
+                                                                    style: document.body.clientWidth > 768 ? 'height: 40px; margin-top: 10px;' : '',
                                                                 };
                                                             },
                                                         };

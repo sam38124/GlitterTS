@@ -372,7 +372,7 @@ export class ShoppingOrderManager {
                                                                 ? `d-none`
                                                                 : ``
                                                         }`,
-                                                        style: `height: 40px; gap: 10px; margin-top: 10px;`,
+                                                        style: document.body.clientWidth > 768 ? 'height: 40px; margin-top: 10px;' : '',
                                                     };
                                                 },
                                             };

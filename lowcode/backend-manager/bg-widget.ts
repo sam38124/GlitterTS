@@ -1543,12 +1543,13 @@ ${obj.default ?? ''}</textarea
     static selNavbar(data: { count: number; buttonList: string[] }): string {
         return html`
             <div
-                style="display: flex; width: 100%; border-radius: 10px; padding: 0 18px;
-                background: linear-gradient(0deg, #F7F7F7 0%, #F7F7F7 100%), #FFF;
-                ${document.body.clientWidth > 768 ? 'justify-content: space-between; align-items: center; height: 40px;' : 'justify-content: center; gap: 8px; flex-direction: column; height: 80px;'}"
+                class="sel_navbar"
+                style="${document.body.clientWidth > 768
+                    ? 'justify-content: space-between; align-items: center; height: 40px;'
+                    : 'justify-content: center; gap: 8px; flex-direction: column; height: 80px;'}"
             >
                 <div style="font-size: 14px; color: #393939; font-weight: 700;">已選取${data.count}項</div>
-                <div style="display: flex; gap: 12px;">${data.buttonList.join('')}</div>
+                <div style="display: flex; justify-content: flex-end; gap: 12px;">${data.buttonList.join('')}</div>
             </div>
         `;
     }
