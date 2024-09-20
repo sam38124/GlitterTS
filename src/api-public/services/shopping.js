@@ -1410,7 +1410,6 @@ class Shopping {
             let querySql = ['1=1'];
             let orderString = 'order by id desc';
             if (query.search && query.searchType) {
-                console.log(query.search, query.searchType);
                 switch (query.searchType) {
                     case 'cart_token':
                         querySql.push(`(cart_token like '%${query.search}%')`);
