@@ -45,10 +45,8 @@ class FinancialService {
         else if (this.keyData.TYPE === 'ecPay') {
             return await new EcPay(this.appName, this.keyData).createOrderPage(orderData);
         }
-        else {
-            return await database_js_1.default.execute(`INSERT INTO \`${this.appName}\`.t_checkout (cart_token, status, email, orderData) VALUES (?, ?, ?, ?)
-                `, [orderData.orderID, 0, orderData.user_email, orderData]);
-        }
+        return await database_js_1.default.execute(`INSERT INTO \`${this.appName}\`.t_checkout (cart_token, status, email, orderData) VALUES (?, ?, ?, ?)
+            `, [orderData.orderID, 0, orderData.user_email, orderData]);
     }
     async saveMoney(orderData) {
         if (this.keyData.TYPE === 'newWebPay') {
@@ -66,7 +64,7 @@ class EzPay {
         this.keyData = keyData;
         this.appName = appName;
     }
-    async decode(data) {
+    decode(data) {
         return EzPay.aesDecrypt(data, this.keyData.HASH_KEY, this.keyData.HASH_IV);
     }
     async createOrderPage(orderData) {
@@ -183,7 +181,7 @@ EzPay.aesDecrypt = (data, key, iv, input = 'hex', output = 'utf-8', method = 'ae
         decrypted += decipher.final(output);
     }
     catch (e) {
-        e instanceof Error && console.log(e.message);
+        e instanceof Error && console.error(e.message);
     }
     return decrypted;
 };
@@ -191,6 +189,25 @@ class EcPay {
     constructor(appName, keyData) {
         this.keyData = keyData;
         this.appName = appName;
+    }
+    static generateCheckMacValue(params, HashKey, HashIV) {
+        const sortedQueryString = Object.keys(params)
+            .sort()
+            .map((key) => `${key}=${params[key]}`)
+            .join('&');
+        const rawString = `HashKey=${HashKey}&${sortedQueryString}&HashIV=${HashIV}`;
+        const encodedString = encodeURIComponent(rawString)
+            .replace(/%2d/g, '-')
+            .replace(/%5f/g, '_')
+            .replace(/%2e/g, '.')
+            .replace(/%21/g, '!')
+            .replace(/%2a/g, '*')
+            .replace(/%28/g, '(')
+            .replace(/%29/g, ')')
+            .replace(/%20/g, '+');
+        const lowerCaseString = encodedString.toLowerCase();
+        const sha256Hash = crypto_1.default.createHash('sha256').update(lowerCaseString).digest('hex');
+        return sha256Hash.toUpperCase();
     }
     async createOrderPage(orderData) {
         const params = {
@@ -247,21 +264,10 @@ class EcPay {
             PaymentType: 'aio',
             OrderResultURL: this.keyData.ReturnURL,
         };
-        const appName = this.appName;
-        let od = Object.keys(params)
-            .sort(function (a, b) {
-            return a.toLowerCase().localeCompare(b.toLowerCase());
-        })
-            .map((dd) => {
-            return `${dd.toLowerCase()}=${params[dd]}`;
-        });
-        let raw = od.join('&');
-        raw = EcPay.urlEncodeDotNet(`HashKey=${this.keyData.HASH_KEY}&${raw.toLowerCase()}&HashIV=${this.keyData.HASH_IV}`);
-        const chkSum = crypto_1.default.createHash('sha256').update(raw.toLowerCase()).digest('hex');
-        orderData['CheckMacValue'] = chkSum;
-        await database_js_1.default.execute(`INSERT INTO \`${appName}\`.t_checkout (cart_token, status, email, orderData) VALUES (?, ?, ?, ?)
+        const chkSum = EcPay.generateCheckMacValue(params, this.keyData.HASH_KEY, this.keyData.HASH_IV);
+        orderData.CheckMacValue = chkSum;
+        await database_js_1.default.execute(`INSERT INTO \`${this.appName}\`.t_checkout (cart_token, status, email, orderData) VALUES (?, ?, ?, ?)
             `, [params.MerchantTradeNo, 0, orderData.user_email, orderData]);
-        const html = String.raw;
         return html `
             <form id="_form_aiochk" action="${this.keyData.ActionURL}" method="post">
                 <input type="hidden" name="MerchantTradeNo" id="MerchantTradeNo" value="${params.MerchantTradeNo}" />
@@ -270,7 +276,7 @@ class EcPay {
                 <input type="hidden" name="TradeDesc" id="TradeDesc" value="${params.TradeDesc}" />
                 <input type="hidden" name="ItemName" id="ItemName" value="${params.ItemName}" />
                 <input type="hidden" name="ReturnURL" id="ReturnURL" value="${params.ReturnURL}" />
-                <input name="ChoosePayment" id="ChoosePayment" value="${params.ChoosePayment}" />
+                <input type="hidden" name="ChoosePayment" id="ChoosePayment" value="${params.ChoosePayment}" />
                 <input type="hidden" name="PlatformID" id="PlatformID" value="${params.PlatformID}" />
                 <input type="hidden" name="MerchantID" id="MerchantID" value="${params.MerchantID}" />
                 <input type="hidden" name="InvoiceMark" id="InvoiceMark" value="${params.InvoiceMark}" />
@@ -335,21 +341,10 @@ class EcPay {
             PaymentType: 'aio',
             OrderResultURL: this.keyData.ReturnURL,
         };
-        const appName = this.appName;
-        let od = Object.keys(params)
-            .sort(function (a, b) {
-            return a.toLowerCase().localeCompare(b.toLowerCase());
-        })
-            .map((dd) => {
-            return `${dd.toLowerCase()}=${params[dd]}`;
-        });
-        let raw = od.join('&');
-        raw = EcPay.urlEncodeDotNet(`HashKey=${this.keyData.HASH_KEY}&${raw.toLowerCase()}&HashIV=${this.keyData.HASH_IV}`);
-        const chkSum = crypto_1.default.createHash('sha256').update(raw.toLowerCase()).digest('hex');
-        orderData['CheckMacValue'] = chkSum;
-        await database_js_1.default.execute(`INSERT INTO \`${appName}\`.t_wallet (orderID, userID, money, status, note) VALUES (?, ?, ?, ?, ?)
+        const chkSum = EcPay.generateCheckMacValue(params, this.keyData.HASH_KEY, this.keyData.HASH_IV);
+        orderData.CheckMacValue = chkSum;
+        await database_js_1.default.execute(`INSERT INTO \`${this.appName}\`.t_wallet (orderID, userID, money, status, note) VALUES (?, ?, ?, ?, ?)
             `, [params.MerchantTradeNo, orderData.userID, orderData.total, 0, orderData.note]);
-        const html = String.raw;
         return html `
             <form id="_form_aiochk" action="${this.keyData.ActionURL}" method="post">
                 <input type="hidden" name="MerchantTradeNo" id="MerchantTradeNo" value="${params.MerchantTradeNo}" />
@@ -358,7 +353,7 @@ class EcPay {
                 <input type="hidden" name="TradeDesc" id="TradeDesc" value="${params.TradeDesc}" />
                 <input type="hidden" name="ItemName" id="ItemName" value="${params.ItemName}" />
                 <input type="hidden" name="ReturnURL" id="ReturnURL" value="${params.ReturnURL}" />
-                <input name="ChoosePayment" id="ChoosePayment" value="${params.ChoosePayment}" />
+                <input type="hidden" name="ChoosePayment" id="ChoosePayment" value="${params.ChoosePayment}" />
                 <input type="hidden" name="PlatformID" id="PlatformID" value="${params.PlatformID}" />
                 <input type="hidden" name="MerchantID" id="MerchantID" value="${params.MerchantID}" />
                 <input type="hidden" name="InvoiceMark" id="InvoiceMark" value="${params.InvoiceMark}" />
@@ -371,28 +366,6 @@ class EcPay {
                 <button type="submit" class="btn btn-secondary custom-btn beside-btn d-none" id="submit" hidden></button>
             </form>
         `;
-    }
-    static urlEncodeDotNet(raw_data, case_tr = 'DOWN') {
-        if (typeof raw_data === 'string') {
-            let encode_data = encodeURIComponent(raw_data);
-            switch (case_tr) {
-                case 'KEEP':
-                    break;
-                case 'UP':
-                    encode_data = encode_data.toUpperCase();
-                    break;
-                case 'DOWN':
-                    encode_data = encode_data.toLowerCase();
-                    break;
-            }
-            encode_data = encode_data.replace(/\'/g, '%27');
-            encode_data = encode_data.replace(/\~/g, '%7e');
-            encode_data = encode_data.replace(/\%20/g, '+');
-            return encode_data;
-        }
-        else {
-            throw new Error('Data received is not a string.');
-        }
     }
 }
 exports.EcPay = EcPay;

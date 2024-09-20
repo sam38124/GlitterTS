@@ -3,7 +3,6 @@ import response from '../../modules/response';
 import multer from 'multer';
 import exception from '../../modules/exception';
 import db from '../../modules/database.js';
-import crypto from 'crypto';
 import redis from '../../modules/redis.js';
 import { UtDatabase } from '../utils/ut-database.js';
 import { UtPermission } from '../utils/ut-permission';
@@ -563,6 +562,7 @@ router.get('/testRelease', async (req: express.Request, resp: express.Response) 
 });
 router.post('/notify', upload.single('file'), async (req: express.Request, resp: express.Response) => {
     try {
+        let decodeData = undefined;
         const appName = req.query['g-app'] as string;
         const keyData = (
             await Private_config.getConfig({
@@ -570,44 +570,30 @@ router.post('/notify', upload.single('file'), async (req: express.Request, resp:
                 key: 'glitter_finance',
             })
         )[0].value;
-        const url = new URL(`https://covert?${req.body.toString()}`);
-        let decodeData: any = undefined;
+
         if (keyData.TYPE === 'ecPay') {
-            let params: any = {};
-            for (const b of url.searchParams.keys()) {
-                params[b] = url.searchParams.get(b);
-            }
-            let od: any = Object.keys(params)
-                .sort(function (a, b) {
-                    return a.toLowerCase().localeCompare(b.toLowerCase());
-                })
-                .filter((dd) => {
-                    return dd !== 'CheckMacValue';
-                })
-                .map((dd) => {
-                    return `${dd.toLowerCase()}=${(params as any)[dd]}`;
-                });
-            let raw: any = od.join('&');
-            raw = EcPay.urlEncodeDotNet(`HashKey=${keyData.HASH_KEY}&${raw.toLowerCase()}&HashIV=${keyData.HASH_IV}`);
-            const chkSum = crypto.createHash('sha256').update(raw.toLowerCase()).digest('hex');
+            const responseCheckMacValue = `${req.body.CheckMacValue}`;
+            delete req.body.CheckMacValue;
+            const chkSum = EcPay.generateCheckMacValue(req.body, keyData.HASH_KEY, keyData.HASH_IV);
             decodeData = {
-                Status: url.searchParams.get('RtnCode') === '1' && url.searchParams.get('CheckMacValue')!.toLowerCase() === chkSum ? `SUCCESS` : `ERROR`,
+                Status: req.body.RtnCode === '1' && responseCheckMacValue === chkSum ? 'SUCCESS' : 'ERROR',
                 Result: {
-                    MerchantOrderNo: url.searchParams.get('MerchantTradeNo'),
-                    CheckMacValue: url.searchParams.get('CheckMacValue'),
+                    MerchantOrderNo: req.body.MerchantTradeNo,
+                    CheckMacValue: req.body.CheckMacValue,
                 },
             };
-        } else {
+        }
+        if (keyData.TYPE === 'newWebPay') {
             decodeData = JSON.parse(
-                await new EzPay(appName, {
+                new EzPay(appName, {
                     HASH_IV: keyData.HASH_IV,
                     HASH_KEY: keyData.HASH_KEY,
                     ActionURL: keyData.ActionURL,
-                    NotifyURL: ``,
-                    ReturnURL: ``,
+                    NotifyURL: '',
+                    ReturnURL: '',
                     MERCHANT_ID: keyData.MERCHANT_ID,
                     TYPE: keyData.TYPE,
-                }).decode(url.searchParams.get('TradeInfo') as string)
+                }).decode(req.body.TradeInfo)
             );
         }
 

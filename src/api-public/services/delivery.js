@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Delivery = void 0;
+exports.Delivery = exports.EcPay = void 0;
 const tool_js_1 = __importDefault(require("../../modules/tool.js"));
 const redis_js_1 = __importDefault(require("../../modules/redis.js"));
 const exception_js_1 = __importDefault(require("../../modules/exception.js"));
@@ -108,6 +108,7 @@ class EcPay {
         }
     }
 }
+exports.EcPay = EcPay;
 class Delivery {
     constructor(appName) {
         this.appName = appName;

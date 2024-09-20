@@ -45,7 +45,7 @@ export declare class EzPay {
     appName: string;
     constructor(appName: string, keyData: KeyData);
     static aesDecrypt: (data: string, key: string, iv: string, input?: Encoding, output?: Encoding, method?: string) => string;
-    decode(data: string): Promise<string>;
+    decode(data: string): string;
     createOrderPage(orderData: {
         lineItems: {
             id: string;
@@ -71,6 +71,7 @@ export declare class EcPay {
     keyData: KeyData;
     appName: string;
     constructor(appName: string, keyData: KeyData);
+    static generateCheckMacValue(params: Record<string, any>, HashKey: string, HashIV: string): string;
     createOrderPage(orderData: {
         lineItems: {
             id: string;
@@ -86,13 +87,14 @@ export declare class EcPay {
         user_email: string;
         use_wallet: number;
         method: string;
+        CheckMacValue?: string;
     }): Promise<string>;
     saveMoney(orderData: {
         total: number;
         userID: number;
         note: string;
         method: string;
+        CheckMacValue?: string;
     }): Promise<string>;
-    static urlEncodeDotNet(raw_data: string, case_tr?: string): string;
 }
 export {};

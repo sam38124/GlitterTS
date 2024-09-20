@@ -32,7 +32,7 @@ export type DeliveryData = {
     UpdateStatusDate: string;
 };
 
-class EcPay {
+export class EcPay {
     appName: string;
     constructor(appName: string) {
         this.appName = appName;

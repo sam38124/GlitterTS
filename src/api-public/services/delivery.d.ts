@@ -19,6 +19,31 @@ export type DeliveryData = {
     RtnMsg: string;
     UpdateStatusDate: string;
 };
+export declare class EcPay {
+    appName: string;
+    constructor(appName: string);
+    static generateCheckMacValue(params: Record<string, any>, HashKey: string, HashIV: string): string;
+    static generateForm(json: {
+        actionURL: string;
+        params: Record<string, any>;
+        checkMacValue?: string;
+    }): string;
+    static axiosRequest(json: {
+        actionURL: string;
+        params: Record<string, any>;
+        checkMacValue?: string;
+    }): Promise<{
+        result: boolean;
+        data: {
+            result: boolean;
+            data: string;
+        };
+    } | {
+        result: boolean;
+        data: any;
+    }>;
+    notifyOrder(json: any): Promise<string>;
+}
 export declare class Delivery {
     appName: string;
     constructor(appName: string);
