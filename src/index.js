@@ -114,7 +114,8 @@ function createContext(req, res, next) {
     next();
 }
 async function createAppRoute() {
-    const apps = await database_2.default.execute(`SELECT appName FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_config;
+    const apps = await database_2.default.execute(`SELECT appName
+         FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_config;
         `, []);
     for (const dd of apps) {
         await createAPP(dd);
@@ -208,7 +209,9 @@ async function createAPP(dd) {
                         let distribution_code = '';
                         if (req.query.page.split('/')[0] === 'distribution' && req.query.page.split('/')[1]) {
                             const redURL = new URL(`https://127.0.0.1${req.url}`);
-                            const page = (await database_2.default.query(`SELECT * FROM \`${appName}\`.t_recommend_links WHERE content->>'$.link' = ?;
+                            const page = (await database_2.default.query(`SELECT *
+                                     FROM \`${appName}\`.t_recommend_links
+                                     WHERE content ->>'$.link' = ?;
                                     `, [req.query.page.split('/')[1]]))[0].content;
                             distribution_code = `
                                 localStorage.setItem('distributionCode','${page.code}');
@@ -224,36 +227,42 @@ async function createAPP(dd) {
                                 var _a, _b, _c, _d, _e, _f, _g, _h;
                                 if (req.query.type === 'editor') {
                                     return html `<title>SHOPNEX後台系統</title>
-                                                <link rel="canonical" href="/index" />
-                                                <meta name="keywords" content="SHOPNEX,電商平台" />
-                                                <link
+                                            <link rel="canonical" href="/index"/>
+                                            <meta name="keywords" content="SHOPNEX,電商平台"/>
+                                            <link
                                                     id="appImage"
                                                     rel="shortcut icon"
                                                     href="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sas0s9s0s1sesas0_1697354801736-Glitterlogo.png"
                                                     type="image/x-icon"
-                                                />
-                                                <link rel="icon" href="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sas0s9s0s1sesas0_1697354801736-Glitterlogo.png" type="image/png" sizes="128x128" />
-                                                <meta property="og:image" content="https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1718778766524-shopnex_banner.jpg" />
-                                                <meta property="og:title" content="SHOPNEX後台系統" />
-                                                <meta
+                                            />
+                                            <link rel="icon"
+                                                  href="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sas0s9s0s1sesas0_1697354801736-Glitterlogo.png"
+                                                  type="image/png" sizes="128x128"/>
+                                            <meta property="og:image"
+                                                  content="https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1718778766524-shopnex_banner.jpg"/>
+                                            <meta property="og:title" content="SHOPNEX後台系統"/>
+                                            <meta
                                                     name="description"
                                                     content="SHOPNEX電商開店平台，零抽成、免手續費。提供精美模板和豐富插件，操作簡單，3分鐘內快速打造專屬商店。購物車、金物流、SEO行銷、資料分析一站搞定。支援APP上架，並提供100%客製化設計，立即免費體驗30天。"
-                                                />
-                                                <meta
+                                            />
+                                            <meta
                                                     name="og:description"
                                                     content="SHOPNEX電商開店平台，零抽成、免手續費。提供精美模板和豐富插件，操作簡單，3分鐘內快速打造專屬商店。購物車、金物流、SEO行銷、資料分析一站搞定。支援APP上架，並提供100%客製化設計，立即免費體驗30天。"
-                                                />`;
+                                            />`;
                                 }
                                 else {
                                     return html `<title>${(_a = d.title) !== null && _a !== void 0 ? _a : '尚未設定標題'}</title>
-                                                <link rel="canonical" href="/${link_prefix && `${link_prefix}/`}${data.tag}" />
-                                                <meta name="keywords" content="${(_b = d.keywords) !== null && _b !== void 0 ? _b : '尚未設定關鍵字'}" />
-                                                <link id="appImage" rel="shortcut icon" href="${(_c = d.logo) !== null && _c !== void 0 ? _c : ''}" type="image/x-icon" />
-                                                <link rel="icon" href="${(_d = d.logo) !== null && _d !== void 0 ? _d : ''}" type="image/png" sizes="128x128" />
-                                                <meta property="og:image" content="${(_e = d.image) !== null && _e !== void 0 ? _e : ''}" />
-                                                <meta property="og:title" content="${((_f = d.title) !== null && _f !== void 0 ? _f : '').replace(/\n/g, '')}" />
-                                                <meta name="description" content="${((_g = d.content) !== null && _g !== void 0 ? _g : '').replace(/\n/g, '')}" />
-                                                <meta name="og:description" content="${((_h = d.content) !== null && _h !== void 0 ? _h : '').replace(/\n/g, '')}" />`;
+                                            <link rel="canonical"
+                                                  href="/${link_prefix && `${link_prefix}/`}${data.tag}"/>
+                                            <meta name="keywords" content="${(_b = d.keywords) !== null && _b !== void 0 ? _b : '尚未設定關鍵字'}"/>
+                                            <link id="appImage" rel="shortcut icon" href="${(_c = d.logo) !== null && _c !== void 0 ? _c : ''}"
+                                                  type="image/x-icon"/>
+                                            <link rel="icon" href="${(_d = d.logo) !== null && _d !== void 0 ? _d : ''}" type="image/png" sizes="128x128"/>
+                                            <meta property="og:image" content="${(_e = d.image) !== null && _e !== void 0 ? _e : ''}"/>
+                                            <meta property="og:title" content="${((_f = d.title) !== null && _f !== void 0 ? _f : '').replace(/\n/g, '')}"/>
+                                            <meta name="description" content="${((_g = d.content) !== null && _g !== void 0 ? _g : '').replace(/\n/g, '')}"/>
+                                            <meta name="og:description"
+                                                  content="${((_h = d.content) !== null && _h !== void 0 ? _h : '').replace(/\n/g, '')}"/>`;
                                 }
                             })()}
                                     ${(_a = d.code) !== null && _a !== void 0 ? _a : ''}
@@ -267,13 +276,14 @@ async function createAPP(dd) {
                                         .map((dd) => {
                                         try {
                                             if (dd.data.elem === 'link') {
-                                                return html `<link
-                                                                type="text/css"
-                                                                rel="stylesheet"
-                                                                href="${dd.data.attr.find((dd) => {
+                                                return html `
+                                                                    <link
+                                                                            type="text/css"
+                                                                            rel="stylesheet"
+                                                                            href="${dd.data.attr.find((dd) => {
                                                     return dd.attr === 'href';
                                                 }).value}"
-                                                            />`;
+                                                                    />`;
                                             }
                                         }
                                         catch (e) {
@@ -287,19 +297,19 @@ async function createAPP(dd) {
                             `;
                         })()}
                         <script>
-                        ${(_k = d.custom_script) !== null && _k !== void 0 ? _k : ''}
-window.appName='${appName}';
-window.glitterBase='${brandAndMemberType.brand}';
-window.memberType='${brandAndMemberType.memberType}';
-window.glitterBackend='${config_1.config.domain}';
-window.preloadData=${JSON.stringify(preload)
+                            ${(_k = d.custom_script) !== null && _k !== void 0 ? _k : ''}
+                            window.appName = '${appName}';
+                            window.glitterBase = '${brandAndMemberType.brand}';
+                            window.memberType = '${brandAndMemberType.memberType}';
+                            window.glitterBackend = '${config_1.config.domain}';
+                            window.preloadData = ${JSON.stringify(preload)
                             .replace(/<\/script>/g, 'sdjuescript_prepand')
                             .replace(/<script>/g, 'sdjuescript_prefix')};
-window.preloadData=JSON.parse(JSON.stringify(window.preloadData).replace(/sdjuescript_prepand/g,'</s'+'cript>').replace(/sdjuescript_prefix/g,'<s'+'cript>'))
-window.glitter_page='${req.query.page}';
-${distribution_code}
-</script>
-${[
+                            window.preloadData = JSON.parse(JSON.stringify(window.preloadData).replace(/sdjuescript_prepand/g, '</s' + 'cript>').replace(/sdjuescript_prefix/g, '<s' + 'cript>'))
+                            window.glitter_page = '${req.query.page}';
+                            ${distribution_code}
+                        </script>
+                        ${[
                             { src: 'glitterBundle/GlitterInitial.js', type: 'module' },
                             { src: 'glitterBundle/module/html-generate.js', type: 'module' },
                             { src: 'glitterBundle/html-component/widget.js', type: 'module' },
@@ -307,10 +317,12 @@ ${[
                             { src: 'api/pageConfig.js', type: 'module' },
                         ]
                             .map((dd) => {
-                            return html `<script src="/${link_prefix && `${link_prefix}/`}${dd.src}" type="${dd.type}"></script>`;
+                            return html `
+                                        <script src="/${link_prefix && `${link_prefix}/`}${dd.src}"
+                                                type="${dd.type}"></script>`;
                         })
                             .join('')}
-${((_l = preload.event) !== null && _l !== void 0 ? _l : [])
+                        ${((_l = preload.event) !== null && _l !== void 0 ? _l : [])
                             .filter((dd) => {
                             return dd;
                         })
@@ -319,53 +331,58 @@ ${((_l = preload.event) !== null && _l !== void 0 ? _l : [])
                             return link.substring(0, link.length - 2);
                         })
                             .map((dd) => {
-                            return html `<script src="/${link_prefix && `${link_prefix}/`}${dd}" type="module"></script>`;
+                            return html `
+                                        <script src="/${link_prefix && `${link_prefix}/`}${dd}"
+                                                type="module"></script>`;
                         })
                             .join('')}
-              </head>
-              ${(() => {
+                        </head>
+                        ${(() => {
                             if (req.query.type === 'editor') {
                                 return ``;
                             }
                             else {
                                 return html `
-                          ${(customCode.ga4 || [])
+                                    ${(customCode.ga4 || [])
                                     .map((dd) => {
                                     return html `<!-- Google tag (gtag.js) -->
-                                      <script async src="https://www.googletagmanager.com/gtag/js?id=${dd.code}"></script>
-                                      <script>
-                                          window.dataLayer = window.dataLayer || [];
-                                          function gtag() {
-                                              dataLayer.push(arguments);
-                                          }
-                                          gtag('js', new Date());
+                                                <script async
+                                                        src="https://www.googletagmanager.com/gtag/js?id=${dd.code}"></script>
+                                                <script>
+                                                    window.dataLayer = window.dataLayer || [];
 
-                                          gtag('config', '${dd.code}');
-                                      </script>`;
+                                                    function gtag() {
+                                                        dataLayer.push(arguments);
+                                                    }
+
+                                                    gtag('js', new Date());
+
+                                                    gtag('config', '${dd.code}');
+                                                </script>`;
                                 })
                                     .join('')}
-                          ${(customCode.g_tag || [])
+                                    ${(customCode.g_tag || [])
                                     .map((dd) => {
                                     return html `<!-- Google tag (gtag.js) -->
-                                      <!-- Google Tag Manager -->
-                                      <script>
-                                          (function (w, d, s, l, i) {
-                                              w[l] = w[l] || [];
-                                              w[l].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
-                                              var f = d.getElementsByTagName(s)[0],
-                                                  j = d.createElement(s),
-                                                  dl = l != 'dataLayer' ? '&l=' + l : '';
-                                              j.async = true;
-                                              j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
-                                              f.parentNode.insertBefore(j, f);
-                                          })(window, document, 'script', 'dataLayer', '${dd.code}');
-                                      </script>
-                                      <!-- End Google Tag Manager -->`;
+                                                <!-- Google Tag Manager -->
+                                                <script>
+                                                    (function (w, d, s, l, i) {
+                                                        w[l] = w[l] || [];
+                                                        w[l].push({'gtm.start': new Date().getTime(), event: 'gtm.js'});
+                                                        var f = d.getElementsByTagName(s)[0],
+                                                                j = d.createElement(s),
+                                                                dl = l != 'dataLayer' ? '&l=' + l : '';
+                                                        j.async = true;
+                                                        j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
+                                                        f.parentNode.insertBefore(j, f);
+                                                    })(window, document, 'script', 'dataLayer', '${dd.code}');
+                                                </script>
+                                                <!-- End Google Tag Manager -->`;
                                 })
                                     .join('')}
-                      `;
+                                `;
                             }
-                        })()}     
+                        })()}
                         `;
                     }
                     else {
@@ -395,10 +412,10 @@ ${((_l = preload.event) !== null && _l !== void 0 ? _l : [])
                 const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
                     <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
                         ${(await database_2.default.query(`select page_config, tag, updated_time
-                                     from \`${config_1.saasConfig.SAAS_NAME}\`.page_config
-                                     where appName = ?
-                                       and page_config ->>'$.seo.type'='custom'
-                                    `, [appName]))
+                         from \`${config_1.saasConfig.SAAS_NAME}\`.page_config
+                         where appName = ?
+                           and page_config ->>'$.seo.type'='custom'
+                        `, [appName]))
                     .map((d2) => {
                     return `<url>
                                     <loc>${`https://${domain}/${d2.tag}`.replace(/ /g, '+')}</loc>

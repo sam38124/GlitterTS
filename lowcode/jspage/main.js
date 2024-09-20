@@ -699,6 +699,7 @@ function initialEditor(gvc, viewModel) {
         }
     }
     glitter.share.addComponent = (data) => {
+        glitter.share.loading_dialog.dataLoading({ text: '模組添加中...', visible: true });
         if (!viewModel.selectContainer.container_config) {
             viewModel.selectContainer.container_config = glitter.share.main_view_config;
         }
@@ -740,12 +741,14 @@ function initialEditor(gvc, viewModel) {
             });
             setTimeout(() => {
                 glitter.share.left_block_hover = false;
+                glitter.share.loading_dialog.dataLoading({ visible: false });
             }, 1000);
         }, 100);
         AddComponent.toggle(false);
         viewModel.selectContainer && viewModel.selectContainer.rerenderReplaceElem && viewModel.selectContainer.rerenderReplaceElem();
     };
     glitter.share.addWithIndex = (cf) => {
+        glitter.share.loading_dialog.dataLoading({ text: '模組添加中...', visible: true });
         if (!viewModel.selectContainer.container_config) {
             viewModel.selectContainer.container_config = glitter.share.main_view_config;
         }
@@ -786,6 +789,7 @@ function initialEditor(gvc, viewModel) {
             });
             setTimeout(() => {
                 glitter.share.left_block_hover = false;
+                glitter.share.loading_dialog.dataLoading({ visible: false });
             }, 1000);
         }, 100);
         AddComponent.toggle(false);

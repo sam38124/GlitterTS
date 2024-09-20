@@ -133,6 +133,7 @@ router.post('/checkout', async (req: express.Request, resp: express.Response) =>
                 custom_form_data: req.body.custom_form_data,
                 distribution_code: req.body.distribution_code,
                 code_array: req.body.code_array,
+                give_away:req.body.give_away
             })
         );
     } catch (err) {
@@ -176,6 +177,7 @@ router.post('/checkout/preview', async (req: express.Request, resp: express.Resp
                     checkOutType: req.body.checkOutType,
                     distribution_code: req.body.distribution_code,
                     code_array: req.body.code_array,
+                    give_away:req.body.give_away
                 },
                 'preview'
             )

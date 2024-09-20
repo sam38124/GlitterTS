@@ -9,6 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import { TriggerEvent } from '../../glitterBundle/plugins/trigger-event.js';
 import { ApiShop } from '../../glitter-base/route/shopping.js';
+import { ApiCart } from "../../glitter-base/route/api-cart.js";
 TriggerEvent.createSingleEvent(import.meta.url, () => {
     return {
         fun: (gvc, widget, object, subData, element) => {
@@ -44,61 +45,46 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                             clickEvent: object.rebate,
                             element: element,
                         })) || 0;
-                        const defaultRebate = (yield ApiShop.getRebateValue()) || 0;
-                        const voucherCode = yield ApiShop.getVoucherCode();
+                        const defaultRebate = ApiCart.cart.use_rebate || 0;
+                        const voucherCode = ApiCart.cart.code;
                         ApiShop.getRebate({}).then((reb) => __awaiter(void 0, void 0, void 0, function* () {
                             var _a, _b;
                             const remainRebate = (_b = (_a = reb.response) === null || _a === void 0 ? void 0 : _a.sum) !== null && _b !== void 0 ? _b : 0;
-                            ApiShop.getCart().then((res) => __awaiter(void 0, void 0, void 0, function* () {
-                                const cartData = {
-                                    line_items: [],
-                                    total: 0,
-                                };
-                                for (const b of Object.keys(res)) {
-                                    cartData.line_items.push({
-                                        id: b.split('-')[0],
-                                        count: res[b],
-                                        spec: b.split('-').filter((dd, index) => index !== 0),
+                            const rebate = triggerRebate !== null && triggerRebate !== void 0 ? triggerRebate : defaultRebate;
+                            ApiShop.getCheckout({
+                                line_items: ApiCart.cart.line_items,
+                                code: voucherCode,
+                                use_rebate: parseInt(rebate, 10),
+                            }).then((res) => __awaiter(void 0, void 0, void 0, function* () {
+                                var _c;
+                                const data = (_c = res.response) === null || _c === void 0 ? void 0 : _c.data;
+                                const useRebate = typeof rebate === 'string' ? parseInt(`${rebate}`, 10) : 0;
+                                const subtotal = data.total - data.shipment_fee + data.use_rebate;
+                                if (subtotal > 0 && useRebate >= 0 && subtotal >= useRebate && remainRebate >= useRebate) {
+                                    ApiCart.setCart((cartItem) => {
+                                        cartItem.use_rebate = parseInt(rebate, 10);
+                                    });
+                                    TriggerEvent.trigger({
+                                        gvc: gvc,
+                                        widget: widget,
+                                        clickEvent: object.rebateSuccess,
+                                        subData: res.response.data,
+                                        element: element,
                                     });
                                 }
-                                const rebate = triggerRebate !== null && triggerRebate !== void 0 ? triggerRebate : defaultRebate;
-                                ApiShop.getCheckout({
-                                    line_items: cartData.line_items.map((dd) => {
-                                        return {
-                                            id: dd.id,
-                                            spec: dd.spec,
-                                            count: dd.count,
-                                        };
-                                    }),
-                                    code: voucherCode,
-                                    use_rebate: parseInt(rebate, 10),
-                                }).then((res) => __awaiter(void 0, void 0, void 0, function* () {
-                                    var _c;
-                                    const data = (_c = res.response) === null || _c === void 0 ? void 0 : _c.data;
-                                    const useRebate = typeof rebate === 'string' ? parseInt(`${rebate}`, 10) : 0;
-                                    const subtotal = data.total - data.shipment_fee + data.use_rebate;
-                                    if (subtotal > 0 && useRebate >= 0 && subtotal >= useRebate && remainRebate >= useRebate) {
-                                        ApiShop.setRebateValue(`${rebate}`);
-                                        TriggerEvent.trigger({
-                                            gvc: gvc,
-                                            widget: widget,
-                                            clickEvent: object.rebateSuccess,
-                                            subData: res.response.data,
-                                            element: element,
-                                        });
-                                    }
-                                    else {
-                                        ApiShop.setRebateValue('');
-                                        TriggerEvent.trigger({
-                                            gvc: gvc,
-                                            widget: widget,
-                                            clickEvent: object.rebateError,
-                                            subData: res.response.data,
-                                            element: element,
-                                        });
-                                    }
-                                    resolve(res.response.data);
-                                }));
+                                else {
+                                    ApiCart.setCart((cartItem) => {
+                                        cartItem.use_rebate = undefined;
+                                    });
+                                    TriggerEvent.trigger({
+                                        gvc: gvc,
+                                        widget: widget,
+                                        clickEvent: object.rebateError,
+                                        subData: res.response.data,
+                                        element: element,
+                                    });
+                                }
+                                resolve(res.response.data);
                             }));
                         }));
                     }));

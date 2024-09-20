@@ -612,60 +612,6 @@ export class ApiShop {
             }),
         });
     }
-    static getVoucherCode() {
-        const glitter = window.glitter;
-        return new Promise((resolve, reject) => {
-            window.glitter.getPro(ApiShop.voucherID, (response) => {
-                resolve(response.data);
-            });
-        });
-    }
-    static setVoucherCode(code) {
-        window.glitter.setPro(ApiShop.voucherID, code, () => { });
-    }
-    static setRebateValue(value) {
-        window.glitter.setPro(ApiShop.rebateID, value, () => { });
-    }
-    static getRebateValue() {
-        const glitter = window.glitter;
-        return new Promise((resolve, reject) => {
-            window.glitter.getPro(ApiShop.rebateID, (response) => {
-                resolve(response.data);
-            });
-        });
-    }
-    static addToCart(id, count) {
-        window.glitter.getPro(ApiShop.cartID, (response) => {
-            var _a;
-            const cartData = response.data ? JSON.parse(response.data) : {};
-            cartData[id] = (_a = cartData[id]) !== null && _a !== void 0 ? _a : 0;
-            cartData[id] += parseInt(count, 10);
-            window.glitter.setPro(ApiShop.cartID, JSON.stringify(cartData), () => { });
-        });
-    }
-    static setToCart(id, count) {
-        window.glitter.getPro(ApiShop.cartID, (response) => {
-            const cartData = response.data ? JSON.parse(response.data) : {};
-            if (parseInt(count, 10) === 0) {
-                cartData[id] = undefined;
-            }
-            else {
-                cartData[id] = parseInt(count, 10);
-            }
-            window.glitter.setPro(ApiShop.cartID, JSON.stringify(cartData), () => { });
-        });
-    }
-    static clearCart() {
-        window.glitter.setPro(ApiShop.cartID, JSON.stringify({}), () => { });
-    }
-    static getCart() {
-        return new Promise((resolve, reject) => {
-            window.glitter.getPro(ApiShop.cartID, (response) => {
-                const cartData = response.data ? JSON.parse(response.data) : {};
-                resolve(cartData);
-            });
-        });
-    }
     static ecDataAnalyze(tagArray) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/dataAnalyze?tags=${tagArray.join(',')}`,

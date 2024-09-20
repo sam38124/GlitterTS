@@ -1,5 +1,6 @@
 import {TriggerEvent} from '../../glitterBundle/plugins/trigger-event.js';
 import {ApiShop} from "../../glitter-base/route/shopping.js";
+import {ApiCart} from "../../glitter-base/route/api-cart.js";
 
 TriggerEvent.createSingleEvent(import.meta.url, () => {
     return {
@@ -37,14 +38,14 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                             const href = new URL(redirect as any,location.href)
                             ApiShop.repay(order_id as string,href.href).then((res) => {
                                 if (object.payType === 'offline' || res.response.off_line || res.response.is_free) {
-                                    ApiShop.clearCart()
+                                    ApiCart.clearCart()
                                     resolve(true)
                                     location.href = res.response.return_url
                                 }else{
                                     const id=gvc.glitter.getUUID()
                                     $('body').append(`<div id="${id}" style="display: none;">${res.response.form}</div>`);
                                     (document.querySelector(`#${id} #submit`) as any).click()
-                                    ApiShop.clearCart()
+                                    ApiCart.clearCart()
                                 }
 
                             })

@@ -2,6 +2,7 @@ import {TriggerEvent} from '../../glitterBundle/plugins/trigger-event.js';
 import {ApiShop} from "../../glitter-base/route/shopping.js";
 import {EditorElem} from "../../glitterBundle/plugins/editor-elem.js";
 import {GlobalUser} from "../../glitter-base/global/global-user.js";
+import {ApiCart} from "../../glitter-base/route/api-cart.js";
 
 TriggerEvent.createSingleEvent(import.meta.url, () => {
     return {
@@ -12,7 +13,9 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                 },
                 event: () => {
                     return new Promise(async (resolve, reject) => {
-                        await ApiShop.setVoucherCode('')
+                        ApiCart.setCart((cartItem)=>{
+                            cartItem.code=undefined
+                        })
                         resolve(true)
                     })
                 },

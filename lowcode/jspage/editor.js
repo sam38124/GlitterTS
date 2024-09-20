@@ -591,6 +591,7 @@ ${glitter.getUrlParameter('tab') === 'page_manager' ? `d-none` : `${glitter.shar
                                                                             style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
                                                                             onclick="${gvc.event(() => {
                                 Storage.view_type = dd.type;
+                                glitter.share.loading_dialog.dataLoading({ text: '模組加載中...', visible: true });
                                 gvc.notifyDataChange('HtmlEditorContainer');
                             })}"
                                                                     >

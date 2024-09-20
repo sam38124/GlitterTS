@@ -484,6 +484,7 @@ class Shopping {
                 custom_form_data: data.custom_form_data,
                 orderSource: data.checkOutType === 'POS' ? `POS` : ``,
                 code_array: data.code_array,
+                give_away: data.give_away
             };
             function calculateShipment(dataList, value) {
                 if (value === 0) {
@@ -621,6 +622,9 @@ class Shopping {
                 }
             }
             if (type !== 'manual' && type !== 'manual-preview') {
+                carData.lineItems = carData.lineItems.filter((dd) => {
+                    return !add_on_items.includes(dd);
+                });
                 carData.lineItems = carData.lineItems.filter((dd) => {
                     return !add_on_items.includes(dd);
                 });

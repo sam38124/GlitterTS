@@ -35,8 +35,13 @@ interface VoucherData {
     title: string;
     code?: string;
     method: 'percent' | 'fixed';
+<<<<<<< HEAD
     reBackType: 'rebate' | 'discount' | 'shipment_free' | 'add_on_items';
     add_on_products?: string[];
+=======
+    reBackType: 'rebate' | 'discount' | 'shipment_free' | 'add_on_items' | 'giveaway';
+    add_on_products?:string[]
+>>>>>>> 63acf110 (update glitter version)
     trigger: 'auto' | 'code' | 'distribution';
     value: string;
     for: 'collection' | 'product' | 'all';
@@ -132,7 +137,11 @@ type Cart = {
     distribution_info?: any;
     orderSource: '' | 'manual' | 'normal' | 'POS';
     code_array: string[];
+<<<<<<< HEAD
     deliveryData?: DeliveryData;
+=======
+    give_away:CartItem[]
+>>>>>>> 63acf110 (update glitter version)
 };
 
 export class Shopping {
@@ -612,6 +621,11 @@ export class Shopping {
             custom_form_data?: any; //自定義表單資料
             distribution_code?: string; //分銷連結代碼
             code_array: string[]; // 優惠券代碼列表
+            give_away?: {
+                "id": number,
+                "spec": string[],
+                "count": number
+            }[]
         },
         type: 'add' | 'preview' | 'manual' | 'manual-preview' | 'POS' = 'add',
         replace_order_id?: string
@@ -775,6 +789,7 @@ export class Shopping {
                 custom_form_data: data.custom_form_data,
                 orderSource: data.checkOutType === 'POS' ? `POS` : ``,
                 code_array: data.code_array,
+                give_away:data.give_away
             };
 
             function calculateShipment(dataList: { key: string; value: string }[], value: number | string) {
@@ -800,7 +815,12 @@ export class Shopping {
                 return parseInt(dataList[dataList.length - 1].value);
             }
 
+<<<<<<< HEAD
             const add_on_items: any[] = [];
+=======
+            const add_on_items: any[] = []
+            const give_away: any[] = []
+>>>>>>> 63acf110 (update glitter version)
             for (const b of data.lineItems) {
                 try {
                     const pdDqlData = (
@@ -940,6 +960,10 @@ export class Shopping {
 
             // 手動新增訂單的優惠卷設定
             if (type !== 'manual' && type !== 'manual-preview') {
+                //過濾贈品
+                carData.lineItems = carData.lineItems.filter((dd) => {
+                    return !add_on_items.includes(dd)
+                })
                 //過濾加購品
                 carData.lineItems = carData.lineItems.filter((dd) => {
                     return !add_on_items.includes(dd);
@@ -965,6 +989,10 @@ export class Shopping {
                 });
                 // 再次更新優惠內容
                 await this.checkVoucher(carData);
+                //過濾可選贈品
+                // carData.voucherList.filter((dd)=>{
+                //     return dd.reBackType==='giveaway'
+                // })
             }
 
             // 付款資訊設定
