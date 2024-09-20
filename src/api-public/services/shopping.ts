@@ -36,7 +36,7 @@ interface VoucherData {
     code?: string;
     method: 'percent' | 'fixed';
     reBackType: 'rebate' | 'discount' | 'shipment_free' | 'add_on_items' | 'giveaway';
-    add_on_products?:string[]
+    add_on_products?: string[];
     trigger: 'auto' | 'code' | 'distribution';
     value: string;
     for: 'collection' | 'product' | 'all';
@@ -133,7 +133,7 @@ type Cart = {
     orderSource: '' | 'manual' | 'normal' | 'POS';
     code_array: string[];
     deliveryData?: DeliveryData;
-    give_away:CartItem[]
+    give_away: CartItem[];
 };
 
 export class Shopping {
@@ -614,15 +614,15 @@ export class Shopping {
             distribution_code?: string; //分銷連結代碼
             code_array: string[]; // 優惠券代碼列表
             give_away?: {
-                "id": number,
-                "spec": string[],
-                "count": number
-            }[]
+                id: number;
+                spec: string[];
+                count: number;
+            }[];
         },
         type: 'add' | 'preview' | 'manual' | 'manual-preview' | 'POS' = 'add',
         replace_order_id?: string
     ) {
-        console.log(`data.give_away=>`,data.give_away)
+        console.log(`data.give_away=>`, data.give_away);
         try {
             //判斷是重新付款則取代
             if (replace_order_id) {
@@ -782,7 +782,7 @@ export class Shopping {
                 custom_form_data: data.custom_form_data,
                 orderSource: data.checkOutType === 'POS' ? `POS` : ``,
                 code_array: data.code_array,
-                give_away:data.give_away as any
+                give_away: data.give_away as any,
             };
 
             function calculateShipment(dataList: { key: string; value: string }[], value: number | string) {
@@ -808,8 +808,8 @@ export class Shopping {
                 return parseInt(dataList[dataList.length - 1].value);
             }
 
-            const add_on_items: any[] = []
-            const give_away: any[] = []
+            const add_on_items: any[] = [];
+            const give_away: any[] = [];
             for (const b of data.lineItems) {
                 try {
                     const pdDqlData = (
@@ -951,15 +951,15 @@ export class Shopping {
             if (type !== 'manual' && type !== 'manual-preview') {
                 //過濾贈品
                 carData.lineItems = carData.lineItems.filter((dd) => {
-                    return !add_on_items.includes(dd)
-                })
+                    return !add_on_items.includes(dd);
+                });
                 //過濾加購品
                 carData.lineItems = carData.lineItems.filter((dd) => {
                     return !add_on_items.includes(dd);
                 });
                 // 濾出可用的加購商品
                 await this.checkVoucher(carData);
-                add_on_items.map((dd)=>{
+                add_on_items.map((dd) => {
                     try {
                         if (
                             carData.voucherList?.find((d1) => {
@@ -2484,14 +2484,15 @@ export class Shopping {
         }
     }
 
-    async getHotProducts(duration:'month'|'day') {
+    async getHotProducts(duration: 'month' | 'day') {
         try {
-
             const checkoutSQL = `
                 SELECT JSON_EXTRACT(orderData, '$.lineItems') as lineItems
                 FROM \`${this.app}\`.t_checkout
                 WHERE status = 1
-                  AND ${(duration==='day') ?`created_time BETWEEN  CURDATE() AND CURDATE() + INTERVAL 1 DAY - INTERVAL 1 SECOND`:`(created_time BETWEEN DATE_SUB(NOW(), INTERVAL 1 MONTH) AND NOW())`};
+                  AND ${
+                      duration === 'day' ? `created_time BETWEEN  CURDATE() AND CURDATE() + INTERVAL 1 DAY - INTERVAL 1 SECOND` : `(created_time BETWEEN DATE_SUB(NOW(), INTERVAL 1 MONTH) AND NOW())`
+                  };
             `;
             const checkouts = await db.query(checkoutSQL, []);
             const series = [];
@@ -2525,7 +2526,6 @@ export class Shopping {
             throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
         }
     }
-
 
     async getOrdersInRecentMonth() {
         try {
