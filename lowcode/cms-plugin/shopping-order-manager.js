@@ -55,6 +55,7 @@ export class ShoppingOrderManager {
     static main(gvc, query) {
         const glitter = gvc.glitter;
         const dialog = new ShareDialog(gvc.glitter);
+        query.isArchived = Boolean(query.isArchived);
         const vm = {
             id: glitter.getUUID(),
             type: 'list',
