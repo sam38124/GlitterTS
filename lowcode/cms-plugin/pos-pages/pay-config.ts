@@ -20,4 +20,6 @@ export class PayConfig{
         }
     }
     public static deviceType:'pos'|'app'|'web'='web'
+
+    public static pos_config:any={}
 }

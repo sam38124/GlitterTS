@@ -26,7 +26,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createAPP = exports.initial = exports.app = void 0;
+exports.app = void 0;
+exports.initial = initial;
+exports.createAPP = createAPP;
 const path_1 = __importDefault(require("path"));
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
@@ -104,7 +106,6 @@ async function initial(serverPort) {
         console.log('Starting up the server now.');
     })();
 }
-exports.initial = initial;
 function createContext(req, res, next) {
     const uuid = (0, uuid_1.v4)();
     const ip = req.ip;
@@ -228,10 +229,10 @@ async function createAPP(dd) {
                                                 <link
                                                     id="appImage"
                                                     rel="shortcut icon"
-                                                    href="https://liondesign-prd.s3.amazonaws.com/file/252530754/1697354801736-Glitter logo.png"
+                                                    href="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sas0s9s0s1sesas0_1697354801736-Glitterlogo.png"
                                                     type="image/x-icon"
                                                 />
-                                                <link rel="icon" href="https://liondesign-prd.s3.amazonaws.com/file/252530754/1697354801736-Glitter logo.png" type="image/png" sizes="128x128" />
+                                                <link rel="icon" href="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sas0s9s0s1sesas0_1697354801736-Glitterlogo.png" type="image/png" sizes="128x128" />
                                                 <meta property="og:image" content="https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1718778766524-shopnex_banner.jpg" />
                                                 <meta property="og:title" content="SHOPNEX後台系統" />
                                                 <meta
@@ -310,6 +311,9 @@ ${[
                         })
                             .join('')}
 ${((_l = preload.event) !== null && _l !== void 0 ? _l : [])
+                            .filter((dd) => {
+                            return dd;
+                        })
                             .map((dd) => {
                             const link = dd.fun.replace(`TriggerEvent.setEventRouter(import.meta.url, '.`, 'official_event');
                             return link.substring(0, link.length - 2);
@@ -478,7 +482,6 @@ ${((_l = preload.event) !== null && _l !== void 0 ? _l : [])
         },
     ]);
 }
-exports.createAPP = createAPP;
 async function getSeoDetail(appName, req) {
     const sqlData = await private_config_js_1.Private_config.getConfig({
         appName: appName,

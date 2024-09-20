@@ -831,7 +831,7 @@ ${obj.gvc.bindView({
             option = option ?? {};
             const container_id = option.containerID ?? gvc.glitter.getUUID();
             if (isEditMode()) {
-                (container as any).container_config = {
+                const cf={
                     gvc: gvc,
                     option: option,
                     container: container,
@@ -843,6 +843,12 @@ ${obj.gvc.bindView({
                         return document.querySelector('.editor_it_' + container_id);
                     },
                 };
+                if(container_id==='MainView'){
+                    (window as any).glitter.share.main_view_config = cf;
+                }else{
+                    (container as any).container_config =cf
+                }
+
             }
             return gvc.bindView(() => {
                 return {
@@ -2617,74 +2623,9 @@ transform: translateY(5px);
                     if ((document.querySelector('#editerCenter iframe') as any).contentWindow.document.querySelector(`.editor_it_${item.id}`)) {
                         (document.querySelector('#editerCenter iframe') as any).contentWindow.glitter.$(`.editor_it_${item.id}`).parent().remove();
                     }
-                    if (container_items.length === 0) {
-                        if (!(container as any).className.includes('editor_it_MainView')) {
-                            container.recreateView();
-                        } else {
-                            glitter.share.editorViewModel.data.config = [];
-                            gvc.notifyDataChange(['HtmlEditorContainer']);
-                        }
-                    }
+
                     if (container_items.rerenderReplaceElem) {
                         container_items.rerenderReplaceElem()
-                        // .append(`<div
-                        //                             class="d-flex align-items-center justify-content-center flex-column rounded-3 w-100 py-3"
-                        //                             id="${id}"
-                        //                             style="background: lightgrey;color: #393939;cursor: pointer;min-height: 100px;left: 0px;top:0px;width: 100%;height: 100%;"
-                        //                             onmousedown="${gvc.event(() => {
-                        //     glitter.getModule(new URL(gvc.glitter.root_path + 'editor/add-component.js').href, (AddComponent: any) => {
-                        //         glitter.share.editorViewModel.selectContainer = widget.data.setting;
-                        //         AddComponent.toggle(true);
-                        //         AddComponent.addWidget = (gvc: GVC, cf: any) => {
-                        //             (window.parent as any).glitter.share.editorViewModel.selectContainer = widget.data.setting;
-                        //             (window.parent as any).glitter.share.addComponent(cf);
-                        //             AddComponent.toggle(false);
-                        //             document.querySelector('#' +id).remove();
-                        //         };
-                        //         AddComponent.addEvent = (gvc: GVC, tdata: any) => {
-                        //             (window.parent as any).glitter.share.editorViewModel.selectContainer = widget.data.setting;
-                        //             (window.parent as any).glitter.share.addComponent({
-                        //                 id: gvc.glitter.getUUID(),
-                        //                 js: './official_view_component/official.js',
-                        //                 css: {
-                        //                     class: {},
-                        //                     style: {},
-                        //                 },
-                        //                 data: {
-                        //                     refer_app: tdata.copyApp,
-                        //                     tag: tdata.copy,
-                        //                     list: [],
-                        //                     carryData: {},
-                        //                     _style_refer_global: {
-                        //                         index: `0`,
-                        //                     },
-                        //                 },
-                        //                 type: 'component',
-                        //                 class: 'w-100',
-                        //                 index: 0,
-                        //                 label: tdata.title,
-                        //                 style: '',
-                        //                 bundle: {},
-                        //                 global: [],
-                        //                 toggle: false,
-                        //                 stylist: [],
-                        //                 dataType: 'static',
-                        //                 style_from: 'code',
-                        //                 classDataType: 'static',
-                        //                 preloadEvenet: {},
-                        //                 share: {},
-                        //             });
-                        //             AddComponent.toggle(false);
-                        //             console.log(` gvc.glitter.document.querySelector('#${id}').remove();`)
-                        //             document.querySelector('#' +id).remove();
-                        //         };
-                        //     });
-                        // })}"
-                        //                     >
-                        //                         <i class="fa-regular fa-circle-plus text-black"
-                        //                            style="font-size: 60px;"></i>
-                        //                         <span class="fw-500 fs-5 mt-3">添加元件</span>
-                        //                     </div>`)
                     }
                     glitter.share.editorViewModel.selectItem = undefined;
                     gvc.notifyDataChange(['right_NAV', 'MainEditorLeft']);

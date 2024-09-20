@@ -400,7 +400,7 @@ export class FileSystem {
                         array.map((dd) => {
                             if (dd.type === 'folder') {
                                 loop(dd.items || [])
-                            } else {
+                            } else if((dd as any).selected){
                                 select.push(dd.id)
                             }
                         })

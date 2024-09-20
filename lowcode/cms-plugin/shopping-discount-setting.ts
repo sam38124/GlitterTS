@@ -114,7 +114,7 @@ export class ShoppingDiscountSetting {
                                                                             key: '狀態',
                                                                             value: dd.content.status
                                                                                     ? html`
-                                                                                        <div class="badge badge-success fs-7">
+                                                                                        <div class="badge bg-success fs-7">
                                                                                             啟用中
                                                                                         </div>`
                                                                                     : html`
@@ -862,7 +862,7 @@ export class ShoppingDiscountSetting {
                                                                 view: () => {
                                                                     return [
                                                                         ...(() => {
-                                                                            if (['shipment_free', 'add_on_items'].includes(voucherData.reBackType)) {
+                                                                            if (['shipment_free', 'add_on_items','giveaway'].includes(voucherData.reBackType)) {
                                                                                 return [];
                                                                             }
                                                                             const valueInput = (obj: {
@@ -1130,7 +1130,8 @@ export class ShoppingDiscountSetting {
                                                         })
                                                 ),
                                                 ...(() => {
-                                                    if (voucherData.reBackType === 'add_on_items') {
+                                                   
+                                                    if ( ['giveaway','add_on_items'].includes(voucherData.reBackType)) {
                                                         return [BgWidget.mainCard(gvc.bindView(() => {
                                                             const vm = {
                                                                 id: gvc.glitter.getUUID()
@@ -1142,7 +1143,7 @@ export class ShoppingDiscountSetting {
                                                                 bind: vm.id,
                                                                 view: () => {
                                                                     return html`
-                                                                        <div class="tx_700">加購品項</div>
+                                                                        <div class="tx_700">${(voucherData.reBackType==='add_on_items') ? `加購品項`:`贈品品項`}</div>
                                                                         ${BgWidget.mbContainer(18)}
                                                                         ${obj.gvc.bindView(() => {
                                                                             const id = gvc.glitter.getUUID();
@@ -1175,7 +1176,7 @@ export class ShoppingDiscountSetting {
                                                                                                                     return true
 
                                                                                                                 },
-                                                                                                                productType:'addProduct'
+                                                                                                                productType:(voucherData.reBackType==='add_on_items')  ? 'addProduct':'giveaway'
                                                                                                             });
                                                                                                         }),
                                                                                                         {textStyle: 'font-weight: 400;'}

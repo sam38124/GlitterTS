@@ -365,7 +365,7 @@ export class FileSystem {
                                 if (dd.type === 'folder') {
                                     loop(dd.items || []);
                                 }
-                                else {
+                                else if (dd.selected) {
                                     select.push(dd.id);
                                 }
                             });

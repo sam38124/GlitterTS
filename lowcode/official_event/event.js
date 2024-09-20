@@ -543,5 +543,5 @@ TriggerEvent.create(import.meta.url, {
     getBlogTag: {
         title: 'Blog / 標籤取得網誌',
         fun: TriggerEvent.setEventRouter(import.meta.url, './blog/get-blog-tag.js'),
-    },
+    }
 });

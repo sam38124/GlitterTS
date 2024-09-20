@@ -225,6 +225,7 @@ export class BgWidget {
                     e.value = validValue;
                 }
             }
+            obj.oninput && obj.oninput(e.value);
         })}"
                         value="${(_f = obj.default) !== null && _f !== void 0 ? _f : ''}"
                         ${obj.readonly ? `readonly` : ``}
@@ -693,6 +694,11 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
             ${obj.readonly ? 'disabled' : ''}
         >
             ${obj.gvc.map(obj.options.map((opt) => html ` <option class="c_select_option" value="${opt.key}" ${obj.default === opt.key ? 'selected' : ''}>${opt.value}</option>`))}
+            ${obj.options.find((opt) => {
+            return obj.default === opt.key;
+        })
+            ? ``
+            : `<option class="d-none" selected>${obj.place_holder || `請選擇項目`}</option>`}
         </select>`;
     }
     static maintenance() {

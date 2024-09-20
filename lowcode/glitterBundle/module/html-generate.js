@@ -160,7 +160,7 @@ export class HtmlGenerate {
             option = option !== null && option !== void 0 ? option : {};
             const container_id = (_b = option.containerID) !== null && _b !== void 0 ? _b : gvc.glitter.getUUID();
             if (isEditMode()) {
-                container.container_config = {
+                const cf = {
                     gvc: gvc,
                     option: option,
                     container: container,
@@ -172,6 +172,12 @@ export class HtmlGenerate {
                         return document.querySelector('.editor_it_' + container_id);
                     },
                 };
+                if (container_id === 'MainView') {
+                    window.glitter.share.main_view_config = cf;
+                }
+                else {
+                    container.container_config = cf;
+                }
             }
             return gvc.bindView(() => {
                 return {
@@ -2098,15 +2104,6 @@ transform: translateY(5px);
                     }
                     if (document.querySelector('#editerCenter iframe').contentWindow.document.querySelector(`.editor_it_${item.id}`)) {
                         document.querySelector('#editerCenter iframe').contentWindow.glitter.$(`.editor_it_${item.id}`).parent().remove();
-                    }
-                    if (container_items.length === 0) {
-                        if (!container.className.includes('editor_it_MainView')) {
-                            container.recreateView();
-                        }
-                        else {
-                            glitter.share.editorViewModel.data.config = [];
-                            gvc.notifyDataChange(['HtmlEditorContainer']);
-                        }
                     }
                     if (container_items.rerenderReplaceElem) {
                         container_items.rerenderReplaceElem();

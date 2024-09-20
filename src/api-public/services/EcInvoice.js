@@ -130,7 +130,7 @@ class EcInvoice {
                 InvoiceNo: invoice_data.invoice_data.response.InvoiceNo,
                 InvoiceDate: `${invoice_data.invoice_data.response.InvoiceDate}`.substring(0, 10),
                 PrintStyle: 3,
-                IsShowingDetail: 2
+                IsShowingDetail: 1
             };
             const timeStamp = `${new Date().valueOf()}`;
             const cipher = crypto_1.default.createCipheriv('aes-128-cbc', obj.hashKey, obj.hash_IV);
@@ -140,7 +140,9 @@ class EcInvoice {
                 method: 'post',
                 maxBodyLength: Infinity,
                 url: (obj.beta) ? 'https://einvoice-stage.ecpay.com.tw/B2CInvoice/InvoicePrint' : 'https://einvoice.ecpay.com.tw/B2CInvoice/InvoicePrint',
-                headers: {},
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36'
+                },
                 'Content-Type': 'application/json',
                 data: {
                     MerchantID: obj.merchNO,
@@ -173,15 +175,29 @@ class EcInvoice {
                 inputs.forEach(input => {
                     qrcode.push(input.value);
                 });
+                const bigTitles = document.querySelectorAll(".data_big");
+                let bigTitle = [];
+                bigTitles.forEach(input => {
+                    bigTitle.push(input.innerHTML);
+                });
                 resolve({
+                    create_date: document.querySelector('font').innerHTML,
+                    date: bigTitle[0].replace(/\n/g, '').trim(),
+                    invoice_code: bigTitle[1].replace(/\n/g, '').trim(),
                     qrcode_0: qrcode[0],
-                    link: resp.InvoiceHtml,
                     qrcode_1: qrcode[1],
+                    link: resp.InvoiceHtml,
+                    random_code: document.querySelectorAll('.fl font')[1].innerHTML,
+                    total: document.querySelectorAll('.fr font')[1].innerHTML,
+                    sale_gui: document.querySelectorAll('.fl font')[2].innerHTML,
+                    buy_gui: (document.querySelectorAll('.fr font')[2] || { innerHTML: '' }).innerHTML,
+                    pay_detail: document.querySelectorAll('table')[2].outerHTML,
+                    pay_detail_footer: document.querySelector('.invoice-detail-sum').outerHTML,
                     bar_code: qrcode[0].substring(10, 15) + invoice_data.invoice_data.response.InvoiceNo + invoice_data.invoice_data.response.RandomNumber
                 });
             })
                 .catch((error) => {
-                console.log(error);
+                console.error(`取得失敗::`, error);
                 resolve(false);
             });
         });

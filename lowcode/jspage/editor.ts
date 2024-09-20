@@ -652,7 +652,7 @@ border-radius: 5px;
 border:none;
 color:white;"
                                                     onclick="${gvc.event(() => {
-                                                        glitter.htmlGenerate.saveEvent();
+                                                        glitter.htmlGenerate.saveEvent(false);
                                                     })}"
                                             >
                                                 儲存
@@ -697,7 +697,7 @@ background: ${EditorConfig.editor_layout.btn_background};
 color:white;
 "
                                                     onclick="${gvc.event(() => {
-                                                        glitter.htmlGenerate.saveEvent();
+                                                        glitter.htmlGenerate.saveEvent(false);
                                                     })}"
                                             >
                                                 儲存

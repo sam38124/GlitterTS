@@ -946,8 +946,7 @@ export class Shopping {
                 });
                 // 濾出可用的加購商品
                 await this.checkVoucher(carData);
-
-                add_on_items.map((dd) => {
+                add_on_items.map((dd)=>{
                     try {
                         if (
                             carData.voucherList?.find((d1) => {
@@ -2335,7 +2334,10 @@ export class Shopping {
                             result[tag] = await this.getOrdersInRecentMonth();
                             break;
                         case 'hot_products':
-                            result[tag] = await this.getHotProducts();
+                            result[tag] = await this.getHotProducts('month');
+                            break;
+                        case 'hot_products_today':
+                            result[tag] = await this.getHotProducts('day');
                             break;
                         case 'order_avg_sale_price':
                             result[tag] = await this.getOrderAvgSalePrice();
@@ -2465,13 +2467,14 @@ export class Shopping {
         }
     }
 
-    async getHotProducts() {
+    async getHotProducts(duration:'month'|'day') {
         try {
+
             const checkoutSQL = `
                 SELECT JSON_EXTRACT(orderData, '$.lineItems') as lineItems
                 FROM \`${this.app}\`.t_checkout
                 WHERE status = 1
-                  AND (created_time BETWEEN DATE_SUB(NOW(), INTERVAL 1 MONTH) AND NOW());
+                  AND ${(duration==='day') ?`created_time BETWEEN  CURDATE() AND CURDATE() + INTERVAL 1 DAY - INTERVAL 1 SECOND`:`(created_time BETWEEN DATE_SUB(NOW(), INTERVAL 1 MONTH) AND NOW())`};
             `;
             const checkouts = await db.query(checkoutSQL, []);
             const series = [];
@@ -2505,6 +2508,7 @@ export class Shopping {
             throw exception.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
         }
     }
+
 
     async getOrdersInRecentMonth() {
         try {

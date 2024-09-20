@@ -22,11 +22,13 @@ import {BgCustomerMessage} from '../backend-manager/bg-customer-message.js';
 import {BgGuide} from "../backend-manager/bg-guide.js";
 import {ApiShop} from "../glitter-base/route/shopping.js";
 import {StepManager} from "../modules/step-manager.js";
+import {ShareDialog} from "../glitterBundle/dialog/ShareDialog.js";
 
 const html = String.raw;
 //
 const editorContainerID = `HtmlEditorContainer`;
 init(import.meta.url, (gvc, glitter, gBundle) => {
+    glitter.share.loading_dialog=(new ShareDialog(gvc.glitter))
     const css = String.raw;
     gvc.addStyle(css`
         .hoverHidden div {
@@ -72,6 +74,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
     `);
     gvc.addStyle(css`
         .scroll-right-in {
+          
             right: -120%; /* 將元素移到畫面外 */
             animation: slideInRight 0.5s ease-out forwards;
         }
@@ -169,7 +172,11 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
 
     //載入頁面資料
     async function lod() {
-        await swal.loading('載入中...');
+        if(gvc.glitter.getUrlParameter('function') !== 'backend-manger'){
+            glitter.share.loading_dialog.dataLoading({text:'模組加載中...',visible:true})
+        }else{
+            await swal.loading('載入中...');
+        }
         const waitGetData = [
             async () => {
                 return await new Promise(async (resolve, reject) => {
@@ -354,8 +361,8 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
         glitter.htmlGenerate.saveEvent = (refresh: boolean = true, callback?: () => void) => {
             glitter.closeDiaLog();
             glitter.setCookie('jumpToNavScroll', $(`#jumpToNav`).scrollTop());
-            swal.loading('更新中...');
 
+                swal.loading('更新中...');
             async function saveEvent() {
                 for (const b of Object.keys(glitter.share.editorViewModel.saveArray)) {
                     await (glitter.share.editorViewModel.saveArray[b] as any)();
@@ -364,7 +371,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                 const waitSave = [
                     async () => {
                         let haveID: string[] = [];
-
+                        const config=JSON.parse(JSON.stringify((viewModel.data as any).config))
                         function getID(set: any) {
                             set.map((dd: any) => {
                                 dd.js = dd.js.replace(`${location.origin}/${(window as any).appName}/`, './');
@@ -388,7 +395,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                             });
                         }
 
-                        getID((viewModel.data as any).config);
+                        getID(config);
                         if (glitter.share.editor_vm) {
                             return new Promise((resolve, reject) => {
                                 resolve(true);
@@ -401,7 +408,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                     appName: gBundle.appName,
                                     tag: (viewModel.data! as any).tag,
                                     name: (viewModel.data! as any).name,
-                                    config: (viewModel.data! as any).config,
+                                    config: config,
                                     group: (viewModel.data! as any).group,
                                     page_config: (viewModel.data! as any).page_config,
                                     page_type: (viewModel.data! as any).page_type,
@@ -432,8 +439,9 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                     }
                 }
                 swal.close();
-                viewModel.originalConfig = JSON.parse(JSON.stringify(viewModel.appConfig));
+
                 if (refresh) {
+                    viewModel.originalConfig = JSON.parse(JSON.stringify(viewModel.appConfig));
                     (window as any).preloadData = {};
                     (window as any).glitterInitialHelper.share = {};
                     lod();
@@ -661,7 +669,7 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
                             case 'backend-manger':{
                                 let bgGuide = new BgGuide(gvc,0);
                                 ApiShop.getGuideable().then(r => {
-                                    if (!r.response.value){
+                                    if (!r.response.value || !r.response.value.view){
                                         bgGuide.drawGuide();
                                     }
                                 })
@@ -802,6 +810,9 @@ function initialEditor(gvc: GVC, viewModel: any) {
 
     //添加Component至當前頁面
     glitter.share.addComponent = (data: any) => {
+        if(!viewModel.selectContainer.container_config){
+            viewModel.selectContainer.container_config=glitter.share.main_view_config
+        }
         glitter.share.left_block_hover=true
         AddComponent.toggle(false);
         resetId(data);
@@ -848,6 +859,9 @@ function initialEditor(gvc: GVC, viewModel: any) {
     };
     //添加Component至指定索引
     glitter.share.addWithIndex = (cf: { data: any; index: string; direction: number }) => {
+        if(!viewModel.selectContainer.container_config){
+            viewModel.selectContainer.container_config=glitter.share.main_view_config
+        }
         glitter.share.left_block_hover=true
         AddComponent.toggle(false);
         resetId(cf.data);

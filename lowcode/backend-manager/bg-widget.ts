@@ -298,6 +298,7 @@ export class BgWidget {
         pattern?: string;
         startText?: string;
         endText?: string;
+        oninput?:(text:string)=>void
     }) {
         obj.title = obj.title ?? '';
         return html`
@@ -323,6 +324,7 @@ export class BgWidget {
                                     e.value = validValue;
                                 }
                             }
+                            obj.oninput && obj.oninput(e.value)
                         })}"
                         value="${obj.default ?? ''}"
                         ${obj.readonly ? `readonly` : ``}
@@ -821,7 +823,7 @@ ${obj.default ?? ''}</textarea
         });
     }
 
-    static select(obj: { gvc: GVC; callback: (value: any) => void; default: string; options: OptionsItem[]; style?: string; readonly?: boolean }) {
+    static select(obj: { gvc: GVC; callback: (value: any) => void; default: string; options: OptionsItem[]; style?: string; readonly?: boolean,place_holder?:string }) {
         return html`<select
             class="c_select c_select_w_100"
             style="${obj.style ?? ''}; ${obj.readonly ? 'background: #f7f7f7;' : ''}"
@@ -831,6 +833,11 @@ ${obj.default ?? ''}</textarea
             ${obj.readonly ? 'disabled' : ''}
         >
             ${obj.gvc.map(obj.options.map((opt) => html` <option class="c_select_option" value="${opt.key}" ${obj.default === opt.key ? 'selected' : ''}>${opt.value}</option>`))}
+            ${(obj.options as any).find((opt: any) => {
+                return obj.default === opt.key;
+            })
+                    ? ``
+                    : `<option class="d-none" selected>${obj.place_holder || `請選擇項目`}</option>`}
         </select>`;
     }
 

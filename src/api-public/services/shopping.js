@@ -1743,7 +1743,10 @@ class Shopping {
                             result[tag] = await this.getOrdersInRecentMonth();
                             break;
                         case 'hot_products':
-                            result[tag] = await this.getHotProducts();
+                            result[tag] = await this.getHotProducts('month');
+                            break;
+                        case 'hot_products_today':
+                            result[tag] = await this.getHotProducts('day');
                             break;
                         case 'order_avg_sale_price':
                             result[tag] = await this.getOrderAvgSalePrice();
@@ -1858,13 +1861,13 @@ class Shopping {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
         }
     }
-    async getHotProducts() {
+    async getHotProducts(duration) {
         try {
             const checkoutSQL = `
                 SELECT JSON_EXTRACT(orderData, '$.lineItems') as lineItems
                 FROM \`${this.app}\`.t_checkout
                 WHERE status = 1
-                  AND (created_time BETWEEN DATE_SUB(NOW(), INTERVAL 1 MONTH) AND NOW());
+                  AND ${(duration === 'day') ? `created_time BETWEEN  CURDATE() AND CURDATE() + INTERVAL 1 DAY - INTERVAL 1 SECOND` : `(created_time BETWEEN DATE_SUB(NOW(), INTERVAL 1 MONTH) AND NOW())`};
             `;
             const checkouts = await database_js_1.default.query(checkoutSQL, []);
             const series = [];

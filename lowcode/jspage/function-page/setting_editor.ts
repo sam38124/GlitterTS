@@ -218,6 +218,15 @@ export class Setting_editor {
             },
             {
                 icon: '',
+                page: 'giveaway_discount',
+                group: '優惠促銷',
+                title: '贈品活動',
+                appName: 'cms_system',
+                groupIcon: 'https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/1713370923228-Component 56 (3).svg',
+                moduleName: '優惠券管理',
+            },
+            {
+                icon: '',
                 page: 'add_on_activity',
                 group: '優惠促銷',
                 title: '加購活動',

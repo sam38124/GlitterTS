@@ -215,6 +215,8 @@ class SharePermission {
                         user: userData.userID,
                         appName: base.app,
                         config: JSON.stringify(data.config),
+                        status: data.config.come_from === 'pos' ? 1 : 0,
+                        invited: data.config.come_from === 'pos' ? 1 : 0
                     },
                 ]);
                 const keyValue = await SharePermission.generateToken({
@@ -224,7 +226,9 @@ class SharePermission {
                 redirect_url = new URL(`${process.env.DOMAIN}/api-public/v1/user/permission/redirect`);
                 redirect_url.searchParams.set('key', keyValue);
                 redirect_url.searchParams.set('g-app', base.app);
-                await (0, ses_js_1.sendmail)('service@ncdesign.info', data.email, '商店權限分享邀請信', `「${storeData.value.shop_name}」邀請你加入他的商店，點擊此連結即可開啟權限：${redirect_url}`);
+                if (data.config.come_from !== 'pos') {
+                    await (0, ses_js_1.sendmail)('service@ncdesign.info', data.email, '商店權限分享邀請信', `「${storeData.value.shop_name}」邀請你加入他的商店，點擊此連結即可開啟權限：${redirect_url}`);
+                }
             }
             return Object.assign(Object.assign(Object.assign({ result: true }, base), data), { redirect_url });
         }
@@ -239,12 +243,9 @@ class SharePermission {
                 return { result: false };
             }
             const userData = (await database_1.default.query(`SELECT userID FROM \`${base.brand}\`.t_user WHERE account = ?;
-                `, [email]))[0];
-            if (userData === undefined) {
-                return { result: false };
-            }
-            await database_1.default.query(`DELETE FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_auth_config WHERE user = ? AND appName = ?;
-                `, [userData.userID, base.app]);
+                `, [email]))[0] || { userID: -999 };
+            await database_1.default.query(`DELETE FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_auth_config WHERE (user = ? or config->>'$.verifyEmail' = ?) AND appName = ?;
+                `, [userData.userID, email, base.app]);
             return Object.assign(Object.assign({ result: true }, base), { email });
         }
         catch (e) {
