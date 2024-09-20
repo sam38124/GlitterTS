@@ -222,9 +222,9 @@ export declare class Shopping {
         distribution_code?: string;
         code_array: string[];
         give_away?: {
-            "id": number;
-            "spec": string[];
-            "count": number;
+            id: number;
+            spec: string[];
+            count: number;
         }[];
     }, type?: 'add' | 'preview' | 'manual' | 'manual-preview' | 'POS', replace_order_id?: string): Promise<{
         data: Cart;

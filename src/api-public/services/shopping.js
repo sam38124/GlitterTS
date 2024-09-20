@@ -485,7 +485,7 @@ class Shopping {
                 custom_form_data: data.custom_form_data,
                 orderSource: data.checkOutType === 'POS' ? `POS` : ``,
                 code_array: data.code_array,
-                give_away: data.give_away
+                give_away: data.give_away,
             };
             function calculateShipment(dataList, value) {
                 if (value === 0) {
@@ -1410,6 +1410,7 @@ class Shopping {
             let querySql = ['1=1'];
             let orderString = 'order by id desc';
             if (query.search && query.searchType) {
+                console.log(query.search, query.searchType);
                 switch (query.searchType) {
                     case 'cart_token':
                         querySql.push(`(cart_token like '%${query.search}%')`);
@@ -1873,7 +1874,7 @@ class Shopping {
                 SELECT JSON_EXTRACT(orderData, '$.lineItems') as lineItems
                 FROM \`${this.app}\`.t_checkout
                 WHERE status = 1
-                  AND ${(duration === 'day') ? `created_time BETWEEN  CURDATE() AND CURDATE() + INTERVAL 1 DAY - INTERVAL 1 SECOND` : `(created_time BETWEEN DATE_SUB(NOW(), INTERVAL 1 MONTH) AND NOW())`};
+                  AND ${duration === 'day' ? `created_time BETWEEN  CURDATE() AND CURDATE() + INTERVAL 1 DAY - INTERVAL 1 SECOND` : `(created_time BETWEEN DATE_SUB(NOW(), INTERVAL 1 MONTH) AND NOW())`};
             `;
             const checkouts = await database_js_1.default.query(checkoutSQL, []);
             const series = [];

@@ -93,7 +93,7 @@ export class ShoppingOrderManager {
         function exportDataTo(firstRow, data) {
             if (window.XLSX) {
                 let XLSX = window.XLSX;
-                const worksheet = XLSX.utils.json_to_sheet(data, { skipHeader: true });
+                const worksheet = XLSX.utils.json_to_sheet(data);
                 XLSX.utils.sheet_add_aoa(worksheet, [firstRow], { origin: 'A1' });
                 const workbook = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
@@ -110,7 +110,7 @@ export class ShoppingOrderManager {
                 const link = document.createElement('a');
                 const url = URL.createObjectURL(blob);
                 link.href = url;
-                link.download = 'data.xlsx';
+                link.download = `order_${glitter.ut.dateFormat(new Date(), 'yyyyMMddhhmmss')}.xlsx`;
                 link.click();
                 setTimeout(() => {
                     URL.revokeObjectURL(url);
@@ -140,12 +140,13 @@ export class ShoppingOrderManager {
                         dialog.dataLoading({ visible: true });
                         ApiShop.getOrder({
                             page: 0,
-                            limit: 100,
-                            search: undefined,
-                            searchType: 'name',
-                            orderString: '',
-                            filter: '',
+                            limit: 1000,
+                            search: vm.query || undefined,
+                            searchType: vm.queryType || 'cart_token',
+                            orderString: vm.orderString,
+                            filter: vm.filter,
                             archived: `${query.isArchived}`,
+                            is_pos: vm.filter_type === 'pos',
                         }).then((res) => {
                             dialog.dataLoading({ visible: false });
                             if (!res.result) {
@@ -182,11 +183,11 @@ export class ShoppingOrderManager {
                             res.response.data.map((order) => {
                                 const orderData = order.orderData;
                                 orderData.lineItems.map((item) => {
-                                    var _a, _b, _c, _d, _e, _f;
+                                    var _a, _b, _c;
                                     exportData.push({
                                         訂單編號: order.cart_token,
                                         訂單建立時間: glitter.ut.dateFormat(new Date(order.created_time), 'yyyy-MM-dd hh:mm:ss'),
-                                        會員信箱: (_a = order.email) !== null && _a !== void 0 ? _a : '訪客',
+                                        會員信箱: (_a = order.email) !== null && _a !== void 0 ? _a : 'none',
                                         訂單處理狀態: (() => {
                                             var _a;
                                             switch ((_a = orderData.orderStatus) !== null && _a !== void 0 ? _a : '0') {
@@ -229,25 +230,25 @@ export class ShoppingOrderManager {
                                                     return '未出貨';
                                             }
                                         })(),
-                                        訂單小計: 0,
-                                        訂單運費: (_b = orderData.shipment_fee) !== null && _b !== void 0 ? _b : 0,
+                                        訂單小計: orderData.total + orderData.discount - orderData.shipment_fee + orderData.use_rebate,
+                                        訂單運費: orderData.shipment_fee,
                                         訂單使用優惠券: orderData.voucherList.map((voucher) => voucher.title).join(', '),
-                                        訂單折扣: (_c = orderData.discount) !== null && _c !== void 0 ? _c : 0,
-                                        訂單使用購物金: (_d = orderData.use_rebate) !== null && _d !== void 0 ? _d : 0,
+                                        訂單折扣: orderData.discount,
+                                        訂單使用購物金: orderData.use_rebate,
                                         訂單總計: orderData.total,
                                         商品名稱: item.title,
-                                        商品規格: item.spec.join(' / '),
-                                        商品SKU: (_e = item.sku) !== null && _e !== void 0 ? _e : '',
+                                        商品規格: item.spec.length > 0 ? item.spec.join(' / ') : '單一規格',
+                                        商品SKU: (_b = item.sku) !== null && _b !== void 0 ? _b : '',
                                         商品購買數量: item.count,
                                         商品價格: item.sale_price,
                                         商品折扣: item.discount_price,
-                                        顧客姓名: orderData.user_info.name,
-                                        顧客手機: orderData.user_info.phone,
-                                        顧客信箱: orderData.user_info.email,
-                                        收件人姓名: orderData.customer_info.name,
-                                        收件人手機: orderData.customer_info.phone,
-                                        收件人信箱: orderData.customer_info.email,
-                                        備註: (_f = orderData.customer_info.note) !== null && _f !== void 0 ? _f : '',
+                                        顧客姓名: orderData.customer_info.name,
+                                        顧客手機: orderData.customer_info.phone,
+                                        顧客信箱: orderData.customer_info.email,
+                                        收件人姓名: orderData.user_info.name,
+                                        收件人手機: orderData.user_info.phone,
+                                        收件人信箱: orderData.user_info.email,
+                                        備註: (_c = orderData.user_info.note) !== null && _c !== void 0 ? _c : '',
                                     });
                                 });
                             });
@@ -335,7 +336,7 @@ export class ShoppingOrderManager {
                                     page: vmi.page - 1,
                                     limit: 20,
                                     search: vm.query || undefined,
-                                    searchType: vm.queryType || 'name',
+                                    searchType: vm.queryType || 'cart_token',
                                     orderString: vm.orderString,
                                     filter: vm.filter,
                                     archived: `${query.isArchived}`,
