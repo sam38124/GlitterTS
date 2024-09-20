@@ -16,7 +16,7 @@ interface VoucherData {
     title: string;
     code?: string;
     method: 'percent' | 'fixed';
-    reBackType: 'rebate' | 'discount' | 'shipment_free' | 'add_on_items';
+    reBackType: 'rebate' | 'discount' | 'shipment_free' | 'add_on_items' | 'giveaway';
     add_on_products?: string[];
     trigger: 'auto' | 'code' | 'distribution';
     value: string;
@@ -102,6 +102,7 @@ type Cart = {
     orderSource: '' | 'manual' | 'normal' | 'POS';
     code_array: string[];
     deliveryData?: DeliveryData;
+    give_away: CartItem[];
 };
 export declare class Shopping {
     app: string;

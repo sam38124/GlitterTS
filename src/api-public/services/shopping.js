@@ -355,6 +355,7 @@ class Shopping {
     }
     async toCheckout(data, type = 'add', replace_order_id) {
         var _a, _b, _c;
+        console.log(`data.give_away=>`, data.give_away);
         try {
             if (replace_order_id) {
                 const orderData = (await database_js_1.default.query(`SELECT *
@@ -507,6 +508,7 @@ class Shopping {
                 return parseInt(dataList[dataList.length - 1].value);
             }
             const add_on_items = [];
+            const give_away = [];
             for (const b of data.lineItems) {
                 try {
                     const pdDqlData = (await this.getProduct({

@@ -35,13 +35,8 @@ interface VoucherData {
     title: string;
     code?: string;
     method: 'percent' | 'fixed';
-<<<<<<< HEAD
-    reBackType: 'rebate' | 'discount' | 'shipment_free' | 'add_on_items';
-    add_on_products?: string[];
-=======
     reBackType: 'rebate' | 'discount' | 'shipment_free' | 'add_on_items' | 'giveaway';
     add_on_products?:string[]
->>>>>>> 63acf110 (update glitter version)
     trigger: 'auto' | 'code' | 'distribution';
     value: string;
     for: 'collection' | 'product' | 'all';
@@ -137,11 +132,8 @@ type Cart = {
     distribution_info?: any;
     orderSource: '' | 'manual' | 'normal' | 'POS';
     code_array: string[];
-<<<<<<< HEAD
     deliveryData?: DeliveryData;
-=======
     give_away:CartItem[]
->>>>>>> 63acf110 (update glitter version)
 };
 
 export class Shopping {
@@ -630,6 +622,7 @@ export class Shopping {
         type: 'add' | 'preview' | 'manual' | 'manual-preview' | 'POS' = 'add',
         replace_order_id?: string
     ) {
+        console.log(`data.give_away=>`,data.give_away)
         try {
             //判斷是重新付款則取代
             if (replace_order_id) {
@@ -789,7 +782,7 @@ export class Shopping {
                 custom_form_data: data.custom_form_data,
                 orderSource: data.checkOutType === 'POS' ? `POS` : ``,
                 code_array: data.code_array,
-                give_away:data.give_away
+                give_away:data.give_away as any
             };
 
             function calculateShipment(dataList: { key: string; value: string }[], value: number | string) {
@@ -815,12 +808,8 @@ export class Shopping {
                 return parseInt(dataList[dataList.length - 1].value);
             }
 
-<<<<<<< HEAD
-            const add_on_items: any[] = [];
-=======
             const add_on_items: any[] = []
             const give_away: any[] = []
->>>>>>> 63acf110 (update glitter version)
             for (const b of data.lineItems) {
                 try {
                     const pdDqlData = (
