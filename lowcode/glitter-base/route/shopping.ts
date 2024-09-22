@@ -606,6 +606,7 @@ export class ApiShop {
         custom_form_format?: any;
         custom_form_data?: any;
         distribution_code?: string;
+        give_away?:any
     }) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/checkout`,

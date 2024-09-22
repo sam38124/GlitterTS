@@ -782,6 +782,7 @@ export class BgCustomerMessage {
                                         type: 'message',
                                         chatID: cf.chat.chat_id,
                                         user_id: cf.user_id,
+                                        app_name: window.appName
                                     }));
                                 });
                                 let interVal = 0;

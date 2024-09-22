@@ -811,6 +811,9 @@ function initialEditor(gvc: GVC, viewModel: any) {
     //添加Component至當前頁面
     glitter.share.addComponent = (data: any) => {
         glitter.share.loading_dialog.dataLoading({text:'模組添加中...',visible:true})
+        if(!viewModel.selectContainer){
+            viewModel.selectContainer=    glitter.share.editorViewModel.data.config
+        }
         if(!viewModel.selectContainer.container_config){
             viewModel.selectContainer.container_config=glitter.share.main_view_config
         }
@@ -862,13 +865,13 @@ function initialEditor(gvc: GVC, viewModel: any) {
     //添加Component至指定索引
     glitter.share.addWithIndex = (cf: { data: any; index: string; direction: number }) => {
         glitter.share.loading_dialog.dataLoading({text:'模組添加中...',visible:true})
-        if(!viewModel.selectContainer.container_config){
-            viewModel.selectContainer.container_config=glitter.share.main_view_config
-        }
         glitter.share.left_block_hover=true
         AddComponent.toggle(false);
         resetId(cf.data);
         const arrayData = glitter.share.findWidgetIndex(cf.index);
+        if(!arrayData.container.container_config){
+            arrayData.container.container_config=glitter.share.main_view_config
+        }
         const url = new URL(location.href);
         url.search = '';
         cf.data.js = cf.data.js.replace(url.href, './');

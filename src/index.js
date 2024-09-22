@@ -26,7 +26,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createAPP = exports.initial = exports.app = void 0;
+exports.app = void 0;
+exports.initial = initial;
+exports.createAPP = createAPP;
 const path_1 = __importDefault(require("path"));
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
@@ -61,6 +63,7 @@ const private_config_js_1 = require("./services/private_config.js");
 const moment_js_1 = __importDefault(require("moment/moment.js"));
 const xml_formatter_1 = __importDefault(require("xml-formatter"));
 const system_schedule_1 = require("./services/system-schedule");
+const ai_js_1 = require("./services/ai.js");
 exports.app = (0, express_1.default)();
 const logger = new logger_1.default();
 exports.app.options('/*', (req, res) => {
@@ -82,6 +85,7 @@ exports.app.use(public_contollers);
 async function initial(serverPort) {
     await (async () => {
         await database_1.default.createPool();
+        await ai_js_1.Ai.initial();
         await saas_table_check_1.SaasScheme.createScheme();
         await public_table_check_js_1.ApiPublic.createScheme(config_1.saasConfig.SAAS_NAME);
         await redis_1.default.connect();
@@ -104,7 +108,6 @@ async function initial(serverPort) {
         console.log('Starting up the server now.');
     })();
 }
-exports.initial = initial;
 function createContext(req, res, next) {
     const uuid = (0, uuid_1.v4)();
     const ip = req.ip;
@@ -498,7 +501,6 @@ async function createAPP(dd) {
         },
     ]);
 }
-exports.createAPP = createAPP;
 async function getSeoDetail(appName, req) {
     const sqlData = await private_config_js_1.Private_config.getConfig({
         appName: appName,

@@ -11,6 +11,10 @@ import {WebSocket} from "../../services/web-socket.js";
 import {sendMessage} from "../../firebase/message.js";
 import {Firebase} from "../../modules/firebase.js";
 import {AutoSendEmail} from "./auto-send-email.js";
+import OpenAI from "openai";
+import moment from "moment/moment.js";
+import {Private_config} from "../../services/private_config.js";
+import {Ai} from "../../services/ai.js";
 
 export interface ChatRoom {
     chat_id: string,
@@ -152,7 +156,7 @@ export class Chat {
                     created_time:new Date()
                 }
             ]);
-            for (const dd of (WebSocket.chatMemory[room.chat_id] ?? [])) {
+            for (const dd of (WebSocket.chatMemory[this.app+room.chat_id] ?? [])) {
                 await this.updateLastRead(dd.user_id, room.chat_id);
                 const userData = (await db.query(`select userData
                                                   from \`${this.app}\`.t_user
@@ -168,7 +172,8 @@ export class Chat {
                 })
             }
             const lastRead = await this.getLastRead(room.chat_id);
-            for (const dd of (WebSocket.chatMemory[room.chat_id] ?? [])) {
+            //manager-robot
+            for (const dd of (WebSocket.chatMemory[this.app+room.chat_id] ?? [])) {
                 dd.callback({
                     type: 'update_read_count',
                     data: lastRead
@@ -177,56 +182,99 @@ export class Chat {
             for (const b of particpant) {
                 //發送通知
                 if (b.user_id !== room.user_id) {
-                    const post = new User(this.app, this.token);
-                    const robot = ((await post.getConfig({
-                        key: 'robot_auto_reply',
-                        user_id: b.user_id
-                    }))[0] ?? {})['value'] ?? {}
-                    if (robot.question) {
-                        for (const d of robot.question) {
-                            if (d.ask === room.message.text) {
-                                const insert = await db.query(`
+                    //AI問答
+                   if(b.user_id==='robot'){
+                       const response=await this.askAI(room.message.text)
+                       const insert = await db.query(`
                                     insert into \`${this.app}\`.\`t_chat_detail\`
                                     set ?
                                 `, [
-                                    {
-                                        chat_id: room.chat_id,
-                                        user_id: b.user_id,
-                                        message: JSON.stringify({
-                                            text: d.response
-                                        }),
-                                        created_time:new Date()
-                                    }
-                                ]);
-                                for (const dd of WebSocket.chatMemory[room.chat_id] ?? []) {
-                                    const userData = (await db.query(`select userData
+                           {
+                               chat_id: room.chat_id,
+                               user_id: b.user_id,
+                               message: JSON.stringify({
+                                   text: response
+                               }),
+                               created_time:new Date()
+                           }
+                       ]);
+                       for (const dd of WebSocket.chatMemory[this.app+room.chat_id] ?? []) {
+                           const userData = (await db.query(`select userData
                                                                       from \`${this.app}\`.t_user
                                                                       where userID = ?`, [b.user_id]))[0];
-                                    await this.updateLastRead(dd.user_id, room.chat_id);
-                                    dd.callback({
-                                        id: insert.insertId,
-                                        chat_id: room.chat_id,
-                                        user_id: b.user_id,
-                                        message: {
-                                            text: d.response
-                                        },
-                                        created_time: new Date(),
-                                        user_data: (userData && userData.userData) || {},
-                                        type: "message"
-                                    })
-                                }
-                                const lastRead = await this.getLastRead(room.chat_id);
-                                for (const dd of WebSocket.chatMemory[room.chat_id] ?? []) {
-                                    dd.callback({
-                                        type: 'update_read_count',
-                                        data: lastRead
-                                    })
-                                }
-                                break
-                            }
-                        }
-                    }
+                           await this.updateLastRead(dd.user_id, room.chat_id);
+                           dd.callback({
+                               id: insert.insertId,
+                               chat_id: room.chat_id,
+                               user_id: b.user_id,
+                               message: {
+                                   text: response
+                               },
+                               created_time: new Date(),
+                               user_data: (userData && userData.userData) || {},
+                               type: "message"
+                           })
+                       }
+                       const lastRead = await this.getLastRead(room.chat_id);
+                       for (const dd of WebSocket.chatMemory[this.app+room.chat_id] ?? []) {
+                           dd.callback({
+                               type: 'update_read_count',
+                               data: lastRead
+                           })
+                       }
+                   }else{
+                       const post = new User(this.app, this.token);
+                       const robot = ((await post.getConfig({
+                           key: 'robot_auto_reply',
+                           user_id: b.user_id
+                       }))[0] ?? {})['value'] ?? {}
+                       if (robot.question) {
+                           for (const d of robot.question) {
+                               if (d.ask === room.message.text) {
+                                   const insert = await db.query(`
+                                    insert into \`${this.app}\`.\`t_chat_detail\`
+                                    set ?
+                                `, [
+                                       {
+                                           chat_id: room.chat_id,
+                                           user_id: b.user_id,
+                                           message: JSON.stringify({
+                                               text: d.response
+                                           }),
+                                           created_time:new Date()
+                                       }
+                                   ]);
+                                   for (const dd of WebSocket.chatMemory[this.app+room.chat_id] ?? []) {
+                                       const userData = (await db.query(`select userData
+                                                                      from \`${this.app}\`.t_user
+                                                                      where userID = ?`, [b.user_id]))[0];
+                                       await this.updateLastRead(dd.user_id, room.chat_id);
+                                       dd.callback({
+                                           id: insert.insertId,
+                                           chat_id: room.chat_id,
+                                           user_id: b.user_id,
+                                           message: {
+                                               text: d.response
+                                           },
+                                           created_time: new Date(),
+                                           user_data: (userData && userData.userData) || {},
+                                           type: "message"
+                                       })
+                                   }
+                                   const lastRead = await this.getLastRead(room.chat_id);
+                                   for (const dd of WebSocket.chatMemory[this.app+room.chat_id] ?? []) {
+                                       dd.callback({
+                                           type: 'update_read_count',
+                                           data: lastRead
+                                       })
+                                   }
+                                   break
+                               }
+                           }
+                       }
+                   }
 
+                    // askAI
                 }
             }
             //要傳送通知的對象
@@ -255,7 +303,7 @@ export class Chat {
                     if (chatRoom.type === 'user') {
                         if (room.message.text) {
                             if (user) {
-                                if(!WebSocket.chatMemory[room.chat_id].find((d1)=>{
+                                if(!WebSocket.chatMemory[this.app+room.chat_id].find((d1)=>{
                                     return `${d1.user_id}`===`${dd.userID}`
                                 })){
                                     await sendmail(`service@ncdesign.info`, dd.userData.email, `${user.userData.name}:傳送訊息給您`, this.templateWithCustomerMessage(
@@ -355,7 +403,7 @@ export class Chat {
             ])
             if(!qu.befor_id){
                 const lastRead = await this.getLastRead(qu.chat_id);
-                for (const dd of WebSocket.chatMemory[qu.chat_id] ?? []) {
+                for (const dd of WebSocket.chatMemory[this.app+qu.chat_id] ?? []) {
                     dd.callback({
                         type: 'update_read_count',
                         data: lastRead
@@ -405,6 +453,64 @@ export class Chat {
             and (t_chat_detail.chat_id != 'manager-preview') and t_chat_detail.user_id!=${db.escape(user_id)} and t_chat_detail.chat_id=t_chat_last_read.chat_id and t_chat_last_read.last_read < created_time order by id desc`,[])
     }
 
+    //AI問答功能
+    public async askAI(question:string){
+        let cf = (
+            (
+                await Private_config.getConfig({
+                    appName: this.app,
+                    key: 'ai_config',
+                })
+            )[0] ?? {
+                value:{
+                    order_files:'',
+                    messageThread:''
+                }
+            }
+        ).value;
+        const openai = new OpenAI({
+            apiKey: process.env.OPENAI_API_KEY,
+        });
+        //創建客服小姐
+        const query=`現在時間為${moment().tz('Asia/Taipei').format('YYYY/MM/DD HH:mm:ss')}，妳是一個電商後台的AI機器人，我會提供給你幾種檔案，請依照用戶提問的類型進行回答。
+
+1.用來做訂單分析的JSON陣列檔案，其中陣列中每個元素皆代表一份訂單，同時以下幾點請你注意，未出貨的訂單代表出貨狀態是等於未出貨的欄位、查詢訂單總額相關的問題，代表付款狀態等於已付款。
+
+2.用來做進行操作導引的JSON陣列檔案，其中包含response以及keywords欄位，當用戶提出的問題跟keywords有關，請直接回答他response`
+        const myAssistant = await openai.beta.assistants.create({
+            instructions:
+            query,
+            name: "數據分析師",
+            tools: [{"type": "code_interpreter"}],
+            tool_resources: {
+                code_interpreter: {
+                    file_ids:[cf.order_files,Ai.files.guide]
+                }
+            },
+            model: "gpt-4o-mini"
+        });
+
+        //添加訊息
+        const threadMessages = await openai.beta.threads.messages.create(
+            cf.messageThread,
+            {role: "user", content: question}
+        );
+        //建立數據流
+        const stream = await openai.beta.threads.runs.create(
+            cf.messageThread,
+            {assistant_id: myAssistant.id, stream: true}
+        );
+
+        let text = ''
+        for await (const event of stream) {
+            if (event.data && (event.data as any).content && (event.data as any).content[0] && (event.data as any).content[0].text) {
+                text = (event.data as any).content[0].text.value
+            }
+        }
+        const regex = /【[^】]*】/g;
+        await openai.beta.assistants.del(myAssistant.id)
+        return text.replace(regex, '')
+    }
     constructor(app: string, token: IToken) {
         this.app = app
         this.token = token

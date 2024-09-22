@@ -36,7 +36,7 @@ interface VoucherData {
     code?: string;
     method: 'percent' | 'fixed';
     reBackType: 'rebate' | 'discount' | 'shipment_free' | 'add_on_items' | 'giveaway';
-    add_on_products?: string[];
+    add_on_products?:string[] | ProductItem[]
     trigger: 'auto' | 'code' | 'distribution';
     value: string;
     for: 'collection' | 'product' | 'all';
@@ -614,10 +614,11 @@ export class Shopping {
             distribution_code?: string; //分銷連結代碼
             code_array: string[]; // 優惠券代碼列表
             give_away?: {
-                id: number;
-                spec: string[];
-                count: number;
-            }[];
+                "id": number,
+                "spec": string[],
+                "count": number,
+                voucher_id:string
+            }[]
         },
         type: 'add' | 'preview' | 'manual' | 'manual-preview' | 'POS' = 'add',
         replace_order_id?: string
@@ -808,8 +809,7 @@ export class Shopping {
                 return parseInt(dataList[dataList.length - 1].value);
             }
 
-            const add_on_items: any[] = [];
-            const give_away: any[] = [];
+            const add_on_items: any[] = []
             for (const b of data.lineItems) {
                 try {
                     const pdDqlData = (
@@ -965,7 +965,7 @@ export class Shopping {
                             carData.voucherList?.find((d1) => {
                                 return (
                                     d1.reBackType === 'add_on_items' &&
-                                    d1.add_on_products?.find((d2) => {
+                                    (d1.add_on_products as string[]).find((d2) => {
                                         return `${dd.id}` === `${d2}`;
                                     })
                                 );
@@ -978,10 +978,67 @@ export class Shopping {
                 });
                 // 再次更新優惠內容
                 await this.checkVoucher(carData);
+                const gift_product:any[]=[];
                 //過濾可選贈品
-                // carData.voucherList.filter((dd)=>{
-                //     return dd.reBackType==='giveaway'
-                // })
+                for (const dd of carData.voucherList.filter((dd)=>{
+                    return dd.reBackType==='giveaway'
+                })){
+                    let index=-1
+                    for (const b of dd.add_on_products ?? []){
+                        index++
+                        const pdDqlData = ((
+                            await this.getProduct({
+                                page: 0,
+                                limit: 50,
+                                id: `${b}`,
+                                status: 'active',
+                            })
+                        ).data ?? {content:{}}).content;
+                        pdDqlData.voucher_id=dd.id;
+                        (dd.add_on_products as any)[index]=pdDqlData ;
+                    }
+                    const addGift=data.give_away?.find((d1)=> {
+                        return ((dd.add_on_products ?? []) as any).find((d2:any)=>{
+                            return (`${d1.id}`===`${d2.id}`) && (`${d1.voucher_id}`===`${dd.id}`) && d2.variants.find((dd:any)=>{
+                               return  dd.spec.join('')===d1.spec.join('')
+                            })
+                        })
+                    });
+                    if(addGift){
+                        const gift={
+                            spec:addGift.spec,
+                            id:addGift.id,
+                            count:1,
+                            voucher_id:dd.id
+                        };
+                        const pd=(((dd.add_on_products ?? []) as any).find((d2:any)=>{
+                            return (`${gift.id}`===`${d2.id}`) && (`${gift.voucher_id}`===`${dd.id}`)
+                        }) as any)
+                        pd.selected=true;
+                        gift_product.push(gift);
+                        (dd as any).select_gif=gift;
+                        for (const b of dd.add_on_products ?? []){
+                            (b as any).have_select=true
+                        }
+                        if(type !== 'preview'){
+                            const variant:any=((pd as any).variants.find((d1:any)=>{
+                                return d1.spec.join('-') === gift.spec.join('-')
+                            })! ?? {})
+                            carData.lineItems.push({
+                                "spec": gift.spec,
+                                "id": gift.id as any,
+                                "count": 1,
+                                "preview_image": pd.preview_image,
+                                "title": `《 贈品 》 ${pd.title}`,
+                                "sale_price": 0,
+                                "sku": (variant as any).sku
+                            } as any)
+                        }
+                    }else{
+                        (dd as any).select_gif={}
+                    }
+                }
+                data.give_away=gift_product
             }
 
             // 付款資訊設定

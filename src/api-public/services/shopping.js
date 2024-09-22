@@ -354,7 +354,7 @@ class Shopping {
         });
     }
     async toCheckout(data, type = 'add', replace_order_id) {
-        var _a, _b, _c;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j;
         console.log(`data.give_away=>`, data.give_away);
         try {
             if (replace_order_id) {
@@ -508,7 +508,6 @@ class Shopping {
                 return parseInt(dataList[dataList.length - 1].value);
             }
             const add_on_items = [];
-            const give_away = [];
             for (const b of data.lineItems) {
                 try {
                     const pdDqlData = (await this.getProduct({
@@ -635,11 +634,10 @@ class Shopping {
                     var _a;
                     try {
                         if ((_a = carData.voucherList) === null || _a === void 0 ? void 0 : _a.find((d1) => {
-                            var _a;
                             return (d1.reBackType === 'add_on_items' &&
-                                ((_a = d1.add_on_products) === null || _a === void 0 ? void 0 : _a.find((d2) => {
+                                d1.add_on_products.find((d2) => {
                                     return `${dd.id}` === `${d2}`;
-                                })));
+                                }));
                         })) {
                             carData.lineItems.push(dd);
                         }
@@ -647,6 +645,66 @@ class Shopping {
                     catch (e) { }
                 });
                 await this.checkVoucher(carData);
+                const gift_product = [];
+                for (const dd of carData.voucherList.filter((dd) => {
+                    return dd.reBackType === 'giveaway';
+                })) {
+                    let index = -1;
+                    for (const b of (_c = dd.add_on_products) !== null && _c !== void 0 ? _c : []) {
+                        index++;
+                        const pdDqlData = ((_d = (await this.getProduct({
+                            page: 0,
+                            limit: 50,
+                            id: `${b}`,
+                            status: 'active',
+                        })).data) !== null && _d !== void 0 ? _d : { content: {} }).content;
+                        pdDqlData.voucher_id = dd.id;
+                        dd.add_on_products[index] = pdDqlData;
+                    }
+                    const addGift = (_e = data.give_away) === null || _e === void 0 ? void 0 : _e.find((d1) => {
+                        var _a;
+                        return ((_a = dd.add_on_products) !== null && _a !== void 0 ? _a : []).find((d2) => {
+                            return (`${d1.id}` === `${d2.id}`) && (`${d1.voucher_id}` === `${dd.id}`) && d2.variants.find((dd) => {
+                                return dd.spec.join('') === d1.spec.join('');
+                            });
+                        });
+                    });
+                    if (addGift) {
+                        const gift = {
+                            spec: addGift.spec,
+                            id: addGift.id,
+                            count: 1,
+                            voucher_id: dd.id
+                        };
+                        const pd = ((_f = dd.add_on_products) !== null && _f !== void 0 ? _f : []).find((d2) => {
+                            return (`${gift.id}` === `${d2.id}`) && (`${gift.voucher_id}` === `${dd.id}`);
+                        });
+                        pd.selected = true;
+                        gift_product.push(gift);
+                        dd.select_gif = gift;
+                        for (const b of (_g = dd.add_on_products) !== null && _g !== void 0 ? _g : []) {
+                            b.have_select = true;
+                        }
+                        if (type !== 'preview') {
+                            const variant = ((_h = pd.variants.find((d1) => {
+                                return d1.spec.join('-') === gift.spec.join('-');
+                            })) !== null && _h !== void 0 ? _h : {});
+                            carData.lineItems.push({
+                                "spec": gift.spec,
+                                "id": gift.id,
+                                "count": 1,
+                                "preview_image": pd.preview_image,
+                                "title": `《 贈品 》 ${pd.title}`,
+                                "sale_price": 0,
+                                "sku": variant.sku
+                            });
+                        }
+                    }
+                    else {
+                        dd.select_gif = {};
+                    }
+                }
+                data.give_away = gift_product;
             }
             const keyData = (await private_config_js_1.Private_config.getConfig({
                 appName: this.app,
@@ -708,7 +766,7 @@ class Shopping {
                 carData.discount = data.discount;
                 carData.voucherList = [tempVoucher];
                 carData.customer_info = data.customer_info;
-                carData.total = (_c = data.total) !== null && _c !== void 0 ? _c : 0;
+                carData.total = (_j = data.total) !== null && _j !== void 0 ? _j : 0;
                 carData.rebate = tempVoucher.rebate_total;
                 if (tempVoucher.reBackType == 'shipment_free') {
                     carData.shipment_fee = 0;

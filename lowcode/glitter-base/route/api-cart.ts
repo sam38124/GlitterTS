@@ -2,6 +2,7 @@ type Product = {
     id: number;
     spec: string[];
     count: number;
+    voucher_id?:string
 };
 export interface CartItem{
     //購買的商品
@@ -39,16 +40,17 @@ export class ApiCart{
         localStorage.setItem(ApiCart.cartID+`${(window as any).appName}`,JSON.stringify(value))
     }
     //添加商品至購物車
-    static addToGift(id:any,spec:string[],count:any){
+    static addToGift(voucher_id:string,id:any,spec:string[],count:any){
         count=parseInt(count,10)
         id=parseInt(id,10)
         const product: Product = {
             id,
             spec,
-            count
+            count,
+            voucher_id
         };
         ApiCart.setCart((updated_cart)=>{
-            const find=updated_cart.give_away.find((dd)=>{return (dd.spec.join('')===spec.join('')) && `${dd.id}`===`${id}`})
+            const find=updated_cart.give_away.find((dd)=>{return (dd.spec.join('')===spec.join('')) && `${dd.id}`===`${id}` && dd.voucher_id===voucher_id})
             if(find){find.count+=count}else{
                 updated_cart.give_away.push(product)
             }

@@ -33,10 +33,11 @@ export class WebSocket {
 
             ws.on('message', function incoming(message: any) {
                 console.log('received: %s', message);
-                const json = JSON.parse(message)
+                const json = JSON.parse(message);
+                const chat_key=json.app_name+json.chatID as string;
                 if (json.type === 'message') {
-                    WebSocket.chatMemory[json.chatID as string] = WebSocket.chatMemory[json.chatID as string] ?? []
-                    WebSocket.chatMemory[json.chatID as string].push({
+                    WebSocket.chatMemory[chat_key] = WebSocket.chatMemory[chat_key] ?? []
+                    WebSocket.chatMemory[chat_key].push({
                         id: id,
                         user_id: json.user_id,
                         callback: (data) => {
@@ -44,7 +45,7 @@ export class WebSocket {
                         }
                     })
                     event.close.push(() => {
-                        WebSocket.chatMemory[json.chatID as string] = WebSocket.chatMemory[json.chatID as string].filter((dd) => {
+                        WebSocket.chatMemory[chat_key] = WebSocket.chatMemory[chat_key].filter((dd) => {
                             return dd.id !== id
                         })
                     })

@@ -203,7 +203,8 @@ export class CustomerMessageUser {
                                                 console.log('Connected to server');
                                                 socket.send(JSON.stringify({
                                                     type: 'message-count-change',
-                                                    user_id: cf.userID
+                                                    user_id: cf.userID,
+                                                    app_name: window.appName
                                                 }));
                                             });
                                             socket.addEventListener('message', function (event) {
@@ -385,6 +386,7 @@ export class CustomerMessageUser {
                                             type: 'message',
                                             chatID: cf.chat.chat_id,
                                             user_id: cf.user_id,
+                                            app_name: window.appName
                                         }));
                                     });
                                     let interVal = 0;

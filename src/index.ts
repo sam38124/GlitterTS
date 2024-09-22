@@ -32,6 +32,7 @@ import {Private_config} from './services/private_config.js';
 import moment from 'moment/moment.js';
 import xmlFormatter from 'xml-formatter';
 import {SystemSchedule} from './services/system-schedule';
+import {Ai} from "./services/ai.js";
 
 export const app = express();
 const logger = new Logger();
@@ -57,6 +58,7 @@ app.use(public_contollers);
 export async function initial(serverPort: number) {
     await (async () => {
         await database.createPool();
+        await Ai.initial();
         await SaasScheme.createScheme();
         await ApiPublic.createScheme(saasConfig.SAAS_NAME as string);
         await redis.connect();

@@ -411,6 +411,31 @@ ul {
     word-wrap: break-word;
 }
 
+.bt_orange_lin {
+    cursor: pointer;
+    height: 38px;
+    padding: 8px 15px;
+    border-radius: 8px;
+    border: 1px var(--main-orange) solid;
+    justify-content: center;
+    align-items: center;
+    display: inline-flex;
+    background: linear-gradient(135deg, var(--main-orange) 0%, #ff6c02 100%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.64px;
+    word-wrap: break-word;
+}
+.bt_orange_lin:hover{
+    background: linear-gradient(135deg, var(--main-orange) 0%, #ff6c02 100%);
+    color: white;
+    background-clip: unset;
+    -webkit-background-clip: unset;
+    -webkit-text-fill-color: unset;
+}
 .bt_c39 {
     border-radius: 10px;
     background: var(--main-black);

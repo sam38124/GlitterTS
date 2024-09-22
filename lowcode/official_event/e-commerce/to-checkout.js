@@ -165,6 +165,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                 custom_form_format: custom_form_format,
                                 custom_form_data: custom_form_data,
                                 distribution_code: ApiCart.cart.distribution_code,
+                                give_away: ApiCart.cart.give_away
                             }).then((res) => {
                                 if (object.payType === 'offline' || res.response.off_line || res.response.is_free) {
                                     ApiCart.clearCart();

@@ -79,15 +79,6 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                 const cart=res as CartItem
                                 ApiShop.getCheckout(cart).then((res) => {
                                     if (res.result) {
-                                        ApiCart.setCart((cartItem)=>{
-                                            cartItem.line_items=res.response.data.lineItems.map((dd:any)=>{
-                                                return {
-                                                    spec:dd.spec,
-                                                    id:dd.id,
-                                                    count:dd.count
-                                                }
-                                            })
-                                        })
                                         resolve(res.response.data);
                                     } else {
                                         resolve([]);

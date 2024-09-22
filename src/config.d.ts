@@ -55,6 +55,7 @@ export declare const config: {
         rebate: string;
         recommend: string;
         graph_api: string;
+        ai_chat: string;
     };
     route: {
         user: string;

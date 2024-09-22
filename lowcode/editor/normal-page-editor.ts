@@ -77,7 +77,7 @@ export class NormalPageEditor {
                     });
                 })}"
             ></div>
-            <div id="norViewHover" class="position-fixed top-0 h-100 bg-white shadow-lg scroll-out" style="width:350px; z-index: 99999;">${NormalPageEditor.view(gvc)}</div>`;
+            <div id="norViewHover" class="position-fixed top-0 h-100 bg-white shadow-lg scroll-out" style="width:350px; z-index: 99999;max-width: 100vw;">${NormalPageEditor.view(gvc)}</div>`;
     }
 
     public static viewArray: any = [];

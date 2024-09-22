@@ -76,15 +76,6 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                 const cart = res;
                                 ApiShop.getCheckout(cart).then((res) => {
                                     if (res.result) {
-                                        ApiCart.setCart((cartItem) => {
-                                            cartItem.line_items = res.response.data.lineItems.map((dd) => {
-                                                return {
-                                                    spec: dd.spec,
-                                                    id: dd.id,
-                                                    count: dd.count
-                                                };
-                                            });
-                                        });
                                         resolve(res.response.data);
                                     }
                                     else {

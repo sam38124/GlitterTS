@@ -17,7 +17,7 @@ interface VoucherData {
     code?: string;
     method: 'percent' | 'fixed';
     reBackType: 'rebate' | 'discount' | 'shipment_free' | 'add_on_items' | 'giveaway';
-    add_on_products?: string[];
+    add_on_products?: string[] | ProductItem[];
     trigger: 'auto' | 'code' | 'distribution';
     value: string;
     for: 'collection' | 'product' | 'all';
@@ -43,6 +43,15 @@ interface VoucherData {
     target: string;
     targetList: string[];
     device: ('normal' | 'pos')[];
+}
+interface ProductItem {
+    id: number;
+    userID: number;
+    content: any;
+    created_time: Date | string;
+    updated_time: Date | string;
+    status: number;
+    total_sales?: number;
 }
 type Collection = {
     title: string;
@@ -115,7 +124,7 @@ export declare class Shopping {
         type: string;
         divisor: number;
         executionTime: string;
-        queryStatus: "success" | "error";
+        queryStatus: "error" | "success";
         queryData: any;
     } | {
         type: string;
@@ -222,9 +231,10 @@ export declare class Shopping {
         distribution_code?: string;
         code_array: string[];
         give_away?: {
-            id: number;
-            spec: string[];
-            count: number;
+            "id": number;
+            "spec": string[];
+            "count": number;
+            voucher_id: string;
         }[];
     }, type?: 'add' | 'preview' | 'manual' | 'manual-preview' | 'POS', replace_order_id?: string): Promise<{
         data: Cart;

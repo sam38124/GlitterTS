@@ -48,6 +48,7 @@ router.use(config_1.config.getRoute(config_1.config.public_route.delivery, 'publ
 router.use(config_1.config.getRoute(config_1.config.public_route.rebate, 'public'), rebate);
 router.use(config_1.config.getRoute(config_1.config.public_route.recommend, 'public'), recommend);
 router.use(config_1.config.getRoute(config_1.config.public_route.graph_api, 'public'), require('./graph-api'));
+router.use(config_1.config.getRoute(config_1.config.public_route.ai_chat, 'public'), require('./ai-chat'));
 const whiteList = [
     { url: config_1.config.getRoute(config_1.config.public_route.user + '/check-admin-auth', 'public'), method: 'POST' },
     { url: config_1.config.getRoute(config_1.config.public_route.chat, 'public'), method: 'POST' },
@@ -108,6 +109,7 @@ const whiteList = [
     { url: config_1.config.getRoute(config_1.config.public_route.graph_api, 'public'), method: 'PUT' },
     { url: config_1.config.getRoute(config_1.config.public_route.graph_api, 'public'), method: 'DELETE' },
     { url: config_1.config.getRoute(config_1.config.public_route.graph_api, 'public'), method: 'PATCH' },
+    { url: config_1.config.getRoute(config_1.config.public_route.ai_chat + '/ask-order', 'public'), method: 'GET' }
 ];
 async function doAuthAction(req, resp, next) {
     var _a, _b, _c, _d;

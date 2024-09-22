@@ -18,9 +18,10 @@ class WebSocket {
                 var _a, _b;
                 console.log('received: %s', message);
                 const json = JSON.parse(message);
+                const chat_key = json.app_name + json.chatID;
                 if (json.type === 'message') {
-                    WebSocket.chatMemory[json.chatID] = (_a = WebSocket.chatMemory[json.chatID]) !== null && _a !== void 0 ? _a : [];
-                    WebSocket.chatMemory[json.chatID].push({
+                    WebSocket.chatMemory[chat_key] = (_a = WebSocket.chatMemory[chat_key]) !== null && _a !== void 0 ? _a : [];
+                    WebSocket.chatMemory[chat_key].push({
                         id: id,
                         user_id: json.user_id,
                         callback: (data) => {
@@ -28,7 +29,7 @@ class WebSocket {
                         }
                     });
                     event.close.push(() => {
-                        WebSocket.chatMemory[json.chatID] = WebSocket.chatMemory[json.chatID].filter((dd) => {
+                        WebSocket.chatMemory[chat_key] = WebSocket.chatMemory[chat_key].filter((dd) => {
                             return dd.id !== id;
                         });
                     });
