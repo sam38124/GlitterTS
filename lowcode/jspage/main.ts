@@ -23,11 +23,13 @@ import {BgGuide} from "../backend-manager/bg-guide.js";
 import {ApiShop} from "../glitter-base/route/shopping.js";
 import {StepManager} from "../modules/step-manager.js";
 import {ShareDialog} from "../glitterBundle/dialog/ShareDialog.js";
+import {EditorElem} from "../glitterBundle/plugins/editor-elem.js";
 
 const html = String.raw;
 //
 const editorContainerID = `HtmlEditorContainer`;
 init(import.meta.url, (gvc, glitter, gBundle) => {
+
     glitter.share.loading_dialog=(new ShareDialog(gvc.glitter))
     const css = String.raw;
     gvc.addStyle(css`

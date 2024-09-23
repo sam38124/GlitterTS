@@ -27,10 +27,14 @@ export class Ai{
             },
             {
                 "response": "如要查詢相關顧客，請前往顧客管理->顧客列表中進行操作",
-                "keywords": "顧客列表"
+                "question": [
+                    "我要如何設定顧客?",
+                    "我要如何設定顧客?",
+                    "我要如何設定顧客?"
+                ]
             }
         ]))
-        //上傳訂單數據檔案
+        //上傳教學導引檔案
         const file = await openai.files.create({
             file: fs.createReadStream(file1),
             purpose: "fine-tune",

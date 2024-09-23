@@ -33,6 +33,7 @@ import moment from 'moment/moment.js';
 import xmlFormatter from 'xml-formatter';
 import {SystemSchedule} from './services/system-schedule';
 import {Ai} from "./services/ai.js";
+import AWS from "aws-sdk";
 
 export const app = express();
 const logger = new Logger();

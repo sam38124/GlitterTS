@@ -472,7 +472,7 @@ export class Chat {
             apiKey: process.env.OPENAI_API_KEY,
         });
         //創建客服小姐
-        const query=`現在時間為${moment().tz('Asia/Taipei').format('YYYY/MM/DD HH:mm:ss')}，妳是一個電商後台的AI機器人，我會提供給你幾種檔案，請依照用戶提問的類型進行回答。
+        const query=`現在時間為${moment().tz('Asia/Taipei').format('YYYY/MM/DD HH:mm:ss')}，妳是一個電商後台的AI機器人，能協助處理任何問題，另外我會提供給你2種檔案，一個是訂單列表、一個是操作導引，如果用戶提問的內容跟這兩個檔案有關，請選擇檔案類型進行分析並回答結果，請注意所有問答請告訴我結果就好，不要浪費時間解釋過程。
 
 1.用來做訂單分析的JSON陣列檔案，其中陣列中每個元素皆代表一份訂單，同時以下幾點請你注意，未出貨的訂單代表出貨狀態是等於未出貨的欄位、查詢訂單總額相關的問題，代表付款狀態等於已付款。
 

@@ -20,6 +20,9 @@ export = router;
 
 router.post('/sync-data', async (req: express.Request, resp: express.Response) => {
     const file1=tool.randomString(10)+'.json'
+    const openai = new OpenAI({
+        apiKey: process.env.OPENAI_API_KEY,
+    });
     try {
         const exportData: any = [];
         let cf = (
@@ -112,10 +115,6 @@ router.post('/sync-data', async (req: express.Request, resp: express.Response) =
         })
         //寫入
         fs.writeFileSync(file1,JSON.stringify(exportData))
-
-        const openai = new OpenAI({
-            apiKey: process.env.OPENAI_API_KEY,
-        });
         //上傳訂單數據檔案
         const file = await openai.files.create({
             file: fs.createReadStream(file1),
