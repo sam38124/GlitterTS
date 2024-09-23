@@ -14,6 +14,9 @@ const router = express_1.default.Router();
 router.post('/sync-data', async (req, resp) => {
     var _a;
     const file1 = tool_js_1.default.randomString(10) + '.json';
+    const openai = new openai_1.default({
+        apiKey: process.env.OPENAI_API_KEY,
+    });
     try {
         const exportData = [];
         let cf = ((_a = (await private_config_js_1.Private_config.getConfig({
@@ -105,9 +108,6 @@ router.post('/sync-data', async (req, resp) => {
             });
         });
         fs_1.default.writeFileSync(file1, JSON.stringify(exportData));
-        const openai = new openai_1.default({
-            apiKey: process.env.OPENAI_API_KEY,
-        });
         const file = await openai.files.create({
             file: fs_1.default.createReadStream(file1),
             purpose: "fine-tune",
