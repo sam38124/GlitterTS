@@ -1182,9 +1182,14 @@ ${obj.gvc.bindView(() => {
             saasConfig.api.uploadFileAll(file).then((res) => {
                 dialog.dataLoading({ visible: false });
                 if (res.result) {
-                    res.links.map((dd) => {
-                        obj.callback(dd);
-                    });
+                    if (obj.return_array) {
+                        obj.callback(res.links);
+                    }
+                    else {
+                        res.links.map((dd) => {
+                            obj.callback(dd);
+                        });
+                    }
                 }
                 else {
                     dialog.errorMessage({ text: '上傳失敗' });

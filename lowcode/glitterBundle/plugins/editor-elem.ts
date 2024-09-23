@@ -1259,7 +1259,7 @@ ${obj.gvc.bindView(() => {
           `;
     }
 
-    public static uploadFileFunction(obj: { gvc: GVC; callback: (text: string) => void; type?: string; file?: File; multiple?: boolean }) {
+    public static uploadFileFunction(obj: { gvc: GVC; callback: (text: string) => void; type?: string; file?: File; multiple?: boolean,return_array?:boolean }) {
         const glitter = (window as any).glitter;
         const saasConfig: { config: any; api: any } = (window as any).saasConfig;
 
@@ -1269,9 +1269,14 @@ ${obj.gvc.bindView(() => {
             saasConfig.api.uploadFileAll(file).then((res: { result: boolean; links: string[] }) => {
                 dialog.dataLoading({ visible: false });
                 if (res.result) {
-                    res.links.map((dd) => {
-                        obj.callback(dd);
-                    });
+                    if(obj.return_array){
+                        obj.callback(res.links as any);
+                    }else{
+                        res.links.map((dd) => {
+                            obj.callback(dd);
+                        });
+                    }
+
                 } else {
                     dialog.errorMessage({ text: '上傳失敗' });
                 }

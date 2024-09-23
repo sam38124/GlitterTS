@@ -2,6 +2,7 @@ import {TriggerEvent} from "../../glitterBundle/plugins/trigger-event.js";
 import {ShareDialog} from "../../glitterBundle/dialog/ShareDialog.js";
 import {BaseApi} from "../../glitterBundle/api/base.js";
 import {EditorElem} from "../../glitterBundle/plugins/editor-elem.js";
+import {imageLibrary} from "../../modules/image-library.js";
 
 TriggerEvent.createSingleEvent(import.meta.url, (glitter) => {
     return {
@@ -58,65 +59,45 @@ TriggerEvent.createSingleEvent(import.meta.url, (glitter) => {
                             subData: subData,
                             element: element
                         });
-                        glitter.ut.chooseMediaCallback({
-                            single: (object.upload_count === 'single'),
-                            accept: accept || '*',
-                            async callback(data: any) {
-                                const saasConfig: { config: any; api: any } = (window as any).saasConfig;
-                                (await TriggerEvent.trigger({
+                         imageLibrary.selectImageLibrary(gvc, (urlArray) => {
+                             if (urlArray.length > 0){
+                                TriggerEvent.trigger({
                                     gvc: gvc,
                                     widget: widget,
-                                    clickEvent: object.uploading,
-                                    subData: subData,
+                                    clickEvent: object.uploadFinish,
+                                    subData: urlArray[0],
                                     element: element
-                                }));
-                                let url_stack: string[] = [];
-                                for (const dd of data) {
-                                    const file = dd.file;
-                                    const res = await new Promise((resolve, reject) => {
-                                        saasConfig.api.uploadFileAll(file).then((res:any) => {
-                                            if (res.result) {
-                                                resolve(res.links[0]);
-                                            } else {
-                                                resolve(false);
-                                            }
-                                        });
-                                    });
-                                    if (!res) {
-                                        await TriggerEvent.trigger({
-                                            gvc: gvc,
-                                            widget: widget,
-                                            clickEvent: object.error,
-                                            subData: subData,
-                                            element: element
-                                        });
-                                        resolve(false)
-                                        return
-                                    }
-                                    url_stack.push(res as string)
-                                }
+                                });
+                                resolve(urlArray[0].data);
+                            }else{
+                                const dialog = new ShareDialog(gvc.glitter);
+                                dialog.errorMessage({text:'請選擇至少一張圖片'});
+                            }
 
-                                if(object.upload_count === 'single'){
-                                    await TriggerEvent.trigger({
-                                        gvc: gvc,
-                                        widget: widget,
-                                        clickEvent: object.uploadFinish,
-                                        subData: url_stack[0],
-                                        element: element
-                                    });
-                                    resolve(url_stack[0])
-                                }else{
-                                    await TriggerEvent.trigger({
-                                        gvc: gvc,
-                                        widget: widget,
-                                        clickEvent: object.uploadFinish,
-                                        subData: url_stack,
-                                        element: element
-                                    });
-                                    resolve(url_stack)
-                                }
-                            },
-                        });
+                            // postMD.content_array = id
+                            // obj.gvc.notifyDataChange(bi)
+                        }, `<div class="d-flex flex-column" style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;">圖片庫</div>`
+                        ,{mul:object.upload_count !== 'single'})
+
+                        // if(object.upload_count === 'single'){
+                        //     await TriggerEvent.trigger({
+                        //         gvc: gvc,
+                        //         widget: widget,
+                        //         clickEvent: object.uploadFinish,
+                        //         subData: url_stack[0],
+                        //         element: element
+                        //     });
+                        //     resolve(url_stack[0])
+                        // }else{
+                        //     await TriggerEvent.trigger({
+                        //         gvc: gvc,
+                        //         widget: widget,
+                        //         clickEvent: object.uploadFinish,
+                        //         subData: url_stack,
+                        //         element: element
+                        //     });
+                        //     resolve(url_stack)
+                        // }
                     })
 
                 }

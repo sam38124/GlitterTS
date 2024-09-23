@@ -11,6 +11,7 @@ import {Tool} from '../modules/tool.js';
 import {MenusSetting} from "./menus-setting.js";
 import {FileItem, FileSystem} from "../modules/file-system.js";
 import {FileSystemGet} from "../modules/file-system-get.js";
+import {imageLibrary} from "../modules/image-library.js";
 
 interface variant {
     save_stock?: string;
@@ -2402,10 +2403,14 @@ export class ShoppingProductSetting {
                                                                             id: postMD.content_array,
                                                                             key: 'text-manager'
                                                                         })
+                                                                        const image_array: FileItem[] = await FileSystemGet.getFile({
+                                                                            id: postMD.content_array,
+                                                                            key: 'image-manager'
+                                                                        })
                                                                         const view = [
                                                                             html`
                                                                                 <div class="d-flex align-items-center justify-content-end mb-2"
-                                                                                     style="cursor: pointer;">
+                                                                                     style="cursor: pointer; gap:10px;">
                                                                                     <div style="font-weight: 700;">
                                                                                         商品說明
                                                                                     </div>
@@ -2414,8 +2419,10 @@ export class ShoppingProductSetting {
                                                                                         FileSystem.selectRichText(gvc, (id) => {
                                                                                             postMD.content_array = id
                                                                                             obj.gvc.notifyDataChange(bi)
+                                                                                            // console.log("dd -- " , id)
                                                                                         }, `<div class="d-flex flex-column">選擇文本${BgWidget.grayNote('尺寸介紹 / 規格介紹 / 使用教學 / 配送方式 ')}</div>`, postMD.content_array)
                                                                                     }))}
+                                                                                    
                                                                                 </div>`,
                                                                             BgWidget.tab([
                                                                                 ...(() => {

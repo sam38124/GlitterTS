@@ -413,7 +413,7 @@ export class ApiPageConfig {
             //壓縮圖片後再上傳
             if(file.type.startsWith('image/')){
                 async function loopSize(size:number):Promise<boolean>{
-                   return  new Promise( (resolve,reject)=>{
+                    return new Promise( (resolve,reject)=>{
                        const reader = new FileReader();
                        reader.onload = function(e) {
                            const img = new Image();

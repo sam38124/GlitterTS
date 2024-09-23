@@ -1,0 +1,1107 @@
+import {GVC} from "../glitterBundle/GVController.js";
+import {ApiUser} from "../glitter-base/route/user.js";
+import {ShareDialog} from "../glitterBundle/dialog/ShareDialog.js";
+import {BgWidget} from "../backend-manager/bg-widget.js";
+import {EditorElem} from "../glitterBundle/plugins/editor-elem.js";
+import {FilterOptions} from "../cms-plugin/filter-options.js";
+import {BaseApi} from "../glitterBundle/api/base.js";
+import {TriggerEvent} from "../glitterBundle/plugins/trigger-event.js";
+
+export type FileItem = {
+    title: string;
+    data: any;
+    items?: FileItem[];
+    type: 'file' | 'folder',
+    tag: string[],
+    id: string
+};
+
+const html = String.raw
+
+export class imageLibrary {
+    public static fileSystem(cf: {
+        getSelect: (id: FileItem[]) => void;
+        gvc: GVC;
+        key: string;
+        title: string,
+        mul?: boolean,
+        tag: string,
+        plus: (gvc: GVC, callback: (file: FileItem[]) => void, fileType?: string) => void,
+        edit: (file: FileItem, callback: (file?: FileItem) => void) => void,
+    }) {
+
+        const gvc = cf.gvc;
+        const vm: {
+            id: string;
+            link: FileItem[];
+            loading: boolean;
+            selected: boolean;
+            query: string,
+            orderString: string,
+            type: string,
+            tag?: string,
+        } = {
+            id: cf.gvc.glitter.getUUID(),
+            link: [],
+            selected: false,
+            loading: true,
+            query: "",
+            orderString: "",
+            type: "file"
+        };
+        if (cf.key == "folderEdit") {
+            vm.tag = cf.tag;
+            vm.type = "folderEdit";
+        }
+
+        function selectAll(array: FileItem) {
+            (array as any).selected = true;
+            array.items = array.items ?? []
+            array.items.map((dd) => {
+                (dd as any).selected = true;
+                selectAll(dd);
+            });
+        }
+
+        function clearAll(array: FileItem) {
+            (array as any).selected = false;
+            array.items = array.items ?? []
+            array.items.map((dd) => {
+                (dd as any).selected = false;
+                clearAll(dd);
+            });
+        }
+
+        function allSelect(dd: any) {
+            return (
+                !dd.items.find((d1: any) => {
+                    return !(d1 as any).selected;
+                }) && (dd as any).selected
+            );
+        }
+
+        function getSelectCount(dd: any) {
+
+            let count = 0;
+            if (dd.selected) {
+                count++;
+            }
+            return dd.items.filter((d: any) => {
+                return d.selected
+            }).length;
+        }
+
+        function deleteSelect(items: FileItem[]) {
+            return items.filter((d1) => {
+                d1.items = deleteSelect(d1.items || []);
+                return !(d1 as any).selected;
+            });
+        }
+        function getPublicConfig(callback:()=>void){
+            ApiUser.getPublicConfig('image-manager', 'manager').then((data: any) => {
+                if (data.response.value) {
+                    vm.link = data.response.value;
+
+                    function loop(array: FileItem[]) {
+                        array.map((dd) => {
+                            if (dd.type === 'folder') {
+                                loop(dd.items ?? [])
+                            }
+                        })
+                    }
+
+                    loop(vm.link);
+                    callback()
+
+                }
+            });
+        }
+        const dialog = new ShareDialog(cf.gvc.glitter)
+
+        function clearNoNeedData(items: FileItem[]) {
+            items.map((dd) => {
+                if ((dd as any).selected) {
+                    (dd as any).selected = undefined;
+                }
+                clearNoNeedData(dd.items || []);
+            });
+        }
+        function save(finish: () => void) {
+            clearNoNeedData(vm.link);
+            dialog.dataLoading({visible: true})
+            ApiUser.setPublicConfig({
+                key: "image-manager",
+                value: vm.link,
+                user_id: 'manager',
+            }).then((data) => {
+                dialog.dataLoading({visible: false})
+                dialog.successMessage({text: '儲存成功'})
+                finish()
+            });
+        }
+        BgWidget.imageLibraryDialog({
+            gvc: gvc,
+            title: cf.title,
+            innerHTML: (gvc: GVC) => {
+                const that = this;
+
+                function renderItems(array: FileItem[], opt?: {
+                    onlyRead?: boolean
+                }): string {
+                    const id = gvc.glitter.getUUID();
+                    return (
+                        gvc.bindView(() => {
+                            return {
+                                bind: id,
+                                view: () => {
+                                    let editArray: boolean[] = [];
+
+                                    return array.map((dd, index) => {
+                                        if (editArray.length < index + 1) {
+                                            editArray.push(false)
+                                        }
+
+                                        // if (dd.type == vm.type) {
+                                        //     let viewID = gvc.glitter.getUUID();
+                                        //     return gvc.bindView({
+                                        //         bind: viewID,
+                                        //         view: () => {
+                                        //
+                                        //             return html`
+                                        //
+                                        //                                                             <div class=""
+                                        //                                                                  style="padding: 10px 12px;position: relative;${((dd as any).selected) ? `border-radius: 10px;border: 2px solid #393939;background: #F7F7F7;box-shadow: 3px 3px 10px 0px rgba(0, 0, 0, 0.10);` : ``}"
+                                        //                                                                  onclick="${gvc.event((e, event) => {
+                                        //                 if (!cf.mul) {
+                                        //                     array.forEach((data) => {
+                                        //                         (data as any).selected = false;
+                                        //                     })
+                                        //                 }
+                                        //                 (dd as any).selected = !(dd as any).selected;
+                                        //                 gvc.notifyDataChange(vm.id)
+                                        //                 event.stopPropagation();
+                                        //             })}"
+                                        //                                                                  onmouseenter="${gvc.event(() => {
+                                        //                 if (!editArray[index]) {
+                                        //                     editArray[index] = true;
+                                        //                     gvc.notifyDataChange(viewID);
+                                        //                 }
+                                        //
+                                        //             })}"
+                                        //                                                                  onmouseleave="${gvc.event(() => {
+                                        //                 editArray[index] = false;
+                                        //                 gvc.notifyDataChange(viewID);
+                                        //             })}">
+                                        //                                                                 <div class="${(editArray[index] && !(dd as any).selected) ? `d-flex` : `d-none`}  align-items-center justify-content-center"
+                                        //                                                                      style="height:24px;width:24px;border-radius: 3px;background: rgba(0, 0, 0, 0.80);position: absolute;right: 12px;top: 10px;"
+                                        //                                                                      onclick="${gvc.event((e, event) => {
+                                        //                 event.stopPropagation();
+                                        //                 cf.edit(dd, (replace) => {
+                                        //                     if (!replace) {
+                                        //                         array.splice(index, 1)
+                                        //                         gvc.notifyDataChange(vm.id)
+                                        //                     } else {
+                                        //                         array[index] = replace
+                                        //                         gvc.notifyDataChange(id)
+                                        //                     }
+                                        //
+                                        //                 })
+                                        //             })}">
+                                        //                                                                     <svg xmlns="http://www.w3.org/2000/svg"
+                                        //                                                                          width="12"
+                                        //                                                                          height="12"
+                                        //                                                                          viewBox="0 0 12 12"
+                                        //                                                                          fill="none">
+                                        //                                                                         <g clip-path="url(#clip0_13619_1920)">
+                                        //                                                                             <path d="M0.852963 8.45864L0.3139 10.2891L0.0232751 11.2782C-0.0353187 11.4774 0.0185876 11.6907 0.1639 11.836C0.309213 11.9813 0.522494 12.0352 0.719369 11.979L1.71078 11.686L3.54124 11.1469C3.78499 11.0766 4.01234 10.9594 4.21156 10.8071L4.21859 10.8118L4.23031 10.793C4.26312 10.7672 4.29359 10.7415 4.32406 10.7157C4.35687 10.6875 4.38734 10.6571 4.41781 10.6266L11.5475 3.49927C12.0608 2.98599 12.1241 2.19614 11.7397 1.61255C11.6858 1.53052 11.6202 1.45083 11.5475 1.37817L10.6241 0.452393C10.0381 -0.133545 9.0889 -0.133545 8.50296 0.452393L1.37328 7.58208C1.31468 7.64067 1.25843 7.70395 1.20687 7.76958L1.18812 7.7813L1.19281 7.78833C1.04046 7.98755 0.925619 8.21489 0.852963 8.45864ZM8.9764 4.47661L4.6264 8.82661L3.4639 8.53599L3.17327 7.37349L7.52328 3.02349L8.9764 4.47661ZM2.27328 8.41177L2.45374 9.13833C2.50296 9.33989 2.66234 9.49692 2.8639 9.54849L3.59046 9.72895L3.41703 9.99145C3.35609 10.0243 3.29281 10.0524 3.22718 10.0711L2.67874 10.2329L1.39203 10.6079L1.76937 9.32349L1.93109 8.77505C1.94984 8.70942 1.97796 8.6438 2.01078 8.5852L2.27328 8.41177ZM7.38968 5.12583C7.53499 4.98052 7.53499 4.74145 7.38968 4.59614C7.24437 4.45083 7.00531 4.45083 6.85999 4.59614L4.60999 6.84614C4.46468 6.99146 4.46468 7.23052 4.60999 7.37583C4.75531 7.52114 4.99437 7.52114 5.13968 7.37583L7.38968 5.12583Z"
+                                        //                                                                                   fill="white"/>
+                                        //                                                                         </g>
+                                        //                                                                         <defs>
+                                        //                                                                             <clipPath
+                                        //                                                                                     id="clip0_13619_1920">
+                                        //                                                                                 <rect width="12"
+                                        //                                                                                       height="12"
+                                        //                                                                                       fill="white"/>
+                                        //                                                                             </clipPath>
+                                        //                                                                         </defs>
+                                        //                                                                     </svg>
+                                        //                                                                 </div>
+                                        //                                                                 <div class="${((dd as any).selected) ? `d-flex` : `d-none`}  "
+                                        //                                                                      style="height:24px;width:24px;border-radius: 3px;position: absolute;right: 12px;top: 10px;"
+                                        //                                                                 >
+                                        //                                                                     <i class="fa-solid fa-square-check "
+                                        //                                                                        style="color: #393939;font-size: 24px;"></i>
+                                        //
+                                        //                                                                 </div>
+                                        //
+                                        //                                                                 <div style="width:100%;padding-top: 100%;background:50%/contain url('${dd.data}') no-repeat;border-radius: 5px;border: 0.938px solid #DDD;background: ;"></div>
+                                        //                                                                 <div class="w-100 text-center font-size: 16px;font-style: normal;font-weight: 400;text-overflow: ellipsis;"
+                                        //                                                                      style=""
+                                        //                                                                      contenteditable="true"
+                                        //                                                                      onchange="${gvc.event((e: any) => {
+                                        //             })}">
+                                        //                                                                     ${dd.title}
+                                        //                                                                 </div>
+                                        //                                                             </div>
+                                        //                                                         `
+                                        //         },
+                                        //         divCreate: {style: `width:15%;cursor:pointer;`}
+                                        //     })
+                                        //
+                                        // }
+                                        let viewID = gvc.glitter.getUUID();
+                                        return gvc.bindView({
+                                            bind: viewID,
+                                            view: () => {
+
+                                                const passType = ["file", "folderView", "folderEdit" , "folderADD"];
+                                                const noImageURL = 'https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/1722936949034-default_image.jpg';
+
+                                                const imageUrl = (passType.includes(vm.type))
+                                                    ? dd.data
+                                                    : (vm.link.find(data => data?.tag?.includes(dd.title))?.data ?? noImageURL);
+
+
+                                                return html`
+                                                    <div class=""
+                                                         style="padding: 10px 12px;position: relative;${((dd as any).selected) ? `border-radius: 10px;border: 2px solid #393939;background: #F7F7F7;box-shadow: 3px 3px 10px 0px rgba(0, 0, 0, 0.10);` : editArray[index]?`border-radius: 10px;border: 1px solid #DDD;background: #F7F7F7;`:``}"
+                                                         onclick="${gvc.event((e, event) => {
+                                                             if (vm.type == "folder") {
+                                                                 array = [];
+                                                                 vm.type = "folderView"
+                                                                 vm.tag = dd.title
+                                                                 gvc.notifyDataChange(vm.id)
+                                                                 return;
+                                                             }
+                                                             if (opt?.onlyRead) {
+                                                                 return
+                                                             }
+                                                             if (!cf.mul) {
+                                                                 array.forEach((data) => {
+                                                                     (data as any).selected = false;
+                                                                 })
+                                                             }
+                                                             (dd as any).selected = !(dd as any).selected;
+                                                             gvc.notifyDataChange(vm.id)
+                                                             event.stopPropagation();
+                                                         })}"
+                                                         onmouseenter="${gvc.event(() => {
+                                                             if (opt?.onlyRead || cf.key == "album") {
+                                                                 return
+                                                             }
+                                                             if (!editArray[index]) {
+                                                                 editArray[index] = true;
+                                                                 gvc.notifyDataChange(viewID);
+                                                             }
+
+                                                         })}"
+                                                         onmouseleave="${gvc.event(() => {
+                                                             if (opt?.onlyRead) {
+                                                                 return
+                                                             }
+                                                             editArray[index] = false;
+                                                             gvc.notifyDataChange(viewID);
+                                                         })}">
+                                                        <div class="${(editArray[index] && !(dd as any).selected) ? `d-flex` : `d-none`}  align-items-center justify-content-center"
+                                                             style="height:24px;width:24px;border-radius: 3px;background: rgba(0, 0, 0, 0.80);position: absolute;right: 12px;top: 10px;"
+                                                             onclick="${gvc.event((e, event) => {
+                                                                 event.stopPropagation();
+                                                                 if (vm.type == "folder") {
+                                                                     //編輯資料夾內容
+                                                                     vm.tag = dd.title;
+                                                                     that.selectImageLibrary(gvc, (selectData) => {
+                                                                         vm.link = selectData;
+                                                                         save(()=>{
+                                                                             gvc.notifyDataChange(vm.id);
+                                                                         })
+                                                                         
+                                                                     }, `<div class="d-flex flex-column" style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;">${vm.tag}</div>`, {
+                                                                         key: 'folderEdit',
+                                                                         mul: true,
+                                                                         tag: dd.title,
+                                                                     })
+                                                                     
+                                                                 } else {
+                                                                     cf.edit(dd, (replace) => {
+                                                                         if (!replace) {
+                                                                             let selectData = vm.link.findIndex(data => {return data.id == dd.id})
+                                                                             vm.link.splice(selectData, 1)
+                                                                          
+                                                                             gvc.notifyDataChange(vm.id)
+                                                                         } else {
+                                                                             array[index] = replace
+                                                                             gvc.notifyDataChange(id)
+                                                                         }
+
+                                                                     })
+                                                                 }
+
+                                                             })}">
+                                                            <svg xmlns="http://www.w3.org/2000/svg"
+                                                                 width="12"
+                                                                 height="12"
+                                                                 viewBox="0 0 12 12"
+                                                                 fill="none">
+                                                                <g clip-path="url(#clip0_13619_1920)">
+                                                                    <path d="M0.852963 8.45864L0.3139 10.2891L0.0232751 11.2782C-0.0353187 11.4774 0.0185876 11.6907 0.1639 11.836C0.309213 11.9813 0.522494 12.0352 0.719369 11.979L1.71078 11.686L3.54124 11.1469C3.78499 11.0766 4.01234 10.9594 4.21156 10.8071L4.21859 10.8118L4.23031 10.793C4.26312 10.7672 4.29359 10.7415 4.32406 10.7157C4.35687 10.6875 4.38734 10.6571 4.41781 10.6266L11.5475 3.49927C12.0608 2.98599 12.1241 2.19614 11.7397 1.61255C11.6858 1.53052 11.6202 1.45083 11.5475 1.37817L10.6241 0.452393C10.0381 -0.133545 9.0889 -0.133545 8.50296 0.452393L1.37328 7.58208C1.31468 7.64067 1.25843 7.70395 1.20687 7.76958L1.18812 7.7813L1.19281 7.78833C1.04046 7.98755 0.925619 8.21489 0.852963 8.45864ZM8.9764 4.47661L4.6264 8.82661L3.4639 8.53599L3.17327 7.37349L7.52328 3.02349L8.9764 4.47661ZM2.27328 8.41177L2.45374 9.13833C2.50296 9.33989 2.66234 9.49692 2.8639 9.54849L3.59046 9.72895L3.41703 9.99145C3.35609 10.0243 3.29281 10.0524 3.22718 10.0711L2.67874 10.2329L1.39203 10.6079L1.76937 9.32349L1.93109 8.77505C1.94984 8.70942 1.97796 8.6438 2.01078 8.5852L2.27328 8.41177ZM7.38968 5.12583C7.53499 4.98052 7.53499 4.74145 7.38968 4.59614C7.24437 4.45083 7.00531 4.45083 6.85999 4.59614L4.60999 6.84614C4.46468 6.99146 4.46468 7.23052 4.60999 7.37583C4.75531 7.52114 4.99437 7.52114 5.13968 7.37583L7.38968 5.12583Z"
+                                                                          fill="white"/>
+                                                                </g>
+                                                                <defs>
+                                                                    <clipPath
+                                                                            id="clip0_13619_1920">
+                                                                        <rect width="12"
+                                                                              height="12"
+                                                                              fill="white"/>
+                                                                    </clipPath>
+                                                                </defs>
+                                                            </svg>
+                                                        </div>
+                                                        <div class="${((dd as any).selected) ? `d-flex` : `d-none`}  "
+                                                             style="height:24px;width:24px;border-radius: 3px;position: absolute;right: 12px;top: 10px;"
+                                                        >
+                                                            <i class="fa-solid fa-square-check "
+                                                               style="color: #393939;font-size: 24px;"></i>
+
+                                                        </div>
+
+                                                        <div style="width:100%;padding-top: 100%;background:50%/contain url('${imageUrl}') no-repeat;border-radius: 5px;border: 0.938px solid #DDD;background: ;"></div>
+                                                        <div class="w-100 text-center font-size: 16px;font-style: normal;font-weight: 400;text-overflow: ellipsis;"
+                                                             style="overflow:hidden;white-space: nowrap;text-overflow: ellipsis;"
+                                                             contenteditable="true"
+                                                             onchange="${gvc.event((e: any) => {
+                                                             })}">
+                                                            ${dd.title}
+                                                        </div>
+                                                    </div>
+                                                `
+                                            },
+                                            divCreate: {style: `width:15%;cursor:pointer;`}
+                                        })
+                                    }).join('')
+                                },
+                                divCreate: {
+                                    elem: 'ul',
+                                    class: `w-100 my-2 flex-wrap `,
+                                    style: `display:flex;gap:17px;`,
+                                },
+                                onCreate: () => {
+                                    gvc.glitter.addMtScript(
+                                        [
+                                            {
+                                                src: `https://raw.githack.com/SortableJS/Sortable/master/Sortable.js`,
+                                            },
+                                        ],
+                                        () => {
+                                        },
+                                        () => {
+                                        }
+                                    );
+                                    const interval = setInterval(() => {
+                                        //@ts-ignore
+                                        if (window.Sortable) {
+                                            try {
+                                                gvc.addStyle(`
+                                                                                ul {
+                                                                                    list-style: none;
+                                                                                    padding: 0;
+                                                                                }
+                                                                            `);
+
+                                                function swapArr(arr: any, index1: number, index2: number) {
+                                                    const data = arr[index1];
+                                                    arr.splice(index1, 1);
+                                                    arr.splice(index2, 0, data);
+                                                }
+
+                                                let startIndex = 0;
+                                                //@ts-ignore
+                                                Sortable.create(gvc.getBindViewElem(id).get(0), {
+                                                    group: id,
+                                                    animation: 100,
+                                                    handle: '.dragItem',
+                                                    onChange: function (evt: any) {
+                                                    },
+                                                    onEnd: (evt: any) => {
+                                                        swapArr(array, startIndex, evt.newIndex);
+                                                        gvc.notifyDataChange(id);
+                                                    },
+                                                    onStart: function (evt: any) {
+                                                        startIndex = evt.oldIndex;
+                                                    },
+                                                });
+                                            } catch (e) {
+                                            }
+                                            clearInterval(interval);
+                                        }
+                                    }, 100);
+                                },
+                            };
+                        })
+                    );
+                }
+
+                getPublicConfig(()=>{
+                    gvc.notifyDataChange(vm.id);
+                });
+                return gvc.bindView(() => {
+                    return {
+                        bind: vm.id,
+                        view: async () => {
+                            function pageBTN() {
+                                let key = [
+                                    {
+                                        key: "file",
+                                        value: "全部圖片",
+                                    },
+                                    {
+                                        key: "folder",
+                                        value: "相簿",
+                                    },
+                                ]
+                                return key.map((data) => {
+
+                                    return html`
+                                        <div style="color:${vm.type == data.key ? '#393939' : '#8D8D8D'};display: flex;padding:6px 18px;justify-content: center;align-items: center;border-radius: 10px;border: 2px solid ${vm.type == data.key ? '#393939' : '#8D8D8D'};background: #FFF;font-weight: ${vm.type == data.key ? '700' : '500'};cursor: pointer;"
+                                             onclick="${gvc.event((e) => {
+                                                 vm.type = data.key;
+                                                 gvc.notifyDataChange(vm.id);
+                                             })}">
+                                            ${data.value}
+                                        </div>
+                                    `
+                                }).join('')
+                            }
+
+
+                            // 空白夾新增的頁面
+                            if (vm.type == "folderADD") {
+                                return html`
+                                    <div class="d-flex flex-column"
+                                         style="font-size: 16px;font-style: normal;font-weight: 400;gap:8px;">
+                                        相簿名稱
+                                        <input class="w-100" value="${vm.tag ?? ""}" placeholder="請輸入相簿名稱"
+                                               style="height: 40px;padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;"
+                                               onchange="${gvc.event((e) => {
+                                                   vm.tag = e.value;
+                                               })}">
+                                    </div>
+                                    <div class="w-100 "
+                                         style="margin-top:18px;padding: 39px 0;display: flex;justify-content: center;align-items: center;border-radius: 10px;border: 1px solid #DDD;background: #FFF;gap:14px;">
+                                        <div style="padding: 10px 18px;border-radius: 10px;border: 1px solid #DDD;background: #FFF;box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.10);cursor: pointer;"
+                                             onclick="${gvc.event(() => {
+                                                 if (!vm.tag) {
+                                                     const dialog = new ShareDialog(cf.gvc.glitter)
+                                                     dialog.errorMessage({text: "請先輸入相簿名稱"})
+                                                     return
+                                                 }
+                                                 let thatGVC = gvc
+                                                 this.selectImageLibrary(gvc, (selectData) => {
+                                                     const folder: FileItem = {
+                                                         title: vm.tag ?? "folder",
+                                                         data: [],
+                                                         items: selectData,
+                                                         type: "folder",
+                                                         tag: [],
+                                                         id: gvc.glitter.getUUID()
+                                                     };
+                                                     selectData.map((data) => {
+                                                         let matchingElement = vm.link.find(item2 => item2.id === data.id);
+                                                         if (matchingElement) {
+                                                             if (!matchingElement.tag) {
+                                                                 matchingElement.tag = []
+                                                             }
+
+                                                             if (!matchingElement.tag.includes(vm.tag as string)) {
+                                                                 matchingElement!.tag.push((vm.tag as string))
+                                                             }
+                                                             (folder.items as any).push(matchingElement.id);
+                                                         }
+                                                         (data as any).selected = false;
+                                                     });
+                                                     vm.link.push(folder);
+                                                     vm.type = "folder"
+                                                     gvc.notifyDataChange(vm.id);
+                                                     // save(()=>{
+                                                     //
+                                                     // })
+                                                     // postMD.content_array = id
+                                                     // obj.gvc.notifyDataChange(bi)
+                                                     // getPublicConfig(()=>{
+                                                     //     gvc.notifyDataChange(vm.id);
+                                                     // });
+                                                     
+                                                     
+                                                 }, `<div class="d-flex flex-column" style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;">${vm.tag}</div>`, {
+                                                     key: 'album',
+                                                     mul: true,
+                                                 })
+
+                                             })}">從圖庫中選擇
+                                        </div>
+                                        <div style="padding: 10px 18px;border-radius: 10px;border: 1px solid #DDD;background: #FFF;box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.10);cursor: pointer;"
+                                             onclick="${gvc.event(() => {
+                                                 if (!vm.tag) {
+                                                     const dialog = new ShareDialog(cf.gvc.glitter)
+                                                     dialog.errorMessage({text: "請先輸入相簿名稱"})
+                                                     return
+                                                 }
+                                                 cf.plus(gvc, (fileArray) => {
+                                                     const folder: FileItem = {
+                                                         title: vm.tag ?? "folder",
+                                                         data: [],
+                                                         items: [],
+                                                         type: "folder",
+                                                         tag: [],
+                                                         id: gvc.glitter.getUUID()
+                                                     }
+
+                                                     fileArray.forEach(item => {
+                                                         item.tag = [];
+                                                         item.tag.push((vm.tag as string));
+                                                         (folder.items as any).push(item.id);
+                                                         vm.link.push(item);
+                                                     })
+
+                                                     vm.link.push(folder);
+                                                     gvc.notifyDataChange(vm.id);
+                                                 }, "file")
+                                             })}">上傳新圖片
+                                        </div>
+                                    </div>
+                                    <div class="">
+                                        ${gvc.bindView({
+                                            bind: `folderItemGroup`,
+                                            view: () => {
+                                                if (vm.tag) {
+                                                    let group = vm.link.filter((item2) => {
+                                                        // return item2.tag.includes(vm.tag as string);
+                                                        return item2.tag && item2.tag.includes(vm.tag ?? "")
+                                                    });
+                                                    return renderItems(group, {onlyRead: true});
+                                                }
+                                                // return renderItems(vm.link);
+                                                // alert("test");
+                                                // if (group.length > 1) {
+                                                //     return renderItems(group);
+                                                // }
+                                                //
+                                                return ``
+                                            }, divCreate: {}
+                                        })}
+                                    </div>
+                                `
+                            }
+                            //資料夾的內容檢視
+                            if (vm.type == "folderView") {
+                                return html`
+                                    <div class="d-flex flex-column"
+                                         style="font-size: 16px;font-style: normal;font-weight: 400;gap:8px;">
+                                        <input class="w-100" value="${vm.tag ?? ""}" placeholder="請輸入相簿名稱"
+                                               style="height: 40px;padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;"
+                                               onchange="${gvc.event((e) => {
+                                                   vm.tag = e.value;
+                                               })}">
+                                    </div>
+                                    
+                                    <div class="">
+                                        ${gvc.bindView({
+                                            bind: `folderItemGroup`,
+                                            view: () => {
+                                                if (vm.tag) {
+                                                    let group = vm.link.filter((item2) => {
+                                                        return item2.tag && item2.tag.includes(vm.tag ?? "")
+                                                    });
+
+                                                    return renderItems(group);
+                                                }
+                                                return ``
+                                            }, divCreate: {}
+                                        })}
+                                    </div>
+                                `
+                            }
+                            //資料夾的內容編輯
+                            if (vm.type == "folderEdit") {
+                                return html`
+                                    <div class="d-flex flex-column"
+                                         style="font-size: 16px;font-style: normal;font-weight: 400;gap:8px;">
+                                        相簿名稱
+                                        <input class="w-100" value="${vm.tag ?? ""}" placeholder="請輸入相簿名稱"
+                                               style="height: 40px;padding: 9px 18px;border-radius: 10px;border: 1px solid #DDD;"
+                                               onchange="${gvc.event((e) => {
+                                                   vm.tag = e.value;
+                                               })}">
+                                    </div>
+                                    <div class="d-flex w-100" style="gap:14px;margin-top: 12px;">
+                                        ${BgWidget.searchFilter(
+                                                gvc.event((e) => {
+                                                    gvc.notifyDataChange(vm.id);
+                                                }),
+                                                vm.query || '',
+                                                "搜尋圖片"
+                                        )}
+                                        ${BgWidget.sortFilter({
+                                            gvc,
+                                            callback: (value: any) => {
+                                                vm.orderString = value;
+                                                gvc.notifyDataChange(vm.id);
+                                            },
+                                            default: vm.orderString || 'default',
+                                            options: FilterOptions.imageLibraryOrderBy,
+                                        })}
+                                    </div>
+                                    <div class="d-flex w-100 justify-content-end" style="gap:12px;margin-top: 18px;">
+                                        <div style="margin-right: auto; color: #393939; font-size: 14px; font-family: Noto Sans; font-weight: 700; word-wrap: break-word">
+                                                已選取${getSelectCount({
+                                                items: vm.link,
+                                            })}項
+                                        </div>
+                                        ${BgWidget.grayButton("刪除", gvc.event(() => {
+                                            let selectedData = vm.link.filter(item => (item as any).selected);
+                                            selectedData.forEach(item => {
+                                                (item as any).selected = false;
+                                                item.tag = item.tag.filter((tag) => {
+                                                    return tag !== vm.tag
+                                                });
+                                            })
+
+                                            let folder = vm.link.find((dd)=>{
+                                                return (dd.title == vm.tag && dd.type =="folder")
+                                            });
+                                            gvc.notifyDataChange(vm.id);
+                                        }))}
+                                        ${BgWidget.grayButton("新增圖片", gvc.event(() => {
+                                            cf.plus(gvc, (files) => {
+                                                files.forEach((file)=>{
+                                                    file.tag.push(vm.tag??"");
+                                                    vm.link.push(file);
+                                                })
+                                                gvc.notifyDataChange(vm.id)
+                                            }, "file")
+                                        }))}
+                                    </div>
+                                    <div class="">
+                                        ${gvc.bindView({
+                                            bind: `folderItemGroup`,
+                                            view: () => {
+                                                if (vm.tag) {
+                                                    return renderItems(vm.link.filter((item2) => {
+                                                        return item2.tag && item2.tag.includes(vm.tag ?? "")
+                                                    }));
+                                                }
+                                                return ``
+                                            }, divCreate: {}
+                                        })}
+                                    </div>
+                                `
+                            }
+
+                            function drawSelectImg() {
+                                return html`
+                                    <div style="">
+                                        <div style="width: 100%;  position: relative">
+                                            <div style="width: 100%;  left: 0px; top: 0px;  flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 20px; display: inline-flex">
+                                                <div class=" ${(cf.key == 'album') ? `d-none` : `d-flex`}"
+                                                     style="gap:14px;">
+                                                    ${pageBTN()}
+                                                </div>
+                                                <div class="d-flex w-100" style="gap:14px;">
+                                                    ${BgWidget.searchFilter(
+                                                            gvc.event((e) => {
+                                                                gvc.notifyDataChange(vm.id);
+                                                            }),
+                                                            vm.query || '',
+                                                            cf.key == 'album-manager' || vm.type == "file" ? `搜尋圖片` : `搜尋相簿`
+                                                    )}
+                                                    ${BgWidget.sortFilter({
+                                                        gvc,
+                                                        callback: (value: any) => {
+                                                            vm.orderString = value;
+                                                            gvc.notifyDataChange(vm.id);
+                                                        },
+                                                        default: vm.orderString || 'default',
+                                                        options: FilterOptions.imageLibraryOrderBy,
+                                                    })}
+                                                </div>
+                                                <div
+                                                        class="w-100  ${getSelectCount({
+                                                            items: vm.link,
+                                                        }) > 0 && vm.type == "file"
+                                                                ? ``
+                                                                : `d-none`}"
+                                                        style="height: 40px; padding: 12px 18px;background: #F7F7F7; border-radius: 10px; justify-content: flex-end; align-items: center; gap: 8px; display: inline-flex"
+                                                >
+                                                    <div style="flex: 1 1 0; color: #393939; font-size: 14px; font-family: Noto Sans; font-weight: 700; word-wrap: break-word">
+                                                            已選取${getSelectCount({
+                                                            items: vm.link,
+                                                        })}項
+                                                    </div>
+
+                                                </div>
+                                                <div style="align-self: stretch; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 18px; display: flex">
+                                                    ${(() => {
+                                                        let viewData = vm.link.filter((data) => {
+                                                            return data.type == vm.type
+                                                        });
+                                                        
+                                                        if (viewData.length == 0) {
+                                                            return html`
+                                                                <div class="w-100 h-100 d-flex flex-column align-items-center justify-content-center"
+                                                                     style="padding-top: 106px;">
+                                                                    ${vm.type == "file" ? html`
+                                                                        <svg xmlns="http://www.w3.org/2000/svg"
+                                                                             width="80"
+                                                                             height="80" viewBox="0 0 80 80"
+                                                                             fill="none">
+                                                                            <path d="M10 10C7.23438 10 5 12.2344 5 15V51.4688L15.5781 40.8906C18.0156 38.4531 21.9688 38.4531 24.4219 40.8906L35 51.4688L55.5781 30.8906C58.0156 28.4531 61.9688 28.4531 64.4219 30.8906L75 41.4688V15C75 12.2344 72.7656 10 70 10H10ZM5 58.5312V65C5 67.7656 7.23438 70 10 70H16.4688L31.4688 55L20.8906 44.4219C20.4062 43.9375 19.6094 43.9375 19.125 44.4219L5 58.5312ZM60.8906 34.4219C60.4063 33.9375 59.6094 33.9375 59.125 34.4219L23.5312 70H70C72.7656 70 75 67.7656 75 65V48.5312L60.8906 34.4219ZM0 15C0 9.48438 4.48438 5 10 5H70C75.5156 5 80 9.48438 80 15V65C80 70.5156 75.5156 75 70 75H10C4.48438 75 0 70.5156 0 65V15ZM25 22.5C25 21.837 24.7366 21.2011 24.2678 20.7322C23.7989 20.2634 23.163 20 22.5 20C21.837 20 21.2011 20.2634 20.7322 20.7322C20.2634 21.2011 20 21.837 20 22.5C20 23.163 20.2634 23.7989 20.7322 24.2678C21.2011 24.7366 21.837 25 22.5 25C23.163 25 23.7989 24.7366 24.2678 24.2678C24.7366 23.7989 25 23.163 25 22.5ZM15 22.5C15 20.5109 15.7902 18.6032 17.1967 17.1967C18.6032 15.7902 20.5109 15 22.5 15C24.4891 15 26.3968 15.7902 27.8033 17.1967C29.2098 18.6032 30 20.5109 30 22.5C30 24.4891 29.2098 26.3968 27.8033 27.8033C26.3968 29.2098 24.4891 30 22.5 30C20.5109 30 18.6032 29.2098 17.1967 27.8033C15.7902 26.3968 15 24.4891 15 22.5Z"
+                                                                                  fill="#393939"/>
+                                                                        </svg>` : html`
+                                                                        <svg xmlns="http://www.w3.org/2000/svg"
+                                                                             width="80" height="80" viewBox="0 0 80 80"
+                                                                             fill="none">
+                                                                            <path d="M10 10C7.23438 10 5 12.2344 5 15V65C5 67.7656 7.23438 70 10 70H70C72.7656 70 75 67.7656 75 65V25C75 22.2344 72.7656 20 70 20H45.6094C42.9531 20 40.4062 18.9531 38.5312 17.0781L32.9219 11.4688C31.9844 10.5312 30.7188 10 29.3906 10H10ZM0 15C0 9.48438 4.48438 5 10 5H29.3906C32.0469 5 34.5938 6.04688 36.4688 7.92188L42.0781 13.5312C43.0156 14.4688 44.2812 15 45.6094 15H70C75.5156 15 80 19.4844 80 25V65C80 70.5156 75.5156 75 70 75H10C4.48438 75 0 70.5156 0 65V15Z"
+                                                                                  fill="#393939"/>
+                                                                        </svg>`}
+                                                                    <div style="color: #8D8D8D;font-size: 18px;font-weight: 400;margin-top: 12px;margin-bottom: 24px;">
+                                                                        ${vm.type == "file" ? `尚未上傳任何圖片` : `尚未建立任何相簿`}
+                                                                    </div>
+                                                                    <div style="color: #FFF;font-weight: 700;font-size: 16px;padding: 6px 18px;border-radius: 10px;background: #393939;cursor: pointer;"
+                                                                         onclick="${gvc.event(() => {
+                                                                             if (vm.type == "file") {
+                                                                                 cf.plus(gvc, (file) => {
+                                                                                     vm.link.push(...file)
+                                                                                     gvc.notifyDataChange(vm.id)
+                                                                                 }, "file")
+                                                                             } else {
+                                                                                 vm.tag = "";
+                                                                                 vm.type = "folderADD";
+                                                                                 gvc.notifyDataChange(vm.id)
+                                                                             }
+                                                                         })}">
+                                                                        ${vm.type == "file" ? `上傳圖片` : `建立相簿`}
+                                                                    </div>
+                                                                </div>
+                                                            `
+                                                        }
+                                                        return html`
+                                                            <div class="w-100 ${(cf.key == 'album') ? `d-none` : `d-flex`} align-items-center justify-content-center"
+                                                                 style="padding: 39px 0;border-radius: 10px;border: 1px solid #DDD;background: #FFF;">
+                                                                <div style="padding:6px 18px;border-radius: 10px;border: 1px solid #DDD;background: #FFF;box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.10);font-size: 16px;font-weight: 400;cursor:pointer;"
+                                                                     onclick="${gvc.event(() => {
+                                                                        if (vm.type == "file") {
+                                                                            cf.plus(gvc, (file) => {
+                                                                                vm.link.push(...file)
+                                                                                gvc.notifyDataChange(vm.id)
+                                                                            }, "file")
+                                                                        }else{
+                                                                            vm.tag = "";
+                                                                            vm.type = "folderADD";
+                                                                            gvc.notifyDataChange(vm.id);
+                                                                        }
+                                                                     })}">${vm.type=="file"?"上傳新照片":"上傳相簿"}
+                                                                </div>
+                                                            </div>
+                                                            ${renderItems(viewData)}
+                                                        `
+                                                    })()}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `
+                            }
+
+                            return drawSelectImg();
+                        },
+                        divCreate: {
+                            style: ``,
+                        },
+                    };
+                })
+            },
+            footer_html: (gvc: GVC) => {
+
+                const dialog = new ShareDialog(cf.gvc.glitter)
+
+                function clearNoNeedData(items: FileItem[]) {
+                    items.map((dd) => {
+                        if ((dd as any).selected) {
+                            (dd as any).selected = undefined;
+                        }
+                        clearNoNeedData(dd.items || []);
+                    });
+                }
+
+                function save(finish: () => void) {
+                    clearNoNeedData(vm.link);
+                    dialog.dataLoading({visible: true})
+                    ApiUser.setPublicConfig({
+                        key: "image-manager",
+                        value: vm.link,
+                        user_id: 'manager',
+                    }).then((data) => {
+                        dialog.dataLoading({visible: false})
+                        dialog.successMessage({text: '儲存成功'})
+                        finish()
+                    });
+                }
+
+                switch (cf.key) {
+                    case "folderEdit":{
+                        return [BgWidget.cancel(gvc.event(() => {
+                            gvc.closeDialog()
+                        })),
+                            BgWidget.danger(gvc.event(()=>{
+                                const dialog = new ShareDialog(gvc.glitter)
+                                dialog.checkYesOrNot({
+                                    text: `刪除後使用此資源的內容將被取消關聯，是否確認刪除?`,
+                                    callback: (response) => {
+                                        if (response) {
+                                            let selectedData = vm.link.filter(item => (item?.tag && item?.tag?.includes(vm.tag??"")));
+                                            selectedData.forEach(item => {
+                                                (item as any).selected = false;
+                                                item.tag = item.tag.filter((tag) => {
+                                                    return tag !== vm.tag
+                                                });
+                                            })
+
+                                            let folder = vm.link.findIndex((dd)=>{
+                                                return (dd.title == vm.tag && dd.type =="folder")
+                                            });
+                                            vm.link.splice(folder, 1)
+                                            cf.getSelect(vm.link);
+                                            gvc.closeDialog();
+                                            // save(() => {
+                                            //     gvc.notifyDataChange(vm.id);
+                                            //     gvc.closeDialog();
+                                            // })
+                                        }
+                                    }
+                                })
+
+                            }),"刪除相簿")
+                            ,BgWidget.save(gvc.event(() => {
+                                let select: FileItem[] = []
+
+                                function loop(array: FileItem[]) {
+                                    array.map((dd) => {
+                                        if (dd.type === 'folder') {
+                                            loop(dd.items || [])
+                                        } else {
+                                            if ((dd as any).selected) {
+                                                select.push(dd)
+                                            }
+                                        }
+                                    })
+                                }
+                                loop(vm.link)
+                                if (cf.key == 'image-manager' || cf.key == 'folderEdit') {
+                                    if (select.length > 0){
+                                        save(() => {
+                                            cf.getSelect(select);
+                                            gvc.closeDialog();
+                                        })
+                                    }else{
+                                        const dialog = new ShareDialog(gvc.glitter);
+                                        dialog.errorMessage({text:'請選擇至少一張圖片'});
+                                    }
+                                    // save(() => {
+                                    //     if (select.length > 0){
+                                    //         cf.getSelect(select);
+                                    //         gvc.closeDialog();
+                                    //     }
+                                    // })
+                                } else {
+                                    cf.getSelect(select);
+                                    gvc.closeDialog();
+                                }
+
+                            }), '確認')].join('')
+                    }
+                    default:{
+                        return [BgWidget.cancel(gvc.event(() => {
+                            if (vm.type == "folderView" || vm.type == "folderADD") {
+                                vm.type = "folder";
+                                gvc.notifyDataChange(vm.id);
+                            }else{
+                                gvc.closeDialog()
+                            }
+
+                        })), BgWidget.save(gvc.event(() => {
+                            let select: FileItem[] = []
+                            function loop(array: FileItem[]) {
+                                array.map((dd) => {
+                                    if (dd.type === 'folder') {
+                                        loop(dd.items || [])
+                                    } else {
+                                        if ((dd as any).selected) {
+                                            select.push(dd)
+                                        }
+                                    }
+                                })
+                            }
+                            loop(vm.link)
+                            if (cf.key == 'image-manager' || cf.key == 'folderEdit') {
+                                if (select.length > 0){
+                                    save(() => {
+                                        cf.getSelect(select);
+                                        gvc.closeDialog();
+                                    })
+                                }else{
+                                    const dialog = new ShareDialog(gvc.glitter);
+                                    dialog.errorMessage({text:'請選擇至少一張圖片'});
+                                }
+                                // save(() => {
+                                //     if (select.length > 0){
+                                //         cf.getSelect(select);
+                                //         gvc.closeDialog();
+                                //     }
+                                // })
+                            } else {
+                                cf.getSelect(select);
+                                gvc.closeDialog();
+                            }
+                        }), '確認')].join('')
+                    }
+                }
+
+            }
+        })
+
+    }
+
+    public static selectImageLibrary(gvc: GVC, callback: (id: FileItem[]) => void, title: string, opt?: {
+        key?: string;
+        mul?: boolean;
+        tag?: string;
+    }) {
+        function editorView(gvc: GVC, item: FileItem) {
+            if (item.type === 'folder') {
+                return BgWidget.editeInput({
+                    gvc: gvc,
+                    title: `資料夾標題`,
+                    default: item.title,
+                    placeHolder: `請輸入資料夾標題`,
+                    callback: (text) => {
+                        item.title = text
+                    }
+                })
+            } else {
+                item.data = item.data ?? {}
+                return [BgWidget.editeInput({
+                    gvc: gvc,
+                    title: `圖片標題`,
+                    default: item.title,
+                    placeHolder: `請輸入圖片標題`,
+                    callback: (text) => {
+                        item.title = text
+                    }
+                }), EditorElem.uploadImageContainer({
+                    gvc: gvc,
+                    title: `圖片內容`,
+                    def: item.data ?? '',
+                    callback: (text) => {
+                        item.data = text;
+                    },
+                })].join('')
+            }
+        }
+
+        imageLibrary.fileSystem({
+            getSelect: callback,
+            gvc: gvc,
+            key: opt ? (opt.key ?? 'image-manager') : 'image-manager',
+            title: title,
+            tag: opt?.tag ?? "",
+            mul: opt ? (opt.mul ?? false) : false,
+            plus: (gvc: GVC, callback: (file: FileItem[]) => void) => {
+                const item: FileItem = {
+                    title: '',
+                    data: {},
+                    items: [],
+                    type: 'file',
+                    tag: [],
+                    id: gvc.glitter.getUUID()
+                }
+                let count = 1;
+                // function upload(file: any) {
+                //     const dialog = new ShareDialog(gvc.glitter);
+                //     dialog.dataLoading({ visible: true });
+                //     const saasConfig=(window.parent as any).saasConfig;
+                //     saasConfig.api.uploadFileAll(file).then((res: { result: boolean; links: string[] }) => {
+                //         dialog.dataLoading({ visible: false });
+                //         if (res.result) {
+                //             res.links.map((dd) => {
+                //                 obj.callback(dd);
+                //             });
+                //         } else {
+                //             dialog.errorMessage({ text: '上傳失敗' });
+                //         }
+                //     });
+                // }
+                // gvc.glitter.ut.chooseMediaCallback({
+                //     single: true,
+                //     accept: obj.type ?? '*',
+                //     callback(data: any) {
+                //         upload(
+                //             data.map((dd: any) => {
+                //                 return dd.file;
+                //             })
+                //         );
+                //     },
+                // });
+                EditorElem.uploadFileFunction({
+                    gvc: gvc,
+                    callback: (text: any) => {
+
+                        callback(text.map((item: string) => {
+                            return {
+                                title: item.split('_')[3],
+                                data: item,
+                                items: [],
+                                type: 'file',
+                                tag: [],
+                                id: gvc.glitter.getUUID()
+                            }
+                        }))
+                    },
+                    return_array: true,
+                    multiple: true
+                })
+            },
+            edit: (item, callback: (file?: FileItem) => void) => {
+                item = JSON.parse(JSON.stringify(item))
+                BgWidget.settingDialog({
+                    gvc: gvc,
+                    title: '更新圖片',
+                    innerHTML: (gvc: GVC) => {
+                        return editorView(gvc, item)
+                    },
+                    footer_html: (gvc: GVC) => {
+                        return [BgWidget.danger(gvc.event(() => {
+                            const dialog = new ShareDialog(gvc.glitter)
+                            dialog.checkYesOrNot({
+                                text: `刪除後使用此資源的內容將被取消關聯，是否確認刪除?`,
+                                callback: (response) => {
+                                    if (response) {
+                                        callback(undefined)
+                                        gvc.closeDialog()
+                                    }
+                                }
+                            })
+                        })), BgWidget.cancel(gvc.event(() => {
+                            gvc.closeDialog()
+                        })), BgWidget.save(gvc.event(() => {
+                            callback(item);
+                            gvc.closeDialog();
+
+                        }), '確定')].join('')
+                    },
+                    closeCallback: () => {
+                    }
+                })
+            }
+        })
+    }
+
+}

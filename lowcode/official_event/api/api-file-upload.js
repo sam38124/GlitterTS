@@ -8,7 +8,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { TriggerEvent } from "../../glitterBundle/plugins/trigger-event.js";
+import { ShareDialog } from "../../glitterBundle/dialog/ShareDialog.js";
 import { EditorElem } from "../../glitterBundle/plugins/editor-elem.js";
+import { imageLibrary } from "../../modules/image-library.js";
 TriggerEvent.createSingleEvent(import.meta.url, (glitter) => {
     return {
         fun: (gvc, widget, object, subData, element) => {
@@ -65,68 +67,22 @@ TriggerEvent.createSingleEvent(import.meta.url, (glitter) => {
                             subData: subData,
                             element: element
                         });
-                        glitter.ut.chooseMediaCallback({
-                            single: (object.upload_count === 'single'),
-                            accept: accept || '*',
-                            callback(data) {
-                                return __awaiter(this, void 0, void 0, function* () {
-                                    const saasConfig = window.saasConfig;
-                                    (yield TriggerEvent.trigger({
-                                        gvc: gvc,
-                                        widget: widget,
-                                        clickEvent: object.uploading,
-                                        subData: subData,
-                                        element: element
-                                    }));
-                                    let url_stack = [];
-                                    for (const dd of data) {
-                                        const file = dd.file;
-                                        const res = yield new Promise((resolve, reject) => {
-                                            saasConfig.api.uploadFileAll(file).then((res) => {
-                                                if (res.result) {
-                                                    resolve(res.links[0]);
-                                                }
-                                                else {
-                                                    resolve(false);
-                                                }
-                                            });
-                                        });
-                                        if (!res) {
-                                            yield TriggerEvent.trigger({
-                                                gvc: gvc,
-                                                widget: widget,
-                                                clickEvent: object.error,
-                                                subData: subData,
-                                                element: element
-                                            });
-                                            resolve(false);
-                                            return;
-                                        }
-                                        url_stack.push(res);
-                                    }
-                                    if (object.upload_count === 'single') {
-                                        yield TriggerEvent.trigger({
-                                            gvc: gvc,
-                                            widget: widget,
-                                            clickEvent: object.uploadFinish,
-                                            subData: url_stack[0],
-                                            element: element
-                                        });
-                                        resolve(url_stack[0]);
-                                    }
-                                    else {
-                                        yield TriggerEvent.trigger({
-                                            gvc: gvc,
-                                            widget: widget,
-                                            clickEvent: object.uploadFinish,
-                                            subData: url_stack,
-                                            element: element
-                                        });
-                                        resolve(url_stack);
-                                    }
+                        imageLibrary.selectImageLibrary(gvc, (urlArray) => {
+                            if (urlArray.length > 0) {
+                                TriggerEvent.trigger({
+                                    gvc: gvc,
+                                    widget: widget,
+                                    clickEvent: object.uploadFinish,
+                                    subData: urlArray[0],
+                                    element: element
                                 });
-                            },
-                        });
+                                resolve(urlArray[0].data);
+                            }
+                            else {
+                                const dialog = new ShareDialog(gvc.glitter);
+                                dialog.errorMessage({ text: '請選擇至少一張圖片' });
+                            }
+                        }, `<div class="d-flex flex-column" style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;">圖片庫</div>`, { mul: object.upload_count !== 'single' });
                     }));
                 }
             };

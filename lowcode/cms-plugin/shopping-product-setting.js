@@ -2074,10 +2074,14 @@ export class ShoppingProductSetting {
                                                     id: postMD.content_array,
                                                     key: 'text-manager'
                                                 });
+                                                const image_array = yield FileSystemGet.getFile({
+                                                    id: postMD.content_array,
+                                                    key: 'image-manager'
+                                                });
                                                 const view = [
                                                     html `
                                                                                 <div class="d-flex align-items-center justify-content-end mb-2"
-                                                                                     style="cursor: pointer;">
+                                                                                     style="cursor: pointer; gap:10px;">
                                                                                     <div style="font-weight: 700;">
                                                                                         商品說明
                                                                                     </div>
@@ -2088,6 +2092,7 @@ export class ShoppingProductSetting {
                                                             obj.gvc.notifyDataChange(bi);
                                                         }, `<div class="d-flex flex-column">選擇文本${BgWidget.grayNote('尺寸介紹 / 規格介紹 / 使用教學 / 配送方式 ')}</div>`, postMD.content_array);
                                                     }))}
+                                                                                    
                                                                                 </div>`,
                                                     BgWidget.tab([
                                                         ...(() => {

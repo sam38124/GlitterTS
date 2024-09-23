@@ -235,6 +235,14 @@ FilterOptions.productListOrderBy = [
     { key: 'updated_time_desc', value: '更新時間新 > 舊' },
     { key: 'updated_time_asc', value: '更新時間舊 > 新' },
 ];
+FilterOptions.imageLibraryOrderBy = [
+    { key: 'default', value: '預設' },
+    { key: 'title', value: '商品名稱' },
+    { key: 'created_time_desc', value: '上傳時間新 > 舊' },
+    { key: 'created_time_asc', value: '上傳時間舊 > 新' },
+    { key: 'name_AtoZ', value: '圖片名稱A>Z' },
+    { key: 'name_ZtoA', value: '圖片名稱Z>A' },
+];
 FilterOptions.productSelect = [
     { key: 'title', value: '商品名稱' },
     { key: 'sku', value: '庫存單位(SKU)' },

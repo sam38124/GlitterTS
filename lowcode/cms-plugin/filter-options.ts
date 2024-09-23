@@ -256,6 +256,17 @@ export class FilterOptions {
         // { key: 'stock_asc', value: '庫存數量少 > 多' },
     ];
 
+    static imageLibraryOrderBy = [
+        { key: 'default', value: '預設' },
+        { key: 'title', value: '商品名稱' },
+        { key: 'created_time_desc', value: '上傳時間新 > 舊' },
+        { key: 'created_time_asc', value: '上傳時間舊 > 新' },
+        { key: 'name_AtoZ', value: '圖片名稱A>Z' },
+        { key: 'name_ZtoA', value: '圖片名稱Z>A' },
+        // { key: 'stock_desc', value: '庫存數量多 > 少' },
+        // { key: 'stock_asc', value: '庫存數量少 > 多' },
+    ];
+
     static productSelect = [
         { key: 'title', value: '商品名稱' },
         { key: 'sku', value: '庫存單位(SKU)' },
