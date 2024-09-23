@@ -25,8 +25,8 @@ router.post('/sync-data', async (req, resp) => {
         }))[0]) !== null && _a !== void 0 ? _a : {
             value: {
                 order_files: '',
-                messageThread: ''
-            }
+                messageThread: '',
+            },
         }).value;
         (await new shopping_js_1.Shopping(req.get('g-app'), req.body.token).getCheckOut({
             page: 0,
@@ -95,7 +95,7 @@ router.post('/sync-data', async (req, resp) => {
                         商品SKU: (_a = item.sku) !== null && _a !== void 0 ? _a : '',
                         商品購買數量: item.count,
                         商品價格: item.sale_price,
-                        商品折扣: item.discount_price
+                        商品折扣: item.discount_price,
                     };
                 }),
                 顧客姓名: orderData.customer_info.name,
@@ -108,9 +108,10 @@ router.post('/sync-data', async (req, resp) => {
             });
         });
         fs_1.default.writeFileSync(file1, JSON.stringify(exportData));
+        return;
         const file = await openai.files.create({
             file: fs_1.default.createReadStream(file1),
-            purpose: "fine-tune",
+            purpose: 'fine-tune',
         });
         fs_1.default.rmSync(file1);
         if (!cf.messageThread) {
@@ -121,11 +122,12 @@ router.post('/sync-data', async (req, resp) => {
             key: 'ai_config',
             value: {
                 order_files: file.id,
-                messageThread: cf.messageThread
-            }
+                messageThread: cf.messageThread,
+            },
         });
         return response_js_1.default.succ(resp, {
-            result: true, data: file.id
+            result: true,
+            data: file.id,
         });
     }
     catch (err) {

@@ -3,4 +3,9 @@ export declare class Ai {
         guide: string;
     };
     static initial(): Promise<void>;
+    static defaultResponse: {
+        tags: string[];
+        keywords: string[];
+        response: string;
+    }[];
 }

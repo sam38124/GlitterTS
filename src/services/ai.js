@@ -6,34 +6,17 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Ai = void 0;
 const fs_1 = __importDefault(require("fs"));
 const openai_1 = __importDefault(require("openai"));
-const tool_js_1 = __importDefault(require("../modules/tool.js"));
 class Ai {
     static async initial() {
-        const file1 = tool_js_1.default.randomString(10) + '.json';
+        const file1 = 'defaultResponse.json';
         const openai = new openai_1.default({
             apiKey: process.env.OPENAI_API_KEY,
         });
-        fs_1.default.writeFileSync(file1, JSON.stringify([
-            {
-                "response": "請前往訂單管理->訂單中進行操作",
-                "keywords": "修改訂單、手動新增訂單、刪除訂單"
-            },
-            {
-                "response": "請前往訂單管理->退貨單中進行操作",
-                "keywords": "退貨單"
-            },
-            {
-                "response": "如要進行顧客分群相關的操作，請前往顧客管理->顧客分群中進行操作",
-                "keywords": "顧客分群"
-            },
-            {
-                "response": "如要查詢相關顧客，請前往顧客管理->顧客列表中進行操作",
-                "keywords": "顧客列表"
-            }
-        ]));
+        fs_1.default.writeFileSync(file1, JSON.stringify(this.defaultResponse));
+        return;
         const file = await openai.files.create({
             file: fs_1.default.createReadStream(file1),
-            purpose: "fine-tune",
+            purpose: 'fine-tune',
         });
         Ai.files.guide = file.id;
         fs_1.default.rmSync(file1);
@@ -41,6 +24,83 @@ class Ai {
 }
 exports.Ai = Ai;
 Ai.files = {
-    guide: ''
+    guide: '',
 };
+Ai.defaultResponse = [
+    {
+        tags: ['訂單'],
+        keywords: ['新增'],
+        response: '請前往訂單管理的「訂單」，點擊右上角「新增」即可新增訂單',
+    },
+    {
+        tags: ['訂單'],
+        keywords: ['編輯'],
+        response: '請前往訂單管理的「訂單」，點擊一份訂單進行編輯操作',
+    },
+    {
+        tags: ['訂單'],
+        keywords: ['封存'],
+        response: '請前往訂單管理的「訂單」，在列表中勾選想要封存的訂單，即可批量封存',
+    },
+    {
+        tags: ['訂單'],
+        keywords: ['解除封存'],
+        response: '請前往訂單管理的「已封存訂單」，在列表中勾選想要解除封存的訂單，即可批量解除封存',
+    },
+    {
+        tags: ['訂單'],
+        keywords: ['搜尋', '查詢', '篩選', '排序'],
+        response: '請前往訂單管理的「訂單」，在列表左上方可以根據訂單編號、訂購人姓名、商品名稱等進行關鍵字搜尋，也可以在右上選擇篩選和排序，可以做到更仔細的訂單查詢',
+    },
+    {
+        tags: ['訂單'],
+        keywords: ['訂單狀態', '出貨狀態', '付款狀態'],
+        response: '請前往訂單管理的「訂單」，點擊任一訂單，在右上角有出貨狀態、付款狀態、訂單進度的顯示，也可以在詳細訂單中查看更多內容',
+    },
+    {
+        tags: ['訂單'],
+        keywords: ['匯出檔案', 'excel', 'xlsx'],
+        response: '請前往訂單管理的「訂單」，點擊右上角「匯出」即匯出當前搜尋結果的訂單excel檔案',
+    },
+    {
+        tags: ['商品'],
+        keywords: ['新增'],
+        response: '請前往商品管理的「商品列表」，點擊右上角「新增」即可新增商品',
+    },
+    {
+        tags: ['商品'],
+        keywords: ['匯入檔案', '匯出檔案', 'excel', 'xlsx'],
+        response: '請前往商品管理的「商品列表」，點擊右上角「匯入」或「匯出」，即可匯入多個商品，或匯出當前搜尋結果的商品excel檔案',
+    },
+    {
+        tags: ['商品'],
+        keywords: ['上架', '下架'],
+        response: '請前往商品管理的「商品列表」，可直接在列表上下架商品，或勾選多個商品後，點擊「更多操作」來批量更改',
+    },
+    {
+        tags: ['商品'],
+        keywords: ['搜尋', '查詢', '篩選', '排序'],
+        response: '請前往商品管理的「商品列表」，在列表左上方可以根據商品名稱、SKU、商品條碼等進行關鍵字搜尋，也可以在右上選擇篩選和排序，可以做到更仔細的商品查詢',
+    },
+    {
+        tags: ['商品'],
+        keywords: ['規格', '顏色', '尺寸', '大小', '長寬', '型號'],
+        response: '請前往商品管理的「商品列表」，點擊任一商品，往下找到「商品規格」欄位，可以新增與編輯規格種類，下方「規格設定」將會顯示所有商品規格的組合',
+    },
+    {
+        tags: ['商品'],
+        keywords: ['狀態'],
+        response: '請前往商品管理的「商品列表」，點擊任一商品，「商品狀態」在右上角，「啟用」為在前台公布並開放購買，「草稿」則在前台暫時不公布也不可購買',
+    },
+    {
+        tags: ['商品'],
+        keywords: ['定價', '價格', '成本'],
+        response: '請前往商品管理的「商品列表」，點擊任一商品，若有多個規格請點擊任一規格，往下找到「定價」欄位，「販售價格」為消費者商品購買金額，「比較價格」為較高價格的售價，可依照銷售策略訂定您想要的價格',
+    },
+    {
+        tags: ['商品'],
+        keywords: ['運費', '材積', '重量'],
+        response: '請前往商品管理的「商品列表」，點擊任一商品，若有多個規格請點擊任一規格，往下找到「運費計算」欄位，可針對商品的運費計算方式選擇依照「材積」、「重量」或不計算，並在下方填入商品的單位值，隨後會依照商店設定中「運費設定」的級距後，計算出消費者購物車的運費總金額',
+    },
+];
 //# sourceMappingURL=ai.js.map

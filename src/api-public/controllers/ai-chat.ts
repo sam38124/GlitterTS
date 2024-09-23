@@ -1,25 +1,24 @@
-import express from "express";
-import {Chat, ChatRoom} from "../services/chat";
-import response from "../../modules/response.js";
-import {UtDatabase} from "../utils/ut-database.js";
-import {UtPermission} from "../utils/ut-permission.js";
-import db from "../../modules/database.js";
-import exception from "../../modules/exception.js";
-import tool from "../../modules/tool.js"
-import OpenAI from "openai";
-import fs from "fs";
-import {Shopping} from "../services/shopping.js";
-import * as util from "node:util";
-import moment from "moment";
-import {Private_config} from "../../services/private_config.js";
+import express from 'express';
+import { Chat, ChatRoom } from '../services/chat';
+import response from '../../modules/response.js';
+import { UtDatabase } from '../utils/ut-database.js';
+import { UtPermission } from '../utils/ut-permission.js';
+import db from '../../modules/database.js';
+import exception from '../../modules/exception.js';
+import tool from '../../modules/tool.js';
+import OpenAI from 'openai';
+import fs from 'fs';
+import { Shopping } from '../services/shopping.js';
+import * as util from 'node:util';
+import moment from 'moment';
+import { Private_config } from '../../services/private_config.js';
 
 const router: express.Router = express.Router();
 
 export = router;
 
-
 router.post('/sync-data', async (req: express.Request, resp: express.Response) => {
-    const file1=tool.randomString(10)+'.json'
+    const file1 = tool.randomString(10) + '.json';
     const openai = new OpenAI({
         apiKey: process.env.OPENAI_API_KEY,
     });
@@ -32,17 +31,19 @@ router.post('/sync-data', async (req: express.Request, resp: express.Response) =
                     key: 'ai_config',
                 })
             )[0] ?? {
-                value:{
-                    order_files:'',
-                    messageThread:''
-                }
+                value: {
+                    order_files: '',
+                    messageThread: '',
+                },
             }
         ).value;
-        (await new Shopping(req.get('g-app') as string, req.body.token).getCheckOut({
-            page: 0,
-            limit: 5000,
-            shipment: req.query.shipment as string,
-        })).data.map((order: any) => {
+        (
+            await new Shopping(req.get('g-app') as string, req.body.token).getCheckOut({
+                page: 0,
+                limit: 5000,
+                shipment: req.query.shipment as string,
+            })
+        ).data.map((order: any) => {
             const orderData = order.orderData;
             exportData.push({
                 訂單編號: order.cart_token,
@@ -93,15 +94,15 @@ router.post('/sync-data', async (req: express.Request, resp: express.Response) =
                 訂單折扣: orderData.discount,
                 訂單使用購物金: orderData.use_rebate,
                 訂單總計: orderData.total,
-                購買商品列表:orderData.lineItems.map((item: any) => {
+                購買商品列表: orderData.lineItems.map((item: any) => {
                     return {
                         商品名稱: item.title,
                         商品規格: item.spec.length > 0 ? item.spec.join(' / ') : '單一規格',
                         商品SKU: item.sku ?? '',
                         商品購買數量: item.count,
                         商品價格: item.sale_price,
-                        商品折扣: item.discount_price
-                    }
+                        商品折扣: item.discount_price,
+                    };
                 }),
                 // value by user
                 顧客姓名: orderData.customer_info.name,
@@ -112,36 +113,36 @@ router.post('/sync-data', async (req: express.Request, resp: express.Response) =
                 收件人信箱: orderData.user_info.email,
                 備註: orderData.user_info.note ?? '',
             });
-        })
+        });
         //寫入
-        fs.writeFileSync(file1,JSON.stringify(exportData))
+        fs.writeFileSync(file1, JSON.stringify(exportData));
         //上傳訂單數據檔案
         const file = await openai.files.create({
             file: fs.createReadStream(file1),
-            purpose: "fine-tune",
+            purpose: 'fine-tune',
         });
-        fs.rmSync(file1)
-        if(!cf.messageThread){
-            cf.messageThread=(await openai.beta.threads.create()).id
+        fs.rmSync(file1);
+        if (!cf.messageThread) {
+            cf.messageThread = (await openai.beta.threads.create()).id;
         }
         await new Private_config(req.body.token).setConfig({
-            appName:req.get('g-app') as string,
-            key:'ai_config',
-            value:{
-                order_files:file.id,
-                messageThread:cf.messageThread
-            }
-        })
+            appName: req.get('g-app') as string,
+            key: 'ai_config',
+            value: {
+                order_files: file.id,
+                messageThread: cf.messageThread,
+            },
+        });
         return response.succ(resp, {
-            result: true, data: file.id
+            result: true,
+            data: file.id,
         });
     } catch (err) {
-        console.log(err)
-        fs.rmSync(file1)
+        console.log(err);
+        fs.rmSync(file1);
         return response.fail(resp, err);
     }
-})
-
+});
 
 function convertToJsonLine(inputFile: string, outputFile: string) {
     return new Promise((resolve, reject) => {
@@ -168,13 +169,12 @@ function convertToJsonLine(inputFile: string, outputFile: string) {
             fs.writeFile(outputFile, jsonlData, 'utf8', (err) => {
                 if (err) {
                     console.error(`Error writing file: ${err}`);
-                    reject()
+                    reject();
                 } else {
-                    resolve(true)
+                    resolve(true);
                     console.log(`File has been converted to ${outputFile}`);
                 }
             });
         });
-    })
-
+    });
 }
