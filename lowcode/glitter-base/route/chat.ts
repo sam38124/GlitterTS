@@ -123,6 +123,8 @@ export class Chat {
         })
     }
 
+
+
 }
 
 function getConfig() {

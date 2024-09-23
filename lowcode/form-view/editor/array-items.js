@@ -63,6 +63,11 @@ export class ArrayItems {
                                         const edit_data = dd;
                                         const gvc_ref = (gvc.glitter.getUrlParameter('cms') !== 'true') ? gvc : window.parent.glitter.pageConfig[0].gvc;
                                         const pageEditor = (gvc.glitter.getUrlParameter('cms') === 'true') ? window.parent.glitter.share.NormalPageEditor : NormalPageEditor;
+                                        pageEditor.closeEvent = () => {
+                                            ((widget.bundle.refresh && widget.bundle.refresh) || (() => {
+                                                widget.refreshComponent();
+                                            }))();
+                                        };
                                         pageEditor.toggle({
                                             visible: true,
                                             view: gvc_ref.bindView(() => {

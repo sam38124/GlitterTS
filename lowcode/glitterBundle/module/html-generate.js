@@ -1819,7 +1819,7 @@ ${obj.gvc.bindView({
         }
     }
     static getEditorSelectSection(cf) {
-        if (cf.gvc.glitter.getUrlParameter('type') !== 'htmlEditor' && (window.glitter.getUrlParameter('type') !== 'find_idea')) {
+        if (cf.gvc.glitter.getUrlParameter('type') !== 'htmlEditor' && ((window.glitter.getUrlParameter('type') !== 'find_idea') || window.glitter.getUrlParameter('select_widget') === 'false')) {
             return ``;
         }
         function addWidgetEvent(direction, component) {

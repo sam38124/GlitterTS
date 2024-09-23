@@ -1,7 +1,7 @@
 import { GlobalUser } from '../../glitter-base/global/global-user.js';
 import { TriggerEvent } from '../../glitterBundle/plugins/trigger-event.js';
 import { BaseApi } from '../../glitterBundle/api/base.js';
-import { ShareDialog } from '../../dialog/ShareDialog.js';
+import { ShareDialog } from '../../glitterBundle/dialog/ShareDialog.js';
 
 TriggerEvent.createSingleEvent(import.meta.url, () => {
     return {

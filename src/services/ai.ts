@@ -18,7 +18,7 @@ export class Ai {
         // 上傳教學導引檔案
         const file = await openai.files.create({
             file: fs.createReadStream(file1),
-            purpose: 'fine-tune',
+            purpose: 'assistants',
         });
         Ai.files.guide = file.id;
         fs.rmSync(file1);
@@ -54,7 +54,7 @@ export class Ai {
             answer: '請前往訂單管理的「訂單」，點擊右上角「匯出」即匯出當前搜尋結果的訂單excel檔案',
         },
         {
-            question: ['請問要如何新增商品？', '新增商品該怎麼做？', '新增商品在哪？'],
+            question: ['請問要如何新增商品？', '新增商品該怎麼做？', '新增商品在哪？','新增商品'],
             answer: '請前往商品管理的「商品列表」，點擊右上角「新增」即可新增商品',
         },
         {

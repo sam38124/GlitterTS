@@ -9,7 +9,20 @@ export class AiChat {
                 "Content-Type": "application/json",
                 "g-app": json.app_name || getConfig().config.appName,
                 "Authorization": GlobalUser.token
-            }
+            },
+            "data": JSON.stringify(json)
+        });
+    }
+    static reset(json) {
+        return BaseApi.create({
+            "url": getBaseUrl() + `/api-public/v1/ai/reset`,
+            "type": "DELETE",
+            "headers": {
+                "Content-Type": "application/json",
+                "g-app": json.app_name || getConfig().config.appName,
+                "Authorization": GlobalUser.token
+            },
+            "data": JSON.stringify(json)
         });
     }
 }

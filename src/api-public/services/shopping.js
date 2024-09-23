@@ -828,11 +828,12 @@ class Shopping {
             const return_url = new URL(data.return_url);
             return_url.searchParams.set('cart_token', carData.orderID);
             await redis_js_1.default.setValue(id, return_url.href);
-            if (['FAMIC2C', 'UNIMARTC2C', 'HILIFEC2C', 'OKMARTC2C'].includes(carData.user_info.LogisticsSubType)) {
-                const keyData = (await private_config_js_1.Private_config.getConfig({
-                    appName: this.app,
-                    key: 'glitter_delivery',
-                }))[0].value;
+            const del_config = (await private_config_js_1.Private_config.getConfig({
+                appName: this.app,
+                key: 'glitter_delivery',
+            }))[0];
+            if (['FAMIC2C', 'UNIMARTC2C', 'HILIFEC2C', 'OKMARTC2C'].includes(carData.user_info.LogisticsSubType) && del_config) {
+                const keyData = del_config.value;
                 console.log(`超商物流單 開始建立（使用${keyData.Action === 'main' ? '正式' : '測試'}環境）`);
                 const delivery = await new delivery_js_1.Delivery(this.app).postStoreOrder({
                     LogisticsSubType: carData.user_info.LogisticsSubType,

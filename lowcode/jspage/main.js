@@ -30,6 +30,7 @@ import { BgCustomerMessage } from '../backend-manager/bg-customer-message.js';
 import { BgGuide } from "../backend-manager/bg-guide.js";
 import { ApiShop } from "../glitter-base/route/shopping.js";
 import { ShareDialog } from "../glitterBundle/dialog/ShareDialog.js";
+import { SearchIdea } from "../editor/search-idea.js";
 const html = String.raw;
 const editorContainerID = `HtmlEditorContainer`;
 init(import.meta.url, (gvc, glitter, gBundle) => {
@@ -616,6 +617,7 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
 function initialEditor(gvc, viewModel) {
     var _a;
     const glitter = gvc.glitter;
+    glitter.share.SearchIdea = SearchIdea;
     glitter.share.editorViewModel = viewModel;
     localStorage.setItem('editor_mode', localStorage.getItem('editor_mode') || 'user');
     const swal = new Swal(gvc);

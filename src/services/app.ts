@@ -37,7 +37,7 @@ export class App {
     public async createApp(cf: { appName: string; copyApp: string; copyWith: string[]; brand: string; name?: string; theme?: string; sub_domain: string }) {
         try {
             cf.copyWith = cf.copyWith ?? [];
-            cf.sub_domain=cf.sub_domain.replace(/./g,'')
+            cf.sub_domain=cf.sub_domain.replace(/\./g,'')
             const count = await db.execute(
                 `
                     select count(1)

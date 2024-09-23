@@ -15,6 +15,7 @@ import OpenAI from 'openai';
 import moment from 'moment/moment.js';
 import { Private_config } from '../../services/private_config.js';
 import { Ai } from '../../services/ai.js';
+import {AiRobot} from "./ai-robot.js";
 
 export interface ChatRoom {
     chat_id: string;
@@ -38,6 +39,7 @@ export class Chat {
 
     public async addChatRoom(room: ChatRoom) {
         try {
+            console.log(`room.participant==>`,room.participant)
             if (room.type === 'user') {
                 room.chat_id = room.participant.sort().join('-');
             } else {
@@ -79,6 +81,9 @@ export class Chat {
                             },
                         ]
                     );
+                    await db.query(`delete from \`${this.app}\`.\`t_chat_last_read\` where user_id=? and chat_id=?`,[
+                        b,  room.chat_id
+                    ])
                     await db.query(
                         `
                         insert into \`${this.app}\`.\`t_chat_last_read\`
@@ -229,9 +234,21 @@ export class Chat {
             for (const b of particpant) {
                 //發送通知
                 if (b.user_id !== room.user_id) {
-                    //AI問答
-                    if (b.user_id === 'robot') {
-                        const response = await this.askAI(room.message.text);
+                    //訂單分析
+                    if (['writer' ,'order_analysis' , 'operation_guide'].includes(b.user_id)) {
+                        const response = await new Promise(async (resolve, reject)=>{
+                            switch (b.user_id){
+                                case 'writer':
+                                    resolve(await AiRobot.writer(this.app,room.message.text))
+                                    return
+                                case 'order_analysis':
+                                    resolve(await AiRobot.orderAnalysis(this.app,room.message.text))
+                                    return
+                                case 'operation_guide':
+                                    resolve(await AiRobot.guide(this.app,room.message.text))
+                                    return
+                            }
+                        })
                         const insert = await db.query(
                             `
                                     insert into \`${this.app}\`.\`t_chat_detail\`
@@ -544,64 +561,7 @@ export class Chat {
         );
     }
 
-    //AI問答功能
-    public async askAI(question: string) {
-        let cf = (
-            (
-                await Private_config.getConfig({
-                    appName: this.app,
-                    key: 'ai_config',
-                })
-            )[0] ?? {
-                value: {
-                    order_files: '',
-                    messageThread: '',
-                },
-            }
-        ).value;
-        const openai = new OpenAI({
-            apiKey: process.env.OPENAI_API_KEY,
-        });
-        //創建客服小姐
-        const query = `現在時間為${moment().tz('Asia/Taipei').format('YYYY/MM/DD HH:mm:ss')}，你擔任的是一個電商後台的AI機器人，能協助處理任何問題。
 
-所有問答只需要回傳結果就好，不需要顯示code_interpreter與解釋程式碼。
-
-我會提供你2個檔案，第一個檔案是訂單列表，第二個檔案是操作導引。
-
-訂單列表: 用來做訂單分析的JSON陣列檔案，陣列中每個物件皆代表一份訂單，訂單中的購買商品列表是這個訂單中購買商品，會有一件或多件商品。使用者會查詢出貨狀態、付款狀態、收件人資訊、顧客資訊。
-
-操作導引: 用來做進行操作導引與關鍵字搜尋的JSON陣列檔案，其中包含question
-, answer欄位，當用戶提出的問題，先判斷問題性質包含了哪些question的可能，判斷question後，最後直接給予answer回答。
-
-如果用戶提問的內容跟這兩個檔案有關，請選擇檔案類型進行分析並回答結果。`;
-        const myAssistant = await openai.beta.assistants.create({
-            instructions: query,
-            name: '數據分析師',
-            tools: [{ type: 'code_interpreter' }],
-            tool_resources: {
-                code_interpreter: {
-                    file_ids: [cf.order_files, Ai.files.guide],
-                },
-            },
-            model: 'gpt-4o-mini',
-        });
-
-        //添加訊息
-        const threadMessages = await openai.beta.threads.messages.create(cf.messageThread, { role: 'user', content: question });
-        //建立數據流
-        const stream = await openai.beta.threads.runs.create(cf.messageThread, { assistant_id: myAssistant.id, stream: true });
-
-        let text = '';
-        for await (const event of stream) {
-            if (event.data && (event.data as any).content && (event.data as any).content[0] && (event.data as any).content[0].text) {
-                text = (event.data as any).content[0].text.value;
-            }
-        }
-        const regex = /【[^】]*】/g;
-        await openai.beta.assistants.del(myAssistant.id);
-        return text.replace(regex, '');
-    }
     constructor(app: string, token: IToken) {
         this.app = app;
         this.token = token;

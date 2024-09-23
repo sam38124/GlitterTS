@@ -1,4 +1,4 @@
-import { IToken } from "../models/Auth.js";
+import { IToken } from '../models/Auth.js';
 export interface ChatRoom {
     chat_id: string;
     type: 'user' | 'group';
@@ -41,6 +41,5 @@ export declare class Chat {
     }>;
     unReadMessage(user_id: string): Promise<any>;
     unReadMessageCount(user_id: string): Promise<any>;
-    askAI(question: string): Promise<string>;
     constructor(app: string, token: IToken);
 }
