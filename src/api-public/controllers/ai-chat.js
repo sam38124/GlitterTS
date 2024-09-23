@@ -108,7 +108,6 @@ router.post('/sync-data', async (req, resp) => {
             });
         });
         fs_1.default.writeFileSync(file1, JSON.stringify(exportData));
-        return;
         const file = await openai.files.create({
             file: fs_1.default.createReadStream(file1),
             purpose: 'fine-tune',
