@@ -57,15 +57,6 @@ router.post('/storeMaps', async (req, resp) => {
         return response_1.default.fail(resp, err);
     }
 });
-router.post('/createStoreOrder', async (req, resp) => {
-    try {
-        const result = await new delivery_js_1.Delivery(req.get('g-app')).postStoreOrder();
-        return response_1.default.succ(resp, result);
-    }
-    catch (err) {
-        return response_1.default.fail(resp, err);
-    }
-});
 router.post('/printOrderInfo', async (req, resp) => {
     try {
         const formString = await new delivery_js_1.Delivery(req.get('g-app')).printOrderInfo({

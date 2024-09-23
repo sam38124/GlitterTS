@@ -11,17 +11,6 @@ export class ApiDelivery {
             data: JSON.stringify(json),
         });
     }
-    static createStoreOrder() {
-        return BaseApi.create({
-            url: getBaseUrl() + `/api-public/v1/delivery/createStoreOrder`,
-            type: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'g-app': getConfig().config.appName,
-                Authorization: getConfig().config.token,
-            },
-        });
-    }
     static getOrderInfo(json) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/delivery/printOrderInfo`,

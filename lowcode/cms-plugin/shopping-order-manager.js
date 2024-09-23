@@ -160,6 +160,7 @@ export class ShoppingOrderManager {
                                         const exportData = [];
                                         const firstRow = [
                                             '訂單編號',
+                                            '訂單來源',
                                             '訂單建立時間',
                                             '會員信箱',
                                             '訂單處理狀態',
@@ -191,8 +192,9 @@ export class ShoppingOrderManager {
                                                 var _a, _b, _c;
                                                 exportData.push({
                                                     訂單編號: order.cart_token,
+                                                    訂單來源: orderData.orderSource === 'POS' ? 'POS' : '手動',
                                                     訂單建立時間: glitter.ut.dateFormat(new Date(order.created_time), 'yyyy-MM-dd hh:mm:ss'),
-                                                    會員信箱: (_a = order.email) !== null && _a !== void 0 ? _a : 'none',
+                                                    會員信箱: (_a = order.email) !== null && _a !== void 0 ? _a : 'no-email',
                                                     訂單處理狀態: (() => {
                                                         var _a;
                                                         switch ((_a = orderData.orderStatus) !== null && _a !== void 0 ? _a : '0') {

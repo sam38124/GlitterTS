@@ -58,15 +58,6 @@ router.post('/storeMaps', async (req: express.Request, resp: express.Response) =
     }
 });
 
-router.post('/createStoreOrder', async (req: express.Request, resp: express.Response) => {
-    try {
-        const result = await new Delivery(req.get('g-app') as string).postStoreOrder();
-        return response.succ(resp, result);
-    } catch (err) {
-        return response.fail(resp, err);
-    }
-});
-
 router.post('/printOrderInfo', async (req: express.Request, resp: express.Response) => {
     try {
         const formString = await new Delivery(req.get('g-app') as string).printOrderInfo({
