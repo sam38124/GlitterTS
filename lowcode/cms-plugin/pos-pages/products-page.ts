@@ -141,14 +141,9 @@ export class ProductsPage {
                                                                       onclick="${gvc.event((e, event) => {
                                                                           event.stopPropagation();
                                                                       })}">
-                                                                     <i class="fa-regular fa-circle-xmark fs-1 position-absolute "
-                                                                        style="top:5px;right: 5px;"
-                                                                        onclick="${gvc.event(() => {
-                                                                            gvc.glitter.closeDiaLog()
-                                                                        })}"></i>
                                                                      <div class="w-100 d-block d-sm-flex flex-column flex-sm-row m"
                                                                           style="gap:24px;">
-                                                                         <div class="rounded-3"
+                                                                         <div class="rounded-3 d-none"
                                                                               style="${(document.body.offsetWidth < 800) ? `width: 100%;padding-bottom:100%;` : `width: 204px;height: 204px;`}background: 50%/cover url('${(selectVariant.preview_image.length > 1) ? selectVariant.preview_image : data.content.preview_image[0]}');"></div>
                                                                          <div class="d-flex flex-column flex-fill justify-content-center">
                                                                              <div style="font-size: 24px;font-weight: 700;">
@@ -197,7 +192,7 @@ export class ProductsPage {
                                                                                      }
                                                                                  },
                                                                                  divCreate: {
-                                                                                     style: `gap:8px;margin-bottom:24px;margin-top:16px;`,
+                                                                                     style: `gap:8px;margin-bottom:${data.content.specs.length ? `24px`:`0px`};margin-top:16px;`,
                                                                                      class: `d-flex flex-column`
                                                                                  }
                                                                              })}
@@ -206,8 +201,9 @@ export class ProductsPage {
                                                                                  return {
                                                                                      bind: 'count_bt',
                                                                                      view: () => {
-                                                                                         if (count > 1 && selectVariant.stock < count) {
+                                                                                         if (count > 1 && selectVariant.stock < count && !selectVariant.show_understocking) {
                                                                                              count = selectVariant.stock;
+                                                                                             
                                                                                              dialog.infoMessage({text: `此商品僅剩${selectVariant.stock}個庫存`})
                                                                                          }
                                                                                          return html`
@@ -251,7 +247,7 @@ export class ProductsPage {
                                                                                                      </svg>
                                                                                                  </div>
                                                                                              </div>
-                                                                                             <div class="d-flex mt-2 align-items-center justify-content-end">
+                                                                                             <div class="d-flex mt-2 align-items-center justify-content-end ${selectVariant.show_understocking ? `d-none`:``}">
                                                                                                  <span>庫存數量:${selectVariant.stock}</span>
                                                                                              </div>
                                                                                          `
@@ -265,57 +261,83 @@ export class ProductsPage {
                                                                              })}
                                                                          </div>
                                                                      </div>
-                                                                     ${
-                                                                             gvc.bindView(() => {
+                                                                     <div class="d-flex mt-4 justify-content-between" style="gap:10px;">
+                                                                         ${
+                                                                                 gvc.bindView(() => {
 
-                                                                                 return {
-                                                                                     bind: 'product_btn',
-                                                                                     view: () => {
-
-                                                                                         if (selectVariant.stock === 0) {
-                                                                                             return `尚無庫存`
-                                                                                         }
-                                                                                         return `加入購物車`
-                                                                                     },
-                                                                                     divCreate: () => {
-                                                                                         return {
-                                                                                             class: `d-flex align-items-center justify-content-center mt-4`,
-                                                                                             style: `padding: 12px 24px;font-size: 20px;color: #FFF;font-weight: 500;border-radius: 10px;background: ${(selectVariant.stock === 0) ? `#B8B8B8;` : `#393939;`}min-height: 58px;`,
-                                                                                             option: [
-                                                                                                 {
-                                                                                                     key: 'onclick',
-                                                                                                     value: gvc.event(() => {
-                                                                                                         let addItem = orderDetail.lineItems.find((item: any) => {
-                                                                                                             console.log(data)
-                                                                                                             console.log(item)
-                                                                                                             console.log(selectVariant)
-                                                                                                             return data.content.title == item.title && arraysEqual(item.spec, selectVariant.spec)
-                                                                                                         });
-                                                                                                         if (addItem) {
-                                                                                                             addItem.count += count;
-                                                                                                         } else {
-                                                                                                             orderDetail.lineItems.push({
-                                                                                                                 id: data.id,
-                                                                                                                 title: data.content.title,
-                                                                                                                 preview_image: (selectVariant.preview_image.length > 1) ? selectVariant.preview_image : data.content.preview_image[0],
-                                                                                                                 spec: selectVariant.spec,
-                                                                                                                 count: count,
-                                                                                                                 sale_price: selectVariant.sale_price,
-                                                                                                                 sku: selectVariant.sku
-                                                                                                             })
-                                                                                                         }
-if(document.querySelector('.js-cart-count')){
-    (document.querySelector('.js-cart-count') as any).recreateView()
-}
-                                                                                                         gvc.glitter.closeDiaLog()
-                                                                                                     })
-                                                                                                 }
-                                                                                             ]
+                                                                                     return {
+                                                                                         bind: 'close',
+                                                                                         view: () => {
+                                                                                             return `取消`
+                                                                                         },
+                                                                                         divCreate: () => {
+                                                                                             return {
+                                                                                                 class: `d-flex align-items-center justify-content-center`,
+                                                                                                 style: `flex:1;padding: 12px 24px;font-size: 20px;color: #FFF;font-weight: 500;border-radius: 10px;min-height: 58px;background:gray;`,
+                                                                                                 option: [
+                                                                                                     {
+                                                                                                         key: 'onclick',
+                                                                                                         value: gvc.event(() => {
+                                                                                                             gvc.glitter.closeDiaLog()
+                                                                                                         })
+                                                                                                     }
+                                                                                                 ]
+                                                                                             }
                                                                                          }
                                                                                      }
-                                                                                 }
-                                                                             })
-                                                                     }
+                                                                                 })
+                                                                         }
+                                                                         ${
+                                                                                 gvc.bindView(() => {
+
+                                                                                     return {
+                                                                                         bind: 'product_btn',
+                                                                                         view: () => {
+                                                                                             if (!selectVariant.show_understocking && selectVariant.stock === 0) {
+                                                                                                 return `尚無庫存`
+                                                                                             }
+                                                                                             return `加入購物車`
+                                                                                         },
+                                                                                         divCreate: () => {
+                                                                                             return {
+                                                                                                 class: `d-flex align-items-center justify-content-center`,
+                                                                                                 style: `flex:1;padding: 12px 24px;font-size: 20px;color: #FFF;font-weight: 500;border-radius: 10px;background: ${(!selectVariant.show_understocking && selectVariant.stock === 0) ? `#B8B8B8;` : `#393939;`}min-height: 58px;`,
+                                                                                                 option: [
+                                                                                                     {
+                                                                                                         key: 'onclick',
+                                                                                                         value: gvc.event(() => {
+                                                                                                             let addItem = orderDetail.lineItems.find((item: any) => {
+                                                                                                                 console.log(data)
+                                                                                                                 console.log(item)
+                                                                                                                 console.log(selectVariant)
+                                                                                                                 return data.content.title == item.title && arraysEqual(item.spec, selectVariant.spec)
+                                                                                                             });
+                                                                                                             if (addItem) {
+                                                                                                                 addItem.count += count;
+                                                                                                             } else {
+                                                                                                                 orderDetail.lineItems.push({
+                                                                                                                     id: data.id,
+                                                                                                                     title: data.content.title,
+                                                                                                                     preview_image: (selectVariant.preview_image.length > 1) ? selectVariant.preview_image : data.content.preview_image[0],
+                                                                                                                     spec: selectVariant.spec,
+                                                                                                                     count: count,
+                                                                                                                     sale_price: selectVariant.sale_price,
+                                                                                                                     sku: selectVariant.sku
+                                                                                                                 })
+                                                                                                             }
+                                                                                                             if(document.querySelector('.js-cart-count')){
+                                                                                                                 (document.querySelector('.js-cart-count') as any).recreateView()
+                                                                                                             }
+                                                                                                             gvc.glitter.closeDiaLog()
+                                                                                                         })
+                                                                                                     }
+                                                                                                 ]
+                                                                                             }
+                                                                                         }
+                                                                                     }
+                                                                                 })
+                                                                         }
+                                                                     </div>
                                                                  </div>
                                                              </div>`
                                                      }, divCreate: {class: `w-100 h-100 `}

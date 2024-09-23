@@ -69,7 +69,7 @@ RenderValue.custom_style = {
                 }
                 widget.data.setting.map((dd, index) => {
                     var _a;
-                    if (!dd.code_style) {
+                    if (dd.code_style === undefined) {
                         let style = '';
                         Object.defineProperty(dd, 'code_style', {
                             get: function () {

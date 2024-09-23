@@ -29,9 +29,11 @@ import { EditorConfig } from '../editor-config.js';
 import { BgCustomerMessage } from '../backend-manager/bg-customer-message.js';
 import { BgGuide } from "../backend-manager/bg-guide.js";
 import { ApiShop } from "../glitter-base/route/shopping.js";
+import { ShareDialog } from "../glitterBundle/dialog/ShareDialog.js";
 const html = String.raw;
 const editorContainerID = `HtmlEditorContainer`;
 init(import.meta.url, (gvc, glitter, gBundle) => {
+    glitter.share.loading_dialog = (new ShareDialog(gvc.glitter));
     const css = String.raw;
     gvc.addStyle(css `
         .hoverHidden div {
@@ -77,6 +79,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
     `);
     gvc.addStyle(css `
         .scroll-right-in {
+          
             right: -120%; /* 將元素移到畫面外 */
             animation: slideInRight 0.5s ease-out forwards;
         }
@@ -145,7 +148,12 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
     };
     function lod() {
         return __awaiter(this, void 0, void 0, function* () {
-            yield swal.loading('載入中...');
+            if (gvc.glitter.getUrlParameter('function') !== 'backend-manger') {
+                glitter.share.loading_dialog.dataLoading({ text: '模組加載中...', visible: true });
+            }
+            else {
+                yield swal.loading('載入中...');
+            }
             const waitGetData = [
                 () => __awaiter(this, void 0, void 0, function* () {
                     return yield new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
@@ -303,6 +311,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                     const waitSave = [
                         () => __awaiter(this, void 0, void 0, function* () {
                             let haveID = [];
+                            const config = JSON.parse(JSON.stringify(viewModel.data.config));
                             function getID(set) {
                                 set.map((dd) => {
                                     var _a;
@@ -325,7 +334,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                     }
                                 });
                             }
-                            getID(viewModel.data.config);
+                            getID(config);
                             if (glitter.share.editor_vm) {
                                 return new Promise((resolve, reject) => {
                                     resolve(true);
@@ -339,7 +348,7 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                         appName: gBundle.appName,
                                         tag: viewModel.data.tag,
                                         name: viewModel.data.name,
-                                        config: viewModel.data.config,
+                                        config: config,
                                         group: viewModel.data.group,
                                         page_config: viewModel.data.page_config,
                                         page_type: viewModel.data.page_type,
@@ -370,8 +379,8 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                         }
                     }
                     swal.close();
-                    viewModel.originalConfig = JSON.parse(JSON.stringify(viewModel.appConfig));
                     if (refresh) {
+                        viewModel.originalConfig = JSON.parse(JSON.stringify(viewModel.appConfig));
                         window.preloadData = {};
                         window.glitterInitialHelper.share = {};
                         lod();
@@ -587,7 +596,7 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
                             case 'backend-manger': {
                                 let bgGuide = new BgGuide(gvc, 0);
                                 ApiShop.getGuideable().then(r => {
-                                    if (!r.response.value) {
+                                    if (!r.response.value || !r.response.value.view) {
                                         bgGuide.drawGuide();
                                     }
                                 });
@@ -690,6 +699,13 @@ function initialEditor(gvc, viewModel) {
         }
     }
     glitter.share.addComponent = (data) => {
+        glitter.share.loading_dialog.dataLoading({ text: '模組添加中...', visible: true });
+        if (!viewModel.selectContainer) {
+            viewModel.selectContainer = glitter.share.editorViewModel.data.config;
+        }
+        if (!viewModel.selectContainer.container_config) {
+            viewModel.selectContainer.container_config = glitter.share.main_view_config;
+        }
         glitter.share.left_block_hover = true;
         AddComponent.toggle(false);
         resetId(data);
@@ -728,16 +744,21 @@ function initialEditor(gvc, viewModel) {
             });
             setTimeout(() => {
                 glitter.share.left_block_hover = false;
+                glitter.share.loading_dialog.dataLoading({ visible: false });
             }, 1000);
         }, 100);
         AddComponent.toggle(false);
         viewModel.selectContainer && viewModel.selectContainer.rerenderReplaceElem && viewModel.selectContainer.rerenderReplaceElem();
     };
     glitter.share.addWithIndex = (cf) => {
+        glitter.share.loading_dialog.dataLoading({ text: '模組添加中...', visible: true });
         glitter.share.left_block_hover = true;
         AddComponent.toggle(false);
         resetId(cf.data);
         const arrayData = glitter.share.findWidgetIndex(cf.index);
+        if (!arrayData.container.container_config) {
+            arrayData.container.container_config = glitter.share.main_view_config;
+        }
         const url = new URL(location.href);
         url.search = '';
         cf.data.js = cf.data.js.replace(url.href, './');
@@ -771,6 +792,7 @@ function initialEditor(gvc, viewModel) {
             });
             setTimeout(() => {
                 glitter.share.left_block_hover = false;
+                glitter.share.loading_dialog.dataLoading({ visible: false });
             }, 1000);
         }, 100);
         AddComponent.toggle(false);

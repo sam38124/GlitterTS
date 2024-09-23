@@ -117,7 +117,7 @@ router.put('/sub_domain', async (req: express.Request, resp: express.Response) =
         const app=new App(req.body.token);
         (await app.putSubDomain({
             app_name:req.body.app_name,
-            name:req.body.sub_domain
+            name:req.body.sub_domain.replace(/./g,'')
         }))
         return response.succ(resp, { result:true});
     } catch (err) {

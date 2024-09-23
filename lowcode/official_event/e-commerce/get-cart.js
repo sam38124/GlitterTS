@@ -11,6 +11,7 @@ import { TriggerEvent } from '../../glitterBundle/plugins/trigger-event.js';
 import { ApiShop } from '../../glitter-base/route/shopping.js';
 import { EditorElem } from '../../glitterBundle/plugins/editor-elem.js';
 import { GlobalUser } from '../../glitter-base/global/global-user.js';
+import { ApiCart } from "../../glitter-base/route/api-cart.js";
 TriggerEvent.createSingleEvent(import.meta.url, () => {
     return {
         fun: (gvc, widget, object, subData) => {
@@ -59,43 +60,62 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                     subData: subData,
                                 });
                             }
-                            : ApiShop.getCart)().then((res) => __awaiter(void 0, void 0, void 0, function* () {
+                            : (() => {
+                                return new Promise((resolve, reject) => {
+                                    setTimeout(() => {
+                                        resolve(ApiCart.cart);
+                                    });
+                                });
+                            }))().then((res) => __awaiter(void 0, void 0, void 0, function* () {
                             var _a;
                             const cartData = {
                                 line_items: [],
                                 total: 0,
                             };
-                            for (const b of Object.keys(res)) {
-                                cartData.line_items.push({
-                                    id: b.split('-')[0],
-                                    count: res[b],
-                                    spec: b.split('-').filter((dd, index) => {
-                                        return index !== 0;
-                                    }),
+                            if (res.line_items) {
+                                const cart = res;
+                                ApiShop.getCheckout(cart).then((res) => {
+                                    if (res.result) {
+                                        resolve(res.response.data);
+                                    }
+                                    else {
+                                        resolve([]);
+                                    }
                                 });
                             }
-                            const voucher = yield ApiShop.getVoucherCode();
-                            const rebate = (yield ApiShop.getRebateValue()) || 0;
-                            const distributionCode = (_a = localStorage.getItem('distributionCode')) !== null && _a !== void 0 ? _a : '';
-                            ApiShop.getCheckout({
-                                line_items: cartData.line_items.map((dd) => {
-                                    return {
-                                        id: dd.id,
-                                        spec: dd.spec,
-                                        count: dd.count,
-                                    };
-                                }),
-                                code: voucher,
-                                use_rebate: GlobalUser.token && parseInt(rebate, 10),
-                                distribution_code: distributionCode,
-                            }).then((res) => {
-                                if (res.result) {
-                                    resolve(res.response.data);
+                            else {
+                                for (const b of Object.keys(res)) {
+                                    cartData.line_items.push({
+                                        id: b.split('-')[0],
+                                        count: res[b],
+                                        spec: b.split('-').filter((dd, index) => {
+                                            return index !== 0;
+                                        }),
+                                    });
                                 }
-                                else {
-                                    resolve([]);
-                                }
-                            });
+                                const voucher = ApiCart.cart.code;
+                                const rebate = ApiCart.cart.use_rebate || 0;
+                                const distributionCode = (_a = localStorage.getItem('distributionCode')) !== null && _a !== void 0 ? _a : '';
+                                ApiShop.getCheckout({
+                                    line_items: cartData.line_items.map((dd) => {
+                                        return {
+                                            id: dd.id,
+                                            spec: dd.spec,
+                                            count: dd.count,
+                                        };
+                                    }),
+                                    code: voucher,
+                                    use_rebate: (GlobalUser.token && rebate) ? rebate : undefined,
+                                    distribution_code: distributionCode,
+                                }).then((res) => {
+                                    if (res.result) {
+                                        resolve(res.response.data);
+                                    }
+                                    else {
+                                        resolve([]);
+                                    }
+                                });
+                            }
                         }));
                     }));
                 },

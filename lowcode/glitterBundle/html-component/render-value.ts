@@ -68,7 +68,7 @@ export class RenderValue {
                     }
 
                     widget.data.setting.map((dd: any,index:number) => {
-                        if (!dd.code_style) {
+                        if (dd.code_style===undefined) {
                             let style = ''
                             Object.defineProperty(dd, 'code_style', {
                                 get: function () {

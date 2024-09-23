@@ -8,8 +8,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { TriggerEvent } from '../../glitterBundle/plugins/trigger-event.js';
-import { ApiShop } from '../../glitter-base/route/shopping.js';
 import { EditorElem } from '../../glitterBundle/plugins/editor-elem.js';
+import { ApiCart } from "../../glitter-base/route/api-cart.js";
 TriggerEvent.createSingleEvent(import.meta.url, () => {
     return {
         fun: (gvc, widget, object, subData, element) => {
@@ -33,13 +33,13 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                 },
                 event: () => {
                     return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
-                        const pdid = yield TriggerEvent.trigger({
+                        const pdid = (yield TriggerEvent.trigger({
                             gvc: gvc,
                             widget: widget,
                             clickEvent: object.pdid,
                             subData: subData,
                             element: element,
-                        });
+                        }));
                         const count = (yield TriggerEvent.trigger({
                             gvc: gvc,
                             widget: widget,
@@ -47,8 +47,9 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                             subData: subData,
                             element: element,
                         })) || 1;
-                        ApiShop.addToCart(pdid, count);
-                        ApiShop.getCart();
+                        ApiCart.addToCart(pdid.split('-')[0], pdid.split('-').filter((dd, index) => {
+                            return index > 0 && dd;
+                        }), count);
                         resolve(pdid);
                         for (const b of document.querySelectorAll('.shopping-cart')) {
                             b.recreateView();

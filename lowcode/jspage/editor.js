@@ -25,6 +25,7 @@ import { ApiUser } from '../glitter-base/route/user.js';
 import { GlobalUser } from '../glitter-base/global/global-user.js';
 import { Setting_editor } from './function-page/setting_editor.js';
 import { BgGuide } from "../backend-manager/bg-guide.js";
+import { AiMessage } from "../cms-plugin/ai-message.js";
 const html = String.raw;
 export var ViewType;
 (function (ViewType) {
@@ -591,6 +592,7 @@ ${glitter.getUrlParameter('tab') === 'page_manager' ? `d-none` : `${glitter.shar
                                                                             style="height:36px;width:36px;border-radius:10px;cursor:pointer;color:#151515;"
                                                                             onclick="${gvc.event(() => {
                                 Storage.view_type = dd.type;
+                                glitter.share.loading_dialog.dataLoading({ text: '模組加載中...', visible: true });
                                 gvc.notifyDataChange('HtmlEditorContainer');
                             })}"
                                                                     >
@@ -617,7 +619,7 @@ border-radius: 5px;
 border:none;
 color:white;"
                                                     onclick="${gvc.event(() => {
-                    glitter.htmlGenerate.saveEvent();
+                    glitter.htmlGenerate.saveEvent(false);
                 })}"
                                             >
                                                 儲存
@@ -662,7 +664,7 @@ background: ${EditorConfig.editor_layout.btn_background};
 color:white;
 "
                                                     onclick="${gvc.event(() => {
-                    glitter.htmlGenerate.saveEvent();
+                    glitter.htmlGenerate.saveEvent(false);
                 })}"
                                             >
                                                 儲存
@@ -671,16 +673,19 @@ color:white;
                             ${(() => {
                 if (Storage.select_function === 'backend-manger') {
                     return (html `
+                                                <div>${AiMessage.aiRobot({
+                        gvc: gvc,
+                        userID: 'manager',
+                        toUser: 'robot'
+                    })}</div>
                                                 <div
-                                                        class="ms-auto me-2 bt_orange"
+                                                        class="ms-auto me-2 bt_orange_lin"
+                                                        style=""
                                                         onclick="${gvc.event(() => {
-                        const url = new URL('', glitter.share.editorViewModel.domain ? `https://${glitter.share.editorViewModel.domain}/index` : location.href);
-                        url.searchParams.delete('type');
-                        url.searchParams.set('page', glitter.getUrlParameter('page'));
-                        glitter.openNewTab(url.href);
+                        AiMessage.toggle(true);
                     })}"
                                                 >
-                                                    前往商店
+                                                    <img src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sas0s9s0s1sesas0_1697354801736-Glitterlogo.png" class="me-2" style="width:24px;height: 24px;">AI助手
                                                 </div>
                                                 ${gvc.bindView(() => {
                         const id = gvc.glitter.getUUID();
@@ -698,7 +703,7 @@ color:white;
                                 let view = [
                                     html `
                                                                     <div
-                                                                            class="me-2 bt_orange position-relative"
+                                                                            class="me-2 bt_orange_lin position-relative"
                                                                             style="width: 42px;"
                                                                             onclick="${gvc.event(() => {
                                         toggle = !toggle;
@@ -778,7 +783,7 @@ color:white;
                                 return view.join('');
                             },
                             divCreate: {
-                                class: `position-relative`,
+                                class: `position-relative `,
                             },
                         };
                     })}

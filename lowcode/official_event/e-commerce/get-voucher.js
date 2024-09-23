@@ -8,7 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { TriggerEvent } from '../../glitterBundle/plugins/trigger-event.js';
-import { ApiShop } from "../../glitter-base/route/shopping.js";
+import { ApiCart } from "../../glitter-base/route/api-cart.js";
 TriggerEvent.createSingleEvent(import.meta.url, () => {
     return {
         fun: (gvc, widget, object, subData, element) => {
@@ -18,8 +18,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                 },
                 event: () => {
                     return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
-                        let code = yield ApiShop.getVoucherCode();
-                        resolve(code);
+                        resolve(ApiCart.cart.code);
                     }));
                 },
             };

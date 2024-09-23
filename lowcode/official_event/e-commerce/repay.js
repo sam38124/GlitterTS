@@ -9,6 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import { TriggerEvent } from '../../glitterBundle/plugins/trigger-event.js';
 import { ApiShop } from "../../glitter-base/route/shopping.js";
+import { ApiCart } from "../../glitter-base/route/api-cart.js";
 TriggerEvent.createSingleEvent(import.meta.url, () => {
     return {
         fun: (gvc, widget, object, subData) => {
@@ -46,7 +47,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                             const href = new URL(redirect, location.href);
                             ApiShop.repay(order_id, href.href).then((res) => {
                                 if (object.payType === 'offline' || res.response.off_line || res.response.is_free) {
-                                    ApiShop.clearCart();
+                                    ApiCart.clearCart();
                                     resolve(true);
                                     location.href = res.response.return_url;
                                 }
@@ -54,7 +55,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                     const id = gvc.glitter.getUUID();
                                     $('body').append(`<div id="${id}" style="display: none;">${res.response.form}</div>`);
                                     document.querySelector(`#${id} #submit`).click();
-                                    ApiShop.clearCart();
+                                    ApiCart.clearCart();
                                 }
                             });
                         }

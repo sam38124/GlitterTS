@@ -10,6 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import { TriggerEvent } from '../../glitterBundle/plugins/trigger-event.js';
 import { ApiShop } from '../../glitter-base/route/shopping.js';
 import { EditorElem } from '../../glitterBundle/plugins/editor-elem.js';
+import { ApiCart } from "../../glitter-base/route/api-cart.js";
 TriggerEvent.createSingleEvent(import.meta.url, () => {
     return {
         fun: (gvc, widget, object, subData) => {
@@ -117,7 +118,6 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                 },
                 event: () => {
                     return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
-                        var _a;
                         const userInfo = yield TriggerEvent.trigger({
                             gvc: gvc,
                             widget: widget,
@@ -147,9 +147,6 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                             line_items: [],
                             total: 0,
                         };
-                        const voucher = yield ApiShop.getVoucherCode();
-                        const rebate = (yield ApiShop.getRebateValue()) || 0;
-                        const distributionCode = (_a = localStorage.getItem('distributionCode')) !== null && _a !== void 0 ? _a : '';
                         function checkout() {
                             const href = new URL(redirect, location.href);
                             ApiShop.toCheckout({
@@ -163,14 +160,15 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                 customer_info: customer_info,
                                 return_url: href.href,
                                 user_info: userInfo,
-                                code: voucher,
-                                use_rebate: parseInt(rebate, 10),
+                                code: ApiCart.cart.code,
+                                use_rebate: ApiCart.cart.use_rebate,
                                 custom_form_format: custom_form_format,
                                 custom_form_data: custom_form_data,
-                                distribution_code: distributionCode,
+                                distribution_code: ApiCart.cart.distribution_code,
+                                give_away: ApiCart.cart.give_away
                             }).then((res) => {
                                 if (object.payType === 'offline' || res.response.off_line || res.response.is_free) {
-                                    ApiShop.clearCart();
+                                    ApiCart.clearCart();
                                     resolve(true);
                                     location.href = res.response.return_url;
                                 }
@@ -178,7 +176,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                     const id = gvc.glitter.getUUID();
                                     $('body').append(`<div id="${id}" style="display: none;">${res.response.form}</div>`);
                                     document.querySelector(`#${id} #submit`).click();
-                                    ApiShop.clearCart();
+                                    ApiCart.clearCart();
                                 }
                             });
                         }
@@ -220,27 +218,8 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                             checkout();
                         }
                         else {
-                            ApiShop.getCart().then((res) => __awaiter(void 0, void 0, void 0, function* () {
-                                for (const b of Object.keys(res)) {
-                                    try {
-                                        const pd = (yield ApiShop.getProduct({
-                                            limit: 50,
-                                            page: 0,
-                                            id: b.split('-')[0],
-                                        })).response.data.content;
-                                        const vard = pd.variants.find((d2) => {
-                                            return `${pd.id}-${d2.spec.join('-')}` === b;
-                                        });
-                                        vard.id = pd.id;
-                                        vard.count = res[b];
-                                        vard.title = pd.title;
-                                        cartData.line_items.push(vard);
-                                        cartData.total += vard.count * vard.sale_price;
-                                    }
-                                    catch (e) { }
-                                }
-                                checkout();
-                            }));
+                            cartData.line_items = ApiCart.cart.line_items;
+                            checkout();
                         }
                     }));
                 },

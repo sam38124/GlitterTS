@@ -261,6 +261,10 @@ TriggerEvent.create(import.meta.url, {
         title: '電子商務 / 加入購物車',
         fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/add-to-cart.js'),
     },
+    addToGive: {
+        title: '電子商務 / 加入贈品',
+        fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/add-to-gift.js'),
+    },
     updateToCart: {
         title: '電子商務 / 更新商品數量',
         fun: TriggerEvent.setEventRouter(import.meta.url, './e-commerce/update-cart.js'),
@@ -548,5 +552,5 @@ TriggerEvent.create(import.meta.url, {
     getBlogTag: {
         title: 'Blog / 標籤取得網誌',
         fun: TriggerEvent.setEventRouter(import.meta.url, './blog/get-blog-tag.js'),
-    },
+    }
 });

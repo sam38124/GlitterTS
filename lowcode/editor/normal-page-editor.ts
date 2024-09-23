@@ -27,7 +27,7 @@ export class NormalPageEditor {
                     $('#norViewHover').width(NormalPageEditor.viewArray[NormalPageEditor.viewArray.length - 1].width || 350);
                     return [
                         html` <div class="w-100 d-flex align-items-center p-3 border-bottom">
-                            <h5 class=" offcanvas-title  " style="">${NormalPageEditor.viewArray[NormalPageEditor.viewArray.length - 1].title}</h5>
+                            <h5 class="offcanvas-title  " style="max-width: calc(100% - 50px);overflow: hidden;text-overflow: ellipsis;">${NormalPageEditor.viewArray[NormalPageEditor.viewArray.length - 1].title}</h5>
                             <div class="flex-fill"></div>
                             <div
                                 class="fs-5 text-black"
@@ -77,7 +77,7 @@ export class NormalPageEditor {
                     });
                 })}"
             ></div>
-            <div id="norViewHover" class="position-fixed top-0 h-100 bg-white shadow-lg scroll-out" style="width:350px; z-index: 99999;">${NormalPageEditor.view(gvc)}</div>`;
+            <div id="norViewHover" class="position-fixed top-0 h-100 bg-white shadow-lg scroll-out" style="width:350px; z-index: 99999;max-width: 100vw;">${NormalPageEditor.view(gvc)}</div>`;
     }
 
     public static viewArray: any = [];

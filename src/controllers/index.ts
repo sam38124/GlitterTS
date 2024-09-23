@@ -9,6 +9,7 @@ import Logger from "../modules/logger";
 import _ from "underscore";
 import exception from "../modules/exception";
 import {IToken} from "../models/Auth.js";
+import {Ai} from "../services/ai.js";
 
 router.use('/api/*', doAuthAction);
 router.use(config.getRoute(config.route.user), require('./user'));

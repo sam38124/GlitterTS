@@ -7,7 +7,6 @@ const response_1 = __importDefault(require("../../modules/response"));
 const multer_1 = __importDefault(require("multer"));
 const exception_1 = __importDefault(require("../../modules/exception"));
 const database_js_1 = __importDefault(require("../../modules/database.js"));
-const crypto_1 = __importDefault(require("crypto"));
 const redis_js_1 = __importDefault(require("../../modules/redis.js"));
 const ut_database_js_1 = require("../utils/ut-database.js");
 const ut_permission_1 = require("../utils/ut-permission");
@@ -130,7 +129,8 @@ router.post('/checkout', async (req, resp) => {
             custom_form_format: req.body.custom_form_format,
             custom_form_data: req.body.custom_form_data,
             distribution_code: req.body.distribution_code,
-            code_array: req.body.code_array
+            code_array: req.body.code_array,
+            give_away: req.body.give_away
         }));
     }
     catch (err) {
@@ -165,7 +165,8 @@ router.post('/checkout/preview', async (req, resp) => {
             })(),
             checkOutType: req.body.checkOutType,
             distribution_code: req.body.distribution_code,
-            code_array: req.body.code_array
+            code_array: req.body.code_array,
+            give_away: req.body.give_away
         }, 'preview'));
     }
     catch (err) {
@@ -186,7 +187,7 @@ router.post('/manager/checkout', async (req, resp) => {
                 discount: req.body.discount,
                 total: req.body.total,
                 pay_status: req.body.pay_status,
-                code_array: req.body.code_array
+                code_array: req.body.code_array,
             }, 'manual'));
         }
         else {
@@ -213,7 +214,7 @@ router.post('/manager/checkout/preview', async (req, resp) => {
                         return 0;
                     }
                 })(),
-                code_array: req.body.code_array
+                code_array: req.body.code_array,
             }, 'manual-preview'));
         }
         else {
@@ -507,49 +508,34 @@ router.get('/testRelease', async (req, resp) => {
 });
 router.post('/notify', upload.single('file'), async (req, resp) => {
     try {
+        let decodeData = undefined;
         const appName = req.query['g-app'];
         const keyData = (await private_config_js_1.Private_config.getConfig({
             appName: appName,
             key: 'glitter_finance',
         }))[0].value;
-        const url = new URL(`https://covert?${req.body.toString()}`);
-        let decodeData = undefined;
         if (keyData.TYPE === 'ecPay') {
-            let params = {};
-            for (const b of url.searchParams.keys()) {
-                params[b] = url.searchParams.get(b);
-            }
-            let od = Object.keys(params)
-                .sort(function (a, b) {
-                return a.toLowerCase().localeCompare(b.toLowerCase());
-            })
-                .filter((dd) => {
-                return dd !== 'CheckMacValue';
-            })
-                .map((dd) => {
-                return `${dd.toLowerCase()}=${params[dd]}`;
-            });
-            let raw = od.join('&');
-            raw = financial_service_js_1.EcPay.urlEncode_dot_net(`HashKey=${keyData.HASH_KEY}&${raw.toLowerCase()}&HashIV=${keyData.HASH_IV}`);
-            const chkSum = crypto_1.default.createHash('sha256').update(raw.toLowerCase()).digest('hex');
+            const responseCheckMacValue = `${req.body.CheckMacValue}`;
+            delete req.body.CheckMacValue;
+            const chkSum = financial_service_js_1.EcPay.generateCheckMacValue(req.body, keyData.HASH_KEY, keyData.HASH_IV);
             decodeData = {
-                Status: url.searchParams.get('RtnCode') === '1' && url.searchParams.get('CheckMacValue').toLowerCase() === chkSum ? `SUCCESS` : `ERROR`,
+                Status: req.body.RtnCode === '1' && responseCheckMacValue === chkSum ? 'SUCCESS' : 'ERROR',
                 Result: {
-                    MerchantOrderNo: url.searchParams.get('MerchantTradeNo'),
-                    CheckMacValue: url.searchParams.get('CheckMacValue'),
+                    MerchantOrderNo: req.body.MerchantTradeNo,
+                    CheckMacValue: req.body.CheckMacValue,
                 },
             };
         }
-        else {
-            decodeData = JSON.parse(await new financial_service_js_1.EzPay(appName, {
+        if (keyData.TYPE === 'newWebPay') {
+            decodeData = JSON.parse(new financial_service_js_1.EzPay(appName, {
                 HASH_IV: keyData.HASH_IV,
                 HASH_KEY: keyData.HASH_KEY,
                 ActionURL: keyData.ActionURL,
-                NotifyURL: ``,
-                ReturnURL: ``,
+                NotifyURL: '',
+                ReturnURL: '',
                 MERCHANT_ID: keyData.MERCHANT_ID,
                 TYPE: keyData.TYPE,
-            }).decode(url.searchParams.get('TradeInfo')));
+            }).decode(req.body.TradeInfo));
         }
         if (decodeData['Status'] === 'SUCCESS') {
             await new shopping_1.Shopping(appName).releaseCheckout(1, decodeData['Result']['MerchantOrderNo']);
@@ -755,7 +741,7 @@ router.get('/product', async (req, resp) => {
             with_hide_index: req.query.with_hide_index,
             is_manger: (await ut_permission_1.UtPermission.isManager(req)),
             show_hidden: `${req.query.show_hidden}`,
-            productType: req.query.productType
+            productType: req.query.productType,
         });
         return response_1.default.succ(resp, shopping);
     }
@@ -889,7 +875,7 @@ router.post('/pos/checkout', async (req, resp) => {
             discount: req.body.discount,
             total: req.body.total,
             pay_status: req.body.pay_status,
-            code_array: req.body.code_array
+            code_array: req.body.code_array,
         }, 'POS'));
     }
     try {

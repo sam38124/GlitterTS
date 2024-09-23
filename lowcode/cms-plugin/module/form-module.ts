@@ -53,19 +53,26 @@ export class FormModule {
                 return {
                     bind: vm.id,
                     view: () => {
-                        return vm.data
-                            .map((dd: any, index: number) => {
-                                const opc = option.find((d1) => {
-                                    return d1.key === dd.page;
-                                })!;
-                                return html`<li class="w-100 border rounded-3 mb-2" style="overflow: hidden;">
+                        try {
+                            const view=vm.data
+                                .map((dd: any, index: number) => {
+                                    const opc = option.find((d1) => {
+                                        if(dd.page==='multiple_line_text'){
+                                            return d1.key === 'input';
+                                        }
+                                        return d1.key === dd.page;
+                                    })!;
+                                    if(!opc){
+                                        return  ``
+                                    }
+                                    return html`<li class="w-100 border rounded-3 mb-2" style="overflow: hidden;">
                                     <div
                                         class="d-flex align-items-center w-100 py-2"
                                         style="padding-left: 20px; padding-right: 20px;background: #F7F7F7;cursor: pointer;overflow: hidden;"
                                         onclick="${gvc.event(() => {
-                                            dd.toggle = !dd.toggle;
-                                            gvc.notifyDataChange(vm.id);
-                                        })}"
+                                        dd.toggle = !dd.toggle;
+                                        gvc.notifyDataChange(vm.id);
+                                    })}"
                                     >
                                         <i class="fa-sharp fa-solid fa-grip-dots-vertical me-3 dragItem "></i>
                                         ${opc.icon}${dd.title || opc.title}
@@ -76,253 +83,260 @@ export class FormModule {
                                         ? html`
                                               <div class="w-100 p-3">
                                                   ${(() => {
-                                                      switch (dd.page) {
-                                                          case 'multiple_line_text':
-                                                          case 'input':
-                                                              return [
-                                                                  EditorElem.select({
-                                                                      title: html`<div class="tx_normal fw-normal">資料類型</div>`,
-                                                                      gvc: gvc,
-                                                                      callback: (value) => {
-                                                                          dd.form_config.type = value;
-                                                                          if (value === 'textArea') {
-                                                                              dd.page = 'multiple_line_text';
-                                                                          } else {
-                                                                              dd.page = 'input';
-                                                                          }
-                                                                          update && update();
-                                                                          gvc.notifyDataChange(vm.id);
-                                                                      },
-                                                                      def: dd.form_config.type,
-                                                                      array: [
-                                                                          {
-                                                                              key: 'default',
-                                                                              name: '單行文字',
-                                                                              value: 'text',
-                                                                              visible: 'visible',
-                                                                          },
-                                                                          {
-                                                                              key: 'default',
-                                                                              name: '多行文字',
-                                                                              value: 'textArea',
-                                                                              visible: 'visible',
-                                                                          },
-                                                                          {
-                                                                              key: 'default',
-                                                                              name: '名稱',
-                                                                              value: 'name',
-                                                                              visible: 'visible',
-                                                                          },
-                                                                          {
-                                                                              key: 'default',
-                                                                              name: '日期',
-                                                                              value: 'date',
-                                                                              visible: 'visible',
-                                                                          },
-                                                                          {
-                                                                              key: 'default',
-                                                                              name: '時間',
-                                                                              value: 'time',
-                                                                              visible: 'visible',
-                                                                          },
-                                                                          {
-                                                                              key: 'default',
-                                                                              name: 'email',
-                                                                              value: 'email',
-                                                                              visible: 'visible',
-                                                                          },
-                                                                          {
-                                                                              key: 'default',
-                                                                              name: '電話',
-                                                                              value: 'phone',
-                                                                              visible: 'visible',
-                                                                          },
-                                                                          {
-                                                                              key: 'default',
-                                                                              name: '顏色',
-                                                                              value: 'color',
-                                                                              visible: 'visible',
-                                                                          },
-                                                                          {
-                                                                              key: 'default',
-                                                                              name: '數字',
-                                                                              value: 'number',
-                                                                              visible: 'visible',
-                                                                          },
-                                                                          {
-                                                                              key: 'default',
-                                                                              name: '地址',
-                                                                              value: 'address',
-                                                                              visible: 'visible',
-                                                                          },
-                                                                          {
-                                                                              key: 'default',
-                                                                              name: '密碼',
-                                                                              value: 'password',
-                                                                              visible: 'visible',
-                                                                          },
-                                                                      ].map((dd) => {
-                                                                          return {
-                                                                              title: dd.name,
-                                                                              value: dd.value,
-                                                                          };
-                                                                      }) as any,
-                                                                  }),
-                                                                  BgWidget.editeInput({
-                                                                      gvc: gvc,
-                                                                      title: '自訂欄位名稱',
-                                                                      default: dd.title || '',
-                                                                      callback: (text) => {
-                                                                          dd.title = text;
-                                                                          update && update();
-                                                                          gvc.notifyDataChange(vm.id);
-                                                                      },
-                                                                      placeHolder: '請輸入自訂欄位名稱',
-                                                                  }),
-                                                                  BgWidget.editeInput({
-                                                                      gvc: gvc,
-                                                                      title: '提示文字',
-                                                                      default: dd.form_config.place_holder || '',
-                                                                      callback: (text) => {
-                                                                          dd.form_config.place_holder = text;
-                                                                          update && update();
-                                                                          gvc.notifyDataChange(vm.id);
-                                                                      },
-                                                                      placeHolder: '請輸入關於這項欄位的描述或指引',
-                                                                  }),
-                                                                  BgWidget.multiCheckboxContainer(gvc, [{ key: 'true', name: '設定為必填項目' }], [`${dd.require ?? ''}` || 'false'], () => {
-                                                                      dd.require = !dd.require;
-                                                                      update && update();
-                                                                      gvc.notifyDataChange(vm.id);
-                                                                  }),
-                                                                  html`<div class="d-flex align-items-center justify-content-end">
+                                            switch (dd.page) {
+                                                case 'multiple_line_text':
+                                                case 'input':
+                                                    return [
+                                                        EditorElem.select({
+                                                            title: html`<div class="tx_normal fw-normal">資料類型</div>`,
+                                                            gvc: gvc,
+                                                            callback: (value) => {
+                                                                dd.form_config.type = value;
+                                                                if (value === 'textArea') {
+                                                                    dd.page = 'multiple_line_text';
+                                                                } else {
+                                                                    dd.page = 'input';
+                                                                }
+                                                                update && update();
+                                                                gvc.notifyDataChange(vm.id);
+                                                            },
+                                                            def: dd.form_config.type,
+                                                            array: [
+                                                                {
+                                                                    key: 'default',
+                                                                    name: '單行文字',
+                                                                    value: 'text',
+                                                                    visible: 'visible',
+                                                                },
+                                                                {
+                                                                    key: 'default',
+                                                                    name: '多行文字',
+                                                                    value: 'textArea',
+                                                                    visible: 'visible',
+                                                                },
+                                                                {
+                                                                    key: 'default',
+                                                                    name: '名稱',
+                                                                    value: 'name',
+                                                                    visible: 'visible',
+                                                                },
+                                                                {
+                                                                    key: 'default',
+                                                                    name: '日期',
+                                                                    value: 'date',
+                                                                    visible: 'visible',
+                                                                },
+                                                                {
+                                                                    key: 'default',
+                                                                    name: '時間',
+                                                                    value: 'time',
+                                                                    visible: 'visible',
+                                                                },
+                                                                {
+                                                                    key: 'default',
+                                                                    name: 'email',
+                                                                    value: 'email',
+                                                                    visible: 'visible',
+                                                                },
+                                                                {
+                                                                    key: 'default',
+                                                                    name: '電話',
+                                                                    value: 'phone',
+                                                                    visible: 'visible',
+                                                                },
+                                                                {
+                                                                    key: 'default',
+                                                                    name: '顏色',
+                                                                    value: 'color',
+                                                                    visible: 'visible',
+                                                                },
+                                                                {
+                                                                    key: 'default',
+                                                                    name: '數字',
+                                                                    value: 'number',
+                                                                    visible: 'visible',
+                                                                },
+                                                                {
+                                                                    key: 'default',
+                                                                    name: '地址',
+                                                                    value: 'address',
+                                                                    visible: 'visible',
+                                                                },
+                                                                {
+                                                                    key: 'default',
+                                                                    name: '密碼',
+                                                                    value: 'password',
+                                                                    visible: 'visible',
+                                                                },
+                                                            ].map((dd) => {
+                                                                return {
+                                                                    title: dd.name,
+                                                                    value: dd.value,
+                                                                };
+                                                            }) as any,
+                                                        }),
+                                                        BgWidget.editeInput({
+                                                            gvc: gvc,
+                                                            title: '自訂欄位名稱',
+                                                            default: dd.title || '',
+                                                            callback: (text) => {
+                                                                dd.title = text;
+                                                                update && update();
+                                                                gvc.notifyDataChange(vm.id);
+                                                            },
+                                                            placeHolder: '請輸入自訂欄位名稱',
+                                                        }),
+                                                        BgWidget.editeInput({
+                                                            gvc: gvc,
+                                                            title: '提示文字',
+                                                            default: dd.form_config.place_holder || '',
+                                                            callback: (text) => {
+                                                                dd.form_config.place_holder = text;
+                                                                update && update();
+                                                                gvc.notifyDataChange(vm.id);
+                                                            },
+                                                            placeHolder: '請輸入關於這項欄位的描述或指引',
+                                                        }),
+                                                        BgWidget.multiCheckboxContainer(gvc, [{ key: 'true', name: '設定為必填項目' }], [`${dd.require ?? ''}` || 'false'], () => {
+                                                            dd.require = !dd.require;
+                                                            update && update();
+                                                            gvc.notifyDataChange(vm.id);
+                                                        }),
+                                                        html`<div class="d-flex align-items-center justify-content-end">
                                                                       ${BgWidget.cancel(
-                                                                          gvc.event(() => {
-                                                                              const dialog = new ShareDialog(gvc.glitter);
-                                                                              dialog.checkYesOrNot({
-                                                                                  text: '是否確認刪除欄位?',
-                                                                                  callback: (response) => {
-                                                                                      if (response) {
-                                                                                          vm.data.splice(index, 1);
-                                                                                          update && update();
-                                                                                          gvc.notifyDataChange(vm.id);
-                                                                                      }
-                                                                                  },
-                                                                              });
-                                                                          }),
-                                                                          '刪除欄位'
-                                                                      )}
+                                                            gvc.event(() => {
+                                                                const dialog = new ShareDialog(gvc.glitter);
+                                                                dialog.checkYesOrNot({
+                                                                    text: '是否確認刪除欄位?',
+                                                                    callback: (response) => {
+                                                                        if (response) {
+                                                                            vm.data.splice(index, 1);
+                                                                            update && update();
+                                                                            gvc.notifyDataChange(vm.id);
+                                                                        }
+                                                                    },
+                                                                });
+                                                            }),
+                                                            '刪除欄位'
+                                                        )}
                                                                   </div>`,
-                                                              ].join('<div class="my-2"></div>');
-                                                          case 'form-select':
-                                                          case 'check_box':
-                                                          case 'mutiple_select':
-                                                              return [
-                                                                  BgWidget.editeInput({
-                                                                      gvc: gvc,
-                                                                      title: '自訂欄位名稱',
-                                                                      default: dd.title || '',
-                                                                      callback: (text) => {
-                                                                          dd.title = text;
-                                                                          update && update();
-                                                                          gvc.notifyDataChange(vm.id);
-                                                                      },
-                                                                      placeHolder: '請輸入自訂欄位名稱',
-                                                                  }),
-                                                                  html`
+                                                    ].join('<div class="my-2"></div>');
+                                                case 'form-select':
+                                                case 'check_box':
+                                                case 'mutiple_select':
+                                                    return [
+                                                        BgWidget.editeInput({
+                                                            gvc: gvc,
+                                                            title: '自訂欄位名稱',
+                                                            default: dd.title || '',
+                                                            callback: (text) => {
+                                                                dd.title = text;
+                                                                update && update();
+                                                                gvc.notifyDataChange(vm.id);
+                                                            },
+                                                            placeHolder: '請輸入自訂欄位名稱',
+                                                        }),
+                                                        html`
                                                                       <div class="tx_normal fw-normal mb-2">選項</div>
                                                                       ${gvc.bindView(() => {
-                                                                          const cVm = {
-                                                                              id: gvc.glitter.getUUID(),
-                                                                          };
-                                                                          return {
-                                                                              bind: cVm.id,
-                                                                              view: () => {
-                                                                                  return (
-                                                                                      dd.form_config.option
-                                                                                          .map((d1: any, index: number) => {
-                                                                                              return html`
+                                                            const cVm = {
+                                                                id: gvc.glitter.getUUID(),
+                                                            };
+                                                            return {
+                                                                bind: cVm.id,
+                                                                view: () => {
+                                                                    return (
+                                                                        dd.form_config.option
+                                                                            .map((d1: any, index: number) => {
+                                                                                return html`
                                                                                                   <div class="d-flex align-items-center mb-2" style="gap: 10px;">
                                                                                                       <input
                                                                                                           class="form-control flex-fill"
                                                                                                           placeholder="請輸入選項內容"
                                                                                                           value="${d1.name}"
                                                                                                           onchange="${gvc.event((e, event) => {
-                                                                                                              d1.value = e.value;
-                                                                                                              d1.name = e.value;
-                                                                                                              update && update();
-                                                                                                              gvc.notifyDataChange(cVm.id);
-                                                                                                          })}"
+                                                                                    d1.value = e.value;
+                                                                                    d1.name = e.value;
+                                                                                    update && update();
+                                                                                    gvc.notifyDataChange(cVm.id);
+                                                                                })}"
                                                                                                       />
                                                                                                       <i
                                                                                                           class="fa-solid fa-xmark"
                                                                                                           style="color:#8d8d8d;cursor: pointer; "
                                                                                                           onclick="${gvc.event(() => {
-                                                                                                              dd.form_config.option.splice(index, 1);
-                                                                                                              update && update();
-                                                                                                              gvc.notifyDataChange(cVm.id);
-                                                                                                          })}"
+                                                                                    dd.form_config.option.splice(index, 1);
+                                                                                    update && update();
+                                                                                    gvc.notifyDataChange(cVm.id);
+                                                                                })}"
                                                                                                       ></i>
                                                                                                   </div>
                                                                                               `;
-                                                                                          })
-                                                                                          .join('') +
-                                                                                      html` <div
+                                                                            })
+                                                                            .join('') +
+                                                                        html` <div
                                                                                           class=""
                                                                                           style="width: 100px; height: 34px; padding: 6px 18px;background: #EAEAEA; border-radius: 10px; overflow: hidden; justify-content: center; align-items: center; gap: 8px; display: inline-flex; cursor: pointer;"
                                                                                           onclick="${gvc.event(() => {
-                                                                                              dd.form_config.option.push({
-                                                                                                  index: 0,
-                                                                                                  name: '',
-                                                                                                  value: '',
-                                                                                              });
-                                                                                              update && update();
-                                                                                              gvc.notifyDataChange(cVm.id);
-                                                                                          })}"
+                                                                            dd.form_config.option.push({
+                                                                                index: 0,
+                                                                                name: '',
+                                                                                value: '',
+                                                                            });
+                                                                            update && update();
+                                                                            gvc.notifyDataChange(cVm.id);
+                                                                        })}"
                                                                                       >
                                                                                           <div style="color: #393939; font-size: 16px; font-family: Noto Sans; font-weight: 400; word-wrap: break-word">
                                                                                               新增選項
                                                                                           </div>
                                                                                       </div>`
-                                                                                  );
-                                                                              },
-                                                                          };
-                                                                      })}
+                                                                    );
+                                                                },
+                                                            };
+                                                        })}
                                                                   `,
-                                                                  BgWidget.multiCheckboxContainer(gvc, [{ key: 'true', name: '設定為必填項目' }], [`${dd.require ?? ''}` || 'false'], () => {
-                                                                      dd.require = !dd.require;
-                                                                      update && update();
-                                                                      gvc.notifyDataChange(vm.id);
-                                                                  }),
-                                                                  html`<div class="d-flex align-items-center justify-content-end">
+                                                        BgWidget.multiCheckboxContainer(gvc, [{ key: 'true', name: '設定為必填項目' }], [`${dd.require ?? ''}` || 'false'], () => {
+                                                            dd.require = !dd.require;
+                                                            update && update();
+                                                            gvc.notifyDataChange(vm.id);
+                                                        }),
+                                                        html`<div class="d-flex align-items-center justify-content-end">
                                                                       ${BgWidget.cancel(
-                                                                          gvc.event(() => {
-                                                                              const dialog = new ShareDialog(gvc.glitter);
-                                                                              dialog.checkYesOrNot({
-                                                                                  text: '是否確認刪除欄位?',
-                                                                                  callback: (response) => {
-                                                                                      if (response) {
-                                                                                          vm.data.splice(index, 1);
-                                                                                          gvc.notifyDataChange(vm.id);
-                                                                                          update && update();
-                                                                                      }
-                                                                                  },
-                                                                              });
-                                                                          }),
-                                                                          '刪除欄位'
-                                                                      )}
+                                                            gvc.event(() => {
+                                                                const dialog = new ShareDialog(gvc.glitter);
+                                                                dialog.checkYesOrNot({
+                                                                    text: '是否確認刪除欄位?',
+                                                                    callback: (response) => {
+                                                                        if (response) {
+                                                                            vm.data.splice(index, 1);
+                                                                            gvc.notifyDataChange(vm.id);
+                                                                            update && update();
+                                                                        }
+                                                                    },
+                                                                });
+                                                            }),
+                                                            '刪除欄位'
+                                                        )}
                                                                   </div>`,
-                                                              ].join('<div class="my-2"></div>');
-                                                          default:
-                                                              return '';
-                                                      }
-                                                  })()}
+                                                    ].join('<div class="my-2"></div>');
+                                                default:
+                                                    return '';
+                                            }
+                                        })()}
                                               </div>
                                           `
                                         : ''}
                                 </li>`;
-                            })
-                            .join('');
+                                })
+                                .join('')
+                            console.log(`vm.data`,view)
+                            return view;
+                        }catch (e) {
+                            console.log(e)
+                            return  e
+                        }
+
                     },
                     divCreate: {
                         elem: 'ul',

@@ -250,14 +250,14 @@ export class ApiShop {
         id?: string;
         collection?: string;
         accurate_search_collection?: boolean;
-        accurate_search_text?:boolean;
+        accurate_search_text?: boolean;
         maxPrice?: string;
         minPrice?: string;
         status?: string;
         orderBy?: string;
         id_list?: string;
         with_hide_index?: string;
-        productType?:string
+        productType?: string;
     }) {
         return BaseApi.create({
             url:
@@ -430,7 +430,14 @@ export class ApiShop {
         });
     }
 
-    static getVoucher(json: { limit: number; page: number; search?: string; id?: string; data_from?: 'user' | 'manager',voucher_type?:'rebate' | 'discount' | 'shipment_free' | 'add_on_items' | 'giveaway' }) {
+    static getVoucher(json: {
+        limit: number;
+        page: number;
+        search?: string;
+        id?: string;
+        data_from?: 'user' | 'manager';
+        voucher_type?: 'rebate' | 'discount' | 'shipment_free' | 'add_on_items' | 'giveaway';
+    }) {
         return BaseApi.create({
             url:
                 getBaseUrl() +
@@ -576,18 +583,6 @@ export class ApiShop {
         });
     }
 
-    static selectC2cMap(json: { returnURL: string; logistics: string }) {
-        return BaseApi.create({
-            url: getBaseUrl() + `/api-public/v1/delivery/c2cMap`,
-            type: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'g-app': getConfig().config.appName,
-            },
-            data: JSON.stringify(json),
-        });
-    }
-
     static toCheckout(json: {
         line_items: {
             id: number;
@@ -611,6 +606,7 @@ export class ApiShop {
         custom_form_format?: any;
         custom_form_data?: any;
         distribution_code?: string;
+        give_away?:any
     }) {
         return BaseApi.create({
             url: getBaseUrl() + `/api-public/v1/ec/checkout`,
@@ -754,69 +750,69 @@ export class ApiShop {
         });
     }
 
-    static getVoucherCode() {
-        const glitter = (window as any).glitter;
-        return new Promise((resolve, reject) => {
-            (window as any).glitter.getPro(ApiShop.voucherID, (response: any) => {
-                resolve(response.data);
-            });
-        });
-    }
+    // static getVoucherCode() {
+    //     const glitter = (window as any).glitter;
+    //     return new Promise((resolve, reject) => {
+    //         (window as any).glitter.getPro(ApiShop.voucherID, (response: any) => {
+    //             resolve(response.data);
+    //         });
+    //     });
+    // }
+    //
+    // static setVoucherCode(code: string) {
+    //     (window as any).glitter.setPro(ApiShop.voucherID, code, () => {});
+    // }
 
-    static setVoucherCode(code: string) {
-        (window as any).glitter.setPro(ApiShop.voucherID, code, () => {});
-    }
-
-    static setRebateValue(value: string) {
-        (window as any).glitter.setPro(ApiShop.rebateID, value, () => {});
-    }
-
-    static getRebateValue() {
-        const glitter = (window as any).glitter;
-        return new Promise((resolve, reject) => {
-            (window as any).glitter.getPro(ApiShop.rebateID, (response: any) => {
-                resolve(response.data);
-            });
-        });
-    }
+    // static setRebateValue(value: string) {
+    //     (window as any).glitter.setPro(ApiShop.rebateID, value, () => {});
+    // }
+    //
+    // static getRebateValue() {
+    //     const glitter = (window as any).glitter;
+    //     return new Promise((resolve, reject) => {
+    //         (window as any).glitter.getPro(ApiShop.rebateID, (response: any) => {
+    //             resolve(response.data);
+    //         });
+    //     });
+    // }
 
     static rebateID = 'asko323';
     static voucherID = 'voucxasw';
     static cartID = 'lemnoas';
 
-    static addToCart(id: string, count: string) {
-        (window as any).glitter.getPro(ApiShop.cartID, (response: any) => {
-            const cartData = response.data ? JSON.parse(response.data) : {};
-            cartData[id] = cartData[id] ?? 0;
-            cartData[id] += parseInt(count, 10);
-            (window as any).glitter.setPro(ApiShop.cartID, JSON.stringify(cartData), () => {});
-        });
-    }
+    // static addToCart(id: string, count: string) {
+    //     (window as any).glitter.getPro(ApiShop.cartID, (response: any) => {
+    //         const cartData = response.data ? JSON.parse(response.data) : {};
+    //         cartData[id] = cartData[id] ?? 0;
+    //         cartData[id] += parseInt(count, 10);
+    //         (window as any).glitter.setPro(ApiShop.cartID, JSON.stringify(cartData), () => {});
+    //     });
+    // }
 
-    static setToCart(id: string, count: string) {
-        (window as any).glitter.getPro(ApiShop.cartID, (response: any) => {
-            const cartData = response.data ? JSON.parse(response.data) : {};
-            if (parseInt(count, 10) === 0) {
-                cartData[id] = undefined;
-            } else {
-                cartData[id] = parseInt(count, 10);
-            }
-            (window as any).glitter.setPro(ApiShop.cartID, JSON.stringify(cartData), () => {});
-        });
-    }
+    // static setToCart(id: string, count: string) {
+    //     (window as any).glitter.getPro(ApiShop.cartID, (response: any) => {
+    //         const cartData = response.data ? JSON.parse(response.data) : {};
+    //         if (parseInt(count, 10) === 0) {
+    //             cartData[id] = undefined;
+    //         } else {
+    //             cartData[id] = parseInt(count, 10);
+    //         }
+    //         (window as any).glitter.setPro(ApiShop.cartID, JSON.stringify(cartData), () => {});
+    //     });
+    // }
+    //
+    // static clearCart() {
+    //     (window as any).glitter.setPro(ApiShop.cartID, JSON.stringify({}), () => {});
+    // }
 
-    static clearCart() {
-        (window as any).glitter.setPro(ApiShop.cartID, JSON.stringify({}), () => {});
-    }
-
-    static getCart() {
-        return new Promise((resolve, reject) => {
-            (window as any).glitter.getPro(ApiShop.cartID, (response: any) => {
-                const cartData = response.data ? JSON.parse(response.data) : {};
-                resolve(cartData);
-            });
-        });
-    }
+    // static getCart() {
+    //     return new Promise((resolve, reject) => {
+    //         (window as any).glitter.getPro(ApiShop.cartID, (response: any) => {
+    //             const cartData = response.data ? JSON.parse(response.data) : {};
+    //             resolve(cartData);
+    //         });
+    //     });
+    // }
 
     static ecDataAnalyze(tagArray: string[]) {
         return BaseApi.create({

@@ -155,20 +155,20 @@ init(import.meta.url, (gvc, glitter, gBundle) => {
                                 <div class="mt-3 mb-4 fs-6 text-center" style="white-space: normal; font-weight: 400; overflow-wrap: anywhere;">${gBundle.title}</div>
                                 <div class="d-flex " style="gap:14px;font-weight: 700;font-size: 16px;">
                                     <div
-                                        style="padding: 6px 18px;border-radius: 10px;border: 1px solid #DDD;background: #FFF;color: #393939;cursor: pointer;"
+                                        class="btn btn-snow"
                                         onclick="${gvc.event(() => {
                         gBundle.callback(false);
                     })}"
                                     >
-                                        取消
+                                        <span class="tx_700">取消</span>
                                     </div>
                                     <div
-                                        style="padding: 6px 18px;border-radius: 10px;background: #393939;color: #FFF;cursor: pointer;"
+                                        class="btn btn-black"
                                         onclick="${gvc.event(() => {
                         gBundle.callback(true);
                     })}"
                                     >
-                                        確定
+                                        <span class="tx_700_white">確定</span>
                                     </div>
                                 </div>
                             </div>

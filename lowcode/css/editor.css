@@ -411,6 +411,31 @@ ul {
     word-wrap: break-word;
 }
 
+.bt_orange_lin {
+    cursor: pointer;
+    height: 38px;
+    padding: 8px 15px;
+    border-radius: 8px;
+    border: 1px var(--main-orange) solid;
+    justify-content: center;
+    align-items: center;
+    display: inline-flex;
+    background: linear-gradient(135deg, var(--main-orange) 0%, #ff6c02 100%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.64px;
+    word-wrap: break-word;
+}
+.bt_orange_lin:hover{
+    background: linear-gradient(135deg, var(--main-orange) 0%, #ff6c02 100%);
+    color: white;
+    background-clip: unset;
+    -webkit-background-clip: unset;
+    -webkit-text-fill-color: unset;
+}
 .bt_c39 {
     border-radius: 10px;
     background: var(--main-black);
@@ -568,6 +593,21 @@ ul {
 
 .btn-snow:hover {
     background: var(--main-white-hover);
+}
+
+.btn-size-sm {
+    padding: 4px 12px;
+    gap: 4px;
+    height: 28px;
+    max-height: 28px;
+}
+
+.btn-size-lg {
+    padding: 8px 24px;
+    gap: 12px;
+    height: 52px;
+    max-height: 52px;
+    border-radius: 12px;
 }
 
 .bgw-input {
@@ -757,8 +797,8 @@ ul {
     border: 1px solid var(--background-4);
 }
 
-.c_fixed {
-    position: fixed;
+.c_absolute {
+    position: absolute;
     width: 250px;
     height: 300px;
     overflow-y: auto;
@@ -857,6 +897,14 @@ ul {
     top: 24px;
 }
 
+.sel_navbar {
+    display: flex;
+    width: 100%;
+    border-radius: 10px;
+    padding: 0 18px;
+    background: linear-gradient(0deg, #f7f7f7 0%, #f7f7f7 100%), #fff;
+}
+
 .sel_normal {
     cursor: pointer;
     border-radius: 7px;
@@ -939,6 +987,12 @@ ul {
 @media (max-width: 768px) {
     .c_select_w_100 {
         min-height: 42px;
+    }
+
+    .c_absolute {
+        width: 180px;
+        height: 250px;
+        padding: 18px;
     }
 
     .btn-gray,

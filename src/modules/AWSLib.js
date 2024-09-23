@@ -4,8 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.listBuckets = listBuckets;
-exports.createBucket = createBucket;
+exports.createBucket = exports.listBuckets = void 0;
 const logger_1 = __importDefault(require("./logger"));
 const aws_sdk_1 = __importDefault(require("aws-sdk"));
 const config_1 = __importDefault(require("../config"));
@@ -31,6 +30,7 @@ function listBuckets() {
         }
     });
 }
+exports.listBuckets = listBuckets;
 function createBucket(name) {
     const s3 = new aws_sdk_1.default.S3();
     var bucketParams = {
@@ -49,4 +49,5 @@ function createBucket(name) {
         });
     });
 }
+exports.createBucket = createBucket;
 //# sourceMappingURL=AWSLib.js.map

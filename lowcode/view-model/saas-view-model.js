@@ -143,10 +143,9 @@ export class SaasViewModel {
                                                                                                 </div>
                                                                                             </div>`,
                                                                         dd.store_permission_title === 'owner'
-                                                                            ? html ` <div class="p-0 me-3" style="width: 40px;">
+                                                                            ? html ` <div class="p-0 me-1" style="width: 40px;">
                                                                                                       <button
-                                                                                                          class="btn btn-sm bgf6 text-black w-100 me-2"
-                                                                                                          style="color: black; border-radius: 10px; box-shadow: 0px 0px 6px 0px rgba(0, 0, 0, 0.2); height: 28px"
+                                                                                                          class="btn btn-size-sm btn-snow text-dark"
                                                                                                           type="button"
                                                                                                           data-bs-toggle="dropdown"
                                                                                                           aria-haspopup="true"
@@ -220,13 +219,22 @@ export class SaasViewModel {
                                                                                                   </div>`
                                                                             : '',
                                                                         html ` <div>
-                                                                                                ${BgWidget.darkButton('更換商店', gvc.event(() => {
-                                                                            const url = new URL(gvc.glitter.root_path);
-                                                                            url.searchParams.set('type', 'editor');
-                                                                            url.searchParams.set('function', 'backend-manger');
-                                                                            url.searchParams.set('appName', dd.appName);
-                                                                            location.href = url.href;
-                                                                        }), { size: 'sm' })}
+                                                                                                ${BgWidget.customButton({
+                                                                            button: {
+                                                                                color: 'black',
+                                                                                size: 'sm',
+                                                                            },
+                                                                            text: {
+                                                                                name: '更換商店',
+                                                                            },
+                                                                            event: gvc.event(() => {
+                                                                                const url = new URL(gvc.glitter.root_path);
+                                                                                url.searchParams.set('type', 'editor');
+                                                                                url.searchParams.set('function', 'backend-manger');
+                                                                                url.searchParams.set('appName', dd.appName);
+                                                                                location.href = url.href;
+                                                                            }),
+                                                                        })}
                                                                                             </div>`,
                                                                     ];
                                                                     if (document.body.clientWidth > 768) {

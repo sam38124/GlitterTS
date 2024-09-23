@@ -21,6 +21,7 @@ const auto_send_email_js_1 = require("./auto-send-email.js");
 const recommend_js_1 = require("./recommend.js");
 const workers_js_1 = require("./workers.js");
 const axios_1 = __importDefault(require("axios"));
+const delivery_js_1 = require("./delivery.js");
 class Shopping {
     constructor(app, token) {
         this.app = app;
@@ -89,7 +90,7 @@ class Shopping {
                         querySql.push(`(${[
                             `(UPPER(JSON_UNQUOTE(JSON_EXTRACT(content, '$.title'))) LIKE UPPER('%${query.search}%'))`,
                             `JSON_EXTRACT(content, '$.variants[*].sku') LIKE '%${query.search}%'`,
-                            `JSON_EXTRACT(content, '$.variants[*].barcode') LIKE '%${query.search}%'`
+                            `JSON_EXTRACT(content, '$.variants[*].barcode') LIKE '%${query.search}%'`,
                         ].join(' or ')})`);
                         break;
                 }
@@ -353,7 +354,8 @@ class Shopping {
         });
     }
     async toCheckout(data, type = 'add', replace_order_id) {
-        var _a, _b, _c;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j;
+        console.log(`data.give_away=>`, data.give_away);
         try {
             if (replace_order_id) {
                 const orderData = (await database_js_1.default.query(`SELECT *
@@ -483,6 +485,7 @@ class Shopping {
                 custom_form_data: data.custom_form_data,
                 orderSource: data.checkOutType === 'POS' ? `POS` : ``,
                 code_array: data.code_array,
+                give_away: data.give_away,
             };
             function calculateShipment(dataList, value) {
                 if (value === 0) {
@@ -576,8 +579,7 @@ class Shopping {
                         }
                     }
                 }
-                catch (e) {
-                }
+                catch (e) { }
             }
             carData.shipment_fee = (() => {
                 let total_volume = 0;
@@ -624,25 +626,85 @@ class Shopping {
                 carData.lineItems = carData.lineItems.filter((dd) => {
                     return !add_on_items.includes(dd);
                 });
+                carData.lineItems = carData.lineItems.filter((dd) => {
+                    return !add_on_items.includes(dd);
+                });
                 await this.checkVoucher(carData);
-                console.log(`add_on_items==>`, add_on_items);
-                console.log(`carData.voucherList==>`, carData.voucherList);
                 add_on_items.map((dd) => {
                     var _a;
                     try {
                         if ((_a = carData.voucherList) === null || _a === void 0 ? void 0 : _a.find((d1) => {
-                            var _a;
-                            return d1.reBackType === 'add_on_items' && ((_a = d1.add_on_products) === null || _a === void 0 ? void 0 : _a.find((d2) => {
-                                return `${dd.id}` === `${d2}`;
-                            }));
+                            return (d1.reBackType === 'add_on_items' &&
+                                d1.add_on_products.find((d2) => {
+                                    return `${dd.id}` === `${d2}`;
+                                }));
                         })) {
                             carData.lineItems.push(dd);
                         }
                     }
-                    catch (e) {
-                    }
+                    catch (e) { }
                 });
                 await this.checkVoucher(carData);
+                const gift_product = [];
+                for (const dd of carData.voucherList.filter((dd) => {
+                    return dd.reBackType === 'giveaway';
+                })) {
+                    let index = -1;
+                    for (const b of (_c = dd.add_on_products) !== null && _c !== void 0 ? _c : []) {
+                        index++;
+                        const pdDqlData = ((_d = (await this.getProduct({
+                            page: 0,
+                            limit: 50,
+                            id: `${b}`,
+                            status: 'active',
+                        })).data) !== null && _d !== void 0 ? _d : { content: {} }).content;
+                        pdDqlData.voucher_id = dd.id;
+                        dd.add_on_products[index] = pdDqlData;
+                    }
+                    const addGift = (_e = data.give_away) === null || _e === void 0 ? void 0 : _e.find((d1) => {
+                        var _a;
+                        return ((_a = dd.add_on_products) !== null && _a !== void 0 ? _a : []).find((d2) => {
+                            return (`${d1.id}` === `${d2.id}`) && (`${d1.voucher_id}` === `${dd.id}`) && d2.variants.find((dd) => {
+                                return dd.spec.join('') === d1.spec.join('');
+                            });
+                        });
+                    });
+                    if (addGift) {
+                        const gift = {
+                            spec: addGift.spec,
+                            id: addGift.id,
+                            count: 1,
+                            voucher_id: dd.id
+                        };
+                        const pd = ((_f = dd.add_on_products) !== null && _f !== void 0 ? _f : []).find((d2) => {
+                            return (`${gift.id}` === `${d2.id}`) && (`${gift.voucher_id}` === `${dd.id}`);
+                        });
+                        pd.selected = true;
+                        gift_product.push(gift);
+                        dd.select_gif = gift;
+                        for (const b of (_g = dd.add_on_products) !== null && _g !== void 0 ? _g : []) {
+                            b.have_select = true;
+                        }
+                        if (type !== 'preview') {
+                            const variant = ((_h = pd.variants.find((d1) => {
+                                return d1.spec.join('-') === gift.spec.join('-');
+                            })) !== null && _h !== void 0 ? _h : {});
+                            carData.lineItems.push({
+                                "spec": gift.spec,
+                                "id": gift.id,
+                                "count": 1,
+                                "preview_image": pd.preview_image,
+                                "title": `《 贈品 》 ${pd.title}`,
+                                "sale_price": 0,
+                                "sku": variant.sku
+                            });
+                        }
+                    }
+                    else {
+                        dd.select_gif = {};
+                    }
+                }
+                data.give_away = gift_product;
             }
             const keyData = (await private_config_js_1.Private_config.getConfig({
                 appName: this.app,
@@ -704,7 +766,7 @@ class Shopping {
                 carData.discount = data.discount;
                 carData.voucherList = [tempVoucher];
                 carData.customer_info = data.customer_info;
-                carData.total = (_c = data.total) !== null && _c !== void 0 ? _c : 0;
+                carData.total = (_j = data.total) !== null && _j !== void 0 ? _j : 0;
                 carData.rebate = tempVoucher.rebate_total;
                 if (tempVoucher.reBackType == 'shipment_free') {
                     carData.shipment_fee = 0;
@@ -766,6 +828,38 @@ class Shopping {
             const return_url = new URL(data.return_url);
             return_url.searchParams.set('cart_token', carData.orderID);
             await redis_js_1.default.setValue(id, return_url.href);
+            if (['FAMIC2C', 'UNIMARTC2C', 'HILIFEC2C', 'OKMARTC2C'].includes(carData.user_info.LogisticsSubType)) {
+                const keyData = (await private_config_js_1.Private_config.getConfig({
+                    appName: this.app,
+                    key: 'glitter_delivery',
+                }))[0].value;
+                console.log(`超商物流單 開始建立（使用${keyData.Action === 'main' ? '正式' : '測試'}環境）`);
+                const delivery = await new delivery_js_1.Delivery(this.app).postStoreOrder({
+                    LogisticsSubType: carData.user_info.LogisticsSubType,
+                    GoodsAmount: carData.total,
+                    GoodsName: `訂單編號 ${carData.orderID}`,
+                    ReceiverName: carData.user_info.name,
+                    ReceiverCellPhone: carData.user_info.phone,
+                    ReceiverStoreID: keyData.Action === 'main'
+                        ? carData.user_info.CVSStoreID
+                        : (() => {
+                            if (carData.user_info.LogisticsSubType === 'OKMARTC2C') {
+                                return '1328';
+                            }
+                            if (carData.user_info.LogisticsSubType === 'FAMIC2C') {
+                                return '006598';
+                            }
+                            return '131386';
+                        })(),
+                });
+                if (delivery.result) {
+                    carData.deliveryData = delivery.data;
+                    console.log('綠界物流訂單 建立成功');
+                }
+                else {
+                    console.log(`綠界物流訂單 建立錯誤: ${delivery.message}`);
+                }
+            }
             if (carData.use_wallet === carData.total) {
                 await database_js_1.default.query(`INSERT INTO \`${this.app}\`.t_wallet (orderID, userID, money, status, note)
                      values (?, ?, ?, ?, ?);`, [
@@ -1713,7 +1807,10 @@ class Shopping {
                             result[tag] = await this.getOrdersInRecentMonth();
                             break;
                         case 'hot_products':
-                            result[tag] = await this.getHotProducts();
+                            result[tag] = await this.getHotProducts('month');
+                            break;
+                        case 'hot_products_today':
+                            result[tag] = await this.getHotProducts('day');
                             break;
                         case 'order_avg_sale_price':
                             result[tag] = await this.getOrderAvgSalePrice();
@@ -1828,13 +1925,13 @@ class Shopping {
             throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'getRecentActiveUser Error:' + e, null);
         }
     }
-    async getHotProducts() {
+    async getHotProducts(duration) {
         try {
             const checkoutSQL = `
                 SELECT JSON_EXTRACT(orderData, '$.lineItems') as lineItems
                 FROM \`${this.app}\`.t_checkout
                 WHERE status = 1
-                  AND (created_time BETWEEN DATE_SUB(NOW(), INTERVAL 1 MONTH) AND NOW());
+                  AND ${duration === 'day' ? `created_time BETWEEN  CURDATE() AND CURDATE() + INTERVAL 1 DAY - INTERVAL 1 SECOND` : `(created_time BETWEEN DATE_SUB(NOW(), INTERVAL 1 MONTH) AND NOW())`};
             `;
             const checkouts = await database_js_1.default.query(checkoutSQL, []);
             const series = [];

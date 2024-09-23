@@ -54,7 +54,7 @@ export class Entry {
         }
         window.renderClock = (_a = window.renderClock) !== null && _a !== void 0 ? _a : clockF();
         console.log(`Entry-time:`, window.renderClock.stop());
-        glitter.share.editerVersion = "V_11.5.5";
+        glitter.share.editerVersion = "V_11.8.1";
         glitter.share.start = (new Date());
         const vm = {
             appConfig: [],
@@ -287,7 +287,6 @@ export class Entry {
         }
     }
     static toHtmlEditor(glitter, vm, callback) {
-        var _a;
         window.preloadData.eval_code_hash = window.parent.preloadData.eval_code_hash;
         glitter.share.reload_code_hash();
         glitter.addMtScript([
@@ -342,18 +341,24 @@ export class Entry {
         glitter.share.evalPlace = (evals) => {
             return eval(evals);
         };
-        glitter.htmlGenerate.setHome({
-            app_config: vm.appConfig,
-            page_config: (_a = window.parent.page_config) !== null && _a !== void 0 ? _a : {},
-            get config() {
-                return window.parent.editerData.setting;
-            },
-            get editMode() {
-                return window.parent.editerData;
-            },
-            data: {},
-            tag: window.parent.glitter.getUrlParameter('page'),
-        });
+        setTimeout(() => {
+            window.parent.glitter.share.loading_dialog.dataLoading({ text: '', visible: false });
+        }, 2000);
+        setTimeout(() => {
+            var _a;
+            glitter.htmlGenerate.setHome({
+                app_config: vm.appConfig,
+                page_config: (_a = window.parent.page_config) !== null && _a !== void 0 ? _a : {},
+                get config() {
+                    return window.parent.editerData.setting;
+                },
+                get editMode() {
+                    return window.parent.editerData;
+                },
+                data: {},
+                tag: window.parent.glitter.getUrlParameter('page'),
+            });
+        }, 100);
         callback();
     }
     static toNormalRender(glitter, vm, callback) {

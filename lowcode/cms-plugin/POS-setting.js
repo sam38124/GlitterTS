@@ -18,12 +18,13 @@ import { NormalPageEditor } from '../editor/normal-page-editor.js';
 import { PosSetting } from "./pos-pages/pos-setting.js";
 import { PayConfig } from "./pos-pages/pay-config.js";
 import { ApiPageConfig } from "../api/pageConfig.js";
+import { PosHomePage } from "./pos-pages/pos-home-page.js";
 function getConfig() {
     const saasConfig = window.parent.saasConfig;
     return saasConfig;
 }
 export class POSSetting {
-    static login(gvc) {
+    static loginManager(gvc, mode, result) {
         const dialog = new ShareDialog(gvc.glitter);
         return gvc.bindView(() => {
             const id = gvc.glitter.getUUID();
@@ -37,16 +38,16 @@ export class POSSetting {
                 view: () => {
                     return html `
                         <section class="vw-100 vh-100"
-                                 style="background: linear-gradient(143deg, #FFB400 -22.7%, #FF6C02 114.57%);    box-sizing: border-box; display: flex;    align-items: center;    justify-content: center; background: linear-gradient(143deg, #FFB400 -22.7%, #FF6C02 114.57%);    padding-top: 120px;    padding-bottom: 130px;">
+                                 style="  box-sizing: border-box; display: flex;    align-items: center;    justify-content: center;  padding-top: 120px;    padding-bottom: 130px;">
                             <div class=""
-                                 style="border-radius: 30px;    background: #FFF;    box-shadow: 5px 5px 20px 0px rgba(0, 0, 0, 0.15);    display: flex;    width: 576px;max-width: calc(100% - 30px);    padding: 40px;    flex-direction: column;    justify-content: center;    align-items: center;    gap: 42px;"
+                                 style="border-radius: 30px;    background: #FFF;    box-shadow: 5px 5px 20px 0px rgba(0, 0, 0, 0.15);    display: flex;    width: 576px;max-width: calc(100% - 30px);    padding: 40px;    flex-direction: column;    justify-content: center;    align-items: center;"
                             >
-                                <div class=""
-                                     style="color: #393939;        text-align: center;        font-size: 32px;        font-style: normal;        font-weight: 700;        line-height: 140%;    "
-                                >POS系統登入
+                                <div class="w-100 d-flex align-items-center mb-3 mb-sm-4" style="">
+                                    <img class="w-100"
+                                         src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_s7s6sbs6s6s5s0s5_messageImage_1726330128813.jpg">
                                 </div>
-                                <div class=""
-                                     style="width: 100%;    display: flex;    flex-direction: column;    align-items: flex-start;        align-self: stretch;     gap: 32px;"
+                                <div class=" px-sm-3"
+                                     style="width: 100%;    display: flex;    flex-direction: column;    align-items: flex-start;        align-self: stretch;     gap: 24px;"
                                 >
                                     <div class=""
                                          style="display: flex;    flex-direction: column;    align-items: flex-start;    gap: 12px;    align-self: stretch;"
@@ -56,12 +57,12 @@ export class POSSetting {
                                         >
                                             <div class="mb-2"
                                                  style="color: #393939;font-size: 16px;font-style: normal;font-weight: 700;line-height: normal;">
-                                                管理員帳號或員工編號
+                                                管理員帳號
                                             </div>
                                             <input class=""
                                                    style="display: flex;    padding: 10px 18px;    align-items: center;    gap: 10px;    align-self: stretch;    border-radius: 10px;    border: 1px solid #DDD;    background: #FFF;    width: 100%;    font-size: 16px;    font-style: normal;    font-weight: 400;    line-height: 140%;"
 
-                                                   placeholder="請輸入管理員帳號或員工編號" value=""
+                                                   placeholder="請輸入管理員帳號" value=""
                                                    onchange="${gvc.event((e, event) => {
                         vm.account = e.value;
                     })}"></div>
@@ -80,9 +81,22 @@ export class POSSetting {
                     })}">
                                         </div>
                                     </div>
-                                    <div class=""
-                                         style="display: flex;    width: 100%;    padding: 16px ;    gap: 10px;    border-radius: 100px;    background: linear-gradient(233deg, #FFB400 -22.7%, #FF6C02 114.57%);    text-align: center;    align-items: center;    justify-content: center;    color: #FFF;    font-size: 20px;    font-style: normal;    font-weight: 700;    line-height: normal;    letter-spacing: 1.6px;    cursor: pointer;"
-                                         onclick="${gvc.event(() => {
+                                    <div class="w-100 d-flex" style="gap:15px;">
+                                        <div class="${mode === 'switch' ? `` : `d-none`}"
+                                             style="display: flex;    width: 100%;    padding: 16px ;    gap: 10px;   border-radius: 10px;
+background: #DDD;
+height: 51px;
+                                            text-align: center;    align-items: center;    justify-content: center;    color: #393939;    font-size: 20px;    font-style: normal;    font-weight: 700;    line-height: normal;    letter-spacing: 1.6px;    cursor: pointer;"
+                                             onclick="${gvc.event(() => {
+                        gvc.closeDialog();
+                    })}">取消
+                                        </div>
+                                        <div class=""
+                                             style="display: flex;    width: 100%;    padding: 16px ;    gap: 10px;   border-radius: 10px;
+background: #393939;
+height: 51px;
+                                            text-align: center;    align-items: center;    justify-content: center;    color: #FFF;    font-size: 20px;    font-style: normal;    font-weight: 700;    line-height: normal;    letter-spacing: 1.6px;    cursor: pointer;"
+                                             onclick="${gvc.event(() => {
                         dialog.dataLoading({ visible: true });
                         ApiUser.login({
                             app_name: 'shopnex',
@@ -96,6 +110,8 @@ export class POSSetting {
                                     app: gvc.glitter.getUrlParameter('app-id'),
                                     token: GlobalUser.saas_token,
                                 })).response.result) {
+                                    POSSetting.config.who = 'manager';
+                                    result(true);
                                     gvc.recreateView();
                                 }
                                 else {
@@ -107,6 +123,7 @@ export class POSSetting {
                             }
                         }));
                     })}">登入
+                                        </div>
                                     </div>
                                 </div>
                         </section>`;
@@ -117,14 +134,20 @@ export class POSSetting {
     static initial(gvc) {
         return __awaiter(this, void 0, void 0, function* () {
             gvc.glitter.share.editorViewModel = {
-                app_config_original: {}
+                app_config_original: {},
+            };
+            gvc.glitter.share.shop_config = {
+                shop_name: ''
             };
             return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
-                ApiPageConfig.getAppConfig().then((res) => {
-                    gvc.glitter.share.editorViewModel.app_config_original = res.response.result[0];
-                    gvc.glitter.share.editorViewModel.domain = res.response.result[0].domain;
-                    gvc.glitter.share.editorViewModel.originalDomain = gvc.glitter.share.editorViewModel.domain;
-                    resolve(true);
+                ApiUser.getPublicConfig('store-information', 'manager').then((res) => {
+                    gvc.glitter.share.shop_config.shop_name = res.response.value.shop_name;
+                    ApiPageConfig.getAppConfig().then((res) => {
+                        gvc.glitter.share.editorViewModel.app_config_original = res.response.result[0];
+                        gvc.glitter.share.editorViewModel.domain = res.response.result[0].domain;
+                        gvc.glitter.share.editorViewModel.originalDomain = gvc.glitter.share.editorViewModel.domain;
+                        resolve(true);
+                    });
                 });
             }));
         });
@@ -191,12 +214,18 @@ export class POSSetting {
                         app: gvc.glitter.getUrlParameter('app-id'),
                         token: GlobalUser.saas_token,
                     });
-                    if (res.response.result) {
+                    const member_auth = (yield ApiUser.getPermission({
+                        page: 0,
+                        limit: 100
+                    })).response.data;
+                    if (res.response.result && (member_auth.find((dd) => {
+                        return dd.config.member_id === POSSetting.config.who;
+                    }) || POSSetting.config.who === 'manager')) {
                         yield POSSetting.initial(gvc);
                         return POSSetting.posView(gvc);
                     }
                     else {
-                        return POSSetting.login(gvc);
+                        return POSSetting.loginManager(gvc, 'first', () => { });
                     }
                 }),
                 divCreate: {},
@@ -242,12 +271,7 @@ export class POSSetting {
             vm.type = 'home';
             orderDetail.user_info.shipment = 'now';
         }
-        return (gvc.bindView(() => {
-            return {
-                bind: vm.id,
-                dataList: [{ obj: vm, key: 'type' }],
-                view: () => {
-                    gvc.addStyle(`
+        gvc.addStyle(`
                         .product-show{
                         -ms-overflow-style: none;
                         scrollbar-width: none;
@@ -257,20 +281,31 @@ export class POSSetting {
                             display: none;  /* Chrome, Safari, Opera */
                         }
                     `);
+        return (gvc.bindView(() => {
+            return {
+                bind: vm.id,
+                dataList: [{ obj: vm, key: 'type' }],
+                view: () => __awaiter(this, void 0, void 0, function* () {
+                    const ap_config = (yield ApiUser.getPublicConfig('store-information', 'manager')).response.value;
+                    PayConfig.pos_config = ap_config;
                     return html `
                             <div
                                     class="d-flex nav-top"
-                                    style="z-index:2;height: 86px;width: 100%;background: #FFF;box-shadow: 0 1px 10px 0 rgba(0, 0, 0, 0.10);padding-top: 6px;position: fixed;left: 0;top: 0;"
+                                    style="z-index:20;height: ${(() => {
+                        if (document.body.offsetWidth > 800) {
+                            return `86px`;
+                        }
+                        else {
+                            return `66px`;
+                        }
+                    })()};width: 100%;background: #FFF;box-shadow: 0 1px 10px 0 rgba(0, 0, 0, 0.10);position: fixed;left: 0;top: 0;"
                             >
                                 <div
                                         class="POS-logo h-100 d-flex align-items-center ${document.body.offsetWidth < 800 ? `justify-content-center` : ``} mx-2 w-100"
                                         style="${document.body.offsetWidth < 800 ? `gap: 0px;` : `gap: 32px;padding-left: 24px;`}"
                                 >
                                     ${document.body.offsetWidth < 800 && vm.type === 'menu'
-                        ? `
-                                <img src="https://d3jnmi1tfjgtti.cloudfront.net/file/252530754/size1440_s*px$_425460019_424417803637934_9083646427244839885_n.jpg" style="width:50px;height: 50px;border-radius: 50%;" >
-                               
-                                `
+                        ? ` `
                         : `<div class="ms-2 d-flex align-items-center" style="gap:10px;"><svg width="157" height="28" viewBox="0 0 157 28" fill="none"
                                      xmlns="http://www.w3.org/2000/svg">
                                     <path d="M1.812 17.972C2.28067 18.342 3.08233 18.8477 4.217 19.489C5.37633 20.1303 6.474 20.451 7.51 20.451C8.57067 20.451 9.101 20.044 9.101 19.23C9.101 18.86 8.953 18.5393 8.657 18.268C8.361 17.972 7.81833 17.639 7.029 17.269C6.23967 16.899 5.64767 16.6153 5.253 16.418C4.85833 16.196 4.328 15.8507 3.662 15.382C3.02067 14.8887 2.52733 14.383 2.182 13.865C1.19533 12.459 0.702 10.6707 0.702 8.5C0.702 6.32933 1.50367 4.504 3.107 3.024C4.735 1.51933 6.85633 0.766998 9.471 0.766998C11.247 0.766998 12.8873 0.964332 14.392 1.359C15.8967 1.729 16.6737 2.22233 16.723 2.839C16.723 2.913 16.723 2.987 16.723 3.061C16.723 3.92433 16.4517 5.022 15.909 6.354C15.3663 7.66133 14.984 8.389 14.762 8.537C13.1833 7.723 11.765 7.316 10.507 7.316C9.27367 7.316 8.657 7.76 8.657 8.648C8.657 9.19067 9.11333 9.67167 10.026 10.091C10.2233 10.1897 10.507 10.3253 10.877 10.498C11.247 10.6707 11.6663 10.8803 12.135 11.127C12.6283 11.349 13.1463 11.645 13.689 12.015C14.2563 12.3603 14.8607 12.829 15.502 13.421C16.8093 14.6543 17.463 16.2823 17.463 18.305C17.463 20.9443 16.7353 23.1027 15.28 24.78C13.8247 26.4573 11.58 27.3207 8.546 27.37C7.066 27.37 5.72167 27.2467 4.513 27C3.329 26.7533 2.293 26.2723 1.405 25.557C0.517 24.8417 0.073 23.9783 0.073 22.967C0.073 21.9557 0.258 20.9567 0.628 19.97C0.998 18.9587 1.39267 18.2927 1.812 17.972ZM40.6343 26.371C40.6343 26.7903 39.3886 27 36.8973 27C34.4059 27 33.1603 26.7903 33.1603 26.371V17.861H27.9803V26.371C27.9803 26.7903 26.7346 27 24.2433 27C21.7519 27 20.5063 26.7903 20.5063 26.371V1.84C20.5063 1.322 21.7519 1.063 24.2433 1.063C26.7346 1.063 27.9803 1.322 27.9803 1.84V10.535H33.1603V1.914C33.1603 1.56867 33.7769 1.322 35.0103 1.174C35.6516 1.12467 36.2806 1.1 36.8973 1.1L38.7843 1.174C40.0176 1.322 40.6343 1.56867 40.6343 1.914V26.371ZM55.3068 27.37C51.8534 27.37 49.0291 26.2353 46.8338 23.966C44.6631 21.6967 43.5778 18.3913 43.5778 14.05C43.5778 9.684 44.6754 6.37867 46.8708 4.134C49.0908 1.88933 51.9398 0.766998 55.4178 0.766998C58.9204 0.766998 61.7448 1.877 63.8908 4.097C66.0368 6.29233 67.1098 9.63467 67.1098 14.124C67.1098 18.5887 66.0121 21.9187 63.8168 24.114C61.6214 26.2847 58.7848 27.37 55.3068 27.37ZM55.3438 7.871C54.1598 7.871 53.1608 8.41367 52.3468 9.499C51.5574 10.5843 51.1628 12.1137 51.1628 14.087C51.1628 16.0357 51.5451 17.5403 52.3098 18.601C53.0744 19.637 54.0734 20.155 55.3068 20.155C56.5648 20.155 57.5761 19.6247 58.3408 18.564C59.1301 17.5033 59.5248 15.9863 59.5248 14.013C59.5248 12.0397 59.1178 10.5227 58.3038 9.462C57.5144 8.40133 56.5278 7.871 55.3438 7.871ZM73.2995 27.074C71.0548 27.074 69.9325 26.8273 69.9325 26.334V2.358C69.9325 1.51933 70.3148 1.1 71.0795 1.1H77.5915C81.2421 1.1 83.8691 1.85233 85.4725 3.357C87.1005 4.86167 87.9145 7.04467 87.9145 9.906C87.9145 12.274 87.1498 14.4447 85.6205 16.418C84.8558 17.4047 83.7335 18.194 82.2535 18.786C80.7735 19.378 79.0468 19.674 77.0735 19.674V26.297C77.0735 26.593 76.6048 26.8027 75.6675 26.926C74.7548 27.0247 73.9655 27.074 73.2995 27.074ZM77.0735 7.538V13.384H77.5545C78.4178 13.384 79.1455 13.1127 79.7375 12.57C80.3295 12.0273 80.6255 11.2627 80.6255 10.276C80.6255 9.28933 80.4158 8.58633 79.9965 8.167C79.6018 7.74767 78.8865 7.538 77.8505 7.538H77.0735ZM111.458 26.186C111.458 26.704 110.299 26.963 107.98 26.963C105.661 26.963 104.403 26.778 104.206 26.408L98.027 14.864V26.371C98.027 26.815 96.88 27.037 94.586 27.037C92.3167 27.037 91.182 26.815 91.182 26.371V1.618C91.182 1.248 92.1564 1.063 94.105 1.063C94.8697 1.063 95.7577 1.137 96.769 1.285C97.805 1.40833 98.434 1.655 98.656 2.025L104.576 13.421V1.803C104.576 1.33433 105.723 1.1 108.017 1.1C110.311 1.1 111.458 1.33433 111.458 1.803V26.186ZM127.199 11.386C127.668 11.386 127.902 12.2493 127.902 13.976C127.902 14.494 127.841 15.1107 127.717 15.826C127.619 16.5167 127.421 16.862 127.125 16.862H122.426V20.562H129.234C129.654 20.562 129.937 21.1047 130.085 22.19C130.159 22.6587 130.196 23.1643 130.196 23.707C130.196 24.225 130.122 24.9033 129.974 25.742C129.826 26.5807 129.58 27 129.234 27H116.58C115.643 27 115.174 26.6177 115.174 25.853V2.062C115.174 1.42067 115.458 1.1 116.025 1.1H129.271C129.789 1.1 130.048 2.19767 130.048 4.393C130.048 6.56367 129.789 7.649 129.271 7.649H122.426V11.386H127.199ZM147.148 2.099C147.444 1.359 148.986 0.989 151.773 0.989C152.489 0.989 153.364 1.05067 154.4 1.174C155.461 1.27267 155.991 1.37133 155.991 1.47L149.701 14.272L156.213 26.519C156.287 26.6423 155.757 26.7657 154.622 26.889C153.488 26.9877 152.526 27.037 151.736 27.037C148.604 27.037 146.889 26.6177 146.593 25.779L143.818 18.712L141.302 26.001C141.056 26.6917 139.477 27.037 136.566 27.037C135.851 27.037 134.963 26.9877 133.902 26.889C132.842 26.7903 132.361 26.6547 132.459 26.482L138.231 13.68L132.237 1.47C132.163 1.34666 132.669 1.23566 133.754 1.137C134.864 1.01366 135.802 0.951998 136.566 0.951998C139.674 0.951998 141.376 1.396 141.672 2.284L144.225 8.5L147.148 2.099Z"
@@ -285,46 +320,6 @@ export class POSSetting {
                                 </svg>
                                 <div style="text-align: center; color: #8D8D8D; font-size: 38px; font-family: Lilita One; font-weight: 400; word-wrap: break-word">POS</div>
                                 </div>`}
-                                    
-                                    <div class="searchBar ms-2 ${vm.type !== 'menu' ? `d-none` : ``} ${document.body.offsetWidth < 800 ? `flex-fill` : ``}"
-                                         style="position: relative;max-width:calc(100% - 60px);">
-                                        <input
-                                                class="border-0 "
-                                                placeholder="搜尋商品名稱或貨號"
-                                                style="display: flex;${document.body.offsetWidth < 800
-                        ? `width:100%;`
-                        : `width: 357px;max-width:calc(100%);`}height: 56px;padding: 17px 24px;justify-content: center;gap: 10px;border-radius: 10px;font-size: 18px;background: #F7F7F7;"
-                                                onchange="${gvc.event((e) => {
-                        glitter.share.search_interval = setTimeout(() => {
-                            vm.query = e.value;
-                            vm.searchable = true;
-                            gvc.notifyDataChange('mainView');
-                        }, 500);
-                    })}"
-                                        />
-                                        <svg
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                width="24"
-                                                height="25"
-                                                viewBox="0 0 24 25"
-                                                fill="none"
-                                                style="width: 24px;height: 24px;flex-shrink: 0;position:absolute;top: 17px;right: 24px;"
-                                        >
-                                            <g clip-path="url(#clip0_12216_123850)">
-                                                <path
-                                                        d="M19.5 9.92139C19.5 12.0729 18.8016 14.0604 17.625 15.6729L23.5594 21.612C24.1453 22.1979 24.1453 23.1495 23.5594 23.7355C22.9734 24.3214 22.0219 24.3214 21.4359 23.7355L15.5016 17.7964C13.8891 18.9776 11.9016 19.6714 9.75 19.6714C4.36406 19.6714 0 15.3073 0 9.92139C0 4.53545 4.36406 0.171387 9.75 0.171387C15.1359 0.171387 19.5 4.53545 19.5 9.92139ZM9.75 16.6714C10.6364 16.6714 11.5142 16.4968 12.3331 16.1576C13.1521 15.8184 13.8962 15.3212 14.523 14.6944C15.1498 14.0676 15.647 13.3234 15.9862 12.5045C16.3254 11.6856 16.5 10.8078 16.5 9.92139C16.5 9.03496 16.3254 8.15722 15.9862 7.33827C15.647 6.51933 15.1498 5.77521 14.523 5.14842C13.8962 4.52162 13.1521 4.02442 12.3331 3.6852C11.5142 3.34598 10.6364 3.17139 9.75 3.17139C8.86358 3.17139 7.98583 3.34598 7.16689 3.6852C6.34794 4.02442 5.60382 4.52162 4.97703 5.14842C4.35023 5.77521 3.85303 6.51933 3.51381 7.33827C3.17459 8.15722 3 9.03496 3 9.92139C3 10.8078 3.17459 11.6856 3.51381 12.5045C3.85303 13.3234 4.35023 14.0676 4.97703 14.6944C5.60382 15.3212 6.34794 15.8184 7.16689 16.1576C7.98583 16.4968 8.86358 16.6714 9.75 16.6714Z"
-                                                        fill="#8D8D8D"
-                                                />
-                                            </g>
-                                            <defs>
-                                                <clipPath id="clip0_12216_123850">
-                                                    <rect width="24" height="24" fill="white"
-                                                          transform="translate(0 0.171387)"/>
-                                                </clipPath>
-                                            </defs>
-                                        </svg>
-                                    </div>
-                                    <div class="flex-fill"></div>
                                     ${gvc.bindView(() => {
                         return {
                             bind: 'cartBtn',
@@ -364,12 +359,193 @@ cursor: pointer;
                             },
                         };
                     })}
+                                    <div class="searchBar ms-sm-2 me-2 ${vm.type !== 'menu' ? `d-none` : ``} ${document.body.offsetWidth < 800 ? `flex-fill` : ``}"
+                                         style="position: relative;max-width:calc(100% - 60px);">
+                                        <input
+                                                class="border-0 "
+                                                placeholder="搜尋商品名稱或貨號"
+                                                style="display: flex;${document.body.offsetWidth < 800
+                        ? `width:100%;font-size: 15px;height: 50px;padding: 17px 12px;`
+                        : `width: 357px;max-width:calc(100%);font-size: 18px;height: 56px;padding: 17px 24px;`}justify-content: center;gap: 10px;border-radius: 10px;background: #F7F7F7;"
+                                                onchange="${gvc.event((e) => {
+                        glitter.share.search_interval = setTimeout(() => {
+                            vm.query = e.value;
+                            vm.searchable = true;
+                            gvc.notifyDataChange('mainView');
+                        }, 500);
+                    })}"
+                                        />
+                                        <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                width="24"
+                                                height="25"
+                                                viewBox="0 0 24 25"
+                                                fill="none"
+                                                style="width: 24px;height: 24px;flex-shrink: 0;position:absolute; ${document.body.offsetWidth < 800 ? `top:13px;right: 12px;` : `top:17px;right: 24px;`};"
+                                        >
+                                            <g clip-path="url(#clip0_12216_123850)">
+                                                <path
+                                                        d="M19.5 9.92139C19.5 12.0729 18.8016 14.0604 17.625 15.6729L23.5594 21.612C24.1453 22.1979 24.1453 23.1495 23.5594 23.7355C22.9734 24.3214 22.0219 24.3214 21.4359 23.7355L15.5016 17.7964C13.8891 18.9776 11.9016 19.6714 9.75 19.6714C4.36406 19.6714 0 15.3073 0 9.92139C0 4.53545 4.36406 0.171387 9.75 0.171387C15.1359 0.171387 19.5 4.53545 19.5 9.92139ZM9.75 16.6714C10.6364 16.6714 11.5142 16.4968 12.3331 16.1576C13.1521 15.8184 13.8962 15.3212 14.523 14.6944C15.1498 14.0676 15.647 13.3234 15.9862 12.5045C16.3254 11.6856 16.5 10.8078 16.5 9.92139C16.5 9.03496 16.3254 8.15722 15.9862 7.33827C15.647 6.51933 15.1498 5.77521 14.523 5.14842C13.8962 4.52162 13.1521 4.02442 12.3331 3.6852C11.5142 3.34598 10.6364 3.17139 9.75 3.17139C8.86358 3.17139 7.98583 3.34598 7.16689 3.6852C6.34794 4.02442 5.60382 4.52162 4.97703 5.14842C4.35023 5.77521 3.85303 6.51933 3.51381 7.33827C3.17459 8.15722 3 9.03496 3 9.92139C3 10.8078 3.17459 11.6856 3.51381 12.5045C3.85303 13.3234 4.35023 14.0676 4.97703 14.6944C5.60382 15.3212 6.34794 15.8184 7.16689 16.1576C7.98583 16.4968 8.86358 16.6714 9.75 16.6714Z"
+                                                        fill="#8D8D8D"
+                                                />
+                                            </g>
+                                            <defs>
+                                                <clipPath id="clip0_12216_123850">
+                                                    <rect width="24" height="24" fill="white"
+                                                          transform="translate(0 0.171387)"/>
+                                                </clipPath>
+                                            </defs>
+                                        </svg>
+                                    </div>
+                                    ${(vm.type !== 'menu' || (document.body.clientWidth > 800)) ? `<div class="flex-fill"></div>` : ``}
+                                    ${gvc.bindView(() => {
+                        const id = gvc.glitter.getUUID();
+                        function refreshUserBar() {
+                            gvc.notifyDataChange([id, 'nav-slide']);
+                        }
+                        return {
+                            bind: id,
+                            view: () => {
+                                return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+                                    var _a;
+                                    const member_auth = (yield ApiUser.getPermission({
+                                        page: 0,
+                                        limit: 100
+                                    })).response.data;
+                                    const select_member = (_a = member_auth.find((dd) => {
+                                        return dd.config.member_id === POSSetting.config.who;
+                                    })) !== null && _a !== void 0 ? _a : { config: { title: '管理員', name: 'manager' } };
+                                    resolve(`<div class="h-100 group dropdown border-start ps-1 d-flex align-items-center" style="" >
+<div class=" btn btn-outline-secondary  border-0 p-1 position-relative" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <div class="d-flex align-items-center px-2" style="gap:5px;">
+                                    <i class="fa-solid fa-repeat fs-5"></i>
+                                    <div class="ps-2 text-start">
+                                        <div class="fs-xs lh-1 opacity-60 fw-500">${select_member.config.title}</div>
+                                        <div class="fs-sm fw-500">${select_member.config.name}</div>
+                                    </div>
+                                    
+                                </div>
+                            </div>
+                            <div class="dropdown-menu position-absolute" style="top:50px; right: 0;">
+                                ${(() => {
+                                        const view = member_auth.filter((dd) => {
+                                            return dd.config.member_id !== POSSetting.config.who;
+                                        }).map((dd) => {
+                                            const memberDD = dd;
+                                            return `
+                                      <a class="dropdown-item cursor_pointer d-flex flex-column" onclick="${gvc.event(() => {
+                                                gvc.glitter.innerDialog((gvc) => {
+                                                    const c_vm = {
+                                                        text: '',
+                                                        id: gvc.glitter.getUUID()
+                                                    };
+                                                    return gvc.bindView(() => {
+                                                        return {
+                                                            bind: c_vm.id,
+                                                            view: () => {
+                                                                return `<div style="flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 42px; display: inline-flex">
+    <div style="align-self: stretch; height: 100px; flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 18px; display: flex">
+      <div style="align-self: stretch; justify-content: center; align-items: flex-start; gap: 16px; display: inline-flex">
+        <div style="text-align: center"><span style="color: #FFB400; font-size: 42px; font-family: Lilita One; font-weight: 400; word-wrap: break-word">SHOPNE</span><span style="color: #FFB400; font-size: 42px; font-family: Lilita One; font-weight: 400; letter-spacing: 2.52px; word-wrap: break-word">X</span></div>
+        <div style="text-align: center; color: #8D8D8D; font-size: 42px; font-family: Lilita One; font-weight: 400; word-wrap: break-word">POS</div>
+      </div>
+      <div style="align-self: stretch; text-align: center; color: #393939; font-size: 24px; font-family: Noto Sans; font-weight: 700; line-height: 33.60px; letter-spacing: 2.40px; word-wrap: break-word">請輸入員工編號</div>
+    </div>
+    <div style="align-self: stretch; justify-content: center; align-items: center; gap: 20px; display: inline-flex">
+    ${(() => {
+                                                                    let view = [];
+                                                                    for (let a = 0; a < 6; a++) {
+                                                                        if (c_vm.text.length > a) {
+                                                                            view.push(`<div style="width: 18px; height: 18px; position: relative; background: #FFB400; border-radius: 30px"></div>`);
+                                                                        }
+                                                                        else {
+                                                                            view.push(` <div style="width: 18px; height: 18px; position: relative; background: #B0B0B0; border-radius: 30px"></div>`);
+                                                                        }
+                                                                    }
+                                                                    return view.join('');
+                                                                })()}
+    </div>
+    <div style="background: white; flex-direction: column; justify-content: flex-start; align-items: center; gap: 32px; display: flex">
+      <div style="align-self: stretch; border-radius: 10px; flex-direction: column; justify-content: flex-start; align-items: center; display: flex;border: 1px solid #DDD;">
+        ${[[1, 2, 3], [4, 5, 6], [7, 8, 9], ['取消', 0, '<i class="fa-regular fa-delete-left"></i>']].map((dd) => {
+                                                                    return ` <div style="justify-content: flex-start; align-items: center; display: inline-flex">
+         ${dd.map((dd) => {
+                                                                        return `<div style="height:56px;width:95px;flex-direction: column; justify-content: center; align-items: center; gap: 10px; display: inline-flex">
+            <div style="align-self: stretch; text-align: center; color: #393939; font-size: 20px;  font-weight: 700; line-height: 28px; word-wrap: break-word" onclick="${gvc.event(() => {
+                                                                            if (dd === '取消') {
+                                                                                gvc.closeDialog();
+                                                                                return;
+                                                                            }
+                                                                            else if (`${dd}`.includes(`fa-regular`)) {
+                                                                                c_vm.text = c_vm.text.substring(0, c_vm.text.length - 1);
+                                                                                gvc.notifyDataChange(c_vm.id);
+                                                                                return;
+                                                                            }
+                                                                            c_vm.text += dd;
+                                                                            const dialog = new ShareDialog(gvc.glitter);
+                                                                            if (c_vm.text.length === 6) {
+                                                                                if (memberDD.config.pin === c_vm.text) {
+                                                                                    POSSetting.config.who = memberDD.config.member_id;
+                                                                                    gvc.closeDialog();
+                                                                                    refreshUserBar();
+                                                                                }
+                                                                                else {
+                                                                                    dialog.errorMessage({ text: '輸入錯誤' });
+                                                                                    c_vm.text = '';
+                                                                                }
+                                                                            }
+                                                                            gvc.notifyDataChange(c_vm.id);
+                                                                        })}">${dd}</div>
+          </div>`;
+                                                                    }).join('<div class="" style="border-right: 1px #DDDDDD solid;height:56px;"></div>')}
+        </div>`;
+                                                                }).join('<div class="" style="border-top: 1px #DDDDDD solid;height:1px; width: 100%;"></div>')}
+      
+      </div>
+    </div>
+  </div>`;
+                                                            },
+                                                            divCreate: {
+                                                                class: ``,
+                                                                style: `width: 338px;  padding-left: 20px; padding-right: 20px; padding-top: 25px; padding-bottom: 25px; background: white; box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.15); border-radius: 20px; overflow: hidden; justify-content: center; align-items: center; gap: 10px; display: inline-flex`
+                                                            }
+                                                        };
+                                                    });
+                                                }, '');
+                                            })}">
+                                      ${dd.config.title} / ${dd.config.name} / ${dd.config.member_id}
+</a>
+                                    `;
+                                        });
+                                        if (POSSetting.config.who !== 'manager') {
+                                            view.push(`   <a class="dropdown-item cursor_pointer d-flex flex-column ${POSSetting.config.who === 'manager' ? `d-none` : ``}" onclick="${gvc.event(() => {
+                                                gvc.glitter.innerDialog((gvc) => {
+                                                    return POSSetting.loginManager(gvc, 'switch', () => {
+                                                        refreshUserBar();
+                                                        gvc.closeDialog();
+                                                    });
+                                                }, '');
+                                            })}">
+                                   切換至管理員
+</a>`);
+                                        }
+                                        return view;
+                                    })().join('<div class="dropdown-divider"></div>')}
+                            </div>
+                            </div>`);
+                                }));
+                            },
+                            divCreate: {
+                                class: `h-100`
+                            }
+                        };
+                    })}
                                 </div>
                             </div>
                             ${gvc.bindView({
                         bind: 'mainView',
                         view: () => __awaiter(this, void 0, void 0, function* () {
-                            let view = yield (() => __awaiter(this, void 0, void 0, function* () {
+                            let view = (() => {
                                 try {
                                     orderDetail.user_info.shipment = orderDetail.user_info.shipment || 'now';
                                     if (vm.type == 'payment') {
@@ -386,15 +562,16 @@ cursor: pointer;
                                         return PosSetting.main({ gvc: gvc, vm: vm });
                                     }
                                     else if (vm.type === 'home') {
-                                        return `<iframe class="w-100" src="${glitter.root_path}home_page?appName=cms_system&cms=true&page=home_page" style="border: none;height: calc(100%);"></iframe>`;
+                                        return PosHomePage.main(gvc);
                                     }
+                                    vm.searchable = true;
                                     return ProductsPage.main({ gvc: gvc, vm: vm, orderDetail: orderDetail });
                                 }
                                 catch (e) {
                                     console.log(e);
                                     return `${e}`;
                                 }
-                            }))();
+                            })();
                             if (document.body.clientWidth < 768) {
                                 view += `<div style="height: 100px;"><div`;
                             }
@@ -472,7 +649,7 @@ cursor: pointer;
                                                         </clipPath>
                                                     </defs>
                                                 </svg>`,
-                                    title: `商品`,
+                                    title: PayConfig.pos_config.pos_type === 'eat' ? `點餐` : `商品`,
                                     type: `menu`,
                                 },
                                 {
@@ -492,7 +669,7 @@ cursor: pointer;
                                                             fill="#8D8D8D"
                                                     />
                                                 </svg>`,
-                                    title: `款項`,
+                                    title: `結帳`,
                                     type: `payment`,
                                 },
                                 {
@@ -531,6 +708,45 @@ cursor: pointer;
                                     title: `訂單`,
                                     type: `order`,
                                 },
+                                ...(() => {
+                                    if (POSSetting.config.who === 'manager') {
+                                        return [{
+                                                selectIcon: html `
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="29" height="29"
+                                                     viewBox="0 0 29 29" fill="none">
+                                                    <g clip-path="url(#clip0_13485_10484)">
+                                                        <path d="M14.0998 0.5C15.0295 0.5 15.9373 0.592969 16.8233 0.7625C17.2553 0.844531 18.0155 1.09609 18.4311 1.86172C18.5405 2.06406 18.628 2.27734 18.6826 2.50703L19.1912 4.6125C19.2678 4.92969 19.8037 5.24141 20.1155 5.14844L22.1936 4.53594C22.4123 4.47031 22.6365 4.4375 22.8608 4.43203C23.7412 4.40469 24.3373 4.94609 24.6272 5.27422C25.8358 6.64688 26.7655 8.26016 27.3561 9.99375C27.4983 10.4094 27.6623 11.1859 27.2084 11.9297C27.0881 12.1266 26.9405 12.3125 26.7709 12.4766L25.2014 13.9695C24.9717 14.1883 24.9717 14.8172 25.2014 15.0359L26.7709 16.5289C26.9405 16.693 27.0881 16.8789 27.2084 17.0758C27.6569 17.8195 27.4928 18.5961 27.3561 19.0117C26.7655 20.7453 25.8358 22.3531 24.6272 23.7312C24.3373 24.0594 23.7358 24.6008 22.8608 24.5734C22.6365 24.568 22.4123 24.5297 22.1936 24.4695L20.1155 23.8516C19.8037 23.7586 19.2678 24.0703 19.1912 24.3875L18.6826 26.493C18.628 26.7227 18.5405 26.9414 18.4311 27.1383C18.01 27.9039 17.2498 28.15 16.8233 28.2375C15.9373 28.407 15.0295 28.5 14.0998 28.5C13.1701 28.5 12.2623 28.407 11.3764 28.2375C10.9444 28.1555 10.1842 27.9039 9.76858 27.1383C9.65921 26.9359 9.57171 26.7227 9.51702 26.493L9.00842 24.3875C8.93186 24.0703 8.39592 23.7586 8.08421 23.8516L6.00608 24.4641C5.78733 24.5297 5.56311 24.5625 5.33889 24.568C4.45843 24.5953 3.86233 24.0539 3.57249 23.7258C2.36936 22.3531 1.43421 20.7398 0.843581 19.0063C0.701394 18.5906 0.537331 17.8141 0.991237 17.0703C1.11155 16.8734 1.25921 16.6875 1.42874 16.5234L2.99827 15.0305C3.22796 14.8117 3.22796 14.1828 2.99827 13.9641L1.42327 12.4711C1.25374 12.307 1.10608 12.1211 0.985769 11.9242C0.537331 11.1805 0.701394 10.4039 0.843581 9.99375C1.43421 8.26016 2.36389 6.65234 3.57249 5.27422C3.86233 4.94609 4.46389 4.40469 5.33889 4.43203C5.56311 4.4375 5.78733 4.47578 6.00608 4.53594L8.08421 5.14844C8.39592 5.24141 8.93186 4.92969 9.00842 4.6125L9.51702 2.50703C9.57171 2.27734 9.65921 2.05859 9.76858 1.86172C10.1897 1.09609 10.9498 0.85 11.3764 0.7625C12.2623 0.592969 13.1701 0.5 14.0998 0.5ZM12.0272 3.31094L11.5623 5.23047C11.1358 6.99687 9.08499 8.17813 7.34046 7.66953L5.45374 7.11172C4.55139 8.16719 3.84046 9.39219 3.37561 10.7047L4.80842 12.0664C6.12092 13.3133 6.12092 15.6867 4.80842 16.9336L3.37561 18.2953C3.84046 19.6078 4.55139 20.8328 5.45374 21.8883L7.34592 21.3305C9.08499 20.8164 11.1412 22.0031 11.5678 23.7695L12.0326 25.6891C13.378 25.9352 14.8381 25.9352 16.1834 25.6891L16.6483 23.7695C17.0748 22.0031 19.1256 20.8219 20.8701 21.3305L22.7623 21.8883C23.6647 20.8328 24.3756 19.6078 24.8405 18.2953L23.4076 16.9336C22.0951 15.6867 22.0951 13.3133 23.4076 12.0664L24.8405 10.7047C24.3756 9.39219 23.6647 8.16719 22.7623 7.11172L20.8701 7.66953C19.1311 8.18359 17.0748 6.99687 16.6483 5.23047L16.1834 3.31094C14.8381 3.06484 13.378 3.06484 12.0326 3.31094H12.0272ZM11.4748 14.5C11.4748 15.1962 11.7514 15.8639 12.2437 16.3562C12.736 16.8484 13.4036 17.125 14.0998 17.125C14.796 17.125 15.4637 16.8484 15.956 16.3562C16.4483 15.8639 16.7248 15.1962 16.7248 14.5C16.7248 13.8038 16.4483 13.1361 15.956 12.6438C15.4637 12.1516 14.796 11.875 14.0998 11.875C13.4036 11.875 12.736 12.1516 12.2437 12.6438C11.7514 13.1361 11.4748 13.8038 11.4748 14.5ZM14.0998 19.75C12.7074 19.75 11.3721 19.1969 10.3875 18.2123C9.40295 17.2277 8.84983 15.8924 8.84983 14.5C8.84983 13.1076 9.40295 11.7723 10.3875 10.7877C11.3721 9.80312 12.7074 9.25 14.0998 9.25C15.4922 9.25 16.8276 9.80312 17.8121 10.7877C18.7967 11.7723 19.3498 13.1076 19.3498 14.5C19.3498 15.8924 18.7967 17.2277 17.8121 18.2123C16.8276 19.1969 15.4922 19.75 14.0998 19.75Z"
+                                                              fill="#393939"/>
+                                                    </g>
+                                                    <defs>
+                                                        <clipPath id="clip0_13485_10484">
+                                                            <rect width="28" height="28" fill="white"
+                                                                  transform="translate(0.0998535 0.5)"/>
+                                                        </clipPath>
+                                                    </defs>
+                                                </svg>`,
+                                                unselectIcon: html `
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="29" height="29"
+                                                     viewBox="0 0 29 29" fill="none">
+                                                    <g clip-path="url(#clip0_13485_10484)">
+                                                        <path d="M14.0998 0.5C15.0295 0.5 15.9373 0.592969 16.8233 0.7625C17.2553 0.844531 18.0155 1.09609 18.4311 1.86172C18.5405 2.06406 18.628 2.27734 18.6826 2.50703L19.1912 4.6125C19.2678 4.92969 19.8037 5.24141 20.1155 5.14844L22.1936 4.53594C22.4123 4.47031 22.6365 4.4375 22.8608 4.43203C23.7412 4.40469 24.3373 4.94609 24.6272 5.27422C25.8358 6.64688 26.7655 8.26016 27.3561 9.99375C27.4983 10.4094 27.6623 11.1859 27.2084 11.9297C27.0881 12.1266 26.9405 12.3125 26.7709 12.4766L25.2014 13.9695C24.9717 14.1883 24.9717 14.8172 25.2014 15.0359L26.7709 16.5289C26.9405 16.693 27.0881 16.8789 27.2084 17.0758C27.6569 17.8195 27.4928 18.5961 27.3561 19.0117C26.7655 20.7453 25.8358 22.3531 24.6272 23.7312C24.3373 24.0594 23.7358 24.6008 22.8608 24.5734C22.6365 24.568 22.4123 24.5297 22.1936 24.4695L20.1155 23.8516C19.8037 23.7586 19.2678 24.0703 19.1912 24.3875L18.6826 26.493C18.628 26.7227 18.5405 26.9414 18.4311 27.1383C18.01 27.9039 17.2498 28.15 16.8233 28.2375C15.9373 28.407 15.0295 28.5 14.0998 28.5C13.1701 28.5 12.2623 28.407 11.3764 28.2375C10.9444 28.1555 10.1842 27.9039 9.76858 27.1383C9.65921 26.9359 9.57171 26.7227 9.51702 26.493L9.00842 24.3875C8.93186 24.0703 8.39592 23.7586 8.08421 23.8516L6.00608 24.4641C5.78733 24.5297 5.56311 24.5625 5.33889 24.568C4.45843 24.5953 3.86233 24.0539 3.57249 23.7258C2.36936 22.3531 1.43421 20.7398 0.843581 19.0063C0.701394 18.5906 0.537331 17.8141 0.991237 17.0703C1.11155 16.8734 1.25921 16.6875 1.42874 16.5234L2.99827 15.0305C3.22796 14.8117 3.22796 14.1828 2.99827 13.9641L1.42327 12.4711C1.25374 12.307 1.10608 12.1211 0.985769 11.9242C0.537331 11.1805 0.701394 10.4039 0.843581 9.99375C1.43421 8.26016 2.36389 6.65234 3.57249 5.27422C3.86233 4.94609 4.46389 4.40469 5.33889 4.43203C5.56311 4.4375 5.78733 4.47578 6.00608 4.53594L8.08421 5.14844C8.39592 5.24141 8.93186 4.92969 9.00842 4.6125L9.51702 2.50703C9.57171 2.27734 9.65921 2.05859 9.76858 1.86172C10.1897 1.09609 10.9498 0.85 11.3764 0.7625C12.2623 0.592969 13.1701 0.5 14.0998 0.5ZM12.0272 3.31094L11.5623 5.23047C11.1358 6.99687 9.08499 8.17813 7.34046 7.66953L5.45374 7.11172C4.55139 8.16719 3.84046 9.39219 3.37561 10.7047L4.80842 12.0664C6.12092 13.3133 6.12092 15.6867 4.80842 16.9336L3.37561 18.2953C3.84046 19.6078 4.55139 20.8328 5.45374 21.8883L7.34592 21.3305C9.08499 20.8164 11.1412 22.0031 11.5678 23.7695L12.0326 25.6891C13.378 25.9352 14.8381 25.9352 16.1834 25.6891L16.6483 23.7695C17.0748 22.0031 19.1256 20.8219 20.8701 21.3305L22.7623 21.8883C23.6647 20.8328 24.3756 19.6078 24.8405 18.2953L23.4076 16.9336C22.0951 15.6867 22.0951 13.3133 23.4076 12.0664L24.8405 10.7047C24.3756 9.39219 23.6647 8.16719 22.7623 7.11172L20.8701 7.66953C19.1311 8.18359 17.0748 6.99687 16.6483 5.23047L16.1834 3.31094C14.8381 3.06484 13.378 3.06484 12.0326 3.31094H12.0272ZM11.4748 14.5C11.4748 15.1962 11.7514 15.8639 12.2437 16.3562C12.736 16.8484 13.4036 17.125 14.0998 17.125C14.796 17.125 15.4637 16.8484 15.956 16.3562C16.4483 15.8639 16.7248 15.1962 16.7248 14.5C16.7248 13.8038 16.4483 13.1361 15.956 12.6438C15.4637 12.1516 14.796 11.875 14.0998 11.875C13.4036 11.875 12.736 12.1516 12.2437 12.6438C11.7514 13.1361 11.4748 13.8038 11.4748 14.5ZM14.0998 19.75C12.7074 19.75 11.3721 19.1969 10.3875 18.2123C9.40295 17.2277 8.84983 15.8924 8.84983 14.5C8.84983 13.1076 9.40295 11.7723 10.3875 10.7877C11.3721 9.80312 12.7074 9.25 14.0998 9.25C15.4922 9.25 16.8276 9.80312 17.8121 10.7877C18.7967 11.7723 19.3498 13.1076 19.3498 14.5C19.3498 15.8924 18.7967 17.2277 17.8121 18.2123C16.8276 19.1969 15.4922 19.75 14.0998 19.75Z"
+                                                              fill="#949494"/>
+                                                    </g>
+                                                    <defs>
+                                                        <clipPath id="clip0_13485_10484">
+                                                            <rect width="28" height="28" fill="white"
+                                                                  transform="translate(0.0998535 0.5)"/>
+                                                        </clipPath>
+                                                    </defs>
+                                                </svg>`,
+                                                title: `設定`,
+                                                type: `setting`,
+                                            }];
+                                    }
+                                    else {
+                                        return [];
+                                    }
+                                })()
                             ];
                             return page
                                 .map((data) => {
@@ -563,23 +779,23 @@ cursor: pointer;
                             else {
                                 return {
                                     class: `d-flex nav-left flex-column`,
-                                    style: `height: 100%;gap:24px;padding-top:114px;position:fixed;left:0px;top:0px;background: #FFF;box-shadow: 1px 0px 10px 0px rgba(0, 0, 0, 0.05);`,
+                                    style: `height: 100%;gap:24px;padding-top:114px;position:fixed;left:0px;top:0px;background: #FFF;box-shadow: 1px 0px 10px 0px rgba(0, 0, 0, 0.05);z-index:10;`,
                                 };
                             }
                         },
                     })}
                         `;
-                },
+                }),
                 divCreate: () => {
                     if (document.body.offsetWidth > 800) {
                         return { style: `padding: 86px 0 0 103px;height:100vh;width:100vw;color:#393939;` };
                     }
                     else {
-                        return { style: `padding-top:86px;padding-bottom:0px;height:100vh;width:100vw;color:#393939;overflow-y:auto;` };
+                        return { style: `padding-top:66px;padding-bottom:0px;height:100vh;width:100vw;color:#393939;overflow-y:auto;` };
                     }
                 },
             };
-        }) + NormalPageEditor.leftNav(gvc));
+        }));
     }
     static initialStyle(gvc) {
         const css = String.raw;
@@ -673,4 +889,25 @@ cursor: pointer;
                 </div>`;
     }
 }
+POSSetting.config = {
+    get who() {
+        return localStorage.getItem('pos_use_member') || '';
+    },
+    set who(value) {
+        localStorage.setItem('pos_use_member', value);
+    },
+    recreate: () => { },
+    get pickup_number() {
+        if (parseInt(localStorage.getItem('orderGetNumber') || '1', 10) > 1000) {
+            POSSetting.config.pickup_number = 1;
+            return 1;
+        }
+        else {
+            return parseInt(localStorage.getItem('orderGetNumber') || '1', 10);
+        }
+    },
+    set pickup_number(value) {
+        localStorage.setItem('orderGetNumber', `${value}`);
+    }
+};
 window.glitter.setModule(import.meta.url, POSSetting);

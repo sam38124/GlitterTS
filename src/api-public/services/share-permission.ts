@@ -299,6 +299,8 @@ export class SharePermission {
                         user: userData.userID,
                         appName: base.app,
                         config: JSON.stringify(data.config),
+                        status:data.config.come_from==='pos' ? 1:0,
+                        invited:data.config.come_from==='pos' ? 1:0
                     },
                 ]);
                 const keyValue = await SharePermission.generateToken({
@@ -308,8 +310,9 @@ export class SharePermission {
                 redirect_url = new URL(`${process.env.DOMAIN}/api-public/v1/user/permission/redirect`);
                 redirect_url.searchParams.set('key', keyValue);
                 redirect_url.searchParams.set('g-app', base.app);
-
-                await sendmail('service@ncdesign.info', data.email, '商店權限分享邀請信', `「${storeData.value.shop_name}」邀請你加入他的商店，點擊此連結即可開啟權限：${redirect_url}`);
+                if(data.config.come_from!=='pos'){
+                    await sendmail('service@ncdesign.info', data.email, '商店權限分享邀請信', `「${storeData.value.shop_name}」邀請你加入他的商店，點擊此連結即可開啟權限：${redirect_url}`);
+                }
             }
 
             return {
@@ -336,17 +339,13 @@ export class SharePermission {
                 `,
                     [email]
                 )
-            )[0];
-            if (userData === undefined) {
-                return { result: false };
-            }
+            )[0] || {userID:-999};
 
             await db.query(
-                `DELETE FROM \`${saasConfig.SAAS_NAME}\`.app_auth_config WHERE user = ? AND appName = ?;
+                `DELETE FROM \`${saasConfig.SAAS_NAME}\`.app_auth_config WHERE (user = ? or config->>'$.verifyEmail' = ?) AND appName = ?;
                 `,
-                [userData.userID, base.app]
+                [userData.userID,email, base.app]
             );
-
             return {
                 result: true,
                 ...base,

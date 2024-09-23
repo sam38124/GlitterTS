@@ -1,6 +1,7 @@
 import { TriggerEvent } from '../../glitterBundle/plugins/trigger-event.js';
 import { ApiShop } from '../../glitter-base/route/shopping.js';
 import { EditorElem } from '../../glitterBundle/plugins/editor-elem.js';
+import {ApiCart} from "../../glitter-base/route/api-cart.js";
 
 TriggerEvent.createSingleEvent(import.meta.url, () => {
     return {
@@ -144,13 +145,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                             })) || {};
                         const cartData: {
                             line_items: {
-                                sku: string;
                                 spec: string[];
-                                stock: number;
-                                sale_price: number;
-                                compare_price: number;
-                                preview_image: string;
-                                title: string;
                                 id: number;
                                 count: number;
                             }[];
@@ -159,9 +154,7 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                             line_items: [],
                             total: 0,
                         };
-                        const voucher = await ApiShop.getVoucherCode();
-                        const rebate = (await ApiShop.getRebateValue()) || 0;
-                        const distributionCode = localStorage.getItem('distributionCode') ?? '';
+
 
                         function checkout() {
                             const href = new URL(redirect as any, location.href);
@@ -176,21 +169,23 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                                 customer_info: customer_info as any,
                                 return_url: href.href,
                                 user_info: userInfo as any,
-                                code: voucher as string,
-                                use_rebate: parseInt(rebate as string, 10),
+                                code: ApiCart.cart.code,
+                                use_rebate: ApiCart.cart.use_rebate,
                                 custom_form_format: custom_form_format,
                                 custom_form_data: custom_form_data,
-                                distribution_code: distributionCode,
+                                distribution_code: ApiCart.cart.distribution_code,
+                                give_away:ApiCart.cart.give_away
                             }).then((res) => {
+
                                 if (object.payType === 'offline' || res.response.off_line || res.response.is_free) {
-                                    ApiShop.clearCart();
+                                    ApiCart.clearCart()
                                     resolve(true);
                                     location.href = res.response.return_url;
                                 } else {
                                     const id = gvc.glitter.getUUID();
                                     $('body').append(`<div id="${id}" style="display: none;">${res.response.form}</div>`);
                                     (document.querySelector(`#${id} #submit`) as any).click();
-                                    ApiShop.clearCart();
+                                    ApiCart.clearCart()
                                 }
                             });
                         }
@@ -233,28 +228,8 @@ TriggerEvent.createSingleEvent(import.meta.url, () => {
                             })) as any;
                             checkout();
                         } else {
-                            ApiShop.getCart().then(async (res: any) => {
-                                for (const b of Object.keys(res)) {
-                                    try {
-                                        const pd: any = (
-                                            await ApiShop.getProduct({
-                                                limit: 50,
-                                                page: 0,
-                                                id: b.split('-')[0],
-                                            })
-                                        ).response.data.content;
-                                        const vard = pd.variants.find((d2: any) => {
-                                            return `${pd.id}-${d2.spec.join('-')}` === b;
-                                        });
-                                        vard.id = pd.id;
-                                        vard.count = res[b];
-                                        vard.title = pd.title;
-                                        cartData.line_items.push(vard);
-                                        cartData.total += vard.count * vard.sale_price;
-                                    } catch (e) {}
-                                }
-                                checkout();
-                            });
+                            cartData.line_items=ApiCart.cart.line_items
+                            checkout();
                         }
                     });
                 },

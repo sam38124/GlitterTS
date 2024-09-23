@@ -12,12 +12,16 @@ export default class FinancialService {
     keyData: KeyData;
     appName: string;
     constructor(appName: string, keyData: KeyData);
+    static aesEncrypt(data: string, key: string, iv: string, input?: Encoding, output?: Encoding, method?: string): string;
+    static JsonToQueryString(data: {
+        [key: string]: string | string[] | number;
+    }): string;
     createOrderPage(orderData: {
         lineItems: {
-            "id": string;
-            "spec": string[];
-            "count": number;
-            "sale_price": number;
+            id: string;
+            spec: string[];
+            count: number;
+            sale_price: number;
             title: string;
         }[];
         total: number;
@@ -34,24 +38,19 @@ export default class FinancialService {
         note: any;
         method: string;
     }): Promise<string>;
-    generateUniqueOrderNumber(): string;
-    static JsonToQueryString(data: {
-        [key: string]: string | string[] | number;
-    }): string;
-    static aesEncrypt(data: string, key: string, iv: string, input?: Encoding, output?: Encoding, method?: string): string;
 }
 export declare class EzPay {
     keyData: KeyData;
     appName: string;
     constructor(appName: string, keyData: KeyData);
-    decode(data: string): Promise<string>;
     static aesDecrypt: (data: string, key: string, iv: string, input?: Encoding, output?: Encoding, method?: string) => string;
+    decode(data: string): string;
     createOrderPage(orderData: {
         lineItems: {
-            "id": string;
-            "spec": string[];
-            "count": number;
-            "sale_price": number;
+            id: string;
+            spec: string[];
+            count: number;
+            sale_price: number;
         }[];
         total: number;
         email: string;
@@ -71,12 +70,13 @@ export declare class EcPay {
     keyData: KeyData;
     appName: string;
     constructor(appName: string, keyData: KeyData);
+    static generateCheckMacValue(params: Record<string, any>, HashKey: string, HashIV: string): string;
     createOrderPage(orderData: {
         lineItems: {
-            "id": string;
-            "spec": string[];
-            "count": number;
-            "sale_price": number;
+            id: string;
+            spec: string[];
+            count: number;
+            sale_price: number;
             title: string;
         }[];
         total: number;
@@ -86,13 +86,14 @@ export declare class EcPay {
         user_email: string;
         use_wallet: number;
         method: string;
+        CheckMacValue?: string;
     }): Promise<string>;
     saveMoney(orderData: {
         total: number;
         userID: number;
         note: string;
         method: string;
+        CheckMacValue?: string;
     }): Promise<string>;
-    static urlEncode_dot_net(raw_data: string, case_tr?: string): string;
 }
 export {};

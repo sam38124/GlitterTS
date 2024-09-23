@@ -1,4 +1,5 @@
 import { IToken } from '../models/Auth.js';
+import { DeliveryData } from './delivery.js';
 type BindItem = {
     id: string;
     spec: string[];
@@ -15,8 +16,8 @@ interface VoucherData {
     title: string;
     code?: string;
     method: 'percent' | 'fixed';
-    reBackType: 'rebate' | 'discount' | 'shipment_free' | 'add_on_items';
-    add_on_products?: string[];
+    reBackType: 'rebate' | 'discount' | 'shipment_free' | 'add_on_items' | 'giveaway';
+    add_on_products?: string[] | ProductItem[];
     trigger: 'auto' | 'code' | 'distribution';
     value: string;
     for: 'collection' | 'product' | 'all';
@@ -42,6 +43,15 @@ interface VoucherData {
     target: string;
     targetList: string[];
     device: ('normal' | 'pos')[];
+}
+interface ProductItem {
+    id: number;
+    userID: number;
+    content: any;
+    created_time: Date | string;
+    updated_time: Date | string;
+    status: number;
+    total_sales?: number;
 }
 type Collection = {
     title: string;
@@ -100,6 +110,8 @@ type Cart = {
     distribution_info?: any;
     orderSource: '' | 'manual' | 'normal' | 'POS';
     code_array: string[];
+    deliveryData?: DeliveryData;
+    give_away: CartItem[];
 };
 export declare class Shopping {
     app: string;
@@ -218,6 +230,12 @@ export declare class Shopping {
         custom_form_data?: any;
         distribution_code?: string;
         code_array: string[];
+        give_away?: {
+            "id": number;
+            "spec": string[];
+            "count": number;
+            voucher_id: string;
+        }[];
     }, type?: 'add' | 'preview' | 'manual' | 'manual-preview' | 'POS', replace_order_id?: string): Promise<{
         data: Cart;
         result?: undefined;
@@ -355,7 +373,7 @@ export declare class Shopping {
         previous_month_total: number;
         gap: number;
     }>;
-    getHotProducts(): Promise<{
+    getHotProducts(duration: 'month' | 'day'): Promise<{
         series: number[];
         categories: string[];
     }>;

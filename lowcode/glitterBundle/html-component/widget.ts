@@ -9,6 +9,7 @@ import {Storage} from "../helper/storage.js";
 import {NormalPageEditor} from "../../editor/normal-page-editor.js";
 import {GlobalWidget} from "./global-widget.js";
 import {RenderValue} from "./render-value.js";
+import {BgWidget} from "../../backend-manager/bg-widget.js";
 
 
 const container_style_list = ['grid', 'vertical', 'proportion']
@@ -130,6 +131,8 @@ export const widgetComponent = {
                                                 }
                                             })
                                         }
+
+
                                         option.push({key: 'src', value: rela_link})
                                     } else if (widget.data.elem === 'input') {
                                         option.push({key: 'value', value: innerText})

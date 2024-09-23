@@ -114,6 +114,7 @@ export const config = {
         rebate: '/rebate',
         recommend: '/recommend',
         graph_api: '/graph_api',
+        ai_chat: '/ai',
     },
     route: {
         user: '/user',

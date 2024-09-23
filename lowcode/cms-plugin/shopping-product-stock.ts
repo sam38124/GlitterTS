@@ -445,31 +445,37 @@ export class StockList {
                         BgWidget.getContainerWidth()
                     );
                 } else if (vm.type === 'editSpec') {
-                    return ShoppingProductSetting.editProductSpec({
-                        vm: vm,
-                        gvc: gvc,
-                        defData: vm.replaceData,
-                        goBackEvent: {
-                            save: (postMD) => {
-                                const dialog = new ShareDialog(gvc.glitter);
-                                ApiShop.putProduct({
-                                    data: postMD,
-                                    token: (window.parent as any).config.token,
-                                }).then((re) => {
-                                    dialog.dataLoading({ visible: false });
-                                    if (re.result) {
-                                        dialog.successMessage({ text: `更改成功` });
-                                        vm.type = 'list';
-                                    } else {
-                                        dialog.errorMessage({ text: `上傳失敗` });
-                                    }
-                                });
+                    try {
+                        return ShoppingProductSetting.editProductSpec({
+                            vm: vm,
+                            gvc: gvc,
+                            defData: vm.replaceData,
+                            goBackEvent: {
+                                save: (postMD) => {
+                                    const dialog = new ShareDialog(gvc.glitter);
+                                    ApiShop.putProduct({
+                                        data: postMD,
+                                        token: (window.parent as any).config.token,
+                                    }).then((re) => {
+                                        dialog.dataLoading({ visible: false });
+                                        if (re.result) {
+                                            dialog.successMessage({ text: `更改成功` });
+                                            vm.type = 'list';
+                                        } else {
+                                            dialog.errorMessage({ text: `上傳失敗` });
+                                        }
+                                    });
+                                },
+                                cancel: () => {
+                                    vm.type = 'list';
+                                },
                             },
-                            cancel: () => {
-                                vm.type = 'list';
-                            },
-                        },
-                    });
+                        });
+                    }catch (e) {
+                        console.log(`editSpec===>`,e)
+                        return  ``
+                    }
+
                 } else {
                     return ``;
                 }

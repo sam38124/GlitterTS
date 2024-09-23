@@ -54,7 +54,8 @@ export const messageChange = TriggerEvent.createSingleEvent(import.meta.url, (gl
                                 console.log('Connected to server');
                                 socket.send(JSON.stringify({
                                     type: 'message-count-change',
-                                    user_id: userID
+                                    user_id: userID,
+                                    app_name: window.appName
                                 }));
                             });
                             let interVal = 0;

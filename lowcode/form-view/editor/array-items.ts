@@ -35,7 +35,7 @@ const gvc=cf.gvc;
                                                                         <div class=" p-1 dragItem " >
                                                                             <i class="fa-solid fa-grip-dots-vertical d-flex align-items-center justify-content-center  " style="width:15px;height:15px;" aria-hidden="true"></i>
                                                                         </div>
-                                                                        <span>${dd[widget.bundle.form_config.refer_title] || `選項 ${index+1}`}</span>
+                                                                        <span style="text-overflow: ellipsis;max-width: calc(100% - 100px);overflow: hidden;white-space: nowrap;">${dd[widget.bundle.form_config.refer_title] || `選項 ${index+1}`}</span>
                                                                         <div class="flex-fill"></div>
                                                                       
                                                                         <div class="hoverBtn p-1 child" onclick="${gvc.event((e,event)=>{
@@ -60,9 +60,13 @@ const gvc=cf.gvc;
                                         event.stopPropagation();
                                         event.preventDefault();
                                         const edit_data=dd;
-                                        NormalPageEditor.toggle({
+                                        
+                                        const gvc_ref=(gvc.glitter.getUrlParameter('cms')!=='true') ? gvc:(window.parent as any).glitter.pageConfig[0].gvc
+                                        const pageEditor = (gvc.glitter.getUrlParameter('cms')==='true') ? (window.parent as any).glitter.share.NormalPageEditor:NormalPageEditor;
+                                        pageEditor.toggle({
                                             visible:true,
-                                            view:gvc.bindView(()=>{
+                                            view:gvc_ref.bindView(()=>{
+                                                const gvc=gvc_ref;
                                                 const id=gvc.glitter.getUUID()
                                                 return {
                                                     bind:id,
@@ -72,7 +76,7 @@ const gvc=cf.gvc;
                                                         const dialog=new ShareDialog(gvc.glitter)
                                                         dialog.dataLoading({visible:true})
                                                         view.push(await new Promise((resolve, reject) => {
-                                                            gvc.glitter.getModule(new URL('./official_view_component/official/form.js', location.href).href, (res) => {
+                                                            gvc.glitter.getModule(new URL('./official_view_component/official/form.js', location.href).href, (res:any) => {
                                                                 resolve(res.editorView({
                                                                     gvc: gvc,
                                                                     array: widget.bundle.form_config['form_array'] || [],

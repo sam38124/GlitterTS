@@ -184,7 +184,7 @@ export class EcInvoice {
                 InvoiceNo: invoice_data.invoice_data.response.InvoiceNo,
                 InvoiceDate: `${invoice_data.invoice_data.response.InvoiceDate}`.substring(0, 10),
                 PrintStyle: 3,
-                IsShowingDetail: 2
+                IsShowingDetail: 1
             }
             const timeStamp = `${new Date().valueOf()}`
             const cipher = crypto.createCipheriv('aes-128-cbc', obj.hashKey, obj.hash_IV);
@@ -194,7 +194,9 @@ export class EcInvoice {
                 method: 'post',
                 maxBodyLength: Infinity,
                 url: (obj.beta) ? 'https://einvoice-stage.ecpay.com.tw/B2CInvoice/InvoicePrint' : 'https://einvoice.ecpay.com.tw/B2CInvoice/InvoicePrint',
-                headers: {},
+                headers: {
+                    'User-Agent':'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36'
+                },
                 'Content-Type': 'application/json',
                 data: {
                     MerchantID: obj.merchNO,
@@ -221,20 +223,49 @@ export class EcInvoice {
                     })
                     const dom = new JSDOM.JSDOM(htmlData.data);
                     const document = dom.window.document;
+                    //Qrcode取得
                     const inputs = document.querySelectorAll("input");
                     let qrcode: string[] = []
                     inputs.forEach(input => {
                         qrcode.push(input.value)
                     });
+                    //發票標題取得
+                    const bigTitles=document.querySelectorAll(".data_big")
+                    let bigTitle: string[] = []
+                    bigTitles.forEach(input => {
+                        bigTitle.push(input.innerHTML)
+                    });
+
                     resolve({
+                        //開立日期
+                        create_date:document.querySelector('font')!!.innerHTML,
+                        //發票區間
+                        date:bigTitle[0].replace(/\n/g,'').trim(),
+                        //發票號碼
+                        invoice_code:bigTitle[1].replace(/\n/g,'').trim(),
+                        //Qrcode_0
                         qrcode_0: qrcode[0],
-                        link:resp.InvoiceHtml,
+                        //Qrcode_1
                         qrcode_1: qrcode[1],
+                        //開立連結
+                        link:resp.InvoiceHtml,
+                        //隨機碼
+                        random_code:document.querySelectorAll('.fl font')[1].innerHTML,
+                        //總計
+                        total:document.querySelectorAll('.fr font')[1].innerHTML,
+                        //賣方
+                        sale_gui:document.querySelectorAll('.fl font')[2].innerHTML,
+                        //買方
+                        buy_gui:(document.querySelectorAll('.fr font')[2] || {innerHTML:''}).innerHTML,
+                        //交易明細
+                        pay_detail:document.querySelectorAll('table')[2].outerHTML,
+                        //底部付款資訊
+                        pay_detail_footer:(document.querySelector('.invoice-detail-sum') as any).outerHTML,
                         bar_code:qrcode[0].substring(10,15)+invoice_data.invoice_data.response.InvoiceNo+invoice_data.invoice_data.response.RandomNumber
                     })
                 })
                 .catch((error) => {
-                    console.log(error)
+                    console.error(`取得失敗::`,error)
                     resolve(false)
                 });
         })
