@@ -293,6 +293,7 @@ export class imageLibrary {
                                                     <div class=""
                                                          style="padding: 10px 12px;position: relative;${((dd as any).selected) ? `border-radius: 10px;border: 2px solid #393939;background: #F7F7F7;box-shadow: 3px 3px 10px 0px rgba(0, 0, 0, 0.10);` : editArray[index]?`border-radius: 10px;border: 1px solid #DDD;background: #F7F7F7;`:``}"
                                                          onclick="${gvc.event((e, event) => {
+                                                             let defaultSelect = (dd as any).selected;
                                                              if (vm.type == "folder") {
                                                                  array = [];
                                                                  vm.type = "folderView"
@@ -308,7 +309,7 @@ export class imageLibrary {
                                                                      (data as any).selected = false;
                                                                  })
                                                              }
-                                                             (dd as any).selected = !(dd as any).selected;
+                                                             (dd as any).selected = !defaultSelect;
                                                              gvc.notifyDataChange(vm.id)
                                                              event.stopPropagation();
                                                          })}"
@@ -524,6 +525,7 @@ export class imageLibrary {
                                                      dialog.errorMessage({text: "請先輸入相簿名稱"})
                                                      return
                                                  }
+                                                 console.log(vm.type)
                                                  this.selectImageLibrary(gvc, (selectData) => {
                                                      const folder: FileItem = {
                                                          title: vm.tag ?? "folder",
@@ -549,9 +551,9 @@ export class imageLibrary {
                                                      vm.link.push(folder);
                                                      vm.type = "folder"
                                                      gvc.notifyDataChange(vm.id);
-                                                     // save(()=>{
-                                                     //
-                                                     // })
+                                                     save(()=>{
+                                                         gvc.notifyDataChange(vm.id);
+                                                     })
                                                      // postMD.content_array = id
                                                      // obj.gvc.notifyDataChange(bi)
                                                      // getPublicConfig(()=>{
@@ -656,7 +658,7 @@ export class imageLibrary {
                                                     let group = vm.link.filter((item2) => {
                                                         return item2.tag && item2.tag.includes(vm.tag ?? "")
                                                     });
-
+                                                    console.log("array -- " , group)
                                                     return renderItems(group);
                                                 }
                                                 return ``
@@ -867,7 +869,9 @@ export class imageLibrary {
                                                                              if (vm.type == "file") {
                                                                                  cf.plus(gvc, (file) => {
                                                                                      vm.link.push(...file)
-                                                                                     gvc.notifyDataChange(vm.id)
+                                                                                     save(()=>{
+                                                                                         gvc.notifyDataChange(vm.id)
+                                                                                     })
                                                                                  }, "file")
                                                                              } else {
                                                                                  vm.tag = "";
@@ -888,7 +892,9 @@ export class imageLibrary {
                                                                         if (vm.type == "file") {
                                                                             cf.plus(gvc, (file) => {
                                                                                 vm.link.push(...file)
-                                                                                gvc.notifyDataChange(vm.id)
+                                                                                save(()=>{
+                                                                                    gvc.notifyDataChange(vm.id)
+                                                                                })
                                                                             }, "file")
                                                                         }else{
                                                                             vm.tag = "";
@@ -1013,6 +1019,11 @@ export class imageLibrary {
                                 })
                             }
                             loop(vm.link);
+                            if (cf.key == 'album') {
+                                dialog.successMessage({
+                                    text:'相簿建立成功'
+                                })
+                            }
                             if (cf.key == 'image-manager' || cf.key == 'folderEdit') {
                                 if (select.length > 0){
                                     save(() => {

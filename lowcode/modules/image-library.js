@@ -161,6 +161,7 @@ export class imageLibrary {
                                                     <div class=""
                                                          style="padding: 10px 12px;position: relative;${(dd.selected) ? `border-radius: 10px;border: 2px solid #393939;background: #F7F7F7;box-shadow: 3px 3px 10px 0px rgba(0, 0, 0, 0.10);` : editArray[index] ? `border-radius: 10px;border: 1px solid #DDD;background: #F7F7F7;` : ``}"
                                                          onclick="${gvc.event((e, event) => {
+                                                let defaultSelect = dd.selected;
                                                 if (vm.type == "folder") {
                                                     array = [];
                                                     vm.type = "folderView";
@@ -176,7 +177,7 @@ export class imageLibrary {
                                                         data.selected = false;
                                                     });
                                                 }
-                                                dd.selected = !dd.selected;
+                                                dd.selected = !defaultSelect;
                                                 gvc.notifyDataChange(vm.id);
                                                 event.stopPropagation();
                                             })}"
@@ -376,6 +377,7 @@ export class imageLibrary {
                                         dialog.errorMessage({ text: "請先輸入相簿名稱" });
                                         return;
                                     }
+                                    console.log(vm.type);
                                     this.selectImageLibrary(gvc, (selectData) => {
                                         var _a;
                                         const folder = {
@@ -401,6 +403,9 @@ export class imageLibrary {
                                         vm.link.push(folder);
                                         vm.type = "folder";
                                         gvc.notifyDataChange(vm.id);
+                                        save(() => {
+                                            gvc.notifyDataChange(vm.id);
+                                        });
                                     }, `<div class="d-flex flex-column" style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;">${vm.tag}</div>`, {
                                         key: 'album',
                                         mul: true,
@@ -486,6 +491,7 @@ export class imageLibrary {
                                                 var _a;
                                                 return item2.tag && item2.tag.includes((_a = vm.tag) !== null && _a !== void 0 ? _a : "");
                                             });
+                                            console.log("array -- ", group);
                                             return renderItems(group);
                                         }
                                         return ``;
@@ -683,7 +689,9 @@ export class imageLibrary {
                                             if (vm.type == "file") {
                                                 cf.plus(gvc, (file) => {
                                                     vm.link.push(...file);
-                                                    gvc.notifyDataChange(vm.id);
+                                                    save(() => {
+                                                        gvc.notifyDataChange(vm.id);
+                                                    });
                                                 }, "file");
                                             }
                                             else {
@@ -705,7 +713,9 @@ export class imageLibrary {
                                         if (vm.type == "file") {
                                             cf.plus(gvc, (file) => {
                                                 vm.link.push(...file);
-                                                gvc.notifyDataChange(vm.id);
+                                                save(() => {
+                                                    gvc.notifyDataChange(vm.id);
+                                                });
                                             }, "file");
                                         }
                                         else {
@@ -818,6 +828,11 @@ export class imageLibrary {
                                     });
                                 }
                                 loop(vm.link);
+                                if (cf.key == 'album') {
+                                    dialog.successMessage({
+                                        text: '相簿建立成功'
+                                    });
+                                }
                                 if (cf.key == 'image-manager' || cf.key == 'folderEdit') {
                                     if (select.length > 0) {
                                         save(() => {
