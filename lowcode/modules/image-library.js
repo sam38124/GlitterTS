@@ -204,9 +204,7 @@ export class imageLibrary {
                                                     vm.tag = dd.title;
                                                     that.selectImageLibrary(gvc, (selectData) => {
                                                         vm.link = selectData;
-                                                        save(() => {
-                                                            gvc.notifyDataChange(vm.id);
-                                                        });
+                                                        gvc.notifyDataChange(vm.id);
                                                     }, `<div class="d-flex flex-column" style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;">${vm.tag}</div>`, {
                                                         key: 'folderEdit',
                                                         mul: true,
@@ -218,11 +216,16 @@ export class imageLibrary {
                                                         if (!replace) {
                                                             let selectData = vm.link.findIndex(data => { return data.id == dd.id; });
                                                             vm.link.splice(selectData, 1);
-                                                            gvc.notifyDataChange(vm.id);
+                                                            save(() => {
+                                                                gvc.notifyDataChange(vm.id);
+                                                            });
                                                         }
                                                         else {
-                                                            array[index] = replace;
-                                                            gvc.notifyDataChange(id);
+                                                            let replaceIndex = vm.link.findIndex(data => data.id == replace.id);
+                                                            vm.link[replaceIndex] = replace;
+                                                            save(() => {
+                                                                gvc.notifyDataChange(vm.id);
+                                                            });
                                                         }
                                                     });
                                                 }
@@ -784,21 +787,7 @@ export class imageLibrary {
                                 });
                             }), "刪除相簿"),
                             BgWidget.save(gvc.event(() => {
-                                let select = [];
-                                function loop(array) {
-                                    array.map((dd) => {
-                                        if (dd.type === 'folder') {
-                                            loop(dd.items || []);
-                                        }
-                                        else {
-                                            if (dd.selected) {
-                                                select.push(dd);
-                                            }
-                                        }
-                                    });
-                                }
-                                loop(vm.link);
-                                cf.getSelect(select);
+                                cf.getSelect(vm.link);
                                 save(() => {
                                     gvc.closeDialog();
                                 });
