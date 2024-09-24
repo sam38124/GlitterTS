@@ -16,8 +16,8 @@ import { BgProduct } from '../backend-manager/bg-product.js';
 import { FilterOptions } from './filter-options.js';
 import { BgListComponent } from '../backend-manager/bg-list-component.js';
 import { Tool } from '../modules/tool.js';
-import { FileSystem } from "../modules/file-system.js";
-import { FileSystemGet } from "../modules/file-system-get.js";
+import { FileSystem } from '../modules/file-system.js';
+import { FileSystemGet } from '../modules/file-system-get.js';
 class Excel {
     constructor(gvc, headers, lineName) {
         this.gvc = gvc;
@@ -2030,32 +2030,24 @@ export class ShoppingProductSetting {
                                             view: () => __awaiter(this, void 0, void 0, function* () {
                                                 const text_array = yield FileSystemGet.getFile({
                                                     id: postMD.content_array,
-                                                    key: 'text-manager'
-                                                });
-                                                const image_array = yield FileSystemGet.getFile({
-                                                    id: postMD.content_array,
-                                                    key: 'image-manager'
+                                                    key: 'text-manager',
                                                 });
                                                 const view = [
-                                                    html `
-                                                                                <div class="d-flex align-items-center justify-content-end mb-2"
-                                                                                     style="cursor: pointer; gap:10px;">
-                                                                                    <div style="font-weight: 700;">
-                                                                                        商品說明
-                                                                                    </div>
-                                                                                    <div class="flex-fill"></div>
-                                                                                    ${BgWidget.grayButton(`<i class="fa-regular fa-gear me-2"></i>設定顯示文本`, gvc.event(() => {
+                                                    html ` <div class="d-flex align-items-center justify-content-end mb-2" style="cursor: pointer;">
+                                                                        <div style="font-weight: 700;">商品說明</div>
+                                                                        <div class="flex-fill"></div>
+                                                                        ${BgWidget.grayButton(`<i class="fa-regular fa-gear me-2"></i>設定顯示文本`, gvc.event(() => {
                                                         FileSystem.selectRichText(gvc, (id) => {
                                                             postMD.content_array = id;
                                                             obj.gvc.notifyDataChange(bi);
                                                         }, `<div class="d-flex flex-column">選擇文本${BgWidget.grayNote('尺寸介紹 / 規格介紹 / 使用教學 / 配送方式 ')}</div>`, postMD.content_array);
                                                     }))}
-                                                                                    
-                                                                                </div>`,
+                                                                    </div>`,
                                                     BgWidget.tab([
                                                         ...(() => {
                                                             if (text_array.length > 0) {
-                                                                return [{
+                                                                return [
+                                                                    {
                                                                         title: '商品介紹',
                                                                         key: 'product-detail',
                                                                     },

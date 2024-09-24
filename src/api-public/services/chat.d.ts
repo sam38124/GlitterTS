@@ -1,4 +1,4 @@
-import { IToken } from "../models/Auth.js";
+import { IToken } from '../models/Auth.js';
 export interface ChatRoom {
     chat_id: string;
     type: 'user' | 'group';

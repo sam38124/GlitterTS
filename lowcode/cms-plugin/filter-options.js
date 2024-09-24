@@ -237,7 +237,6 @@ FilterOptions.productListOrderBy = [
 ];
 FilterOptions.imageLibraryOrderBy = [
     { key: 'default', value: '預設' },
-    { key: 'title', value: '商品名稱' },
     { key: 'created_time_desc', value: '上傳時間新 > 舊' },
     { key: 'created_time_asc', value: '上傳時間舊 > 新' },
     { key: 'name_AtoZ', value: '圖片名稱A>Z' },

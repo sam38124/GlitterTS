@@ -2405,7 +2405,7 @@ export class ShoppingProductSetting {
                                                                         ],
                                                                         gvc,
                                                                         vm.type,
-                                                                        (text) => {
+                                                                        (text:any) => {
                                                                             vm.type = text;
                                                                             gvc.notifyDataChange(bi);
                                                                         },

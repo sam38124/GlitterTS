@@ -118,9 +118,34 @@ export class imageLibrary {
                             bind: id,
                             view: () => {
                                 let editArray = [];
+                                let sortArray = array;
+                                switch (vm.orderString) {
+                                    case "created_time_desc": {
+                                        sortArray = array.reverse();
+                                        break;
+                                    }
+                                    case "created_time_asc": {
+                                        break;
+                                    }
+                                    case "name_AtoZ": {
+                                        sortArray.sort((a, b) => {
+                                            return a.title.localeCompare(b.title);
+                                        });
+                                        break;
+                                    }
+                                    case "name_ZtoA": {
+                                        sortArray.sort((b, a) => {
+                                            return a.title.localeCompare(b.title);
+                                        });
+                                        break;
+                                    }
+                                }
                                 return array.map((dd, index) => {
                                     if (editArray.length < index + 1) {
                                         editArray.push(false);
+                                    }
+                                    if (!dd.title.toLowerCase().includes(vm.query.toLowerCase())) {
+                                        return;
                                     }
                                     let viewID = gvc.glitter.getUUID();
                                     return gvc.bindView({
@@ -172,7 +197,7 @@ export class imageLibrary {
                                                 gvc.notifyDataChange(viewID);
                                             })}">
                                                         <div class="${(editArray[index] && !dd.selected) ? `d-flex` : `d-none`}  align-items-center justify-content-center"
-                                                             style="height:24px;width:24px;border-radius: 3px;background: rgba(0, 0, 0, 0.80);position: absolute;right: 12px;top: 10px;"
+                                                             style="height:24px;width:24px;border-radius: 3px;background: rgba(0, 0, 0, 0.80);position: absolute;right: 8.15px;top: 8px;"
                                                              onclick="${gvc.event((e, event) => {
                                                 event.stopPropagation();
                                                 if (vm.type == "folder") {
@@ -222,7 +247,7 @@ export class imageLibrary {
                                                             </svg>
                                                         </div>
                                                         <div class="${(dd.selected) ? `d-flex` : `d-none`}  "
-                                                             style="height:24px;width:24px;border-radius: 3px;position: absolute;right: 12px;top: 10px;"
+                                                             style="height:24px;width:24px;border-radius: 3px;position: absolute;right: 8.15px;top: 8px;"
                                                         >
                                                             <i class="fa-solid fa-square-check "
                                                                style="color: #393939;font-size: 24px;"></i>
@@ -320,6 +345,7 @@ export class imageLibrary {
                                         <div style="color:${vm.type == data.key ? '#393939' : '#8D8D8D'};display: flex;padding:6px 18px;justify-content: center;align-items: center;border-radius: 10px;border: 2px solid ${vm.type == data.key ? '#393939' : '#8D8D8D'};background: #FFF;font-weight: ${vm.type == data.key ? '700' : '500'};cursor: pointer;"
                                              onclick="${gvc.event((e) => {
                                         vm.type = data.key;
+                                        vm.query = "";
                                         gvc.notifyDataChange(vm.id);
                                     })}">
                                             ${data.value}
@@ -347,7 +373,6 @@ export class imageLibrary {
                                         dialog.errorMessage({ text: "請先輸入相簿名稱" });
                                         return;
                                     }
-                                    let thatGVC = gvc;
                                     this.selectImageLibrary(gvc, (selectData) => {
                                         var _a;
                                         const folder = {
@@ -367,7 +392,6 @@ export class imageLibrary {
                                                 if (!matchingElement.tag.includes(vm.tag)) {
                                                     matchingElement.tag.push(vm.tag);
                                                 }
-                                                folder.items.push(matchingElement.id);
                                             }
                                             data.selected = false;
                                         });
@@ -400,7 +424,6 @@ export class imageLibrary {
                                         fileArray.forEach(item => {
                                             item.tag = [];
                                             item.tag.push(vm.tag);
-                                            folder.items.push(item.id);
                                             vm.link.push(item);
                                         });
                                         vm.link.push(folder);
@@ -436,7 +459,21 @@ export class imageLibrary {
                                     vm.tag = e.value;
                                 })}">
                                     </div>
-                                    
+                                    <div class="d-flex w-100" style="gap:14px;margin-top: 12px;">
+                                        ${BgWidget.searchFilter(gvc.event((e) => {
+                                    vm.query = e.value;
+                                    gvc.notifyDataChange(vm.id);
+                                }), vm.query || '', "搜尋圖片")}
+                                        ${BgWidget.updownFilter({
+                                    gvc,
+                                    callback: (value) => {
+                                        vm.orderString = value;
+                                        gvc.notifyDataChange(vm.id);
+                                    },
+                                    default: vm.orderString || 'default',
+                                    options: FilterOptions.imageLibraryOrderBy,
+                                })}
+                                    </div>
                                     <div class="">
                                         ${gvc.bindView({
                                     bind: `folderItemGroup`,
@@ -467,9 +504,10 @@ export class imageLibrary {
                                     </div>
                                     <div class="d-flex w-100" style="gap:14px;margin-top: 12px;">
                                         ${BgWidget.searchFilter(gvc.event((e) => {
+                                    vm.query = e.value;
                                     gvc.notifyDataChange(vm.id);
                                 }), vm.query || '', "搜尋圖片")}
-                                        ${BgWidget.sortFilter({
+                                        ${BgWidget.updownFilter({
                                     gvc,
                                     callback: (value) => {
                                         vm.orderString = value;
@@ -499,14 +537,61 @@ export class imageLibrary {
                                     gvc.notifyDataChange(vm.id);
                                 }))}
                                         ${BgWidget.grayButton("新增圖片", gvc.event(() => {
-                                    cf.plus(gvc, (files) => {
-                                        files.forEach((file) => {
-                                            var _a;
-                                            file.tag.push((_a = vm.tag) !== null && _a !== void 0 ? _a : "");
-                                            vm.link.push(file);
-                                        });
-                                        gvc.notifyDataChange(vm.id);
-                                    }, "file");
+                                    const thatGVC = gvc;
+                                    gvc.glitter.innerDialog((gvc) => {
+                                        return html `
+                                                    <div style="width: 445px;height: 255px;border-radius: 10px;background: #FFF;">
+                                                        <div class="d-flex" style="color:#393939;display: flex;padding: 12px 20px;align-items: center;gap: 10px;">新增圖片
+                                                            <span class="d-flex align-items-center justify-content-center" style="margin-left: auto;cursor: pointer;" onclick="${gvc.event(() => {
+                                            gvc.glitter.closeDiaLog('add');
+                                        })}">
+                                                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14" fill="none">
+                                                                  <path d="M1 1L13 13" stroke="#393939" stroke-linecap="round"/>
+                                                                  <path d="M13 1L1 13" stroke="#393939" stroke-linecap="round"/>
+                                                                </svg>
+                                                            </span>
+                                                        </div>
+                                                        <div class="d-flex justify-content-center" style="padding-top:61px;gap:14px;">
+                                                            <div style="padding: 10px 18px;border-radius: 10px;border: 1px solid #DDD;background: #FFF;box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.10);cursor: pointer;"
+                                                                 onclick="${gvc.event(() => {
+                                            this.selectImageLibrary(gvc, (selectData) => {
+                                                selectData.map((data) => {
+                                                    let matchingElement = vm.link.find(item2 => item2.id === data.id);
+                                                    if (matchingElement) {
+                                                        if (!matchingElement.tag) {
+                                                            matchingElement.tag = [];
+                                                        }
+                                                        if (!matchingElement.tag.includes(vm.tag)) {
+                                                            matchingElement.tag.push(vm.tag);
+                                                        }
+                                                    }
+                                                    data.selected = false;
+                                                });
+                                                gvc.glitter.closeDiaLog('add');
+                                                thatGVC.notifyDataChange(vm.id);
+                                            }, `<div class="d-flex flex-column" style="border-radius: 10px 10px 0px 0px;background: #F2F2F2;">${vm.tag}</div>`, {
+                                                key: 'album',
+                                                mul: true,
+                                            });
+                                        })}">從圖庫中選擇
+                                                            </div>
+                                                            <div style="padding: 10px 18px;border-radius: 10px;border: 1px solid #DDD;background: #FFF;box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.10);cursor: pointer;"
+                                                                 onclick="${gvc.event(() => {
+                                            cf.plus(gvc, (fileArray) => {
+                                                fileArray.forEach(item => {
+                                                    item.tag = [];
+                                                    item.tag.push(vm.tag);
+                                                    vm.link.push(item);
+                                                });
+                                                gvc.glitter.closeDiaLog('add');
+                                                thatGVC.notifyDataChange(vm.id);
+                                            }, "file");
+                                        })}">上傳新圖片
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                `;
+                                    }, 'add');
                                 }))}
                                     </div>
                                     <div class="">
@@ -536,9 +621,10 @@ export class imageLibrary {
                                                 </div>
                                                 <div class="d-flex w-100" style="gap:14px;">
                                                     ${BgWidget.searchFilter(gvc.event((e) => {
+                                    vm.query = e.value;
                                     gvc.notifyDataChange(vm.id);
                                 }), vm.query || '', cf.key == 'album-manager' || vm.type == "file" ? `搜尋圖片` : `搜尋相簿`)}
-                                                    ${BgWidget.sortFilter({
+                                                    ${BgWidget.updownFilter({
                                     gvc,
                                     callback: (value) => {
                                         vm.orderString = value;
@@ -690,7 +776,9 @@ export class imageLibrary {
                                             });
                                             vm.link.splice(folder, 1);
                                             cf.getSelect(vm.link);
-                                            gvc.closeDialog();
+                                            save(() => {
+                                                gvc.closeDialog();
+                                            });
                                         }
                                     }
                                 });
@@ -710,25 +798,14 @@ export class imageLibrary {
                                     });
                                 }
                                 loop(vm.link);
-                                if (cf.key == 'image-manager' || cf.key == 'folderEdit') {
-                                    if (select.length > 0) {
-                                        save(() => {
-                                            cf.getSelect(select);
-                                            gvc.closeDialog();
-                                        });
-                                    }
-                                    else {
-                                        const dialog = new ShareDialog(gvc.glitter);
-                                        dialog.errorMessage({ text: '請選擇至少一張圖片' });
-                                    }
-                                }
-                                else {
-                                    cf.getSelect(select);
+                                cf.getSelect(select);
+                                save(() => {
                                     gvc.closeDialog();
-                                }
-                            }), '確認')].join('');
+                                });
+                            }), '確定變更')].join('');
                     }
                     default: {
+                        let finishBTN = (cf.key == 'album') ? '建立' : '完成';
                         return [BgWidget.cancel(gvc.event(() => {
                                 if (vm.type == "folderView" || vm.type == "folderADD") {
                                     vm.type = "folder";
@@ -768,7 +845,7 @@ export class imageLibrary {
                                     cf.getSelect(select);
                                     gvc.closeDialog();
                                 }
-                            }), '確認')].join('');
+                            }), finishBTN)].join('');
                     }
                 }
             }
