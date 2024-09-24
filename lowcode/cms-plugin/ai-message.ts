@@ -283,24 +283,39 @@ export class AiMessage {
 
                                     let socket: any = undefined;
 
+                                    function markdownToHTML(markdownString: string) {
+                                        // 粗體
+                                        markdownString = markdownString.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+                                        // 斜體
+                                        markdownString = markdownString.replace(/\*(.*?)\*/g, '<em>$1</em>');
+
+                                        // 標題
+                                        markdownString = markdownString.replace(/#{1,6} (.*?)(?:\n|\r\n)?/g, function (match, group) {
+                                            var level = match.split(' ')[0].length;
+                                            return '<h' + level + '>' + group + '</h' + level + '>';
+                                        });
+
+                                        // 嵌字
+                                        markdownString = markdownString.replace(/<h(\d)><\/h\d>([\d\.]+[^\n]+)/g, (match, hLevel, content) => {
+                                            return `<h${hLevel}>${content.trim()}</h${hLevel}>`;
+                                        });
+
+                                        // 列表
+                                        markdownString = markdownString.replace(/\n(\*|\d+\.) (.*?)(?:\n|\r\n)?/g, function (match, type, content) {
+                                            var tag = type === '*' ? 'ul' : 'ol';
+                                            return '<' + tag + '><li>' + content + '</li></' + tag + '>';
+                                        });
+
+                                        return markdownString.replace(/\n/g, '<br>');
+                                    }
+
                                     function add_line(dd: any, index: number) {
                                         if (dd.user_id == 'manager') {
                                             dd.user_data = AiMessage.config;
                                         }
 
-                                        let count = 0;
-                                        // const replacedString = dd.message.text
-                                        //     .replace(/\*\*/g, function () {
-                                        //         count++;
-                                        //         if (count % 2 === 0) {
-                                        //             return '</strong>';
-                                        //         } else {
-                                        //             return '<strong>';
-                                        //         }
-                                        //     })
-                                        //     .replace(/\n/g, '<br>');
-
-                                        const replacedString = `\`${dd.message.text}\``;
+                                        const replacedString = markdownToHTML(dd.message.text);
 
                                         if (cf.user_id !== dd.user_id) {
                                             return html` <div class="mt-auto d-flex align-items-start ${vm.data[index + 1] && vm.data[index + 1].user_id === dd.user_id ? `mb-1` : `mb-3`}">

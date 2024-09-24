@@ -48,6 +48,15 @@ ul {
     padding: 0;
 }
 
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    margin-bottom: 0;
+}
+
 .text_unselect {
     color: var(--main-black) !important;
 }
@@ -429,7 +438,7 @@ ul {
     letter-spacing: 0.64px;
     word-wrap: break-word;
 }
-.bt_orange_lin:hover{
+.bt_orange_lin:hover {
     background: linear-gradient(135deg, var(--main-orange) 0%, #ff6c02 100%);
     color: white;
     background-clip: unset;
