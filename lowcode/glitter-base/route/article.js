@@ -18,7 +18,7 @@ export class Article {
             })()}`,
             "type": "GET",
             "headers": {
-                "g-app": getConfig().config.appName,
+                "g-app": json.app_name || getConfig().config.appName,
                 "Content-Type": "application/json",
                 "Authorization": getConfig().config.token
             }

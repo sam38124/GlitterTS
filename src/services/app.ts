@@ -724,6 +724,7 @@ export class App {
         ) {
             const result = await this.addDNSRecord(domain_name);
             await this.setSubDomain({
+                original_domain:(await db.query(`SELECT domain FROM \`${saasConfig.SAAS_NAME}\`.app_config where appName=?;`,[cf.app_name]))[0]['domain'],
                 appName: cf.app_name,
                 domain: domain_name,
             });
@@ -764,7 +765,7 @@ export class App {
         });
     }
 
-    public async setSubDomain(config: { appName: string; domain: string }) {
+    public async setSubDomain(config: {original_domain:string, appName: string; domain: string }) {
         let checkExists =
             (
                 await db.query(
@@ -789,7 +790,8 @@ export class App {
                 NginxConfFile.createFromSource(data as string, (err, conf) => {
                     const server: any = [];
                     for (const b of conf!.nginx.server as any) {
-                        if (b.server_name.toString().indexOf(config.domain) === -1) {
+
+                        if ( !b.server_name.toString().includes(`server_name ${config.domain};`) &&  !b.server_name.toString().includes(`server_name ${config.original_domain};`)) {
                             server.push(b);
                         }
                     }
@@ -847,7 +849,7 @@ server {
         }
     }
 
-    public async setDomain(config: { appName: string; domain: string }) {
+    public async setDomain(config: { original_domain:string,appName: string; domain: string }) {
         let checkExists =
             (
                 await db.query(
@@ -867,7 +869,7 @@ server {
                 NginxConfFile.createFromSource(data as string, (err, conf) => {
                     const server: any = [];
                     for (const b of conf!.nginx.server as any) {
-                        if (b.server_name.toString().indexOf(config.domain) === -1) {
+                        if ( !b.server_name.toString().includes(`server_name ${config.domain};`) && !b.server_name.toString().includes(`server_name ${config.original_domain};`) ) {
                             server.push(b);
                         }
                     }

@@ -64,7 +64,7 @@ export async function initial(serverPort: number) {
         await Ai.initial();
         await SaasScheme.createScheme();
         await ApiPublic.createScheme(saasConfig.SAAS_NAME as string);
-        // await UpdateScript.run()
+        await DomainCheck.initial()
         await redis.connect();
         await createAppRoute();
         await listBuckets();

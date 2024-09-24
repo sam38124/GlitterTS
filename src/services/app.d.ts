@@ -52,10 +52,12 @@ export declare class App {
     }): Promise<boolean>;
     addDNSRecord(domain: string): Promise<unknown>;
     setSubDomain(config: {
+        original_domain: string;
         appName: string;
         domain: string;
     }): Promise<any>;
     setDomain(config: {
+        original_domain: string;
         appName: string;
         domain: string;
     }): Promise<any>;

@@ -64,6 +64,7 @@ const moment_js_1 = __importDefault(require("moment/moment.js"));
 const xml_formatter_1 = __importDefault(require("xml-formatter"));
 const system_schedule_1 = require("./services/system-schedule");
 const ai_js_1 = require("./services/ai.js");
+const domain_check_js_1 = require("./domain-check.js");
 exports.app = (0, express_1.default)();
 const logger = new logger_1.default();
 exports.app.options('/*', (req, res) => {
@@ -88,6 +89,7 @@ async function initial(serverPort) {
         await ai_js_1.Ai.initial();
         await saas_table_check_1.SaasScheme.createScheme();
         await public_table_check_js_1.ApiPublic.createScheme(config_1.saasConfig.SAAS_NAME);
+        await domain_check_js_1.DomainCheck.initial();
         await redis_1.default.connect();
         await createAppRoute();
         await (0, AWSLib_1.listBuckets)();

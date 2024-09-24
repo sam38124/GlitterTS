@@ -3,6 +3,8 @@ import response from "../modules/response";
 import {App} from "../services/app";
 import {UtPermission} from "../api-public/utils/ut-permission.js";
 import exception from "../modules/exception.js";
+import db from "../modules/database.js";
+import {saasConfig} from "../config.js";
 
 const router: express.Router = express.Router();
 export = router;
@@ -103,6 +105,7 @@ router.put('/domain', async (req: express.Request, resp: express.Response) => {
     try {
         const app=new App(req.body.token);
         (await app.setDomain({
+            original_domain:(await db.query(`SELECT domain FROM \`${saasConfig.SAAS_NAME}\`.app_config where appName=?;`,[req.body.app_name]))[0]['domain'],
             appName:req.body.app_name,
             domain:req.body.domain
         }))
@@ -117,7 +120,7 @@ router.put('/sub_domain', async (req: express.Request, resp: express.Response) =
         const app=new App(req.body.token);
         (await app.putSubDomain({
             app_name:req.body.app_name,
-            name:req.body.sub_domain.replace(/./g,'')
+            name:req.body.sub_domain.replace(/\./g,'')
         }))
         return response.succ(resp, { result:true});
     } catch (err) {

@@ -532,6 +532,7 @@ class App {
                      where domain =${database_1.default.escape(domain_name)}`, []))[0]['count(1)'] === 0) {
             const result = await this.addDNSRecord(domain_name);
             await this.setSubDomain({
+                original_domain: (await database_1.default.query(`SELECT domain FROM \`${config_1.saasConfig.SAAS_NAME}\`.app_config where appName=?;`, [cf.app_name]))[0]['domain'],
                 appName: cf.app_name,
                 domain: domain_name,
             });
@@ -589,7 +590,7 @@ class App {
                 nginx_conf_1.NginxConfFile.createFromSource(data, (err, conf) => {
                     const server = [];
                     for (const b of conf.nginx.server) {
-                        if (b.server_name.toString().indexOf(config.domain) === -1) {
+                        if (!b.server_name.toString().includes(`server_name ${config.domain};`) && !b.server_name.toString().includes(`server_name ${config.original_domain};`)) {
                             server.push(b);
                         }
                     }
@@ -654,7 +655,7 @@ server {
                 nginx_conf_1.NginxConfFile.createFromSource(data, (err, conf) => {
                     const server = [];
                     for (const b of conf.nginx.server) {
-                        if (b.server_name.toString().indexOf(config.domain) === -1) {
+                        if (!b.server_name.toString().includes(`server_name ${config.domain};`) && !b.server_name.toString().includes(`server_name ${config.original_domain};`)) {
                             server.push(b);
                         }
                     }

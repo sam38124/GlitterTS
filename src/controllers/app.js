@@ -7,6 +7,8 @@ const response_1 = __importDefault(require("../modules/response"));
 const app_1 = require("../services/app");
 const ut_permission_js_1 = require("../api-public/utils/ut-permission.js");
 const exception_js_1 = __importDefault(require("../modules/exception.js"));
+const database_js_1 = __importDefault(require("../modules/database.js"));
+const config_js_1 = require("../config.js");
 const router = express_1.default.Router();
 router.post('/', async (req, resp) => {
     try {
@@ -106,6 +108,7 @@ router.put('/domain', async (req, resp) => {
     try {
         const app = new app_1.App(req.body.token);
         (await app.setDomain({
+            original_domain: (await database_js_1.default.query(`SELECT domain FROM \`${config_js_1.saasConfig.SAAS_NAME}\`.app_config where appName=?;`, [req.body.app_name]))[0]['domain'],
             appName: req.body.app_name,
             domain: req.body.domain
         }));
@@ -120,7 +123,7 @@ router.put('/sub_domain', async (req, resp) => {
         const app = new app_1.App(req.body.token);
         (await app.putSubDomain({
             app_name: req.body.app_name,
-            name: req.body.sub_domain.replace(/./g, '')
+            name: req.body.sub_domain.replace(/\./g, '')
         }));
         return response_1.default.succ(resp, { result: true });
     }

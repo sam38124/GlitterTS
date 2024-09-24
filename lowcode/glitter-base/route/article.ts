@@ -11,6 +11,7 @@ export class Article{
         for_index?:string,
         status?:string,
         page_type?:string
+        app_name?:string
     }) {
         return BaseApi.create({
             "url": getBaseUrl() + `/api-public/v1/article/manager?${ (() => {
@@ -29,7 +30,7 @@ export class Article{
             })()}`,
             "type": "GET",
             "headers": {
-                "g-app": getConfig().config.appName,
+                "g-app": json.app_name || getConfig().config.appName,
                 "Content-Type": "application/json",
                 "Authorization": getConfig().config.token
             }
