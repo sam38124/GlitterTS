@@ -8,13 +8,13 @@ export class Ai {
     };
 
     public static async initial() {
-        const file1 = 'defaultQA.json';
-        // const file1 = tool.randomString(10) + '.json';
+        // const file1 = 'defaultQA.json';
+        const file1 = tool.randomString(10) + '.json';
         const openai = new OpenAI({
             apiKey: process.env.OPENAI_API_KEY,
         });
         fs.writeFileSync(file1, JSON.stringify(this.defaultQA));
-        return;
+        // return;
         // 上傳教學引導檔案
         const file = await openai.files.create({
             file: fs.createReadStream(file1),

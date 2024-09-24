@@ -6,14 +6,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Ai = void 0;
 const fs_1 = __importDefault(require("fs"));
 const openai_1 = __importDefault(require("openai"));
+const tool_js_1 = __importDefault(require("../modules/tool.js"));
 class Ai {
     static async initial() {
-        const file1 = 'defaultQA.json';
+        const file1 = tool_js_1.default.randomString(10) + '.json';
         const openai = new openai_1.default({
             apiKey: process.env.OPENAI_API_KEY,
         });
         fs_1.default.writeFileSync(file1, JSON.stringify(this.defaultQA));
-        return;
         const file = await openai.files.create({
             file: fs_1.default.createReadStream(file1),
             purpose: 'assistants',
@@ -248,7 +248,7 @@ Ai.defaultQA = [
         response: '請前往品牌官網的「選單管理」，選單分為主選單與頁腳，可加入指定的頁面連結與外部連結，系統將自動在每個頁面的頁首頁腳添加超連結',
     },
     {
-        request: ['如何切換商店', '其他的商城要如何開啟', '切換商店的地方在哪'],
+        request: ['如何切換商店', '其他的商城要如何開啟', '切換商店的地方在哪', '如何新增商店'],
         response: '請移動至右上角會員頭像處，點擊「所有商店」，即可查看所有您建立的商店、當前方案與預覽圖',
     },
 ];
