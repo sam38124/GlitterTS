@@ -47,38 +47,13 @@ export class imageLibrary {
             loading: true,
             query: "",
             orderString: "",
-            type: "file"
+            type: "file",
         };
         if (cf.key == "folderEdit") {
             vm.tag = cf.tag;
             vm.type = "folderEdit";
         }
 
-        function selectAll(array: FileItem) {
-            (array as any).selected = true;
-            array.items = array.items ?? []
-            array.items.map((dd) => {
-                (dd as any).selected = true;
-                selectAll(dd);
-            });
-        }
-
-        function clearAll(array: FileItem) {
-            (array as any).selected = false;
-            array.items = array.items ?? []
-            array.items.map((dd) => {
-                (dd as any).selected = false;
-                clearAll(dd);
-            });
-        }
-
-        function allSelect(dd: any) {
-            return (
-                !dd.items.find((d1: any) => {
-                    return !(d1 as any).selected;
-                }) && (dd as any).selected
-            );
-        }
 
         function getSelectCount(dd: any) {
 
@@ -91,12 +66,6 @@ export class imageLibrary {
             }).length;
         }
 
-        function deleteSelect(items: FileItem[]) {
-            return items.filter((d1) => {
-                d1.items = deleteSelect(d1.items || []);
-                return !(d1 as any).selected;
-            });
-        }
         function getPublicConfig(callback:()=>void){
             ApiUser.getPublicConfig('image-manager', 'manager').then((data: any) => {
                 if (data.response.value) {
@@ -111,6 +80,7 @@ export class imageLibrary {
                     }
 
                     loop(vm.link);
+                    vm.loading = false;
                     callback()
 
                 }
@@ -479,6 +449,7 @@ export class imageLibrary {
                     return {
                         bind: vm.id,
                         view: async () => {
+                            const dialog = new ShareDialog(cf.gvc.glitter)
                             function pageBTN() {
                                 let key = [
                                     {
@@ -505,6 +476,7 @@ export class imageLibrary {
                                 }).join('')
                             }
                             // 空白夾新增的頁面
+
                             if (vm.type == "folderADD") {
                                 return html`
                                     <div class="d-flex flex-column"
@@ -525,7 +497,6 @@ export class imageLibrary {
                                                      dialog.errorMessage({text: "請先輸入相簿名稱"})
                                                      return
                                                  }
-                                                 console.log(vm.type)
                                                  this.selectImageLibrary(gvc, (selectData) => {
                                                      const folder: FileItem = {
                                                          title: vm.tag ?? "folder",
@@ -913,7 +884,16 @@ export class imageLibrary {
                                     </div>
                                 `
                             }
+                            if (vm.loading){
 
+
+                                return dialog.dataLoading({
+                                    visible:true
+                                })
+                            }
+                            dialog.dataLoading({
+                                visible:false
+                            })
                             return drawSelectImg();
                         },
                         divCreate: {

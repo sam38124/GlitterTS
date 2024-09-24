@@ -23,34 +23,11 @@ export class imageLibrary {
             loading: true,
             query: "",
             orderString: "",
-            type: "file"
+            type: "file",
         };
         if (cf.key == "folderEdit") {
             vm.tag = cf.tag;
             vm.type = "folderEdit";
-        }
-        function selectAll(array) {
-            var _a;
-            array.selected = true;
-            array.items = (_a = array.items) !== null && _a !== void 0 ? _a : [];
-            array.items.map((dd) => {
-                dd.selected = true;
-                selectAll(dd);
-            });
-        }
-        function clearAll(array) {
-            var _a;
-            array.selected = false;
-            array.items = (_a = array.items) !== null && _a !== void 0 ? _a : [];
-            array.items.map((dd) => {
-                dd.selected = false;
-                clearAll(dd);
-            });
-        }
-        function allSelect(dd) {
-            return (!dd.items.find((d1) => {
-                return !d1.selected;
-            }) && dd.selected);
         }
         function getSelectCount(dd) {
             let count = 0;
@@ -60,12 +37,6 @@ export class imageLibrary {
             return dd.items.filter((d) => {
                 return d.selected;
             }).length;
-        }
-        function deleteSelect(items) {
-            return items.filter((d1) => {
-                d1.items = deleteSelect(d1.items || []);
-                return !d1.selected;
-            });
         }
         function getPublicConfig(callback) {
             ApiUser.getPublicConfig('image-manager', 'manager').then((data) => {
@@ -80,6 +51,7 @@ export class imageLibrary {
                         });
                     }
                     loop(vm.link);
+                    vm.loading = false;
                     callback();
                 }
             });
@@ -333,6 +305,7 @@ export class imageLibrary {
                         bind: vm.id,
                         view: () => __awaiter(this, void 0, void 0, function* () {
                             var _a, _b, _c;
+                            const dialog = new ShareDialog(cf.gvc.glitter);
                             function pageBTN() {
                                 let key = [
                                     {
@@ -377,7 +350,6 @@ export class imageLibrary {
                                         dialog.errorMessage({ text: "請先輸入相簿名稱" });
                                         return;
                                     }
-                                    console.log(vm.type);
                                     this.selectImageLibrary(gvc, (selectData) => {
                                         var _a;
                                         const folder = {
@@ -735,6 +707,14 @@ export class imageLibrary {
                                     </div>
                                 `;
                             }
+                            if (vm.loading) {
+                                return dialog.dataLoading({
+                                    visible: true
+                                });
+                            }
+                            dialog.dataLoading({
+                                visible: false
+                            });
                             return drawSelectImg();
                         }),
                         divCreate: {
