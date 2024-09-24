@@ -249,17 +249,7 @@ export class AiMessage {
                                         dd.user_data = AiMessage.config;
                                     }
                                     let count = 0;
-                                    const replacedString = dd.message.text
-                                        .replace(/\*\*/g, function () {
-                                        count++;
-                                        if (count % 2 === 0) {
-                                            return '</strong>';
-                                        }
-                                        else {
-                                            return '<strong>';
-                                        }
-                                    })
-                                        .replace(/\n/g, '<br>');
+                                    const replacedString = `\`${dd.message.text}\``;
                                     if (cf.user_id !== dd.user_id) {
                                         return html ` <div class="mt-auto d-flex align-items-start ${vm.data[index + 1] && vm.data[index + 1].user_id === dd.user_id ? `mb-1` : `mb-3`}">
                                                 <img
