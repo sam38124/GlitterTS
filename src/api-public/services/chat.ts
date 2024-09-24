@@ -1,21 +1,14 @@
-import db, { limit } from '../../modules/database';
+import db from '../../modules/database';
 import exception from '../../modules/exception';
-import tool from '../../services/tool';
-import UserUtil from '../../utils/UserUtil';
 import { IToken } from '../models/Auth.js';
 import { UtDatabase } from '../utils/ut-database.js';
 import { User } from './user.js';
 import { sendmail } from '../../services/ses.js';
 import { App } from '../../services/app.js';
 import { WebSocket } from '../../services/web-socket.js';
-import { sendMessage } from '../../firebase/message.js';
 import { Firebase } from '../../modules/firebase.js';
 import { AutoSendEmail } from './auto-send-email.js';
-import OpenAI from 'openai';
-import moment from 'moment/moment.js';
-import { Private_config } from '../../services/private_config.js';
-import { Ai } from '../../services/ai.js';
-import {AiRobot} from "./ai-robot.js";
+import { AiRobot } from './ai-robot.js';
 
 export interface ChatRoom {
     chat_id: string;
@@ -39,7 +32,7 @@ export class Chat {
 
     public async addChatRoom(room: ChatRoom) {
         try {
-            console.log(`room.participant==>`,room.participant)
+            console.log(`room.participant==>`, room.participant);
             if (room.type === 'user') {
                 room.chat_id = room.participant.sort().join('-');
             } else {
@@ -81,9 +74,7 @@ export class Chat {
                             },
                         ]
                     );
-                    await db.query(`delete from \`${this.app}\`.\`t_chat_last_read\` where user_id=? and chat_id=?`,[
-                        b,  room.chat_id
-                    ])
+                    await db.query(`delete from \`${this.app}\`.\`t_chat_last_read\` where user_id=? and chat_id=?`, [b, room.chat_id]);
                     await db.query(
                         `
                         insert into \`${this.app}\`.\`t_chat_last_read\`
@@ -235,20 +226,20 @@ export class Chat {
                 //發送通知
                 if (b.user_id !== room.user_id) {
                     //訂單分析
-                    if (['writer' ,'order_analysis' , 'operation_guide'].includes(b.user_id)) {
-                        const response = await new Promise(async (resolve, reject)=>{
-                            switch (b.user_id){
+                    if (['writer', 'order_analysis', 'operation_guide'].includes(b.user_id)) {
+                        const response = await new Promise(async (resolve, reject) => {
+                            switch (b.user_id) {
                                 case 'writer':
-                                    resolve(await AiRobot.writer(this.app,room.message.text))
-                                    return
+                                    resolve(await AiRobot.writer(this.app, room.message.text));
+                                    return;
                                 case 'order_analysis':
-                                    resolve(await AiRobot.orderAnalysis(this.app,room.message.text))
-                                    return
+                                    resolve(await AiRobot.orderAnalysis(this.app, room.message.text));
+                                    return;
                                 case 'operation_guide':
-                                    resolve(await AiRobot.guide(this.app,room.message.text))
-                                    return
+                                    resolve(await AiRobot.guide(this.app, room.message.text));
+                                    return;
                             }
-                        })
+                        });
                         const insert = await db.query(
                             `
                                     insert into \`${this.app}\`.\`t_chat_detail\`
@@ -560,7 +551,6 @@ export class Chat {
             []
         );
     }
-
 
     constructor(app: string, token: IToken) {
         this.app = app;

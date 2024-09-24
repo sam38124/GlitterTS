@@ -3,13 +3,8 @@ export declare class Ai {
         guide: string;
     };
     static initial(): Promise<void>;
-    static defaultResponse: {
-        question: string[];
-        answer: string;
-    }[];
-    static defaultResponse2: {
-        tags: string[];
-        keywords: string[];
+    static defaultQA: {
+        request: string[];
         response: string;
     }[];
 }

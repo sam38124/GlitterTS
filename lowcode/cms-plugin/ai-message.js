@@ -7,28 +7,29 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { ApiUser } from "../glitter-base/route/user.js";
-import { Chat } from "../glitter-base/route/chat.js";
-import { BgWidget } from "../backend-manager/bg-widget.js";
-import { AiChat } from "../glitter-base/route/ai-chat.js";
-import { ShareDialog } from "../glitterBundle/dialog/ShareDialog.js";
+import { ApiUser } from '../glitter-base/route/user.js';
+import { Chat } from '../glitter-base/route/chat.js';
+import { BgWidget } from '../backend-manager/bg-widget.js';
+import { AiChat } from '../glitter-base/route/ai-chat.js';
+import { ShareDialog } from '../glitterBundle/dialog/ShareDialog.js';
 export class AiMessage {
     static aiRobot(cf) {
         const gvc = cf.gvc;
+        const html = String.raw;
         cf.userID = `${cf.userID}`;
         const chatID = [cf.userID, cf.toUser || 'manager'].sort().join('-');
         const vm = {
             visible: false,
-            id: gvc.glitter.getUUID()
+            id: gvc.glitter.getUUID(),
         };
         return gvc.bindView(() => {
-            AiMessage.toggle = ((vis) => {
+            AiMessage.toggle = (vis) => {
                 vm.visible = vis;
                 $(document.querySelector('.ai-left')).addClass(`scroll-out`);
                 setTimeout(() => {
                     gvc.notifyDataChange(vm.id);
                 }, 250);
-            });
+            };
             return {
                 bind: vm.id,
                 view: () => {
@@ -36,29 +37,39 @@ export class AiMessage {
                         return ``;
                     }
                     return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
-                        resolve(`<div class="position-fixed start-0 top-0 vw-100 vh-100" style="background: rgba(0,0,0,0.5);z-index:999;" onclick="${gvc.event(() => {
+                        resolve(html `<div
+                                class="position-fixed start-0 top-0 vw-100 vh-100"
+                                style="background: rgba(0,0,0,0.5);z-index:999;"
+                                onclick="${gvc.event(() => {
                             AiMessage.toggle(false);
-                        })}"><div class="position-fixed vh-100  top-0 scroll-in bg-white ai-left" style="top:0px;width: 500px;height: 100vh;max-width: 100vw;" onclick="${gvc.event((e, event) => {
+                        })}"
+                            >
+                                <div
+                                    class="position-fixed vh-100  top-0 scroll-in bg-white ai-left"
+                                    style="top:0px;width: 500px;height: 100vh;max-width: 100vw;"
+                                    onclick="${gvc.event((e, event) => {
                             event.stopPropagation();
-                        })}">${AiMessage.detail({
+                        })}"
+                                >
+                                    ${AiMessage.detail({
                             gvc: gvc,
                             user_id: cf.userID,
                             containerHeight: $('body').height() + 10 + 'px',
                             document: document,
-                            goBack: () => {
-                            },
+                            goBack: () => { },
                             close: () => {
                                 AiMessage.toggle(false);
                             },
-                        })}</div></div>`);
+                        })}
+                                </div>
+                            </div>`);
                     }));
                 },
                 divCreate: {
                     elem: 'div',
                     style: `z-index:99999;bottom:0px;left:0px;`,
                 },
-                onCreate: () => __awaiter(this, void 0, void 0, function* () {
-                }),
+                onCreate: () => __awaiter(this, void 0, void 0, function* () { }),
             };
         });
     }
@@ -66,6 +77,7 @@ export class AiMessage {
         const gvc = cf.gvc;
         const document = cf.document;
         const css = String.raw;
+        const html = String.raw;
         return gvc.bindView(() => {
             const id = gvc.glitter.getUUID();
             function refresh() {
@@ -75,7 +87,7 @@ export class AiMessage {
                 bind: id,
                 view: () => {
                     return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
-                        gvc.addStyle(css `
+                        gvc.addStyle(`
                             .btn-white-primary {
                                 border: 2px solid ${AiMessage.config.color};
                                 justify-content: space-between;
@@ -88,6 +100,29 @@ export class AiMessage {
                             .btn-white-primary:hover {
                                 background: ${AiMessage.config.color};
                                 color: white !important;
+                            }
+
+                            .select-label-ai-message {
+                                gap: 10px;
+                                border-radius: 7px;
+                                cursor: pointer;
+                                color: white;
+                                font-size: 16px;
+                                flex: 1;
+                                border: 1px solid #ffb400;
+                                background: linear-gradient(143deg, #ffb400 -22.7%, #ff6c02 114.57%);
+                            }
+
+                            .select-btn-ai-message {
+                                border-radius: 7px;
+                                flex: 1;
+                                font-size: 16px;
+                                border: 1px solid #ffb400;
+                                cursor: pointer;
+                                background: linear-gradient(143deg, #ffb400 -22.7%, #ff6c02 114.57%);
+                                background-clip: text;
+                                -webkit-background-clip: text;
+                                -webkit-text-fill-color: transparent;
                             }
                         `);
                         resolve([
@@ -114,67 +149,69 @@ export class AiMessage {
                                             if (chatRoom.who === 'manager') {
                                                 chatRoom.user_data = AiMessage.config;
                                             }
-                                            resolve(`<div class="navbar  d-flex align-items-center justify-content-between w-100  p-3 ${AiMessage.config.hideBar ? `d-none` : ``}" style="background: ${AiMessage.config.color};">
-                      <div class="d-flex align-items-center pe-3 w-100" style="gap:10px;display: flex;align-items: center;">
-                        <img src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sas0s9s0s1sesas0_1697354801736-Glitterlogo.png" class="rounded-circle border" style="background: white;border-radius: 50%;width: 40px;height: 40px;" width="40" alt="Albert Flores">
-                      
-                        <div class="d-flex flex-column px-1 text-white">
-                          <h6 class="mb-0 text-white d-flex">AI 智能助手</h6>
-                          <span class="fw-500 d-none" style="font-size:13px;">剩餘代幣:10</span>
-</div>
-                        <div class="flex-fill" style="flex: 1;"></div>
-                      <i class="fa-regular fa-circle-xmark text-white fs-3 ${cf.close ? `` : `d-none`}" onclick="${gvc.event(() => {
+                                            resolve(html `<div
+                                                        class="navbar  d-flex align-items-center justify-content-between w-100  p-3 ${AiMessage.config.hideBar ? `d-none` : ``}"
+                                                        style="background: ${AiMessage.config.color};"
+                                                    >
+                                                        <div class="d-flex align-items-center pe-3 w-100" style="gap:10px;display: flex;align-items: center;">
+                                                            <img
+                                                                src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sas0s9s0s1sesas0_1697354801736-Glitterlogo.png"
+                                                                class="rounded-circle border"
+                                                                style="background: white;border-radius: 50%;width: 40px;height: 40px;"
+                                                                width="40"
+                                                                alt="Albert Flores"
+                                                            />
+                                                            <div class="d-flex flex-column px-1 text-white">
+                                                                <h6 class="mb-0 text-white d-flex">AI 智能助手</h6>
+                                                                <span class="fw-500 d-none" style="font-size:13px;">剩餘代幣:10</span>
+                                                            </div>
+                                                            <div class="flex-fill" style="flex: 1;"></div>
+                                                            <i
+                                                                class="fa-regular fa-circle-xmark text-white fs-3 ${cf.close ? `` : `d-none`}"
+                                                                onclick="${gvc.event(() => {
                                                 cf.close && cf.close();
-                                            })}"></i>
-                      </div>
-                    </div>` + `<div class="d-flex align-items-center p-2 shadow border-bottom" style="gap:10px;">
-                                    ${(() => {
-                                                const list = [
-                                                    {
-                                                        key: 'writer',
-                                                        label: '文案寫手',
-                                                    },
-                                                    {
-                                                        key: 'order_analysis',
-                                                        label: '訂單分析',
-                                                    },
-                                                    {
-                                                        key: 'operation_guide',
-                                                        label: '操作導引'
-                                                    },
-                                                ];
-                                                return list
-                                                    .map((dd) => {
-                                                    if (AiMessage.vm.select_bt === dd.key) {
-                                                        return `<div class="d-flex align-items-center justify-content-center fw-bold px-3 py-2 fw-500" style="
-gap: 10px;
-border-radius: 7px;
-cursor: pointer;
-color: white;
-font-size: 16px;
-flex:1;
-border: 1px solid #FFB400;
-background: linear-gradient(143deg, #FFB400 -22.7%, #FF6C02 114.57%);" >${dd.label}</div>`;
-                                                    }
-                                                    else {
-                                                        return `<div class="d-flex align-items-center justify-content-center fw-bold  px-3 py-2 fw-500" style="
-border-radius: 7px;
-flex:1;
-font-size: 16px;
-border: 1px solid #FFB400;
-cursor: pointer;
-background: linear-gradient(143deg, #FFB400 -22.7%, #FF6C02 114.57%);
-background-clip: text;
--webkit-background-clip: text;
--webkit-text-fill-color: transparent;" onclick="${gvc.event(() => {
-                                                            AiMessage.vm.select_bt = dd.key;
-                                                            refresh();
-                                                        })}">${dd.label}</div>`;
-                                                    }
-                                                })
-                                                    .join('');
-                                            })()}
-                                </div>`);
+                                            })}"
+                                                            ></i>
+                                                        </div>
+                                                    </div>` +
+                                                html `<div class="d-flex align-items-center p-2 shadow border-bottom" style="gap:10px;">
+                                                            ${(() => {
+                                                    const list = [
+                                                        {
+                                                            key: 'writer',
+                                                            label: '文案寫手',
+                                                        },
+                                                        {
+                                                            key: 'order_analysis',
+                                                            label: '訂單分析',
+                                                        },
+                                                        {
+                                                            key: 'operation_guide',
+                                                            label: '操作引導',
+                                                        },
+                                                    ];
+                                                    return list
+                                                        .map((dd) => {
+                                                        if (AiMessage.vm.select_bt === dd.key) {
+                                                            return html `<div class="d-flex align-items-center justify-content-center fw-bold px-3 py-2 fw-500 select-label-ai-message">
+                                                                                ${dd.label}
+                                                                            </div>`;
+                                                        }
+                                                        else {
+                                                            return html `<div
+                                                                                class="d-flex align-items-center justify-content-center fw-bold  px-3 py-2 fw-500 select-btn-ai-message"
+                                                                                onclick="${gvc.event(() => {
+                                                                AiMessage.vm.select_bt = dd.key;
+                                                                refresh();
+                                                            })}"
+                                                                            >
+                                                                                ${dd.label}
+                                                                            </div>`;
+                                                        }
+                                                    })
+                                                        .join('');
+                                                })()}
+                                                        </div>`);
                                         }));
                                     },
                                 };
@@ -191,7 +228,7 @@ background-clip: text;
                                     prefixScroll: 0,
                                     last_read: {},
                                     close: false,
-                                    ai_loading: false
+                                    ai_loading: false,
                                 };
                                 Chat.getMessage({
                                     page: 0,
@@ -211,24 +248,32 @@ background-clip: text;
                                     if (dd.user_id == 'manager') {
                                         dd.user_data = AiMessage.config;
                                     }
+                                    let count = 0;
+                                    const replacedString = dd.message.text
+                                        .replace(/\*\*/g, function () {
+                                        count++;
+                                        if (count % 2 === 0) {
+                                            return '</strong>';
+                                        }
+                                        else {
+                                            return '<strong>';
+                                        }
+                                    })
+                                        .replace(/\n/g, '<br>');
                                     if (cf.user_id !== dd.user_id) {
-                                        return html `
-                                            <div
-                                                    class="mt-auto d-flex align-items-start ${vm.data[index + 1] && vm.data[index + 1].user_id === dd.user_id ? `mb-1` : `mb-3`}"
-                                            >
+                                        return html ` <div class="mt-auto d-flex align-items-start ${vm.data[index + 1] && vm.data[index + 1].user_id === dd.user_id ? `mb-1` : `mb-3`}">
                                                 <img
-                                                        src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sas0s9s0s1sesas0_1697354801736-Glitterlogo.png"
-                                                        class="rounded-circle border"
-                                                        width="40"
-                                                        style="background: white;border-radius: 50%;width: 40px;height: 40px;"
+                                                    src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sas0s9s0s1sesas0_1697354801736-Glitterlogo.png"
+                                                    class="rounded-circle border"
+                                                    width="40"
+                                                    style="background: white;border-radius: 50%;width: 40px;height: 40px;"
                                                 />
-                                                <div class="ps-2 ms-1"
-                                                     style="max-width: 348px;">
+                                                <div class="ps-2 ms-1" style="max-width: 348px;">
                                                     <div
-                                                            class="p-3 mb-1"
-                                                            style="background:#eeeef1;border-top-right-radius: .5rem; border-bottom-right-radius: .5rem; border-bottom-left-radius: .5rem;white-space: normal;"
+                                                        class="p-3 mb-1"
+                                                        style="background:#eeeef1;border-top-right-radius: .5rem; border-bottom-right-radius: .5rem; border-bottom-left-radius: .5rem;white-space: normal;"
                                                     >
-                                                        ${dd.message.text.replace(/\n/g, '<br>')}
+                                                        ${replacedString}
                                                     </div>
                                                     <div class="fs-sm text-muted time-tt ${vm.data[index + 1] && vm.data[index + 1].user_id === dd.user_id ? `d-none` : ``}">
                                                         ${gvc.glitter.ut.dateFormat(new Date(dd.created_time), 'MM-dd hh:mm')}
@@ -237,26 +282,20 @@ background-clip: text;
                                             </div>`;
                                     }
                                     else {
-                                        return html `
-                                            <div
-                                                    class="d-flex align-items-start justify-content-end ${vm.data[index + 1] && vm.data[index + 1].user_id === dd.user_id
-                                            ? `mb-1`
-                                            : `mb-3`}"
-                                            >
-                                                <div class="pe-2 me-1"
-                                                     style="max-width: 348px;">
+                                        return html ` <div class="d-flex align-items-start justify-content-end ${vm.data[index + 1] && vm.data[index + 1].user_id === dd.user_id ? `mb-1` : `mb-3`}">
+                                                <div class="pe-2 me-1" style="max-width: 348px;">
                                                     <div
-                                                            class=" text-light p-3 mb-1"
-                                                            style="background:#575757;border-top-left-radius: .5rem; border-bottom-right-radius: .5rem; border-bottom-left-radius: .5rem;white-space: normal;"
+                                                        class=" text-light p-3 mb-1"
+                                                        style="background:#575757;border-top-left-radius: .5rem; border-bottom-right-radius: .5rem; border-bottom-left-radius: .5rem;white-space: normal;"
                                                     >
-                                                        ${dd.message.text.replace(/\n/g, '<br>')}
+                                                        ${replacedString}
                                                     </div>
                                                     <div
-                                                            class="fw-500 d-flex justify-content-end align-items-center time-tt fs-sm text-muted ${vm.data[index + 1] &&
+                                                        class="fw-500 d-flex justify-content-end align-items-center time-tt fs-sm text-muted ${vm.data[index + 1] &&
                                             vm.data[index + 1].user_id === dd.user_id
                                             ? `d-none`
                                             : ``}"
-                                                            style="gap:5px;"
+                                                        style="gap:5px;"
                                                     >
                                                         <span> ${gvc.glitter.ut.dateFormat(new Date(dd.created_time), 'MM/dd hh:mm')}</span>
                                                         ${vm.last_read.find((d2) => {
@@ -287,7 +326,7 @@ background-clip: text;
                                             type: 'message',
                                             chatID: [cf.user_id, AiMessage.vm.select_bt].sort().join('-'),
                                             user_id: cf.user_id,
-                                            app_name: window.appName
+                                            app_name: window.appName,
                                         }));
                                     });
                                     let interVal = 0;
@@ -332,27 +371,26 @@ background-clip: text;
                                 }
                                 connect();
                                 const textAreaId = gvc.glitter.getUUID();
-                                const html = String.raw;
                                 return {
                                     bind: viewId,
                                     view: () => {
                                         if (vm.loading) {
-                                            return String.raw `<div class="d-flex align-items-center justify-content-center w-100 flex-column pt-3">
-                                <div class="spinner-border" role="status">
-                                    <span class="sr-only"></span>
-                                </div>
-                                <span class="mt-2">AI 就位中...</span>
-                            </div>`;
+                                            return html `<div class="d-flex align-items-center justify-content-center w-100 flex-column pt-3">
+                                                    <div class="spinner-border" role="status">
+                                                        <span class="sr-only"></span>
+                                                    </div>
+                                                    <span class="mt-2">AI 就位中...</span>
+                                                </div>`;
                                         }
-                                        return html ` ${gvc.bindView(() => {
+                                        return html `
+                                                ${gvc.bindView(() => {
                                             return {
                                                 bind: messageID,
                                                 view: () => {
                                                     var _a;
-                                                    return ` 
- 
-                                                <div class="my-auto flex-fill"></div>
-                                                ${add_line({
+                                                    return html `
+                                                                <div class="my-auto flex-fill"></div>
+                                                                ${add_line({
                                                         user_id: 'robot',
                                                         message: {
                                                             text: (_a = [
@@ -366,21 +404,20 @@ background-clip: text;
                                                                 },
                                                                 {
                                                                     key: 'operation_guide',
-                                                                    text: '您好！我是AI後台導引員，能協助你使用平台，如果有任何不了解的地方請直接詢問我。'
+                                                                    text: '您好！我是AI後台引導員，能協助你使用平台，如果有任何不了解的地方請直接詢問我。',
                                                                 },
                                                             ].find((dd) => {
                                                                 return dd.key === AiMessage.vm.select_bt;
-                                                            })) === null || _a === void 0 ? void 0 : _a.text
+                                                            })) === null || _a === void 0 ? void 0 : _a.text,
                                                         },
-                                                        created_time: (new Date()).toISOString()
+                                                        created_time: new Date().toISOString(),
                                                     }, -1)}
-                                                ${vm.data
+                                                                ${vm.data
                                                         .map((dd, index) => {
                                                         return add_line(dd, index);
                                                     })
                                                         .join('')}
-                                        
-`;
+                                                            `;
                                                 },
                                                 divCreate: {
                                                     class: `chatContainer p-3 d-flex flex-column position-relative`,
@@ -423,49 +460,55 @@ background-clip: text;
                                                 },
                                             };
                                         })}
-                                        ${gvc.bindView(() => {
+                                                ${gvc.bindView(() => {
                                             return {
                                                 bind: 'footer-ai',
                                                 view: () => {
                                                     var _a;
                                                     if (vm.ai_loading) {
-                                                        return html `
-                                                                    <div class="d-flex align-items-center justify-content-center ai-waiting flex-fill mx-2">
-                                                                        <div class="w-100 py-2 bt_ffb40_stroke d-flex align-items-center justify-content-center"
-                                                                             style="gap: 8px;">
-                                                                            <div class="spinner-border"
-                                                                                 style="width:20px;height: 20px;"></div>
-                                                                            AI 解答中
-                                                                        </div>
-                                                                    </div>`;
+                                                        return html ` <div class="d-flex align-items-center justify-content-center ai-waiting flex-fill mx-2">
+                                                                    <div class="w-100 py-2 bt_ffb40_stroke d-flex align-items-center justify-content-center" style="gap: 8px;">
+                                                                        <div class="spinner-border" style="width:20px;height: 20px;"></div>
+                                                                        AI 解答中
+                                                                    </div>
+                                                                </div>`;
                                                     }
                                                     else {
                                                         return html `
-                                                                    <div class="d-flex px-2"
-                                                                         style="overflow-x: auto;gap:5px;">
+                                                                    <div class="d-flex px-2" style="overflow-x: auto;gap:5px;">
                                                                         ${(_a = [
-                                                            { key: 'writer', data: [
+                                                            {
+                                                                key: 'writer',
+                                                                data: [
                                                                     '幫我撰寫一個精品包的文案',
                                                                     '幫我撰寫一個限時特價的文案',
                                                                     '撰寫一個關於我們的範本',
                                                                     '撰寫一個關於退貨條款的範本',
-                                                                    '撰寫一個關於服務條款的範本'
-                                                                ] },
-                                                            { key: 'order_analysis', data: [
+                                                                    '撰寫一個關於服務條款的範本',
+                                                                ],
+                                                            },
+                                                            {
+                                                                key: 'order_analysis',
+                                                                data: [
                                                                     '這個月的銷售額是多少',
                                                                     '賣最好的五個商品',
                                                                     '未付款的訂單有哪些',
                                                                     '哪個客戶買最多商品?',
-                                                                    '尚未出貨的訂單還有哪些?'
-                                                                ] },
-                                                            { key: 'operation_guide', data: [
+                                                                    '尚未出貨的訂單還有哪些?',
+                                                                ],
+                                                            },
+                                                            {
+                                                                key: 'operation_guide',
+                                                                data: [
                                                                     '請問要如何新增訂單？',
                                                                     '請問要如何封存訂單？',
                                                                     '請問要如何匯出訂單列表?',
                                                                     '請問要如何匯出商品列表?',
-                                                                    '新增商品該怎麼做？'
-                                                                ] }
-                                                        ].find((dd) => {
+                                                                    '新增商品該怎麼做？',
+                                                                ],
+                                                            },
+                                                        ]
+                                                            .find((dd) => {
                                                             return dd.key === AiMessage.vm.select_bt;
                                                         })) === null || _a === void 0 ? void 0 : _a.data.map((dd) => {
                                                             return `<div class="insignia insignia-secondary bgf6" style="white-space: nowrap;cursor: pointer;" onclick="${gvc.event(() => {
@@ -485,11 +528,17 @@ background-clip: text;
                                                         }).join('')}
                                                                     </div>
                                                                     <div class="px-2  d-flex align-items-center w-100 border-0 px-2" style="background: white;border-radius: 0px;">
-                                                                        ${BgWidget.customButton({ button: { color: 'snow', size: 'sm', style: 'min-height:48px;' }, text: { name: `
-                                                                        <div class="d-flex flex-column"  ><i class="fa-regular fa-broom-wide"></i>
-                                                                        重置對話
-                                                                        </div>
-                                                                        ` }, event: gvc.event(() => {
+                                                                        ${BgWidget.customButton({
+                                                            button: { color: 'snow', size: 'sm', style: 'min-height:48px;' },
+                                                            text: {
+                                                                name: html `
+                                                                                    <div class="d-flex flex-column">
+                                                                                        <i class="fa-regular fa-broom-wide"></i>
+                                                                                        重置對話
+                                                                                    </div>
+                                                                                `,
+                                                            },
+                                                            event: gvc.event(() => {
                                                                 const dialog = new ShareDialog(gvc.glitter);
                                                                 dialog.checkYesOrNot({
                                                                     text: '是否確認刪除所有對話，將會重置AI解除所有上下文關聯。',
@@ -497,16 +546,19 @@ background-clip: text;
                                                                         if (response) {
                                                                             dialog.dataLoading({ visible: true });
                                                                             AiChat.reset({
-                                                                                type: AiMessage.vm.select_bt
+                                                                                type: AiMessage.vm.select_bt,
                                                                             }).then(() => {
                                                                                 dialog.dataLoading({ visible: false });
                                                                                 refresh();
                                                                             });
                                                                         }
-                                                                    }
+                                                                    },
                                                                 });
-                                                            }) })}
-                                                                        ${[`<div class="position-relative w-100 mx-2">${gvc.bindView(() => {
+                                                            }),
+                                                        })}
+                                                                        ${[
+                                                            html `<div class="position-relative w-100 mx-2">
+                                                                                ${gvc.bindView(() => {
                                                                 return {
                                                                     bind: textAreaId,
                                                                     view: () => {
@@ -520,7 +572,7 @@ background-clip: text;
                                                                         option: [
                                                                             {
                                                                                 key: 'placeholder',
-                                                                                value: '輸入訊息內容'
+                                                                                value: '輸入訊息內容',
                                                                             },
                                                                             {
                                                                                 key: 'onchange',
@@ -538,11 +590,13 @@ background-clip: text;
                                                                         });
                                                                     },
                                                                 };
-                                                            })}</div>`, ` <button
-                                                        type="button"
-                                                        class="btn btn-icon btn-lg  d-sm-inline-flex ms-1 send-action"
-                                                        style="height: 36px;background: ${AiMessage.config.color};"
-                                                        onclick="${gvc.event(() => {
+                                                            })}
+                                                                            </div>`,
+                                                            html ` <button
+                                                                                type="button"
+                                                                                class="btn btn-icon btn-lg  d-sm-inline-flex ms-1 send-action"
+                                                                                style="height: 36px;background: ${AiMessage.config.color};"
+                                                                                onclick="${gvc.event(() => {
                                                                 if (vm.message) {
                                                                     vm.ai_loading = true;
                                                                     gvc.notifyDataChange('footer-ai');
@@ -563,9 +617,10 @@ background-clip: text;
                                                                 else {
                                                                 }
                                                             })}"
-                                                >
-                                                    <i class="fa-regular fa-paper-plane-top"></i>
-                                                </button>`].join('')}
+                                                                            >
+                                                                                <i class="fa-regular fa-paper-plane-top"></i>
+                                                                            </button>`,
+                                                        ].join('')}
                                                                     </div>
                                                                 `;
                                                     }
@@ -573,17 +628,15 @@ background-clip: text;
                                                 },
                                                 divCreate: {
                                                     class: `d-flex flex-column w-100 position-fixed bottom-0 position-lg-absolute py-2  border-top bg-white`,
-                                                    style: `gap:8px;`
+                                                    style: `gap:8px;`,
                                                 },
-                                                onCreate: () => {
-                                                }
+                                                onCreate: () => { },
                                             };
                                         })}
-                                        `;
+                                            `;
                                     },
                                     divCreate: {},
-                                    onCreate: () => {
-                                    },
+                                    onCreate: () => { },
                                     onDestroy: () => {
                                         vm.close = true;
                                         socket.close();
@@ -606,18 +659,13 @@ background-clip: text;
                     var _a, _b;
                     return html `
                         <div class=" card rounded-3">
-                            <div class="p-3 rounded-top"
-                                 style="width: 100%;white-space: normal;background: ${AiMessage.config.color};">
-                                <div class="text-white fw-bold" style=" font-size: 20px;">
-                                    ${(_a = AiMessage.config.title) !== null && _a !== void 0 ? _a : ''}
-                                </div>
-                                <p class=" text-white mt-2 mb-4"
-                                   style=" font-size: 16px;line-height: 22px;font-weight: 300;">
-                                    ${((_b = AiMessage.config.content) !== null && _b !== void 0 ? _b : '').replace(/\n/g, `<br>`)}</p>
+                            <div class="p-3 rounded-top" style="width: 100%;white-space: normal;background: ${AiMessage.config.color};">
+                                <div class="text-white fw-bold" style=" font-size: 20px;">${(_a = AiMessage.config.title) !== null && _a !== void 0 ? _a : ''}</div>
+                                <p class=" text-white mt-2 mb-4" style=" font-size: 16px;line-height: 22px;font-weight: 300;">${((_b = AiMessage.config.content) !== null && _b !== void 0 ? _b : '').replace(/\n/g, `<br>`)}</p>
                                 <button
-                                        class="btn w-100  rounded"
-                                        style=" background-color: rgba(0, 0, 0, 0.2);"
-                                        onclick="${gvc.event(() => {
+                                    class="btn w-100  rounded"
+                                    style=" background-color: rgba(0, 0, 0, 0.2);"
+                                    onclick="${gvc.event(() => {
                         goToChat('');
                     })}"
                                 >
@@ -635,27 +683,26 @@ background-clip: text;
                                     const returnHtml = [];
                                     const robot = (yield ApiUser.getPublicConfig('robot_auto_reply', 'manager')).response.value.question;
                                     if (robot.length > 0) {
-                                        returnHtml.push(html `
-                                                <div class=" fw-bold"
-                                                     style=" height: 60px;display: flex;align-items: center;justify-content: center;font-size: 16px;">
-                                                    <div class="" style="color: black;">即時解答</div>
-                                                </div>`);
+                                        returnHtml.push(html ` <div class=" fw-bold" style=" height: 60px;display: flex;align-items: center;justify-content: center;font-size: 16px;">
+                                                <div class="" style="color: black;">即時解答</div>
+                                            </div>`);
                                     }
                                     robot.map((dd) => {
-                                        returnHtml.push(`<div class="rounded-3 w-100 d-flex px-3 btn-white-primary py-2 fw-500"
-                                                     style=" " onclick="${gvc.event(() => {
+                                        returnHtml.push(html `<div
+                                                class="rounded-3 w-100 d-flex px-3 btn-white-primary py-2 fw-500"
+                                                style=" "
+                                                onclick="${gvc.event(() => {
                                             goToChat(dd.ask);
-                                        })}">
-                                                    <div style="white-space: normal;" class="flex-fill">${dd.ask}</div><i class="fa-solid fa-paper-plane-top"
-                                                                        style="font-size:18px;"
-                                                                        aria-hidden="true"></i></div>`);
+                                        })}"
+                                            >
+                                                <div style="white-space: normal;" class="flex-fill">${dd.ask}</div>
+                                                <i class="fa-solid fa-paper-plane-top" style="font-size:18px;" aria-hidden="true"></i>
+                                            </div>`);
                                     });
                                     resolve(returnHtml.join('') &&
-                                        html `
-                                                    <div class="px-3 pb-3"
-                                                         style=" display: flex;flex-direction: column;align-items: center;justify-content: center;gap:10px;font-size: 16px;">
-                                                        ${returnHtml.join('')}
-                                                    </div>`);
+                                        html ` <div class="px-3 pb-3" style=" display: flex;flex-direction: column;align-items: center;justify-content: center;gap:10px;font-size: 16px;">
+                                                    ${returnHtml.join('')}
+                                                </div>`);
                                 }));
                             },
                             divCreate: {
@@ -677,15 +724,14 @@ AiMessage.config = {
     head: 'https://liondesign-prd.s3.amazonaws.com/file/252530754/1695093945424-Frame 62 (1).png',
     name: '萊恩設計',
     user_data: {
-        head_img: 'https://liondesign-prd.s3.amazonaws.com/file/252530754/1695093945424-Frame 62 (1).png'
-    }
+        head_img: 'https://liondesign-prd.s3.amazonaws.com/file/252530754/1695093945424-Frame 62 (1).png',
+    },
 };
 AiMessage.vm = {
     type: 'list',
     chat_user: '',
-    select_bt: 'writer'
+    select_bt: 'writer',
 };
 AiMessage.id = `dsmdklweew3`;
-AiMessage.toggle = (visible) => {
-};
+AiMessage.toggle = (visible) => { };
 window.glitter.setModule(import.meta.url, AiMessage);

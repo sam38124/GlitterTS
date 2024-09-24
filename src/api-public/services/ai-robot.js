@@ -25,16 +25,15 @@ class AiRobot {
             key: 'ai_config',
         }))[0]) !== null && _d !== void 0 ? _d : {
             value: {
-                "writer": '',
-                "order_analysis": '',
-                "operation_guide": ""
+                writer: '',
+                order_analysis: '',
+                operation_guide: '',
             },
         }).value;
         const openai = new openai_1.default({
             apiKey: process.env.OPENAI_API_KEY,
         });
-        const query = `您是一個後台導引員，請用我提供給你的檔案來回覆用戶訊息，檔案中包含question與answer欄位，當用戶提出了問題，請先判斷問題性質包含了哪些question的可能，判斷question後，最後直接給予answer回答。
-`;
+        const query = `您是一個後台引導員，請用我提供給你的檔案來回覆問題，檔案中包含一個陣列request與一個response字串。當用戶提出了問題，請先遍歷所有request陣列，判斷提問的內容包含了哪些request的可能，並直接給予response回答，若無法直接從文件中判斷問題的具體內容，也不用解釋，尋找最接近問題的答案即可。`;
         const myAssistant = await openai.beta.assistants.create({
             instructions: query,
             name: '數據分析師',

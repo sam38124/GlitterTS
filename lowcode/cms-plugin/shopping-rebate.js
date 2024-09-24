@@ -102,7 +102,7 @@ export class ShoppingRebate {
                                             ].join('')), BgWidget.getContainerWidth(), 'max-height: 80vh; max-width: 92.5vh; overflow-y: auto; padding: 0;');
                                         }, 'email');
                                     },
-                                    text: '選擇用戶',
+                                    text: '選擇顧客',
                                 },
                             });
                         }))}

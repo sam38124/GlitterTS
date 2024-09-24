@@ -48,9 +48,7 @@ class Chat {
                             user_id: b,
                         },
                     ]);
-                    await database_1.default.query(`delete from \`${this.app}\`.\`t_chat_last_read\` where user_id=? and chat_id=?`, [
-                        b, room.chat_id
-                    ]);
+                    await database_1.default.query(`delete from \`${this.app}\`.\`t_chat_last_read\` where user_id=? and chat_id=?`, [b, room.chat_id]);
                     await database_1.default.query(`
                         insert into \`${this.app}\`.\`t_chat_last_read\`
                         set ?

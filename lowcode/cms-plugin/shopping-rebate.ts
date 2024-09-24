@@ -124,7 +124,7 @@ export class ShoppingRebate {
                                                             );
                                                         }, 'email');
                                                     },
-                                                    text: '選擇用戶',
+                                                    text: '選擇顧客',
                                                 },
                                             });
                                         })

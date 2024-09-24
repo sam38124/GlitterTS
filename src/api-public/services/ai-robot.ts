@@ -1,12 +1,12 @@
-import {Private_config} from "../../services/private_config.js";
-import OpenAI from "openai";
-import moment from "moment";
-import {Ai} from "../../services/ai";
+import { Private_config } from '../../services/private_config.js';
+import OpenAI from 'openai';
+import moment from 'moment';
+import { Ai } from '../../services/ai';
 
-export class AiRobot{
-    //操作導引
-    public static async guide(app_name:string,question: string) {
-        console.log(`ask-guide`+new Date().getTime())
+export class AiRobot {
+    //操作引導
+    public static async guide(app_name: string, question: string) {
+        console.log(`ask-guide` + new Date().getTime());
         let cf = (
             (
                 await Private_config.getConfig({
@@ -15,9 +15,9 @@ export class AiRobot{
                 })
             )[0] ?? {
                 value: {
-                    "writer": '',
-                    "order_analysis":'',
-                    "operation_guide":""
+                    writer: '',
+                    order_analysis: '',
+                    operation_guide: '',
                 },
             }
         ).value;
@@ -25,8 +25,7 @@ export class AiRobot{
             apiKey: process.env.OPENAI_API_KEY,
         });
         //創建客服小姐
-        const query = `您是一個後台導引員，請用我提供給你的檔案來回覆用戶訊息，檔案中包含question與answer欄位，當用戶提出了問題，請先判斷問題性質包含了哪些question的可能，判斷question後，最後直接給予answer回答。
-`;
+        const query = `您是一個後台引導員，請用我提供給你的檔案來回覆問題，檔案中包含一個陣列request與一個response字串。當用戶提出了問題，請先遍歷所有request陣列，判斷提問的內容包含了哪些request的可能，並直接給予response回答，若無法直接從文件中判斷問題的具體內容，也不用解釋，尋找最接近問題的答案即可。`;
         const myAssistant = await openai.beta.assistants.create({
             instructions: query,
             name: '數據分析師',
@@ -55,8 +54,8 @@ export class AiRobot{
     }
 
     //訂單分析
-    public static async orderAnalysis(app_name:string,question: string) {
-        console.log(`ask-ai`+new Date().getTime())
+    public static async orderAnalysis(app_name: string, question: string) {
+        console.log(`ask-ai` + new Date().getTime());
         let cf = (
             (
                 await Private_config.getConfig({
@@ -104,8 +103,8 @@ export class AiRobot{
     }
 
     //寫手
-    public static async writer(app_name:string,question: string) {
-        console.log(`ask-ai`+new Date().getTime())
+    public static async writer(app_name: string, question: string) {
+        console.log(`ask-ai` + new Date().getTime());
         let cf = (
             (
                 await Private_config.getConfig({
