@@ -347,7 +347,8 @@ export class EditorElem {
                                             <i
                                                 class="fa-regular fa-eye"
                                                 onclick="${obj.gvc.event(() => {
-                                                    obj.gvc.glitter.openDiaLog(new URL('../../dialog/image-preview.js', import.meta.url).href, 'preview', dd);
+                                                    (window.parent as any).glitter.openDiaLog(new URL('../../dialog/image-preview.js', import.meta.url).href, 'preview', dd);
+                                                    // obj.gvc.glitter.openDiaLog(new URL('../../dialog/image-preview.js', import.meta.url).href, 'preview', dd);
                                                 })}"
                                             ></i>
                                             <i

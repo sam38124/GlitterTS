@@ -528,7 +528,7 @@ export class Main_editor {
                         if (vm.type === 'list') {
 
                             return [Main_editor.color_list(vm, gvc, id, globalValue),
-                                CustomStyle.globalContainerList(vm, gvc, id, globalValue),
+                                // CustomStyle.globalContainerList(vm, gvc, id, globalValue),
                                 Main_editor.fonts_list(vm, gvc, id, globalValue)
                             ].join('');
                         } else if (vm.type === 'color_detail') {

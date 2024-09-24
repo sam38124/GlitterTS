@@ -60,6 +60,7 @@ export class GlobalWidget {
                                                         Storage.view_type = 'desktop'
                                                     }
                                                     refresh(dd.type as any);
+                                                    gvc.glitter.share.loading_dialog.dataLoading({text:'模組加載中...',visible:true})
                                                     gvc.notifyDataChange(['docs-container', id])
                                                 })}"
                                                 data-bs-toggle="tooltip" data-bs-placement="top"

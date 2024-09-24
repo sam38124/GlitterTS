@@ -35,6 +35,7 @@ import {SystemSchedule} from './services/system-schedule';
 import {Ai} from "./services/ai.js";
 import AWS from "aws-sdk";
 import {DomainCheck} from "./domain-check.js";
+import {UpdateScript} from "./update-script.js";
 
 export const app = express();
 const logger = new Logger();
@@ -63,6 +64,7 @@ export async function initial(serverPort: number) {
         await Ai.initial();
         await SaasScheme.createScheme();
         await ApiPublic.createScheme(saasConfig.SAAS_NAME as string);
+        // await UpdateScript.run()
         await redis.connect();
         await createAppRoute();
         await listBuckets();

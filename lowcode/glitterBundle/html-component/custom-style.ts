@@ -444,7 +444,7 @@ export class CustomStyle {
                             return html` <div>
                                 ${[
                                     html` <div
-                                        class="d-flex  cursor_pointer"
+                                        class="d-flex  cursor_pointer d-none"
                                         style="gap:8px;"
                                         onclick="${gvc.event(() => {
                                             widget.data._style_refer = dd.value;
@@ -510,89 +510,15 @@ export class CustomStyle {
         const html = String.raw;
         return gvc.bindView(() => {
             const id = gvc.glitter.getUUID();
-
+            widget.data._style_refer='custom'
             return {
                 bind: id,
                 view: () => {
-                    return [
-                        {
-                            title: html`套用統一間距`,
-                            hint: `<span class=""
-                                                  style="color:#8D8D8D;font-size: 13px;white-space: normal;word-break: break-all;line-height: 16px;">選擇一個間距，若是進行了修改，全站所有套用此間距的元件將自動更新，方便未來統一管理。</span>`,
-                            value: 'global',
-                        },
-                        {
-                            title: html`自定義間距`,
-                            hint: ` <span class="my-2"
-                                                  style="color:#8D8D8D;font-size: 13px;white-space: normal;word-break: break-all;line-height: 16px;">可以單獨為元件設置獨特間距，實現獨一無二的設計效果。</span>`,
-                            value: 'custom',
-                        },
-                    ]
-                        .map((dd) => {
-                            return html` <div>
-                                ${[
-                                    html` <div
-                                        class="d-flex  cursor_pointer"
-                                        style="gap:8px;"
-                                        onclick="${gvc.event(() => {
-                                            widget.data._style_refer = dd.value;
-                                            if (dd.value === 'global') {
-                                                widget.data._style_refer_global = {
-                                                    index: gvc.glitter.share.global_container_theme[0] ? 0 : undefined,
-                                                };
-                                            }
-                                            (callback || widget.refreshComponent)();
-                                            gvc.notifyDataChange(id);
-                                        })}"
-                                    >
-                                        ${widget.data._style_refer === dd.value
-                                            ? `<i class="fa-sharp fa-solid fa-circle-dot color39" style="margin-top: 5px;"></i>`
-                                            : ` <div class="c_39_checkbox " style="margin-top: 5px;"></div>`}
-                                        <div
-                                            class="tx_normal fw-normal d-flex flex-column"
-                                            style="max-width: calc(100% - 40px);white-space: normal;word-break: break-all;overflow: hidden;line-height: 25px;"
-                                        >
-                                            ${dd.title} ${widget.data._style_refer === dd.value ? dd.hint : ``}
-                                        </div>
-                                    </div>`,
-                                    html` <div class="d-flex position-relative mt-2" style="">
-                                        <div class="ms-0 border-end position-absolute h-100" style="left: 5px;"></div>
-                                        <div class="flex-fill " style="margin-left:20px;max-width: 100%;">
-                                            ${(() => {
-                                                if (widget.data._style_refer !== dd.value) {
-                                                    return ``;
-                                                }
-                                                if (widget.data._style_refer === 'global') {
-                                                    const globalValue = gvc.glitter.share.editorViewModel.appConfig;
-                                                    globalValue.container_theme = globalValue.container_theme ?? [];
+                  return CustomStyle.renderMarginEditor(gvc, widget, callback)
 
-                                                    return CustomStyle.globalMarginSelect(globalValue, gvc, widget.data._style_refer_global && widget.data._style_refer_global.index, (index) => {
-                                                        widget.data._style_refer_global = {
-                                                            index: index,
-                                                        };
-                                                        (callback || widget.refreshComponent)();
-                                                        gvc.notifyDataChange(id);
-                                                    });
-                                                } else {
-                                                    return html` <div
-                                                        class="p-3 mb-2"
-                                                        style="border-radius: 10px;
-border: 1px solid #DDD;
-background: #F7F7F7;"
-                                                    >
-                                                        ${CustomStyle.renderMarginEditor(gvc, widget, callback)}
-                                                    </div>`;
-                                                }
-                                            })()}
-                                        </div>
-                                    </div>`,
-                                ].join('')}
-                            </div>`;
-                        })
-                        .join(`<div class="my-2"></div>`);
                 },
                 divCreate: {
-                    class: `pt-2`,
+                    class: `pb-2`,
                 },
             };
         });

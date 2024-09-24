@@ -91,10 +91,7 @@ RenderValue.custom_style = {
             }
         }
         if (widget.data && widget.data._style_refer === 'global' && widget.data._style_refer_global) {
-            const globalValue = gvc.glitter.share.global_container_theme[parseInt(widget.data._style_refer_global.index, 10)];
-            widget = {
-                data: (globalValue && globalValue.data) || {}
-            };
+            widget.data._style_refer = 'custom';
         }
         RenderValue.custom_style.initialWidget(widget);
         ['top', 'bottom', 'left', 'right'].map((dd) => {

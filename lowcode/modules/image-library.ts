@@ -885,11 +885,10 @@ export class imageLibrary {
                                 `
                             }
                             if (vm.loading){
-
-
-                                return dialog.dataLoading({
+                                dialog.dataLoading({
                                     visible:true
                                 })
+                                return ``
                             }
                             dialog.dataLoading({
                                 visible:false

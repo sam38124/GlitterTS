@@ -86,10 +86,22 @@ export class BgBlog {
                                 class="d-flex align-items-center justify-content-center hoverBtn me-2 border"
                                 style="height:28px;width:28px;border-radius:5px;cursor:pointer;color:#151515;"
                                 onclick="${gvc.event((e, event) => {
-                            const url = new URL('', glitter.share.editorViewModel.domain ? `https://${glitter.share.editorViewModel.domain}/?page=index` : location.href);
-                            url.searchParams.delete('type');
-                            url.searchParams.set('page', dd.tag);
-                            glitter.openNewTab(url.href);
+                            const href = (() => {
+                                return `https://${window.parent.glitter.share.editorViewModel.domain}/${is_page
+                                    ? (() => {
+                                        switch (page_tab) {
+                                            case 'shopping':
+                                                return 'shop';
+                                            case 'hidden':
+                                                return 'hidden';
+                                            case 'page':
+                                                return 'pages';
+                                        }
+                                        return ``;
+                                    })()
+                                    : `blogs`}/${dd.content.tag}`;
+                            })();
+                            window.parent.glitter.openNewTab(href);
                             event.stopPropagation();
                         })}"
                             >

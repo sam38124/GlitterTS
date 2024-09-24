@@ -7,12 +7,47 @@ exports.UpdateScript = void 0;
 const database_1 = __importDefault(require("./modules/database"));
 class UpdateScript {
     static async run() {
-        const migrate_template = (await database_1.default.query('SELECT appName FROM glitter.app_config where template_type!=0;', [])).map((dd) => {
-            return dd.appName;
-        }).concat(['shop-template-clothing-v3']);
-        UpdateScript.migrateHeaderAndFooterAndCollection(migrate_template.filter((dd) => {
-            return dd !== 't_1719819344426';
-        }));
+        for (const b of await database_1.default.query('SELECT appName FROM glitter.app_config where brand=?;', ['shopnex'])) {
+            await UpdateScript.container_migrate(b.appName);
+        }
+    }
+    static async container_migrate(app_name) {
+        try {
+            const global_theme = (await database_1.default.query(`SELECT * FROM glitter.app_config where appName=?;`, [app_name]))[0]['config']['container_theme'];
+            const page_config = (await database_1.default.query(`SELECT * FROM glitter.page_config where appName=? and tag='index';`, [app_name]))[0]['config'];
+            function loop(widget) {
+                if (widget.type === 'container') {
+                    widget.data.setting.map((dd) => {
+                        loop(dd);
+                    });
+                }
+                function loopWidget(widget) {
+                    if (widget) {
+                        if (widget.data && widget.data._style_refer === 'global' && widget.data._style_refer_global && widget.data._style_refer_global.index) {
+                            if (global_theme[parseInt(widget.data._style_refer_global.index, 10)]) {
+                                const obj = global_theme[parseInt(widget.data._style_refer_global.index, 10)].data;
+                                Object.keys(obj).map((dd) => {
+                                    widget.data[dd] = obj[dd];
+                                });
+                            }
+                        }
+                        if (widget.data) {
+                            widget.data._style_refer = 'custom';
+                        }
+                    }
+                }
+                loopWidget(widget);
+                loopWidget(widget.mobile);
+                loopWidget(widget.desktop);
+            }
+            for (const b of page_config) {
+                loop(b);
+            }
+            await database_1.default.query(`update glitter.page_config set config=? where appName=? and tag='index';`, [JSON.stringify(page_config), app_name]);
+            console.log(`migrate-finish-${app_name}`);
+        }
+        catch (e) {
+        }
     }
     static async migrate_blogs_toPage() {
         const blogs = await database_1.default.query(`SELECT * FROM shopnex.t_manager_post where content->>'$.for_index'='false' and content->>'$.page_type'='blog'`, []);
