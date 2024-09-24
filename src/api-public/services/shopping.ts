@@ -1197,13 +1197,14 @@ export class Shopping {
             await redis.setValue(id, return_url.href);
 
             // 超商物流單建立
-            if (['FAMIC2C', 'UNIMARTC2C', 'HILIFEC2C', 'OKMARTC2C'].includes(carData.user_info.LogisticsSubType)) {
-                const keyData = (
-                    await Private_config.getConfig({
-                        appName: this.app,
-                        key: 'glitter_delivery',
-                    })
-                )[0].value;
+            const del_config = (
+                await Private_config.getConfig({
+                    appName: this.app,
+                    key: 'glitter_delivery',
+                })
+            )[0]
+            if (['FAMIC2C', 'UNIMARTC2C', 'HILIFEC2C', 'OKMARTC2C'].includes(carData.user_info.LogisticsSubType) && del_config) {
+                const keyData=del_config.value;
                 console.log(`超商物流單 開始建立（使用${keyData.Action === 'main' ? '正式' : '測試'}環境）`);
 
                 const delivery = await new Delivery(this.app).postStoreOrder({

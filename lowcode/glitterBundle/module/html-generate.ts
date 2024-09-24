@@ -2312,7 +2312,7 @@ ${e.line}
     }
 
     public static getEditorSelectSection(cf: { id: string; gvc: GVC; label: string, widget: any }) {
-        if (cf.gvc.glitter.getUrlParameter('type') !== 'htmlEditor' && ((window as any).glitter.getUrlParameter('type') !== 'find_idea')) {
+        if (cf.gvc.glitter.getUrlParameter('type') !== 'htmlEditor' && (((window as any).glitter.getUrlParameter('type') !== 'find_idea') || (window as any).glitter.getUrlParameter('select_widget') === 'false')) {
             return ``;
         }
 

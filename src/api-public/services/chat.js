@@ -1,11 +1,4 @@
 "use strict";
-var __asyncValues = (this && this.__asyncValues) || function (o) {
-    if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
-    var m = o[Symbol.asyncIterator], i;
-    return m ? m.call(o) : (o = typeof __values === "function" ? __values(o) : o[Symbol.iterator](), i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function () { return this; }, i);
-    function verb(n) { i[n] = o[n] && function (v) { return new Promise(function (resolve, reject) { v = o[n](v), settle(resolve, reject, v.done, v.value); }); }; }
-    function settle(resolve, reject, d, v) { Promise.resolve(v).then(function(v) { resolve({ value: v, done: d }); }, reject); }
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -20,13 +13,11 @@ const app_js_1 = require("../../services/app.js");
 const web_socket_js_1 = require("../../services/web-socket.js");
 const firebase_js_1 = require("../../modules/firebase.js");
 const auto_send_email_js_1 = require("./auto-send-email.js");
-const openai_1 = __importDefault(require("openai"));
-const moment_js_1 = __importDefault(require("moment/moment.js"));
-const private_config_js_1 = require("../../services/private_config.js");
-const ai_js_1 = require("../../services/ai.js");
+const ai_robot_js_1 = require("./ai-robot.js");
 class Chat {
     async addChatRoom(room) {
         try {
+            console.log(`room.participant==>`, room.participant);
             if (room.type === 'user') {
                 room.chat_id = room.participant.sort().join('-');
             }
@@ -56,6 +47,9 @@ class Chat {
                             chat_id: room.chat_id,
                             user_id: b,
                         },
+                    ]);
+                    await database_1.default.query(`delete from \`${this.app}\`.\`t_chat_last_read\` where user_id=? and chat_id=?`, [
+                        b, room.chat_id
                     ]);
                     await database_1.default.query(`
                         insert into \`${this.app}\`.\`t_chat_last_read\`
@@ -166,8 +160,20 @@ class Chat {
             }
             for (const b of particpant) {
                 if (b.user_id !== room.user_id) {
-                    if (b.user_id === 'robot') {
-                        const response = await this.askAI(room.message.text);
+                    if (['writer', 'order_analysis', 'operation_guide'].includes(b.user_id)) {
+                        const response = await new Promise(async (resolve, reject) => {
+                            switch (b.user_id) {
+                                case 'writer':
+                                    resolve(await ai_robot_js_1.AiRobot.writer(this.app, room.message.text));
+                                    return;
+                                case 'order_analysis':
+                                    resolve(await ai_robot_js_1.AiRobot.orderAnalysis(this.app, room.message.text));
+                                    return;
+                                case 'operation_guide':
+                                    resolve(await ai_robot_js_1.AiRobot.guide(this.app, room.message.text));
+                                    return;
+                            }
+                        });
                         const insert = await database_1.default.query(`
                                     insert into \`${this.app}\`.\`t_chat_detail\`
                                     set ?
@@ -400,68 +406,6 @@ class Chat {
     async unReadMessageCount(user_id) {
         return await database_1.default.query(`SELECT \`${this.app}\`.t_chat_detail.* FROM \`${this.app}\`.t_chat_detail,\`${this.app}\`.t_chat_last_read where t_chat_detail.chat_id in (SELECT chat_id FROM \`${this.app}\`.t_chat_participants where user_id=${database_1.default.escape(user_id)})
             and (t_chat_detail.chat_id != 'manager-preview') and t_chat_detail.user_id!=${database_1.default.escape(user_id)} and t_chat_detail.chat_id=t_chat_last_read.chat_id and t_chat_last_read.last_read < created_time order by id desc`, []);
-    }
-    async askAI(question) {
-        var _a, e_1, _b, _c;
-        var _d;
-        let cf = ((_d = (await private_config_js_1.Private_config.getConfig({
-            appName: this.app,
-            key: 'ai_config',
-        }))[0]) !== null && _d !== void 0 ? _d : {
-            value: {
-                order_files: '',
-                messageThread: '',
-            },
-        }).value;
-        const openai = new openai_1.default({
-            apiKey: process.env.OPENAI_API_KEY,
-        });
-        const query = `現在時間為${(0, moment_js_1.default)().tz('Asia/Taipei').format('YYYY/MM/DD HH:mm:ss')}，你擔任的是一個電商後台的AI機器人，能協助處理任何問題。
-
-所有問答只需要回傳結果就好，不需要顯示code_interpreter與解釋程式碼。
-
-我會提供你2個檔案，第一個檔案是訂單列表，第二個檔案是操作導引。
-
-訂單列表: 用來做訂單分析的JSON陣列檔案，陣列中每個物件皆代表一份訂單，訂單中的購買商品列表是這個訂單中購買商品，會有一件或多件商品。使用者會查詢出貨狀態、付款狀態、收件人資訊、顧客資訊。
-
-操作導引: 用來做進行操作導引與關鍵字搜尋的JSON陣列檔案，其中包含question
-, answer欄位，當用戶提出的問題，先判斷問題性質包含了哪些question的可能，判斷question後，最後直接給予answer回答。
-
-如果用戶提問的內容跟這兩個檔案有關，請選擇檔案類型進行分析並回答結果。`;
-        const myAssistant = await openai.beta.assistants.create({
-            instructions: query,
-            name: '數據分析師',
-            tools: [{ type: 'code_interpreter' }],
-            tool_resources: {
-                code_interpreter: {
-                    file_ids: [cf.order_files, ai_js_1.Ai.files.guide],
-                },
-            },
-            model: 'gpt-4o-mini',
-        });
-        const threadMessages = await openai.beta.threads.messages.create(cf.messageThread, { role: 'user', content: question });
-        const stream = await openai.beta.threads.runs.create(cf.messageThread, { assistant_id: myAssistant.id, stream: true });
-        let text = '';
-        try {
-            for (var _e = true, stream_1 = __asyncValues(stream), stream_1_1; stream_1_1 = await stream_1.next(), _a = stream_1_1.done, !_a; _e = true) {
-                _c = stream_1_1.value;
-                _e = false;
-                const event = _c;
-                if (event.data && event.data.content && event.data.content[0] && event.data.content[0].text) {
-                    text = event.data.content[0].text.value;
-                }
-            }
-        }
-        catch (e_1_1) { e_1 = { error: e_1_1 }; }
-        finally {
-            try {
-                if (!_e && !_a && (_b = stream_1.return)) await _b.call(stream_1);
-            }
-            finally { if (e_1) throw e_1.error; }
-        }
-        const regex = /【[^】]*】/g;
-        await openai.beta.assistants.del(myAssistant.id);
-        return text.replace(regex, '');
     }
     constructor(app, token) {
         this.app = app;

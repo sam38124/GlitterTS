@@ -56,7 +56,7 @@ class App {
         var _a, _b, _c, _d;
         try {
             cf.copyWith = (_a = cf.copyWith) !== null && _a !== void 0 ? _a : [];
-            cf.sub_domain = cf.sub_domain.replace(/./g, '');
+            cf.sub_domain = cf.sub_domain.replace(/\./g, '');
             const count = await database_1.default.execute(`
                     select count(1)
                     from \`${config_1.saasConfig.SAAS_NAME}\`.app_config

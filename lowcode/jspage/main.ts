@@ -24,6 +24,7 @@ import {ApiShop} from "../glitter-base/route/shopping.js";
 import {StepManager} from "../modules/step-manager.js";
 import {ShareDialog} from "../glitterBundle/dialog/ShareDialog.js";
 import {EditorElem} from "../glitterBundle/plugins/editor-elem.js";
+import {SearchIdea} from "../editor/search-idea.js";
 
 const html = String.raw;
 //
@@ -698,6 +699,8 @@ ${Storage.page_setting_item === `${da.index}` ? `background:${EditorConfig.edito
 
 function initialEditor(gvc: GVC, viewModel: any) {
     const glitter = gvc.glitter;
+    //找靈感組件
+    glitter.share.SearchIdea=SearchIdea
     glitter.share.editorViewModel = viewModel;
     //預設為用戶編輯模式
     localStorage.setItem('editor_mode', localStorage.getItem('editor_mode') || 'user');

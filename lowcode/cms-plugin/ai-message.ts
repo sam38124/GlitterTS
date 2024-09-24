@@ -4,6 +4,7 @@ import {Chat} from "../glitter-base/route/chat.js";
 import {TriggerEvent} from "../glitterBundle/plugins/trigger-event.js";
 import {BgWidget} from "../backend-manager/bg-widget.js";
 import {AiChat} from "../glitter-base/route/ai-chat.js";
+import {ShareDialog} from "../glitterBundle/dialog/ShareDialog.js";
 
 export class AiMessage {
     public static config: any = {
@@ -17,11 +18,11 @@ export class AiMessage {
     public static vm: {
         type: 'list' | 'detail';
         chat_user: any;
-        select_bt: 'list' | 'robot' | 'preview' | 'setting';
+        select_bt: 'writer' | 'order_analysis' | 'operation_guide';
     } = {
         type: 'list',
         chat_user: '',
-        select_bt: 'list'
+        select_bt: 'writer'
     };
 
     public static id = `dsmdklweew3`;
@@ -59,10 +60,6 @@ export class AiMessage {
                         return ``
                     }
                     return new Promise(async (resolve, reject) => {
-                        await Chat.post({
-                            type: 'user',
-                            participant: [cf.userID, cf.toUser || 'manager'],
-                        });
                         resolve(`<div class="position-fixed start-0 top-0 vw-100 vh-100" style="background: rgba(0,0,0,0.5);z-index:999;" onclick="${
                             gvc.event(() => {
                                 AiMessage.toggle(false)
@@ -71,12 +68,8 @@ export class AiMessage {
                             event.stopPropagation()
                         })}">${AiMessage.detail({
                             gvc: gvc,
-                            chat: {
-                                chat_id: chatID,
-                                type: 'user',
-                            },
                             user_id: cf.userID,
-                            containerHeight: ($('body').height() as any) + 72 + 'px',
+                            containerHeight: ($('body').height() as any) + 10 + 'px',
                             document: document,
                             goBack: () => {
 
@@ -100,7 +93,6 @@ export class AiMessage {
 
     public static detail(cf: {
         gvc: GVC;
-        chat: any;
         user_id: string;
         containerHeight: string;
         document: any;
@@ -115,6 +107,9 @@ export class AiMessage {
 
         return gvc.bindView(() => {
             const id = gvc.glitter.getUUID();
+            function refresh(){
+                gvc.notifyDataChange(id)
+            }
             return {
                 bind: id,
                 view: () => {
@@ -144,15 +139,19 @@ export class AiMessage {
                                             return ``
                                         }
                                         return new Promise(async (resolve, reject) => {
+                                            console.log(`AiMessage.vm.select_bt=>`,AiMessage.vm.select_bt)
+                                            await Chat.post({
+                                                type: 'user',
+                                                participant: [cf.user_id, AiMessage.vm.select_bt],
+                                            });
                                             const chatRoom = (
                                                 await Chat.getChatRoom({
                                                     page: 0,
                                                     limit: 1000,
                                                     user_id: cf.user_id,
-                                                    chat_id: cf.chat.chat_id,
+                                                    chat_id: [cf.user_id, AiMessage.vm.select_bt].sort().join('-'),
                                                 })
                                             ).response.data[0];
-                                            console.log(`chatRoom.who==>`, chatRoom)
                                             if (chatRoom.who === 'manager') {
                                                 chatRoom.user_data = AiMessage.config;
                                             }
@@ -164,7 +163,7 @@ export class AiMessage {
                         <img src="https://d3jnmi1tfjgtti.cloudfront.net/file/234285319/size1440_s*px$_sas0s9s0s1sesas0_1697354801736-Glitterlogo.png" class="rounded-circle border" style="background: white;border-radius: 50%;width: 40px;height: 40px;" width="40" alt="Albert Flores">
                       
                         <div class="d-flex flex-column px-1 text-white">
-                          <h6 class="mb-0 text-white ">AI 智能助手</h6>
+                          <h6 class="mb-0 text-white d-flex">AI 智能助手</h6>
                           <span class="fw-500 d-none" style="font-size:13px;">剩餘代幣:10</span>
 </div>
                         <div class="flex-fill" style="flex: 1;"></div>
@@ -172,7 +171,55 @@ export class AiMessage {
                                                 cf.close && cf.close();
                                             })}"></i>
                       </div>
-                    </div>`);
+                    </div>`+`<div class="d-flex align-items-center p-2 shadow border-bottom" style="gap:10px;">
+                                    ${(() => {
+                                                const list = [
+                                                    {
+                                                        key: 'writer',
+                                                        label: '文案寫手',
+                                                    },
+                                                    {
+                                                        key: 'order_analysis',
+                                                        label: '訂單分析',
+                                                    },
+                                                    {
+                                                        key: 'operation_guide',
+                                                        label: '操作導引'
+                                                    },
+                                                ];
+                                                return list
+                                                    .map((dd) => {
+                                                        if (AiMessage.vm.select_bt === dd.key) {
+                                                            return `<div class="d-flex align-items-center justify-content-center fw-bold px-3 py-2 fw-500" style="
+gap: 10px;
+border-radius: 7px;
+cursor: pointer;
+color: white;
+font-size: 16px;
+flex:1;
+border: 1px solid #FFB400;
+background: linear-gradient(143deg, #FFB400 -22.7%, #FF6C02 114.57%);" >${dd.label}</div>`;
+                                                        } else {
+                                                            return `<div class="d-flex align-items-center justify-content-center fw-bold  px-3 py-2 fw-500" style="
+border-radius: 7px;
+flex:1;
+font-size: 16px;
+border: 1px solid #FFB400;
+cursor: pointer;
+background: linear-gradient(143deg, #FFB400 -22.7%, #FF6C02 114.57%);
+background-clip: text;
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;" onclick="${
+                                                                gvc.event(() => {
+                                                                    AiMessage.vm.select_bt = dd.key as any;
+                                                                    refresh();
+                                                                })
+                                                            }">${dd.label}</div>`;
+                                                        }
+                                                    })
+                                                    .join('');
+                                            })()}
+                                </div>`);
                                         });
                                     },
                                 };
@@ -205,10 +252,10 @@ export class AiMessage {
                                 Chat.getMessage({
                                     page: 0,
                                     limit: 50,
-                                    chat_id: cf.chat.chat_id,
+                                    chat_id: [cf.user_id, AiMessage.vm.select_bt].sort().join('-'),
                                     user_id: cf.user_id,
                                 }).then(async (res) => {
-                                    await AiChat.sync_data({})
+                                    await AiChat.sync_data({type:AiMessage.vm.select_bt})
                                     vm.data = res.response.data.reverse();
                                     vm.last_read = res.response.lastRead;
                                     vm.loading = false;
@@ -258,8 +305,7 @@ export class AiMessage {
                                                      style="max-width: 348px;">
                                                     <div
                                                             class=" text-light p-3 mb-1"
-                                                            style="background:${AiMessage.config
-                                                                    .color};border-top-left-radius: .5rem; border-bottom-right-radius: .5rem; border-bottom-left-radius: .5rem;white-space: normal;"
+                                                            style="background:#575757;border-top-left-radius: .5rem; border-bottom-right-radius: .5rem; border-bottom-left-radius: .5rem;white-space: normal;"
                                                     >
                                                         ${dd.message.text.replace(/\n/g, '<br>')}
                                                     </div>
@@ -299,7 +345,7 @@ export class AiMessage {
                                         socket.send(
                                             JSON.stringify({
                                                 type: 'message',
-                                                chatID: cf.chat.chat_id,
+                                                chatID: [cf.user_id, AiMessage.vm.select_bt].sort().join('-'),
                                                 user_id: cf.user_id,
                                                 app_name: (window as any).appName
                                             })
@@ -380,7 +426,22 @@ export class AiMessage {
                                                 ${add_line({
                                                         user_id:'robot',
                                                         message:{
-                                                            text:`您好！我是您的 AI 智能助手，隨時為您提供支援。無論是操作後台、查詢與分析訂單，還是用戶管理與數據分析，我都能輕鬆協助您高效處理日常任務。`
+                                                            text: [
+                                                                {
+                                                                    key: 'writer',
+                                                                    text: '您好！我是AI文案寫手，專門協助您撰寫任何文案。',
+                                                                },
+                                                                {
+                                                                    key: 'order_analysis',
+                                                                    text: `您好！我是AI資料分析師，能為您查詢與分析訂單資料，並提供可行的建議。`,
+                                                                },
+                                                                {
+                                                                    key: 'operation_guide',
+                                                                    text: '您好！我是AI後台導引員，能協助你使用平台，如果有任何不了解的地方請直接詢問我。'
+                                                                },
+                                                            ].find((dd)=>{
+                                                                return dd.key===AiMessage.vm.select_bt
+                                                            })?.text
                                                         },
                                                         created_time:(new Date()).toISOString()
                                                     },-1)}
@@ -420,7 +481,7 @@ export class AiMessage {
                                                             Chat.getMessage({
                                                                 page: 0,
                                                                 limit: 50,
-                                                                chat_id: cf.chat.chat_id,
+                                                                chat_id: [cf.user_id, AiMessage.vm.select_bt].sort().join('-'),
                                                                 olderID: vm.data[0].id,
                                                                 user_id: cf.user_id,
                                                             }).then((res) => {
@@ -454,17 +515,36 @@ export class AiMessage {
                                                                     <div class="d-flex px-2"
                                                                          style="overflow-x: auto;gap:5px;">
                                                                         ${[
-                                                                            '要怎麼設定購物金?',
-                                                                            '這個月的銷售額是多少',
-                                                                            '賣最好的五個商品',
-                                                                            '哪個客戶買最多商品?',
-                                                                            '尚未出貨的訂單還有哪些?'
-                                                                        ].map((dd) => {
+                                                                            {key:'writer',data:[
+                                                                                    '幫我撰寫一個精品包的文案',
+                                                                                    '幫我撰寫一個限時特價的文案',
+                                                                                    '撰寫一個關於我們的範本',
+                                                                                    '撰寫一個關於退貨條款的範本',
+                                                                                    '撰寫一個關於服務條款的範本'
+                                                                                ]},
+                                                                            {key:'order_analysis',data:[
+                                                                                    '這個月的銷售額是多少',
+                                                                                    '賣最好的五個商品',
+                                                                                    '未付款的訂單有哪些',
+                                                                                    '哪個客戶買最多商品?',
+                                                                                    '尚未出貨的訂單還有哪些?'
+                                                                                ]},
+                                                                            {key:'operation_guide',data:[
+                                                                                    '請問要如何新增訂單？',
+                                                                                    '請問要如何封存訂單？',
+                                                                                    '請問要如何匯出訂單列表?',
+                                                                                    '請問要如何匯出商品列表?',
+                                                                                    '新增商品該怎麼做？'
+                                                                                ]}
+                                                                                
+                                                                        ].find((dd)=>{
+                                                                            return dd.key===AiMessage.vm.select_bt
+                                                                        })?.data.map((dd) => {
                                                                             return `<div class="insignia insignia-secondary bgf6" style="white-space: nowrap;cursor: pointer;" onclick="${gvc.event(() => {
                                                                                 vm.ai_loading = true
                                                                                 gvc.notifyDataChange('footer-ai')
                                                                                 Chat.postMessage({
-                                                                                    chat_id: cf.chat.chat_id,
+                                                                                    chat_id: [cf.user_id, AiMessage.vm.select_bt].sort().join('-'),
                                                                                     user_id: cf.user_id,
                                                                                     message: {
                                                                                         text: dd,
@@ -477,7 +557,29 @@ export class AiMessage {
                                                                         }).join('')}
                                                                     </div>
                                                                     <div class="px-2  d-flex align-items-center w-100 border-0 px-2" style="background: white;border-radius: 0px;">
-                                                                        ${[`<div class="position-relative w-100 me-2">${gvc.bindView(() => {
+                                                                        ${BgWidget.customButton({button:{color:'snow',size:'sm',style:'min-height:48px;'},text:{name:`
+                                                                        <div class="d-flex flex-column"  ><i class="fa-regular fa-broom-wide"></i>
+                                                                        重置對話
+                                                                        </div>
+                                                                        `},event:gvc.event(()=>{
+                                                                            const dialog=new ShareDialog(gvc.glitter)
+                                                                                dialog.checkYesOrNot({
+                                                                                    text:'是否確認刪除所有對話，將會重置AI解除所有上下文關聯。',
+                                                                                    callback:(response)=>{
+                                                                                        if(response){
+                                                                                            dialog.dataLoading({visible:true})
+                                                                                            AiChat.reset({
+                                                                                                type:AiMessage.vm.select_bt
+                                                                                            }).then(()=>{
+                                                                                                dialog.dataLoading({visible:false})
+                                                                                                refresh()
+                                                                                            }) 
+                                                                                        }
+                                                                                    }
+                                                                                })
+                                                                         
+                                                                            })})}
+                                                                        ${[`<div class="position-relative w-100 mx-2">${gvc.bindView(() => {
                                                                             return {
                                                                                 bind: textAreaId,
                                                                                 view: () => {
@@ -506,8 +608,6 @@ export class AiMessage {
                                                                                         input.style.height = 'auto'; // 重置高度
                                                                                         input.style.height = input.scrollHeight + 'px'; // 设置为内容高度
                                                                                     });
-
-                                                                                    // autosize(gvc.getBindViewElem(id))
                                                                                 },
                                                                             };
                                                                         })}</div>`, ` <button
@@ -519,7 +619,7 @@ export class AiMessage {
                                                                                 vm.ai_loading = true
                                                                                 gvc.notifyDataChange('footer-ai')
                                                                                 Chat.postMessage({
-                                                                                    chat_id: cf.chat.chat_id,
+                                                                                    chat_id: [cf.user_id, AiMessage.vm.select_bt].sort().join('-'),
                                                                                     user_id: cf.user_id,
                                                                                     message: {
                                                                                         text: vm.message,
@@ -545,6 +645,8 @@ export class AiMessage {
                                                         divCreate: {
                                                             class: `d-flex flex-column w-100 position-fixed bottom-0 position-lg-absolute py-2  border-top bg-white`,
                                                             style: `gap:8px;`
+                                                        },
+                                                        onCreate:()=>{
                                                         }
                                                     }
                                                 })

@@ -10,7 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import { GlobalUser } from '../../glitter-base/global/global-user.js';
 import { TriggerEvent } from '../../glitterBundle/plugins/trigger-event.js';
 import { BaseApi } from '../../glitterBundle/api/base.js';
-import { ShareDialog } from '../../dialog/ShareDialog.js';
+import { ShareDialog } from '../../glitterBundle/dialog/ShareDialog.js';
 TriggerEvent.createSingleEvent(import.meta.url, () => {
     return {
         fun: (gvc, widget, object, subData) => {

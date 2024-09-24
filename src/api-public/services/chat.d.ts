@@ -41,6 +41,5 @@ export declare class Chat {
     }>;
     unReadMessage(user_id: string): Promise<any>;
     unReadMessageCount(user_id: string): Promise<any>;
-    askAI(question: string): Promise<string>;
     constructor(app: string, token: IToken);
 }

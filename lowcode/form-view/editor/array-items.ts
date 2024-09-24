@@ -63,6 +63,11 @@ const gvc=cf.gvc;
                                         
                                         const gvc_ref=(gvc.glitter.getUrlParameter('cms')!=='true') ? gvc:(window.parent as any).glitter.pageConfig[0].gvc
                                         const pageEditor = (gvc.glitter.getUrlParameter('cms')==='true') ? (window.parent as any).glitter.share.NormalPageEditor:NormalPageEditor;
+                                        pageEditor.closeEvent=()=>{
+                                            ((widget.bundle.refresh && widget.bundle.refresh) || (() => {
+                                                widget.refreshComponent()
+                                            }))()
+                                        }
                                         pageEditor.toggle({
                                             visible:true,
                                             view:gvc_ref.bindView(()=>{
@@ -71,7 +76,6 @@ const gvc=cf.gvc;
                                                 return {
                                                     bind:id,
                                                     view:async ()=>{
-                                                     
                                                         let view = [];
                                                         const dialog=new ShareDialog(gvc.glitter)
                                                         dialog.dataLoading({visible:true})
@@ -89,8 +93,6 @@ const gvc=cf.gvc;
                                                         }))
                                                         dialog.dataLoading({visible:false})
                                                         return view.join('')
-
-
                                                     }
                                                 }
                                             }),
