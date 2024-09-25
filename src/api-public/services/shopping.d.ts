@@ -124,7 +124,7 @@ export declare class Shopping {
         type: string;
         divisor: number;
         executionTime: string;
-        queryStatus: "error" | "success";
+        queryStatus: "success" | "error";
         queryData: any;
     } | {
         type: string;
@@ -231,9 +231,9 @@ export declare class Shopping {
         distribution_code?: string;
         code_array: string[];
         give_away?: {
-            "id": number;
-            "spec": string[];
-            "count": number;
+            id: number;
+            spec: string[];
+            count: number;
             voucher_id: string;
         }[];
     }, type?: 'add' | 'preview' | 'manual' | 'manual-preview' | 'POS', replace_order_id?: string): Promise<{

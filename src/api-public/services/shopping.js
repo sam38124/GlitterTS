@@ -664,9 +664,11 @@ class Shopping {
                     const addGift = (_e = data.give_away) === null || _e === void 0 ? void 0 : _e.find((d1) => {
                         var _a;
                         return ((_a = dd.add_on_products) !== null && _a !== void 0 ? _a : []).find((d2) => {
-                            return (`${d1.id}` === `${d2.id}`) && (`${d1.voucher_id}` === `${dd.id}`) && d2.variants.find((dd) => {
-                                return dd.spec.join('') === d1.spec.join('');
-                            });
+                            return (`${d1.id}` === `${d2.id}` &&
+                                `${d1.voucher_id}` === `${dd.id}` &&
+                                d2.variants.find((dd) => {
+                                    return dd.spec.join('') === d1.spec.join('');
+                                }));
                         });
                     });
                     if (addGift) {
@@ -674,10 +676,10 @@ class Shopping {
                             spec: addGift.spec,
                             id: addGift.id,
                             count: 1,
-                            voucher_id: dd.id
+                            voucher_id: dd.id,
                         };
                         const pd = ((_f = dd.add_on_products) !== null && _f !== void 0 ? _f : []).find((d2) => {
-                            return (`${gift.id}` === `${d2.id}`) && (`${gift.voucher_id}` === `${dd.id}`);
+                            return `${gift.id}` === `${d2.id}` && `${gift.voucher_id}` === `${dd.id}`;
                         });
                         pd.selected = true;
                         gift_product.push(gift);
@@ -686,17 +688,17 @@ class Shopping {
                             b.have_select = true;
                         }
                         if (type !== 'preview') {
-                            const variant = ((_h = pd.variants.find((d1) => {
+                            const variant = (_h = pd.variants.find((d1) => {
                                 return d1.spec.join('-') === gift.spec.join('-');
-                            })) !== null && _h !== void 0 ? _h : {});
+                            })) !== null && _h !== void 0 ? _h : {};
                             carData.lineItems.push({
-                                "spec": gift.spec,
-                                "id": gift.id,
-                                "count": 1,
-                                "preview_image": pd.preview_image,
-                                "title": `《 贈品 》 ${pd.title}`,
-                                "sale_price": 0,
-                                "sku": variant.sku
+                                spec: gift.spec,
+                                id: gift.id,
+                                count: 1,
+                                preview_image: pd.preview_image,
+                                title: `《 贈品 》 ${pd.title}`,
+                                sale_price: 0,
+                                sku: variant.sku,
                             });
                         }
                     }
