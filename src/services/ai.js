@@ -7,13 +7,19 @@ exports.Ai = void 0;
 const fs_1 = __importDefault(require("fs"));
 const openai_1 = __importDefault(require("openai"));
 const tool_js_1 = __importDefault(require("../modules/tool.js"));
+const run_js_1 = require("../run.js");
 class Ai {
     static async initial() {
+        const jsonStringQA = JSON.stringify(this.defaultQA);
+        if ((0, run_js_1.isDanielEnv)()) {
+            fs_1.default.writeFileSync('defaultQA.json', jsonStringQA);
+            return;
+        }
         const file1 = tool_js_1.default.randomString(10) + '.json';
         const openai = new openai_1.default({
             apiKey: process.env.OPENAI_API_KEY,
         });
-        fs_1.default.writeFileSync(file1, JSON.stringify(this.defaultQA));
+        fs_1.default.writeFileSync(file1, jsonStringQA);
         const file = await openai.files.create({
             file: fs_1.default.createReadStream(file1),
             purpose: 'assistants',
@@ -44,6 +50,10 @@ Ai.defaultQA = [
         response: '請前往訂單管理的「已封存訂單」，在列表中勾選想要解除封存的訂單，即可批量解除封存',
     },
     {
+        request: ['請問要如何刪除訂單', '刪除訂單該怎麼做'],
+        response: '目前系統沒有設計訂單刪除的功能，僅可勾選想要封存的訂單，將訂單以封存的方式改變狀態',
+    },
+    {
         request: ['請問要如何搜尋訂單', '搜尋訂單該怎麼做', '我想要按照日期排序訂單，該怎麼做', '可以只顯示付款狀態已付款的訂單嗎'],
         response: '請前往訂單管理的「訂單」，在列表左上方可以根據訂單編號、訂購人姓名、商品名稱等進行關鍵字搜尋，也可以在右上選擇篩選和排序，可以做到更仔細的訂單查詢',
     },
@@ -60,7 +70,7 @@ Ai.defaultQA = [
         response: '請前往商品管理的「商品列表」，可直接在列表上下架商品，或勾選多個商品後，點擊「更多操作」來批量更改',
     },
     {
-        request: ['請問要如何新增商品', '新增商品該怎麼做', '新增商品在哪', '新增商品'],
+        request: ['請問要如何新增商品', '新增商品該怎麼做', '新增商品在哪', '新增商品', '如何添加商品', '添加商品該怎麼做'],
         response: '請前往商品管理的「商品列表」，點擊右上角「新增」即可新增商品',
     },
     {
@@ -188,7 +198,7 @@ Ai.defaultQA = [
         response: '會員等級是按照顧客訂單消費紀錄來給予不同等級的設定，條件可分為累計蕭累或單次消費，會員等級可以在優惠券、生日禮等活動時，界定不同內容與優惠身份',
     },
     {
-        request: ['什麼是優惠券', '如何設定優惠券', '如何設定優惠促效活動', '優惠券要怎麼新增', '如何建立優惠券'],
+        request: ['什麼是優惠券', '如何設定優惠券', '如何設定優惠促銷活動', '優惠券要怎麼新增', '如何建立優惠券'],
         response: '請前往優惠促銷的「折扣活動」，可以新增一個新的優惠券活動，可指定產品、顧客、設定金額、套用範圍、計算方式等，建立專屬店家的活動',
     },
     {
@@ -250,6 +260,42 @@ Ai.defaultQA = [
     {
         request: ['如何切換商店', '其他的商城要如何開啟', '切換商店的地方在哪', '如何新增商店'],
         response: '請移動至右上角會員頭像處，點擊「所有商店」，即可查看所有您建立的商店、當前方案與預覽圖',
+    },
+    {
+        request: ['要如何為商品添加圖片和描述', '如何新增商品圖片或敘述'],
+        response: '點擊任一商品編輯，可以在「商品說明」欄位添加商品的敘述，「圖片」則可以新增多張不同角度和種類的圖片',
+    },
+    {
+        request: ['怎樣將商品分類到不同的分類目錄中', '可以將商品新增到不同的分類嗎'],
+        response: '商品可以填加到多個不同的「商品分類」，在父層的商品分類中會同時包含底下的子層商品，讓您的商品有更多方式來分類',
+    },
+    {
+        request: ['如何查看最新的訂單'],
+        response: '訂單管理的「訂單」列表，預設已按照最新到最舊的方式排列',
+    },
+    {
+        request: ['如何處理待處理的訂單', '如何篩選已付款的訂單'],
+        response: '訂單管理的「訂單」列表右上有篩選器，可以從篩選器中選取訂單裝態處理中、付款狀態已付款等設定',
+    },
+    {
+        request: ['怎樣查看訂單的配送地址', '怎樣查看訂購人資料', '如何知道訂單的結帳方式'],
+        response: '訂單管理的「訂單」點選任一訂單，右側有「訂購人資料」、「收件人資料」、「付款方式」、「配送方式」，這些欄位可以讓您清楚知道訂單的消費者資訊',
+    },
+    {
+        request: ['怎樣更新訂單的訂單狀態', '如何更新訂單的付款狀態', '訂單蓋怎麼更新出貨狀態'],
+        response: '訂單管理的「訂單」點選任一訂單，可以查找「訂單狀態」、「付款狀態」、「配送狀態」，這些欄位可以讓您調整訂單的各項狀態',
+    },
+    {
+        request: ['怎樣處理顧客在訂單的疑問'],
+        response: '顧客管理的「客服系統」可以針對不同的顧客來專一答覆，顧客在購物車結帳時也可以填寫備註，在訂單詳細裡的「訂單備註」中可以查看',
+    },
+    {
+        request: ['如何查看顧客的訂單紀錄'],
+        response: '顧客管理的「顧客列表」搜尋顧客後，點擊該顧客，顧客詳細中有「訂單記錄」，可查閱顧客訂單歷史紀錄',
+    },
+    {
+        request: ['怎麼查找顧客的購物金紀錄'],
+        response: '顧客管理的「顧客列表」搜尋顧客後，點擊該顧客，顧客詳細中有「購物金」，可瞭解到顧客現有購物金餘額，與購物金增減紀錄',
     },
 ];
 //# sourceMappingURL=ai.js.map

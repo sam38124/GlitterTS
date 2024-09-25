@@ -73,8 +73,7 @@ export class AiRobot {
             apiKey: process.env.OPENAI_API_KEY,
         });
         //創建客服小姐
-        const query = `現在時間為${moment().tz('Asia/Taipei').format('YYYY/MM/DD HH:mm:ss')}，您是一個訂單資料分析師，請依照我給你的檔案，進行訂單資料的分析。
-`;
+        const query = `現在時間為${moment().tz('Asia/Taipei').format('YYYY/MM/DD HH:mm:ss')}，您是一個訂單資料分析師，請依照我給你的檔案，進行訂單資料的分析。`;
         const myAssistant = await openai.beta.assistants.create({
             instructions: query,
             name: '數據分析師',
@@ -122,8 +121,7 @@ export class AiRobot {
             apiKey: process.env.OPENAI_API_KEY,
         });
         //創建客服小姐
-        const query = `您是一個AI文案寫手，專門協助撰寫任何商品或者行銷文案。
-`;
+        const query = `您是一個AI文案寫手，專門協助撰寫任何商品或者行銷文案。`;
         const myAssistant = await openai.beta.assistants.create({
             instructions: query,
             name: '數據分析師',

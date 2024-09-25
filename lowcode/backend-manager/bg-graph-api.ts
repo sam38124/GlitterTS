@@ -44,7 +44,7 @@ export class BgGraphApi {
                             return BgWidget.container(
                                 html`
                                     <div class="d-flex w-100 align-items-center">
-                                        ${BgWidget.title('Graph API')}
+                                        ${BgWidget.title('GraphQL API')}
                                         <div class="flex-fill"></div>
                                         ${BgWidget.darkButton(
                                             '新增 API',

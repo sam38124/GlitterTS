@@ -85,8 +85,7 @@ class AiRobot {
         const openai = new openai_1.default({
             apiKey: process.env.OPENAI_API_KEY,
         });
-        const query = `現在時間為${(0, moment_1.default)().tz('Asia/Taipei').format('YYYY/MM/DD HH:mm:ss')}，您是一個訂單資料分析師，請依照我給你的檔案，進行訂單資料的分析。
-`;
+        const query = `現在時間為${(0, moment_1.default)().tz('Asia/Taipei').format('YYYY/MM/DD HH:mm:ss')}，您是一個訂單資料分析師，請依照我給你的檔案，進行訂單資料的分析。`;
         const myAssistant = await openai.beta.assistants.create({
             instructions: query,
             name: '數據分析師',
@@ -138,8 +137,7 @@ class AiRobot {
         const openai = new openai_1.default({
             apiKey: process.env.OPENAI_API_KEY,
         });
-        const query = `您是一個AI文案寫手，專門協助撰寫任何商品或者行銷文案。
-`;
+        const query = `您是一個AI文案寫手，專門協助撰寫任何商品或者行銷文案。`;
         const myAssistant = await openai.beta.assistants.create({
             instructions: query,
             name: '數據分析師',

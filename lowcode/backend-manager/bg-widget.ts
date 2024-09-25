@@ -624,7 +624,7 @@ ${obj.default ?? ''}</textarea
                                             }
                                         })}
                                                         >
-                                                            <div style="width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">
+                                                            <div style="min-width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">
                                                                 ${(() => {
                                             if (tag.icon.includes('https://')) {
                                                 return html` <div

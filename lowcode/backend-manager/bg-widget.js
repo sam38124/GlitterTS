@@ -495,7 +495,7 @@ ${(_c = obj.default) !== null && _c !== void 0 ? _c : ''}</textarea
                                         }
                                     })}
                                                         >
-                                                            <div style="width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">
+                                                            <div style="min-width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">
                                                                 ${(() => {
                                         if (tag.icon.includes('https://')) {
                                             return html ` <div
