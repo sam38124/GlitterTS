@@ -19,7 +19,6 @@ class AiRobot {
     static async guide(app_name, question) {
         var _a, e_1, _b, _c;
         var _d;
-        console.log(`ask-guide` + new Date().getTime());
         let cf = ((_d = (await private_config_js_1.Private_config.getConfig({
             appName: app_name,
             key: 'ai_config',
@@ -33,7 +32,7 @@ class AiRobot {
         const openai = new openai_1.default({
             apiKey: process.env.OPENAI_API_KEY,
         });
-        const query = `您是一個後台引導員，請用我提供給你的檔案來回覆問題，檔案中包含一個陣列request與一個response字串。當用戶提出了問題，請先遍歷所有request陣列，判斷提問的內容包含了哪些request的可能，並直接給予response回答，若無法直接從文件中判斷問題的具體內容，也不用解釋，尋找最接近問題的答案即可。`;
+        const query = `你是一個後台引導員，請用我提供給你的檔案來回覆問題，檔案中包含一個陣列request與一個response字串。當用戶提出了問題，請先遍歷所有request陣列，判斷提問的內容包含了哪些request的可能，並直接給予response回答，若無法直接從文件中判斷問題的具體內容，也不用解釋，尋找最接近問題的答案即可。`;
         const myAssistant = await openai.beta.assistants.create({
             instructions: query,
             name: '數據分析師',
@@ -72,7 +71,6 @@ class AiRobot {
     static async orderAnalysis(app_name, question) {
         var _a, e_2, _b, _c;
         var _d;
-        console.log(`ask-ai` + new Date().getTime());
         let cf = ((_d = (await private_config_js_1.Private_config.getConfig({
             appName: app_name,
             key: 'ai_config',
@@ -85,7 +83,7 @@ class AiRobot {
         const openai = new openai_1.default({
             apiKey: process.env.OPENAI_API_KEY,
         });
-        const query = `現在時間為${(0, moment_1.default)().tz('Asia/Taipei').format('YYYY/MM/DD HH:mm:ss')}，您是一個訂單資料分析師，請依照我給你的檔案，進行訂單資料的分析。`;
+        const query = `現在時間為${(0, moment_1.default)().tz('Asia/Taipei').format('YYYY/MM/DD HH:mm:ss')}，你是一個訂單資料分析師，請依照我給你的檔案，進行訂單資料的分析。`;
         const myAssistant = await openai.beta.assistants.create({
             instructions: query,
             name: '數據分析師',
@@ -124,7 +122,6 @@ class AiRobot {
     static async writer(app_name, question) {
         var _a, e_3, _b, _c;
         var _d;
-        console.log(`ask-ai` + new Date().getTime());
         let cf = ((_d = (await private_config_js_1.Private_config.getConfig({
             appName: app_name,
             key: 'ai_config',
@@ -137,7 +134,7 @@ class AiRobot {
         const openai = new openai_1.default({
             apiKey: process.env.OPENAI_API_KEY,
         });
-        const query = `您是一個AI文案寫手，專門協助撰寫任何商品或者行銷文案。`;
+        const query = '你是一個電商文案寫手，專門協助撰寫商品描述、行銷文案。';
         const myAssistant = await openai.beta.assistants.create({
             instructions: query,
             name: '數據分析師',
