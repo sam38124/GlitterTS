@@ -45,7 +45,7 @@ export class AiMessage {
                         })}"
                             >
                                 <div
-                                    class="position-fixed vh-100  top-0 scroll-in bg-white ai-left"
+                                    class="position-fixed vh-100 top-0 scroll-in bg-white ai-left"
                                     style="top:0px;width: 500px;height: 100vh;max-width: 100vw;"
                                     onclick="${gvc.event((e, event) => {
                             event.stopPropagation();
@@ -539,21 +539,15 @@ export class AiMessage {
                                                                                 </div>`;
                                                         }).join('')}
                                                                     </div>
-                                                                    <div class="px-2  d-flex align-items-center w-100 border-0 px-2" style="background: white;border-radius: 0px;">
+                                                                    <div class="px-2 d-flex align-items-center w-100 border-0 px-2" style="background: white;border-radius: 0px;">
                                                                         ${BgWidget.customButton({
-                                                            button: { color: 'snow', size: 'sm', style: 'min-height:48px;' },
-                                                            text: {
-                                                                name: html `
-                                                                                    <div class="d-flex flex-column">
-                                                                                        <i class="fa-regular fa-broom-wide"></i>
-                                                                                        重置對話
-                                                                                    </div>
-                                                                                `,
-                                                            },
+                                                            button: { color: 'snow', size: 'sm', style: 'min-height: 40px;' },
+                                                            icon: { name: 'fa-regular fa-broom-wide text-dark' },
+                                                            text: { name: '重置' },
                                                             event: gvc.event(() => {
                                                                 const dialog = new ShareDialog(gvc.glitter);
-                                                                dialog.checkYesOrNot({
-                                                                    text: '是否確認刪除所有對話，將會重置AI解除所有上下文關聯。',
+                                                                dialog.warningMessage({
+                                                                    text: '重置對話將會刪除之前的提問，<br />使AI重新閱讀上下文，請問是否要重置？',
                                                                     callback: (response) => {
                                                                         if (response) {
                                                                             dialog.dataLoading({ visible: true });
