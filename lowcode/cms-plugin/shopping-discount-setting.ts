@@ -113,14 +113,8 @@ export class ShoppingDiscountSetting {
                                                                         {
                                                                             key: '狀態',
                                                                             value: dd.content.status
-                                                                                    ? html`
-                                                                                        <div class="badge bg-success fs-7">
-                                                                                            啟用中
-                                                                                        </div>`
-                                                                                    : html`
-                                                                                        <div class="badge bg-secondary fs-7">
-                                                                                            已停用
-                                                                                        </div>`,
+                                                                                    ? BgWidget.successInsignia('啟用中')
+                                                                                    : BgWidget.secondaryInsignia('已停用'),
                                                                         },
                                                                         {
                                                                             key: '觸發方式',
