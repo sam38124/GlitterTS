@@ -1756,43 +1756,56 @@ class Shopping {
         }
     }
     async postVariantsAndPriceValue(content) {
-        var _a, _b, _c;
-        content.variants = (_a = content.variants) !== null && _a !== void 0 ? _a : [];
-        content.min_price = undefined;
-        content.max_price = undefined;
-        content.id &&
-            (await database_js_1.default.query(`DELETE
+        var _a;
+        try {
+            content.variants = (_a = content.variants) !== null && _a !== void 0 ? _a : [];
+            content.min_price = undefined;
+            content.max_price = undefined;
+            content.id &&
+                (await database_js_1.default.query(`DELETE
              from \`${this.app}\`.t_variants
              WHERE (product_id = ${content.id})
                and id > 0`, []));
-        for (const a of content.variants) {
-            content.min_price = (_b = content.min_price) !== null && _b !== void 0 ? _b : a.sale_price;
-            content.max_price = (_c = content.max_price) !== null && _c !== void 0 ? _c : a.sale_price;
-            if (a.sale_price < content.min_price) {
-                content.min_price = a.sale_price;
-            }
-            if (a.sale_price > content.max_price) {
-                content.max_price = a.sale_price;
-            }
-            a.type = 'variants';
-            a.product_id = content.id;
-            await database_js_1.default.query(`INSERT INTO \`${this.app}\`.t_variants
-                 SET ?`, [
-                {
-                    content: JSON.stringify(a),
-                    product_id: content.id,
-                },
-            ]);
-        }
-        await database_js_1.default.query(`update \`${this.app}\`.\`t_manager_post\`
+            const formatJsonData = content.variants.map((a) => {
+                var _a, _b;
+                content.min_price = (_a = content.min_price) !== null && _a !== void 0 ? _a : a.sale_price;
+                content.max_price = (_b = content.max_price) !== null && _b !== void 0 ? _b : a.sale_price;
+                if (a.sale_price < content.min_price) {
+                    content.min_price = a.sale_price;
+                }
+                if (a.sale_price > content.max_price) {
+                    content.max_price = a.sale_price;
+                }
+                a.type = 'variants';
+                a.product_id = content.id;
+                return {
+                    sql: `INSERT INTO \`${this.app}\`.t_variants SET ?`,
+                    data: [
+                        {
+                            content: JSON.stringify(a),
+                            product_id: content.id,
+                        },
+                    ],
+                };
+            });
+            const result = await workers_js_1.Workers.query({
+                queryList: formatJsonData,
+                divisor: 8,
+            });
+            console.log(result);
+            await database_js_1.default.query(`update \`${this.app}\`.\`t_manager_post\`
              SET ?
              where id = ?
             `, [
-            {
-                content: JSON.stringify(content),
-            },
-            content.id,
-        ]);
+                {
+                    content: JSON.stringify(content),
+                },
+                content.id,
+            ]);
+        }
+        catch (error) {
+            throw exception_js_1.default.BadRequestError('BAD_REQUEST', 'postVariantsAndPriceValue Error:' + express_1.default, null);
+        }
     }
     async getDataAnalyze(tags) {
         try {

@@ -623,7 +623,6 @@ export class Shopping {
         type: 'add' | 'preview' | 'manual' | 'manual-preview' | 'POS' = 'add',
         replace_order_id?: string
     ) {
-        console.log(`data.give_away=>`, data.give_away);
         try {
             //判斷是重新付款則取代
             if (replace_order_id) {
@@ -1212,7 +1211,7 @@ export class Shopping {
             )[0];
             if (['FAMIC2C', 'UNIMARTC2C', 'HILIFEC2C', 'OKMARTC2C'].includes(carData.user_info.LogisticsSubType) && del_config) {
                 const keyData = del_config.value;
-                console.log(`超商物流單 開始建立（使用${keyData.Action === 'main' ? '正式' : '測試'}環境）`);
+                console.info(`超商物流單 開始建立（使用${keyData.Action === 'main' ? '正式' : '測試'}環境）`);
 
                 const delivery = await new Delivery(this.app).postStoreOrder({
                     LogisticsSubType: carData.user_info.LogisticsSubType,
@@ -1236,9 +1235,9 @@ export class Shopping {
                 });
                 if (delivery.result) {
                     carData.deliveryData = delivery.data;
-                    console.log('綠界物流訂單 建立成功');
+                    console.info('綠界物流訂單 建立成功');
                 } else {
-                    console.log(`綠界物流訂單 建立錯誤: ${delivery.message}`);
+                    console.info(`綠界物流訂單 建立錯誤: ${delivery.message}`);
                 }
             }
 
@@ -2353,51 +2352,58 @@ export class Shopping {
     }
 
     public async postVariantsAndPriceValue(content: any) {
-        content.variants = content.variants ?? [];
-        content.min_price = undefined;
-        content.max_price = undefined;
-        content.id &&
-            (await db.query(
-                `DELETE
-             from \`${this.app}\`.t_variants
-             WHERE (product_id = ${content.id})
-               and id > 0`,
-                []
-            ));
-        for (const a of content.variants) {
-            content.min_price = content.min_price ?? a.sale_price;
-            content.max_price = content.max_price ?? a.sale_price;
-            if (a.sale_price < content.min_price) {
-                content.min_price = a.sale_price;
+        try {
+            content.variants = content.variants ?? [];
+            content.min_price = undefined;
+            content.max_price = undefined;
+            if (content.id) {
+                await db.query(
+                    `DELETE FROM \`${this.app}\`.t_variants WHERE (product_id = ${content.id}) AND id > 0
+                    `,
+                    []
+                );
             }
-            if (a.sale_price > content.max_price) {
-                content.max_price = a.sale_price;
-            }
-            a.type = 'variants';
-            a.product_id = content.id;
+
+            const formatJsonData = content.variants.map((a: any) => {
+                content.min_price = content.min_price ?? a.sale_price;
+                content.max_price = content.max_price ?? a.sale_price;
+                if (a.sale_price < content.min_price) {
+                    content.min_price = a.sale_price;
+                }
+                if (a.sale_price > content.max_price) {
+                    content.max_price = a.sale_price;
+                }
+                a.type = 'variants';
+                a.product_id = content.id;
+                return {
+                    sql: `INSERT INTO \`${this.app}\`.t_variants SET ?`,
+                    data: [
+                        {
+                            content: JSON.stringify(a),
+                            product_id: content.id,
+                        },
+                    ],
+                };
+            });
+
+            await Workers.query({
+                queryList: formatJsonData,
+                divisor: 8,
+            });
+
             await db.query(
-                `INSERT INTO \`${this.app}\`.t_variants
-                 SET ?`,
+                `UPDATE \`${this.app}\`.\`t_manager_post\` SET ? WHERE id = ?
+                `,
                 [
                     {
-                        content: JSON.stringify(a),
-                        product_id: content.id,
+                        content: JSON.stringify(content),
                     },
+                    content.id,
                 ]
             );
+        } catch (error) {
+            throw exception.BadRequestError('BAD_REQUEST', 'postVariantsAndPriceValue Error:' + e, null);
         }
-        await db.query(
-            `update \`${this.app}\`.\`t_manager_post\`
-             SET ?
-             where id = ?
-            `,
-            [
-                {
-                    content: JSON.stringify(content),
-                },
-                content.id,
-            ]
-        );
     }
 
     async getDataAnalyze(tags: string[]) {
